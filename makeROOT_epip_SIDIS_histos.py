@@ -7,6 +7,7 @@
 # # On 7-18-2022:
     # # 1) Moved File Locations (new folders and data file)
     # # 2) New File name
+    # # 3) Updates to be given on GitHub now
 
 # # On 6-7-2022:
     # # 1) Histograms 20 Bin option
@@ -236,11 +237,11 @@
 
 from sys import argv
 # Let there be 4 arguements in argv when running this code
-# arguement 1: Name of this code (makeROOT_epip_Matched_histos.py)
+# arguement 1: Name of this code (makeROOT_epip_SIDIS_histos.py)
 # arguement 2: data-type
     # Options: 
     # 1) rdf --> Real Data
-    # 2) mdf --> MC REC Data
+    # 2) mdf --> MC REC Data (No event matching)
     # 3) gdf --> MC GEN Data
     # 4) pdf --> Bin Purity (Matched events between the MC Datasets)
 # arguement 3: output type
@@ -254,11 +255,11 @@ from sys import argv
 
 # NOTE: The 3rd arguement is not necessary if the option for "histo" is desired (i.e., code is backwards compatible and works with only 3 arguements if desired)
 
-# EXAMPLE: python makeROOT_epip_Matched_histos.py pdf All
+# EXAMPLE: python makeROOT_epip_SIDIS_histos.py pdf All
 
 # To see how many histograms will be made without processing any files, let the last arguement given be 'time'
 # i.e., run the command:
-# # python makeROOT_epip_Matched_histos.py df time
+# # python makeROOT_epip_SIDIS_histos.py df time
 # # # df above can be any of the data-type options given above
 
 try:
@@ -302,25 +303,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     file_num = str(file_location)
 
     if(datatype == "rdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/calc_sidis_epip_richcap_NC.inb.qa.skim4_00", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/calc_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
+        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
+
     if(datatype == "mdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/calc_MC_sidis_epip_richcap_NC.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/calc_MC_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        
     if(datatype == "gdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/calc_MC_Gen_sidis_epip_richcap_no_cut.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/calc_MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
     
     if(datatype == "pdf"):
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/MC_Matched_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/MC_Matched_sidis_epip_richcap_New.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_3/MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-#         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_4/MC_Matched_sidis_epip_richcap_Test_Rules_New_4.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-
+        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -330,78 +325,57 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ########################################################################################################################################################################
     
     
-    
     if(datatype == 'rdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/calc_sidis_epip_richcap_NC.inb.qa.skim4_00*")
-            rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00*")
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/calc_sidis_epip_richcap.inb.qa.skim4_00*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00*")
+            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
             
-            # files_used_for_data_frame = "calc_sidis_epip_richcap.inb.qa.skim4_00*"
-            # files_used_for_data_frame = "calc_sidis_epip_richcap_NC.inb.qa.skim4_00*"
-            files_used_for_data_frame = "calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00*"
+            files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"
             
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
             
-            # files_used_for_data_frame = "".join(["calc_sidis_epip_richcap_NC.inb.qa.skim4_00", str(file_num), "*"])
-            files_used_for_data_frame = "".join(["calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", str(file_num), "*"])
+            # files_used_for_data_frame = "".join(["calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00", str(file_num), "*"])
             
     if(datatype == 'mdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/calc_MC_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
+            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
             
-            # files_used_for_data_frame = "calc_MC_sidis_epip_richcap.inb.qa.45nA_job_*"
             files_used_for_data_frame = "calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
             
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
             
-            # files_used_for_data_frame = "".join(["calc_MC_sidis_epip_richcap_no_cut.inb.qa.45nA_job_", str(file_num), "*"])
             files_used_for_data_frame = "".join(["calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/calc_MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
+            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
             
-            files_used_for_data_frame = "calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
-            # files_used_for_data_frame = "calc_MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
+            # files_used_for_data_frame = "calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
+            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
             
         else:
-            
             rdf = ROOT.RDataFrame("h22", str(file_location))
             
-            # files_used_for_data_frame = "".join(["calc_MC_Gen_sidis_epip_richcap_no_cut.inb.qa.45nA_job_", str(file_num), "*"])
-            files_used_for_data_frame = "".join(["calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
-            
+            # files_used_for_data_frame = "".join(["calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'pdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/MC_Matched_sidis_epip_richcap.inb.qa.45nA_job_*")
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/MC_Matched_sidis_epip_richcap_New.inb.qa.45nA_job_*")
-            # rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_3/MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_*")
-#             rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_4/MC_Matched_sidis_epip_richcap_Test_Rules_New_4.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22","/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*")
+            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
 
-            # files_used_for_data_frame = "MC_Matched_sidis_epip_richcap.inb.qa.45nA_job_*"
-            # files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_New.inb.qa.45nA_job_*"
-            # files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_*"
-#             files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_Test_Rules_New_4.inb.qa.45nA_job_*"
-            files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*"
+            # files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*"
+            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
 
-            
         else:
-            
             rdf = ROOT.RDataFrame("h22", str(file_location))
             
-            # files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
-            # files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_New.inb.qa.45nA_job_", str(file_num), "*"])
-            # files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_", str(file_num), "*"])
-#             files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_", str(file_num), "*"])
-            
-            files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", str(file_num), "*"])
+            # files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
             
             
@@ -787,9 +761,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
         
     
-    #######################################################################
-    ##=====##  The above calculations are ran in the groovy code  ##=====##
-    #######################################################################
+    ##############################################################################
+    ##=====##  The above calculations used to be run in the groovy code  ##=====##
+    ##############################################################################
     
     
     
@@ -4606,28 +4580,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
             return output
         
-        
-        
-        
-        
-#         def Delta_Matched_Bin_Calc(Variable, Min_Bin, Max_Bin):
-#             output = "continue"
-#             Min_Dif, Max_Dif = (Min_Bin - Max_Bin), (Max_Bin - Min_Bin)
-#             if("th" in Variable):
-#                 Min_Dif, Max_Dif = -2, 2
-#             if("Phi" in Variable):
-#                 Min_Dif, Max_Dif = -6, 6
-#             Num_of_Bins = int((Max_Dif - Min_Dif)/0.025)
-#             if(Num_of_Bins < 200):
-#                 Num_of_Bins = 200
-#             elif(Num_of_Bins > 600):
-#                 Num_of_Bins = 600
-#             else:
-#                 Num_of_Bins = 400
-#             if(((Max_Dif - Min_Dif)/Num_of_Bins) > 1 and (Max_Dif - Min_Dif) < 800):
-#                 Num_of_Bins = int(Max_Dif - Min_Dif)
-#             output = [Num_of_Bins, Min_Dif, Max_Dif]
-#             return output
+
 
 
         
@@ -5583,38 +5536,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-#     Extra_Name = "Purity_V9_"
-# #     Extra_Name = "Just_Q2_"
-#     Extra_Name = "Purity_V11_"
-#     Extra_Name = "Purity_V12_"
-#     Extra_Name = "Purity_V13_"
-    
-#     Extra_Name = "Purity_V14_"
-    
-#     Extra_Name = "Purity_V14_New_"
-#     Extra_Name = "Purity_V16_"
-    
-    
-#     Extra_Name = "Purity_V17_"
-
-
-#     Extra_Name = "Purity_V19_2_Bin_Test_"
-
-#     Extra_Name = "Purity_V19_3_Bin_Test_"
-    
-#     Extra_Name = "Purity_V20_5_Bin_Test_"
-    
-#     Extra_Name = "Purity_V20_10_Bin_Test_"
-
-#     Extra_Name = "Purity_V21_20_Bin_Test_"
-    
-#     Extra_Name = "Purity_V22_20_Bin_Test_"
-    
-#     Extra_Name = "Purity_V23_20_Bin_Test_"
-
-#     Extra_Name = "Purity_V24_20_Bin_Test_"
-    
-    Extra_Name = "Purity_V25_20_Bin_Test_"
+    Extra_Name = "Bin_Test_20_"
     
     
     if(datatype == 'rdf'):
@@ -5655,7 +5577,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf", "miss_idf_el", "miss_idf_pip"]
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf"]
             # datatype_list = ["mdf", "pdf", "udf", "miss_idf"]
-            datatype_list = ["mdf", "pdf", "gen"]
+            # datatype_list = ["mdf", "pdf", "gen"]
+            datatype_list = ["mdf", "pdf"] # No need for "gen" if "gdf" will be run
         else:
             datatype_list = [datatype]
 
@@ -6138,7 +6061,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
     elif(output_type != "histo" and output_type != "test" and output_type != 'time'):
-#         ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
+        # ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
         print("Taking Snapshot...")
         rdf.Snapshot("h22", ROOT_File_Output_Name)
         print("Done\n\n")
