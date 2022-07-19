@@ -3535,6 +3535,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     if(datatype == "pdf"):
         
+        
         #############################################################################
         #####################     Generated Bin Definitions     #####################
         #---------------------------------------------------------------------------#
@@ -4388,6 +4389,133 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         ###########     End of Definitions for Generated z and pT Bins     ##########
         #---------------------------------------------------------------------------#
+        
+        
+    rdf = rdf.Define('Bin_4D', """
+
+        int add_to_bin = 0;
+        int Bin_4D = 0;
+
+        if(Q2_xB_Bin_2 == 0){
+            Bin_4D = 0;
+            return Bin_4D;
+        }
+        if(Q2_xB_Bin_2 == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin_2 == 2){
+            add_to_bin = 50;
+        }
+        if(Q2_xB_Bin_2 == 3){
+            add_to_bin = 100;
+        }
+        if(Q2_xB_Bin_2 == 4){
+            add_to_bin = 150;
+        }
+        if(Q2_xB_Bin_2 == 5){
+            add_to_bin = 193;
+        }
+        if(Q2_xB_Bin_2 == 6){
+            add_to_bin = 230;
+        }
+        if(Q2_xB_Bin_2 == 7){
+            add_to_bin = 256;
+        }
+        if(Q2_xB_Bin_2 == 8){
+            add_to_bin = 283;
+        }
+
+        Bin_4D = z_pT_Bin_2 + add_to_bin;
+
+        return Bin_4D;
+
+    """)
+
+
+
+    rdf = rdf.Define('Bin_4D_smeared', """
+
+        int add_to_bin = 0;
+        int Bin_4D_smeared = 0;
+
+        if(Q2_xB_Bin_2_smeared == 0){
+            Bin_4D_smeared = 0;
+            return Bin_4D_smeared;
+        }
+        if(Q2_xB_Bin_2_smeared == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin_2_smeared == 2){
+            add_to_bin = 50;
+        }
+        if(Q2_xB_Bin_2_smeared == 3){
+            add_to_bin = 100;
+        }
+        if(Q2_xB_Bin_2_smeared == 4){
+            add_to_bin = 150;
+        }
+        if(Q2_xB_Bin_2_smeared == 5){
+            add_to_bin = 193;
+        }
+        if(Q2_xB_Bin_2_smeared == 6){
+            add_to_bin = 230;
+        }
+        if(Q2_xB_Bin_2_smeared == 7){
+            add_to_bin = 256;
+        }
+        if(Q2_xB_Bin_2_smeared == 8){
+            add_to_bin = 283;
+        }
+
+        Bin_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
+
+        return Bin_4D_smeared;
+
+    """)
+        
+    if(datatype == "pdf"):
+        
+        rdf = rdf.Define('Bin_4D_gen', """
+        
+            int add_to_bin = 0;
+            int Bin_4D_gen = 0;
+            
+            if(Q2_xB_Bin_2_gen == 0){
+                Bin_4D_gen = 0;
+                return Bin_4D_gen;
+            }
+            if(Q2_xB_Bin_2_gen == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_2_gen == 2){
+                add_to_bin = 50;
+            }
+            if(Q2_xB_Bin_2_gen == 3){
+                add_to_bin = 100;
+            }
+            if(Q2_xB_Bin_2_gen == 4){
+                add_to_bin = 150;
+            }
+            if(Q2_xB_Bin_2_gen == 5){
+                add_to_bin = 193;
+            }
+            if(Q2_xB_Bin_2_gen == 6){
+                add_to_bin = 230;
+            }
+            if(Q2_xB_Bin_2_gen == 7){
+                add_to_bin = 256;
+            }
+            if(Q2_xB_Bin_2_gen == 8){
+                add_to_bin = 283;
+            }
+            
+            Bin_4D_gen = z_pT_Bin_2_gen + add_to_bin;
+            
+            return Bin_4D_gen;
+        
+        """)
+        
+        
         #####################     Generated Bin Definitions     #####################
         #############################################################################
         #####################      Matched Bin Definitions      #####################
@@ -4757,6 +4885,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             output = "#Delta_{Smeared}#theta_{#pi^{+}}"
         if(variable == 'Delta_Smear_Pip_Phi'):
             output = "#Delta_{Smeared}#phi_{#pi^{+}}"
+        if("Bin_4D" in variable):
+            output = "Combined 4D Bin"
+            
            
             
 
@@ -5499,10 +5630,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
 #     phi_t_Binning = ['phi_t', 0, 360, 45]
 #     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 45]
+
+
+
+
+    Binning_4D = ['Bin_4D', -5.5, 304.5, 310]
+    Binning_4D_Smeared = ['Bin_4D_smeared', -5.5, 304.5, 310]
     
     
-    List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
-    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared]
+    # List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
+    # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared]
+    
+    List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, Binning_4D]
+    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared]
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
     List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
