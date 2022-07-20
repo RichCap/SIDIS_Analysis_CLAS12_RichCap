@@ -2,20 +2,49 @@
 Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 
-## Note to self:
-- [ ] Run and test the additions made to the code on 7-19-2022
-    * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
-    * [ ] Re-familarize myself with the functioning of the bin migration histograms 
-    * [ ] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
+## Potential Ideas
+These ideas may or may not be implemented later (put here as a reminder to think about later)
+- [ ] Add additional kinematic bins to replace bin 0 (i.e., unbinned event)
+    * Purpose: Give more information on where the event may be migrating from relative to the existing bins
+        * Would give information such as: "Is the unbinned event above/below/to the left/right of the existing binning scheme"
+    * Would likely include:
+        - [ ] 4 new Q2-xB bins (up, down, left and right of bins)
+        - [ ] 8 new z-pT bins (up, down, left and right of bins plus 4 more bins for the corners which are both above/below the existing bins AND to the left/right of them as well)
 
-- [ ] In a future update, add the 4D binning to the original kinematic binning from Stephan
+
+## Note to self:
+- [x] Run and test the additions made to the code on 7-19-2022
+    * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
+    * [x] Re-familarize myself with the functioning of the bin migration histograms 
+    * [x] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
+        * Note from investigation: the 4D bins work best for "bin_migration_V3" instead of "bin_migration_V4" since "bin_migration_V4" is primarily useful at testing multiple bin schemes in the 1D cases (does not apply well to the 4D schemes that are already well defined)
+
+- [x] In a future update, add the 4D binning to the original kinematic binning from Stephan **(ADDED ON 7-20-2022)**
     * Should be used to show the improvement made by the new binning scheme to the bin migration caused by low Q2
     * Currently, more bin mirgation is occuring such that high generated Q2 is more likely to migrate than low Q2. This is being explained by the low Q2 events that most contribute to bin migration are already being cut by the Q2 > 2 GeV^2 requirement and (more importantly) by the modified bin scheme itself.
     * This addition should be added to verify that the bin migration is being addressed as intended
+    
 
     
 
 ## Commit Updates:
+
+### Update on 7-20-2022:
+#### Python Code Updates:
+* Added 4D binning scheme definition to the original kinematic bins developed by Stephan (Variable name = "Bin_4D_OG")
+* Changed the histogram bins of the "Bin_4D" histograms slightly (should primarily make a visual difference only)
+* Removed "Bin_4D" histograms from the "bin_migration_V4" option (exclusively to be used by "bin_migration_V3")
+* Needed to fix an issue that caused the "pdf" files to crash while running
+    * New Output File Names: Extra_Name = "Bin_Test_20_V3_"
+#### Jupyter Code Updates:
+* Minor changes (so far)
+#### Other Updates:
+* Added the groovy codes used to process the hipo files into the TTrees used by the python code (did not add the files that they produce)
+* Added the new ROOT files (Extra_Name = "Bin_Test_20_V2_") despite the fact that the MC_Matching files crashed while being created
+* New idea added to this README.md file that could be incorporated into this analysis later (Notes/Ideas section are now included in this file too)
+
+
+
 
 ### Update on 7-19-2022:
 #### Python Code Updates:
@@ -32,7 +61,7 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 * Updated the code to handle the new 4D binning option (getting ready to go from bin migration to acceptance)
 #### Other Updates:
 * Added the ROOT files (the python file's outputs) to the github directory (for use on local computers)
-    * Matching files were added at a later time (i.e., )
+* Added the .sh files too
 
 ### Update on 7-18-2022:
 * Updated file names in python code (Extra_Name = "Bin_Test_20_" - for output file name)

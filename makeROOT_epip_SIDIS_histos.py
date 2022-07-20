@@ -1,4 +1,4 @@
-# This Code was last updated on 7-19-2022
+# This Code was last updated on 7-20-2022
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -4258,6 +4258,96 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return Bin_4D_smeared;
 
     """)
+    
+    
+    
+    rdf = rdf.Define('Bin_4D_OG', """
+
+        int add_to_bin = 0;
+        int Bin_4D_OG = -1;
+
+        if(Q2_xB_Bin == 0){
+            Bin_4D_OG = -1;
+            return Bin_4D_OG;
+        }
+        if(Q2_xB_Bin == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin == 2){
+            add_to_bin = 50;
+        }
+        if(Q2_xB_Bin == 3){
+            add_to_bin = 100;
+        }
+        if(Q2_xB_Bin == 4){
+            add_to_bin = 150;
+        }
+        if(Q2_xB_Bin == 5){
+            add_to_bin = 193;
+        }
+        if(Q2_xB_Bin == 6){
+            add_to_bin = 243;
+        }
+        if(Q2_xB_Bin == 7){
+            add_to_bin = 269;
+        }
+        if(Q2_xB_Bin == 8){
+            add_to_bin = 306;
+        }
+        if(Q2_xB_Bin == 9){
+            add_to_bin = 327;
+        }
+
+        Bin_4D_OG = z_pT_Bin + add_to_bin;
+
+        return Bin_4D_OG;
+
+    """)
+
+
+
+    rdf = rdf.Define('Bin_4D_OG_smeared', """
+
+        int add_to_bin = 0;
+        int Bin_4D_OG_smeared = -1;
+
+        if(Q2_xB_Bin_smeared == 0){
+            Bin_4D_OG_smeared = -1;
+            return Bin_4D_OG_smeared;
+        }
+        if(Q2_xB_Bin_smeared == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin_smeared == 2){
+            add_to_bin = 50;
+        }
+        if(Q2_xB_Bin_smeared == 3){
+            add_to_bin = 100;
+        }
+        if(Q2_xB_Bin_smeared == 4){
+            add_to_bin = 150;
+        }
+        if(Q2_xB_Bin_smeared == 5){
+            add_to_bin = 193;
+        }
+        if(Q2_xB_Bin_smeared == 6){
+            add_to_bin = 243;
+        }
+        if(Q2_xB_Bin_smeared == 7){
+            add_to_bin = 269;
+        }
+        if(Q2_xB_Bin_smeared == 8){
+            add_to_bin = 306;
+        }
+        if(Q2_xB_Bin_smeared == 9){
+            add_to_bin = 327;
+        }
+
+        Bin_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
+
+        return Bin_4D_OG_smeared;
+
+    """)
         
     if(datatype == "pdf"):
         
@@ -4315,6 +4405,63 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         """)
         
         
+        rdf = rdf.Define('Bin_4D_OG_gen', """
+        
+            int add_to_bin = 0;
+            int Bin_4D_OG_gen = -1;
+            
+            
+            if(PID_el == 0 || PID_pip == 0){
+                // Event is unmatched
+                Bin_4D_OG_gen = -2;
+                return Bin_4D_OG_gen;
+                
+                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
+                // bin = -1 is given to matched event that did not land in any defined Q2-xB bins
+                // bin = 0 is given to events which land within the boarders of the first Q2-xB but does not land in any z-pT bins
+                // Note: Only bin = -2 is unique to the 'Bin_4D_OG_gen' variable. "bin = -1" and "bin = 0" hold identical meanings for all other datasets to which this scheme is applied
+                
+            }
+            
+            if(Q2_xB_Bin_gen == 0){
+                Bin_4D_OG_gen = -1;
+                return Bin_4D_OG_gen;
+            }
+            if(Q2_xB_Bin_gen == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_gen == 2){
+                add_to_bin = 50;
+            }
+            if(Q2_xB_Bin_gen == 3){
+                add_to_bin = 100;
+            }
+            if(Q2_xB_Bin_gen == 4){
+                add_to_bin = 150;
+            }
+            if(Q2_xB_Bin_gen == 5){
+                add_to_bin = 193;
+            }
+            if(Q2_xB_Bin_gen == 6){
+                add_to_bin = 243;
+            }
+            if(Q2_xB_Bin_gen == 7){
+                add_to_bin = 269;
+            }
+            if(Q2_xB_Bin_gen == 8){
+                add_to_bin = 306;
+            }
+           if(Q2_xB_Bin_gen == 9){
+                add_to_bin = 327;
+            }
+            
+            Bin_4D_OG_gen = z_pT_Bin_gen + add_to_bin;
+            
+            return Bin_4D_OG_gen;
+        
+        """)
+        
+        
         #####################     Generated Bin Definitions     #####################
         #############################################################################
         #####################      Matched Bin Definitions      #####################
@@ -4325,7 +4472,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
                 
                 if("sec" in variable):
                     gen_variable = gen_variable.replace("_a", "")
@@ -4372,7 +4519,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             out_put_DF = dataframe
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
                 # Already defined
                 return dataframe
                 
@@ -5433,15 +5580,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
 
-    Binning_4D = ['Bin_4D', -5.5, 304.5, 310]
-    Binning_4D_Smeared = ['Bin_4D_smeared', -5.5, 304.5, 310]
+    Binning_4D = ['Bin_4D', -1.5, 303.5, 306]
+    Binning_4D_Smeared = ['Bin_4D_smeared', -1.5, 303.5, 306]
+    
+    Binning_4D_OG = ['Bin_4D_OG', -1.5, 353.5, 356]
+    Binning_4D_OG_Smeared = ['Bin_4D_OG_smeared', -1.5, 353.5, 356]
+
     
     
     # List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
     # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared]
     
-    List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, Binning_4D]
-    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared]
+    List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, Binning_4D, Binning_4D_OG]
+    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared, Binning_4D_OG_Smeared]
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
     List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
@@ -5475,7 +5626,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_20_V2_"
+    Extra_Name = "Bin_Test_20_V3_"
     
     
     if(datatype == 'rdf'):
@@ -5608,8 +5759,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
                                             if("2" in smearing_Q):
                                                 Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-                                            if("2" not in smearing_Q and "Bin_4D" in str(list1[0])):
-                                                continue # 4D bins have only been defined with my new binning schemes
+                                            if("2" not in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" not in str(list1[0])):
+                                                continue # These 4D bins have only been defined with my new binning schemes
+                                            if("2" in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" in str(list1[0])):
+                                                continue # These 4D bins were defined with the original binning scheme
 
                                         if(option == "bin_purity"):
                                             cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
@@ -5897,24 +6050,43 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if("continue" in cutname):
                                             continue
 
-                                            
-  
-                                        BIN_SIZE = round((Var_List[2] - Var_List[1])/Var_List[3], 5)
-                                        Bin_Range = "".join([str(round((Var_List[1]), 3)), " -> ", str(round(Var_List[2], 3))])
-
-                                        Migration_Title = "".join(["#splitline{#splitline{#splitline{Bin Migration of ", variable_Title_name(variable), "}{Cut: ", str(cutname), "}}{#scale[1.5]{Number of Bins: ", str(Var_List[3]), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}}}{Same Binning Scheme as Other (Standard) Histograms}; ", variable_Title_name(variable), " (GEN) Bins; ", variable_Title_name(variable), " (REC) Bins"])
-
-                                        Migration_Histo_REF = ("Bin Migration V3", variable, smearing_Q, cut_choice, sec_type, sec_num)
                                         
                                         sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Var_List[1], Var_List[2], Var_List[3])
-                        
-                                        # num_of_REC_bins, min_REC_bin, Max_REC_bin = Var_List[3], 0, Var_List[3]
-                                        # num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Var_List[3] + 3), -1, (Var_List[3] + 2)
-                                    
-                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (Var_List[3] + 3), -0.5, (Var_List[3] + 2.5)
-                                        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Var_List[3] + 4), -0.5, (Var_List[3] + 3.5)
+                                        
+                                        
+                                        if("Bin_4D" not in variable):
+                                            BIN_SIZE = round((Var_List[2] - Var_List[1])/Var_List[3], 5)
+                                            Bin_Range = "".join([str(round((Var_List[1]), 3)), " -> ", str(round(Var_List[2], 3))])
 
-                                        histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str("".join([str(variable), "_GEN_BIN"])), str("".join([str(variable), "_REC_BIN"])))
+                                            Migration_Title = "".join(["#splitline{#splitline{#splitline{Bin Migration of ", variable_Title_name(variable), "}{Cut: ", str(cutname), "}}{#scale[1.5]{Number of Bins: ", str(Var_List[3]), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}}}{Same Binning Scheme as Other (Standard) Histograms}; ", variable_Title_name(variable), " (GEN) Bins; ", variable_Title_name(variable), " (REC) Bins"])
+
+                                            Migration_Histo_REF = ("Bin Migration V3", variable, smearing_Q, cut_choice, sec_type, sec_num)
+
+                                            # num_of_REC_bins, min_REC_bin, Max_REC_bin = Var_List[3], 0, Var_List[3]
+                                            # num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Var_List[3] + 3), -1, (Var_List[3] + 2)
+
+                                            num_of_REC_bins, min_REC_bin, Max_REC_bin = (Var_List[3] + 3), -0.5, (Var_List[3] + 2.5)
+                                            num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Var_List[3] + 4), -0.5, (Var_List[3] + 3.5)
+
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str("".join([str(variable), "_GEN_BIN"])), str("".join([str(variable), "_REC_BIN"])))
+                                            
+                                        else:
+
+                                            Migration_Title = "".join(["#splitline{#splitline{Bin Migration of ", variable_Title_name(variable), "}{Cut: ", str(cutname), "}}{#scale[1.5]{Number of Bins: ", "302" if("OG" not in variable) else "352", "}}; ", variable_Title_name(variable), " (GEN); ", variable_Title_name(variable), " (REC)"])
+
+                                            Migration_Histo_REF = ("Bin Migration V3", variable, smearing_Q, cut_choice, sec_type, sec_num)
+
+                                            # num_of_REC_bins, min_REC_bin, Max_REC_bin = Var_List[3], 0, Var_List[3]
+                                            # num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Var_List[3] + 3), -1, (Var_List[3] + 2)
+
+                                            min_REC_bin, max_REC_bin, num_of_REC_bins = Var_List[1], Var_List[2], Var_List[3]
+                                            min_GEN_bin, max_GEN_bin, num_of_GEN_bins = (Var_List[1] - 1), Var_List[2], (Var_List[3] + 1)
+                                            
+                                            variable_gen = str("".join([str(variable.replace("smeared_", "")), "_gen"])).replace("smeared_", "")
+
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, max_GEN_bin, num_of_REC_bins, min_REC_bin, max_REC_bin), variable_gen, str("".join([str(variable)])))
+                                            
+                                            
 
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
@@ -5931,13 +6103,16 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         
                                 elif(option == "bin_migration_V4"):
                                     
-                                    run_4D_bins_bin_migration_V4 = 0
+                                    # run_4D_bins_bin_migration_V4 = 0
                                     
                                     for bin_option in [2, 3, 4, 5, 10, 20, 40]:
                                         
                                         for Var_List in Variable_Loop:
 
                                             variable = Var_List[0]
+                                            if("Bin_4D" in variable):
+                                                # See bin_migration_V3 for Bin_4D options
+                                                continue
 
                                             cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "Cut")
 
@@ -5956,13 +6131,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 Min_range, Max_range = 0.24, 0.75
                                             if("phi_t" in variable):
                                                 Min_range, Max_range = 0, 360
-                                            if("Bin_4D" in variable):
-                                                Min_range, Max_range = -5.5, 304.5
-                                                bin_option = 310
-                                                if(run_4D_bins_bin_migration_V4 == 0):
-                                                    run_4D_bins_bin_migration_V4 += 1
-                                                else:
-                                                    continue
+                                            # if("Bin_4D" in variable):
+                                            #     Min_range, Max_range = -5.5, 304.5
+                                            #     bin_option = 310
+                                            #     if(run_4D_bins_bin_migration_V4 == 0):
+                                            #         run_4D_bins_bin_migration_V4 += 1
+                                            #     else:
+                                            #         continue
+
                                                 
                                             
                                             BIN_SIZE = round((Max_range - Min_range)/bin_option, 5)
@@ -6085,4 +6261,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 7-19-2022
+# This Code was last updated on 7-20-2022
