@@ -1,225 +1,11 @@
-# This Code was last updated on 7-18-2022
+# This Code was last updated on 7-19-2022
 # # Note-to-self: Also always update this note at end of script
 
 
 # Most recent update notes:
 
-# # On 7-18-2022:
-    # # 1) Moved File Locations (new folders and data file)
-    # # 2) New File name
-    # # 3) Updates to be given on GitHub now
+# # All Updates have been moved to the github page/README.md file
 
-# # On 6-7-2022:
-    # # 1) Histograms 20 Bin option
-    # # 2) Fixed Bin Migration Histograms
-        # (*) phi_t not (pre)defined properly for V4
-        # (*) Overflow bins set to 0 and bin_option + 1 (unmatched bin is bin_option + 2)
-        # (*) One extra bin is given above the unmatched bin so that an empty bin can make room for the z-axis scale
-        # (*) Axis is shifted so that the center of each bin is located at the bin's number (easier to read)
-    # # 3) Name is now: V25_20_Bin_Test
-
-# # On 6-6-2022:
-    # # 1) Histograms 20 Bin option
-    # # 2) New Bin Migration Histograms added
-        # (*) Runs all bin options at once (bins = 2, 3, 4, 5, 10, 20, and 40)
-        # (*) Kinematic ranges are pre-defined for each variable (using max ranges of the 2D binning scheme previously developed)
-        # (*) Binning is extended slightly beyond the overflow + unmatched binning ranges for 2 reasons, namely:
-                    # 1) Avoid possible issues with getting the bin numbers wrong
-                    # 2) If the above note is a non-issue, then to simply give more room in the histograms' borders
-    # # 3) Name is now: V24_20_Bin_Test
-
-# # On 6-3-2022:
-    # # 1) Using 20 Bin option (rerunning with fixes)
-    # # 2) Fixed issues with the bin migration histograms
-        # (*) Added information of events outside the given kinematic binning for REC events (previously only applied to GEN events)
-        # (*) Fixed issue with some histograms being saved over
-        # (*) Flipped the x and y axis (visual change)
-    # # 5) Name is now: V23_20_Bin_Test
-
-# # On 6-2-2022:
-    # # 1) Using 20 Bin option (rerunning with new options)
-    # # 2) Updated Binning for Q2 and xB (other variables remain the same)
-    # # 3) Running "gen" variable option
-    # # 4) Added new set of bin migration histograms that use variable bins instead of the variable's values to plot
-        # (*) Also added information of events outside the given kinematic binning (i.e., above/below the defined range as well as information on unmatched events)
-    # # 5) Name is now: V22_20_Bin_Test
-
-
-# # On 5-25-2022:
-    # # 1) Using 20 Bin option (rerunning for bin migration histograms)
-    # # 2) Changed bin migration histograms into 1 2D histogram per variable instead of 1 1D histogram for each REC bin of each variable (reduces number of calculations)
-    # # 3) Made the (new) bin migration histograms use the kinematic values for plotting instead of the actual bin numbers
-    # # 4) Added the kinematic variable 'y' back into the 1D and 2D histogram lists
-    # # 2) Name is now: V21_20_Bin_Test
-
-# # On 5-24-2022:
-    # # 1) Using 10 Bin option (rerunning for bin migration histograms)
-    # # 2) Name is now: V20_10_Bin_Test
-
-# # On 5-24-2022:
-    # # 1) Using 4 Bin option (New)
-    # # 2) Name is now: V20_4_Bin_Test
-
-# # On 5-24-2022:
-    # # 1) Error noticed in migration histograms - needed to rerun (did not use the correct histogram binning)
-    # # 2) Using 5 Bin option
-    # # 3) Name is now: V20_5_Bin_Test
-
-# # On 5-23-2022:
-    # # 1) Another new fewer bin option (3 bins of data)
-    # # 2) Name is now: V19_3_Bin_Test
-
-# # On 5-23-2022:
-    # # 1) New fewer bin option (2 bins of data - Needed to run twice due to error in option choice)
-    # # 2) Name is now: V19_2_Bin_Test
-
-# # On 5-23-2022:
-    # # 1) Added information on where the 'non-pure'/migrated events are migrating from (updated name from V18 to V19)
-    # # 2) Re-tested version of binning 1D binning (~5 bin option)
-    # # 3) Name is now: V19_5_Bin_Test
-
-# # On 5-19-2022:
-    # # 1) Tested next version of binning 1D binning (largest option)
-    # # 2) Name is now: V18_40_Bin_Test
-
-# # On 5-18-2022:
-    # # 1) Tested next version of binning 1D binning (2nd largest option)
-    # # 2) Name is now: V18_15_Bin_Test (should have been titles V18_20_Bin_Test)
-
-# # On 5-18-2022:
-    # # 1) Tested next version of binning 1D binning (2nd smallest option)
-    # # 2) Name is now: V18_10_Bin_Test
-
-# # On 5-18-2022:
-    # # 1) Removed many options that are not currently useful including:
-        # (*) 2D purity counts
-        # (*) All Q2-xB bins (just running "all" events)
-        # (*) Cut option without the new Q2 cut
-        # (*) Kinematics of the electron and π+ momentum and angles (i.e., only plotting Q2, xB, z, pT, and phi_t)
-    # # 2) Changed the new binning and cut to start at Q2 = 2 GeV^2 instead of at 1.95 GeV^2
-    # # 3) Starting tests of new 1D binning (currently testing smallest 1D bin option)
-    # # 4) Name is now: V18_5_Bin_Test
-
-# # On 5-17-2022:
-    # # 1) Error in V16 which caused the 2D bin purity histograms to not be run properly (now fixed)
-    # # 2) phi_t binning is now set to 36 bins (i.e., 10˚ per bin)
-    # # 3) Name is now up to "Purity_V17"
-
-# # On 5-16-2022:
-    # # 1) Forgot to log update for V15
-        # (*) Code was updated between 5-10-2022 and 5-16-2022
-    # # 2) 2D Binning was not updated properly 
-        # (*) z-pT bins always used old binning scheme when making cuts - Fixed in update
-    # # 3) phi_t binning is now set to 45 bins (i.e., 8˚ per bin)
-    # # 4) "Purity_V15" crashed while running (Now it should be fixed)
-    # # 5) Name is now up to "Purity_V16"
-
-
-# # On 5-10-2022:
-    # # 1) Forgot to update the code to use the Rules_5 (from groovy)
-        # (*) These rules had the fixed phi matching criteria (Max ∆Phi = 180˚)
-    # # 2) Name is now up to "Purity_V14_New_"
-        # (*) Did not go up to V15 because all else should be the same
-
-# # On 5-9-2022:
-    # # 1) Reduced the number of histograms to be created
-      # # Removed:
-        # (*) 2D Bin purity cut
-        # (*) GEN histograms (matched from pdf) 
-    # # 2) Made the 2D histogram binning smaller than the 1D bins (10 times as many bins for the same ranges)
-        # (*) Shows the defined binning (based on Stefan's 2D bins) better
-    # # 3) Redid how the count histogram works to make the axis labels strings instead of integers (should be easier to read with some formatting help)
-    # # 4) Added an option to take a snapshot of the dataframe
-        # (*) Produces a ROOT file with the TTree instead of histograms (like what the groovy script does)
-        # (*) All old code (i.e., the .sh files) should be compadible with this change, as the code will default to working the same way as before
-        # (*) NOTE: Files can be increadibly large. This feature might not be useful unless specific columns from the dataframe are selected to be outputted (option remains despite its current lack of usefulness)
-    # # 5) Name is now up to "Purity_V14_"
-
-# # On 5-3-2022:
-    # # 1) Reduced the number of histograms to be created
-      # # Removed:
-        # (*) Some Q2-xB bins
-        # (*) Specific particle mis-identification
-        # (*) Q2 < 2 cut
-        # (*) y plots (1D and 2D), MM plots, and W plots
-    # # 2) Name is now up to "Purity_V13_"
-
-
-# # On 5-2-2022:
-    # # 1) Updated Matching criteria (changed best match in groovy code)
-    # # 2) Added new type of 2D binning 
-      # # (*) Change stefan's binning to accommodate the cut on Q2 < 2
-      # # (*) New definition has 1 less bin as Bin 1 is combined with the original Bin 3 (even numbered bins are the same but odd numbered bins are number 2 less than they were - i.e., Bin 5 would now be Bin 3 and Bin 9 is now called Bin 7)
-      # # (*) Original binning still being used
-    # # 3) Added purity calculation to Q2-xB bins
-    # # 4) Changed phi_t binning again (8 degrees per bin - Range = 0-360 and # of Bins = 45)
-    # # 5) Name is now up to "Purity_V12_"
-
-# # On 4-26-2022:
-    # # 1) Changed phi_t binning (2 degrees per bin)
-    # # 2) Added 'Matched' filter condition (i.e., PID != 0) to purity calculation (redundancy)
-    # # 3) Name is now up to "Purity_V11_"
-
-# # On 4-25-2022:
-    # # 1) Changed Q2 and xB binning
-    # # 2) Added y to the histograms being produced (Also y vs xB as a 2D histogram)
-    # # 3) Added mis-identified matchs to the histogram options
-    # # 4) Not using the 2D binning options
-    # # 5) Name is now up to "Purity_V10_"
-
-# # On 4-19-2022:
-    # # 1) Changed how smearing was applied so that it remains consistent for the entire time that the code is running
-      # # (*) Old method would create a new smearing data set that may not always be consistent with prior uses of that code
-      # # (*) The above issue meant that 'matched', 'unmatched', and 'pure' data sets may not be internally compariable in the desired way once the data has been smeared
-      # # (*) Code now maintains one set group of smeared data for its entire runtime (this change may cause the code to take longer to run/require more memory - effect currently unknown)
-    # # 2) Updated all binning schemes based on results from prior versions
-    # # 3) Name is now up to "Purity_V9_"
-
-
-# # On 4-18-2022:
-    # # 1) Adjusted histogram binning (first major update since fixing the purity calculation)
-    # # 2) Change file location (new matching criteria + secondary match)
-      # #   (*) The feature of the new files which adds the second best match to the data frame was not used at the time of this update
-      # #   (*) File locations for 'pdf' are now: /lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_3/MC_Matched_sidis_epip_richcap_Test_Rules_New_3.inb.qa.45nA_job_*
-    # # 3) Reduced the number of histograms must be made before outputing the progress of the code while running (minor update to print progress - does not affect what is produced)
-    # # 4) Name is now up to "Purity_V8_"
-
-# # On 4-13-2022:
-    # # 1) Added histograms for unmatched data
-    # # 2) Name is now up to "Purity_V7_"
-
-# # On 4-11-2022:
-    # # 1) Fixed issue with bin purity calculation
-    # # 2) Switched files for matched MC data (now using the updated matching criteria)
-    # # 3) Name is now up to "Purity_V6_"
-
-
-# # On 4-4-2022:
-    # # 1) Rebinned the histograms again (V4)
-    # #   (*) V2 worked in all cases except for the MM, Q2, and pT (Q2 worked before for V2)
-    # # 2) Added count info on all (matched/unmatched) events that surived the cuts made (in addition to the existing count of MATCHED events that survived the cuts)
-    # # 3) Added a 3rd type of histogram to be produced with 'pdf'
-    # #   (*) datatype_2 = "gen" now creates histograms for the matched, generated events (from pdf)
-
-# # On 3-28-2022: 
-    # # Updated for use with the event matching/bin purity (too many changes to fully note)
-
-# # On 3-11-2022: 
-    # # 1) Fixed how smearing/cuts worked for more appropriate application to the datasets (i.e., smearing only for mdf and not cuts for gdf)
-    # # 2) New function for looping through cuts
-    # # 3) New cut on Q2 (Q2 < 2 can be cut now)
-    # # 4) Cleaned up notes below
-    
-
-# # On 2-28-2022: Prepared for Collaboration presentation
-
-# # On 2-7-2022: Removed temp definition of sectors -- Also not running sectors right now (too many histograms to be meaningful right now)
-
-# # On 1-31-2022:
-    # # 1) Did not run with pion sector info (did not have time to run before presentation)
-    # # 2) Added 3D->2D histograms (in addition to the 1D histograms this code was already designed to create)
-
-    
     
 # # This Code has been coverted such that 3D histograms are made instead of filtering Q2-xB/z-pT bins
 
@@ -4394,10 +4180,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     rdf = rdf.Define('Bin_4D', """
 
         int add_to_bin = 0;
-        int Bin_4D = 0;
+        int Bin_4D = -1; // Updated on 7-19-2022
 
         if(Q2_xB_Bin_2 == 0){
-            Bin_4D = 0;
+            Bin_4D = -1; // Updated on 7-19-2022
             return Bin_4D;
         }
         if(Q2_xB_Bin_2 == 1){
@@ -4436,10 +4222,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     rdf = rdf.Define('Bin_4D_smeared', """
 
         int add_to_bin = 0;
-        int Bin_4D_smeared = 0;
+        int Bin_4D_smeared = -1; // Updated on 7-19-2022
 
         if(Q2_xB_Bin_2_smeared == 0){
-            Bin_4D_smeared = 0;
+            Bin_4D_smeared = -1; // Updated on 7-19-2022
             return Bin_4D_smeared;
         }
         if(Q2_xB_Bin_2_smeared == 1){
@@ -4478,10 +4264,23 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         rdf = rdf.Define('Bin_4D_gen', """
         
             int add_to_bin = 0;
-            int Bin_4D_gen = 0;
+            int Bin_4D_gen = -1; // Updated on 7-19-2022
+            
+            
+            if(PID_el == 0 || PID_pip == 0){
+                // Event is unmatched
+                Bin_4D_gen = -2; // Added on 7-19-2022
+                return Bin_4D_gen;
+                
+                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
+                // bin = -1 is given to matched event that did not land in any defined Q2-xB bins
+                // bin = 0 is given to events which land within the boarders of the first Q2-xB but does not land in any z-pT bins
+                // Note: Only bin = -2 is unique to the 'Bin_4D_gen' variable. "bin = -1" and "bin = 0" hold identical meanings for all other datasets to which this scheme is applied
+                
+            }
             
             if(Q2_xB_Bin_2_gen == 0){
-                Bin_4D_gen = 0;
+                Bin_4D_gen = -1; // Updated on 7-19-2022
                 return Bin_4D_gen;
             }
             if(Q2_xB_Bin_2_gen == 1){
@@ -4601,7 +4400,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             out_put_DF = dataframe
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
                 # Already defined
                 return dataframe
                 
@@ -5676,7 +5475,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_20_"
+    Extra_Name = "Bin_Test_20_V2_"
     
     
     if(datatype == 'rdf'):
@@ -5809,6 +5608,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
                                             if("2" in smearing_Q):
                                                 Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                            if("2" not in smearing_Q and "Bin_4D" in str(list1[0])):
+                                                continue # 4D bins have only been defined with my new binning schemes
 
                                         if(option == "bin_purity"):
                                             cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
@@ -6130,6 +5931,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         
                                 elif(option == "bin_migration_V4"):
                                     
+                                    run_4D_bins_bin_migration_V4 = 0
+                                    
                                     for bin_option in [2, 3, 4, 5, 10, 20, 40]:
                                         
                                         for Var_List in Variable_Loop:
@@ -6153,6 +5956,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 Min_range, Max_range = 0.24, 0.75
                                             if("phi_t" in variable):
                                                 Min_range, Max_range = 0, 360
+                                            if("Bin_4D" in variable):
+                                                Min_range, Max_range = -5.5, 304.5
+                                                bin_option = 310
+                                                if(run_4D_bins_bin_migration_V4 == 0):
+                                                    run_4D_bins_bin_migration_V4 += 1
+                                                else:
+                                                    continue
+                                                
                                             
                                             BIN_SIZE = round((Max_range - Min_range)/bin_option, 5)
                                             Bin_Range = "".join([str(Min_range), " -> ", str(Max_range)])
@@ -6274,4 +6085,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 7-18-2022
+# This Code was last updated on 7-19-2022
