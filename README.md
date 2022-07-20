@@ -3,11 +3,12 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 
 ## Note to self:
-* [] Run and test the additions made to the code on 7-19-2022
+- [ ] Run and test the additions made to the code on 7-19-2022
     * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
-    * [] Re-familarize myself with the functioning of the bin migration histograms 
-    * [] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
-* [] In a future update, add the 4D binning to the original kinematic binning from Stephan
+    * [ ] Re-familarize myself with the functioning of the bin migration histograms 
+    * [ ] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
+
+- [ ] In a future update, add the 4D binning to the original kinematic binning from Stephan
     * Should be used to show the improvement made by the new binning scheme to the bin migration caused by low Q2
     * Currently, more bin mirgation is occuring such that high generated Q2 is more likely to migrate than low Q2. This is being explained by the low Q2 events that most contribute to bin migration are already being cut by the Q2 > 2 GeV^2 requirement and (more importantly) by the modified bin scheme itself.
     * This addition should be added to verify that the bin migration is being addressed as intended
