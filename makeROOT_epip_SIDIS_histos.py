@@ -4832,7 +4832,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(variable == 'Delta_Smear_Pip_Phi'):
             output = "#Delta_{Smeared}#phi_{#pi^{+}}"
         if("Bin_4D" in variable):
-            output = "Combined 4D Bin"
+            output = "".join(["Combined 4D Bin", " (Original)" if("OG" in variable) else ""])
             
            
             
