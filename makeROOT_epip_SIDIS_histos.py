@@ -1,4 +1,4 @@
-# This Code was last updated on 7-20-2022
+# This Code was last updated on 7-28-2022
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -5195,6 +5195,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     # List_of_Q2_xB_Bins_to_include = [-1, -2]
 #     List_of_Q2_xB_Bins_to_include = [-1]
+
+
+    List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
     
     
     
@@ -5580,6 +5583,40 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
 
+
+
+
+
+    # Bin Set Option: GRC Poster binning
+    Q2_Binning = ['Q2', 2, 11.351, 5]
+    Q2_Binning_Smeared = ['Q2_smeared', 2, 11.351, 5]
+    # Bin size: 1.8702 per bin
+    
+    xB_Binning = ['xB', 0.126602, 0.7896, 5]
+    xB_Binning_Smeared = ['xB_smeared', 0.126602, 0.7896, 5]
+    # Bin size: 0.1325996 per bin
+
+    z_Binning = ['z', 0.15, 0.7, 5]
+    z_Binning_Smeared = ['z_smeared', 0.15, 0.7, 5]
+    # Bin size: 0.11 per bin
+    
+    pT_Binning = ['pT', 0.05, 1, 5]
+    pT_Binning_Smeared = ['pT_smeared', 0.05, 1, 5]
+    # Bin size: 0.19 per bin
+
+    y_Binning = ['y', 0, 1, 5]
+    y_Binning_Smeared = ['y_smeared', 0, 1, 5]
+    # Bin size: 0.2 per bin
+    
+    phi_t_Binning = ['phi_t', 0, 360, 36]
+    phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
+    # Bin size: 10 per bin
+    
+    
+    
+    
+    
+
     Binning_4D = ['Bin_4D', -1.5, 303.5, 306]
     Binning_4D_Smeared = ['Bin_4D_smeared', -1.5, 303.5, 306]
     
@@ -5594,10 +5631,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, Binning_4D, Binning_4D_OG]
     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared, Binning_4D_OG_Smeared]
     
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
-    List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
+    # List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
     
-    
+    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
+    List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
     
     
     
@@ -5626,7 +5664,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_20_V3_"
+    Extra_Name = "Bin_Test_GRC_"
     
     
     if(datatype == 'rdf'):
@@ -5676,7 +5714,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
             ##=====##    Smearing Loop    ##=====##
 
-            for smearing_Q in ["", "smear", "2", "smear_2"]:
+            # for smearing_Q in ["", "smear", "2", "smear_2"]:
+            for smearing_Q in ["2", "smear_2"]:
 
                 Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "Q2_xB_Bin", "z_pT_Bin"
 
@@ -5724,7 +5763,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # histo_options = ["has_matched", "bin_purity", "bin_2D_purity", "counts"]
                                 # histo_options = ["has_matched", "bin_purity", "counts"]
 #                                 histo_options = ["has_matched", "bin_purity", "counts", "bin_migration"]
-                                histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
+#                                 histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
+                                histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
                                 # Meaning of the above options:
                                 # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
                                 # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
@@ -6105,7 +6145,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     # run_4D_bins_bin_migration_V4 = 0
                                     
-                                    for bin_option in [2, 3, 4, 5, 10, 20, 40]:
+#                                     for bin_option in [2, 3, 4, 5, 10, 20, 40]:
+                                    for bin_option in [2, 3, 4, 5, 10]:
                                         
                                         for Var_List in Variable_Loop:
 
@@ -6261,4 +6302,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 7-20-2022
+# This Code was last updated on 7-28-2022

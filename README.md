@@ -2,8 +2,47 @@
 Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 
+
+## To-do List (General)
+This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
+- [ ] Run Q2-xB bins and z-pT bins separately in the same way that the 4D bins are run 
+    * want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
+- [ ] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
+* On the Poster for GRC:
+    - [x] Add section which describes the event/reaction being studied
+        - [x] Particles involved
+        - [x] Cuts used to ensure SIDIS event
+        - [x] Where are the particles being detected (answer: the forward detector)
+        - [x] Show definition of phi_t
+    - [x] Merge existing "Background" and "Motivations" sections into one section
+    - [x] The equations showing the bin volume dependance towards the cross-section belongs in a separate section
+        * That equation denotes the experimental way of measuring the cross-section
+        - [x] **Make a section which describe how I will handle the data experimentally**
+            - [x] Introduce Acceptance/Bin Migration concepts here (?)
+                * Note how this makes the MC data important to analyze
+    - [x] **Show comparison between data and MC**
+        - [x] Start with Q2-xB binning (One 2D histogram of Q2 vs xB plus two 1D histograms of both variables)
+        - [x] Pick one Q2-xB bin and show the z-pT bin comparisons for it (break down in the same way as the point above)
+        - [x] Pick one z-pT bin and show the phi_t distributions for it
+    - [x] Show 1D Acceptance Matrix (Show the 2D histograms for a 1D variable)
+        - [x] Show for at least one variable if not all 5
+        - [x] Potentially try to show the Multi-dimensional matrixes if space allows
+            * Start with 2D bins before moving to the 4D/5D bins
+            * If space does not allow for this, mention this aspect of the analysis as "Next Step" to be worked on
+        
+    
+
+
+
 ## Potential Ideas
 These ideas may or may not be implemented later (put here as a reminder to think about later)
+- [ ] Add the interactive python code to the GitHub repository 
+    * Purpose: so that others can have the more user-friendly version of the code if they are given access to this repository
+        * Would give me a greater reason to share this repository with others
+    * Would likely include:
+        - [ ] Adding the jupyter notebook file (with edits to run using the files available on GitHub)
+        - [ ] Adding additional features to that notebook to keep it concurrent with the available code
+            * May want to consider it the "master" version of the code while the existing verision would be the "working" version were new code and ideas are tested
 - [ ] Add additional kinematic bins to replace bin 0 (i.e., unbinned event)
     * Purpose: Give more information on where the event may be migrating from relative to the existing bins
         * Would give information such as: "Is the unbinned event above/below/to the left/right of the existing binning scheme"
@@ -29,6 +68,23 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 
 ## Commit Updates:
+
+### Update on 7-22-2022:
+#### Python Code Updates:
+* Changed binning options to make histograms for the GRC conference 
+    * 1D binning now only extends from the minimum 2D bin boundry to the maximum 2D bin boundry (not meant to show the full kinematic distributions, just those that would fall into the 2D binning schemes)
+    * 1D bins now set to 5 bins total
+    * 2D histograms now being displayed with finer binning (200 bin per variable with the bin size being arbitrary - for display purposes only)
+* Added the particle kinematics to the 2D histograms (will use to show event selection with all analysis cuts)
+* Only using updated 2D binning schemes (Stephan's orginal scheme is not necessary at this moment)
+    * Only running Q2-xB bins up to bin 8
+* Removed unnecessary histogram options such as "count" and previous versions of "bin_migration" (versions 1 and 2 are not being run)
+#### Jupyter Code Updates:
+* Added the Acceptance Matrices
+* Updated the formatting of histograms (for GRC poster)
+#### Other Updates:
+* Extra_Name = "Bin_Test_GRC_" output files added
+* Cannot upload these files due to size limit
 
 
 ### Update on 7-21-2022:
