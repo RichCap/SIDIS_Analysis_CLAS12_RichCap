@@ -2,27 +2,66 @@
 Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 
+
+## To-do List (General)
+This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
+- [ ] Run Q2-xB bins and z-pT bins separately in the same way that the 4D bins are run 
+    * want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
+- [ ] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
+* On the Poster for GRC:
+    - [x] Add section which describes the event/reaction being studied
+        - [x] Particles involved
+        - [x] Cuts used to ensure SIDIS event
+        - [x] Where are the particles being detected (answer: the forward detector)
+        - [x] Show definition of phi_t
+    - [x] Merge existing "Background" and "Motivations" sections into one section
+    - [x] The equations showing the bin volume dependance towards the cross-section belongs in a separate section
+        * That equation denotes the experimental way of measuring the cross-section
+        - [x] **Make a section which describe how I will handle the data experimentally**
+            - [x] Introduce Acceptance/Bin Migration concepts here (?)
+                * Note how this makes the MC data important to analyze
+    - [x] **Show comparison between data and MC**
+        - [x] Start with Q2-xB binning (One 2D histogram of Q2 vs xB plus two 1D histograms of both variables)
+        - [x] Pick one Q2-xB bin and show the z-pT bin comparisons for it (break down in the same way as the point above)
+        - [x] Pick one z-pT bin and show the phi_t distributions for it
+    - [x] Show 1D Acceptance Matrix (Show the 2D histograms for a 1D variable)
+        - [x] Show for at least one variable if not all 5
+        - [x] Potentially try to show the Multi-dimensional matrixes if space allows
+            * Start with 2D bins before moving to the 4D/5D bins
+            * If space does not allow for this, mention this aspect of the analysis as "Next Step" to be worked on
+        
+    
+
+
+
 ## Potential Ideas
-    These ideas may or may not be implemented later (put here as a reminder to think about later)
-    - [ ] Add additional kinematic bins to replace bin 0 (i.e., unbinned event)
-        * Purpose: Give more information on where the event may be migrating from relative to the existing bins
-            * Would give information such as: "Is the unbinned event above/below/to the left/right of the existing binning scheme"
-        * Would likely include:
-            - [ ] 4 new Q2-xB bins (up, down, left and right of bins)
-            - [ ] 8 new z-pT bins (up, down, left and right of bins plus 4 more bins for the corners which are both above/below the existing bins AND to the left/right of them as well)
+These ideas may or may not be implemented later (put here as a reminder to think about later)
+- [ ] Add the interactive python code to the GitHub repository 
+    * Purpose: so that others can have the more user-friendly version of the code if they are given access to this repository
+        * Would give me a greater reason to share this repository with others
+    * Would likely include:
+        - [ ] Adding the jupyter notebook file (with edits to run using the files available on GitHub)
+        - [ ] Adding additional features to that notebook to keep it concurrent with the available code
+            * May want to consider it the "master" version of the code while the existing verision would be the "working" version were new code and ideas are tested
+- [ ] Add additional kinematic bins to replace bin 0 (i.e., unbinned event)
+    * Purpose: Give more information on where the event may be migrating from relative to the existing bins
+        * Would give information such as: "Is the unbinned event above/below/to the left/right of the existing binning scheme"
+    * Would likely include:
+        - [ ] 4 new Q2-xB bins (up, down, left and right of bins)
+        - [ ] 8 new z-pT bins (up, down, left and right of bins plus 4 more bins for the corners which are both above/below the existing bins AND to the left/right of them as well)
 
 
 ## Note to self:
-    - [x] Run and test the additions made to the code on 7-19-2022
-        * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
-        * [x] Re-familarize myself with the functioning of the bin migration histograms 
-        * [x] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
-            * Note from investigation: the 4D bins work best for "bin_migration_V3" instead of "bin_migration_V4" since "bin_migration_V4" is primarily useful at testing multiple bin schemes in the 1D cases (does not apply well to the 4D schemes that are already well defined)
+- [x] Run and test the additions made to the code on 7-19-2022
+    * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
+    * [x] Re-familarize myself with the functioning of the bin migration histograms 
+    * [x] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
+        * Note from investigation: the 4D bins work best for "bin_migration_V3" instead of "bin_migration_V4" since "bin_migration_V4" is primarily useful at testing multiple bin schemes in the 1D cases (does not apply well to the 4D schemes that are already well defined)
 
-    - [x] In a future update, add the 4D binning to the original kinematic binning from Stephan **(ADDED ON 7-20-2022)**
-        * Should be used to show the improvement made by the new binning scheme to the bin migration caused by low Q2
-        * Currently, more bin mirgation is occuring such that high generated Q2 is more likely to migrate than low Q2. This is being explained by the low Q2 events that most contribute to bin migration are already being cut by the Q2 > 2 GeV^2 requirement and (more importantly) by the modified bin scheme itself.
-        * This addition should be added to verify that the bin migration is being addressed as intended
+- [x] In a future update, add the 4D binning to the original kinematic binning from Stephan **(ADDED ON 7-20-2022)**
+    * Should be used to show the improvement made by the new binning scheme to the bin migration caused by low Q2
+    * Currently, more bin mirgation is occuring such that high generated Q2 is more likely to migrate than low Q2. This is being explained by the low Q2 events that most contribute to bin migration are already being cut by the Q2 > 2 GeV^2 requirement and (more importantly) by the modified bin scheme itself.
+    * This addition should be added to verify that the bin migration is being addressed as intended
     
 
 ---
@@ -30,42 +69,73 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## Commit Updates:
 
+### Update on 7-22-2022:
+#### Python Code Updates:
+* Changed binning options to make histograms for the GRC conference 
+    * 1D binning now only extends from the minimum 2D bin boundry to the maximum 2D bin boundry (not meant to show the full kinematic distributions, just those that would fall into the 2D binning schemes)
+    * 1D bins now set to 5 bins total
+    * 2D histograms now being displayed with finer binning (200 bin per variable with the bin size being arbitrary - for display purposes only)
+* Added the particle kinematics to the 2D histograms (will use to show event selection with all analysis cuts)
+* Only using updated 2D binning schemes (Stephan's orginal scheme is not necessary at this moment)
+    * Only running Q2-xB bins up to bin 8
+* Removed unnecessary histogram options such as "count" and previous versions of "bin_migration" (versions 1 and 2 are not being run)
+#### Jupyter Code Updates:
+* Added the Acceptance Matrices
+* Updated the formatting of histograms (for GRC poster)
+#### Other Updates:
+* Extra_Name = "Bin_Test_GRC_" output files added
+* Cannot upload these files due to size limit
+
+
+### Update on 7-21-2022:
+#### Python Code Updates:
+* Updated Variable name function for "Bin_4D_OG" (Files up to "Bin_Test_20_V3_" will have their names be identical)
+    * This issue did not corrupt any file
+* New Output File Names: Extra_Name = "Bin_Test_20_V3_" (Unchanged right now)
+#### Jupyter Code Updates:
+* Updates to Data Set Comparison Code (new version of comparison added)
+* Other updates to formating and existing outputs
+#### Other Updates:
+* Extra_Name = "Bin_Test_20_V3_" output files added
+
+
+
 ### Update on 7-20-2022:
 #### Python Code Updates:
-    * Added 4D binning scheme definition to the original kinematic bins developed by Stephan (Variable name = "Bin_4D_OG")
-    * Changed the histogram bins of the "Bin_4D" histograms slightly (should primarily make a visual difference only)
-    * Removed "Bin_4D" histograms from the "bin_migration_V4" option (exclusively to be used by "bin_migration_V3")
-    * Needed to fix an issue that caused the "pdf" files to crash while running
-        * New Output File Names: Extra_Name = "Bin_Test_20_V3_"
+* Added 4D binning scheme definition to the original kinematic bins developed by Stephan (Variable name = "Bin_4D_OG")
+* Changed the histogram bins of the "Bin_4D" histograms slightly (should primarily make a visual difference only)
+* Removed "Bin_4D" histograms from the "bin_migration_V4" option (exclusively to be used by "bin_migration_V3")
+* Needed to fix an issue that caused the "pdf" files to crash while running
+    * New Output File Names: Extra_Name = "Bin_Test_20_V3_"
 #### Jupyter Code Updates:
-    * Minor changes (so far)
+* Minor changes (so far)
 #### Other Updates:
-    * Added the groovy codes used to process the hipo files into the TTrees used by the python code (did not add the files that they produce)
-    * Added the new ROOT files (Extra_Name = "Bin_Test_20_V2_") despite the fact that the MC_Matching files crashed while being created
-    * New idea added to this README.md file that could be incorporated into this analysis later (Notes/Ideas section are now included in this file too)
+* Added the groovy codes used to process the hipo files into the TTrees used by the python code (did not add the files that they produce)
+* Added the new ROOT files (Extra_Name = "Bin_Test_20_V2_") despite the fact that the MC_Matching files crashed while being created
+* New idea added to this README.md file that could be incorporated into this analysis later (Notes/Ideas section are now included in this file too)
 
 
 
 
 ### Update on 7-19-2022:
 #### Python Code Updates:
-    * (Newer Update) Changed the 4D binning scheme slightly 
-        1) 4D bins start at -1 to correspond to events that land outside of the Q2-xB binnning (Bin 0 is for Q2-xB bin 1 events that do not land into a defined z-pT bin)
-            * A value of -2 is given to the generated events that are not matched to a reconstructed event (only for the 'pdf' files)
-        2) Removed the histograms produced with this binning scheme that do not also use the updated Q2-xB binning scheme (i.e., the one that only goes up to bin 8)
-            * The 4D binning scheme is only properly defined for this version of the 2D bins so using the original binning schemes is useless
-        3) Files uploaded as of 7-19-2022 do NOT include these updates (Extra_Name will be updated to "Bin_Test_20_V2_" for that update)
-    * Added new type of kinematic binning which combines the Q2-xB bins with the z-pT bins to form a continuous binning scheme
-    * Ran all data files
+* (Newer Update) Changed the 4D binning scheme slightly 
+    1) 4D bins start at -1 to correspond to events that land outside of the Q2-xB binnning (Bin 0 is for Q2-xB bin 1 events that do not land into a defined z-pT bin)
+        * A value of -2 is given to the generated events that are not matched to a reconstructed event (only for the 'pdf' files)
+    2) Removed the histograms produced with this binning scheme that do not also use the updated Q2-xB binning scheme (i.e., the one that only goes up to bin 8)
+        * The 4D binning scheme is only properly defined for this version of the 2D bins so using the original binning schemes is useless
+    3) Files uploaded as of 7-19-2022 do NOT include these updates (Extra_Name will be updated to "Bin_Test_20_V2_" for that update)
+* Added new type of kinematic binning which combines the Q2-xB bins with the z-pT bins to form a continuous binning scheme
+* Ran all data files
 #### Jupyter Code Updates:
-    * Switched file names to work with current directories
-    * Updated the code to handle the new 4D binning option (getting ready to go from bin migration to acceptance)
+* Switched file names to work with current directories
+* Updated the code to handle the new 4D binning option (getting ready to go from bin migration to acceptance)
 #### Other Updates:
-    * Added the ROOT files (the python file's outputs) to the github directory (for use on local computers)
-    * Added the .sh files too
+* Added the ROOT files (the python file's outputs) to the github directory (for use on local computers)
+* Added the .sh files too
 
 ### Update on 7-18-2022:
-    * Updated file names in python code (Extra_Name = "Bin_Test_20_" - for output file name)
+* Updated file names in python code (Extra_Name = "Bin_Test_20_" - for output file name)
 
 
 
@@ -74,7 +144,7 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 
 ## Older Updates:
-    All of the following updates were written in the Python code directly before this Github was created...
+All of the following updates were written in the Python code directly before this Github was created...
 
 
 ### On 7-18-2022:
