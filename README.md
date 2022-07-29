@@ -9,7 +9,6 @@ This list will be updated as items are completed. Items here may not always rela
     * want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
 - [ ] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
 * On the Poster for GRC:
-<<<<<<< HEAD
     - [x] Add section which describes the event/reaction being studied
         - [x] Particles involved
         - [x] Cuts used to ensure SIDIS event
@@ -28,26 +27,6 @@ This list will be updated as items are completed. Items here may not always rela
     - [x] Show 1D Acceptance Matrix (Show the 2D histograms for a 1D variable)
         - [x] Show for at least one variable if not all 5
         - [x] Potentially try to show the Multi-dimensional matrixes if space allows
-=======
-    - [ ] Add section which describes the event/reaction being studied
-        - [ ] Particles involved
-        - [ ] Cuts used to ensure SIDIS event
-        - [ ] Where are the particles being detected (answer: the forward detector)
-        - [ ] Show definition of phi_t
-    - [ ] Merge existing "Background" and "Motivations" sections into one section
-    - [ ] The equations showing the bin volume dependance towards the cross-section belongs in a separate section
-        * That equation denotes the experimental way of measuring the cross-section
-        - [ ] **Make a section which describe how I will handle the data experimentally**
-            - [ ] Introduce Acceptance/Bin Migration concepts here (?)
-                * Note how this makes the MC data important to analyze
-    - [ ] **Show comparison between data and MC**
-        - [ ] Start with Q2-xB binning (One 2D histogram of Q2 vs xB plus two 1D histograms of both variables)
-        - [ ] Pick one Q2-xB bin and show the z-pT bin comparisons for it (break down in the same way as the point above)
-        - [ ] Pick one z-pT bin and show the phi_t distributions for it
-    - [ ] Show 1D Acceptance Matrix (Show the 2D histograms for a 1D variable)
-        - [ ] Show for at least one variable if not all 5
-        - [ ] Potentially try to show the Multi-dimensional matrixes if space allows
->>>>>>> 9621df0f97f2578910156a4af01498f2ec9a2d93
             * Start with 2D bins before moving to the 4D/5D bins
             * If space does not allow for this, mention this aspect of the analysis as "Next Step" to be worked on
         
@@ -90,7 +69,6 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 ## Commit Updates:
 
-<<<<<<< HEAD
 ### Update on 7-22-2022:
 #### Python Code Updates:
 * Changed binning options to make histograms for the GRC conference 
@@ -108,8 +86,6 @@ These ideas may or may not be implemented later (put here as a reminder to think
 * Extra_Name = "Bin_Test_GRC_" output files added
 * Cannot upload these files due to size limit
 
-=======
->>>>>>> 9621df0f97f2578910156a4af01498f2ec9a2d93
 
 ### Update on 7-21-2022:
 #### Python Code Updates:
