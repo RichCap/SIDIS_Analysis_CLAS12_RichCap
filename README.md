@@ -5,6 +5,8 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
+- [ ] Run 1D bin acceptance by plotting the variables against each other, not their bin numbers
+    * This will reduce future errors by limiting the confusion when dividing the migration matrix by the 1D generated histograms to get the acceptance matrix
 - [ ] Run Q2-xB bins and z-pT bins separately in the same way that the 4D bins are run 
     * want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
 - [ ] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
@@ -52,6 +54,7 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 
 ## Note to self:
+- [ ] Add option to jupyter notebook to select user range when defining the variable lists (add later)
 - [x] Run and test the additions made to the code on 7-19-2022
     * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
     * [x] Re-familarize myself with the functioning of the bin migration histograms 
@@ -69,6 +72,15 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 ## Commit Updates:
 
+
+### Update on 8-4-2022:
+#### Jupyter Code Updates:
+* Formatting update for GRC poster
+* Changed phi_t to phi_h in titles (code variable is still called phi_t)
+* Changed pT to PT (same note/reason as the change to phi_t)
+* Added units to histograms
+
+
 ### Update on 7-22-2022:
 #### Python Code Updates:
 * Changed binning options to make histograms for the GRC conference 
@@ -82,6 +94,7 @@ These ideas may or may not be implemented later (put here as a reminder to think
 #### Jupyter Code Updates:
 * Added the Acceptance Matrices
 * Updated the formatting of histograms (for GRC poster)
+* Removed full list of individual files (existed before I started to use hadd command to combine ROOT files)
 #### Other Updates:
 * Extra_Name = "Bin_Test_GRC_" output files added
 * Cannot upload these files due to size limit
