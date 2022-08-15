@@ -8,33 +8,12 @@ This list will be updated as items are completed. Items here may not always rela
 - [ ] Run 1D bin acceptance by plotting the variables against each other, not their bin numbers
     * This will reduce future errors by limiting the confusion when dividing the migration matrix by the 1D generated histograms to get the acceptance matrix
 - [ ] Run Q2-xB bins and z-pT bins separately in the same way that the 4D bins are run 
-    * want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
-- [ ] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
-* On the Poster for GRC:
-    - [x] Add section which describes the event/reaction being studied
-        - [x] Particles involved
-        - [x] Cuts used to ensure SIDIS event
-        - [x] Where are the particles being detected (answer: the forward detector)
-        - [x] Show definition of phi_t
-    - [x] Merge existing "Background" and "Motivations" sections into one section
-    - [x] The equations showing the bin volume dependance towards the cross-section belongs in a separate section
-        * That equation denotes the experimental way of measuring the cross-section
-        - [x] **Make a section which describe how I will handle the data experimentally**
-            - [x] Introduce Acceptance/Bin Migration concepts here (?)
-                * Note how this makes the MC data important to analyze
-    - [x] **Show comparison between data and MC**
-        - [x] Start with Q2-xB binning (One 2D histogram of Q2 vs xB plus two 1D histograms of both variables)
-        - [x] Pick one Q2-xB bin and show the z-pT bin comparisons for it (break down in the same way as the point above)
-        - [x] Pick one z-pT bin and show the phi_t distributions for it
-    - [x] Show 1D Acceptance Matrix (Show the 2D histograms for a 1D variable)
-        - [x] Show for at least one variable if not all 5
-        - [x] Potentially try to show the Multi-dimensional matrixes if space allows
-            * Start with 2D bins before moving to the 4D/5D bins
-            * If space does not allow for this, mention this aspect of the analysis as "Next Step" to be worked on
+    * Want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
+- [x] Add a 5D bin option which includes phi_t (may want to run in the "bin_migration_V4" version of the code to give more options to the number of phi_t bins)
+    * Added on 8-15-2022 but not tested (yet)
+
         
     
-
-
 
 ## Potential Ideas
 These ideas may or may not be implemented later (put here as a reminder to think about later)
@@ -55,12 +34,6 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 ## Note to self:
 - [ ] Add option to jupyter notebook to select user range when defining the variable lists (add later)
-- [x] Run and test the additions made to the code on 7-19-2022
-    * Specifically: see if the -2 bin option to the 4D bins is useful for the bin migration study
-    * [x] Re-familarize myself with the functioning of the bin migration histograms 
-    * [x] Make sure the new 4D bins behave in a way that does not conflict with the existing analysis methods
-        * Note from investigation: the 4D bins work best for "bin_migration_V3" instead of "bin_migration_V4" since "bin_migration_V4" is primarily useful at testing multiple bin schemes in the 1D cases (does not apply well to the 4D schemes that are already well defined)
-
 - [x] In a future update, add the 4D binning to the original kinematic binning from Stephan **(ADDED ON 7-20-2022)**
     * Should be used to show the improvement made by the new binning scheme to the bin migration caused by low Q2
     * Currently, more bin mirgation is occuring such that high generated Q2 is more likely to migrate than low Q2. This is being explained by the low Q2 events that most contribute to bin migration are already being cut by the Q2 > 2 GeV^2 requirement and (more importantly) by the modified bin scheme itself.
@@ -71,6 +44,19 @@ These ideas may or may not be implemented later (put here as a reminder to think
 
 
 ## Commit Updates:
+
+
+### Update on 8-15-2022:
+#### Python Code Updates:
+* Added Momentum Corrections to the experimental data set
+    * Corrections are a option that can be turned on and off before creating the root histogram files
+* Removed option to smear any dataset that is not the MC reconstructed files
+    * Option was removed with code previously, but this update will (ideally) reduce the overall size of the dataframes by eliminating useless information
+* Added 5D kinematic binning to dataframe (some additional histogram options may be possible - have not created them yet)
+    * Size of these histograms may limit application prior to unfolding (number of histogram bins exceed 11000)
+* "Cleaned-up" other parts of code to simplify overall body of code (i.e., removed repetitive/unnecessary lines of code)
+* Extra_Name = "Bin_Test_Mom_Cor_" output files have been set up but NOT added yet (have not been run yet)
+    
 
 
 ### Update on 8-4-2022:

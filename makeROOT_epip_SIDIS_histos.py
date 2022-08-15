@@ -85,22 +85,18 @@ if(str(file_location) == 'time'):
 
 if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'pdf'):
     
-    
     file_num = str(file_location)
 
     if(datatype == "rdf"):
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
 
     if(datatype == "mdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         
     if(datatype == "gdf"):
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
     
     if(datatype == "pdf"):
-        # file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
     
     
@@ -113,54 +109,34 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     if(datatype == 'rdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Expanded_REAL/No_Cut_Batch/Fixing_Sectors/Smearing/calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00*")
             rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
-            
             files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"
-            
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            
-            # files_used_for_data_frame = "".join(["calc_sidis_epip_richcap_NC_smearing.inb.qa.skim4_00", str(file_num), "*"])
             files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00", str(file_num), "*"])
             
     if(datatype == 'mdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
             rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
-            
             files_used_for_data_frame = "calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
-            
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            
             files_used_for_data_frame = "".join(["calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Generated_MC/Expanded_MC_GEN/No_Cut_Batch/Smearing/calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
             rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
-            
-            # files_used_for_data_frame = "calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
             files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
-            
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            
-            # files_used_for_data_frame = "".join(["calc_MC_Gen_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
             files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'pdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Purity/Testing_New/Test_New_Rules_5/MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*")
             rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-
-            # files_used_for_data_frame = "MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_*"
             files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
-
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            
-            # files_used_for_data_frame = "".join(["MC_Matched_sidis_epip_richcap_Test_Rules_New_5.inb.qa.45nA_job_", str(file_num), "*"])
             files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
             
@@ -175,7 +151,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
     
-    # getting current date
+    # Getting Current Date
     datetime_object_full = datetime.now()
 
     startMin_full, startHr_full, startDay_full = datetime_object_full.minute, datetime_object_full.hour, datetime_object_full.day
@@ -185,7 +161,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     else:
         timeMin_full = str(datetime_object_full.minute)
     
-    # printing current time
+    # Printing Current Time
     if(datetime_object_full.hour > 12 and datetime_object_full.hour < 24):
         print("".join(["The time that this code started is ", str((datetime_object_full.hour) - 12), ":", timeMin_full, " p.m."]))
     if(datetime_object_full.hour < 12 and datetime_object_full.hour > 0):
@@ -199,15 +175,260 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##========================================================================##
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
+
     
-        
-        
+    
+    
+    
+    
     ################################################################     Done Loading Data Files     ################################################################
     ##                                                                                                                                                             ##
     ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
     ##                                                                                                                                                             ##
-    ############################################################     Calculating Kinematic Variables     ############################################################
+    ############################################################    Particle Momentum Correction Code    ############################################################
 
+    
+    
+    Mom_Correction_Q = "yes"
+    # Mom_Correction_Q = "no"
+
+    if(datatype != 'rdf'):
+        Mom_Correction_Q = "no"
+
+    if(Mom_Correction_Q != "yes"):
+        print("Not running with Momentum Corrections")
+    else:
+        print("Running with Momentum Corrections")
+        
+        Correction_Code_Full_In = """
+        
+        auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
+            
+            if(corON == 0){ // corON == 0 --> DOES NOT apply the momentum corrections (i.e., turns the corrections 'off')
+                double dp = 0;
+                return dp;
+            }
+            
+            else{ // corON != 0 --> Applies the momentum corrections (i.e., turns the corrections 'on')
+            
+                // ivec = 0 --> Electron Corrections
+                // ivec = 1 --> π+ Corrections
+                // ivec = 2 --> π- Corrections
+                // ivec = 3 --> Proton Corrections
+
+                // Momentum Magnitude
+                double pp = sqrt(Px*Px + Py*Py + Pz*Pz);
+
+                // Initializing the correction factor
+                double dp = 0;
+
+                // Defining Phi Angle
+                double Phi = (180/3.1415926)*atan2(Py, Px);
+
+                // (Initial) Shift of the Phi Angle (done to realign sectors whose data is separated when plotted from ±180˚)
+                if(((sec == 4 || sec == 3) && Phi < 0) || (sec > 4 && Phi < 90)){
+                    Phi += 360;
+                }
+
+                // Getting Local Phi Angle
+                double PhiLocal = Phi - (sec - 1)*60;
+
+                // Applying Shift Functions to Phi Angles (local shifted phi = phi)
+                double phi = PhiLocal;
+
+                // For Electron Shift
+                if(ivec == 0){
+                    phi = PhiLocal - 30/pp;
+                }
+
+                // For π+ Pion/Proton Shift
+                if(ivec == 1 || ivec == 3){
+                    phi = PhiLocal + (32/(pp-0.05));
+                }
+
+                // For π- Pion Shift
+                if(ivec == 2){
+                    phi = PhiLocal - (32/(pp-0.05));
+                }
+
+
+                //////////////////////////////////////////////////////////////////////////////////
+                //==============================================================================//
+                //==========//==========//     Electron Corrections     //==========//==========//
+                //==============================================================================//
+                //////////////////////////////////////////////////////////////////////////////////
+
+                if(ivec == 0){
+                    if(sec == 1){
+                        dp = ((1.57e-06)*phi*phi + (5.021e-05)*phi + (-1.74089e-03))*pp*pp + ((-2.192e-05)*phi*phi + (-1.12528e-03)*phi + (0.0146476))*pp + ((8.504e-05)*phi*phi + (2.08012e-03)*phi + (-0.0122501));
+                    }
+                    if(sec == 2){
+                        dp = ((-3.98e-06)*phi*phi + (1.66e-05)*phi + (-1.55918e-03))*pp*pp + ((2.136e-05)*phi*phi + (-5.7373e-04)*phi + (0.0143591))*pp + ((2.4e-06)*phi*phi + (1.6656e-03)*phi + (-0.0218711));
+                    }
+                    if(sec == 3){
+                        dp = ((5.57e-06)*phi*phi + (2.3e-07)*phi + (-2.26999e-03))*pp*pp + ((-7.761e-05)*phi*phi + (4.1437e-04)*phi + (0.0152985))*pp + ((2.2542e-04)*phi*phi + (-9.442e-04)*phi + (-0.0231432));
+                    }
+                    if(sec == 4){
+                        dp = ((3.48e-06)*phi*phi + (2.166e-05)*phi + (-2.29e-04))*pp*pp + ((-2.758e-05)*phi*phi + (7.226e-05)*phi + (-3.38e-03))*pp + ((3.166e-05)*phi*phi + (6.93e-05)*phi + (0.04767));
+                    }
+                    if(sec == 5){
+                        dp = ((1.19e-06)*phi*phi + (-2.286e-05)*phi + (-1.6332e-04))*pp*pp + ((-1.05e-06)*phi*phi + (7.04e-05)*phi + (-5.0754e-03))*pp + ((-7.22e-06)*phi*phi + (4.1748e-04)*phi + (0.04441));
+                    }
+                    if(sec == 6){
+                        dp = ((-5.97e-06)*phi*phi + (-3.689e-05)*phi + (5.782e-05))*pp*pp + ((6.573e-05)*phi*phi + (2.1376e-04)*phi + (-9.54576e-03))*pp + ((-1.7732e-04)*phi*phi + (-8.62e-04)*phi + (0.0618975));
+                    }
+
+                }
+
+                //////////////////////////////////////////////////////////////////////////////////
+                //==============================================================================//
+                //==========//==========//  Electron Corrections (End)  //==========//==========//
+                //==============================================================================//
+                //////////////////////////////////////////////////////////////////////////////////
+
+
+
+                /////////////////////////////////////////////////////////////////////////////////
+                //=============================================================================//
+                //==========//==========//     π+ Pion Corrections     //==========//==========//
+                //=============================================================================//
+                /////////////////////////////////////////////////////////////////////////////////
+
+                if(ivec == 1){
+                    if(sec == 1){
+                        dp = ((-5.2e-07)*phi*phi + (-1.383e-05)*phi + (4.7179e-04))*pp*pp + ((8.33e-06)*phi*phi + (3.8849e-04)*phi + (-6.81319e-03))*pp + ((-1.645e-05)*phi*phi + (-5.0057e-04)*phi + (1.9902e-02));
+                    }
+                    if(sec == 2){
+                        dp = ((-1.88e-06)*phi*phi + (3.303e-05)*phi + (1.1331e-03))*pp*pp + ((1.569e-05)*phi*phi + (-3.974e-05)*phi + (-1.25869e-02))*pp + ((-2.903e-05)*phi*phi + (-1.0638e-04)*phi + (2.61529e-02));
+                    }
+                    if(sec == 3){
+                        dp = ((2.4e-07)*phi*phi + (-1.04e-05)*phi + (7.0864e-04))*pp*pp + ((8.0e-06)*phi*phi + (-5.156e-05)*phi + (-8.12169e-03))*pp  + ((-2.42e-05)*phi*phi + (8.928e-05)*phi + (2.13223e-02));
+                    }
+                    if(sec == 4){
+                        dp = ((-4.0e-08)*phi*phi + (-3.59e-05)*phi + (1.32146e-03))*pp*pp + ((1.023e-05)*phi*phi + (2.2199e-04)*phi + (-1.33043e-02))*pp + ((-2.801e-05)*phi*phi + (-1.576e-04)*phi + (3.27995e-02));
+                    }
+                    if(sec == 5){
+                        dp = ((2.7e-06)*phi*phi + (5.03e-06)*phi + (1.59668e-03))*pp*pp + ((-1.28e-05)*phi*phi + (-1.99e-06)*phi + (-1.71578e-02))*pp + ((2.091e-05)*phi*phi + (-4.14e-05)*phi + (3.25434e-02));
+                    }
+                    if(sec == 6){
+                        dp = ((2.13e-06)*phi*phi + (-7.49e-05)*phi + (1.75565e-03))*pp*pp + ((-7.37e-06)*phi*phi + (5.8222e-04)*phi + (-1.27969e-02))*pp + ((4.9e-07)*phi*phi + (-7.2253e-04)*phi + (3.11499e-02));
+                    }
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////
+                //=============================================================================//
+                //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
+                //=============================================================================//
+                /////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+                /////////////////////////////////////////////////////////////////////////////////
+                //=============================================================================//
+                //==========//==========//     π- Pion Corrections     //==========//==========//
+                //=============================================================================//
+                /////////////////////////////////////////////////////////////////////////////////
+
+                if(ivec == 2){
+                    if(sec == 1){
+                        dp = ((-4.0192658422317425e-06)*phi*phi - (2.660222128967742e-05)*phi + 0.004774434682983547)*pp*pp;
+                        dp = dp + ((1.9549520962477972e-05)*phi*phi - 0.0002456062756770577*phi - 0.03787692408323466)*pp; 
+                        dp = dp + (-2.128953094937459e-05)*phi*phi + 0.0002461708852239913*phi + 0.08060704449822174 - 0.01;
+                    }
+                    if(sec == 2){
+                        dp = ((1.193010521758372e-05)*phi*phi - (5.996221756031922e-05)*phi + 0.0009093437955814359)*pp*pp;
+                        dp = dp + ((-4.89113824430594e-05)*phi*phi + 0.00021676479488147118*phi - 0.01861892053916726)*pp;  
+                        dp = dp + (4.446394152208071e-05)*phi*phi - (3.6592784167335244e-05)*phi + 0.05498710249944096 - 0.01;
+                    }
+                    if(sec == 3){
+                        dp = ((-1.6596664895992133e-07)*phi*phi + (6.317189710683516e-05)*phi + 0.0016364212312654086)*pp*pp;
+                        dp = dp + ((-2.898409777520318e-07)*phi*phi - 0.00014531513577533802*phi - 0.025456145839203827)*pp;  
+                        dp = dp + (2.6432552410603506e-06)*phi*phi + 0.00018447151306275443*phi + 0.06442602664627255 - 0.01;
+                    }
+                    if(sec == 4){
+                        dp = ((2.4035259647558634e-07)*phi*phi - (8.649647351491232e-06)*phi + 0.004558993439848128)*pp*pp;
+                        dp = dp + ((-5.981498144060984e-06)*phi*phi + 0.00010582131454222416*phi - 0.033572004651981686)*pp;  
+                        dp = dp + (8.70140266889548e-06)*phi*phi - 0.00020137414379966883*phi + 0.07258774523336173 - 0.01;   
+                    }
+                    if(sec == 5){
+                        dp = ((2.5817024702834863e-06)*phi*phi + 0.00010132810066914441*phi + 0.003397314538804711)*pp*pp;
+                        dp = dp + ((-1.5116941263931812e-05)*phi*phi - 0.00040679799541839254*phi - 0.028144285760769876)*pp;  
+                        dp = dp + (1.4701931057951464e-05)*phi*phi + 0.0002426350390593454*phi + 0.06781682510174941 - 0.01;
+                    }
+                    if(sec == 6){
+                        dp = ((-8.196823669099362e-07)*phi*phi - (5.280412421933636e-05)*phi + 0.0018457238328451137)*pp*pp;
+                        dp = dp + ((5.2675062282094536e-06)*phi*phi + 0.0001515803461044587*phi - 0.02294371578470564)*pp;  
+                        dp = dp + (-9.459454671739747e-06)*phi*phi - 0.0002389523716779765*phi + 0.06428970810739926 - 0.01;
+                    }
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////
+                //=============================================================================//
+                //==========//==========//  π- Pion Corrections (End)  //==========//==========//
+                //=============================================================================//
+                /////////////////////////////////////////////////////////////////////////////////
+
+
+
+                //////////////////////////////////////////////////////////////////////////////////
+                //==============================================================================//
+                //==========//==========//      Proton Corrections      //==========//==========//
+                //==============================================================================//
+                //////////////////////////////////////////////////////////////////////////////////
+
+                if(ivec == 3){
+                    if(sec == 1){
+                        dp = (5.415e-04)*pp*pp + (-1.0262e-02)*pp + (7.78075e-03);
+                        dp = dp + ((1.2129e-04)*pp*pp + (1.5373e-04)*pp + (-2.7084e-04));
+                    }
+                    if(sec == 2){
+                        dp = (-9.5439e-04)*pp*pp + (-2.86273e-03)*pp + (3.38149e-03);
+                        dp = dp + ((-1.6890e-03)*pp*pp + (4.3744e-03)*pp + (-2.1218e-03));
+                    }
+                    if(sec == 3){
+                        dp = (-5.5541e-04)*pp*pp + (-7.69739e-03)*pp + (5.7692e-03);
+                        dp = dp + ((7.6422e-04)*pp*pp + (-1.5425e-03)*pp + (5.4255e-04));
+                    }
+                    if(sec == 4){
+                        dp = (-1.944e-04)*pp*pp + (-5.77104e-03)*pp + (3.42399e-03);
+                        dp = dp + ((1.1174e-03)*pp*pp + (-3.2747e-03)*pp + (2.3687e-03));
+                    }
+                    if(sec == 5){
+                        dp = (1.54009e-03)*pp*pp + (-1.69437e-02)*pp + (1.04656e-02);
+                        dp = dp + ((-2.1067e-04)*pp*pp + (1.2266e-03)*pp + (-1.0553e-03));
+                    }
+                    if(sec == 6){
+                        dp = (2.38182e-03)*pp*pp + (-2.07301e-02)*pp + (1.72325e-02);
+                        dp = dp + ((-3.6002e-04)*pp*pp + (8.9582e-04)*pp + (-1.0093e-03));
+                    }
+                }
+
+                //////////////////////////////////////////////////////////////////////////////////
+                //==============================================================================//
+                //==========//==========//   Proton Corrections (End)   //==========//==========//
+                //==============================================================================//
+                //////////////////////////////////////////////////////////////////////////////////
+
+
+                return dp/pp;
+
+            }
+        };
+
+
+
+        """
+    
+    
+    
+    
+    ###################################################################################################################################################################
+    #################################################################   End of Momentum Corrections   #################################################################
+    ###----------##----------##----------##----------##----------##-------------------------------------##----------##----------##----------##----------##----------###
+    ################################################################# Calculating Kinematic Variables #################################################################
+    ###################################################################################################################################################################
+    
     
     ######################################################################################
     ##=====##  These calculations may have been made in the groovy code already  ##=====##
@@ -227,17 +448,34 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         #####################     Energy     #####################
 
-        rdf = rdf.Define("el_E","""
-        auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-        auto ele_E = ele.E();
-        return ele_E;
-        """)
+        try:
+            rdf = rdf.Define("el_E","".join([str(Correction_Code_Full_In), """
+            auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+            auto ele = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+            auto ele_E = ele.E();
+            return ele_E;
+            """]))
 
-        rdf = rdf.Define("pip_E","""
-        auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-        auto pip0_E = pip0.E();
-        return pip0_E;
-        """)
+            rdf = rdf.Define("pip_E","".join([str(Correction_Code_Full_In), """
+            auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+            auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+            auto pip0_E = pip0.E();
+            return pip0_E;
+            """]))
+            
+        except:
+            print("\nMomentum Corrections Failed...\n")
+            rdf = rdf.Define("el_E","""
+            auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+            auto ele_E = ele.E();
+            return ele_E;
+            """)
+            rdf = rdf.Define("pip_E","""
+            auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+            auto pip0_E = pip0.E();
+            return pip0_E;
+            """)
+
         
         if(datatype == "pdf"):
             rdf = rdf.Define("el_E_gen","""
@@ -256,8 +494,23 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         #####################     Momentum     #####################
 
-        rdf = rdf.Define("el","sqrt(ex*ex + ey*ey + ez*ez)")
-        rdf = rdf.Define("pip","sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
+        try:
+            rdf = rdf.Define("el", "".join([str(Correction_Code_Full_In), """
+            auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+            double el_P = fe*(sqrt(ex*ex + ey*ey + ez*ez));
+            return el_P;
+            """]))
+            
+            rdf = rdf.Define("pip", "".join([str(Correction_Code_Full_In), """
+            auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+            double pip_P = fpip*(sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
+            return pip_P;
+            """]))
+        except:
+            print("\nMomentum Corrections Failed...\n")
+            rdf = rdf.Define("el","sqrt(ex*ex + ey*ey + ez*ez)")
+            rdf = rdf.Define("pip","sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
+
         
         if(datatype == "pdf"):
             rdf = rdf.Define("el_gen","sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
@@ -444,11 +697,16 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         #####################     Other Values     #####################
 
-        rdf = rdf.Define("vals","""
+        rdf = rdf.Define("vals", "".join([str(Correction_Code_Full_In), """
+        
+        auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        
         auto beam = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
         auto targ = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-        auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-        auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+        
+        auto ele = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
         auto epipX = beam + targ - ele - pip0;
 
@@ -475,7 +733,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         std::vector<double> vals = {epipX.M(), epipX.M2(), Q2, xB, v, W2, W, y, z, epsilon};
 
         return vals;
-        """)
+        """]))
 
 
 
@@ -553,42 +811,20 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
+    ####################################################################################################################################################################
+    ###################################################     Done with Calculating (Initial) Kinematic Variables      ###################################################
+    ###----------##----------##----------##----------##--------------------------------------------------------------##----------##----------##----------##----------###
+    ###################################################       Rotation Matrix and Center-of-Mass/Boosted Frame       ###################################################
+    ####################################################################################################################################################################
     
     
-    ##################################################     Done with Calculating (Initial) Kinematic Variables     ##################################################
-    ##                                                                                                                                                             ##
-    ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
-    ################################################################     Using CM/boosted frames     ################################################################
+    Rotation_Matrix = """
     
-    
-   
-
-    rdf = rdf.Define("vals2","""
-    auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-    auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-    auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-    auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-    auto lv_qMM = beamM - eleM;
-
-    TLorentzVector beam(0, 0, 10.6041, beamM.E());
-    TLorentzVector targ(0, 0, 0, targM.E());
-    TLorentzVector ele(ex, ey, ez, eleM.E());
-    TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
-    TLorentzVector lv_q = beam - ele;
-
-
-    ///////////////     Angles for Rotation     ///////////////
-    double Theta_q = lv_q.Theta();
-    double Phi_el = ele.Phi();
-
-
     /////////////////////////////////////////////          Rotation Matrix          /////////////////////////////////////////////
 
 
     auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot)
     {
-
         double Rot_X1 = vector.X();
         double Rot_Y1 = vector.Y();
         double Rot_Z1 = vector.Z();
@@ -596,7 +832,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         double Rot_X = Rot_X1;
         double Rot_Y = Rot_Y1;
         double Rot_Z = Rot_Z1;
-
 
         // Lab2CM_or_CM2Lab is a parameter which determines if you rotating from the lab frame to the CM frame, or if you are rotating back in the opposite direction
         // Lab2CM_or_CM2Lab = -1 gives a rotation to the CM frame (from the lab frame)
@@ -629,6 +864,39 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
     /////////////////////////////////////////////          (End of) Rotation Matrix          /////////////////////////////////////////////
+    
+    
+    """
+    
+    
+    rdf = rdf.Define("vals2", "".join([str(Correction_Code_Full_In), """
+        
+    auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+    auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+    
+    auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+    auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+    
+    auto eleM = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+    auto pip0M = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+    
+    auto lv_qMM = beamM - eleM;
+
+    TLorentzVector beam(0, 0, 10.6041, beamM.E());
+    TLorentzVector targ(0, 0, 0, targM.E());
+    
+    TLorentzVector ele(ex*fe, ey*fe, ez*fe, eleM.E());
+    TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
+    
+    TLorentzVector lv_q = beam - ele;
+
+
+    ///////////////     Angles for Rotation     ///////////////
+    double Theta_q = lv_q.Theta();
+    double Phi_el = ele.Phi();
+
+
+    """, str(Rotation_Matrix), """
 
 
 
@@ -676,21 +944,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     pip_Boost.Boost(boost);
     beamBoost.Boost(boost);
     targBoost.Boost(boost);
-
-
-    ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
-
-    // Not using these values (see above for these variables)
-    // auto epipXboost = beamBoost + targBoost - ele_Boost - pip_Boost;
-    // auto Q2boost = - qlv_Boost.M2();
-    // auto vboost = beamBoost.E() - ele_Boost.E();
-    // auto xBboost = Q2boost/(2*targBoost.M()*vboost);
-    // auto W2boost = targBoost.M2() + 2*targBoost.M()*vboost - Q2boost;
-    // auto Wboost = sqrt(W2boost);
-    // auto yboost = (targBoost.Dot(qlv_Boost))/(targBoost.Dot(beamBoost));
-    // auto zboost = ((pip_Boost.E())/(qlv_Boost.E()));
-    // auto gammaboost = 2*targBoost.M()*(xBboost/sqrt(Q2boost));
-    // auto epsilonboost = (1 - yboost - 0.25*(gammaboost*gammaboost)*(yboost*yboost))/(1 - yboost + 0.5*(yboost*yboost) + 0.25*(gammaboost*gammaboost)*(yboost*yboost));
 
 
     TVector3 v0, v1;
@@ -741,13 +994,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     return vals2;
 
-    """)
+    """]))
 
 
 
-    rdf = rdf.Define('pT','vals2[0]')    # transverse momentum of the final state hadron
-    rdf = rdf.Define('phi_t','vals2[1]') # Most important angle (between lepton and hadron planes)
-    rdf = rdf.Define('xF','vals2[2]')    # x Feynmann
+    rdf = rdf.Define('pT', 'vals2[0]')    # transverse momentum of the final state hadron
+    rdf = rdf.Define('phi_t',' vals2[1]') # Most important angle (between lepton and hadron planes)
+    rdf = rdf.Define('xF', 'vals2[2]')    # x Feynmann
 
     # rdf = rdf.Define('pipx_CM','vals2[3]') # CM pi+ x-momentum
     # rdf = rdf.Define('pipy_CM','vals2[4]') # CM pi+ y-momentum
@@ -768,7 +1021,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     if(datatype == "pdf"):
-        rdf = rdf.Define("vals2_gen","""
+        rdf = rdf.Define("vals2_gen", "".join(["""
         auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
         auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         auto eleM = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -787,52 +1040,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         double Phi_el = ele.Phi();
 
 
-        /////////////////////////////////////////////          Rotation Matrix          /////////////////////////////////////////////
-
-
-        auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot)
-        {
-
-            double Rot_X1 = vector.X();
-            double Rot_Y1 = vector.Y();
-            double Rot_Z1 = vector.Z();
-
-            double Rot_X = Rot_X1;
-            double Rot_Y = Rot_Y1;
-            double Rot_Z = Rot_Z1;
-
-
-            // Lab2CM_or_CM2Lab is a parameter which determines if you rotating from the lab frame to the CM frame, or if you are rotating back in the opposite direction
-            // Lab2CM_or_CM2Lab = -1 gives a rotation to the CM frame (from the lab frame)
-            // Lab2CM_or_CM2Lab = +1 gives a rotation to the lab frame (from the CM frame)
-
-
-            Theta_Rot = -1*Theta_Rot;   // Always give the angle of rotation Theta as the value given by .Theta()
-                                        // This subroutine will handle the fact that the matrix rotation wants the negative of the angle of rotation
-
-            // Rotation to Lab Frame
-            if(Lab2CM_or_CM2Lab == -1){
-                Rot_X = Rot_X1*TMath::Cos(Theta_Rot)*TMath::Cos(Phi_Rot) - Rot_Z1*TMath::Sin(Theta_Rot) + Rot_Y1*TMath::Cos(Theta_Rot)*TMath::Sin(Phi_Rot);
-                Rot_Y = Rot_Y1*TMath::Cos(Phi_Rot) - Rot_X1*TMath::Sin(Phi_Rot);
-                Rot_Z = Rot_Z1*TMath::Cos(Theta_Rot) + Rot_X1*TMath::Cos(Phi_Rot)*TMath::Sin(Theta_Rot) + Rot_Y1*TMath::Sin(Theta_Rot)*TMath::Sin(Phi_Rot);
-            }
-
-            // Rotation to CM Frame
-            if(Lab2CM_or_CM2Lab == 1){
-                Rot_X = Rot_X1*TMath::Cos(Theta_Rot)*TMath::Cos(Phi_Rot) + Rot_Z1*TMath::Cos(Phi_Rot)*TMath::Sin(Theta_Rot) - Rot_Y1*TMath::Sin(Phi_Rot);
-                Rot_Y = Rot_Y1*TMath::Cos(Phi_Rot) + Rot_X1*TMath::Sin(Phi_Rot)*TMath::Cos(Theta_Rot) + Rot_Z1*TMath::Sin(Theta_Rot)*TMath::Sin(Phi_Rot);
-                Rot_Z = Rot_Z1*TMath::Cos(Theta_Rot) - Rot_X1*TMath::Sin(Theta_Rot);
-            }
-
-            TLorentzVector vector_Rotated(Rot_X, Rot_Y, Rot_Z, vector.E());
-
-            return vector_Rotated;
-
-        };
-
-
-
-        /////////////////////////////////////////////          (End of) Rotation Matrix          /////////////////////////////////////////////
+        """, str(Rotation_Matrix), """
 
 
 
@@ -884,18 +1092,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
 
-        // Not using these values (see above for these variables)
-        // auto epipXboost = beamBoost + targBoost - ele_Boost - pip_Boost;
-        // auto Q2boost = - qlv_Boost.M2();
-        // auto vboost = beamBoost.E() - ele_Boost.E();
-        // auto xBboost = Q2boost/(2*targBoost.M()*vboost);
-        // auto W2boost = targBoost.M2() + 2*targBoost.M()*vboost - Q2boost;
-        // auto Wboost = sqrt(W2boost);
-        // auto yboost = (targBoost.Dot(qlv_Boost))/(targBoost.Dot(beamBoost));
-        // auto zboost = ((pip_Boost.E())/(qlv_Boost.E()));
-        // auto gammaboost = 2*targBoost.M()*(xBboost/sqrt(Q2boost));
-        // auto epsilonboost = (1 - yboost - 0.25*(gammaboost*gammaboost)*(yboost*yboost))/(1 - yboost + 0.5*(yboost*yboost) + 0.25*(gammaboost*gammaboost)*(yboost*yboost));
-
 
         TVector3 v0, v1;
         v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
@@ -945,22 +1141,22 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         return vals2_gen;
 
-        """)
+        """]))
 
         rdf = rdf.Define('pT_gen','vals2_gen[0]')
         rdf = rdf.Define('phi_t_gen','vals2_gen[1]')
         rdf = rdf.Define('xF_gen','vals2_gen[2]')
     
-
-
     
-    ###########################################################     Done with Using CM/boosted frames     ###########################################################
-    ##                                                                                                                                                             ##
-    ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
-    #######################################################     Smearing Calculations (Defining Function)     #######################################################
     
-
+    
+    
+    #################################################################################################################################################################
+    ###################################################       Done with Center-of-Mass/Boosted Frame (Main)       ###################################################
+    ###----------##----------##----------##----------##-----------------------------------------------------------##----------##----------##----------##----------###
+    ###################################################          Defining Smearing Function/Calculations          ###################################################
+    #################################################################################################################################################################
+    
     
     
     ##==================================================================================================##
@@ -969,1037 +1165,659 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##---------------------------------##============================##---------------------------------##
     ##==================================================================================================##
     
-    
-    # def Smear_DF(Data_Frame):
-    
-        # Data_Frame_Clone = Data_Frame.Define("smeared_vals","""
-    rdf = rdf.Define("smeared_vals","""
+    if(datatype == "mdf" or datatype == "pdf"):
+        rdf = rdf.Define("smeared_vals", "".join(["""
 
-    //===========================================================================//
-    //=================//     Smearing Function (From FX)     //=================//
-    //===========================================================================//
+        //===========================================================================//
+        //=================//     Smearing Function (From FX)     //=================//
+        //===========================================================================//
 
 
-    auto smear_func = [&](TLorentzVector V4)
-    {
+        auto smear_func = [&](TLorentzVector V4)
+        {
 
-        // true generated values (i.e., values of the unsmeared TLorentzVector)
-        double inM = V4.M();
-        double smeared_P  = V4.P();
-        double smeared_Th = V4.Theta();
-        double smeared_Phi = V4.Phi();
+            // True generated values (i.e., values of the unsmeared TLorentzVector)
 
-        TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
+            double inM = V4.M();
+            double smeared_P  = V4.P();
+            double smeared_Th = V4.Theta();
+            double smeared_Phi = V4.Phi();
 
-        //calculate resolutions
+            TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
 
-        double smeared_ThD = TMath::RadToDeg()*smeared_Th;
-        double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
-        double momS2 = 0.02*smeared_ThD;
-        double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
-        momR *= 2.0;
+            // Calculate resolutions
 
-        double theS1 = 0.004*smeared_ThD + 0.1;
-        double theS2 = 0;
-        double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
-        theR *= 2.5;
+            double smeared_ThD = TMath::RadToDeg()*smeared_Th;
+            double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
+            double momS2 = 0.02*smeared_ThD;
+            double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
+            momR *= 2.0;
 
-        double phiS1 = 0.85 - 0.015*smeared_ThD;
-        double phiS2 = 0.17 - 0.003*smeared_ThD;
-        double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
-        phiR *= 3.5;
+            double theS1 = 0.004*smeared_ThD + 0.1;
+            double theS2 = 0;
+            double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
+            theR *= 2.5;
 
+            double phiS1 = 0.85 - 0.015*smeared_ThD;
+            double phiS2 = 0.17 - 0.003*smeared_ThD;
+            double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
+            phiR *= 3.5;
 
-        // cout<<"Pre-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
-        // cout<<"Pre-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
-        // cout<<"Pre-Smear P : "<<smeared_P<<endl;
 
-        // overwrite EB (i.e., applying the smear)
-        smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
-        smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
-        smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
+            // cout<<"Pre-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
+            // cout<<"Pre-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
+            // cout<<"Pre-Smear P : "<<smeared_P<<endl;
 
-        // cout<<"Smear-Factor Phi (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * phiR * gRandom->Gaus(0,1)))<<endl;
-        // cout<<"Smear-Factor Th (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * theR * gRandom->Gaus(0,1)))<<endl;
-        // cout<<"Smear-Factor P : "<<(momR  * gRandom->Gaus(0,1) *  V4.P())<<endl;
+            // overwrite EB (i.e., applying the smear)
+            smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
+            smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
+            smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
 
-        // cout<<"Post-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
-        // cout<<"Post-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
-        // cout<<"Post-Smear P : "<<smeared_P<<endl;
+            // cout<<"Smear-Factor Phi (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * phiR * gRandom->Gaus(0,1)))<<endl;
+            // cout<<"Smear-Factor Th (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * theR * gRandom->Gaus(0,1)))<<endl;
+            // cout<<"Smear-Factor P : "<<(momR  * gRandom->Gaus(0,1) *  V4.P())<<endl;
 
-        // EB_rec_mom = GEN_mom + resolution_momentum x gaussian x GEN_mom
-        // EB_rec_ang = GEN_ang + resolution_angle x gaussian
+            // cout<<"Post-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
+            // cout<<"Post-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
+            // cout<<"Post-Smear P : "<<smeared_P<<endl;
 
-        V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
-        V4_new.SetRho( smeared_P );
-        V4_new.SetTheta( smeared_Th );
-        V4_new.SetPhi( smeared_Phi );
+            // EB_rec_mom = GEN_mom + resolution_momentum x gaussian x GEN_mom
+            // EB_rec_ang = GEN_ang + resolution_angle x gaussian
 
-        return V4_new;
+            V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
+            V4_new.SetRho( smeared_P );
+            V4_new.SetTheta( smeared_Th );
+            V4_new.SetPhi( smeared_Phi );
 
-    };
+            return V4_new;
 
-    auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-    auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-    auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-    auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+        };
 
-    TLorentzVector beam(0, 0, 10.6041, beamM.E());
-    TLorentzVector targ(0, 0, 0, targM.E());
-    TLorentzVector ele(ex, ey, ez, eleM.E());
-    TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
+        auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+        auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
 
-    TLorentzVector ele_NO_SMEAR(ex, ey, ez, eleM.E());
-    TLorentzVector pip0_NO_SMEAR(pipx, pipy, pipz, pip0M.E());
+        TLorentzVector beam(0, 0, 10.6041, beamM.E());
+        TLorentzVector targ(0, 0, 0, targM.E());
+        TLorentzVector ele(ex, ey, ez, eleM.E());
+        TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
 
+        TLorentzVector ele_NO_SMEAR(ex, ey, ez, eleM.E());
+        TLorentzVector pip0_NO_SMEAR(pipx, pipy, pipz, pip0M.E());
 
-    //========================================================================//
-    //=================//     Smearing PxPyPzMVector's     //=================//
-    //========================================================================//
 
-    // smear_func(beam) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
-    // smear_func(targ) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
+        //========================================================================//
+        //=================//     Smearing PxPyPzMVector's     //=================//
+        //========================================================================//
 
-    // cout<<endl<<"Electron Smearing: "<<endl;
-    // cout<<"Pre-Smear El Phi (degrees): "<<TMath::RadToDeg()*(ele.Phi())<<endl;
-    // cout<<"Pre-Smear El Th (degrees): "<<TMath::RadToDeg()*(ele.Theta())<<endl;
-    // cout<<"Pre-Smear El P : "<<ele.P()<<endl<<endl;
+        // smear_func(beam) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
+        // smear_func(targ) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
 
-    TLorentzVector ele_smeared = smear_func(ele);
 
-    // cout<<endl<<"Post-Smear El Phi (degrees): "<<TMath::RadToDeg()*(ele_smeared.Phi())<<endl;
-    // cout<<"Post-Smear El Th (degrees): "<<TMath::RadToDeg()*(ele_smeared.Theta())<<endl;
-    // cout<<"Post-Smear El P : "<<ele_smeared.P()<<endl;
+        TLorentzVector ele_smeared = smear_func(ele);
 
 
+        TLorentzVector pip0_smeared = smear_func(pip0);
 
-    // cout<<endl<<"Pi+ Smearing: "<<endl;
-    // cout<<"Pre-Smear Pi+ Phi (degrees): "<<TMath::RadToDeg()*(pip0.Phi())<<endl;
-    // cout<<"Pre-Smear Pi+ Th (degrees): "<<TMath::RadToDeg()*(pip0.Theta())<<endl;
-    // cout<<"Pre-Smear Pi+ P : "<<pip0.P()<<endl<<endl;
 
-    TLorentzVector pip0_smeared = smear_func(pip0);
+        //=========================================================================//
+        //=================//     Vectors have been Smeared     //=================//
+        //=========================================================================//
 
-    // cout<<endl<<"Post-Smear Pi+ Phi (degrees): "<<TMath::RadToDeg()*(pip0_smeared.Phi())<<endl;
-    // cout<<"Post-Smear Pi+ Th (degrees): "<<TMath::RadToDeg()*(pip0_smeared.Theta())<<endl;
-    // cout<<"Post-Smear Pi+ P : "<<pip0_smeared.P()<<endl;
+        TLorentzVector lv_q = beam - ele_smeared;
 
-    //=========================================================================//
-    //=================//     Vectors have been Smeared     //=================//
-    //=========================================================================//
 
-    TLorentzVector lv_q = beam - ele_smeared;
+        auto Delta_Smear_El_P = abs(ele_smeared.P()) - abs(ele_NO_SMEAR.P()); // Delta_Smear_El.P();
+        auto Delta_Smear_El_Th = (abs(ele_smeared.Theta()) - abs(ele_NO_SMEAR.Theta()))*TMath::RadToDeg(); // Delta_Smear_El.Theta()*TMath::RadToDeg();
+        auto Delta_Smear_El_Phi = (abs(ele_smeared.Phi()) - abs(ele_NO_SMEAR.Phi()))*TMath::RadToDeg(); // Delta_Smear_El.Phi()*TMath::RadToDeg();
 
-    // auto Delta_Smear_El = (ele_smeared - ele_NO_SMEAR);
-    // auto Delta_Smear_Pip = (pip0_smeared - pip0_NO_SMEAR);
+        auto Delta_Smear_Pip_P = abs(pip0_smeared.P()) - abs(pip0_NO_SMEAR.P()); // Delta_Smear_Pip.P();
+        auto Delta_Smear_Pip_Th = (abs(pip0_smeared.Theta()) - abs(pip0_NO_SMEAR.Theta()))*TMath::RadToDeg(); // Delta_Smear_Pip.Theta()*TMath::RadToDeg();
+        auto Delta_Smear_Pip_Phi = (abs(pip0_smeared.Phi()) - abs(pip0_NO_SMEAR.Phi()))*TMath::RadToDeg(); // Delta_Smear_Pip.Phi()*TMath::RadToDeg();
 
 
-    auto Delta_Smear_El_P = abs(ele_smeared.P()) - abs(ele_NO_SMEAR.P()); // Delta_Smear_El.P();
-    auto Delta_Smear_El_Th = (abs(ele_smeared.Theta()) - abs(ele_NO_SMEAR.Theta()))*TMath::RadToDeg(); // Delta_Smear_El.Theta()*TMath::RadToDeg();
-    auto Delta_Smear_El_Phi = (abs(ele_smeared.Phi()) - abs(ele_NO_SMEAR.Phi()))*TMath::RadToDeg(); // Delta_Smear_El.Phi()*TMath::RadToDeg();
 
-    auto Delta_Smear_Pip_P = abs(pip0_smeared.P()) - abs(pip0_NO_SMEAR.P()); // Delta_Smear_Pip.P();
-    auto Delta_Smear_Pip_Th = (abs(pip0_smeared.Theta()) - abs(pip0_NO_SMEAR.Theta()))*TMath::RadToDeg(); // Delta_Smear_Pip.Theta()*TMath::RadToDeg();
-    auto Delta_Smear_Pip_Phi = (abs(pip0_smeared.Phi()) - abs(pip0_NO_SMEAR.Phi()))*TMath::RadToDeg(); // Delta_Smear_Pip.Phi()*TMath::RadToDeg();
 
+        // Rest of calculations are performed as normal from here
 
-    // cout<<endl<<"Delta Smear El Th = "<<Delta_Smear_El_Th<<endl;
-    // cout<<"Delta Smear Pi+ Th = "<<Delta_Smear_Pip_Th<<endl;
 
+        auto epipX = beam + targ - ele_smeared - pip0_smeared;
 
+        auto q_smeared = beam - ele_smeared;
 
-    // Rest of calculations are performed as normal from here
+        auto Q2_smeared = -q_smeared.M2();
 
+        auto v_smeared = beam.E() - ele_smeared.E();
 
-    auto epipX = beam + targ - ele_smeared - pip0_smeared;
+        auto xB_smeared = Q2_smeared/(2*targ.M()*v_smeared);
 
-    auto q_smeared = beam - ele_smeared;
+        auto W2_smeared = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
 
-    auto Q2_smeared = -q_smeared.M2();
+        auto W_smeared = sqrt(W2_smeared);
 
-    auto v_smeared = beam.E() - ele_smeared.E();
+        auto y_smeared = (targ.Dot(q_smeared))/(targ.Dot(beam));
 
-    auto xB_smeared = Q2_smeared/(2*targ.M()*v_smeared);
+        auto z_smeared = ((pip0_smeared.E())/(q_smeared.E()));
 
-    auto W2_smeared = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
+        auto gamma_smeared = 2*targ.M()*(xB_smeared/sqrt(Q2_smeared));
 
-    auto W_smeared = sqrt(W2_smeared);
+        auto epsilon_smeared = (1 - y_smeared - 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared))/(1 - y + 0.5*(y_smeared*y_smeared) + 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared));
 
-    auto y_smeared = (targ.Dot(q_smeared))/(targ.Dot(beam));
 
-    auto z_smeared = ((pip0_smeared.E())/(q_smeared.E()));
 
-    auto gamma_smeared = 2*targ.M()*(xB_smeared/sqrt(Q2_smeared));
+        // Particles' (Smeared) Energies/Momentums/Angles
+        auto ele_E_smeared = ele_smeared.E();
+        auto pip0_E_smeared = pip0_smeared.E();
 
-    auto epsilon_smeared = (1 - y_smeared - 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared))/(1 - y + 0.5*(y_smeared*y_smeared) + 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared));
+        auto el_smeared = ele_smeared.P();
+        auto pip_smeared = pip0_smeared.P();
 
+        auto elth_smeared = ele_smeared.Theta()*TMath::RadToDeg();
+        auto pipth_smeared = pip0_smeared.Theta()*TMath::RadToDeg();
 
+        auto elPhi_smeared = ele_smeared.Phi()*TMath::RadToDeg();
 
-
-    // Particles' (Smeared) Energies/Momentums/Angles
-    auto ele_E_smeared = ele_smeared.E();
-    auto pip0_E_smeared = pip0_smeared.E();
-
-    auto el_smeared = ele_smeared.P();
-    auto pip_smeared = pip0_smeared.P();
-
-    auto elth_smeared = ele_smeared.Theta()*TMath::RadToDeg();
-    auto pipth_smeared = pip0_smeared.Theta()*TMath::RadToDeg();
-
-    auto elPhi_smeared = ele_smeared.Phi()*TMath::RadToDeg();
-
-    if(elPhi_smeared < 0){
-        elPhi_smeared += 360;
-    }
-
-    auto pipPhi_smeared = pip0_smeared.Phi()*TMath::RadToDeg();
-
-    if(pipPhi_smeared < 0){
-        pipPhi_smeared += 360;
-    }
-
-
-
-    //=================================================================================================================================//
-    //==============================================//          Rotation Code          //==============================================//
-    //=================================================================================================================================//
-
-
-
-    ///////////////     Angles for Rotation     ///////////////
-    double Theta_q = lv_q.Theta();
-    double Phi_el = ele_smeared.Phi();
-
-
-    /////////////////////////////////////////////          Rotation Matrix          /////////////////////////////////////////////
-
-
-    auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot)
-    {
-
-        double Rot_X1 = vector.X();
-        double Rot_Y1 = vector.Y();
-        double Rot_Z1 = vector.Z();
-
-        double Rot_X = Rot_X1;
-        double Rot_Y = Rot_Y1;
-        double Rot_Z = Rot_Z1;
-
-
-        // Lab2CM_or_CM2Lab is a parameter which determines if you rotating from the lab frame to the CM frame, or if you are rotating back in the opposite direction
-        // Lab2CM_or_CM2Lab = -1 gives a rotation to the CM frame (from the lab frame)
-        // Lab2CM_or_CM2Lab = +1 gives a rotation to the lab frame (from the CM frame)
-
-
-        Theta_Rot = -1*Theta_Rot;   // Always give the angle of rotation Theta as the value given by .Theta()
-                                    // This subroutine will handle the fact that the matrix rotation wants the negative of the angle of rotation
-
-
-        // Rotation to Lab Frame
-        if(Lab2CM_or_CM2Lab == -1){
-            Rot_X = Rot_X1*TMath::Cos(Theta_Rot)*TMath::Cos(Phi_Rot) - Rot_Z1*TMath::Sin(Theta_Rot) + Rot_Y1*TMath::Cos(Theta_Rot)*TMath::Sin(Phi_Rot);
-            Rot_Y = Rot_Y1*TMath::Cos(Phi_Rot) - Rot_X1*TMath::Sin(Phi_Rot);
-            Rot_Z = Rot_Z1*TMath::Cos(Theta_Rot) + Rot_X1*TMath::Cos(Phi_Rot)*TMath::Sin(Theta_Rot) + Rot_Y1*TMath::Sin(Theta_Rot)*TMath::Sin(Phi_Rot);
+        if(elPhi_smeared < 0){
+            elPhi_smeared += 360;
         }
 
+        auto pipPhi_smeared = pip0_smeared.Phi()*TMath::RadToDeg();
 
-        // Rotation to CM Frame
-        if(Lab2CM_or_CM2Lab == 1){
-            Rot_X = Rot_X1*TMath::Cos(Theta_Rot)*TMath::Cos(Phi_Rot) + Rot_Z1*TMath::Cos(Phi_Rot)*TMath::Sin(Theta_Rot) - Rot_Y1*TMath::Sin(Phi_Rot);
-            Rot_Y = Rot_Y1*TMath::Cos(Phi_Rot) + Rot_X1*TMath::Sin(Phi_Rot)*TMath::Cos(Theta_Rot) + Rot_Z1*TMath::Sin(Theta_Rot)*TMath::Sin(Phi_Rot);
-            Rot_Z = Rot_Z1*TMath::Cos(Theta_Rot) - Rot_X1*TMath::Sin(Theta_Rot);
+        if(pipPhi_smeared < 0){
+            pipPhi_smeared += 360;
         }
 
 
 
-        TLorentzVector vector_Rotated(Rot_X, Rot_Y, Rot_Z, vector.E());
-
-        return vector_Rotated;
-
-
-    };
-
-
-    /////////////////////////////////////////////          (End of) Rotation Matrix          /////////////////////////////////////////////
+        //=================================================================================================================================//
+        //==============================================//          Rotation Code          //==============================================//
+        //=================================================================================================================================//
 
 
 
-    ///////////////     Rotating to CM Frame     ///////////////
-
-    auto beam_Clone = Rot_Matrix(beam, -1, Theta_q, Phi_el);
-    auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
-    auto ele_Clone  = Rot_Matrix(ele_smeared,  -1, Theta_q, Phi_el);
-    auto pip0_Clone = Rot_Matrix(pip0_smeared, -1, Theta_q, Phi_el);
-    auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
+        ///////////////     Angles for Rotation     ///////////////
+        double Theta_q = lv_q.Theta();
+        double Phi_el = ele_smeared.Phi();
 
 
-    ///////////////     Saving CM components     ///////////////
-
-    double pipx_smeared = pip0_Clone.X();
-    double pipy_smeared = pip0_Clone.Y();
-    double pipz_smeared = pip0_Clone.Z();
-
-    double qx_smeared = lv_q_Clone.X();
-    double qy_smeared = lv_q_Clone.Y();
-    double qz_smeared = lv_q_Clone.Z();
-
-    double beamx_smeared = beam_Clone.X();
-    double beamy_smeared = beam_Clone.Y();
-    double beamz_smeared = beam_Clone.Z();
-
-    double elex_smeared = ele_Clone.X();
-    double eley_smeared = ele_Clone.Y();
-    double elez_smeared = ele_Clone.Z();
-
-
-    ///////////////     Boosting Vectors     ///////////////
-
-    auto fCM = lv_q_Clone + targ_Clone;
-    auto boost = -(fCM.BoostVector());
-
-    auto qlv_Boost(lv_q_Clone);
-    auto ele_Boost(ele_Clone);
-    auto pip_Boost(pip0_Clone);
-    auto beamBoost(beam_Clone);
-    auto targBoost(targ_Clone);
-
-    qlv_Boost.Boost(boost);
-    ele_Boost.Boost(boost);
-    pip_Boost.Boost(boost);
-    beamBoost.Boost(boost);
-    targBoost.Boost(boost);
-
-
-    ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
-
-    // Not using these values (see above for these variables)
-    // auto epipXboost = beamBoost + targBoost - ele_Boost - pip_Boost;
-    // auto Q2boost = - qlv_Boost.M2();
-    // auto vboost = beamBoost.E() - ele_Boost.E();
-    // auto xBboost = Q2boost/(2*targBoost.M()*vboost);
-    // auto W2boost = targBoost.M2() + 2*targBoost.M()*vboost - Q2boost;
-    // auto Wboost = sqrt(W2boost);
-    // auto yboost = (targBoost.Dot(qlv_Boost))/(targBoost.Dot(beamBoost));
-    // auto zboost = ((pip_Boost.E())/(qlv_Boost.E()));
-    // auto gammaboost = 2*targBoost.M()*(xBboost/sqrt(Q2boost));
-    // auto epsilonboost = (1 - yboost - 0.25*(gammaboost*gammaboost)*(yboost*yboost))/(1 - yboost + 0.5*(yboost*yboost) + 0.25*(gammaboost*gammaboost)*(yboost*yboost));
-
-
-    TVector3 v0, v1;
-    v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
-    v1 = qlv_Boost.Vect().Cross(pip_Boost.Vect());
-    Double_t c0, c1, c2, c3;
-    c0 = v0.Dot(pip_Boost.Vect());
-    c1 = v0.Dot(v1);
-    c2 = v0.Mag();
-    c3 = v1.Mag();
-
-
-    // Phi Trento (using Stefan's equation)
-    double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
-
-
-    double Cos_theta_t = (pip0_smeared.Vect().Dot(lv_q.Vect()))/(pip0_smeared.Vect().Mag()*lv_q.Vect().Mag());
-    double theta_t = TMath::ACos(Cos_theta_t);
-
-    double pipTx = pip0_smeared.P()*TMath::Cos(phi_t_cross_product)*TMath::Sin(theta_t);
-    double pipTy = pip0_smeared.P()*TMath::Sin(phi_t_cross_product)*TMath::Sin(theta_t);
-    double pipTz = pip0_smeared.P()*TMath::Cos(theta_t);
-
-    TVector3 pipT(pipTx, pipTy, pipTz);
-
-
-    phi_t_cross_product = phi_t_cross_product*TMath::RadToDeg();
-
-
-    ///////////////   x Feynmann   ///////////////
-    double xF_smeared = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W);
-
-
-    // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
-    double pT_smeared = sqrt(pipx_smeared*pipx_smeared + pipy_smeared*pipy_smeared);
-    double phi_t_smeared = pip0_Clone.Phi()*TMath::RadToDeg();
-
-
-    if(phi_t_smeared < 0){
-        phi_t_smeared = phi_t_smeared + 360;
-    }
+        """, str(Rotation_Matrix), """
 
 
 
+        ///////////////     Rotating to CM Frame     ///////////////
+
+        auto beam_Clone = Rot_Matrix(beam, -1, Theta_q, Phi_el);
+        auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
+        auto ele_Clone  = Rot_Matrix(ele_smeared,  -1, Theta_q, Phi_el);
+        auto pip0_Clone = Rot_Matrix(pip0_smeared, -1, Theta_q, Phi_el);
+        auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
 
 
-    //===================================================================================================================================//
-    //----------------------------------------------//===================================//----------------------------------------------//
-    //==============================================//          Smeared Binning          //==============================================//
-    //----------------------------------------------//===================================//----------------------------------------------//
-    //===================================================================================================================================//
+        ///////////////     Saving CM components     ///////////////
+
+        double pipx_smeared = pip0_Clone.X();
+        double pipy_smeared = pip0_Clone.Y();
+        double pipz_smeared = pip0_Clone.Z();
+
+        double qx_smeared = lv_q_Clone.X();
+        double qy_smeared = lv_q_Clone.Y();
+        double qz_smeared = lv_q_Clone.Z();
+
+        double beamx_smeared = beam_Clone.X();
+        double beamy_smeared = beam_Clone.Y();
+        double beamz_smeared = beam_Clone.Z();
+
+        double elex_smeared = ele_Clone.X();
+        double eley_smeared = ele_Clone.Y();
+        double elez_smeared = ele_Clone.Z();
 
 
-    //===================================================================================//
-    //=======================//          Q2-xB Binning          //=======================//
-    //===================================================================================//
+        ///////////////     Boosting Vectors     ///////////////
 
-    double Q2_xB_Bin_smeared = 0;
+        auto fCM = lv_q_Clone + targ_Clone;
+        auto boost = -(fCM.BoostVector());
 
-    /////////////////////////       Bin 1       /////////////////////////
-    if(xB_smeared > 0.0835 && xB_smeared < 0.15){
-        // Border lines of Bin 1:
-        //                 Upper Border:
-        //                          Q2_smeared = ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_smeared - 0.0835) + 1.3
-        //                 Q2_smeared must be less than the equation above for Bin 1
-        //
-        //                 Lower Border:
-        //                          Q2_smeared = ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_smeared - 0.0835) + 1.30   (if xB_smeared < 0.12)
-        //                          Q2_smeared = ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_smeared - 0.1200) + 1.30   (if xB_smeared > 0.12)
-        //                 Q2_smeared must be greater than the equations above for Bin 1
+        auto qlv_Boost(lv_q_Clone);
+        auto ele_Boost(ele_Clone);
+        auto pip_Boost(pip0_Clone);
+        auto beamBoost(beam_Clone);
+        auto targBoost(targ_Clone);
 
-        int Condition_Up = 0;
-        int Condition_Down = 0;
-        // Both Condition_Up and Condition_Down should be met for Bin 1 to be confirmed.
-        // Code will verify both conditions seperately before checking that they have been met.
-        // If the condition has been met, its value will be set to 1.
-        // If either is still 0 when checked, the event will be consided as being outside of Bin 1
+        qlv_Boost.Boost(boost);
+        ele_Boost.Boost(boost);
+        pip_Boost.Boost(boost);
+        beamBoost.Boost(boost);
+        targBoost.Boost(boost);
 
 
-        // Testing Upper Border of Bin 1
-        if(Q2_smeared <= ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_smeared - 0.0835) + 1.3){
-            Condition_Up = 1; // Condition for upper border of Bin 1 has been met
-        }
+        ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
 
-        // Testing Lower Border of Bin 1
-        if(xB_smeared < 0.12){
-            if(Q2_smeared >= ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_smeared - 0.0835) + 1.30){
-                Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-            }
-        }
-        if(xB_smeared > 0.12){
-            if(Q2_smeared >= ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_smeared - 0.1200) + 1.30){
-                Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-            }
+
+        TVector3 v0, v1;
+        v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
+        v1 = qlv_Boost.Vect().Cross(pip_Boost.Vect());
+        Double_t c0, c1, c2, c3;
+        c0 = v0.Dot(pip_Boost.Vect());
+        c1 = v0.Dot(v1);
+        c2 = v0.Mag();
+        c3 = v1.Mag();
+
+
+        // Phi Trento (using Stefan's equation)
+        double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
+
+
+        double Cos_theta_t = (pip0_smeared.Vect().Dot(lv_q.Vect()))/(pip0_smeared.Vect().Mag()*lv_q.Vect().Mag());
+        double theta_t = TMath::ACos(Cos_theta_t);
+
+        double pipTx = pip0_smeared.P()*TMath::Cos(phi_t_cross_product)*TMath::Sin(theta_t);
+        double pipTy = pip0_smeared.P()*TMath::Sin(phi_t_cross_product)*TMath::Sin(theta_t);
+        double pipTz = pip0_smeared.P()*TMath::Cos(theta_t);
+
+        TVector3 pipT(pipTx, pipTy, pipTz);
+
+
+        phi_t_cross_product = phi_t_cross_product*TMath::RadToDeg();
+
+
+        ///////////////   x Feynmann   ///////////////
+        double xF_smeared = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W);
+
+
+        // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
+        double pT_smeared = sqrt(pipx_smeared*pipx_smeared + pipy_smeared*pipy_smeared);
+        double phi_t_smeared = pip0_Clone.Phi()*TMath::RadToDeg();
+
+
+        if(phi_t_smeared < 0){
+            phi_t_smeared += 360;
         }
 
 
-        if(Condition_Up == 1 && Condition_Down == 1){
-            Q2_xB_Bin_smeared = 1;
-            // Bin 1 Confirmed
-        }
 
-    }
-    /////////////////////////     End of Bin 1     /////////////////////////
 
 
+        //===================================================================================================================================//
+        //----------------------------------------------//===================================//----------------------------------------------//
+        //==============================================//          Smeared Binning          //==============================================//
+        //----------------------------------------------//===================================//----------------------------------------------//
+        //===================================================================================================================================//
 
-    /////////////////////////       Bin 2 or 3       /////////////////////////
-    if(xB_smeared > 0.15 && xB_smeared < 0.24){
 
-        int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
+        //===================================================================================//
+        //=======================//          Q2-xB Binning          //=======================//
+        //===================================================================================//
 
-        // line between bins: Q2_smeared = ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98
+        double Q2_xB_Bin_smeared = 0;
 
-        // Deciding between Bins
-        if(Q2_smeared < ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98){
-            BinTest = 2; // Event will NOT go to bin 3
-        }
-
-        if(Q2_smeared > ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98){
-            BinTest = 3; // Event will NOT go to bin 2
-        }
-
-
-        // Final Border Test
-
-        // Bin 2
-        if(BinTest == 2){
-            // Border lines of Bin 2:   Q2_smeared = ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38   (if xB_smeared < 0.2)
-            //                          Q2_smeared = ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50   (if xB_smeared > 0.2)
-
-            if(xB_smeared < 0.2){
-                if(Q2_smeared >= ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38){
-                    Q2_xB_Bin_smeared = 2;
-                    // Bin 2 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.2){
-                if(Q2_smeared >= ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50){
-                    Q2_xB_Bin_smeared = 2;
-                    // Bin 2 Confirmed
-                }
-            }
-
-        }
-        // End of Bin 2
-
-
-        // Bin 3
-        if(BinTest == 3){
-            // Border line of Bin 3:   Q2_smeared = ((3.625 - 2.28)/(0.24 - 0.15))*(xB_smeared - 0.15) + 2.28
-
-            if(Q2_smeared <= ((3.625 - 2.28)/(0.24 - 0.15))*(xB_smeared - 0.15) + 2.28){
-                Q2_xB_Bin_smeared = 3;
-                // Bin 3 Confirmed
-            }
-
-        }
-        // End of Bin 3
-
-
-    }
-    /////////////////////////     End of Bin 2 and 3     /////////////////////////
-
-
-
-    /////////////////////////       Bin 4 or 5       /////////////////////////
-    if(xB_smeared > 0.24 && xB_smeared < 0.34){
-
-        int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-        // line between bins: Q2_smeared = ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75
-
-        // Deciding between Bins
-        if(Q2_smeared < ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75){
-            BinTest = 4; // Event will NOT go to bin 5
-        }
-
-        if(Q2_smeared > ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75){
-            BinTest = 5; // Event will NOT go to bin 4
-        }
-
-
-        // Final Border Test
-
-        // Bin 4
-        if(BinTest == 4){
-            // Border lines of Bin 4:   Q2_smeared = ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50   (if xB_smeared < 0.27)
-            //                          Q2_smeared = ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53   (if 0.27 < xB_smeared < 0.30)
-            //                          Q2_smeared = ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56   (if xB_smeared > 0.3)
-
-            if(xB_smeared < 0.27){
-                if(Q2_smeared >= ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50){
-                    Q2_xB_Bin_smeared = 4;
-                    // Bin 4 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.27 && xB_smeared < 0.30){
-                if(Q2_smeared >= ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53){
-                    Q2_xB_Bin_smeared = 4;
-                    // Bin 4 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.30){
-                if(Q2_smeared >= ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56){
-                    Q2_xB_Bin_smeared = 4;
-                    // Bin 4 Confirmed
-                }
-            }
-
-        }
-        // End of Bin 4
-
-
-        // Bin 5
-        if(BinTest == 5){
-            // Border line of Bin 5:   Q2_smeared = ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625
-
-            if(Q2_smeared <= ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625){
-                Q2_xB_Bin_smeared = 5;
-                // Bin 5 Confirmed
-            }
-
-        }
-        // End of Bin 5
-
-
-    }
-    /////////////////////////     End of Bin 4 and 5     /////////////////////////
-
-
-
-    /////////////////////////       Bin 6 or 7       /////////////////////////
-    if(xB_smeared > 0.34 && xB_smeared < 0.45){
-
-        int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-        // line between bins: Q2_smeared = ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63
-
-        // Deciding between Bins
-        if(Q2_smeared < ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
-            BinTest = 6; // Event will NOT go to bin 7
-        }
-
-        if(Q2_smeared > ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
-            BinTest = 7; // Event will NOT go to bin 6
-        }
-
-
-        // Final Border Test
-
-        // Bin 6
-        if(BinTest == 6){
-            // Border line of Bin 6:   Q2_smeared = ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60
-
-            if(Q2_smeared >= ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60){
-                Q2_xB_Bin_smeared = 6;
-                // Bin 6 Confirmed
-            }
-
-        }
-        // End of Bin 6
-
-
-        // Bin 7
-        if(BinTest == 7){
-            // Border line of Bin 7:   Q2_smeared = ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12
-
-            if(Q2_smeared <= ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12){
-                Q2_xB_Bin_smeared = 7;
-                // Bin 7 Confirmed
-            }
-
-        }
-        // End of Bin 7
-
-
-    }
-    /////////////////////////     End of Bin 6 and 7     /////////////////////////
-
-
-
-    /////////////////////////       Bin 8 or 9       /////////////////////////
-    if(xB_smeared > 0.45){
-
-        int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-        // line between bins: Q2_smeared = ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70    
-
-        // Deciding between Bins
-        if(Q2_smeared < ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
-            BinTest = 8; // Event will NOT go to bin 9
-        }
-        if(Q2_smeared > ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
-            BinTest = 9; // Event will NOT go to bin 8
-        }
-
-
-        // Final Border Test
-
-        // Bin 8
-        if(BinTest == 8){
-            // Border lines of Bin 8:   Q2_smeared = ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52   (if xB_smeared < 0.50)
-            //                          Q2_smeared = ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05   (if 0.50 < xB_smeared < 0.57)
-            //                          Q2_smeared = ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05   (if 0.57 < xB_smeared < 0.64)
-            //                          Q2_smeared = ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40   (if xB_smeared > 0.64)
-
-            if(xB_smeared < 0.50){
-                if(Q2_smeared >= ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52){
-                    Q2_xB_Bin_smeared = 8;
-                    // Bin 8 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.50 && xB_smeared < 0.57){
-                if(Q2_smeared >= ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05){
-                    Q2_xB_Bin_smeared = 8;
-                    // Bin 8 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.57 && xB_smeared < 0.64){
-                if(Q2_smeared >= ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05){
-                    Q2_xB_Bin_smeared = 8;
-                    // Bin 8 Confirmed
-                }
-            }
-
-            if(xB_smeared > 0.64){
-                if(Q2_smeared >= ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40){
-                    Q2_xB_Bin_smeared = 8;
-                    // Bin 8 Confirmed
-                }
-            }
-
-        }
-        // End of Bin 8
-
-
-        // Bin 9
-        if(BinTest == 9){
-            // Border lines of Bin 9:
-            //                 Uppermost Border:
-            //                          Q2_smeared = ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_smeared - 0.450) +  6.760   (if xB_smeared < 0.677)
-            //                          Q2_smeared = ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_smeared - 0.677) + 10.185   (if xB_smeared > 0.677)
-            //                 Q2_smeared must be less than the equations above for Bin 9
+        /////////////////////////       Bin 1       /////////////////////////
+        if(xB_smeared > 0.0835 && xB_smeared < 0.15){
+            // Border lines of Bin 1:
+            //                 Upper Border:
+            //                          Q2_smeared = ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_smeared - 0.0835) + 1.3
+            //                 Q2_smeared must be less than the equation above for Bin 1
             //
-            //                 Rightmost Border:
-            //                          Q2_smeared =  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_smeared - 0.708) + 7.42   (if xB_smeared < 0.75)
-            //                          Q2_smeared = ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_smeared - 0.750) + 9.52   (if xB_smeared > 0.75)
-            //                 Q2_smeared must be greater than the equations above for Bin 9
+            //                 Lower Border:
+            //                          Q2_smeared = ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_smeared - 0.0835) + 1.30   (if xB_smeared < 0.12)
+            //                          Q2_smeared = ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_smeared - 0.1200) + 1.30   (if xB_smeared > 0.12)
+            //                 Q2_smeared must be greater than the equations above for Bin 1
 
             int Condition_Up = 0;
-            int Condition_Right = 0;
-            // Both Condition_Up and Condition_Right should be met for Bin 9 to be confirmed.
+            int Condition_Down = 0;
+            // Both Condition_Up and Condition_Down should be met for Bin 1 to be confirmed.
             // Code will verify both conditions seperately before checking that they have been met.
             // If the condition has been met, its value will be set to 1.
-            // If either is still 0 when checked, the event will be consided as being outside of Bin 9
+            // If either is still 0 when checked, the event will be consided as being outside of Bin 1
 
 
-            // Testing Uppermost Border of Bin 9
-            if(xB_smeared < 0.677){
-                if(Q2_smeared <= ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_smeared - 0.450) +  6.760){
-                    Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                }
-            }
-            if(xB_smeared > 0.677){
-                if(Q2_smeared <= ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_smeared - 0.677) + 10.185){
-                    Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                }
+            // Testing Upper Border of Bin 1
+            if(Q2_smeared <= ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_smeared - 0.0835) + 1.3){
+                Condition_Up = 1; // Condition for upper border of Bin 1 has been met
             }
 
-            // Testing Rightmost Border of Bin 9
-            if(xB_smeared < 0.75){
-                if(Q2_smeared >=  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_smeared - 0.708) + 7.42){
-                    Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
+            // Testing Lower Border of Bin 1
+            if(xB_smeared < 0.12){
+                if(Q2_smeared >= ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_smeared - 0.0835) + 1.30){
+                    Condition_Down = 1; // Condition for lower border of Bin 1 has been met
                 }
             }
-            if(xB_smeared > 0.75){
-                if(Q2_smeared >= ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_smeared - 0.750) + 9.52){
-                    Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
+            if(xB_smeared > 0.12){
+                if(Q2_smeared >= ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_smeared - 0.1200) + 1.30){
+                    Condition_Down = 1; // Condition for lower border of Bin 1 has been met
                 }
             }
 
 
-            if(Condition_Up == 1 && Condition_Right == 1){
-                Q2_xB_Bin_smeared = 9;
-                // Bin 9 Confirmed
+            if(Condition_Up == 1 && Condition_Down == 1){
+                Q2_xB_Bin_smeared = 1;
+                // Bin 1 Confirmed
             }
 
         }
-        // End of Bin 9
-
-    }
-    /////////////////////////     End of Bin 8 and 9     /////////////////////////
+        /////////////////////////     End of Bin 1     /////////////////////////
 
 
 
-    //==================================================================================//
-    //=======================//      End of Q2-xB Binning      //=======================//
-    //=======================//================================//=======================//
-    //=======================//          z-pT Binning          //=======================//
-    //==================================================================================//
+        /////////////////////////       Bin 2 or 3       /////////////////////////
+        if(xB_smeared > 0.15 && xB_smeared < 0.24){
 
+            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
 
+            // line between bins: Q2_smeared = ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98
 
-    double z_pT_Bin_smeared = 0;
-    int Num_z_Borders = 0;
-    int Num_pT_Borders = 0;
-
-
-    /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
-
-    auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-    {
-
-        // z_or_pT = 0 corresponds to z bins
-        // z_or_pT = 1 corresponds to pT bins
-
-        // For Q2_xB Bin 1
-        if(Q2_xB_Bin_Num == 1){
-            float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[7 - entry];
+            // Deciding between Bins
+            if(Q2_smeared < ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98){
+                BinTest = 2; // Event will NOT go to bin 3
             }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
+
+            if(Q2_smeared > ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98){
+                BinTest = 3; // Event will NOT go to bin 2
             }
-        }
-        // For Q2_xB Bin 2
-        if(Q2_xB_Bin_Num == 2){
-            float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-            float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[7 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 3
-        if(Q2_xB_Bin_Num == 3){
-            float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[7 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 4
-        if(Q2_xB_Bin_Num == 4){
-            float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-            float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[6 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 5
-        if(Q2_xB_Bin_Num == 5){
-            float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[7 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 6
-        if(Q2_xB_Bin_Num == 6){
-            float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-            float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-            if(z_or_pT == 0){
-                return z_Borders[5 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 7
-        if(Q2_xB_Bin_Num == 7){
-            float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-            float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-
-            if(z_or_pT == 0){
-                return z_Borders[6 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 8
-        if(Q2_xB_Bin_Num == 8){
-            float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-            float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
-
-            if(z_or_pT == 0){
-                return z_Borders[5 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
-        // For Q2_xB Bin 9
-        if(Q2_xB_Bin_Num == 9){
-            float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-            float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-            if(z_or_pT == 0){
-                return z_Borders[5 - entry];
-            }
-            if(z_or_pT == 1){
-                return pT_Borders[entry];
-            }
-        }
 
 
-        // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-        // return empty_Borders;
-        float empty = 0;
-        return empty;
-    };
+            // Final Border Test
 
+            // Bin 2
+            if(BinTest == 2){
+                // Border lines of Bin 2:   Q2_smeared = ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38   (if xB_smeared < 0.2)
+                //                          Q2_smeared = ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50   (if xB_smeared > 0.2)
 
-    /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-    // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
-
-    // For Q2_xB Bin 0
-    if(Q2_xB_Bin_smeared== 0){
-        z_pT_Bin_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
-        Num_z_Borders = 0;
-        Num_pT_Borders = 0;
-    }
-    // For Q2_xB Bin 1
-    if(Q2_xB_Bin_smeared== 1){
-        // float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-        Num_z_Borders = 8;
-        // float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
-        Num_pT_Borders = 8;
-    }
-    // For Q2_xB Bin 2
-    if(Q2_xB_Bin_smeared== 2){
-        // float z_Borders[]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-        Num_z_Borders = 8;
-        // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-        Num_pT_Borders = 8;
-    }
-    // For Q2_xB Bin 3
-    if(Q2_xB_Bin_smeared== 3){
-        // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-        Num_z_Borders = 8;
-        // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-        Num_pT_Borders = 8;
-    }
-    // For Q2_xB Bin 4
-    if(Q2_xB_Bin_smeared== 4){
-        // float z_Borders[]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-        Num_z_Borders = 7;
-        // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-        Num_pT_Borders = 8;
-    }
-    // For Q2_xB Bin 5
-    if(Q2_xB_Bin_smeared== 5){
-        // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-        Num_z_Borders = 8;
-        // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-        Num_pT_Borders = 8;
-    }
-    // For Q2_xB Bin 6
-    if(Q2_xB_Bin_smeared== 6){
-        // float z_Borders[]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-        Num_z_Borders = 6;
-        // float pT_Borders[] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-        Num_pT_Borders = 6;
-    }
-    // For Q2_xB Bin 7
-    if(Q2_xB_Bin_smeared== 7){
-        // float z_Borders[]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-        Num_z_Borders = 7;
-        // float pT_Borders[] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-        Num_pT_Borders = 7;
-    }
-    // For Q2_xB Bin 8
-    if(Q2_xB_Bin_smeared== 8){
-        // float z_Borders[]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-        Num_z_Borders = 6;
-        // float pT_Borders[] = {0.05, 0.23, 0.34, 0.45, 0.70};
-        Num_pT_Borders = 5;
-    }
-    // For Q2_xB Bin 9
-    if(Q2_xB_Bin_smeared== 9){
-        // float z_Borders[]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-        Num_z_Borders = 6;
-        // float pT_Borders[] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-        Num_pT_Borders = 6;
-    }
-
-    if(Num_z_Borders == 0){
-        // float  z_Borders[1]  = {0};
-        Num_z_Borders = 1;
-        // float  pT_Borders[1] = {0};
-        Num_pT_Borders = 1;
-    }
-
-
-    int z_pT_Bin_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                            // based on the number of times the loop has run
-
-    // Determining z_pT Bins
-    for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-        if(z_pT_Bin_smeared != 0){
-            continue;   // If the bin has already been assigned, this line will end the loop.
-                        // This is to make sure the loop does not run longer than what is necessary.
-        }    
-
-        if(z_smeared > Borders_function(Q2_xB_Bin_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_smeared, 0, zbin - 1)){
-            // Found the correct z bin
-
-            for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                if(z_pT_Bin_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                if(pT_smeared > Borders_function(Q2_xB_Bin_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_smeared, 1, pTbin+1)){
-                    // Found the correct pT bin
-                    z_pT_Bin_smeared = z_pT_Bin_smeared_count; // The value of the z_pT_Bin_smeared has been set
-                    break;
+                if(xB_smeared < 0.2){
+                    if(Q2_smeared >= ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38){
+                        Q2_xB_Bin_smeared = 2;
+                        // Bin 2 Confirmed
+                    }
                 }
-                else{
-                    z_pT_Bin_smeared_count += 1; // Checking the next bin
+
+                if(xB_smeared > 0.2){
+                    if(Q2_smeared >= ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50){
+                        Q2_xB_Bin_smeared = 2;
+                        // Bin 2 Confirmed
+                    }
                 }
+
+            }
+            // End of Bin 2
+
+
+            // Bin 3
+            if(BinTest == 3){
+                // Border line of Bin 3:   Q2_smeared = ((3.625 - 2.28)/(0.24 - 0.15))*(xB_smeared - 0.15) + 2.28
+
+                if(Q2_smeared <= ((3.625 - 2.28)/(0.24 - 0.15))*(xB_smeared - 0.15) + 2.28){
+                    Q2_xB_Bin_smeared = 3;
+                    // Bin 3 Confirmed
+                }
+
+            }
+            // End of Bin 3
+
+
+        }
+        /////////////////////////     End of Bin 2 and 3     /////////////////////////
+
+
+
+        /////////////////////////       Bin 4 or 5       /////////////////////////
+        if(xB_smeared > 0.24 && xB_smeared < 0.34){
+
+            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
+
+            // line between bins: Q2_smeared = ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75
+
+            // Deciding between Bins
+            if(Q2_smeared < ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75){
+                BinTest = 4; // Event will NOT go to bin 5
             }
 
+            if(Q2_smeared > ((3.63 - 2.75)/(0.34 - 0.24))*(xB_smeared - 0.24) + 2.75){
+                BinTest = 5; // Event will NOT go to bin 4
+            }
+
+
+            // Final Border Test
+
+            // Bin 4
+            if(BinTest == 4){
+                // Border lines of Bin 4:   Q2_smeared = ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50   (if xB_smeared < 0.27)
+                //                          Q2_smeared = ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53   (if 0.27 < xB_smeared < 0.30)
+                //                          Q2_smeared = ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56   (if xB_smeared > 0.3)
+
+                if(xB_smeared < 0.27){
+                    if(Q2_smeared >= ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50){
+                        Q2_xB_Bin_smeared = 4;
+                        // Bin 4 Confirmed
+                    }
+                }
+
+                if(xB_smeared > 0.27 && xB_smeared < 0.30){
+                    if(Q2_smeared >= ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53){
+                        Q2_xB_Bin_smeared = 4;
+                        // Bin 4 Confirmed
+                    }
+                }
+
+                if(xB_smeared > 0.30){
+                    if(Q2_smeared >= ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56){
+                        Q2_xB_Bin_smeared = 4;
+                        // Bin 4 Confirmed
+                    }
+                }
+
+            }
+            // End of Bin 4
+
+
+            // Bin 5
+            if(BinTest == 5){
+                // Border line of Bin 5:   Q2_smeared = ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625
+
+                if(Q2_smeared <= ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625){
+                    Q2_xB_Bin_smeared = 5;
+                    // Bin 5 Confirmed
+                }
+
+            }
+            // End of Bin 5
+
+
         }
-        else{
-            z_pT_Bin_smeared_count += (Num_pT_Borders - 1);
-            // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-            // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-        }    
-    }
+        /////////////////////////     End of Bin 4 and 5     /////////////////////////
 
 
 
-    //===================================================================================//
-    //=======================//       End of z-pT Binning       //=======================//
-    //===================================================================================//
+        /////////////////////////       Bin 6 or 7       /////////////////////////
+        if(xB_smeared > 0.34 && xB_smeared < 0.45){
+
+            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
+
+            // line between bins: Q2_smeared = ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63
+
+            // Deciding between Bins
+            if(Q2_smeared < ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
+                BinTest = 6; // Event will NOT go to bin 7
+            }
+
+            if(Q2_smeared > ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
+                BinTest = 7; // Event will NOT go to bin 6
+            }
 
 
+            // Final Border Test
 
-    //==================================================================================================================================//
-    //----------------------------------------------//==================================//----------------------------------------------//
-    //==============================================//      End of Smeared Binning      //==============================================//
-    //----------------------------------------------//==================================//----------------------------------------------//
-    //==================================================================================================================================//
+            // Bin 6
+            if(BinTest == 6){
+                // Border line of Bin 6:   Q2_smeared = ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60
+
+                if(Q2_smeared >= ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60){
+                    Q2_xB_Bin_smeared = 6;
+                    // Bin 6 Confirmed
+                }
+
+            }
+            // End of Bin 6
 
 
+            // Bin 7
+            if(BinTest == 7){
+                // Border line of Bin 7:   Q2_smeared = ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12
 
-    // std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, pipx_smeared, pipy_smeared, pipz_smeared, qx_smeared, qy_smeared, qz_smeared, beamx_smeared, beamy_smeared, beamz_smeared, elex_smeared, eley_smeared, elez_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, ele_E_smeared, pip0_E_smeared, el_smeared, pip_smeared, elth_smeared, pipth_smeared, elPhi_smeared, pipPhi_smeared};
+                if(Q2_smeared <= ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12){
+                    Q2_xB_Bin_smeared = 7;
+                    // Bin 7 Confirmed
+                }
+
+            }
+            // End of Bin 7
 
 
-    std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, el_smeared, ele_E_smeared, elth_smeared, elPhi_smeared, pip_smeared, pip0_E_smeared, pipth_smeared, pipPhi_smeared, Delta_Smear_El_P, Delta_Smear_El_Th, Delta_Smear_El_Phi, Delta_Smear_Pip_P, Delta_Smear_Pip_Th, Delta_Smear_Pip_Phi};
-    //                  smeared_vals = {    1    ,     2     ,      3    ,      4    ,     5    ,      6    ,     7    ,     8    ,     9    ,        10      ,     11    ,        12    ,     13    ,        14        ,       15        ,     16    ,       17     ,       18    ,        19    ,      20    ,        21     ,        22    ,         23    ,      24         ,      25          ,      26           ,      27          ,      28           ,      29            };
-
-    return smeared_vals;
-
-    """)
-
-    # Data_Frame_Clone = Data_Frame_Clone.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
-    # Data_Frame_Clone = Data_Frame_Clone.Define('z_pT_Bin_smeared', 'smeared_vals[14]')
-    rdf = rdf.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
-    rdf = rdf.Define('z_pT_Bin_smeared', 'smeared_vals[14]')
-    
-    rdf = rdf.Define('Q2_xB_Bin_2_smeared', '''
-        int Q2_xB_Bin_2_smeared = Q2_xB_Bin_smeared;
-
-        if(Q2_xB_Bin_smeared > 1 && Q2_xB_Bin_2_smeared%2 != 0){
-            Q2_xB_Bin_2_smeared += -2;
         }
+        /////////////////////////     End of Bin 6 and 7     /////////////////////////
 
-        if(smeared_vals[2] < 2){
-        // if(Q2_smeared < 2){
-            Q2_xB_Bin_2_smeared = 0; 
+
+
+        /////////////////////////       Bin 8 or 9       /////////////////////////
+        if(xB_smeared > 0.45){
+
+            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
+
+            // line between bins: Q2_smeared = ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70    
+
+            // Deciding between Bins
+            if(Q2_smeared < ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
+                BinTest = 8; // Event will NOT go to bin 9
+            }
+            if(Q2_smeared > ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
+                BinTest = 9; // Event will NOT go to bin 8
+            }
+
+
+            // Final Border Test
+
+            // Bin 8
+            if(BinTest == 8){
+                // Border lines of Bin 8:   Q2_smeared = ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52   (if xB_smeared < 0.50)
+                //                          Q2_smeared = ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05   (if 0.50 < xB_smeared < 0.57)
+                //                          Q2_smeared = ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05   (if 0.57 < xB_smeared < 0.64)
+                //                          Q2_smeared = ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40   (if xB_smeared > 0.64)
+
+                if(xB_smeared < 0.50){
+                    if(Q2_smeared >= ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52){
+                        Q2_xB_Bin_smeared = 8;
+                        // Bin 8 Confirmed
+                    }
+                }
+
+                if(xB_smeared > 0.50 && xB_smeared < 0.57){
+                    if(Q2_smeared >= ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05){
+                        Q2_xB_Bin_smeared = 8;
+                        // Bin 8 Confirmed
+                    }
+                }
+
+                if(xB_smeared > 0.57 && xB_smeared < 0.64){
+                    if(Q2_smeared >= ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05){
+                        Q2_xB_Bin_smeared = 8;
+                        // Bin 8 Confirmed
+                    }
+                }
+
+                if(xB_smeared > 0.64){
+                    if(Q2_smeared >= ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40){
+                        Q2_xB_Bin_smeared = 8;
+                        // Bin 8 Confirmed
+                    }
+                }
+
+            }
+            // End of Bin 8
+
+
+            // Bin 9
+            if(BinTest == 9){
+                // Border lines of Bin 9:
+                //                 Uppermost Border:
+                //                          Q2_smeared = ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_smeared - 0.450) +  6.760   (if xB_smeared < 0.677)
+                //                          Q2_smeared = ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_smeared - 0.677) + 10.185   (if xB_smeared > 0.677)
+                //                 Q2_smeared must be less than the equations above for Bin 9
+                //
+                //                 Rightmost Border:
+                //                          Q2_smeared =  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_smeared - 0.708) + 7.42   (if xB_smeared < 0.75)
+                //                          Q2_smeared = ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_smeared - 0.750) + 9.52   (if xB_smeared > 0.75)
+                //                 Q2_smeared must be greater than the equations above for Bin 9
+
+                int Condition_Up = 0;
+                int Condition_Right = 0;
+                // Both Condition_Up and Condition_Right should be met for Bin 9 to be confirmed.
+                // Code will verify both conditions seperately before checking that they have been met.
+                // If the condition has been met, its value will be set to 1.
+                // If either is still 0 when checked, the event will be consided as being outside of Bin 9
+
+
+                // Testing Uppermost Border of Bin 9
+                if(xB_smeared < 0.677){
+                    if(Q2_smeared <= ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_smeared - 0.450) +  6.760){
+                        Condition_Up = 1; // Condition for upper border of Bin 9 has been met
+                    }
+                }
+                if(xB_smeared > 0.677){
+                    if(Q2_smeared <= ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_smeared - 0.677) + 10.185){
+                        Condition_Up = 1; // Condition for upper border of Bin 9 has been met
+                    }
+                }
+
+                // Testing Rightmost Border of Bin 9
+                if(xB_smeared < 0.75){
+                    if(Q2_smeared >=  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_smeared - 0.708) + 7.42){
+                        Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
+                    }
+                }
+                if(xB_smeared > 0.75){
+                    if(Q2_smeared >= ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_smeared - 0.750) + 9.52){
+                        Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
+                    }
+                }
+
+
+                if(Condition_Up == 1 && Condition_Right == 1){
+                    Q2_xB_Bin_smeared = 9;
+                    // Bin 9 Confirmed
+                }
+
+            }
+            // End of Bin 9
+
         }
+        /////////////////////////     End of Bin 8 and 9     /////////////////////////
 
-        return Q2_xB_Bin_2_smeared;
-    ''')
-        
-        
-    rdf = rdf.Define('z_pT_Bin_2_smeared', '''
-    
-        double z_smeared = smeared_vals[8];
-        double pT_smeared = smeared_vals[10];
-    
+
+
+        //==================================================================================//
+        //=======================//      End of Q2-xB Binning      //=======================//
+        //=======================//================================//=======================//
+        //=======================//          z-pT Binning          //=======================//
+        //==================================================================================//
+
+
+
+        double z_pT_Bin_smeared = 0;
+        int Num_z_Borders = 0;
+        int Num_pT_Borders = 0;
+
+
+        /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
+
         auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
         {
+
             // z_or_pT = 0 corresponds to z bins
             // z_or_pT = 1 corresponds to pT bins
 
-            // For Q2_xB Bin 1 (was 3 in old scheme)
+            // For Q2_xB Bin 1
             if(Q2_xB_Bin_Num == 1){
-                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+                float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+                float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
 
                 if(z_or_pT == 0){
                     return z_Borders[7 - entry];
@@ -2020,7 +1838,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     return pT_Borders[entry];
                 }
             }
-            // For Q2_xB Bin 3 (was 5 in old scheme)
+            // For Q2_xB Bin 3
             if(Q2_xB_Bin_Num == 3){
                 float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
                 float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
@@ -2044,18 +1862,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     return pT_Borders[entry];
                 }
             }
-            // For Q2_xB Bin 5 (was 7 in old scheme)
+            // For Q2_xB Bin 5
             if(Q2_xB_Bin_Num == 5){
-                float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
+                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
 
                 if(z_or_pT == 0){
-                    return z_Borders[6 - entry];
+                    return z_Borders[7 - entry];
                 }
                 if(z_or_pT == 1){
                     return pT_Borders[entry];
                 }
-            }    
+            }
             // For Q2_xB Bin 6
             if(Q2_xB_Bin_Num == 6){
                 float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
@@ -2068,13 +1886,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     return pT_Borders[entry];
                 }
             }
-            // For Q2_xB Bin 7 (was 9 in old scheme)
+            // For Q2_xB Bin 7
             if(Q2_xB_Bin_Num == 7){
-                float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-                float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
+                float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
+                float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
 
                 if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
+                    return z_Borders[6 - entry];
                 }
                 if(z_or_pT == 1){
                     return pT_Borders[entry];
@@ -2092,7 +1910,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     return pT_Borders[entry];
                 }
             }
+            // For Q2_xB Bin 9
+            if(Q2_xB_Bin_Num == 9){
+                float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
+                float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
 
+                if(z_or_pT == 0){
+                    return z_Borders[5 - entry];
+                }
+                if(z_or_pT == 1){
+                    return pT_Borders[entry];
+                }
+            }
 
 
             // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
@@ -2107,104 +1936,371 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
 
-        // Default:
-        int Num_z_Borders = 8;
-        int Num_pT_Borders = 8;
-        int z_pT_Bin_2_smeared = 0;
-
         // For Q2_xB Bin 0
-        if(Q2_xB_Bin_2_smeared == 0){
-            z_pT_Bin_2_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
-            Num_z_Borders = 0; Num_pT_Borders = 0;
+        if(Q2_xB_Bin_smeared== 0){
+            z_pT_Bin_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
+            Num_z_Borders = 0;
+            Num_pT_Borders = 0;
         }
-        // For Q2_xB Bin 1 (Uses Default for both borders)
-
-        // For Q2_xB Bin 2 (Uses Default for both borders)
-
-        // For Q2_xB Bin 3 (Uses Default for both borders)
-
-        // For Q2_xB Bin 4 (Uses Default for pT borders)
-        if(Q2_xB_Bin_2_smeared == 4){
+        // For Q2_xB Bin 1
+        if(Q2_xB_Bin_smeared== 1){
+            // float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+            Num_z_Borders = 8;
+            // float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
+            Num_pT_Borders = 8;
+        }
+        // For Q2_xB Bin 2
+        if(Q2_xB_Bin_smeared== 2){
+            // float z_Borders[]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
+            Num_z_Borders = 8;
+            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+            Num_pT_Borders = 8;
+        }
+        // For Q2_xB Bin 3
+        if(Q2_xB_Bin_smeared== 3){
+            // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+            Num_z_Borders = 8;
+            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+            Num_pT_Borders = 8;
+        }
+        // For Q2_xB Bin 4
+        if(Q2_xB_Bin_smeared== 4){
+            // float z_Borders[]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
             Num_z_Borders = 7;
+            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+            Num_pT_Borders = 8;
         }
-
-        // For Q2_xB Bin 5 (New scheme)
-        if(Q2_xB_Bin_2_smeared == 5){
-            Num_z_Borders = 7; Num_pT_Borders = 7;
+        // For Q2_xB Bin 5
+        if(Q2_xB_Bin_smeared== 5){
+            // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+            Num_z_Borders = 8;
+            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+            Num_pT_Borders = 8;
         }
-
         // For Q2_xB Bin 6
-        if(Q2_xB_Bin_2_smeared == 6){
-            Num_z_Borders = 6; Num_pT_Borders = 6;
+        if(Q2_xB_Bin_smeared== 6){
+            // float z_Borders[]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
+            Num_z_Borders = 6;
+            // float pT_Borders[] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
+            Num_pT_Borders = 6;
         }
-
-        // For Q2_xB Bin 7 (New scheme)
-        if(Q2_xB_Bin_2_smeared == 7){
-            Num_z_Borders = 6; Num_pT_Borders = 6;
+        // For Q2_xB Bin 7
+        if(Q2_xB_Bin_smeared== 7){
+            // float z_Borders[]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
+            Num_z_Borders = 7;
+            // float pT_Borders[] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
+            Num_pT_Borders = 7;
         }
-
         // For Q2_xB Bin 8
-        if(Q2_xB_Bin_2_smeared == 8){
-            Num_z_Borders = 6; Num_pT_Borders = 5;
+        if(Q2_xB_Bin_smeared== 8){
+            // float z_Borders[]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
+            Num_z_Borders = 6;
+            // float pT_Borders[] = {0.05, 0.23, 0.34, 0.45, 0.70};
+            Num_pT_Borders = 5;
+        }
+        // For Q2_xB Bin 9
+        if(Q2_xB_Bin_smeared== 9){
+            // float z_Borders[]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
+            Num_z_Borders = 6;
+            // float pT_Borders[] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
+            Num_pT_Borders = 6;
         }
 
         if(Num_z_Borders == 0){
-            Num_z_Borders = 1; Num_pT_Borders = 1;
+            // float  z_Borders[1]  = {0};
+            Num_z_Borders = 1;
+            // float  pT_Borders[1] = {0};
+            Num_pT_Borders = 1;
         }
 
 
-        int z_pT_Bin_2_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
+        int z_pT_Bin_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
                                 // based on the number of times the loop has run
 
         // Determining z_pT Bins
         for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-            if(z_pT_Bin_2_smeared != 0){
+            if(z_pT_Bin_smeared != 0){
                 continue;   // If the bin has already been assigned, this line will end the loop.
                             // This is to make sure the loop does not run longer than what is necessary.
             }    
 
-            if(z_smeared > Borders_function(Q2_xB_Bin_2_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_2_smeared, 0, zbin - 1)){
+            if(z_smeared > Borders_function(Q2_xB_Bin_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_smeared, 0, zbin - 1)){
                 // Found the correct z bin
 
                 for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                    if(z_pT_Bin_2_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
+                    if(z_pT_Bin_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
 
-                    if(pT_smeared > Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin+1)){
+                    if(pT_smeared > Borders_function(Q2_xB_Bin_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_smeared, 1, pTbin+1)){
                         // Found the correct pT bin
-                        z_pT_Bin_2_smeared = z_pT_Bin_2_smeared_count; // The value of the z_pT_Bin_2_smeared has been set
-                        // cout<<"The value of the z_pT_Bin_2_smeared has been set as: "<<z_pT_Bin_2_smeared<<endl;
+                        z_pT_Bin_smeared = z_pT_Bin_smeared_count; // The value of the z_pT_Bin_smeared has been set
                         break;
                     }
                     else{
-                        z_pT_Bin_2_smeared_count += 1; // Checking the next bin
-                        // cout<<"Checking the next bin"<<endl;
+                        z_pT_Bin_smeared_count += 1; // Checking the next bin
                     }
                 }
 
             }
             else{
-                z_pT_Bin_2_smeared_count += (Num_pT_Borders - 1);
+                z_pT_Bin_smeared_count += (Num_pT_Borders - 1);
                 // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
                 // This represents checking each pT bin for the given z bin without going through each entry in the loop.
             }    
         }
 
-        return z_pT_Bin_2_smeared;
-    
-    ''')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_El_P', 'smeared_vals[24]')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_El_Th', 'smeared_vals[25]')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_El_Phi', 'smeared_vals[26]')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_Pip_P', 'smeared_vals[27]')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_Pip_Th', 'smeared_vals[28]')
-# #         Data_Frame_Clone = Data_Frame_Clone.Define('Delta_Smear_Pip_Phi', 'smeared_vals[29]')
-        
-#         import ROOT, numpy
-# #         display = Data_Frame_Clone.Display({"Delta_Smear_El_P", "Delta_Smear_El_Th", "Delta_Smear_El_Phi", "Delta_Smear_Pip_P", "Delta_Smear_Pip_Th", "Delta_Smear_Pip_Phi"}, 10)
-#         display = rdf.Display({"elec_events_found", "ex"}, 10)
-#         display.Print()
-        
-#         return Data_Frame_Clone
+
+
+        //===================================================================================//
+        //=======================//       End of z-pT Binning       //=======================//
+        //===================================================================================//
+
+
+
+        //==================================================================================================================================//
+        //----------------------------------------------//==================================//----------------------------------------------//
+        //==============================================//      End of Smeared Binning      //==============================================//
+        //----------------------------------------------//==================================//----------------------------------------------//
+        //==================================================================================================================================//
+
+
+
+        // std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, pipx_smeared, pipy_smeared, pipz_smeared, qx_smeared, qy_smeared, qz_smeared, beamx_smeared, beamy_smeared, beamz_smeared, elex_smeared, eley_smeared, elez_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, ele_E_smeared, pip0_E_smeared, el_smeared, pip_smeared, elth_smeared, pipth_smeared, elPhi_smeared, pipPhi_smeared};
+
+
+        std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, el_smeared, ele_E_smeared, elth_smeared, elPhi_smeared, pip_smeared, pip0_E_smeared, pipth_smeared, pipPhi_smeared, Delta_Smear_El_P, Delta_Smear_El_Th, Delta_Smear_El_Phi, Delta_Smear_Pip_P, Delta_Smear_Pip_Th, Delta_Smear_Pip_Phi};
+        //                  smeared_vals = {    1    ,     2     ,      3    ,      4    ,     5    ,      6    ,     7    ,     8    ,     9    ,        10      ,     11    ,        12    ,     13    ,        14        ,       15        ,     16    ,       17     ,       18    ,        19    ,      20    ,        21     ,        22    ,         23    ,      24         ,      25          ,      26           ,      27          ,      28           ,      29            };
+
+        return smeared_vals;
+
+        """]))
+
+        # Data_Frame_Clone = Data_Frame_Clone.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
+        # Data_Frame_Clone = Data_Frame_Clone.Define('z_pT_Bin_smeared', 'smeared_vals[14]')
+        rdf = rdf.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
+        rdf = rdf.Define('z_pT_Bin_smeared', 'smeared_vals[14]')
+
+        rdf = rdf.Define('Q2_xB_Bin_2_smeared', '''
+            int Q2_xB_Bin_2_smeared = Q2_xB_Bin_smeared;
+
+            if(Q2_xB_Bin_smeared > 1 && Q2_xB_Bin_2_smeared%2 != 0){
+                Q2_xB_Bin_2_smeared += -2;
+            }
+
+            if(smeared_vals[2] < 2){
+            // if(Q2_smeared < 2){
+                Q2_xB_Bin_2_smeared = 0; 
+            }
+
+            return Q2_xB_Bin_2_smeared;
+        ''')
+
+
+        rdf = rdf.Define('z_pT_Bin_2_smeared', '''
+
+            double z_smeared = smeared_vals[8];
+            double pT_smeared = smeared_vals[10];
+
+            auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
+            {
+                // z_or_pT = 0 corresponds to z bins
+                // z_or_pT = 1 corresponds to pT bins
+
+                // For Q2_xB Bin 1 (was 3 in old scheme)
+                if(Q2_xB_Bin_Num == 1){
+                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[7 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 2
+                if(Q2_xB_Bin_Num == 2){
+                    float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
+                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[7 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 3 (was 5 in old scheme)
+                if(Q2_xB_Bin_Num == 3){
+                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[7 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 4
+                if(Q2_xB_Bin_Num == 4){
+                    float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
+                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[6 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 5 (was 7 in old scheme)
+                if(Q2_xB_Bin_Num == 5){
+                    float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
+                    float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[6 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }    
+                // For Q2_xB Bin 6
+                if(Q2_xB_Bin_Num == 6){
+                    float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
+                    float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[5 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 7 (was 9 in old scheme)
+                if(Q2_xB_Bin_Num == 7){
+                    float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
+                    float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[5 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+                // For Q2_xB Bin 8
+                if(Q2_xB_Bin_Num == 8){
+                    float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
+                    float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
+
+                    if(z_or_pT == 0){
+                        return z_Borders[5 - entry];
+                    }
+                    if(z_or_pT == 1){
+                        return pT_Borders[entry];
+                    }
+                }
+
+
+
+                // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
+                // return empty_Borders;
+                float empty = 0;
+                return empty;
+            };
+
+
+            /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
+
+
+            // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
+
+            // Default:
+            int Num_z_Borders = 8;
+            int Num_pT_Borders = 8;
+            int z_pT_Bin_2_smeared = 0;
+
+            // For Q2_xB Bin 0
+            if(Q2_xB_Bin_2_smeared == 0){
+                z_pT_Bin_2_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
+                Num_z_Borders = 0; Num_pT_Borders = 0;
+            }
+            // For Q2_xB Bin 1 (Uses Default for both borders)
+
+            // For Q2_xB Bin 2 (Uses Default for both borders)
+
+            // For Q2_xB Bin 3 (Uses Default for both borders)
+
+            // For Q2_xB Bin 4 (Uses Default for pT borders)
+            if(Q2_xB_Bin_2_smeared == 4){
+                Num_z_Borders = 7;
+            }
+
+            // For Q2_xB Bin 5 (New scheme)
+            if(Q2_xB_Bin_2_smeared == 5){
+                Num_z_Borders = 7; Num_pT_Borders = 7;
+            }
+
+            // For Q2_xB Bin 6
+            if(Q2_xB_Bin_2_smeared == 6){
+                Num_z_Borders = 6; Num_pT_Borders = 6;
+            }
+
+            // For Q2_xB Bin 7 (New scheme)
+            if(Q2_xB_Bin_2_smeared == 7){
+                Num_z_Borders = 6; Num_pT_Borders = 6;
+            }
+
+            // For Q2_xB Bin 8
+            if(Q2_xB_Bin_2_smeared == 8){
+                Num_z_Borders = 6; Num_pT_Borders = 5;
+            }
+
+            if(Num_z_Borders == 0){
+                Num_z_Borders = 1; Num_pT_Borders = 1;
+            }
+
+
+            int z_pT_Bin_2_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
+                                    // based on the number of times the loop has run
+
+            // Determining z_pT Bins
+            for(int zbin = 1; zbin < Num_z_Borders; zbin++){
+                if(z_pT_Bin_2_smeared != 0){
+                    continue;   // If the bin has already been assigned, this line will end the loop.
+                                // This is to make sure the loop does not run longer than what is necessary.
+                }    
+
+                if(z_smeared > Borders_function(Q2_xB_Bin_2_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_2_smeared, 0, zbin - 1)){
+                    // Found the correct z bin
+
+                    for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
+                        if(z_pT_Bin_2_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
+
+                        if(pT_smeared > Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin+1)){
+                            // Found the correct pT bin
+                            z_pT_Bin_2_smeared = z_pT_Bin_2_smeared_count; // The value of the z_pT_Bin_2_smeared has been set
+                            // cout<<"The value of the z_pT_Bin_2_smeared has been set as: "<<z_pT_Bin_2_smeared<<endl;
+                            break;
+                        }
+                        else{
+                            z_pT_Bin_2_smeared_count += 1; // Checking the next bin
+                            // cout<<"Checking the next bin"<<endl;
+                        }
+                    }
+
+                }
+                else{
+                    z_pT_Bin_2_smeared_count += (Num_pT_Borders - 1);
+                    // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
+                    // This represents checking each pT bin for the given z bin without going through each entry in the loop.
+                }    
+            }
+
+            return z_pT_Bin_2_smeared;
+
+        ''')
 
         
         
@@ -2217,8 +2313,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     def smear_frame_compatible(Data_Frame, Variable, Smearing_Q):
         
-        if("smear" not in Smearing_Q):
-            # Variable should already be defined
+        if("smear" not in Smearing_Q or (datatype != "mdf" and datatype != "pdf")):
+            # Variable should already be defined/cannot smear real/generated data
             return Data_Frame
         
         else:
@@ -2355,11 +2451,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     print("Kinematic Variables have been calculated.")
-    ####################################################     Done with Calculating (All) Kinematic Variables     ####################################################
-    ##                                                                                                                                                             ##
-    ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
-    ###############################################################     Making Cuts to DataFrames     ###############################################################
+    ###################################################################################################################################################################
+    ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
+    ###                                              ##-------------------------------------------------------------##                                              ###
+    ###----------------------------------------------##-------------------------------------------------------------##----------------------------------------------###
+    ###                                              ##-------------------------------------------------------------##                                              ###
+    ###################################################                  Making Cuts to DataFrames                  ###################################################
+    ###################################################################################################################################################################
 
 
     
@@ -2450,14 +2548,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    #############################################################     Done Making Cuts to DataFrames     #############################################################
-    ##                                                                                                                                                              ##
-    ##--------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                              ##
-    ####################################################################     Kinematic Binning     ###################################################################
-    
+    ####################################################################################################################################################################
+    ###################################################                Done Making Cuts to DataFrames                ###################################################
+    ###                                              ##--------------------------------------------------------------##                                              ###
+    ###----------------------------------------------##--------------------------------------------------------------##----------------------------------------------###
+    ###                                              ##--------------------------------------------------------------##                                              ###
+    ###################################################                  Defining Kinematic Binning                  ###################################################
+    ####################################################################################################################################################################
 
-    
     
     ###################################################################
     #####################     Bin Definitions     #####################
@@ -2466,7 +2564,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-    rdf = rdf.Define("Q2_xB_Bin","""
+    rdf = rdf.Define("Q2_xB_Bin", """
 
         int Q2_xB_Bin = 0;
 
@@ -4176,7 +4274,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         ###########     End of Definitions for Generated z and pT Bins     ##########
         #---------------------------------------------------------------------------#
         
-        
+    ##===================================================##
+    ##=====##=====##   4D Kinematic Bins   ##=====##=====##
+    ##===================================================##
+    
     rdf = rdf.Define('Bin_4D', """
 
         int add_to_bin = 0;
@@ -4217,49 +4318,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     """)
 
-
-
-    rdf = rdf.Define('Bin_4D_smeared', """
-
-        int add_to_bin = 0;
-        int Bin_4D_smeared = -1; // Updated on 7-19-2022
-
-        if(Q2_xB_Bin_2_smeared == 0){
-            Bin_4D_smeared = -1; // Updated on 7-19-2022
-            return Bin_4D_smeared;
-        }
-        if(Q2_xB_Bin_2_smeared == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin_2_smeared == 2){
-            add_to_bin = 50;
-        }
-        if(Q2_xB_Bin_2_smeared == 3){
-            add_to_bin = 100;
-        }
-        if(Q2_xB_Bin_2_smeared == 4){
-            add_to_bin = 150;
-        }
-        if(Q2_xB_Bin_2_smeared == 5){
-            add_to_bin = 193;
-        }
-        if(Q2_xB_Bin_2_smeared == 6){
-            add_to_bin = 230;
-        }
-        if(Q2_xB_Bin_2_smeared == 7){
-            add_to_bin = 256;
-        }
-        if(Q2_xB_Bin_2_smeared == 8){
-            add_to_bin = 283;
-        }
-
-        Bin_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
-
-        return Bin_4D_smeared;
-
-    """)
-    
-    
     
     rdf = rdf.Define('Bin_4D_OG', """
 
@@ -4305,49 +4363,89 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     """)
 
 
+    if(datatype == "mdf" or datatype == "pdf"):
+        rdf = rdf.Define('Bin_4D_smeared', """
 
-    rdf = rdf.Define('Bin_4D_OG_smeared', """
+            int add_to_bin = 0;
+            int Bin_4D_smeared = -1; // Updated on 7-19-2022
 
-        int add_to_bin = 0;
-        int Bin_4D_OG_smeared = -1;
+            if(Q2_xB_Bin_2_smeared == 0){
+                Bin_4D_smeared = -1; // Updated on 7-19-2022
+                return Bin_4D_smeared;
+            }
+            if(Q2_xB_Bin_2_smeared == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_2_smeared == 2){
+                add_to_bin = 50;
+            }
+            if(Q2_xB_Bin_2_smeared == 3){
+                add_to_bin = 100;
+            }
+            if(Q2_xB_Bin_2_smeared == 4){
+                add_to_bin = 150;
+            }
+            if(Q2_xB_Bin_2_smeared == 5){
+                add_to_bin = 193;
+            }
+            if(Q2_xB_Bin_2_smeared == 6){
+                add_to_bin = 230;
+            }
+            if(Q2_xB_Bin_2_smeared == 7){
+                add_to_bin = 256;
+            }
+            if(Q2_xB_Bin_2_smeared == 8){
+                add_to_bin = 283;
+            }
 
-        if(Q2_xB_Bin_smeared == 0){
-            Bin_4D_OG_smeared = -1;
+            Bin_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
+
+            return Bin_4D_smeared;
+
+        """)
+
+        rdf = rdf.Define('Bin_4D_OG_smeared', """
+
+            int add_to_bin = 0;
+            int Bin_4D_OG_smeared = -1;
+
+            if(Q2_xB_Bin_smeared == 0){
+                Bin_4D_OG_smeared = -1;
+                return Bin_4D_OG_smeared;
+            }
+            if(Q2_xB_Bin_smeared == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_smeared == 2){
+                add_to_bin = 50;
+            }
+            if(Q2_xB_Bin_smeared == 3){
+                add_to_bin = 100;
+            }
+            if(Q2_xB_Bin_smeared == 4){
+                add_to_bin = 150;
+            }
+            if(Q2_xB_Bin_smeared == 5){
+                add_to_bin = 193;
+            }
+            if(Q2_xB_Bin_smeared == 6){
+                add_to_bin = 243;
+            }
+            if(Q2_xB_Bin_smeared == 7){
+                add_to_bin = 269;
+            }
+            if(Q2_xB_Bin_smeared == 8){
+                add_to_bin = 306;
+            }
+            if(Q2_xB_Bin_smeared == 9){
+                add_to_bin = 327;
+            }
+
+            Bin_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
+
             return Bin_4D_OG_smeared;
-        }
-        if(Q2_xB_Bin_smeared == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin_smeared == 2){
-            add_to_bin = 50;
-        }
-        if(Q2_xB_Bin_smeared == 3){
-            add_to_bin = 100;
-        }
-        if(Q2_xB_Bin_smeared == 4){
-            add_to_bin = 150;
-        }
-        if(Q2_xB_Bin_smeared == 5){
-            add_to_bin = 193;
-        }
-        if(Q2_xB_Bin_smeared == 6){
-            add_to_bin = 243;
-        }
-        if(Q2_xB_Bin_smeared == 7){
-            add_to_bin = 269;
-        }
-        if(Q2_xB_Bin_smeared == 8){
-            add_to_bin = 306;
-        }
-        if(Q2_xB_Bin_smeared == 9){
-            add_to_bin = 327;
-        }
 
-        Bin_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
-
-        return Bin_4D_OG_smeared;
-
-    """)
+        """)
         
     if(datatype == "pdf"):
         
@@ -4462,6 +4560,77 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         """)
         
         
+        
+        
+    ##===================================================##
+    ##=====##=====##   5D Kinematic Bins   ##=====##=====##
+    ##===================================================##
+        
+    rdf = rdf.Define('Bin_5D', """
+    int phi_t_bin = (phi_t/10) + 1;
+    auto Bin_5D = Bin_4D + phi_t_bin;
+    if(phi_t_bin < 0 || phi_t_bin > 37){
+        // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+        Bin_5D = -2;
+    }
+    return Bin_5D;
+    """)
+    
+    rdf = rdf.Define('Bin_5D_OG', """
+    int phi_t_bin = (phi_t/10) + 1;
+    auto Bin_5D_OG = Bin_4D_OG + phi_t_bin;
+    if(phi_t_bin < 0 || phi_t_bin > 37){
+        // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+        Bin_5D_OG = -2;
+    }
+    return Bin_5D_OG;
+    """)
+    
+    if(datatype == "mdf" or datatype == "pdf"):
+        rdf = rdf.Define('Bin_5D_smeared', """
+        int phi_t_bin_smeared = (smeared_vals[11]/10) + 1;
+        auto Bin_5D_smeared = Bin_4D_smeared + phi_t_bin_smeared;
+        if(phi_t_bin_smeared < 0 || phi_t_bin_smeared > 37){
+            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+            Bin_5D_smeared = -2;
+        }
+        return Bin_5D_smeared;
+        """)
+        rdf = rdf.Define('Bin_5D_OG_smeared', """
+        int phi_t_bin_smeared = (smeared_vals[11]/10) + 1;
+        auto Bin_5D_OG_smeared = Bin_4D_OG_smeared + phi_t_bin_smeared;
+        if(phi_t_bin_smeared < 0 || phi_t_bin_smeared > 37){
+            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+            Bin_5D_OG_smeared = -2;
+        }
+        return Bin_5D_OG_smeared;
+        """)
+    
+    if(datatype == "pdf"):
+        rdf = rdf.Define('Bin_5D_gen', """
+        int phi_t_bin_gen = (phi_t_gen/10) + 1;
+        auto Bin_5D_gen = Bin_4D_gen + phi_t_bin_gen;
+        if(phi_t_bin_gen < 0 || phi_t_bin_gen > 37){
+            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+            Bin_5D_gen = -3;
+        }
+        return Bin_5D_gen;
+        """)
+        
+        rdf = rdf.Define('Bin_5D_OG_gen', """
+        int phi_t_bin_gen = (phi_t_gen/10) + 1;
+        auto Bin_5D_OG_gen = Bin_4D_OG_gen + phi_t_bin_gen;
+        if(phi_t_bin_gen < 0 || phi_t_bin_gen > 37){
+            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
+            Bin_5D_OG_gen = -3;
+        }
+        return Bin_5D_OG_gen;
+        """)
+        
+        
+        
+        
+        
         #####################     Generated Bin Definitions     #####################
         #############################################################################
         #####################      Matched Bin Definitions      #####################
@@ -4472,7 +4641,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
                 
                 if("sec" in variable):
                     gen_variable = gen_variable.replace("_a", "")
@@ -4519,7 +4688,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             out_put_DF = dataframe
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or or "Bin_5D" in variable):
                 # Already defined
                 return dataframe
                 
@@ -4547,7 +4716,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             out_put_DF = dataframe
             
             
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable):
+            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
                 # Already defined
                 return dataframe
                 
@@ -4692,11 +4861,16 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    ##############################################################     Done With Kinematic Binning     ##############################################################
-    ##                                                                                                                                                             ##
-    ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
-    ############################################################     Helpful Functions for Histograms     ###########################################################
+    
+    
+    ###################################################################################################################################################################
+    ###################################################                 Done With Kinematic Binning                 ###################################################
+    ###                                              ##-------------------------------------------------------------##                                              ###
+    ###----------------------------------------------##-------------------------------------------------------------##----------------------------------------------###
+    ###                                              ##-------------------------------------------------------------##                                              ###
+    ###################################################          Defining Helpful Functions for Histograms          ###################################################
+    ###################################################################################################################################################################
+
     
     
     ###################=========================###################
@@ -4833,6 +5007,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             output = "#Delta_{Smeared}#phi_{#pi^{+}}"
         if("Bin_4D" in variable):
             output = "".join(["Combined 4D Bin", " (Original)" if("OG" in variable) else ""])
+        if("Bin_5D" in variable):
+            output = "".join(["Combined 5D Bin", " (Original)" if("OG" in variable) else ""])
             
            
             
@@ -5159,12 +5335,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    #########################################################     Helpful Functions for Histograms (End)     ########################################################
-    ##                                                                                                                                                             ##
-    ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
-    ##################################################################     Choices For Graphing     #################################################################
     
+    
+    
+    ##################################################################################################################################################################
+    ###################################################          Done Making the Functions for Histograms          ###################################################
+    ###                                              ##------------------------------------------------------------##                                              ###
+    ###----------------------------------------------##------------------------------------------------------------##----------------------------------------------###
+    ###                                              ##------------------------------------------------------------##                                              ###
+    ##################################################################################################################################################################
+    ###################################################                    Choices For Graphing                    ###################################################
+    ##################################################################################################################################################################
+    
+
     
     
     ###############################################################
@@ -5261,13 +5444,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_Q2_PID_Valerii_Cut']
-    
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut']
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut', 'cut_all_P2_Q2_Valerii_Cut']
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut']
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_P2_Valerii_Cut']
-#     cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut']
+    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_Q2_PID_Valerii_Cut']
+    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut', 'cut_all_P2_Q2_Valerii_Cut']
+    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut']
+    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut']
     cut_list = ['no_cut', 'cut_all_Q2_Valerii_Cut']
 
     
@@ -5285,33 +5465,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 200], ['Q2_smeared', 0, 12, 200], ['W_smeared', 1, 5, 200], ['s_smeared', 1, 20, 200], ['xB_smeared', 0, 0.8, 200], ['v_smeared', 1, 12, 200], ['y_smeared', 0, 1, 200], ['z_smeared', 0, 1, 200], ['xF_smeared', -0.6, 0.8, 200], ['pT_smeared', 0, 1.6, 200], ["epsilon_smeared", 0, 1, 200], ['phi_t_smeared', 0, 360, 200], ['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200], ['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200], ['Delta_Smear_El_P', -1.5, 1.5, 100], ['Delta_Smear_El_Th', -1.5, 1.5, 100], ['Delta_Smear_El_Phi', -1.5, 1.5, 100], ['Delta_Smear_Pip_P', -1.5, 1.5, 100], ['Delta_Smear_Pip_Th', -1.5, 1.5, 100], ['Delta_Smear_Pip_Phi', -1.5, 1.5, 100]]
     
     
-    # Normal + 'elec_events_found' Option:
-    # List_of_Quantities_1D = [['MM', 0, 4.5, 200], ['Q2', 0, 12, 200], ['W', 1, 5, 200], ['s', 1, 20, 200], ['xB', 0, 0.8, 200], ['v', 1, 12, 200], ['y', 0, 1, 200], ['z', 0, 1, 200], ['xF', -0.6, 0.8, 200], ['pT', 0, 1.6, 200], ['phi_t', 0, 360, 200], ['el', 0, 8, 200], ['elth', 0, 40, 200], ['elPhi', 0, 360, 200], ['pip', 0, 6, 200], ['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200], ['elec_events_found', 0, 1200000000, 1200000000]]
-    # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 200], ['Q2_smeared', 0, 12, 200], ['W_smeared', 1, 5, 200], ['s_smeared', 1, 20, 200], ['xB_smeared', 0, 0.8, 200], ['v_smeared', 1, 12, 200], ['y_smeared', 0, 1, 200], ['z_smeared', 0, 1, 200], ['xF_smeared', -0.6, 0.8, 200], ['pT_smeared', 0, 1.6, 200], ['phi_t_smeared', 0, 360, 200], ['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200], ['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200], ['elec_events_found', 0, 1200000000, 1200000000]]
-    
-    
-    # Normal + 'epsilon' Option:
-    # List_of_Quantities_1D = [["epsilon", 0, 1, 200], ['Q2', 0, 12, 200], ['s', 1, 20, 200], ['W', 1, 5, 200], ['xB', 0, 0.8, 200], ['z', 0, 1, 200], ['pT', 0, 1.6, 200], ['phi_t', 0, 360, 200], ['el', 0, 8, 200], ['elth', 0, 40, 200], ['elPhi', 0, 360, 200], ['pip', 0, 6, 200], ['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]
-    # List_of_Quantities_1D_smeared = [["epsilon_smeared", 0, 1, 200], ['Q2_smeared', 0, 12, 200], ['s_smeared', 1, 20, 200], ['W_smeared', 1, 5, 200], ['xB_smeared', 0, 0.8, 200], ['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200], ['phi_t_smeared', 0, 360, 200], ['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200], ['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200], ['Delta_Smear_El_P', -1.5, 1.5, 100], ['Delta_Smear_El_Th', -1.5, 1.5, 100], ['Delta_Smear_El_Phi', -1.5, 1.5, 100], ['Delta_Smear_Pip_P', -1.5, 1.5, 100], ['Delta_Smear_Pip_Th', -1.5, 1.5, 100], ['Delta_Smear_Pip_Phi', -1.5, 1.5, 100]]
-    
-    
-    # # Normal Option (True):
-    # List_of_Quantities_1D = [['MM', 0, 4.5, 9], ['Q2', -0.1, 12.9, 10], ['W', 1, 5, 100], ['xB', -0.05, 0.95, 10], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 20], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-    # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 9], ['Q2_smeared', -0.1, 12.9, 10], ['W_smeared', 1, 5, 100], ['xB_smeared', -0.05, 0.95, 10], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 20], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-    
-    # # Just Q2:
-    # List_of_Quantities_1D = [['Q2', 0, 12, 240]]
-    # List_of_Quantities_1D_smeared = [['Q2_smeared', 0, 12, 240]]
-    
-    
     # Normal Option (True - New):
     # List_of_Quantities_1D = [['MM', 0, 4.5, 9], ['y', 0, 1, 20], ['Q2', -0.65, 12.35, 20], ['W', 1, 5, 100], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 45], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
     # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 9], ['y_smeared', 0, 1, 20], ['Q2_smeared', -0.65, 12.35, 20], ['W_smeared', 1, 5, 100], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 45], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-#     List_of_Quantities_1D = [['y', 0, 1, 20], ['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 45], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-#     List_of_Quantities_1D_smeared = [['y_smeared', 0, 1, 20], ['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 45], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
+    # List_of_Quantities_1D = [['y', 0, 1, 20], ['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 45], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
+    # List_of_Quantities_1D_smeared = [['y_smeared', 0, 1, 20], ['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 45], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
     
-#     List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-#     List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
+    # List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
+    # List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
     
     
     # # For 2D (from 3D) histograms:
@@ -5322,20 +5483,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # # Both Binnings (Only)
     # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20]], [['y', 0, 1, 20], ['xB', -0.05, 0.95, 20]], [['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10]]]
     # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20]], [['y_smeared', 0, 1, 20], ['xB_smeared', -0.05, 0.95, 20]], [['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10]]]
-#     List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
-#     List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
+    # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
+    # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
     
         # # # Plotting major variables vs phi_t
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['phi_t', 0, 360, 200]], [['xB', 0, 0.8, 200], ['phi_t', 0, 360, 200]], [['z', 0, 1, 200], ['phi_t', 0, 360, 200]], [['pT', 0, 1.6, 200], ['phi_t', 0, 360, 200]]]
     # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['phi_t_smeared', 0, 360, 400]], [['xB_smeared', 0, 0.8, 200], ['phi_t_smeared', 0, 360, 400]], [['z_smeared', 0, 1, 200], ['phi_t_smeared', 0, 360, 400]], [['pT_smeared', 0, 1.6, 200], ['phi_t_smeared', 0, 360, 400]]]
     
     
-    
-    
-#     List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-#     List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-#     List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
-#     List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
+    # List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
+    # List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
+    # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
+    # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
     
     
 # #     # Bin Set Option: 2 bins
@@ -5622,6 +5781,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     Binning_4D_OG = ['Bin_4D_OG', -1.5, 353.5, 356]
     Binning_4D_OG_Smeared = ['Bin_4D_OG_smeared', -1.5, 353.5, 356]
+    
+    
+    Binning_5D = ['Bin_5D', -1.5, 11625.5, 11628]
+    Binning_5D_Smeared = ['Bin_5D_smeared', -1.5, 11625.5, 11628]
+    
+    Binning_5D_OG = ['Bin_5D_OG', -1.5, 13525.5, 13528]
+    Binning_5D_OG_Smeared = ['Bin_5D_OG_smeared', -1.5, 13525.5, 13528]
 
     
     
@@ -5664,7 +5830,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_GRC_"
+    Extra_Name = "Bin_Test_Mom_Cor_"
     
     
     if(datatype == 'rdf'):
@@ -5705,8 +5871,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf", "miss_idf_el", "miss_idf_pip"]
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf"]
             # datatype_list = ["mdf", "pdf", "udf", "miss_idf"]
-            # datatype_list = ["mdf", "pdf", "gen"]
-            datatype_list = ["mdf", "pdf"] # No need for "gen" if "gdf" will be run
+            datatype_list = ["mdf", "pdf", "gen"]
         else:
             datatype_list = [datatype]
 
@@ -6145,7 +6310,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     # run_4D_bins_bin_migration_V4 = 0
                                     
-#                                     for bin_option in [2, 3, 4, 5, 10, 20, 40]:
+                                    # for bin_option in [2, 3, 4, 5, 10, 20, 40]:
                                     for bin_option in [2, 3, 4, 5, 10]:
                                         
                                         for Var_List in Variable_Loop:
