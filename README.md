@@ -19,6 +19,20 @@ This list will be updated as items are completed. Items here may not always rela
 ## Commit Updates:
 
 
+### Update on 8-20-2022:
+#### Python Code Updates:
+* Added More Cut options
+    * 'Complete' Cut option applies all cuts (including new Q2 and Valerii's cuts)
+    * Separate options for Missing Mass Cuts (split between 'EDIS' and 'SIDIS' where the 'EDIS' option uses the Exclusive Missing Mass Cuts - 'SIDIS' option uses the original SIDIS Missing Mass Cuts)
+* Added ∆P histograms to study the effects of the Momentum Corrections (and develop better momentum smearing functions of the simulated data - future work)
+* Missing Mass Histograms (and ∆P Histograms) now plotted with Particle Momentum AND Sector
+* Extra_Name = "Bin_Test_Exclusive_Mom_Cor_" output files have been set up but NOT added yet (have not been run yet)
+#### Jupyter Code Updates:
+* Added new cell to more effiecently study the Momentum Correction/Missing Mass/∆P histograms
+* Also added functions to slice and fit the above histograms
+* Cleaned up unused/old code that was no longer in use
+    
+
 ### Update on 8-18-2022:
 #### Python Code Updates:
 * Added Exclusivity Cuts option

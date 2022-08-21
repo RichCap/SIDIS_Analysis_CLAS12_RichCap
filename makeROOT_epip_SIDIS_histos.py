@@ -61,6 +61,7 @@ datatype, output_type = str(datatype), str(output_type)
 
 if(output_type == "test"):
     file_location = "time"
+    output_type = "time"
 elif(output_type != "histo" and output_type != "data" and output_type != "tree"):
     file_location = output_type
     if(output_type != "test" and output_type != "time"):
@@ -808,6 +809,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##############################################################################
     ##=====##  The above calculations used to be run in the groovy code  ##=====##
     ##############################################################################
+    
+    
     
     
     
@@ -2456,11 +2459,198 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##---------------------------------##===================================##---------------------------------##
     ##=========================================================================================================##
     
-   
+    
+    
+    ##==========================================================================================================##
+    ##---------------------------------##====================================##---------------------------------##
+    ##=================================##   ∆P from Exclusive Calculations   ##=================================##
+    ##---------------------------------##====================================##---------------------------------##
+    ##==========================================================================================================##
+    
+
+    ########################################################################################
+    ####================================================================================####
+    ##==========##==========##      ∆P Calculations (Normal)      ##==========##==========##
+    ####================================================================================####
+    ########################################################################################
+
+
+    rdf = rdf.Define("Delta_Pel_Cors", "".join([str(Correction_Code_Full_In), """
+
+        auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+
+        auto eleC = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+
+        auto Beam_Energy = 10.6041;
+        // Defined by the run group/data set
+
+        double neutronM2 = 0.9396*0.9396;
+
+        // Below are the kinematic calculations of the electron momentum (from el+pro->el+Pip+N) based on the assumption that the electron angle and π+ reconstruction were measured by the detector correctly for elastic events in the epipX channel
+        // (The neutron is used as the "missing" particle)
+
+        auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+            // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+        auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+            // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+        auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+            // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+
+        auto pel_Calculated = (termA + termC)/termB;
+
+        auto Delta_Pel_Cors = pel_Calculated - eleC.P();
+
+        return Delta_Pel_Cors;
+
+    """]))
+
+
+    rdf = rdf.Define("Delta_Ppip_Cors", "".join([str(Correction_Code_Full_In), """
+
+        auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+
+        auto eleC = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+
+        auto Beam_Energy = 10.6041;
+        // Defined by the run group/data set
+
+        double neutronM2 = 0.9396*0.9396;
+
+
+        // Below are the kinematic calculations of the π+ momentum (from el+pro->el+Pip+N) based on the assumption that the π+ angle and electron reconstruction were measured by the detector correctly for elastic events in the epipX channel
+        // (The neutron is used as the "missing" particle)
+
+        auto termA = (neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2;
+        auto termB = 0.938*(Beam_Energy - eleC.P()) - Beam_Energy*eleC.P()*(1 - cos(eleC.Theta()));
+        auto termC = ((eleC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC))) - (Beam_Energy*cos(pipC.Theta())));
+
+        auto sqrtTerm = ((termA - termB)*(termA - termB)) + (0.13957*0.13957)*((termC*termC) - ((0.938 + Beam_Energy - eleC.P())*(0.938 + Beam_Energy - eleC.P())));
+        auto denominator = ((0.938 + Beam_Energy - eleC.P()) + termC)*((0.938 + Beam_Energy - eleC.P()) - termC);
+        auto numeratorP = (termA - termB)*termC + (0.938 + Beam_Energy - eleC.P())*sqrt(sqrtTerm);
+        auto numeratorM = (termA - termB)*termC - (0.938 + Beam_Energy - eleC.P())*sqrt(sqrtTerm);
+
+        auto pip_CalculateP = numeratorP/denominator;
+        auto pip_CalculateM = numeratorM/denominator;
+
+        auto pip_Calculate = pip_CalculateP;
+
+        if(abs(pipC.P() - pip_CalculateP) >= abs(pipC.P() - pip_CalculateM)){
+            pip_Calculate = pip_CalculateM;
+        }
+        if(abs(pipC.P() - pip_CalculateP) <= abs(pipC.P() - pip_CalculateM)){
+            pip_Calculate = pip_CalculateP;
+        }
+
+        auto Delta_Ppip_Cors = pip_Calculate - pipC.P();
+
+        return Delta_Ppip_Cors;
+
+    """]))
+
+    ###############################################################################################
+    ####=======================================================================================####
+    ##==========##==========##         ∆P Calculations (Smeared)         ##==========##==========##
+    ####=======================================================================================####
+    ###############################################################################################
+
+    if("rdf" not in datatype and "gdf" not in datatype):
+
+        rdf = rdf.Define("Delta_Pel_Cors_smeared", "".join([str(smearing_function), """
+
+            auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+            auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+
+            TLorentzVector ele(ex, ey, ez, eleM.E());
+            TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
+
+            TLorentzVector ele_smeared = smear_func(ele);
+            TLorentzVector pip0_smeared = smear_func(pip0);
+
+            auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
+            auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
+
+            auto Beam_Energy = 10.6041;
+            // Defined by the run group/data set
+
+            double neutronM2 = 0.9396*0.9396;
+
+            // Below are the kinematic calculations of the electron momentum (from el+pro->el+Pip+N) based on the assumption that the electron angle and π+ reconstruction were measured by the detector correctly for elastic events in the epipX channel
+            // (The neutron is used as the "missing" particle)
+
+            auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+                // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+            auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+                // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+            auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+                // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+
+            auto pel_Calculated = (termA + termC)/termB;
+
+            auto Delta_Pel_Cors_smeared = pel_Calculated - eleC.P();
+
+            return Delta_Pel_Cors_smeared;
+
+        """]))
+
+
+        rdf = rdf.Define("Delta_Ppip_Cors_smeared", "".join([str(smearing_function), """
+
+            auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+            auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+
+            TLorentzVector ele(ex, ey, ez, eleM.E());
+            TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
+
+            TLorentzVector ele_smeared = smear_func(ele);
+            TLorentzVector pip0_smeared = smear_func(pip0);
+
+            auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
+            auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
+
+
+            auto Beam_Energy = 10.6041;
+            // Defined by the run group/data set
+
+            double neutronM2 = 0.9396*0.9396;
+
+
+            // Below are the kinematic calculations of the π+ momentum (from el+pro->el+Pip+N) based on the assumption that the π+ angle and electron reconstruction were measured by the detector correctly for elastic events in the epipX channel
+            // (The neutron is used as the "missing" particle)
+
+            auto termA = (neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2;
+            auto termB = 0.938*(Beam_Energy - eleC.P()) - Beam_Energy*eleC.P()*(1 - cos(eleC.Theta()));
+            auto termC = ((eleC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC))) - (Beam_Energy*cos(pipC.Theta())));
+
+            auto sqrtTerm = ((termA - termB)*(termA - termB)) + (0.13957*0.13957)*((termC*termC) - ((0.938 + Beam_Energy - eleC.P())*(0.938 + Beam_Energy - eleC.P())));
+            auto denominator = ((0.938 + Beam_Energy - eleC.P()) + termC)*((0.938 + Beam_Energy - eleC.P()) - termC);
+            auto numeratorP = (termA - termB)*termC + (0.938 + Beam_Energy - eleC.P())*sqrt(sqrtTerm);
+            auto numeratorM = (termA - termB)*termC - (0.938 + Beam_Energy - eleC.P())*sqrt(sqrtTerm);
+
+            auto pip_CalculateP = numeratorP/denominator;
+            auto pip_CalculateM = numeratorM/denominator;
+
+            auto pip_Calculate = pip_CalculateP;
+
+            if(abs(pipC.P() - pip_CalculateP) >= abs(pipC.P() - pip_CalculateM)){
+                pip_Calculate = pip_CalculateM;
+            }
+            if(abs(pipC.P() - pip_CalculateP) <= abs(pipC.P() - pip_CalculateM)){
+                pip_Calculate = pip_CalculateP;
+            }
+
+            auto Delta_Ppip_Cors_smeared = pip_Calculate - pipC.P();
+
+            return Delta_Ppip_Cors_smeared;
+
+        """]))
 
     
-    
-    
+
+
     
     
     print("Kinematic Variables have been calculated.")
@@ -5342,77 +5532,114 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(Data_Type == "miss_idf_pip" and Titles_or_DF == 'DF'):
             DF_Out = DF_Out.Filter("(PID_el != 0 && PID_pip != 0) && PID_pip != 211")
 
+            
+            
         if(Data_Type != "gdf" and Data_Type != "gen" and "no_cut" != Cut_Choice):
             
-            if("exclusive" in Cut_Choice):
-                if(Titles_or_DF == 'DF'):
-                    DF_Out = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
-                cutname = "".join([" Exclusive ", "(Smeared)" if("smear" in Smearing_Q) else "", " Cuts"])
-            
-            if((Data_Type == "mdf" or Data_Type == "pdf" or Data_Type == "udf" or ("miss_idf" in Data_Type)) and "smear" in Smearing_Q):
-                cutname = " (Smeared)"
-                #-----------------------------#
-                #-----# As of 3-10-2022 #-----#
-                #-----------------------------#
-                if("all" in Cut_Choice):
-                    if(Titles_or_DF == 'DF'):
-                        # DF_Out = DF_Out.Filter("y < 0.75             && xF > 0               && W > 2               && Q2 > 1              && MM > 1.5                    && pip > 1.25              && pip < 5              && 5 < elth             && elth < 35             && 5 < pipth            && pipth < 35")
-                        DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 1 && sqrt(smeared_vals[1]) > 1.5 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-                    cutname = " All (Smeared) Cuts"
-                else:
-                    if('SIDIS' in Cut_Choice):
-                        if(Titles_or_DF == 'DF'):
-                            # DF_Out = DF_Out.Filter("y < 0.75             && xF > 0               && W > 2               && Q2 > 1")
-                            DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 1")
-                        cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "SIDIS Cuts"])
-                    if('Mom' in Cut_Choice):
-                        if(Titles_or_DF == 'DF'):
-                            # DF_Out = DF_Out.Filter("pip > 1.25            && pip < 5              && 5 < elth             && elth < 35             && 5 < pipth            && pipth < 35")
-                            DF_Out = DF_Out.Filter("smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-                        cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "Mom Cuts"])
-                if("Q2" in Cut_Choice):
-                    if(Titles_or_DF == 'DF'):
-                        # DF_Out = DF_Out.Filter("Q2 > 2")
-                        DF_Out = DF_Out.Filter("smeared_vals[2] > 2")
-                    cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "(new) Q^{2} Cut"])
-                if(Data_Type == "pdf" and 'PID' in Cut_Choice):
-                    cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "Matched PID Cut"])
-                    if(Titles_or_DF == 'DF'):
-                        DF_Out = DF_Out.Filter("PID_el == 11 && PID_pip == 211")
-            else:
-                if("all" in Cut_Choice):
-                    if(Titles_or_DF == 'DF'):
-                        DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 1 && sqrt(MM2) > 1.5 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-                    cutname = " All Cuts"
-                else:
-                    if('SIDIS' in Cut_Choice):
-                        if(Titles_or_DF == 'DF'):
-                            DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 1")
-                        cutname = "".join([cutname, "" if cutname == " " else " + ", "SIDIS Cuts"])
-                    if('Mom' in Cut_Choice):
-                        if(Titles_or_DF == 'DF'):
-                            DF_Out = DF_Out.Filter("pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-                        cutname = "".join([cutname, "" if cutname == " " else " + ", "Mom Cuts"])
-                if("Q2" in Cut_Choice):
-                    if(Titles_or_DF == 'DF'):
-                        DF_Out = DF_Out.Filter("Q2 > 2")
-                    cutname = "".join([cutname, " " if cutname == " " else " + ", "(New) Q^{2} Cut"])
-                if(Data_Type == "pdf" and 'PID' in Cut_Choice):
-                    cutname = "".join([cutname, " " if cutname == " " else " + ", "Matched PID Cut"])
-                    if(Titles_or_DF == 'DF'):
-                        DF_Out = DF_Out.Filter("PID_el == 11 && PID_pip == 211")
-            if('Valerii_Cut' in Cut_Choice):
-                if(Titles_or_DF == 'DF'):
-                    DF_Out = filter_Valerii(DF_Out, Cut_Choice)
-                cutname = "".join([cutname, "" if(" " == cutname or " (Smeared)" == cutname) else " + ", "Valerii Cuts"])
+            if("Complete" in Cut_Choice):
                 
-            if("P2" in Cut_Choice):
-                if(Titles_or_DF == 'DF'):
-                    DF_Out = bin_purity_filter_fuction(DF_Out, Q2_xB_Bin_Filter_str, 0, 0, 20)
-                cutname = "".join([cutname, "" if(" " == cutname or " (Smeared)" == cutname) else " + ", "Binning Purity (New)"])
+                cutname = " Complete Set of "
+                
+                if("smear" in Smearing_Q and Data_Type != "rdf"):
+                    cutname = "".join([cutname, "(Smeared) "])
                     
+                if(Titles_or_DF == 'DF'):
+                    if("smear" in Smearing_Q and Data_Type != "rdf"):
+                        #        DF_Out.Filter("              y < 0.75 &&               xF > 0 &&               W > 2 &&              Q2 > 2 &&              pip > 1.25 &&              pip < 5 && 5 < elth             &&             elth < 35 && 5 < pipth            &&            pipth < 35")
+                        DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
+                        DF_Out = filter_Valerii(DF_Out, Cut_Choice)
+                    else:
+                        DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
+                        DF_Out = filter_Valerii(DF_Out, Cut_Choice)
+                    
+                if("EDIS" in Cut_Choice):
+                    cutname = "".join([cutname, "Exclusive "])
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
+                        
+                if("SIDIS" in Cut_Choice):
+                    cutname = "".join([cutname, "SIDIS "])
+                    if(Titles_or_DF == 'DF'):
+                        if("smear" in Smearing_Q and Data_Type != "rdf"):
+                            #       DF_Out.Filter("sqrt(MM2) > 1.5")
+                            DF_Out = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
+                        else:
+                            DF_Out = DF_Out.Filter("sqrt(MM2) > 1.5")
+                            
+                cutname = "".join([cutname, "Cuts"])
+                
+            else:
+                if("exclusive" in Cut_Choice):
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
+                    cutname = "".join([" Exclusive ", "(Smeared) " if("smear" in Smearing_Q) else "", "Cuts"])
 
+                if((Data_Type == "mdf" or Data_Type == "pdf" or Data_Type == "udf" or ("miss_idf" in Data_Type)) and "smear" in Smearing_Q):
+                    if("Exclusive" not in cutname):
+                        cutname = " (Smeared)"
+                    #-----------------------------#
+                    #-----# As of 3-10-2022 #-----#
+                    #-----------------------------#
+                    if("all" in Cut_Choice):
+                        if(Titles_or_DF == 'DF'):
+                            # DF_Out = DF_Out.Filter("y < 0.75             && xF > 0               && W > 2               && Q2 > 1              && MM > 1.5                    && pip > 1.25              && pip < 5              && 5 < elth             && elth < 35             && 5 < pipth            && pipth < 35")
+                            DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 1 && sqrt(smeared_vals[1]) > 1.5 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
+                        cutname = " All (Smeared) Cuts"
+                    else:
+                        if('SIDIS' in Cut_Choice):
+                            if(Titles_or_DF == 'DF'):
+                                # DF_Out = DF_Out.Filter("y < 0.75             && xF > 0               && W > 2               && Q2 > 1")
+                                DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 1")
+                            cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "SIDIS Cuts"])
+                        if('Mom' in Cut_Choice):
+                            if(Titles_or_DF == 'DF'):
+                                # DF_Out = DF_Out.Filter("pip > 1.25            && pip < 5              && 5 < elth             && elth < 35             && 5 < pipth            && pipth < 35")
+                                DF_Out = DF_Out.Filter("smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
+                            cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "Mom Cuts"])
+                    if("Q2" in Cut_Choice):
+                        if(Titles_or_DF == 'DF'):
+                            # DF_Out = DF_Out.Filter("Q2 > 2")
+                            DF_Out = DF_Out.Filter("smeared_vals[2] > 2")
+                        cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "(New) Q^{2} Cut"])
+                    if(Data_Type == "pdf" and 'PID' in Cut_Choice):
+                        cutname = "".join([cutname, " " if cutname == " (Smeared)" else " + ", "Matched PID Cut"])
+                        if(Titles_or_DF == 'DF'):
+                            DF_Out = DF_Out.Filter("PID_el == 11 && PID_pip == 211")
+                else:
+                    if("all" in Cut_Choice):
+                        if(Titles_or_DF == 'DF'):
+                            DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 1 && sqrt(MM2) > 1.5 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
+                        if("Exclusive" not in cutname):
+                            cutname = " All Cuts"
+                        else:
+                            cutname = "".join([cutname, " " if cutname == " " else " + ", "All SIDIS Cuts"])
+                    else:
+                        if('SIDIS' in Cut_Choice):
+                            if(Titles_or_DF == 'DF'):
+                                DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 1")
+                            cutname = "".join([cutname, "" if cutname == " " else " + ", "SIDIS Cuts"])
+                        if('Mom' in Cut_Choice):
+                            if(Titles_or_DF == 'DF'):
+                                DF_Out = DF_Out.Filter("pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
+                            cutname = "".join([cutname, "" if cutname == " " else " + ", "Mom Cuts"])
+                    if("Q2" in Cut_Choice):
+                        if(Titles_or_DF == 'DF'):
+                            DF_Out = DF_Out.Filter("Q2 > 2")
+                        cutname = "".join([cutname, " " if cutname == " " else " + ", "(New) Q^{2} Cut"])
+                    if(Data_Type == "pdf" and 'PID' in Cut_Choice):
+                        cutname = "".join([cutname, " " if cutname == " " else " + ", "Matched PID Cut"])
+                        if(Titles_or_DF == 'DF'):
+                            DF_Out = DF_Out.Filter("PID_el == 11 && PID_pip == 211")
+                if('Valerii_Cut' in Cut_Choice):
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out = filter_Valerii(DF_Out, Cut_Choice)
+                    cutname = "".join([cutname, "" if(" " == cutname or " (Smeared)" == cutname) else " + ", "Valerii Cuts"])
 
+                if("P2" in Cut_Choice):
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out = bin_purity_filter_fuction(DF_Out, Q2_xB_Bin_Filter_str, 0, 0, 20)
+                    cutname = "".join([cutname, "" if(" " == cutname or " (Smeared)" == cutname) else " + ", "Binning Purity (New)"])
+                    
         else:
             # Generated Monte Carlo should not have cuts applied to it
             cutname = " No Cuts"
@@ -5599,6 +5826,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut']
     cut_list = ['no_cut', 'cut_all_Q2_Valerii_Cut']
     cut_list = ['no_cut', 'cut_exclusive_Valerii_Cut']
+    cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
 
     
     
@@ -5923,6 +6151,26 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
+    # Post-GRC Binning
+    Q2_Binning = ['Q2', 1.4805, 11.8705, 20]
+    Q2_Binning_Smeared = ['Q2_smeared', 1.4805, 11.8705, 20]
+    # Bin size: 0.5195 per bin
+
+    xB_Binning = ['xB', 0.08977, 0.82643, 20]
+    xB_Binning_Smeared = ['xB_smeared', 0.08977, 0.82643, 20]
+    # Bin size: 0.03683 per bin
+
+    z_Binning = ['z', 0.11944, 0.73056, 20]
+    z_Binning_Smeared = ['z_smeared', 0.11944, 0.73056, 20]
+    # Bin size: 0.03056 per bin
+    
+    pT_Binning = ['pT', 0, 1.05, 20]
+    pT_Binning_Smeared = ['pT_smeared', 0, 1.05, 20]
+    # Bin size: 0.05 per bin
+
+    y_Binning = ['y', 0, 1, 20]
+    y_Binning_Smeared = ['y_smeared', 0, 1, 20]
+    # Bin size: 0.05 per bin
     
     
     MM_Binning = ['MM', 0, 3.5, 500]
@@ -5951,8 +6199,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared, Binning_4D_OG_Smeared]
     
     
-    List_of_Quantities_1D = [MM_Binning, ['el', 0, 8, 200], ['pip', 0, 6, 200]]
-    List_of_Quantities_1D_smeared = [MM_Binning_Smeared, ['el_smeared', 0, 8, 200], ['pip_smeared', 0, 6, 200]]
+    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
+    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200]]
     
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
     # List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
@@ -5962,16 +6210,61 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]], [MM_Binning, ['el', 0, 8, 200]], [MM_Binning, ['pip', 0, 6, 200]]]
-    List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]], [MM_Binning_Smeared, ['el_smeared', 0, 8, 200]], [MM_Binning_Smeared, ['pip_smeared', 0, 6, 200]]]
+#     List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]], [MM_Binning, ['el', 0, 8, 200]], [MM_Binning, ['pip', 0, 6, 200]]]
+#     List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]], [MM_Binning_Smeared, ['el_smeared', 0, 8, 200]], [MM_Binning_Smeared, ['pip_smeared', 0, 6, 200]]]
     
+    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
+    List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
     
         # # # 2D histograms are turned off with these options
     # List_of_Quantities_2D = []
     # List_of_Quantities_2D_smeared = []
     
+    
+    
+    
     if(len(List_of_Quantities_2D) == 0):
         print("Not running 2D histograms...")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    run_Mom_Cor_Code = "yes"
+    # run_Mom_Cor_Code = "no"
+
+    if(run_Mom_Cor_Code == "yes"):
+        print("\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)\n")
+    
+    
+    
+    
+    # smearing_options_list = ["", "smear", "2", "smear_2"]
+    smearing_options_list = ["2", "smear_2"]
+    
+    # The '2' in the smearing option uses the binning schemes developed for this analysis (instead of the binning used by Stephan)
+    
+    if("rdf" in datatype or "gdf" in datatype):
+        # Do not smear data or generated MC
+        for ii in smearing_options_list:
+            if("smear" in ii):
+                smearing_options_list.remove(ii)
+    
+    
+    
+    
+    
+    
     
     
     
@@ -5985,13 +6278,29 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ###########################################################
     #################     Final ROOT File     #################
     
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_Exclusive_Mom_Cor_"
+    Extra_Name = "Bin_Test_Mom_Cor_Studies_"
     
     
     if(datatype == 'rdf'):
@@ -6018,8 +6327,17 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ###########################################################
     
     
+    
+    
+    
+    
+    
+    
+    
+    
     if(output_type == "histo" or output_type == "time"):
-        Kinetic_Histo_3D, histo_for_counts, histo_for_2D_Purity, histo_for_migration, count_of_histograms = {}, {}, {}, {}, 0
+        Mom_Cor_Histos, Kinetic_Histo_3D, histo_for_counts, histo_for_2D_Purity, histo_for_migration = {}, {}, {}, {}, {}
+        count_of_histograms = 0
 
         print("Making Histograms...")
         ######################################################################
@@ -6039,9 +6357,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         for datatype_2 in datatype_list:
 
             ##=====##    Smearing Loop    ##=====##
+            
 
-            # for smearing_Q in ["", "smear", "2", "smear_2"]:
-            for smearing_Q in ["2", "smear_2"]:
+            for smearing_Q in smearing_options_list:
 
                 Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "Q2_xB_Bin", "z_pT_Bin"
 
@@ -6088,8 +6406,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # histo_options = ["has_matched", "bin_purity", "delta_matched", "counts"]
                                 # histo_options = ["has_matched", "bin_purity", "bin_2D_purity", "counts"]
                                 # histo_options = ["has_matched", "bin_purity", "counts"]
-#                                 histo_options = ["has_matched", "bin_purity", "counts", "bin_migration"]
-#                                 histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
+                                # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration"]
+                                # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
                                 histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
                                 # Meaning of the above options:
                                 # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
@@ -6106,11 +6424,60 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             else:
                                 histo_options = ["normal"]
                                 # runs code normally
+                                
+                                
+                            if(run_Mom_Cor_Code == "yes"):
+                                histo_options.append("Mom_Cor_Code")
+                                
+                                
 
                             for option in histo_options:
+                                
+                                if(option == "Mom_Cor_Code"):
+                                    cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "MM", smearing_Q, datatype_2, cut_choice, "Cut")
+                                    
+                                    if(cutname == "continue"):
+                                        continue
+                                    
+                                    Mom_Cor_Histos_Name_MM_El = (''.join(['Mom_Cor_Histos - Missing Mass El - ', str(cutname).replace("  ", " "), datatype_2, "MM" if("smear" not in smearing_Q) else "MM_smeared", smearing_Q]))
+                                    Mom_Cor_Histos_Name_MM_Pip = (''.join(['Mom_Cor_Histos - Missing Mass Pi+ - ', str(cutname).replace("  ", " "), datatype_2, "MM" if("smear" not in smearing_Q) else "MM_smeared", smearing_Q]))
+                                    
+                                    Mom_Cor_Histos_Name_DP_El = (''.join(['Mom_Cor_Histos - Delta P El - ', str(cutname).replace("  ", " "), datatype_2, "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", smearing_Q]))
+                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(['Mom_Cor_Histos - Delta P Pi+ - ', str(cutname).replace("  ", " "), datatype_2, "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", smearing_Q]))
+                                    
+                                    variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "el", "pip"]
+                                    if("smear" in smearing_Q):
+                                        variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "el_smeared", "pip_smeared"]
+                                    
+                                    MCH_rdf = DF_Filter_Function_Full(rdf, "", -1, -1, -2, variables_Mom_Cor, smearing_Q, datatype_2, cut_choice, "DF")
+                                    
+                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_El, Mom_Cor_Histos_Name_MM_El_Title, 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, Mom_Cor_Histos_Name_MM_Pip_Title, 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_El, Mom_Cor_Histos_Name_DP_El_Title, 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, Mom_Cor_Histos_Name_DP_Pip_Title, 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    
+                                    if(str(file_location) != 'time'):
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_El].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip].Write()
+                                        
+                                    count_of_histograms += 1
+                                    if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
+                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                    if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
+                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                    
+                                    
 
                                 if(option == "normal" or option == "has_matched" or option == "bin_purity" or option == "delta_matched"):
-                                # if(option != "counts" and option != "bin_2D_purity" and option != "bin_migration"):
                                     ##====================================##
                                     ##=====##    Variable Loops    ##=====##
 
