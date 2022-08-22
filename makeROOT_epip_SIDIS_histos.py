@@ -5418,6 +5418,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # No PID cuts except for matched MC events
         if((Data_Type != "pdf" and Data_Type != "gen") and "PID" in Cut_Choice):
             return "continue"
+#         # Not (currently) interested in bin migration/purity/matching of exclusive events
+#         if(Data_Type == "pdf" and "EDIS" in Cut_Choice):
+#             return "continue"
         ##===============================================##
         ##----------## Skipping Bad Requests ##----------##
         ##===============================================##
@@ -5838,222 +5841,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     #####################################################################################################################
     ###############################################     3D Histograms     ###############################################
     
-    # Longer (but not full) option:
-    # List_of_Quantities_1D = [['MM', 0, 4.5, 200], ['Q2', 0, 12, 200], ['W', 1, 5, 200], ['s', 1, 20, 200], ['xB', 0, 0.8, 200], ['v', 1, 12, 200], ['y', 0, 1, 200], ['z', 0, 1, 200], ['xF', -0.6, 0.8, 200], ['pT', 0, 1.6, 200], ["epsilon", 0, 1, 200], ['phi_t', 0, 360, 200], ['el_E', 0, 8, 200], ['el', 0, 8, 200], ['elth', 0, 40, 200], ['elPhi', 0, 360, 200], ['pip_E', 0, 6, 200], ['pip', 0, 6, 200], ['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]
-    # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 200], ['Q2_smeared', 0, 12, 200], ['W_smeared', 1, 5, 200], ['s_smeared', 1, 20, 200], ['xB_smeared', 0, 0.8, 200], ['v_smeared', 1, 12, 200], ['y_smeared', 0, 1, 200], ['z_smeared', 0, 1, 200], ['xF_smeared', -0.6, 0.8, 200], ['pT_smeared', 0, 1.6, 200], ["epsilon_smeared", 0, 1, 200], ['phi_t_smeared', 0, 360, 200], ['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200], ['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200], ['Delta_Smear_El_P', -1.5, 1.5, 100], ['Delta_Smear_El_Th', -1.5, 1.5, 100], ['Delta_Smear_El_Phi', -1.5, 1.5, 100], ['Delta_Smear_Pip_P', -1.5, 1.5, 100], ['Delta_Smear_Pip_Th', -1.5, 1.5, 100], ['Delta_Smear_Pip_Phi', -1.5, 1.5, 100]]
-    
-    
-    # Normal Option (True - New):
-    # List_of_Quantities_1D = [['MM', 0, 4.5, 9], ['y', 0, 1, 20], ['Q2', -0.65, 12.35, 20], ['W', 1, 5, 100], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 45], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-    # List_of_Quantities_1D_smeared = [['MM_smeared', 0, 4.5, 9], ['y_smeared', 0, 1, 20], ['Q2_smeared', -0.65, 12.35, 20], ['W_smeared', 1, 5, 100], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 45], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-    # List_of_Quantities_1D = [['y', 0, 1, 20], ['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 45], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-    # List_of_Quantities_1D_smeared = [['y_smeared', 0, 1, 20], ['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 45], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-    
-    # List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-    # List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-    
-    
-    # # For 2D (from 3D) histograms:
-    
-        # # # Both Binnings and particle momentum kinematics
-    # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['el', 0, 8, 200], ['elPhi', 0, 360, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pip', 0, 6, 200], ['pipPhi', 0, 360, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
-
-        # # Both Binnings (Only)
-    # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20]], [['y', 0, 1, 20], ['xB', -0.05, 0.95, 20]], [['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20]], [['y_smeared', 0, 1, 20], ['xB_smeared', -0.05, 0.95, 20]], [['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10]]]
-    # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
-    
-        # # # Plotting major variables vs phi_t
-    # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['phi_t', 0, 360, 200]], [['xB', 0, 0.8, 200], ['phi_t', 0, 360, 200]], [['z', 0, 1, 200], ['phi_t', 0, 360, 200]], [['pT', 0, 1.6, 200], ['phi_t', 0, 360, 200]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['phi_t_smeared', 0, 360, 400]], [['xB_smeared', 0, 0.8, 200], ['phi_t_smeared', 0, 360, 400]], [['z_smeared', 0, 1, 200], ['phi_t_smeared', 0, 360, 400]], [['pT_smeared', 0, 1.6, 200], ['phi_t_smeared', 0, 360, 400]]]
-    
-    
-    # List_of_Quantities_1D = [['Q2', -0.65, 12.35, 20], ['xB', -0.05, 0.95, 20], ['z', -0.03, 1.05, 12], ['pT', -0.2, 1.8, 10], ['phi_t', 0, 360, 36], ['el', 0, 10, 10], ['elth', 0, 40, 24], ['elPhi', 0, 360, 90], ['pip', 0, 8, 8], ['pipth', 0, 40, 22], ['pipPhi', 0, 360, 80]]
-    # List_of_Quantities_1D_smeared = [['Q2_smeared', -0.65, 12.35, 20], ['xB_smeared', -0.05, 0.95, 20], ['z_smeared', -0.03, 1.05, 12], ['pT_smeared', -0.2, 1.8, 10], ['phi_t_smeared', 0, 360, 36], ['el_smeared', 0, 10, 10], ['elth_smeared', 0, 40, 24], ['elPhi_smeared', 0, 360, 90], ['pip_smeared', 0, 8, 8], ['pipth_smeared', 0, 40, 22], ['pipPhi_smeared', 0, 360, 80]]
-    # List_of_Quantities_2D = [[['Q2', -0.65, 12.35, 200], ['xB', -0.05, 0.95, 200]], [['z', -0.03, 1.05, 120], ['pT', -0.2, 1.8, 100]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', -0.65, 12.35, 200], ['xB_smeared', -0.05, 0.95, 200]], [['z_smeared', -0.03, 1.05, 120], ['pT_smeared', -0.2, 1.8, 100]]]
-    
-    
-# #     # Bin Set Option: 2 bins
-# #     Q2_Binning = ['Q2', -3, 17, 4]
-# #     Q2_Binning_Smeared = ['Q2_smeared', -3, 17, 4]
-# #     # Bin size: 5.0
-#     # Bin Set Option: 2 bins (Actual total bins = 4)
-#     Q2_Binning = ['Q2', -2.6755, 16.0265, 4]
-#     Q2_Binning_Smeared = ['Q2_smeared', -2.6755, 16.0265, 4]
-#     # Bin size: 4.6755 per bin
-
-    
-# #     xB_Binning = ['xB', -0.22, 1.14, 4]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.22, 1.14, 4]
-# #     # Bin size: 0.34
-
-#     # Bin Set Option: 2 bins (Actual total bins = 4)
-#     xB_Binning = ['xB', -0.2049, 1.1211, 4]
-#     xB_Binning_Smeared = ['xB_smeared', -0.2049, 1.1211, 4]
-#     # Bin size: 0.3315 per bin
-
-    
-#     z_Binning = ['z', -0.21, 1.23, 4]
-#     z_Binning_Smeared = ['z_smeared', -0.21, 1.23, 4]
-#     # Bin size: 0.36
-    
-#     pT_Binning = ['pT', -0.75, 2.25, 4]
-#     pT_Binning_Smeared = ['pT_smeared', -0.75, 2.25, 4]
-#     # Bin size: 0.75
-
-#     y_Binning = ['y', -0.075, 1.025, 4]
-#     y_Binning_Smeared = ['y_smeared', -0.075, 1.025, 4]
-#     # Bin size: 0.275
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 4]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 4]
-#     # Bin size: 90
-    
-    
-# #     # Bin Set Option: 3 bins
-# #     Q2_Binning = ['Q2', -1.2, 14.8, 5]
-# #     Q2_Binning_Smeared = ['Q2_smeared', -1.2, 14.8, 5]
-# #     # Bin size: 3.2
-#     # Bin Set Option: 3 bins (Actual total bins = 5)
-#     Q2_Binning = ['Q2', -1.117, 14.468, 5]
-#     Q2_Binning_Smeared = ['Q2_smeared', -1.117, 14.468, 5]
-#     # Bin size: 3.117 per bin
-
-    
-# #     xB_Binning = ['xB', -0.107, 1.028, 5]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.107, 1.028, 5]
-# #     # Bin size: 0.227
-
-#     # Bin Set Option: 3 bins (Actual total bins = 5)
-#     xB_Binning = ['xB', -0.0944, 1.0106, 5]
-#     xB_Binning_Smeared = ['xB_smeared', -0.0944, 1.0106, 5]
-#     # Bin size: 0.221 per bin
-
-    
-#     z_Binning = ['z', -0.09, 1.11, 5]
-#     z_Binning_Smeared = ['z_smeared', -0.09, 1.11, 5]
-#     # Bin size: 0.24
-    
-#     pT_Binning = ['pT', -0.5, 2, 5]
-#     pT_Binning_Smeared = ['pT_smeared', -0.5, 2, 5]
-#     # Bin size: 0.5
-
-#     y_Binning = ['y', -0.16666, 1.11665, 7]
-#     y_Binning_Smeared = ['y_smeared', -0.16666, 1.11665, 7]
-#     # Bin size: 0.18333
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 5]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 5]
-#     # Bin size: 72
-    
-    
-# #     # Bin Set Option: 4 bins
-# #     Q2_Binning = ['Q2', -0.35, 13.75, 6]
-# #     Q2_Binning_Smeared = ['Q2_smeared', -0.35, 13.75, 6]
-# #     # Bin size: 2.35
-#     # Bin Set Option: 4 bins (Actual total bins = 6)
-#     Q2_Binning = ['Q2', -0.3378, 13.6888, 6]
-#     Q2_Binning_Smeared = ['Q2_smeared', -0.3378, 13.6888, 6]
-#     # Bin size: 2.33775 per bin
-
-    
-# #     xB_Binning = ['xB', -0.05, 1.028, 6]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.05, 1.028, 6]
-# #     # Bin size: 0.17
-
-#     # Bin Set Option: 4 bins (Actual total bins = 6)
-#     xB_Binning = ['xB', -0.0391, 0.9554, 6]
-#     xB_Binning_Smeared = ['xB_smeared', -0.0391, 0.9554, 6]
-#     # Bin size: 0.16575 per bin
-
-    
-#     z_Binning = ['z', -0.03, 1.05, 6]
-#     z_Binning_Smeared = ['z_smeared', -0.03, 1.05, 6]
-#     # Bin size: 0.18
-    
-#     pT_Binning = ['pT', -0.375, 1.875, 6]
-#     pT_Binning_Smeared = ['pT_smeared', -0.375, 1.875, 6]
-#     # Bin size: 0.375
-
-#     y_Binning = ['y', -0.075, 1.025, 8]
-#     y_Binning_Smeared = ['y_smeared', -0.075, 1.025, 8]
-#     # Bin size: 0.1375
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 6]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 6]
-#     # Bin size: 60
-    
-    
-# #     # Bin Set Option: 5 bins
-# #     Q2_Binning = ['Q2', 0, 14, 7]
-# #     Q2_Binning_Smeared = ['Q2_smeared', 0, 14, 7]
-# #     # Bin size: 2
-#     # Bin Set Option: 5 bins (Actual total bins = 8)
-#     Q2_Binning = ['Q2', -1.7404, 13.2212, 8]
-#     Q2_Binning_Smeared = ['Q2_smeared', -1.7404, 13.2212, 8]
-#     # Bin size: 1.8702 per bin
-
-    
-# #     xB_Binning = ['xB', -0.16, 0.96, 7]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.16, 0.96, 7]
-# #     # Bin size: 0.16
-
-#     # Bin Set Option: 5 bins (Actual total bins = 7)
-#     xB_Binning = ['xB', -0.006, 0.9222, 7]
-#     xB_Binning_Smeared = ['xB_smeared', -0.006, 0.9222, 7]
-#     # Bin size: 0.1326 per bin
-
-    
-#     z_Binning = ['z', 0.006, 1.014, 7]
-#     z_Binning_Smeared = ['z_smeared', 0.006, 1.014, 7]
-#     # Bin size: 0.144
-    
-#     pT_Binning = ['pT', -0.3, 1.8, 7]
-#     pT_Binning_Smeared = ['pT_smeared', -0.3, 1.8, 7]
-#     # Bin size: 0.3
-
-#     y_Binning = ['y', -0.02, 1.08, 10]
-#     y_Binning_Smeared = ['y_smeared', -0.02, 1.08, 10]
-#     # Bin size: 0.11
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 12]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 12]
-#     # Bin size: 30
-    
-    
-# #     # Bin Set Option: 10 bins
-# #     Q2_Binning = ['Q2', 0, 13, 13]
-# #     Q2_Binning_Smeared = ['Q2_smeared', 0, 13, 13]
-    
-#     # Bin Set Option: 10 bins (Actual total bins = 14)
-#     Q2_Binning = ['Q2', -0.8053, 12.2861, 14]
-#     Q2_Binning_Smeared = ['Q2_smeared', -0.8053, 12.2861, 14]
-#     # Bin size: 0.9351 per bin
-    
-# #     xB_Binning = ['xB', -0.08, 0.96, 13]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.08, 0.96, 13]
-    
-    
-#         # Bin Set Option: 10 bins (Actual total bins = 13)
-#     xB_Binning = ['xB', -0.006, 0.8559, 13]
-#     xB_Binning_Smeared = ['xB_smeared', -0.006, 0.8559, 13]
-#     # Bin size: 0.0663 per bin
-
-#     z_Binning = ['z', 0.006, 1.014, 14]
-#     z_Binning_Smeared = ['z_smeared', 0.006, 1.014, 14]
-    
-#     pT_Binning = ['pT', -0.15, 1.8, 13]
-#     pT_Binning_Smeared = ['pT_smeared', -0.15, 1.8, 13]
-    
-#     y_Binning = ['y', -0.02, 1.025, 19]
-#     y_Binning_Smeared = ['y_smeared', -0.02, 1.025, 19]
-#     # Bin size: 0.055
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 24]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 24]
-
 
     # Bin Set Option: 20 bins
 #     Q2_Binning = ['Q2', 0, 12.5, 25]
@@ -6084,38 +5871,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     phi_t_Binning = ['phi_t', 0, 360, 36]
     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
-
-
-# #     # Bin Set Option: 40 bins
-# #     Q2_Binning = ['Q2', 0, 12.5, 50]
-# #     Q2_Binning_Smeared = ['Q2_smeared', 0, 12.5, 50]
-    
-#     # Bin Set Option: 40 bins (Actual total bins = 52)
-#     Q2_Binning = ['Q2', -0.104, 12.0525, 52]
-#     Q2_Binning_Smeared = ['Q2_smeared', -0.104, 12.0525, 52]
-#     # Bin size: 0.23378 per bin
-    
-# #     xB_Binning = ['xB', -0.08, 0.92, 50]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.08, 0.92, 50]
-    
-    
-#         # Bin Set Option: 40 bins (Actual total bins = 50)
-#     xB_Binning = ['xB', -0.006, 0.8225, 50]
-#     xB_Binning_Smeared = ['xB_smeared', -0.006, 0.8225, 50]
-#     # Bin size: 0.01657 per bin
-
-#     z_Binning = ['z', 0.006, 1.014, 56]
-#     z_Binning_Smeared = ['z_smeared', 0.006, 1.014, 56]
-    
-#     pT_Binning = ['pT', -0.15, 1.8, 52]
-#     pT_Binning_Smeared = ['pT_smeared', -0.15, 1.8, 52]
-
-#     y_Binning = ['y', -0.0075, 0.9975, 72]
-#     y_Binning_Smeared = ['y_smeared', -0.0075, 0.9975, 72]
-#     # Bin size: 0.01375
-    
-#     phi_t_Binning = ['phi_t', 0, 360, 45]
-#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 45]
 
 
 
@@ -6201,6 +5956,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200]]
+    
+    
+#     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
+#     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200]]
+    
+    
+    
+    
     
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
     # List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
@@ -6300,7 +6063,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_Mom_Cor_Studies_"
+    Extra_Name = "Bin_Test_Mom_Cor_Studies_V2_"
     
     
     if(datatype == 'rdf'):
@@ -6351,6 +6114,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf"]
             # datatype_list = ["mdf", "pdf", "udf", "miss_idf"]
             datatype_list = ["mdf", "pdf", "gen"]
+#             datatype_list = ["mdf", "pdf"]
         else:
             datatype_list = [datatype]
 
@@ -6408,7 +6172,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # histo_options = ["has_matched", "bin_purity", "counts"]
                                 # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration"]
                                 # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
-                                histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
+                                # histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
+                                # histo_options = ["has_matched", "bin_migration_V3"]
+                                histo_options = ["bin_migration_V3"]
                                 # Meaning of the above options:
                                 # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
                                 # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
@@ -6426,7 +6192,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # runs code normally
                                 
                                 
-                            if(run_Mom_Cor_Code == "yes"):
+                            if(run_Mom_Cor_Code == "yes" and datatype_2 != 'pdf'):
                                 histo_options.append("Mom_Cor_Code")
                                 
                                 

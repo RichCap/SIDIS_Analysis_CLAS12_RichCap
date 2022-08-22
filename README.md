@@ -19,6 +19,17 @@ This list will be updated as items are completed. Items here may not always rela
 ## Commit Updates:
 
 
+### Update on 8-21-2022:
+#### Python Code Updates:
+* Needed to rerun MC REC files (out-of-memory error)
+    * Reduced number of options to improve memory-consumption
+        * Removed multiple Bin Test option (Bin Migration V3 only - uses same number of bins used in regular histograms)
+        * Removed Missing Mass histograms that would be produced when matching effiecency is considered (i.e., 'pdf' option is skipped for these histograms)
+        * Removed histograms which are purely used to show 1D matching effeciency (not acceptance matrix)
+* Removed old binning scheme options that were not being used
+* Extra_Name = "Bin_Test_Mom_Cor_Studies_" output files added (MC REC files are named "Bin_Test_Mom_Cor_Studies_V2_" due to the memory errors mentioned above)
+
+
 ### Update on 8-20-2022:
 #### Python Code Updates:
 * Added More Cut options
