@@ -5931,6 +5931,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     MM_Binning = ['MM', 0, 3.5, 500]
     MM_Binning_Smeared = ['MM_smeared', 0, 3.5, 500]
     
+    W_Binning = ['W', 0, 6, 200]
+    W_Binning_Smeared = ['W_smeared', 0, 6, 200]
+    
 
     Binning_4D = ['Bin_4D', -1.5, 303.5, 306]
     Binning_4D_Smeared = ['Bin_4D_smeared', -1.5, 303.5, 306]
@@ -5954,8 +5957,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared, Binning_4D_OG_Smeared]
     
     
-    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
-    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200]]
+    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], Binning_4D, W_Binning]
+    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], Binning_4D_Smeared, W_Binning_Smeared]
     
     
 #     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
@@ -5968,16 +5971,12 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning]]
     # List_of_Quantities_2D_smeared = [[Q2_Binning_Smeared, xB_Binning_Smeared], [y_Binning_Smeared, xB_Binning_Smeared], [z_Binning_Smeared, pT_Binning_Smeared]]
     
-    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
-    List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
-    
-    
-    
-#     List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]], [MM_Binning, ['el', 0, 8, 200]], [MM_Binning, ['pip', 0, 6, 200]]]
-#     List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]], [MM_Binning_Smeared, ['el_smeared', 0, 8, 200]], [MM_Binning_Smeared, ['pip_smeared', 0, 6, 200]]]
+    # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]], [MM_Binning, ['el', 0, 8, 200]], [MM_Binning, ['pip', 0, 6, 200]]]
+    # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]], [MM_Binning_Smeared, ['el_smeared', 0, 8, 200]], [MM_Binning_Smeared, ['pip_smeared', 0, 6, 200]]]
     
     List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
+    
     
         # # # 2D histograms are turned off with these options
     # List_of_Quantities_2D = []
@@ -6063,7 +6062,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Bin_Test_Mom_Cor_Studies_V2_"
+    Extra_Name = "Mom_Cor_Delta_P_Studies_"
     
     
     if(datatype == 'rdf'):
@@ -6114,7 +6113,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf"]
             # datatype_list = ["mdf", "pdf", "udf", "miss_idf"]
             datatype_list = ["mdf", "pdf", "gen"]
-#             datatype_list = ["mdf", "pdf"]
+            # datatype_list = ["mdf", "pdf"]
         else:
             datatype_list = [datatype]
 
@@ -6174,7 +6173,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
                                 # histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
                                 # histo_options = ["has_matched", "bin_migration_V3"]
-                                histo_options = ["bin_migration_V3"]
+                                histo_options = ["delta_matched", "bin_migration_V3"]
                                 # Meaning of the above options:
                                 # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
                                 # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
@@ -6205,11 +6204,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     if(cutname == "continue"):
                                         continue
                                     
-                                    Mom_Cor_Histos_Name_MM_El = (''.join(['Mom_Cor_Histos - Missing Mass El - ', str(cutname).replace("  ", " "), datatype_2, "MM" if("smear" not in smearing_Q) else "MM_smeared", smearing_Q]))
-                                    Mom_Cor_Histos_Name_MM_Pip = (''.join(['Mom_Cor_Histos - Missing Mass Pi+ - ', str(cutname).replace("  ", " "), datatype_2, "MM" if("smear" not in smearing_Q) else "MM_smeared", smearing_Q]))
+                                    Mom_Cor_Histos_Name_MM_El = (''.join(["(Mom_Cor_Histos - Missing Mass El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
                                     
-                                    Mom_Cor_Histos_Name_DP_El = (''.join(['Mom_Cor_Histos - Delta P El - ', str(cutname).replace("  ", " "), datatype_2, "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", smearing_Q]))
-                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(['Mom_Cor_Histos - Delta P Pi+ - ', str(cutname).replace("  ", " "), datatype_2, "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", smearing_Q]))
+                                    Mom_Cor_Histos_Name_DP_El = (''.join(["(Mom_Cor_Histos - Delta P El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
                                     
                                     variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "el", "pip"]
                                     if("smear" in smearing_Q):
@@ -6217,10 +6216,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     MCH_rdf = DF_Filter_Function_Full(rdf, "", -1, -1, -2, variables_Mom_Cor, smearing_Q, datatype_2, cut_choice, "DF")
                                     
-                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
-                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
-                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
-                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "#p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
 
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_El, Mom_Cor_Histos_Name_MM_El_Title, 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, Mom_Cor_Histos_Name_MM_Pip_Title, 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
@@ -6235,7 +6234,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_El].Write()
                                         Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip].Write()
                                         
-                                    count_of_histograms += 1
+                                    count_of_histograms += 4
                                     if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
                                         print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                     if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
@@ -6276,7 +6275,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(final_df == "continue"):
                                                 continue
                                             cutname = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
-                                            Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-p_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-p_{T} Bin", "")), "; #Delta(REC - GEN)"])
+                                            Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-p_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-p_{T} Bin", "")), "; #Delta(REC - GEN); ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"])
 
                                             Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
                                             if("2" in smearing_Q):
@@ -6296,9 +6295,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             delta_bins = Delta_Matched_Bin_Calc(list1[0], list1[1], list1[2])
                                             if("continue" in delta_bins):
                                                 continue
-                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = final_df.Histo2D((str(Kinetic_Histo_3D_Name), str(Histo_Title), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2]), str(list1[0]), "Delta_Matched_Value")
+                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = final_df.Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 9, -1, 7), str(list1[0]), "Delta_Matched_Value", "pipsec" if("pip" in list1[0]) else "esec")
                                             if("Phi" in list1[0]):
-                                                Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])] = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, str(list1[0].replace("Phi", "th")), smearing_Q, datatype_2, cut_choice, "DF").Histo3D(("".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"]), "".join([Histo_Title, ";#theta_{", "el" if "el" in list1[0] else "#pi+" ,"}"]), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 34, 0, 40), str(list1[0]), "Delta_Matched_Value", str(list1[0].replace("Phi", "th")))
+                                                Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])] = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, str(list1[0].replace("Phi", "th")), smearing_Q, datatype_2, cut_choice, "DF").Histo3D(("".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"]), "".join([Histo_Title.replace("".join(["; ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"]), ""), ";#theta_{", "el" if "el" in list1[0] else "#pi+" ,"}"]), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 34, 0, 40), str(list1[0]), "Delta_Matched_Value", str(list1[0].replace("Phi", "th")))
 
                                         if(str(file_location) != 'time'):
                                             Kinetic_Histo_3D[Kinetic_Histo_3D_Name].Write()
@@ -6687,6 +6686,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # File has been saved
 
         print("".join(["Total Number of Histograms Made: ", str(count_of_histograms)]))
+        
+        
+        output_all_histo_names_Q = "yes"
+        output_all_histo_names_Q = "no"
+        
+        if(output_all_histo_names_Q == "yes"):
+            print("\nHistograms be made:")
+            for ii in [Mom_Cor_Histos, Kinetic_Histo_3D, histo_for_counts, histo_for_2D_Purity, histo_for_migration]:
+                for ii2 in ii:
+                    print(ii2)
+            print("\n")
+        elif(str(file_location) == 'time'):
+            print("\nChoose not to print list of final histograms...\n\tSet output_all_histo_names_Q = 'yes' for list of histograms made while running...\n")
         
         
     elif(output_type != "histo" and output_type != "test" and output_type != 'time'):

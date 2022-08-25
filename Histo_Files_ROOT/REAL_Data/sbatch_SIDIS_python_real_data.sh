@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=REAL_Data_Bin_Test_Mom_Cor_Studies_SIDIS_histo_8_20_2022
+#SBATCH --job-name=REAL_Data_Mom_Cor_Delta_P_Studies_SIDIS_histo_8_24_2022
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out

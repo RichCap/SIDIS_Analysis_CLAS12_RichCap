@@ -18,6 +18,9 @@ These ideas may or may not be implemented later (put here as a reminder to think
     * Would likely include:
         - [ ] 4 new Q2-xB bins (up, down, left and right of bins)
         - [ ] 8 new z-pT bins (up, down, left and right of bins plus 4 more bins for the corners which are both above/below the existing bins AND to the left/right of them as well)
+- [ ] Add Save options based on the cell being run (don't wait for the whole code to run each cell before moving the images into their final location)
+    * Would make organizing images easier
+    * Could use a custom function to make saving results easier in each cell
 
 
 ## Note to self:

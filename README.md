@@ -4,13 +4,11 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
-- [ ] Run 1D bin acceptance by plotting the variables against each other, not their bin numbers
-    * This will reduce future errors by limiting the confusion when dividing the migration matrix by the 1D generated histograms to get the acceptance matrix
-- [ ] Run Q2-xB bins and z-pT bins separately in the same way that the 4D bins are run 
-    * Want to see the evolution of the multi-dimensional bin migration as more dimensions are considered
 - [ ] Address possible issue with 4D/5D bins (when z-PT do not have a proper bin)
-- [ ] Complete comparison of the Experimental and Simulated (REC) data using the momentum corrections 
-    * Using Exclusive Missing Mass Peaks
+- [ ] Add Code used for Momentum Corrections to do the following things:
+    [ ] (1) Check Momentum Corrections (comparison between data and MC)
+    [ ] (2) Develop new code to allow for new smearing functions to be created
+- [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
 
 
 ---
@@ -18,6 +16,16 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Commit Updates:
 
+### Update on 8-24-2022:
+#### Python Code Updates:
+* Ran ∆P plots based on the REC-to-GEN MC matching
+* Improved naming of histograms (their object names in the TFile)
+* Added 'W' and 'Bin_4D' histograms
+* Extra_Name = "Mom_Cor_Delta_P_Studies_" output files added
+#### Jupyter Code Updates:
+* Added more to the Missing Mass Histograms
+    * Working towards integrating parts of the momentum correction code (from exclusive reactions) to this code
+    
 
 ### Update on 8-21-2022:
 #### Python Code Updates:
