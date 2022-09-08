@@ -4,10 +4,9 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
-- [ ] Address possible issue with 4D/5D bins (when z-PT do not have a proper bin)
 - [ ] Add Code used for Momentum Corrections to do the following things:
-    [ ] (1) Check Momentum Corrections (comparison between data and MC)
-    [ ] (2) Develop new code to allow for new smearing functions to be created
+    - [x] (1) Check Momentum Corrections (comparison between data and MC)
+    - [ ] (2) Develop new code to allow for new smearing functions to be created
 - [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
 
 
@@ -15,6 +14,14 @@ This list will be updated as items are completed. Items here may not always rela
 
 
 ## Commit Updates:
+
+### Update on 9-7-2022:
+#### Python Code Updates:
+* Made improvements/additions to bin migration (now the better version will be response matrix)
+* Cleaned up some unused code
+* Began to add options for multi-dimensional binnings that require both the Q2-xB and z-pT bins be defined
+
+Note on this commit: Data files used for this analysis have been lost. Must recover before running again
 
 ### Update on 8-24-2022:
 #### Python Code Updates:

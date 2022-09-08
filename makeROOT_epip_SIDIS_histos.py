@@ -5950,6 +5950,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     
     
+    
     # List_of_Quantities_1D = [Q2_Binning, y_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
     # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared]
     
@@ -6243,12 +6244,22 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
 
                                 if(option == "normal" or option == "has_matched" or option == "bin_purity" or option == "delta_matched"):
-                                    ##====================================##
-                                    ##=====##    Variable Loops    ##=====##
-
-                                    #####################################################################################################################
-                                    ###############################################     1D Histograms     ###############################################
+                                    
+                                    ###################################################################################################################################################################
+                                    ###################################################################################################################################################################
+                                    ###################################################################     STANDARD HISTOGRAMS     ###################################################################
+                                    ###################################################################################################################################################################
+                                    ###################################################################################################################################################################
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########     1D Histograms     ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ###################################################################################################################################################################
+                                    
+                                    ##===================================##
+                                    ##=====##    Variable Loop    ##=====##
+                                    ##===================================##
                                     for list1 in Variable_Loop:
+                                        
                                         cutname, Histo_Title = "continue", "continue"
                                         if(option == "normal" or option == "has_matched"):
                                             cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
@@ -6314,11 +6325,23 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                         if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
                                             print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                            
 
-                                    ###############################################     1D Histograms     ###############################################
-                                    #####################################################################################################################
-                                    ###############################################     2D Histograms     ###############################################
+                                            
+                                    ###################################################################################################################################################################
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########     1D Histograms     ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ###################################################################################################################################################################
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########     2D Histograms     ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ###################################################################################################################################################################
+                                    
                                     if((option == "normal" or option == "has_matched") and datatype_2 != "gen"):
+                                        ##===================================##
+                                        ##=====##    Variable Loop    ##=====##
+                                        ##===================================##
                                         for list2 in Variable_Loop_2D:
                                             for Q2_xB_Bin_Num in List_of_Q2_xB_Bins_to_include:
                                                 if(Q2_xB_Bin_Num > 8 and "2" in smearing_Q):
@@ -6345,11 +6368,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
                                                     print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
 
-                                    ###############################################     2D Histograms     ###############################################
-                                    #####################################################################################################################
-
-                                    ##=====##    Variable Loops    ##=====##
-                                    ##====================================##
+                                    ###################################################################################################################################################################
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########     2D Histograms     ##########==========##########==========##########==========##########
+                                    ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
+                                    ###################################################################################################################################################################
+                                    ###################################################################################################################################################################
+                                    #################################################################     END OF 1D/2D HISTOGRAMS     #################################################################
+                                    ###################################################################################################################################################################
                                     
                                 elif(option == "bin_2D_purity"):
                                     cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "Cut")
@@ -6378,40 +6404,15 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(str(file_location) != 'time'):
                                                 histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
                                                 
-                                                # try:
-                                                #     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-                                                # except:
-                                                #     print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
-                                                
                                                 for z_pT_Bin_Num in range(1, 49, 1):
                                                     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-                                                    
-                                                    # try:
-                                                    #     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-                                                    # except:
-                                                    #     print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
 
                                                 histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), Q2_xB_Bin_Filter_str, 0, 0, 20).Count().GetValue())
                                                 
-                                                # try:
-                                                #     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), Q2_xB_Bin_Filter_str, 0, 0, 20).Count().GetValue())
-                                                # except:
-                                                #     print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
-                                                
                                                 for z_pT_Bin_Num in range(1, 49, 1):
                                                     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), z_pT_Bin_Filter_str, 0, 0, 20).Count().GetValue())
-                                                    
-                                                    # try:
-                                                    #     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), z_pT_Bin_Filter_str, 0, 0, 20).Count().GetValue())
-                                                    # except:
-                                                    #     print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
 
                                                 histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Write()
-                                                
-                                                # try:
-                                                #     histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Write()
-                                                # except:
-                                                #     print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
 
                                             # 2D Purity Histogram has been saved
                                             count_of_histograms += 1
@@ -6665,6 +6666,71 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                             if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
                                                 print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                                
+                                                
+                                                
+                                elif(option == "response_matrix"):
+                                    
+                                    Res_Binning_2D_Q2_xB = [Q2_xB_Bin_Filter_str, -1.5, 9 + 1.5, 9 + 4]
+                                    Res_Binning_2D_z_pT = [z_pT_Bin_Filter_str, -1.5, 49 + 1.5, 49 + 4]
+                                    
+                                    Res_Binning_4D = ['Bin_Res_4D', -1.5, 295 + 1.5, 295 + 4]
+                                    Res_Binning_4D_OG = ['Bin_Res_4D_OG', -1.5, 344 + 1.5, 344 + 4]
+                                    
+                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
+
+                                    
+                                    for Var_List in Res_Var_List:
+                                        
+                                        variable = Var_List[0]
+                                
+                                        if(("smear" in smearing_Q) and ("Q2_xB_Bin" not in variable and "z_pT_Bin" not in variable) and ("smear" not in variable)):
+                                            variable = "".join([variable, "_smeared"])
+                                            
+                                            
+                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "Cut")
+
+                                        if("continue" in cutname):
+                                            continue
+                                            
+                                        Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
+
+                                        if("Bin" in variable):
+                                            Min_range = 1
+                                            Max_range += -1.5
+                                            Num_of_Bins += -4
+
+                                            
+                                        BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 5)
+                                        Bin_Range = "".join([str(Min_range), " -> ", str(Max_range)])
+                                        
+                                        
+                                        Migration_Title_L1 = "".join(["Response Matrix of ", variable_Title_name(variable)])
+                                        Migration_Title_L2 = "".join(["Cut: ", str(cutname)])
+                                        Migration_Title_L3 = "".join(["#scale[1.5]{Number of Bins: ", str(Num_of_Bins), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}"])
+                                        if("Bin" in variable):
+                                            Migration_Title_L3 = "".join(["#scale[1.5]{Number of Bins: ", str(Num_of_Bins), "}"])
+
+                                        Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}; ", variable_Title_name(variable), " (GEN) Bins; ", variable_Title_name(variable), " (REC) Bins"])
+
+                                        Migration_Histo_REF = ("Response_Matrix", variable, smearing_Q, cut_choice, sec_type, sec_num)
+
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins)
+
+                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (bin_option + 3), -0.5, (bin_option + 2.5)
+                                        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (bin_option + 4), -0.5, (bin_option + 3.5)
+
+                                        histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str("".join([str(variable), "_GEN_BIN"])), str("".join([str(variable), "_REC_BIN"])))
+
+                                        if(str(file_location) != 'time'):
+                                            histo_for_migration[Migration_Histo_REF].Write()
+
+                                        count_of_histograms += 1
+
+                                        if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
+                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                        if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
+                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                             
                                             
                                             
