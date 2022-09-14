@@ -1,4 +1,4 @@
-# This Code was last updated on 8-18-2022
+# This Code was last updated on 9-12-2022
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -177,6 +177,40 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
 
+    
+    
+    
+    
+    ###########################################################
+    #################     Final ROOT File     #################
+    
+    
+    ROOT_File_Output_Name = "Data_REC"
+    
+    Extra_Name = "Mom_Cor_Response_Matrix_"
+    
+    
+    if(datatype == 'rdf'):
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
+    if(datatype == 'mdf'):
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_REC_", str(Extra_Name), str(file_num), ".root"])
+    if(datatype == 'gdf'):
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_GEN_", str(Extra_Name), str(file_num), ".root"])
+    if(datatype == 'pdf'):
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_", str(Extra_Name), str(file_num), ".root"])
+        
+    if(output_type == "data" or output_type == "test"):
+        ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
+    
+    print("".join(["File being made is: ", ROOT_File_Output_Name]))
+    
+    
+    
+    #################     Final ROOT File     #################
+    ###########################################################
+    
+    
+    
     
     
     
@@ -4650,6 +4684,49 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return Bin_4D;
 
     """)
+    
+    
+    rdf = rdf.Define('Bin_Res_4D', """
+    
+        int add_to_bin = 0;
+        int Bin_Res_4D = -1;
+
+        if(Q2_xB_Bin_2 == 0 || z_pT_Bin_2 == 0){
+            Bin_Res_4D = -1;
+            return Bin_Res_4D;
+        }
+        if(Q2_xB_Bin_2 == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin_2 == 2){
+            add_to_bin = 49;
+        }
+        if(Q2_xB_Bin_2 == 3){
+            add_to_bin = 98;
+        }
+        if(Q2_xB_Bin_2 == 4){
+            add_to_bin = 147;
+        }
+        if(Q2_xB_Bin_2 == 5){
+            add_to_bin = 189;
+        }
+        if(Q2_xB_Bin_2 == 6){
+            add_to_bin = 225;
+        }
+        if(Q2_xB_Bin_2 == 7){
+            add_to_bin = 250;
+        }
+        if(Q2_xB_Bin_2 == 8){
+            add_to_bin = 275;
+        }
+
+        Bin_Res_4D = z_pT_Bin_2 + add_to_bin;
+
+        return Bin_Res_4D;
+
+    
+    """)
+    
 
     
     rdf = rdf.Define('Bin_4D_OG', """
@@ -4694,6 +4771,51 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return Bin_4D_OG;
 
     """)
+    
+    
+    
+    rdf = rdf.Define('Bin_Res_4D_OG', """
+    
+        int add_to_bin = 0;
+        int Bin_Res_4D_OG = -1;
+
+        if(Q2_xB_Bin == 0 || z_pT_Bin == 0){
+            Bin_Res_4D_OG = -1;
+            return Bin_Res_4D_OG;
+        }
+        if(Q2_xB_Bin == 1){
+            add_to_bin = 0;
+        }
+        if(Q2_xB_Bin == 2){
+            add_to_bin = 49;
+        }
+        if(Q2_xB_Bin == 3){
+            add_to_bin = 98;
+        }
+        if(Q2_xB_Bin == 4){
+            add_to_bin = 147;
+        }
+        if(Q2_xB_Bin == 5){
+            add_to_bin = 189;
+        }
+        if(Q2_xB_Bin == 6){
+            add_to_bin = 238;
+        }
+        if(Q2_xB_Bin == 7){
+            add_to_bin = 263;
+        }
+        if(Q2_xB_Bin == 8){
+            add_to_bin = 299;
+        }
+        if(Q2_xB_Bin == 9){
+            add_to_bin = 319;
+        }
+
+        Bin_Res_4D_OG = z_pT_Bin + add_to_bin;
+
+        return Bin_Res_4D_OG;
+    
+    """)
 
 
     if(datatype == "mdf" or datatype == "pdf"):
@@ -4734,6 +4856,46 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             Bin_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
 
             return Bin_4D_smeared;
+
+        """)
+        
+        rdf = rdf.Define('Bin_Res_4D_smeared', """
+
+            int add_to_bin = 0;
+            int Bin_Res_4D_smeared = -1;
+
+            if(Q2_xB_Bin_2_smeared == 0 || z_pT_Bin_2_smeared == 0){
+                Bin_Res_4D_smeared = -1;
+                return Bin_Res_4D_smeared;
+            }
+            if(Q2_xB_Bin_2_smeared == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_2_smeared == 2){
+                add_to_bin = 49;
+            }
+            if(Q2_xB_Bin_2_smeared == 3){
+                add_to_bin = 98;
+            }
+            if(Q2_xB_Bin_2_smeared == 4){
+                add_to_bin = 147;
+            }
+            if(Q2_xB_Bin_2_smeared == 5){
+                add_to_bin = 189;
+            }
+            if(Q2_xB_Bin_2_smeared == 6){
+                add_to_bin = 225;
+            }
+            if(Q2_xB_Bin_2_smeared == 7){
+                add_to_bin = 250;
+            }
+            if(Q2_xB_Bin_2_smeared == 8){
+                add_to_bin = 275;
+            }
+
+            Bin_Res_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
+
+            return Bin_Res_4D_smeared;
 
         """)
 
@@ -4777,6 +4939,49 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             Bin_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
 
             return Bin_4D_OG_smeared;
+
+        """)
+        
+        rdf = rdf.Define('Bin_Res_4D_OG_smeared', """
+
+            int add_to_bin = 0;
+            int Bin_Res_4D_OG_smeared = -1;
+
+            if(Q2_xB_Bin_smeared == 0 || z_pT_Bin_smeared == 0){
+                Bin_Res_4D_OG_smeared = -1;
+                return Bin_Res_4D_OG_smeared;
+            }
+            if(Q2_xB_Bin_smeared == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_smeared == 2){
+                add_to_bin = 49;
+            }
+            if(Q2_xB_Bin_smeared == 3){
+                add_to_bin = 98;
+            }
+            if(Q2_xB_Bin_smeared == 4){
+                add_to_bin = 147;
+            }
+            if(Q2_xB_Bin_smeared == 5){
+                add_to_bin = 189;
+            }
+            if(Q2_xB_Bin_smeared == 6){
+                add_to_bin = 238;
+            }
+            if(Q2_xB_Bin_smeared == 7){
+                add_to_bin = 263;
+            }
+            if(Q2_xB_Bin_smeared == 8){
+                add_to_bin = 299;
+            }
+            if(Q2_xB_Bin_smeared == 9){
+                add_to_bin = 319;
+            }
+
+            Bin_Res_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
+
+            return Bin_Res_4D_OG_smeared;
 
         """)
         
@@ -4836,6 +5041,62 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         """)
         
         
+        
+        rdf = rdf.Define('Bin_Res_4D_gen', """
+
+            int add_to_bin = 0;
+            int Bin_Res_4D_gen = -1;
+            
+            if(PID_el == 0 || PID_pip == 0){
+                // Event is unmatched
+                Bin_Res_4D_gen = -2;
+                return Bin_Res_4D_gen;
+                
+                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
+                // bin = -1 is given to matched event that did not land in any defined Q2-xB or z-pT bins
+                // bin = 0 is empty, in keeping with prior definitions of the binning schemes (may change later)
+                // Other 'Bin_Res_4D' binning schemes are identical to this except for the addition of the -2 bin
+                
+            }
+
+            if(Q2_xB_Bin_2_gen == 0 || z_pT_Bin_2_gen == 0){
+                Bin_Res_4D_gen = -1;
+                return Bin_Res_4D_gen;
+            }
+            if(Q2_xB_Bin_2_gen == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_2_gen == 2){
+                add_to_bin = 49;
+            }
+            if(Q2_xB_Bin_2_gen == 3){
+                add_to_bin = 98;
+            }
+            if(Q2_xB_Bin_2_gen == 4){
+                add_to_bin = 147;
+            }
+            if(Q2_xB_Bin_2_gen == 5){
+                add_to_bin = 189;
+            }
+            if(Q2_xB_Bin_2_gen == 6){
+                add_to_bin = 225;
+            }
+            if(Q2_xB_Bin_2_gen == 7){
+                add_to_bin = 250;
+            }
+            if(Q2_xB_Bin_2_gen == 8){
+                add_to_bin = 275;
+            }
+
+            Bin_Res_4D_gen = z_pT_Bin_2_gen + add_to_bin;
+
+            return Bin_Res_4D_gen;
+
+
+        """)
+        
+        
+        
         rdf = rdf.Define('Bin_4D_OG_gen', """
         
             int add_to_bin = 0;
@@ -4891,6 +5152,64 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             return Bin_4D_OG_gen;
         
         """)
+        
+        
+        rdf = rdf.Define('Bin_Res_4D_OG_gen', """
+
+            int add_to_bin = 0;
+            int Bin_Res_4D_OG_gen = -1;
+            
+            if(PID_el == 0 || PID_pip == 0){
+                // Event is unmatched
+                Bin_Res_4D_OG_gen = -2;
+                return Bin_Res_4D_OG_gen;
+                
+                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
+                // bin = -1 is given to matched event that did not land in any defined Q2-xB or z-pT bins
+                // bin = 0 is empty, in keeping with prior definitions of the binning schemes (may change later)
+                // Other 'Bin_Res_4D' binning schemes are identical to this except for the addition of the -2 bin
+                
+            }
+            
+            if(Q2_xB_Bin_gen == 0 || z_pT_Bin_gen == 0){
+                Bin_Res_4D_OG_gen = -1;
+                return Bin_Res_4D_OG_gen;
+            }
+            if(Q2_xB_Bin_gen == 1){
+                add_to_bin = 0;
+            }
+            if(Q2_xB_Bin_gen == 2){
+                add_to_bin = 49;
+            }
+            if(Q2_xB_Bin_gen == 3){
+                add_to_bin = 98;
+            }
+            if(Q2_xB_Bin_gen == 4){
+                add_to_bin = 147;
+            }
+            if(Q2_xB_Bin_gen == 5){
+                add_to_bin = 189;
+            }
+            if(Q2_xB_Bin_gen == 6){
+                add_to_bin = 238;
+            }
+            if(Q2_xB_Bin_gen == 7){
+                add_to_bin = 263;
+            }
+            if(Q2_xB_Bin_gen == 8){
+                add_to_bin = 299;
+            }
+            if(Q2_xB_Bin_gen == 9){
+                add_to_bin = 319;
+            }
+
+            Bin_Res_4D_OG_gen = z_pT_Bin_gen + add_to_bin;
+
+            return Bin_Res_4D_OG_gen;
+
+        """)
+        
+
         
         
         
@@ -5042,7 +5361,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
         
-        def bin_purity_save_fuction_New(dataframe, variable, min_range, max_range, number_of_bins):
+        def bin_purity_save_fuction_New(dataframe, variable, min_range, max_range, number_of_bins, DFrame):
             
             gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
             
@@ -5075,6 +5394,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                 """])
                 
+                
                 gen_bin = "".join(["""
                 
                 int gen_bin = ((""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
@@ -5096,12 +5416,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                 return gen_bin;
 
-
-
                 """])
                 
                 out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
-                out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
+                if(DFrame != "rdf" and DFrame != "gdf"):
+                    out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
             
             
             return out_put_DF
@@ -5261,7 +5580,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(variable == 'epsilon'):
             output = "#epsilon"
         if(variable == 'pT'):
-            output = "p_{T}"
+            output = "P_{T}"
         if(variable == 'phi_t'):
             output = "#phi_{t}"
         if(variable == 'xF'):
@@ -5321,9 +5640,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(variable == 'Q2_xB_Bin_2'):
             output = "Q^{2}-x_{B} Bin (New)"
         if(variable == 'z_pT_Bin'):
-            output = "z-p_{T} Bin"
+            output = "z-P_{T} Bin"
         if(variable == 'z_pT_Bin_2'):
-            output = "z-p_{T} Bin (New)"
+            output = "z-P_{T} Bin (New)"
         if(variable == 'elec_events_found'):
             output = "Number of Electrons Found"
         if(variable == 'Delta_Smear_El_P'):
@@ -5342,6 +5661,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             output = "".join(["Combined 4D Bin", " (Original)" if("OG" in variable) else ""])
         if("Bin_5D" in variable):
             output = "".join(["Combined 5D Bin", " (Original)" if("OG" in variable) else ""])
+        if("Bin_Res_4D" in variable):
+            output = "".join(["Q^{2}-x_{B}-z-P_{T} Bin", " (Original)" if("OG" in variable) else ""])
             
            
             
@@ -5947,7 +6268,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     Binning_5D_OG = ['Bin_5D_OG', -1.5, 13525.5, 13528]
     Binning_5D_OG_Smeared = ['Bin_5D_OG_smeared', -1.5, 13525.5, 13528]
-
     
     
     
@@ -6057,33 +6377,19 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
+
+    
+    
+    
+    
     ###########################################################
     #################     Final ROOT File     #################
-    
-    
-    ROOT_File_Output_Name = "Data_REC"
-    
-    Extra_Name = "Mom_Cor_Delta_P_Studies_"
-    
-    
-    if(datatype == 'rdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
-    if(datatype == 'mdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_REC_", str(Extra_Name), str(file_num), ".root"])
-    if(datatype == 'gdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_GEN_", str(Extra_Name), str(file_num), ".root"])
-    if(datatype == 'pdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_", str(Extra_Name), str(file_num), ".root"])
-        
-    if(output_type == "data" or output_type == "test"):
-        ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
-    
-    print("".join(["File being made is: ", ROOT_File_Output_Name]))
     
     
     # File to be saved
     if(str(file_location) != 'time' and output_type == "histo"):
         ROOT_File_Output = ROOT.TFile(str(ROOT_File_Output_Name), 'recreate')
+        print("\nFinal ROOT file has been created...")
     
     
     #################     Final ROOT File     #################
@@ -6174,7 +6480,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
                                 # histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
                                 # histo_options = ["has_matched", "bin_migration_V3"]
-                                histo_options = ["delta_matched", "bin_migration_V3"]
+                                # histo_options = ["delta_matched", "bin_migration_V3", "response_matrix"]
+                                histo_options = ["delta_matched", "response_matrix"]
+                                histo_options = ["response_matrix"]
                                 # Meaning of the above options:
                                 # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
                                 # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
@@ -6185,8 +6493,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # # 'bin_migration_V2' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN variable vs the REC variable
                                 # # 'bin_migration_V3' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN Bin vs the REC Bin with extra information regarding bins outside the defined range AND regarding the unmatched events
                                 # # 'bin_migration_V4' --> similar to 'bin_migration_V3' option but uses a separate binning scheme that is more appropriate to different bin migration study (all binning schemes at once)
+                                # # 'response_matrix' --> meant to replace the 'bin_migration' options for easier use in the unfolding procedures (uses the same binning schemes as given for the 1D histograms)
                             elif('miss_idf' in datatype_2):
                                 histo_options = ["normal", "bin_purity", "delta_matched"]
+                            elif(datatype_2 == 'rdf' or datatype_2 == 'gdf'):
+                                histo_options = ["normal", "response_matrix"]
                             else:
                                 histo_options = ["normal"]
                                 # runs code normally
@@ -6286,7 +6597,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(final_df == "continue"):
                                                 continue
                                             cutname = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
-                                            Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-p_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-p_{T} Bin", "")), "; #Delta(REC - GEN); ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"])
+                                            Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-P_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-P_{T} Bin", "")), "; #Delta(REC - GEN); ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"])
 
                                             Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
                                             if("2" in smearing_Q):
@@ -6550,7 +6861,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             continue
 
                                         
-                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Var_List[1], Var_List[2], Var_List[3])
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Var_List[1], Var_List[2], Var_List[3], datatype_2)
                                         
                                         
                                         if("Bin_4D" not in variable):
@@ -6650,7 +6961,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                                             Migration_Histo_REF = ("Bin Migration V4", variable, smearing_Q, cut_choice, sec_type, sec_num, bin_option)
 
-                                            sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, bin_option)
+                                            sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, bin_option, datatype_2)
                                             
                                             num_of_REC_bins, min_REC_bin, Max_REC_bin = (bin_option + 3), -0.5, (bin_option + 2.5)
                                             num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (bin_option + 4), -0.5, (bin_option + 3.5)
@@ -6671,24 +6982,27 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 
                                 elif(option == "response_matrix"):
                                     
-                                    Res_Binning_2D_Q2_xB = [Q2_xB_Bin_Filter_str, -1.5, 9 + 1.5, 9 + 4]
+                                    Res_Binning_2D_Q2_xB = [Q2_xB_Bin_Filter_str, -1.5, (8 + 1.5) if("_2" in Q2_xB_Bin_Filter_str) else (9 + 1.5), 9 + 4]
                                     Res_Binning_2D_z_pT = [z_pT_Bin_Filter_str, -1.5, 49 + 1.5, 49 + 4]
                                     
                                     Res_Binning_4D = ['Bin_Res_4D', -1.5, 295 + 1.5, 295 + 4]
-                                    Res_Binning_4D_OG = ['Bin_Res_4D_OG', -1.5, 344 + 1.5, 344 + 4]
+                                    # Res_Binning_4D_OG = ['Bin_Res_4D_OG', -1.5, 344 + 1.5, 344 + 4]
                                     
-                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
+                                    # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
+                                    # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D, Binning_5D]
+                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
 
                                     
                                     for Var_List in Res_Var_List:
                                         
                                         variable = Var_List[0]
                                 
-                                        if(("smear" in smearing_Q) and ("Q2_xB_Bin" not in variable and "z_pT_Bin" not in variable) and ("smear" not in variable)):
+                                        # if(("smear" in smearing_Q) and ("Q2_xB_Bin" not in variable and "z_pT_Bin" not in variable) and ("smear" not in variable)):
+                                        if(("smear" in smearing_Q) and ("smear" not in variable)):
                                             variable = "".join([variable, "_smeared"])
                                             
                                             
-                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "Cut")
+                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "Cut")
 
                                         if("continue" in cutname):
                                             continue
@@ -6702,25 +7016,35 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                                             
                                         BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 5)
-                                        Bin_Range = "".join([str(Min_range), " -> ", str(Max_range)])
+                                        Bin_Range = "".join([str(Min_range), " #rightarrow ", str(Max_range)])
                                         
                                         
-                                        Migration_Title_L1 = "".join(["Response Matrix of ", variable_Title_name(variable)])
-                                        Migration_Title_L2 = "".join(["Cut: ", str(cutname)])
-                                        Migration_Title_L3 = "".join(["#scale[1.5]{Number of Bins: ", str(Num_of_Bins), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}"])
+                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated", " Distribution of ", variable_Title_name(variable), "}"])
+                                        Migration_Title_L2 = "".join(["#scale[1.15]{Cut: ", str(cutname), "}"])
+                                        Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), " - Range: ", str(Bin_Range), " - Size: ", str(BIN_SIZE), " per bin}"])
                                         if("Bin" in variable):
-                                            Migration_Title_L3 = "".join(["#scale[1.5]{Number of Bins: ", str(Num_of_Bins), "}"])
+                                            Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), "}"])
 
-                                        Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}; ", variable_Title_name(variable), " (GEN) Bins; ", variable_Title_name(variable), " (REC) Bins"])
+                                        Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable.replace("_smeared", "")), " GEN Bins; ", variable_Title_name(variable), " REC Bins"])
+                                        
+                                        if(datatype_2 != "pdf"):
+                                            Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " REC Bins; Count"])
 
-                                        Migration_Histo_REF = ("Response_Matrix", variable, smearing_Q, cut_choice, sec_type, sec_num)
 
-                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins)
+                                        Migration_Histo_REF = ("Response_Matrix" if(datatype_2 == "pdf") else "Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num)
 
-                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (bin_option + 3), -0.5, (bin_option + 2.5)
-                                        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (bin_option + 4), -0.5, (bin_option + 3.5)
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
 
-                                        histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str("".join([str(variable), "_GEN_BIN"])), str("".join([str(variable), "_REC_BIN"])))
+                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 3), -0.5, (Num_of_Bins + 2.5)
+                                        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5)
+                                        
+                                        Variable_Gen = str("".join([str(variable), "_GEN_BIN"])) if("Bin" not in str(variable)) else str("".join([str(variable).replace("_smeared", ""), "_gen"]))
+                                        Variable_Rec = str("".join([str(variable), "_REC_BIN"])) if("Bin" not in str(variable)) else str(variable)
+
+                                        if(datatype_2 == "pdf"):
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                                        else:
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo1D((str(Migration_Histo_REF), str(Migration_Title), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
 
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
@@ -6755,7 +7079,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
         output_all_histo_names_Q = "yes"
-        output_all_histo_names_Q = "no"
+#         output_all_histo_names_Q = "no"
         
         if(output_all_histo_names_Q == "yes"):
             print("\nHistograms be made:")
@@ -6842,4 +7166,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 8-18-2022
+# This Code was last updated on 9-12-2022
