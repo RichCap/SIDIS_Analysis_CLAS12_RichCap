@@ -181,13 +181,31 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ###########################################################
     #################     Final ROOT File     #################
     
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Mom_Cor_Response_Matrix_"
+    Extra_Name = "Mom_Cor_Response_Matrix_V2_"
+    # Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
+    
+    Extra_Name = "Mom_Cor_Response_Matrix_V3_"
+    # Needed the Matrices to be square for unfolding
+        # Also changed :
+        # (*) The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
+        # (*) The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
     
     
     if(datatype == 'rdf'):
@@ -208,6 +226,17 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     #################     Final ROOT File     #################
     ###########################################################
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -5283,232 +5312,232 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
         
-        #####################     Generated Bin Definitions     #####################
-        #############################################################################
-        #####################      Matched Bin Definitions      #####################
-        
-        
-        def bin_purity_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins):
-            
-            gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-            
-            
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
-                
-                if("sec" in variable):
-                    gen_variable = gen_variable.replace("_a", "")
-                
-                filter_name = "".join([variable, " == ", gen_variable, " && ", variable, " != 0"])
-                
-            else:
-            
-                bin_size = (max_range - min_range)/number_of_bins
-
-               
-                filter_name = "".join(["""
-                
-                // cout<<endl<<"Starting a new line of purity filtering..."<<endl;
-
-                int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
-                int gen_bin = (""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """;
-
-                // cout<<endl<<"The reconstructed event (with the value Name_""", str(variable), """ = "<<""", str(variable), """<<") was found in bin "<<rec_bin<<" (Range = "<<(""", str(min_range), """ + (rec_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (rec_bin + 1)*""", str(bin_size), """)<<")"<<endl;
-                // cout<<"The generated event (with the value Name_""", str(gen_variable), """ = "<<""", str(gen_variable), """<<") was found in bin "<<gen_bin<<" (Range = "<<(""", str(min_range), """ + (gen_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (gen_bin + 1)*""", str(bin_size), """)<<")"<<endl<<endl;
-                
-                
-                bool filter_Q = (rec_bin == gen_bin && PID_el != 0 && PID_pip != 0);
+    #####################     Generated Bin Definitions     #####################
+    #############################################################################
+    #####################      Matched Bin Definitions      #####################
 
 
-                return filter_Q;
+    def bin_purity_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins):
+
+        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
+
+
+        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
+
+            if("sec" in variable):
+                gen_variable = gen_variable.replace("_a", "")
+
+            filter_name = "".join([variable, " == ", gen_variable, " && ", variable, " != 0"])
+
+        else:
+
+            bin_size = (max_range - min_range)/number_of_bins
+
+
+            filter_name = "".join(["""
+
+            // cout<<endl<<"Starting a new line of purity filtering..."<<endl;
+
+            int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
+            int gen_bin = (""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """;
+
+            // cout<<endl<<"The reconstructed event (with the value Name_""", str(variable), """ = "<<""", str(variable), """<<") was found in bin "<<rec_bin<<" (Range = "<<(""", str(min_range), """ + (rec_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (rec_bin + 1)*""", str(bin_size), """)<<")"<<endl;
+            // cout<<"The generated event (with the value Name_""", str(gen_variable), """ = "<<""", str(gen_variable), """<<") was found in bin "<<gen_bin<<" (Range = "<<(""", str(min_range), """ + (gen_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (gen_bin + 1)*""", str(bin_size), """)<<")"<<endl<<endl;
+
+
+            bool filter_Q = (rec_bin == gen_bin && PID_el != 0 && PID_pip != 0);
+
+
+            return filter_Q;
 
 
 
-                """])
-            
-            
-            return dataframe.Filter(str(filter_name))
-        
-        
-        
-        
-        def bin_purity_save_fuction(dataframe, variable, min_range, max_range, number_of_bins):
-            
-            variable = variable.replace("_gen", "")
-            
-            gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-            
-            out_put_DF = dataframe
-            
-            
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
-                # Already defined
-                return dataframe
-                
-            else:
-            
-                bin_size = (max_range - min_range)/number_of_bins
+            """])
 
-               
-                rec_bin = "".join(["(", str(variable), " - ", str(min_range), ")/", str(bin_size)])
-                
-                gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
-                
-                out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
+
+        return dataframe.Filter(str(filter_name))
+
+
+
+
+    def bin_purity_save_fuction(dataframe, variable, min_range, max_range, number_of_bins):
+
+        variable = variable.replace("_gen", "")
+
+        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
+
+        out_put_DF = dataframe
+
+
+        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
+            # Already defined
+            return dataframe
+
+        else:
+
+            bin_size = (max_range - min_range)/number_of_bins
+
+
+            rec_bin = "".join(["(", str(variable), " - ", str(min_range), ")/", str(bin_size)])
+
+            gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
+
+            out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
+            out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
+
+
+        return out_put_DF
+
+
+
+    def bin_purity_save_fuction_New(dataframe, variable, min_range, max_range, number_of_bins, DFrame):
+
+        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
+
+        out_put_DF = dataframe
+
+
+        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
+            # Already defined
+            return dataframe
+
+        else:
+
+            bin_size = (max_range - min_range)/number_of_bins
+
+            rec_bin = "".join(["""
+
+            int rec_bin = ((""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
+
+            if(""", str(variable), """ < """, str(min_range), """){
+                // Below binning range
+                rec_bin = 0;
+            }
+
+            if(""", str(variable), """ > """, str(max_range), """){
+                // Above binning range
+                rec_bin = """, str(number_of_bins + 1), """;
+            }
+
+            return rec_bin;
+
+            """])
+
+
+            gen_bin = "".join(["""
+
+            int gen_bin = ((""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
+
+            if(""", str(gen_variable), """ < """, str(min_range), """){
+                // Below binning range
+                gen_bin = 0;
+            }
+
+            if(""", str(gen_variable), """ > """, str(max_range), """){
+                // Above binning range
+                gen_bin = """, str(number_of_bins + 1), """;
+            }
+
+            if(PID_el == 0 || PID_pip == 0){
+                // Event is unmatched
+                gen_bin = """, str(number_of_bins + 2), """;
+            }
+
+            return gen_bin;
+
+            """])
+
+            out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
+            if(DFrame != "rdf" and DFrame != "gdf"):
                 out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
-            
-            
-            return out_put_DF
-        
-        
-        
-        def bin_purity_save_fuction_New(dataframe, variable, min_range, max_range, number_of_bins, DFrame):
-            
-            gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-            
-            out_put_DF = dataframe
-            
-            
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
-                # Already defined
-                return dataframe
-                
-            else:
-            
-                bin_size = (max_range - min_range)/number_of_bins
-                
-                rec_bin = "".join(["""
-                
-                int rec_bin = ((""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
-                
-                if(""", str(variable), """ < """, str(min_range), """){
-                    // Below binning range
-                    rec_bin = 0;
-                }
-                
-                if(""", str(variable), """ > """, str(max_range), """){
-                    // Above binning range
-                    rec_bin = """, str(number_of_bins + 1), """;
-                }
-                
-                return rec_bin;
 
-                """])
-                
-                
-                gen_bin = "".join(["""
-                
-                int gen_bin = ((""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
-                
-                if(""", str(gen_variable), """ < """, str(min_range), """){
-                    // Below binning range
-                    gen_bin = 0;
-                }
-                
-                if(""", str(gen_variable), """ > """, str(max_range), """){
-                    // Above binning range
-                    gen_bin = """, str(number_of_bins + 1), """;
-                }
-                
-                if(PID_el == 0 || PID_pip == 0){
-                    // Event is unmatched
-                    gen_bin = """, str(number_of_bins + 2), """;
-                }
 
-                return gen_bin;
-
-                """])
-                
-                out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
-                if(DFrame != "rdf" and DFrame != "gdf"):
-                    out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
-            
-            
-            return out_put_DF
-            
-            
-            
-        def bin_purity_save_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins, REC_BIN_FILTER):
-            
-            variable = variable.replace("_gen", "")
-            
-            gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-            
-            variable = variable.replace("_gen", "")
-            
-            out_put_DF = dataframe
-            
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
-                filter_name = "".join([variable, " == ", str(REC_BIN_FILTER), " && PID_el != 0 && PID_pip != 0"])
-                
-            else:
-            
-                bin_size = (max_range - min_range)/number_of_bins
-
-                filter_name = "".join(["""
-
-                int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
-                
-                bool filter_Q = (rec_bin == """, str(REC_BIN_FILTER), """ && PID_el != 0 && PID_pip != 0);
-
-                return filter_Q;
-
-                """])
-                
-                gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
-                
-                out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
-            
-            
-            return out_put_DF.Filter(filter_name)
-        
-        
-        
-        
-        def Delta_Matched_DF(dataframe, variable):
-            output = "continue"
-            gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-            if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or dataframe == "continue"):
-                # Cannot uses these types of variables in this type of histogram
-                return "continue"
-            else:
-                output = dataframe.Define("Delta_Matched_Value", "".join([str(variable), " - ", str(gen_variable)]))
-
-            return output
-        
+        return out_put_DF
 
 
 
-        
-        def Delta_Matched_Bin_Calc(Variable, Min_Bin, Max_Bin):
-            output = "continue"
-            Min_Dif, Max_Dif = (Min_Bin - Max_Bin), (Max_Bin - Min_Bin)
+    def bin_purity_save_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins, REC_BIN_FILTER):
 
-            if("th" in Variable):
-                Min_Dif, Max_Dif = -6, 6
+        variable = variable.replace("_gen", "")
 
-            if("Phi" in Variable):
-                Min_Dif, Max_Dif = -10, 10
+        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
 
-            Num_of_Bins = int((Max_Dif - Min_Dif)/0.005)
-            if(Num_of_Bins < 400):
-                Num_of_Bins = 400
-            elif(Num_of_Bins < 200):
-                Num_of_Bins = 200
-            elif(Num_of_Bins > 1500):
-                Num_of_Bins = 1500
-            elif(Num_of_Bins > 1200):
-                Num_of_Bins = 1200
-            elif(Num_of_Bins > 800):
-                Num_of_Bins = 800
-            else:
-                Num_of_Bins = 600
-            if(((Max_Dif - Min_Dif)/Num_of_Bins) > 1 and (Max_Dif - Min_Dif) < 800):
-                Num_of_Bins = int(Max_Dif - Min_Dif)
+        variable = variable.replace("_gen", "")
+
+        out_put_DF = dataframe
+
+        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
+            filter_name = "".join([variable, " == ", str(REC_BIN_FILTER), " && PID_el != 0 && PID_pip != 0"])
+
+        else:
+
+            bin_size = (max_range - min_range)/number_of_bins
+
+            filter_name = "".join(["""
+
+            int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
+
+            bool filter_Q = (rec_bin == """, str(REC_BIN_FILTER), """ && PID_el != 0 && PID_pip != 0);
+
+            return filter_Q;
+
+            """])
+
+            gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
+
+            out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
 
 
-            output = [Num_of_Bins, Min_Dif, Max_Dif]
+        return out_put_DF.Filter(filter_name)
 
-            return output
+
+
+
+    def Delta_Matched_DF(dataframe, variable):
+        output = "continue"
+        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
+        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or dataframe == "continue"):
+            # Cannot uses these types of variables in this type of histogram
+            return "continue"
+        else:
+            output = dataframe.Define("Delta_Matched_Value", "".join([str(variable), " - ", str(gen_variable)]))
+
+        return output
+
+
+
+
+
+    def Delta_Matched_Bin_Calc(Variable, Min_Bin, Max_Bin):
+        output = "continue"
+        Min_Dif, Max_Dif = (Min_Bin - Max_Bin), (Max_Bin - Min_Bin)
+
+        if("th" in Variable):
+            Min_Dif, Max_Dif = -6, 6
+
+        if("Phi" in Variable):
+            Min_Dif, Max_Dif = -10, 10
+
+        Num_of_Bins = int((Max_Dif - Min_Dif)/0.005)
+        if(Num_of_Bins < 400):
+            Num_of_Bins = 400
+        elif(Num_of_Bins < 200):
+            Num_of_Bins = 200
+        elif(Num_of_Bins > 1500):
+            Num_of_Bins = 1500
+        elif(Num_of_Bins > 1200):
+            Num_of_Bins = 1200
+        elif(Num_of_Bins > 800):
+            Num_of_Bins = 800
+        else:
+            Num_of_Bins = 600
+        if(((Max_Dif - Min_Dif)/Num_of_Bins) > 1 and (Max_Dif - Min_Dif) < 800):
+            Num_of_Bins = int(Max_Dif - Min_Dif)
+
+
+        output = [Num_of_Bins, Min_Dif, Max_Dif]
+
+        return output
     
     
     
@@ -6497,7 +6526,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             elif('miss_idf' in datatype_2):
                                 histo_options = ["normal", "bin_purity", "delta_matched"]
                             elif(datatype_2 == 'rdf' or datatype_2 == 'gdf'):
-                                histo_options = ["normal", "response_matrix"]
+                                # histo_options = ["normal", "response_matrix"]
+                                histo_options = ["response_matrix"]
+                            elif(datatype_2 == "gen" or datatype_2 == "mdf"):
+                                histo_options = []
                             else:
                                 histo_options = ["normal"]
                                 # runs code normally
@@ -6528,10 +6560,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     MCH_rdf = DF_Filter_Function_Full(rdf, "", -1, -1, -2, variables_Mom_Cor, smearing_Q, datatype_2, cut_choice, "DF")
                                     
-                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
-                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
-                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
-                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors);", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
 
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_El, Mom_Cor_Histos_Name_MM_El_Title, 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, Mom_Cor_Histos_Name_MM_Pip_Title, 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
@@ -7013,13 +7045,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             Min_range = 1
                                             Max_range += -1.5
                                             Num_of_Bins += -4
+                                            
+                                        if("Q2_xB_Bin" in variable and "2" in smearing_Q):
+                                            Min_range = 1
+                                            Max_range = (8 + 1.5)
+                                            Num_of_Bins = 8
 
                                             
                                         BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 5)
                                         Bin_Range = "".join([str(Min_range), " #rightarrow ", str(Max_range)])
                                         
                                         
-                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated", " Distribution of ", variable_Title_name(variable), "}"])
+                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated" if(datatype_2 != "mdf") else "Reconstructed (MC)", " Distribution of ", variable_Title_name(variable), "}"])
                                         Migration_Title_L2 = "".join(["#scale[1.15]{Cut: ", str(cutname), "}"])
                                         Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), " - Range: ", str(Bin_Range), " - Size: ", str(BIN_SIZE), " per bin}"])
                                         if("Bin" in variable):
@@ -7028,14 +7065,15 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable.replace("_smeared", "")), " GEN Bins; ", variable_Title_name(variable), " REC Bins"])
                                         
                                         if(datatype_2 != "pdf"):
-                                            Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " REC Bins; Count"])
+                                            Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " REC" if("g" not in datatype_2) else " GEN", " Bins; Count"])
 
 
-                                        Migration_Histo_REF = ("Response_Matrix" if(datatype_2 == "pdf") else "Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num)
+                                        Migration_Histo_REF = ("Response_Matrix" if(datatype_2 == "pdf") else "Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
 
-                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
 
-                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 3), -0.5, (Num_of_Bins + 2.5)
+                                        # num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 3), -0.5, (Num_of_Bins + 2.5)
+                                        num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
                                         num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5)
                                         
                                         Variable_Gen = str("".join([str(variable), "_GEN_BIN"])) if("Bin" not in str(variable)) else str("".join([str(variable).replace("_smeared", ""), "_gen"]))
@@ -7079,7 +7117,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
         output_all_histo_names_Q = "yes"
-#         output_all_histo_names_Q = "no"
+        output_all_histo_names_Q = "no"
         
         if(output_all_histo_names_Q == "yes"):
             print("\nHistograms be made:")

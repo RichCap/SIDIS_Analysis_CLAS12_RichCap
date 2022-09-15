@@ -12,8 +12,27 @@ This list will be updated as items are completed. Items here may not always rela
 
 ---
 
+## File Updates (by name):
+(These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced)
 
-## Commit Updates:
+### Extra_Name = "Mom_Cor_Response_Matrix_V2_"
+* Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V3_"
+* Needed the Matrices to be square for unfolding
+* Also changed:
+    * The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
+    * The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
+
+
+
+
+
+## Other Commit Updates:
+
+### Update on 9-15-2022:
+* Updated to Extra_Name = "Mom_Cor_Response_Matrix_V3_"
+* Added (initial/incomplete) Unfolding procedure to jupyter file
 
 ### Update on 9-7-2022:
 #### Python Code Updates:
