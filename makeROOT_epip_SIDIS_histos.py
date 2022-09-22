@@ -1,4 +1,4 @@
-# This Code was last updated on 9-12-2022
+# This Code was last updated on 9-22-2022
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -59,7 +59,14 @@ except:
     
 datatype, output_type = str(datatype), str(output_type)
 
+
+output_all_histo_names_Q = "yes"
+output_all_histo_names_Q = "no"
+
+
 if(output_type == "test"):
+    output_all_histo_names_Q = "yes"
+    print("Will be printing the histogram's IDs...")
     file_location = "time"
     output_type = "time"
 elif(output_type != "histo" and output_type != "data" and output_type != "tree"):
@@ -206,6 +213,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # Also changed :
         # (*) The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
         # (*) The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
+        
+    Extra_Name = "Mom_Cor_Response_Matrix_V4_"
+    # Testing new smearing functions
     
     
     if(datatype == 'rdf'):
@@ -1256,6 +1266,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
             momR *= 2.0;
 
+            // From ∆P(El) Sigma distributions:
+            momR *= 0.08267*V4.P()*V4.P() + (-0.89415)*V4.P() + 3.73819;
+
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
             double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
@@ -1265,6 +1278,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             double phiS2 = 0.17 - 0.003*smeared_ThD;
             double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
             phiR *= 3.5;
+            
+            
+            // cout<<"Smearing Factor for Phi: "<<phiR<<endl;
+            // cout<<"Smearing Factor for Th: "<<theR<<endl;
+            // cout<<"Smearing Factor for P: "<<momR<<endl;
 
 
             // cout<<"Pre-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
@@ -2613,6 +2631,83 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return Delta_Ppip_Cors;
 
     """]))
+    
+
+    ############################################################################################
+    ####====================================================================================####
+    ##==========##==========##      ∆Theta Calculations (Normal)      ##==========##==========##
+    ####====================================================================================####
+    ############################################################################################
+
+
+    rdf = rdf.Define("Delta_Theta_el_Cors", "".join([str(Correction_Code_Full_In), """
+
+        auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+
+        auto eleC = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+
+        auto Beam_Energy = 10.6041;
+        // Defined by the run group/data set
+
+        double neutronM2 = 0.9396*0.9396;
+
+        auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+            // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+        
+        // auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+        //     // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+            
+        auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy - 0.938;
+            // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy" - "Proton Mass"
+            
+        auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+            // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+
+        auto Theta_el_Calculated = acos((1/Beam_Energy)*(((termA + termC)/eleC.P()) - termB));
+
+        auto Delta_Theta_el_Cors = (180/3.1415926)*(Theta_el_Calculated - eleC.Theta());
+
+        return Delta_Theta_el_Cors;
+
+    """]))
+
+
+    rdf = rdf.Define("Delta_Theta_pip_Cors",  "".join([str(Correction_Code_Full_In), """
+
+        auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
+
+        auto eleC = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+
+        auto Beam_Energy = 10.6041;
+        // Defined by the run group/data set
+
+        double neutronM2 = 0.9396*0.9396;
+
+        auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+            // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+        
+        auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+            // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+            
+        // auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+        //     // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+        
+        auto termC = Beam_Energy*pipC.E() + 0.938*pipC.E();
+            // termC --> "Initial Electron Beam Energy"*"π+ Energy" + "Proton Mass"*"π+ Energy"
+
+        auto Theta_pip_Calculated = acos((termA + termC - termB*eleC.P())/(Beam_Energy*pipC.P()));
+
+        auto Delta_Theta_pip_Cors = (180/3.1415926)*(Theta_pip_Calculated - pipC.Theta());
+
+        return Delta_Theta_pip_Cors;
+
+    """]))
+
+    
 
     ###############################################################################################
     ####=======================================================================================####
@@ -2710,6 +2805,97 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             return Delta_Ppip_Cors_smeared;
 
         """]))
+    
+
+        ############################################################################################
+        ####====================================================================================####
+        ##==========##==========##      ∆Theta Calculations (Smeared)      ##==========##==========##
+        ####====================================================================================####
+        ############################################################################################
+
+
+        rdf = rdf.Define("Delta_Theta_el_Cors_smeared", "".join([str(smearing_function), """
+
+            auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+            auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+
+            TLorentzVector ele(ex, ey, ez, eleM.E());
+            TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
+
+            TLorentzVector ele_smeared = smear_func(ele);
+            TLorentzVector pip0_smeared = smear_func(pip0);
+
+            auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
+            auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
+
+            auto Beam_Energy = 10.6041;
+            // Defined by the run group/data set
+
+            double neutronM2 = 0.9396*0.9396;
+
+            auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+                // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+
+            // auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+            //     // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+
+            auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy - 0.938;
+                // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy" - "Proton Mass"
+
+            auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+                // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+
+            auto Theta_el_Calculated_smeared = acos((1/Beam_Energy)*(((termA + termC)/eleC.P()) - termB));
+
+            auto Delta_Theta_el_Cors_smeared = (180/3.1415926)*(Theta_el_Calculated_smeared - eleC.Theta());
+
+            return Delta_Theta_el_Cors_smeared;
+
+        """]))
+
+
+        rdf = rdf.Define("Delta_Theta_pip_Cors_smeared",  "".join([str(smearing_function),  """
+
+            auto eleM = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+            auto pip0M = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+
+            TLorentzVector ele(ex, ey, ez, eleM.E());
+            TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
+
+            TLorentzVector ele_smeared = smear_func(ele);
+            TLorentzVector pip0_smeared = smear_func(pip0);
+
+            auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
+            auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
+
+            auto Beam_Energy = 10.6041;
+            // Defined by the run group/data set
+
+            double neutronM2 = 0.9396*0.9396;
+
+            auto termA = ((neutronM2 - (0.938*0.938) - (0.13957*0.13957))/2) - 0.938*Beam_Energy;
+                // termA --> (("Neutron Mass Squared" - "Proton Mass Squared" - "π+ Mass Squared")/2) - "Proton Mass"*"Initial Electron Beam Energy"
+
+            auto termB = pipC.E() - pipC.P()*cos(ROOT::Math::VectorUtil::Angle(eleC, pipC)) - Beam_Energy*(1 - cos(eleC.Theta())) - 0.938;
+                // termB --> "π+ Energy" - "π+ Momentum"*cos("Angle between Electron and π+") - "Initial Electron Beam Energy"*(1 - cos("Electron Theta")) - "Proton Mass"
+
+            // auto termC = Beam_Energy*(pipC.E() - pipC.P()*cos(pipC.Theta())) + 0.938*pipC.E();
+            //     // termC --> "Initial Electron Beam Energy"*("π+ Energy" - "π+ Momentum"*cos("π+ Theta")) + "Proton Mass"*"π+ Energy"
+
+            auto termC = Beam_Energy*pipC.E() + 0.938*pipC.E();
+                // termC --> "Initial Electron Beam Energy"*"π+ Energy" + "Proton Mass"*"π+ Energy"
+
+            auto Theta_pip_Calculated_smeared = acos((termA + termC - termB*eleC.P())/(Beam_Energy*pipC.P()));
+
+            auto Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(Theta_pip_Calculated_smeared - pipC.Theta());
+
+            return Delta_Theta_pip_Cors_smeared;
+
+        """]))
+
+
+
+
 
     
 
@@ -5693,8 +5879,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if("Bin_Res_4D" in variable):
             output = "".join(["Q^{2}-x_{B}-z-P_{T} Bin", " (Original)" if("OG" in variable) else ""])
             
-           
-            
 
         if(smeared_named == 'yes'):
             output = "".join([output, " (Smeared)"])
@@ -5768,9 +5952,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # No PID cuts except for matched MC events
         if((Data_Type != "pdf" and Data_Type != "gen") and "PID" in Cut_Choice):
             return "continue"
-#         # Not (currently) interested in bin migration/purity/matching of exclusive events
-#         if(Data_Type == "pdf" and "EDIS" in Cut_Choice):
-#             return "continue"
         ##===============================================##
         ##----------## Skipping Bad Requests ##----------##
         ##===============================================##
@@ -6307,8 +6488,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, y_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, phi_t_Binning_Smeared, Binning_4D_Smeared, Binning_4D_OG_Smeared]
     
     
-    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], Binning_4D, W_Binning]
-    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], Binning_4D_Smeared, W_Binning_Smeared]
+    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
+    List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], phi_t_Binning_Smeared, Binning_4D_Smeared, W_Binning_Smeared]
     
     
 #     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200]]
@@ -6376,7 +6557,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    
+    def Print_Progress(Total, Increase, Rate):
+        if((Rate == 1) or (((Total+Increase)%Rate) == 0) or (Rate < Increase) or ((Rate-((Total)%Rate)) < Increase)):
+            print("".join([str(Total+Increase), " Histograms Have Been Made..."]))
     
     
     
@@ -6547,42 +6730,130 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     if(cutname == "continue"):
                                         continue
+                                        
+                                    ###############################################################
+                                    ##==========##     Correction Histogram ID's     ##==========##
+                                    ###############################################################
+                                        
+                                    # Mom_Cor_Histos_Name_MM_Ele = (''.join(["(Mom_Cor_Histos - Missing Mass El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DP_Ele = (''.join(["(Mom_Cor_Histos - Delta P El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DP_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta P El v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DP_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta P Pi+ v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DTheta_Ele = (''.join(["(Mom_Cor_Histos - Delta Theta El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DTheta_Pip = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DTheta_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta El v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_DTheta_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_Angle_Ele = (''.join(["(Mom_Cor_Histos - Theta v Phi El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "elPhi" if("smear" not in smearing_Q) else "elPhi_smeared", ", '", smearing_Q, "')"]))
+                                    # Mom_Cor_Histos_Name_Angle_Pip = (''.join(["(Mom_Cor_Histos - Theta v Phi Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "pipPhi" if("smear" not in smearing_Q) else "pipPhi_smeared", ", '", smearing_Q, "')"]))
                                     
-                                    Mom_Cor_Histos_Name_MM_El = (''.join(["(Mom_Cor_Histos - Missing Mass El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
-                                    Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_MM_Ele = (''.join(["(Mom_Cor_Histos - Missing Mass El - ", str(cut_choice), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ - ", str(cut_choice), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
                                     
-                                    Mom_Cor_Histos_Name_DP_El = (''.join(["(Mom_Cor_Histos - Delta P El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DP_Ele = (''.join(["(Mom_Cor_Histos - Delta P El - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -" , str(cut_choice), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
                                     
-                                    variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "el", "pip"]
+                                    Mom_Cor_Histos_Name_DP_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta P El v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DP_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta P Pi+ v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    
+                                    Mom_Cor_Histos_Name_DTheta_Ele = (''.join(["(Mom_Cor_Histos - Delta Theta El - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DTheta_Pip = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    
+                                    Mom_Cor_Histos_Name_DTheta_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta El v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DTheta_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    
+                                    Mom_Cor_Histos_Name_Angle_Ele = (''.join(["(Mom_Cor_Histos - Theta v Phi El - ", str(cut_choice), ", '", datatype_2, "', ", "elPhi" if("smear" not in smearing_Q) else "elPhi_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_Angle_Pip = (''.join(["(Mom_Cor_Histos - Theta v Phi Pi+ - ", str(cut_choice), ", '", datatype_2, "', ", "pipPhi" if("smear" not in smearing_Q) else "pipPhi_smeared", ", '", smearing_Q, "')"]))
+                                    
+                                    ###############################################################
+                                    ##==========##  Correction Histogram ID's (End)  ##==========##
+                                    ###############################################################
+                                    
+                                    
+                                    
+                                    variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "Delta_Theta_el_Cors", "Delta_Theta_pip_Cors", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
                                     if("smear" in smearing_Q):
-                                        variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "el_smeared", "pip_smeared"]
+                                        variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors_smeared", "el_smeared", "pip_smeared", "elth_smeared", "pipth_smeared", "elPhi_smeared", "pipPhi_smeared"]
                                     
                                     MCH_rdf = DF_Filter_Function_Full(rdf, "", -1, -1, -2, variables_Mom_Cor, smearing_Q, datatype_2, cut_choice, "DF")
                                     
-                                    Mom_Cor_Histos_Name_MM_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
-                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
-                                    Mom_Cor_Histos_Name_DP_El_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
-                                    Mom_Cor_Histos_Name_DP_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
-
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_El, Mom_Cor_Histos_Name_MM_El_Title, 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, Mom_Cor_Histos_Name_MM_Pip_Title, 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_El] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_El, Mom_Cor_Histos_Name_DP_El_Title, 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, Mom_Cor_Histos_Name_DP_Pip_Title, 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    #############################################################
+                                    ##==========##     Correction Histo Titles     ##==========##
+                                    #############################################################
+                                    
+                                    Mom_Cor_Histos_Name_MM_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
+                                    
+                                    Mom_Cor_Histos_Name_Delta_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_Delta_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    Mom_Cor_Histos_Name_Delta_Ele_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_Delta_Pip_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    Mom_Cor_Histos_Name_Angle_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#theta vs #phi Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#phi_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_Angle_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#theta vs #phi Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#phi_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    #############################################################
+                                    ##==========##  Correction Histo Titles (End)  ##==========##
+                                    #############################################################
+                                    
+
+                                    ###################################################################################
+                                    ##          ##          ##                               ##          ##          ##
+                                    ##==========##==========##     Correction Histograms     ##==========##==========##
+                                    ##          ##          ##                               ##          ##          ##
+                                    ###################################################################################
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Ele, str(Mom_Cor_Histos_Name_MM_Ele_Title), 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, str(Mom_Cor_Histos_Name_MM_Pip_Title), 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title), 200, 0, 40, 360, 0, 360, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "elPhi" if("smear" not in smearing_Q) else "elPhi_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title), 200, 0, 40, 360, 0, 360, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "pipPhi" if("smear" not in smearing_Q) else "pipPhi_smeared", "pipsec")
+                                    
+                                    ###################################################################################
+                                    ##          ##          ##                               ##          ##          ##
+                                    ##==========##==========##  Correction Histograms (End)  ##==========##==========##
+                                    ##          ##          ##                               ##          ##          ##
+                                    ###################################################################################
                                     
                                     
                                     if(str(file_location) != 'time'):
-                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_El].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Ele].Write()
                                         Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip].Write()
-                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_El].Write()
+                                        
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele].Write()
                                         Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip].Write()
                                         
-                                    count_of_histograms += 4
-                                    if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                    if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele_Theta].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip_Theta].Write()
+                                        
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip].Write()
+                                        
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele_Theta].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip_Theta].Write()
+                                        
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Ele].Write()
+                                        Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Pip].Write()
+                                        
+                                        
+                                    Print_Progress(count_of_histograms, 12, 100 if(str(file_location) != 'time') else 20)
+                                    count_of_histograms += 12
                                     
                                     
 
@@ -6659,15 +6930,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if("Phi" in list1[0] and option == "delta_matched"):
                                                 Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])].Write()
 
+                                                
+                                                
                                         # 3D->1D Histogram is saved
+                                        Print_Progress(count_of_histograms, 2 if("Phi" in list1[0] and option == "delta_matched") else 1, 100 if(str(file_location) != 'time') else 20)
                                         count_of_histograms += 1
                                         if("Phi" in list1[0] and option == "delta_matched"):
                                             count_of_histograms += 1
-
-                                        if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                        if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                             
 
                                             
@@ -6704,12 +6973,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                                                 if(str(file_location) != 'time'):
                                                     Kinetic_Histo_3D[Kinetic_Histo_3D_Name].Write()
+                                                
                                                 # 3D->2D Histogram is saved
+                                                Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                                 count_of_histograms += 1
-                                                if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                                    print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                                if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                                    print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
 
                                     ###################################################################################################################################################################
                                     ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
@@ -6758,11 +7025,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Write()
 
                                             # 2D Purity Histogram has been saved
+                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                             count_of_histograms += 1
-                                            if((str(file_location) != 'time') and (count_of_histograms%400 == 0)):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                            if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                         except:
                                             print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
                                             
@@ -6807,11 +7071,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         
                                         
                                     # Event Count Histogram has been saved
+                                    Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                     count_of_histograms += 1
-                                    if((str(file_location) != 'time') and (count_of_histograms%400 == 0)):
-                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                    if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                        print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                         
                                         
                                 elif(option == "bin_migration"):
@@ -6841,12 +7102,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(str(file_location) != 'time'):
                                                 histo_for_migration[Migration_Histo_REF].Write()
                                                 
+                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                             count_of_histograms += 1
-                                            
-                                            if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                            if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                         
                                 elif(option == "bin_migration_V2"):
                                     
@@ -6873,12 +7130,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
 
+                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                         count_of_histograms += 1
-
-                                        if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                        if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
                                     
                                     
                                 elif(option == "bin_migration_V3"):
@@ -6933,14 +7186,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
 
-                                        count_of_histograms += 1
-
-                                        if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                        if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                           
-                                        
+                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
+                                        count_of_histograms += 1   
                                         
                                         
                                 elif(option == "bin_migration_V4"):
@@ -7003,14 +7250,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(str(file_location) != 'time'):
                                                 histo_for_migration[Migration_Histo_REF].Write()
 
+                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                             count_of_histograms += 1
-
-                                            if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                            if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                                print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                                
-                                                
                                                 
                                 elif(option == "response_matrix"):
                                     
@@ -7087,15 +7328,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
 
+                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
                                         count_of_histograms += 1
-
-                                        if((count_of_histograms%400 == 0) and (str(file_location) != 'time')):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                        if((str(file_location) == 'time') and (count_of_histograms%100 == 0)):
-                                            print("".join([str(count_of_histograms), " Histograms Have Been Made..."]))
-                                            
-                                            
-                                            
                                         
 
 
@@ -7116,9 +7350,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         print("".join(["Total Number of Histograms Made: ", str(count_of_histograms)]))
         
         
-        output_all_histo_names_Q = "yes"
-        output_all_histo_names_Q = "no"
-        
+        # See beginning of code...
         if(output_all_histo_names_Q == "yes"):
             print("\nHistograms be made:")
             for ii in [Mom_Cor_Histos, Kinetic_Histo_3D, histo_for_counts, histo_for_2D_Purity, histo_for_migration]:
@@ -7126,11 +7358,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     print(ii2)
             print("\n")
         elif(str(file_location) == 'time'):
-            print("\nChoose not to print list of final histograms...\n\tSet output_all_histo_names_Q = 'yes' for list of histograms made while running...\n")
+            print("\nChoose not to print list of final histograms...\nSet output_all_histo_names_Q = 'yes' or enter 'test' instead of a file name to print a list of histograms made while running...\n")
         
         
     elif(output_type != "histo" and output_type != "test" and output_type != 'time'):
-        # ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
         print("Taking Snapshot...")
         rdf.Snapshot("h22", ROOT_File_Output_Name)
         print("Done\n\n")
@@ -7204,4 +7435,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 9-12-2022
+# This Code was last updated on 9-22-2022
