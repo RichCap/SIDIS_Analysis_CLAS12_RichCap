@@ -27,9 +27,9 @@ from sys import argv
 # arguement 2: data-type
     # Options: 
     # 1) rdf --> Real Data
-    # 2) mdf --> MC REC Data (No event matching)
+    # 2) mdf --> MC REC Data (Event matching is available)
     # 3) gdf --> MC GEN Data
-    # 4) pdf --> Bin Purity (Matched events between the MC Datasets)
+    # 4) pdf --> Only Matched MC Events (REC events must be matched to their GEN counterparts if this option is selected)
 # arguement 3: output type
     # Options: 
     # 1) histo --> root file contains the histograms made by this code
@@ -98,14 +98,12 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     if(datatype == "rdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
 
-    if(datatype == "mdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+    if(datatype == "mdf" or datatype == "pdf"):
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-    
-    if(datatype == "pdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+
     
     
     ########################################################################################################################################################################
@@ -123,13 +121,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             rdf = ROOT.RDataFrame("h22", str(file_location))
             files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00", str(file_num), "*"])
             
-    if(datatype == 'mdf'):
+    if(datatype == 'mdf' or datatype == 'pdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/Fall2021/Andrey_SIDIS/Monte_Carlo/Expanded_MC_REC/No_Cut_Batch/Fixing_Sectors/Smearing/calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*")
-            files_used_for_data_frame = "calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_*"
+            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
+            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["calc_MC_sidis_epip_richcap_NC_smearing.inb.qa.45nA_job_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
@@ -139,17 +137,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             rdf = ROOT.RDataFrame("h22", str(file_location))
             files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
-    if(datatype == 'pdf'):
-        if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
-        else:
-            rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
             
-            
-    
     
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
     
@@ -215,17 +204,35 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         # (*) The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
         
     Extra_Name = "Mom_Cor_Response_Matrix_V4_"
-    # Testing new smearing functions
+    # Testing new smearing functions (failed to update properly)
+    
+    Extra_Name = "Mom_Cor_Response_Matrix_V5_"
+    # Modified FX's smearing function for momentum (pol2 function of electron momentum)
+    # Changed datatype names so that the Matched MC REC data now runs with mdf
+        # pdf is no specifically used for selecting ONLY matched events
+        # mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
+    # Added additional histograms for correction/smearing functions
+    # Removed unnecessary options including:
+      # 1) option = bin_2D_purity
+      # 2) option = counts
+      # 3) option = bin_migration_V2
+      # 4) option = bin_migration_V4
+    # Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
+    # Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
+        # Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
+    # Removed cut option: cut_Complete
+        # This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
+    # Added phi_t Binning to response matrices
     
     
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_REC_", str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'gdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_GEN_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'pdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_", str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", str(Extra_Name), str(file_num), ".root"])
         
     if(output_type == "data" or output_type == "test"):
         ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
@@ -551,7 +558,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             """)
 
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("el_E_gen","""
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto ele_E_gen = ele.E();
@@ -586,7 +593,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             rdf = rdf.Define("pip","sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
 
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("el_gen","sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
             rdf = rdf.Define("pip_gen","sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
 
@@ -597,7 +604,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         rdf = rdf.Define("elth","atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
         rdf = rdf.Define("pipth","atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("elth_gen","atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
             rdf = rdf.Define("pipth_gen","atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
 
@@ -624,7 +631,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         """)
         
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("elPhi_gen","""
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto elPhi_gen = ele.Phi()*TMath::RadToDeg();
@@ -708,7 +715,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         
         
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("esec_gen","""
 
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -783,57 +790,37 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
         auto epipX = beam + targ - ele - pip0;
-
         auto q = beam - ele;
-
         auto Q2 = - q.M2();
-
         auto v = beam.E() - ele.E();
-
         auto xB = Q2/(2*targ.M()*v);
-
         auto W2 = targ.M2() + 2*targ.M()*v - Q2;
-
         auto W = sqrt(W2);
-
         auto y = (targ.Dot(q))/(targ.Dot(beam));
-
         auto z = ((pip0.E())/(q.E()));
-
         auto gamma = 2*targ.M()*(xB/sqrt(Q2));
-
         auto epsilon = (1 - y - 0.25*(gamma*gamma)*(y*y))/(1 - y + 0.5*(y*y) + 0.25*(gamma*gamma)*(y*y));
-
+        
         std::vector<double> vals = {epipX.M(), epipX.M2(), Q2, xB, v, W2, W, y, z, epsilon};
 
         return vals;
         """]))
 
 
-
         rdf = rdf.Define('MM', 'vals[0]') # Missing Mass
-
         rdf = rdf.Define('MM2', 'vals[1]') # Missing Mass Squared 
-
         rdf = rdf.Define('Q2', 'vals[2]') # lepton momentum transfer squared
-
         rdf = rdf.Define('xB', 'vals[3]') # fraction of the proton momentum that is carried by the struck quark
-
         rdf = rdf.Define('v', 'vals[4]') # energy of the virtual photon
-
         rdf = rdf.Define('s', 'vals[5]') # center-of-mass energy squared
-
         rdf = rdf.Define('W', 'vals[6]') # center-of-mass energy
-
         rdf = rdf.Define('y', 'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
-
         rdf = rdf.Define('z', 'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
-
         rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
         
         
-        if(datatype == "pdf"):
+        if(datatype == "mdf" or datatype == "pdf"):
             rdf = rdf.Define("vals_gen","""
             auto beam_gen = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
             auto targ_gen = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
@@ -841,25 +828,15 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             auto pip0_gen = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
 
             auto epipX_gen = beam_gen + targ_gen - ele_gen - pip0_gen;
-
             auto q_gen = beam_gen - ele_gen;
-
             auto Q2_gen = - q_gen.M2();
-
             auto v_gen = beam_gen.E() - ele_gen.E();
-
             auto xB_gen = Q2_gen/(2*targ_gen.M()*v_gen);
-
             auto W2_gen = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
-
             auto W_gen = sqrt(W2_gen);
-
             auto y_gen = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
-
             auto z_gen = ((pip0_gen.E())/(q_gen.E()));
-
             auto gamma_gen = 2*targ_gen.M()*(xB_gen/sqrt(Q2_gen));
-
             auto epsilon_gen = (1 - y_gen - 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen))/(1 - y_gen + 0.5*(y_gen*y_gen) + 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen));
 
             std::vector<double> vals_gen = {epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen, epsilon_gen};
@@ -1096,7 +1073,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    if(datatype == "pdf"):
+    if(datatype == "mdf" or datatype == "pdf"):
         rdf = rdf.Define("vals2_gen", "".join(["""
         auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
         auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
@@ -1117,7 +1094,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
         """, str(Rotation_Matrix), """
-
 
 
         ///////////////     Rotating to CM Frame     ///////////////
@@ -1168,7 +1144,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
 
-
         TVector3 v0, v1;
         v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
         v1 = qlv_Boost.Vect().Cross(pip_Boost.Vect());
@@ -1178,10 +1153,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         c2 = v0.Mag();
         c3 = v1.Mag();
 
-
         // Phi Trento (using Stefan's equation)
         double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
-
 
         double Cos_theta_t = (pip0.Vect().Dot(lv_q.Vect()))/(pip0.Vect().Mag()*lv_q.Vect().Mag());
         double theta_t = TMath::ACos(Cos_theta_t);
@@ -1194,7 +1167,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
         double phi_t_cross_product_gen = phi_t_cross_product_gen*TMath::RadToDeg();
-
 
         ///////////////   x Feynmann   ///////////////
         double xF_gen = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W_gen);
@@ -1209,8 +1181,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             phi_t_gen += 360;
         }
 
-
-
         // std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen, pipx_1_gen, pipy_1_gen, pipz_1_gen, qx_gen, qy_gen, qz_gen, beamx_gen, beamy_gen, beamz_gen, elex_gen, eley_gen, elez_gen};
         std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen};
 
@@ -1222,8 +1192,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         rdf = rdf.Define('pT_gen','vals2_gen[0]')
         rdf = rdf.Define('phi_t_gen','vals2_gen[1]')
         rdf = rdf.Define('xF_gen','vals2_gen[2]')
-    
-    
     
     
     
@@ -3999,14 +3967,12 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    if(datatype == "pdf"):
-        
+    if(datatype == "mdf" or datatype == "pdf"):
         
         #############################################################################
         #####################     Generated Bin Definitions     #####################
         #---------------------------------------------------------------------------#
         ##############     Definitions for Generated Q2 and xB Bins     #############
-
 
         # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
         rdf = rdf.Define("Q2_xB_Bin_gen","""
@@ -5200,7 +5166,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         """)
         
-    if(datatype == "pdf"):
         
         rdf = rdf.Define('Bin_4D_gen', """
         
@@ -5254,7 +5219,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             return Bin_4D_gen;
         
         """)
-        
         
         
         rdf = rdf.Define('Bin_Res_4D_gen', """
@@ -5473,7 +5437,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return Bin_5D_OG_smeared;
         """)
     
-    if(datatype == "pdf"):
         rdf = rdf.Define('Bin_5D_gen', """
         int phi_t_bin_gen = (phi_t_gen/10) + 1;
         auto Bin_5D_gen = Bin_4D_gen + phi_t_bin_gen;
@@ -6354,13 +6317,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     
-    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_Q2_PID_Valerii_Cut']
-    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut', 'cut_all_P2_Q2_Valerii_Cut']
-    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut', 'cut_all_P2_Valerii_Cut']
-    # cut_list = ['no_cut', 'cut_all_Valerii_Cut', 'cut_all_Q2_Valerii_Cut']
-    cut_list = ['no_cut', 'cut_all_Q2_Valerii_Cut']
-    cut_list = ['no_cut', 'cut_exclusive_Valerii_Cut']
+
     cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
+    cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
 
     
     
@@ -6630,9 +6589,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(datatype == "pdf"):
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf", "miss_idf_el", "miss_idf_pip"]
             # datatype_list = ["mdf", "pdf", "gen", "udf", "miss_idf"]
-            # datatype_list = ["mdf", "pdf", "udf", "miss_idf"]
             datatype_list = ["mdf", "pdf", "gen"]
-            # datatype_list = ["mdf", "pdf"]
         else:
             datatype_list = [datatype]
 
@@ -6685,37 +6642,31 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             ##=====##    Histogram Option Loop/Selection    ##=====##
 
                             if(datatype_2 == 'pdf'):
-                                # histo_options = ["has_matched", "bin_purity", "delta_matched", "counts"]
-                                # histo_options = ["has_matched", "bin_purity", "bin_2D_purity", "counts"]
-                                # histo_options = ["has_matched", "bin_purity", "counts"]
-                                # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration"]
-                                # histo_options = ["has_matched", "bin_purity", "counts", "bin_migration_V2", "bin_migration_V3", "bin_migration_V4"]
-                                # histo_options = ["has_matched", "bin_purity", "bin_migration_V3", "bin_migration_V4"]
-                                # histo_options = ["has_matched", "bin_migration_V3"]
+                                # histo_options = ["has_matched", "bin_purity", "delta_matched"]
+                                # histo_options = ["has_matched", "bin_purity", "bin_migration_V3"]
                                 # histo_options = ["delta_matched", "bin_migration_V3", "response_matrix"]
-                                histo_options = ["delta_matched", "response_matrix"]
+                                # histo_options = ["delta_matched", "response_matrix"]
                                 histo_options = ["response_matrix"]
                                 # Meaning of the above options:
-                                # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
-                                # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
-                                # # 'delta_matched' --> makes histograms which plot the difference between the reconstructed and generated (∆val) versus the reconstructed value    
-                                # # 'counts' --> This option gives information on the number of events that are in the file, have been matched, and survive all cuts
-                                # # 'bin_2D_purity' --> Gives the 2D bin purities (like how 'counts' works for giving the number of events in different cuts)
-                                # # 'bin_migration' --> shows where events are migrating from
-                                # # 'bin_migration_V2' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN variable vs the REC variable
-                                # # 'bin_migration_V3' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN Bin vs the REC Bin with extra information regarding bins outside the defined range AND regarding the unmatched events
-                                # # 'bin_migration_V4' --> similar to 'bin_migration_V3' option but uses a separate binning scheme that is more appropriate to different bin migration study (all binning schemes at once)
-                                # # 'response_matrix' --> meant to replace the 'bin_migration' options for easier use in the unfolding procedures (uses the same binning schemes as given for the 1D histograms)
+                                    # # 'has_matched' --> runs 'pdf' normally (filters unmatched events but otherwise is the same as histo_option = "normal")
+                                    # # 'bin_purity' --> filters events in which the reconstructed bin is different from the generated bin
+                                    # # 'delta_matched' --> makes histograms which plot the difference between the reconstructed and generated (∆val) versus the reconstructed value
+                                    # # 'bin_migration' --> shows where events are migrating from
+                                    # # 'bin_migration_V3' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN Bin vs the REC Bin with extra information regarding bins outside the defined range AND regarding the unmatched events
+                                    # # 'response_matrix' --> meant to replace the 'bin_migration' options for easier use in the unfolding procedures (uses the same binning schemes as given for the 1D histograms)
                             elif('miss_idf' in datatype_2):
                                 histo_options = ["normal", "bin_purity", "delta_matched"]
-                            elif(datatype_2 == 'rdf' or datatype_2 == 'gdf'):
+                            elif(datatype_2 == 'rdf' or datatype_2 == 'gdf' or datatype_2 == "mdf"):
+                                # histo_options = ["response_matrix"]
                                 # histo_options = ["normal", "response_matrix"]
-                                histo_options = ["response_matrix"]
-                            elif(datatype_2 == "gen" or datatype_2 == "mdf"):
+                                # histo_options = ["normal_1D", "response_matrix"]
+                                histo_options = ["normal_2D", "response_matrix"]
+                                # # Only runs normal 2D histograms and the response matrices
+                            elif(datatype_2 == "gen"):
                                 histo_options = []
                             else:
                                 histo_options = ["normal"]
-                                # runs code normally
+                                # runs code normally (i.e., normal 1D and 2D histograms)
                                 
                                 
                             if(run_Mom_Cor_Code == "yes" and datatype_2 != 'pdf'):
@@ -6726,6 +6677,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             for option in histo_options:
                                 
                                 if(option == "Mom_Cor_Code"):
+                                    
+                                    if("EDIS" not in cut_choice and "SIDIS" not in cut_choice):
+                                        # Only run these histograms for exclusive event selections (allowing full SIDIS cuts for comparison only)
+                                        continue
+                                    
                                     cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "MM", smearing_Q, datatype_2, cut_choice, "Cut")
                                     
                                     if(cutname == "continue"):
@@ -6734,19 +6690,6 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     ###############################################################
                                     ##==========##     Correction Histogram ID's     ##==========##
                                     ###############################################################
-                                        
-                                    # Mom_Cor_Histos_Name_MM_Ele = (''.join(["(Mom_Cor_Histos - Missing Mass El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DP_Ele = (''.join(["(Mom_Cor_Histos - Delta P El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DP_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta P El v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DP_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta P Pi+ v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DTheta_Ele = (''.join(["(Mom_Cor_Histos - Delta Theta El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DTheta_Pip = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DTheta_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta El v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_DTheta_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta Theta Pi+ v Theta -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_Angle_Ele = (''.join(["(Mom_Cor_Histos - Theta v Phi El -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "elPhi" if("smear" not in smearing_Q) else "elPhi_smeared", ", '", smearing_Q, "')"]))
-                                    # Mom_Cor_Histos_Name_Angle_Pip = (''.join(["(Mom_Cor_Histos - Theta v Phi Pi+ -", str(cutname).replace("  ", " "), ", '", datatype_2, "', ", "pipPhi" if("smear" not in smearing_Q) else "pipPhi_smeared", ", '", smearing_Q, "')"]))
                                     
                                     Mom_Cor_Histos_Name_MM_Ele = (''.join(["(Mom_Cor_Histos - Missing Mass El - ", str(cut_choice), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
                                     Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ - ", str(cut_choice), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
@@ -6852,94 +6795,90 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Pip].Write()
                                         
                                         
-                                    Print_Progress(count_of_histograms, 12, 100 if(str(file_location) != 'time') else 20)
+                                    Print_Progress(count_of_histograms, 12, 200 if(str(file_location) != 'time') else 50)
                                     count_of_histograms += 12
                                     
                                     
 
-                                if(option == "normal" or option == "has_matched" or option == "bin_purity" or option == "delta_matched"):
+                                if("normal" in option or option == "has_matched" or option == "bin_purity" or option == "delta_matched"):
                                     
                                     ###################################################################################################################################################################
                                     ###################################################################################################################################################################
                                     ###################################################################     STANDARD HISTOGRAMS     ###################################################################
                                     ###################################################################################################################################################################
+                                    
                                     ###################################################################################################################################################################
                                     ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
                                     ##########==========##########==========##########==========##########     1D Histograms     ##########==========##########==========##########==========##########
                                     ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
                                     ###################################################################################################################################################################
-                                    
-                                    ##===================================##
-                                    ##=====##    Variable Loop    ##=====##
-                                    ##===================================##
-                                    for list1 in Variable_Loop:
-                                        
-                                        cutname, Histo_Title = "continue", "continue"
-                                        if(option == "normal" or option == "has_matched"):
-                                            cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
-                                            Histo_Title = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")
+                                    if(option != "normal_2D"):
+                                        ##===================================##
+                                        ##=====##    Variable Loop    ##=====##
+                                        ##===================================##
+                                        for list1 in Variable_Loop:
+                                            cutname, Histo_Title = "continue", "continue"
+                                            if(option == "normal_1D" or option == "normal" or option == "has_matched"):
+                                                cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
+                                                Histo_Title = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")
 
-                                            Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-                                            if("2" in smearing_Q):
-                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-                                            if("2" not in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" not in str(list1[0])):
-                                                continue # These 4D bins have only been defined with my new binning schemes
-                                            if("2" in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" in str(list1[0])):
-                                                continue # These 4D bins were defined with the original binning scheme
+                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                                if("2" in smearing_Q):
+                                                    Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                                if("2" not in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" not in str(list1[0])):
+                                                    continue # These 4D bins have only been defined with my new binning schemes
+                                                if("2" in smearing_Q and "Bin_4D" in str(list1[0]) and "OG" in str(list1[0])):
+                                                    continue # These 4D bins were defined with the original binning scheme
 
-                                        if(option == "bin_purity"):
-                                            cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
-                                            Histo_Title = (DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Purity Match")
+                                            if(option == "bin_purity"):
+                                                cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
+                                                Histo_Title = (DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Purity Match")
 
-                                            Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Purity - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-                                            if("2" in smearing_Q):
-                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - Purity - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Purity - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                                if("2" in smearing_Q):
+                                                    Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - Purity - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
 
-                                        if(option == "delta_matched"):
-                                            final_df = Delta_Matched_DF(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF"), list1[0]) # Calculates the different between the matched reconstructed and generated events (rec - gen)
-                                            if(final_df == "continue"):
+                                            if(option == "delta_matched"):
+                                                final_df = Delta_Matched_DF(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF"), list1[0]) # Calculates the different between the matched reconstructed and generated events (rec - gen)
+                                                if(final_df == "continue"):
+                                                    continue
+                                                cutname = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
+                                                Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-P_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-P_{T} Bin", "")), "; #Delta(REC - GEN); ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"])
+
+                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+                                                if("2" in smearing_Q):
+                                                    Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
+
+                                            if(cutname == "continue" or Histo_Title == "continue"):
                                                 continue
-                                            cutname = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Cut")
-                                            Histo_Title = "".join([((DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "Title")).replace("Matched", "Difference Between Match").replace("; Q^{2}-x_{B} Bin (Smeared); z-P_{T} Bin (Smeared)", "").replace("; Q^{2}-x_{B} Bin; z-P_{T} Bin", "")), "; #Delta(REC - GEN); ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"])
-
-                                            Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-                                            if("2" in smearing_Q):
-                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 1D Histogram - New 2D Binning - Dif Match - ', str(cutname)]), datatype_2, sec_type, sec_num, str(list1[0]))
-
-                                        if(cutname == "continue" or Histo_Title == "continue"):
-                                            continue
 
 
-                                        if(option != "delta_matched" and option != "bin_purity"):
-                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF").Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), 14, -3, 10, 54, -3, 50, list1[3], list1[1], list1[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(list1[0]))
-                                        elif(option == "bin_purity"):
-                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF"), list1[0], list1[1], list1[2], list1[3]).Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), 14, -3, 10, 54, -3, 50, list1[3], list1[1], list1[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(list1[0]))
-                                        elif(option == "delta_matched"):
-                                            if("el" not in list1[0] and "pip" not in list1[0]):
-                                                continue # Don't need these extra ∆(REC-GEN) histograms (angles/momentum are the only criteria being considered)
-                                            delta_bins = Delta_Matched_Bin_Calc(list1[0], list1[1], list1[2])
-                                            if("continue" in delta_bins):
-                                                continue
-                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = final_df.Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 9, -1, 7), str(list1[0]), "Delta_Matched_Value", "pipsec" if("pip" in list1[0]) else "esec")
-                                            if("Phi" in list1[0]):
-                                                Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])] = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, str(list1[0].replace("Phi", "th")), smearing_Q, datatype_2, cut_choice, "DF").Histo3D(("".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"]), "".join([Histo_Title.replace("".join(["; ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"]), ""), ";#theta_{", "el" if "el" in list1[0] else "#pi+" ,"}"]), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 34, 0, 40), str(list1[0]), "Delta_Matched_Value", str(list1[0].replace("Phi", "th")))
+                                            if(option != "delta_matched" and option != "bin_purity"):
+                                                Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF").Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), 14, -3, 10, 54, -3, 50, list1[3], list1[1], list1[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(list1[0]))
+                                            elif(option == "bin_purity"):
+                                                Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF"), list1[0], list1[1], list1[2], list1[3]).Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), 14, -3, 10, 54, -3, 50, list1[3], list1[1], list1[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(list1[0]))
+                                            elif(option == "delta_matched"):
+                                                if("el" not in list1[0] and "pip" not in list1[0]):
+                                                    continue # Don't need these extra ∆(REC-GEN) histograms (angles/momentum are the only criteria being considered)
+                                                delta_bins = Delta_Matched_Bin_Calc(list1[0], list1[1], list1[2])
+                                                if("continue" in delta_bins):
+                                                    continue
+                                                Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = final_df.Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 9, -1, 7), str(list1[0]), "Delta_Matched_Value", "pipsec" if("pip" in list1[0]) else "esec")
+                                                if("Phi" in list1[0]):
+                                                    Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])] = DF_Filter_Function_Full(final_df, sec_type, sec_num, -1, -2, str(list1[0].replace("Phi", "th")), smearing_Q, datatype_2, cut_choice, "DF").Histo3D(("".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"]), "".join([Histo_Title.replace("".join(["; ", "#pi^{+} Pion" if("pip" in list1[0]) else "Electron", " Sector"]), ""), ";#theta_{", "el" if "el" in list1[0] else "#pi+" ,"}"]), list1[3], list1[1], list1[2], delta_bins[0], delta_bins[1], delta_bins[2], 34, 0, 40), str(list1[0]), "Delta_Matched_Value", str(list1[0].replace("Phi", "th")))
 
-                                        if(str(file_location) != 'time'):
-                                            Kinetic_Histo_3D[Kinetic_Histo_3D_Name].Write()
+                                            if(str(file_location) != 'time'):
+                                                Kinetic_Histo_3D[Kinetic_Histo_3D_Name].Write()
 
-                                            if("Phi" in list1[0] and option == "delta_matched"):
-                                                Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])].Write()
+                                                if("Phi" in list1[0] and option == "delta_matched"):
+                                                    Kinetic_Histo_3D["".join([str(Kinetic_Histo_3D_Name), "_Extra_3D"])].Write()
 
-                                                
-                                                
-                                        # 3D->1D Histogram is saved
-                                        Print_Progress(count_of_histograms, 2 if("Phi" in list1[0] and option == "delta_matched") else 1, 100 if(str(file_location) != 'time') else 20)
-                                        count_of_histograms += 1
-                                        if("Phi" in list1[0] and option == "delta_matched"):
+                                            # 3D->1D Histogram is saved
+                                            Print_Progress(count_of_histograms, 2 if("Phi" in list1[0] and option == "delta_matched") else 1, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 1
-                                            
+                                            if("Phi" in list1[0] and option == "delta_matched"):
+                                                count_of_histograms += 1
 
-                                            
                                     ###################################################################################################################################################################
                                     ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
                                     ##########==========##########==========##########==========##########     1D Histograms     ##########==========##########==========##########==========##########
@@ -6950,7 +6889,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     ##########==========##########==========##########==========##########                       ##########==========##########==========##########==========##########
                                     ###################################################################################################################################################################
                                     
-                                    if((option == "normal" or option == "has_matched") and datatype_2 != "gen"):
+                                    if((option == "normal_2D" or option == "normal" or option == "has_matched") and datatype_2 != "gen"):
                                         ##===================================##
                                         ##=====##    Variable Loop    ##=====##
                                         ##===================================##
@@ -6960,22 +6899,26 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                     continue
                                                     # 2nd definition of the Q2-xB bins do not go above bin 8
 
-                                                cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "Cut")
+                                                # cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "Cut")
                                                 Histo_Title = DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "Title")                                            
 
-                                                if(cutname == "continue" or Histo_Title == "continue"):
+                                                # if(cutname == "continue" or Histo_Title == "continue"):
+                                                if(Histo_Title == "continue" or DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "Cut") == "continue"):
                                                     continue
-                                                Kinetic_Histo_3D_Name = (''.join(['3D -> 2D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, Q2_xB_Bin_Num, str(list2[0][0]), str(list2[1][0]))
-                                                if("2" in smearing_Q):
-                                                    Kinetic_Histo_3D_Name = (''.join(['3D -> 2D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, Q2_xB_Bin_Num, str(list2[0][0]), str(list2[1][0]))
-
-                                                Kinetic_Histo_3D[Kinetic_Histo_3D_Name] = DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "DF").Histo3D((str(Kinetic_Histo_3D_Name), str(Histo_Title), 54, -3, 50, list2[0][3], list2[0][1], list2[0][2], list2[1][3], list2[1][1], list2[1][2]), str(z_pT_Bin_Filter_str), str(list2[0][0]), str(list2[1][0]))
+                                                    
+                                                # Kinetic_Histo_3D_Name = (''.join(['3D -> 2D Histogram - ', str(cutname)]), datatype_2, sec_type, sec_num, Q2_xB_Bin_Num, str(list2[0][0]), str(list2[1][0]))
+                                                # if("2" in smearing_Q):
+                                                #     Kinetic_Histo_3D_Name = (''.join(['3D -> 2D Histogram - New 2D Binning - ', str(cutname)]), datatype_2, sec_type, sec_num, Q2_xB_Bin_Num, str(list2[0][0]), str(list2[1][0]))
+                                                
+                                                Kinetic_Histo_2D_Name = "".join(["(2D Histogram - '", "', '".join([str(cut_choice), str(smearing_Q), str(datatype_2), str(sec_type), str(sec_num), str(Q2_xB_Bin_Num), str(list2[0][0]), str(list2[1][0])]), "')"])
+                                                
+                                                Kinetic_Histo_3D[Kinetic_Histo_2D_Name] = DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, [list2[0][0], list2[1][0]], smearing_Q, datatype_2, cut_choice, "DF").Histo3D((str(Kinetic_Histo_2D_Name), str(Histo_Title), 54, -3, 50, list2[0][3], list2[0][1], list2[0][2], list2[1][3], list2[1][1], list2[1][2]), str(z_pT_Bin_Filter_str), str(list2[0][0]), str(list2[1][0]))
 
                                                 if(str(file_location) != 'time'):
-                                                    Kinetic_Histo_3D[Kinetic_Histo_3D_Name].Write()
+                                                    Kinetic_Histo_3D[Kinetic_Histo_2D_Name].Write()
                                                 
                                                 # 3D->2D Histogram is saved
-                                                Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
+                                                Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                                 count_of_histograms += 1
 
                                     ###################################################################################################################################################################
@@ -6987,94 +6930,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     #################################################################     END OF 1D/2D HISTOGRAMS     #################################################################
                                     ###################################################################################################################################################################
                                     
-                                elif(option == "bin_2D_purity"):
-                                    cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "Cut")
-                                    
-                                    if("continue" in cutname or "continue" in str(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "2D_Purity", smearing_Q, "mdf", cut_choice, "Cut"))):
-                                        continue
-                                        
-                                    for Q2_xB_Bin_Num in List_of_Q2_xB_Bins_to_include:
-                                        if((Q2_xB_Bin_Num < 1) or (Q2_xB_Bin_Num > 8 and "2" in smearing_Q)):
-                                            continue
-                                            # Q2_xB_Bin_Num < 1 will either give 0 purity (no z-pT bins defined) or can be seen in the "counts" option below
-                                            # Also, 2nd definition of the Q2-xB bins do not go above bin 8
-                                            
-                                        Purity_2D_Histo_Name = (''.join(['2D Purity - ', str(cutname)]), datatype_2, smearing_Q, sec_type, sec_num, Q2_xB_Bin_Num)
-                                        if("2" in smearing_Q):
-                                            Purity_2D_Histo_Name = (''.join(['2D Purity - New 2D Binning - ', str(cutname)]), datatype_2, smearing_Q, sec_type, sec_num, Q2_xB_Bin_Num)
-
-                                        Histo_Title = "".join(["#splitline{Number of Pure Events for ", variable_Title_name(Q2_xB_Bin_Filter_str), "}{Cuts in use: ", cutname if (cutname != "" and cutname != " ") else "No Cuts", "}"])
-
-                                        histo_for_2D_Purity[str(Purity_2D_Histo_Name)] = ROOT.TH1D(str(Purity_2D_Histo_Name), str(Histo_Title), 1, 0, 1)
-                                        
-                                        if("continue" in str(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"))):
-                                            continue
-                                        
-                                        try:
-                                            if(str(file_location) != 'time'):
-                                                histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-                                                
-                                                for z_pT_Bin_Num in range(1, 49, 1):
-                                                    histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Total) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-
-                                                histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(Q2_xB_Bin_Filter_str), " = ", str(Q2_xB_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, -2, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), Q2_xB_Bin_Filter_str, 0, 0, 20).Count().GetValue())
-                                                
-                                                for z_pT_Bin_Num in range(1, 49, 1):
-                                                    histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Fill("".join(["(Pure) ", variable_Title_name(z_pT_Bin_Filter_str), " = ", str(z_pT_Bin_Num)]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, Q2_xB_Bin_Num, z_pT_Bin_Num, "2D_Purity", smearing_Q, datatype_2, cut_choice, "DF"), z_pT_Bin_Filter_str, 0, 0, 20).Count().GetValue())
-
-                                                histo_for_2D_Purity[str(Purity_2D_Histo_Name)].Write()
-
-                                            # 2D Purity Histogram has been saved
-                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
-                                            count_of_histograms += 1
-                                        except:
-                                            print("".join(["\nError with: histo_for_2D_Purity[str(", str(Purity_2D_Histo_Name), ")]\n"]))
-                                            
                             
-                                elif(option == "counts"):
-                                    cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "Counts", smearing_Q, datatype_2, cut_choice, "Cut")
-
-                                    if("continue" in cutname or "continue" in str(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "Cut"))):
-                                        continue    
-                                    
-                                    histo_for_counts[str((cutname, smearing_Q))] = ROOT.TH1D("".join(["Histogram_for_event_counts", "" if smearing_Q == "" else "_", smearing_Q, " ", cutname]), "".join(["" if smearing_Q != "smear" else "(Smeared) ", "Event Counts for: ", cutname]), 1, 0, 1)
-
-                                    if(str(file_location) != 'time'):
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("All REC Events", rdf.Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("All (Completely) MATCHED REC Events", rdf.Filter("PID_el != 0 && PID_pip != 0").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("All (Electron) MATCHED REC Events", rdf.Filter("PID_el != 0").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("All (Pi+) MATCHED REC Events", rdf.Filter("PID_pip != 0").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Correct Electron MATCHED REC Events", rdf.Filter("PID_el == 11").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Correct Pi+ MATCHED REC Events", rdf.Filter("PID_pip == 211").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Perfectly MATCHED REC Events", rdf.Filter("PID_el == 11 && PID_pip == 211").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Mis-Identified Matches of REC Events (Total)", rdf.Filter("PID_el != 11 && PID_el != 0 && PID_pip != 211 && PID_pip != 0").Count().GetValue()) 
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Mis-Identified (Electron) Matches of REC Events", rdf.Filter("PID_el != 11 && PID_el != 0").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("Mis-Identified (Pi+) Matches of REC Events", rdf.Filter("PID_pip != 211 && PID_pip != 0").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("All REC Events (After Cuts)", DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MATCHED REC Events (After Cuts)", DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "Counts", smearing_Q, datatype_2, cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MATCHED (Electron) REC Events (After Cuts)", DF_Filter_Function_Full(rdf.Filter("PID_el != 0"), sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MATCHED (Pi+ Pion) REC Events (After Cuts)", DF_Filter_Function_Full(rdf.Filter("PID_pip != 0"), sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MIS-MATCHED REC Events (After Cuts)", DF_Filter_Function_Full(rdf.Filter("PID_el != 11 && PID_el != 0 && PID_pip != 211 && PID_pip != 0"), sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MIS-MATCHED (Electron) REC Events (After Cuts)", DF_Filter_Function_Full(rdf.Filter("PID_el != 11 && PID_el != 0"), sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("MIS-MATCHED (Pi+ Pion) REC Events (After Cuts)", DF_Filter_Function_Full(rdf.Filter("PID_pip != 211 && PID_pip != 0"), sec_type, sec_num, -1, -2, "Counts", smearing_Q, "mdf", cut_choice, "DF").Count().GetValue())
-
-                                        for list1 in Variable_Loop:
-                                            histo_for_counts[str((cutname, smearing_Q))].Fill("".join(["Purity of ", variable_Title_name(list1[0])]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, list1[0], smearing_Q, datatype_2, cut_choice, "DF"), list1[0], list1[1], list1[2], list1[3]).Count().GetValue())
-                                            
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("".join(["Purity of ", variable_Title_name("".join(["Q2_xB_Bin", "" if smearing_Q != "smear" else "_smeared"]))]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "".join(["Q2_xB_Bin", "" if smearing_Q != "smear" else "_smeared"]), smearing_Q, datatype_2, cut_choice, "DF"), "".join(["Q2_xB_Bin", "" if smearing_Q != "smear" else "_smeared"]), 0, 1, 1).Count().GetValue())
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("".join(["Purity of ", variable_Title_name("".join(["z_pT_Bin", "" if smearing_Q != "smear" else "_smeared"]))]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "".join(["z_pT_Bin", "" if smearing_Q != "smear" else "_smeared"]), smearing_Q, datatype_2, cut_choice, "DF"), "".join(["z_pT_Bin", "" if smearing_Q != "smear" else "_smeared"]), 0, 1, 1).Count().GetValue())
-                                        
-                                        histo_for_counts[str((cutname, smearing_Q))].Fill("".join(["Purity of ", variable_Title_name("".join(["Q2_xB_Bin_2", "" if smearing_Q != "smear" else "_smeared"]))]), bin_purity_filter_fuction(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "".join(["Q2_xB_Bin_2", "" if smearing_Q != "smear" else "_smeared"]), smearing_Q, datatype_2, cut_choice, "DF"), "".join(["Q2_xB_Bin_2", "" if smearing_Q != "smear" else "_smeared"]), 0, 1, 1).Count().GetValue())
-
-
-                                        histo_for_counts[str((cutname, smearing_Q))].Write()
-                                        
-                                        
-                                    # Event Count Histogram has been saved
-                                    Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
-                                    count_of_histograms += 1
-                                        
-                                        
                                 elif(option == "bin_migration"):
                                     
                                     for list1 in Variable_Loop:
@@ -7102,37 +6958,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             if(str(file_location) != 'time'):
                                                 histo_for_migration[Migration_Histo_REF].Write()
                                                 
-                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
+                                            Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 1
                                         
-                                elif(option == "bin_migration_V2"):
-                                    
-                                    for Var_List in Variable_Loop:
-
-                                        variable = Var_List[0].replace("_gen", "")
-                                        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-                                            
-                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "Cut")
-                                        
-                                        if("continue" in cutname):
-                                            continue
-                                            
-  
-                                        BIN_SIZE = (Var_List[2] - Var_List[1])/Var_List[3]
-                                        Bin_Range = "".join([str(round((Var_List[1]), 3)), " -> ", str(round(Var_List[2], 3))])
-
-                                        Migration_Title = "".join(["#splitline{#splitline{Bin Migration of ", variable_Title_name(variable), "}{Cut: ", str(cutname), "}}{#scale[1.5]{Number of Bins: ", str(Var_List[3]), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}}; ", variable_Title_name(variable), "; ", variable_Title_name(gen_variable)])
-
-                                        Migration_Histo_REF = ("Bin Migration V2", variable, smearing_Q, cut_choice, sec_type, sec_num)
-
-                                        histo_for_migration[Migration_Histo_REF] = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "DF").Histo2D((str(Migration_Histo_REF), str(Migration_Title), Var_List[3], Var_List[1], Var_List[2], Var_List[3], Var_List[1], Var_List[2]), str(variable), str(gen_variable))
-
-                                        if(str(file_location) != 'time'):
-                                            histo_for_migration[Migration_Histo_REF].Write()
-
-                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
-                                        count_of_histograms += 1
-                                    
                                     
                                 elif(option == "bin_migration_V3"):
                                     
@@ -7186,72 +7014,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(str(file_location) != 'time'):
                                             histo_for_migration[Migration_Histo_REF].Write()
 
-                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
+                                        Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                         count_of_histograms += 1   
                                         
-                                        
-                                elif(option == "bin_migration_V4"):
-                                    
-                                    # run_4D_bins_bin_migration_V4 = 0
-                                    
-                                    # for bin_option in [2, 3, 4, 5, 10, 20, 40]:
-                                    for bin_option in [2, 3, 4, 5, 10]:
-                                        
-                                        for Var_List in Variable_Loop:
-
-                                            variable = Var_List[0]
-                                            if("Bin_4D" in variable):
-                                                # See bin_migration_V3 for Bin_4D options
-                                                continue
-
-                                            cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "Cut")
-
-                                            if("continue" in cutname):
-                                                continue
-
-                                            if("Q2" in variable):
-                                                Min_range, Max_range = 2, 11.351
-                                            if("xB" in variable):
-                                                Min_range, Max_range = 0.126602, 0.7896
-                                            if("z" in variable):
-                                                Min_range, Max_range = 0.15, 0.7
-                                            if("pT" in variable):
-                                                Min_range, Max_range = 0.05, 1.0
-                                            if("y" in variable):
-                                                Min_range, Max_range = 0.24, 0.75
-                                            if("phi_t" in variable):
-                                                Min_range, Max_range = 0, 360
-                                            if("MM" in variable):
-                                                Min_range, Max_range = 0, 3.5
-                                            # if("Bin_4D" in variable):
-                                            #     Min_range, Max_range = -5.5, 304.5
-                                            #     bin_option = 310
-                                            #     if(run_4D_bins_bin_migration_V4 == 0):
-                                            #         run_4D_bins_bin_migration_V4 += 1
-                                            #     else:
-                                            #         continue
-
-                                                
-                                            
-                                            BIN_SIZE = round((Max_range - Min_range)/bin_option, 5)
-                                            Bin_Range = "".join([str(Min_range), " -> ", str(Max_range)])
-
-                                            Migration_Title = "".join(["#splitline{#splitline{Bin Migration of ", variable_Title_name(variable), "}{Cut: ", str(cutname), "}}{#scale[1.5]{Number of Bins: ", str(bin_option), " - Range: ", str(Bin_Range), ", - Size: ", str(BIN_SIZE), " per bin}}; ", variable_Title_name(variable), " (GEN) Bins; ", variable_Title_name(variable), " (REC) Bins"])
-
-                                            Migration_Histo_REF = ("Bin Migration V4", variable, smearing_Q, cut_choice, sec_type, sec_num, bin_option)
-
-                                            sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf", cut_choice, "DF"), variable, Min_range, Max_range, bin_option, datatype_2)
-                                            
-                                            num_of_REC_bins, min_REC_bin, Max_REC_bin = (bin_option + 3), -0.5, (bin_option + 2.5)
-                                            num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (bin_option + 4), -0.5, (bin_option + 3.5)
-
-                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str("".join([str(variable), "_GEN_BIN"])), str("".join([str(variable), "_REC_BIN"])))
-
-                                            if(str(file_location) != 'time'):
-                                                histo_for_migration[Migration_Histo_REF].Write()
-
-                                            Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
-                                            count_of_histograms += 1
                                                 
                                 elif(option == "response_matrix"):
                                     
@@ -7263,7 +7028,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     
                                     # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
                                     # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D, Binning_5D]
-                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
+                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
 
                                     
                                     for Var_List in Res_Var_List:
@@ -7275,7 +7040,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             variable = "".join([variable, "_smeared"])
                                             
                                             
-                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "Cut")
+                                        # cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "Cut")
+                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "Cut")
 
                                         if("continue" in cutname):
                                             continue
@@ -7293,43 +7059,57 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             Num_of_Bins = 8
 
                                             
-                                        BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 5)
+                                        BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 4)
                                         Bin_Range = "".join([str(Min_range), " #rightarrow ", str(Max_range)])
                                         
                                         
-                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated" if(datatype_2 != "mdf") else "Reconstructed (MC)", " Distribution of ", variable_Title_name(variable), "}"])
+                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "mdf" or datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated" if(datatype_2 != "mdf") else "Reconstructed (MC)", " Distribution of ", variable_Title_name(variable), "}"])                                            
                                         Migration_Title_L2 = "".join(["#scale[1.15]{Cut: ", str(cutname), "}"])
-                                        Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), " - Range: ", str(Bin_Range), " - Size: ", str(BIN_SIZE), " per bin}"])
+                                        Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), " - Range (from Bin 1-", str(Num_of_Bins),"): ", str(Bin_Range), " - Size: ", str(BIN_SIZE), " per bin}"])
                                         if("Bin" in variable):
                                             Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), "}"])
 
                                         Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable.replace("_smeared", "")), " GEN Bins; ", variable_Title_name(variable), " REC Bins"])
                                         
-                                        if(datatype_2 != "pdf"):
+                                        if(datatype_2 != "mdf" and datatype_2 != "pdf"):
                                             Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " REC" if("g" not in datatype_2) else " GEN", " Bins; Count"])
+                                            
 
+                                        Migration_Histo_REF = ("Response_Matrix" if(datatype_2 == "mdf" or datatype_2 == "pdf") else "Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
+                                        
+                                        if(datatype_2 == "mdf"):
+                                            Migration_Title_L1_2 = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ", variable_Title_name(variable), "}"])
+                                            Migration_Title_2 = "".join(["#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " REC Bins; Count"])
+                                            Migration_Histo_REF_2 = ("Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
 
-                                        Migration_Histo_REF = ("Response_Matrix" if(datatype_2 == "pdf") else "Response_Matrix_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
+                                        # sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
 
-                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, "mdf" if(datatype_2 == "pdf") else datatype_2, cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
-
-                                        # num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 3), -0.5, (Num_of_Bins + 2.5)
                                         num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
                                         num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5)
                                         
                                         Variable_Gen = str("".join([str(variable), "_GEN_BIN"])) if("Bin" not in str(variable)) else str("".join([str(variable).replace("_smeared", ""), "_gen"]))
                                         Variable_Rec = str("".join([str(variable), "_REC_BIN"])) if("Bin" not in str(variable)) else str(variable)
 
-                                        if(datatype_2 == "pdf"):
+                                        if(datatype_2 == "mdf" or datatype_2 == "pdf"):
                                             histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                                            if(datatype_2 == "mdf"):
+                                                histo_for_migration[Migration_Histo_REF_2] = sdf.Histo1D((str(Migration_Histo_REF_2), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))                                                
                                         else:
                                             histo_for_migration[Migration_Histo_REF] = sdf.Histo1D((str(Migration_Histo_REF), str(Migration_Title), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
 
-                                        if(str(file_location) != 'time'):
-                                            histo_for_migration[Migration_Histo_REF].Write()
-
-                                        Print_Progress(count_of_histograms, 1, 100 if(str(file_location) != 'time') else 20)
-                                        count_of_histograms += 1
+                                            
+                                        if(datatype_2 == "mdf"):
+                                            if(str(file_location) != 'time'):
+                                                histo_for_migration[Migration_Histo_REF].Write()
+                                                histo_for_migration[Migration_Histo_REF_2].Write()
+                                            Print_Progress(count_of_histograms, 2, 200 if(str(file_location) != 'time') else 50)
+                                            count_of_histograms += 2
+                                        else:
+                                            if(str(file_location) != 'time'):
+                                                histo_for_migration[Migration_Histo_REF].Write()
+                                            Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                            count_of_histograms += 1
                                         
 
 

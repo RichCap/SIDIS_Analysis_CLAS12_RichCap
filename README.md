@@ -30,6 +30,25 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Other Commit Updates:
 
+### Update on 9-22-2022:
+* Updated to Extra_Name = "Mom_Cor_Response_Matrix_V5_"
+* Modified FX's smearing function for momentum (pol2 function of electron momentum)
+* Changed datatype names so that the Matched MC REC data now runs with mdf
+    * pdf is no specifically used for selecting ONLY matched events
+    * mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
+* Added additional histograms for correction/smearing functions
+* Removed unnecessary options including:
+    1) option = bin_2D_purity
+    2) option = counts
+    3) option = bin_migration_V2
+    4) option = bin_migration_V4
+* Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
+* Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
+    * Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
+* Removed cut option: cut_Complete
+    * This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
+* Added phi_t Binning to response matrices
+
 ### Update on 9-15-2022:
 * Updated to Extra_Name = "Mom_Cor_Response_Matrix_V3_"
 * Added (initial/incomplete) Unfolding procedure to jupyter file

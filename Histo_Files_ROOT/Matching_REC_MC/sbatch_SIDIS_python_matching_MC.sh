@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Matching_Mom_Cor_Response_Matrix_V3_SIDIS_histo_9_15_2022
+#SBATCH --job-name=MC_Matching_Mom_Cor_Response_Matrix_V5_SIDIS_histo_9_22_2022
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
@@ -13,7 +13,7 @@
 
 
 FILES=(/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*)
-# Above is for (pdf) #SBATCH --array=0-219
+# Above is for (mdf/pdf) #SBATCH --array=0-219
 
 # FILES=(/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*)
 # # Above is for (gdf) #SBATCH --array=0-219
@@ -22,4 +22,4 @@ FILES=(/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy
 # # Above is for (rdf) #SBATCH --array=0-173
 
 
-srun python /lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos.py pdf ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python /lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos.py mdf ${FILES[$SLURM_ARRAY_TASK_ID]}
