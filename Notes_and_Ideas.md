@@ -5,6 +5,19 @@ Some items here may also be thought of as a long-term/non-essential, to-do list.
 
 ## Potential Ideas
 These ideas may or may not be implemented later (put here as a reminder to think about later)
+- [ ] Create interactive webpage to plot each 1D phi_t plot in each Q2-xB-z-PT bin
+    * Purpose: see the distribution in each bin to check if new binning definitions will be required
+    * Will need the following:
+        - [ ] 8+1 Q2-xB 2D plots to show each Q2-xB bin option (+1 is for all bins - may want to just have the bins highlighted in red instead of cut)
+        - [ ] 8+1 z-PT 2D plots to show each z-PT bin option (just like the Q2-xB plots, might not need to draw the 2D plot for each cut bin - would need to show the cut effects of choosing a Q2-xB bin)
+        - [ ] 8*(20 to 49)+1 phi_t plots for each Q2-xB-z-PT bin (+1 is for all bins)
+            - [ ] Also show the unfolded images from the Collaboration presentation
+        - [ ] The webpage code which will:
+            - [ ] Reference all images above
+            - [ ] Allow for one to select a Q2-xB bin with tabs/buttons
+            - [ ] Show new phi_t image by hovering over a z-PT bin
+                - [ ] Grid for the z-PT bins must update with choice of Q2-xB bin
+        - [ ] Provide link in this repository or on a wikipage
 - [ ] Add the interactive python code to the GitHub repository 
     * Purpose: so that others can have the more user-friendly version of the code if they are given access to this repository
         * Would give me a greater reason to share this repository with others
@@ -12,12 +25,12 @@ These ideas may or may not be implemented later (put here as a reminder to think
         - [ ] Adding the jupyter notebook file (with edits to run using the files available on GitHub)
         - [ ] Adding additional features to that notebook to keep it concurrent with the available code
             * May want to consider it the "master" version of the code while the existing verision would be the "working" version were new code and ideas are tested
-- [ ] Add additional kinematic bins to replace bin 0 (i.e., unbinned event)
-    * Purpose: Give more information on where the event may be migrating from relative to the existing bins
-        * Would give information such as: "Is the unbinned event above/below/to the left/right of the existing binning scheme"
-    * Would likely include:
-        - [ ] 4 new Q2-xB bins (up, down, left and right of bins)
-        - [ ] 8 new z-pT bins (up, down, left and right of bins plus 4 more bins for the corners which are both above/below the existing bins AND to the left/right of them as well)
+- [ ] Add Multidimensional bins that combine Q2, xB, z, and PT with the phi_h variable
+    * Purpose: step-by-step progression to unfolding in each additional dimension
+        - [ ] Combine phi_t with Q2 (1D)
+            * Maybe all other variables too? --> Create generic code to combine bins
+        - [ ] Combine phi_t with Q2-xB (2D) and z-PT (2D)
+        - [ ] Create the 5D response matrix (final step)
 - [ ] Add Save options based on the cell being run (don't wait for the whole code to run each cell before moving the images into their final location)
     * Would make organizing images easier
     * Could use a custom function to make saving results easier in each cell

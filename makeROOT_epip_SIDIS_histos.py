@@ -1,4 +1,4 @@
-# This Code was last updated on 9-22-2022
+# This Code was last updated on 9-28-2022
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -8,6 +8,14 @@
 
     
 # # This Code has been coverted such that 3D histograms are made instead of filtering Q2-xB/z-pT bins
+
+
+
+
+
+
+
+# NOTE TO SELF: "Do not need 1D MC REC histograms (can make from the Response Matrix)"
 
 
 
@@ -97,12 +105,15 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     if(datatype == "rdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
 
     if(datatype == "mdf" or datatype == "pdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
 
     
     
@@ -115,7 +126,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     if(datatype == 'rdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
             files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
@@ -123,7 +135,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             
     if(datatype == 'mdf' or datatype == 'pdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
             files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
@@ -131,7 +144,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             
     if(datatype == 'gdf'):
         if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
-            rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
+            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
             files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
@@ -225,6 +239,23 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # Added phi_t Binning to response matrices
     
     
+    Extra_Name = "DNP_"
+    # Turned off Momentum Corrections and new smearing functions
+    # Only making response matrices
+    
+    Extra_Name = "DNP_V2_"
+    # Turned on Momentum Corrections and new smearing functions
+    
+    Extra_Name = "DNP_V3_"
+    # Made more 2D histograms to show kinematic cuts
+    
+    
+    Extra_Name = "Unfolding_Tests_V1_"
+    # Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
+    # Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
+    # Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
+    # Turned off momentum corrections (new ones are in development and will be applied soon)
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -237,7 +268,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     if(output_type == "data" or output_type == "test"):
         ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
     
-    print("".join(["File being made is: ", ROOT_File_Output_Name]))
+    print("".join(["\nFile being made is: \033[1m", ROOT_File_Output_Name, "\033[0m"]))
     
     
     
@@ -270,8 +301,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     
     
-    Mom_Correction_Q = "yes"
-    # Mom_Correction_Q = "no"
+    # Mom_Correction_Q = "yes"
+    Mom_Correction_Q = "no"
 
     if(datatype != 'rdf'):
         Mom_Correction_Q = "no"
@@ -1234,8 +1265,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
             momR *= 2.0;
 
-            // From ∆P(El) Sigma distributions:
-            momR *= 0.08267*V4.P()*V4.P() + (-0.89415)*V4.P() + 3.73819;
+            // // From ∆P(El) Sigma distributions:
+            // momR *= (0.02408)*V4.P()*V4.P() + (-0.25556)*V4.P() + (1.33331);
 
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
@@ -4873,7 +4904,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         int Bin_Res_4D = -1;
 
         if(Q2_xB_Bin_2 == 0 || z_pT_Bin_2 == 0){
-            Bin_Res_4D = -1;
+            Bin_Res_4D = -1; // Might want to change to 0 later...
             return Bin_Res_4D;
         }
         if(Q2_xB_Bin_2 == 1){
@@ -6048,6 +6079,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                     else:
                         DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out = filter_Valerii(DF_Out, Cut_Choice)
+
                     
                 if("EDIS" in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
@@ -6369,30 +6401,30 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
 
-    # Bin Set Option: GRC Poster binning
-    Q2_Binning = ['Q2', 2, 11.351, 5]
-    Q2_Binning_Smeared = ['Q2_smeared', 2, 11.351, 5]
-    # Bin size: 1.8702 per bin
+#     # Bin Set Option: GRC Poster binning
+#     Q2_Binning = ['Q2', 2, 11.351, 5]
+#     Q2_Binning_Smeared = ['Q2_smeared', 2, 11.351, 5]
+#     # Bin size: 1.8702 per bin
     
-    xB_Binning = ['xB', 0.126602, 0.7896, 5]
-    xB_Binning_Smeared = ['xB_smeared', 0.126602, 0.7896, 5]
-    # Bin size: 0.1325996 per bin
+#     xB_Binning = ['xB', 0.126602, 0.7896, 5]
+#     xB_Binning_Smeared = ['xB_smeared', 0.126602, 0.7896, 5]
+#     # Bin size: 0.1325996 per bin
 
-    z_Binning = ['z', 0.15, 0.7, 5]
-    z_Binning_Smeared = ['z_smeared', 0.15, 0.7, 5]
-    # Bin size: 0.11 per bin
+#     z_Binning = ['z', 0.15, 0.7, 5]
+#     z_Binning_Smeared = ['z_smeared', 0.15, 0.7, 5]
+#     # Bin size: 0.11 per bin
     
-    pT_Binning = ['pT', 0.05, 1, 5]
-    pT_Binning_Smeared = ['pT_smeared', 0.05, 1, 5]
-    # Bin size: 0.19 per bin
+#     pT_Binning = ['pT', 0.05, 1, 5]
+#     pT_Binning_Smeared = ['pT_smeared', 0.05, 1, 5]
+#     # Bin size: 0.19 per bin
 
-    y_Binning = ['y', 0, 1, 5]
-    y_Binning_Smeared = ['y_smeared', 0, 1, 5]
-    # Bin size: 0.2 per bin
+#     y_Binning = ['y', 0, 1, 5]
+#     y_Binning_Smeared = ['y_smeared', 0, 1, 5]
+#     # Bin size: 0.2 per bin
     
-    phi_t_Binning = ['phi_t', 0, 360, 36]
-    phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
-    # Bin size: 10 per bin
+#     phi_t_Binning = ['phi_t', 0, 360, 36]
+#     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
+#     # Bin size: 10 per bin
     
     
     
@@ -6468,6 +6500,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
     
     
+    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['y', 0, 1, 200], ['xF', -1, 1, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]]]
+    List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['y_smeared', 0, 1, 200], ['xF_smeared', -1, 1, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]]]
+    
         # # # 2D histograms are turned off with these options
     # List_of_Quantities_2D = []
     # List_of_Quantities_2D_smeared = []
@@ -6497,6 +6532,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     if(run_Mom_Cor_Code == "yes"):
         print("\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)\n")
+    else:
+        print("\nNOT Running Momentum Correction Histograms\n")
     
     
     
@@ -6654,14 +6691,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     # # 'bin_migration' --> shows where events are migrating from
                                     # # 'bin_migration_V3' --> similar to 'bin_migration' option but makes a single 2D plot to show the GEN Bin vs the REC Bin with extra information regarding bins outside the defined range AND regarding the unmatched events
                                     # # 'response_matrix' --> meant to replace the 'bin_migration' options for easier use in the unfolding procedures (uses the same binning schemes as given for the 1D histograms)
+                                    # # 'response_matrix_norm' --> same as 'response_matrix' but does not use bin numbers on either axis (uses the actual kinematic values of the variable instead)
                             elif('miss_idf' in datatype_2):
                                 histo_options = ["normal", "bin_purity", "delta_matched"]
                             elif(datatype_2 == 'rdf' or datatype_2 == 'gdf' or datatype_2 == "mdf"):
                                 # histo_options = ["response_matrix"]
                                 # histo_options = ["normal", "response_matrix"]
                                 # histo_options = ["normal_1D", "response_matrix"]
-                                histo_options = ["normal_2D", "response_matrix"]
+#                                 histo_options = ["normal_2D", "response_matrix"]
+#                                 histo_options = ["response_matrix", "response_matrix_norm"]
                                 # # Only runs normal 2D histograms and the response matrices
+                                histo_options = ["normal_2D", "response_matrix_norm"]
+
                             elif(datatype_2 == "gen"):
                                 histo_options = []
                             else:
@@ -6672,15 +6713,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             if(run_Mom_Cor_Code == "yes" and datatype_2 != 'pdf'):
                                 histo_options.append("Mom_Cor_Code")
                                 
-                                
 
                             for option in histo_options:
                                 
                                 if(option == "Mom_Cor_Code"):
                                     
-                                    if("EDIS" not in cut_choice and "SIDIS" not in cut_choice):
-                                        # Only run these histograms for exclusive event selections (allowing full SIDIS cuts for comparison only)
-                                        continue
+                                    # if("EDIS" not in cut_choice and "SIDIS" not in cut_choice):
+                                    #     # Only run these histograms for exclusive event selections (allowing full SIDIS cuts for comparison only)
+                                    #     continue
                                     
                                     cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, "MM", smearing_Q, datatype_2, cut_choice, "Cut")
                                     
@@ -6695,7 +6735,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     Mom_Cor_Histos_Name_MM_Pip = (''.join(["(Mom_Cor_Histos - Missing Mass Pi+ - ", str(cut_choice), ", '", datatype_2, "', ", "MM" if("smear" not in smearing_Q) else "MM_smeared", ", '", smearing_Q, "')"]))
                                     
                                     Mom_Cor_Histos_Name_DP_Ele = (''.join(["(Mom_Cor_Histos - Delta P El - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
-                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ -" , str(cut_choice), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
+                                    Mom_Cor_Histos_Name_DP_Pip = (''.join(["(Mom_Cor_Histos - Delta P Pi+ - " , str(cut_choice), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
                                     
                                     Mom_Cor_Histos_Name_DP_Ele_Theta = (''.join(["(Mom_Cor_Histos - Delta P El v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", ", '", smearing_Q, "')"]))
                                     Mom_Cor_Histos_Name_DP_Pip_Theta = (''.join(["(Mom_Cor_Histos - Delta P Pi+ v Theta - ", str(cut_choice), ", '", datatype_2, "', ", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", ", '", smearing_Q, "')"]))
@@ -6718,6 +6758,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "Delta_Theta_el_Cors", "Delta_Theta_pip_Cors", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
                                     if("smear" in smearing_Q):
                                         variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors_smeared", "el_smeared", "pip_smeared", "elth_smeared", "pipth_smeared", "elPhi_smeared", "pipPhi_smeared"]
+                                        # variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors_smeared", "el_smeared", "pip_smeared", "elth_smeared", "pipth_smeared", "elPhi_smeared", "pipPhi_smeared", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
                                     
                                     MCH_rdf = DF_Filter_Function_Full(rdf, "", -1, -1, -2, variables_Mom_Cor, smearing_Q, datatype_2, cut_choice, "DF")
                                     
@@ -6727,17 +6768,27 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     ##==========##     Correction Histo Titles     ##==========##
                                     #############################################################
                                     
-                                    Mom_Cor_Histos_Name_MM_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
-                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
+                                    # Mom_Cor_Histos_Name_MM_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    # Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
                                     
-                                    Mom_Cor_Histos_Name_Delta_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
-                                    Mom_Cor_Histos_Name_Delta_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    Mom_Cor_Histos_Name_MM_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; El Sector"])
+                                    Mom_Cor_Histos_Name_MM_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
                                     
-                                    Mom_Cor_Histos_Name_Delta_Ele_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
-                                    Mom_Cor_Histos_Name_Delta_Pip_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    # Mom_Cor_Histos_Name_Delta_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    # Mom_Cor_Histos_Name_Delta_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    Mom_Cor_Histos_Name_Delta_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_Delta_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    # Mom_Cor_Histos_Name_Delta_Ele_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    # Mom_Cor_Histos_Name_Delta_Pip_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                    
+                                    Mom_Cor_Histos_Name_Delta_Ele_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{el}; El Sector"])
+                                    Mom_Cor_Histos_Name_Delta_Pip_Theta_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
                                     
                                     Mom_Cor_Histos_Name_Angle_Ele_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#theta vs #phi Histogram (Electron Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{el};", "(Smeared) " if("smear" in smearing_Q) else " ", "#phi_{el}; El Sector"])
                                     Mom_Cor_Histos_Name_Angle_Pip_Title = "".join(["(Smeared) " if("smear" in smearing_Q) else "", "#theta vs #phi Histogram (#pi^{+} Pion Kinematics/Sectors", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in smearing_Q) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in smearing_Q) else " ", "#phi_{#pi+}; #pi^{+} Sector"])
+                                    
                                     
                                     #############################################################
                                     ##==========##  Correction Histo Titles (End)  ##==========##
@@ -6750,20 +6801,40 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     ##          ##          ##                               ##          ##          ##
                                     ###################################################################################
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Ele, str(Mom_Cor_Histos_Name_MM_Ele_Title), 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, str(Mom_Cor_Histos_Name_MM_Pip_Title), 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Ele, str(Mom_Cor_Histos_Name_MM_Ele_Title), 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, str(Mom_Cor_Histos_Name_MM_Pip_Title), 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Ele, str(Mom_Cor_Histos_Name_MM_Ele_Title), 200, 0, 10, 500, 0, 3.5, 9, -1, 7), "el", "MM" if("smear" not in smearing_Q) else "MM_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_MM_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_MM_Pip, str(Mom_Cor_Histos_Name_MM_Pip_Title), 200, 0, 8, 500, 0, 3.5, 9, -1, 7), "pip", "MM" if("smear" not in smearing_Q) else "MM_smeared", "pipsec")
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
                                     
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
-                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth", "Delta_Pel_Cors" if("smear" not in smearing_Q) else "Delta_Pel_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DP_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth", "Delta_Ppip_Cors" if("smear" not in smearing_Q) else "Delta_Ppip_Cors_smeared", "pipsec")
+                                    
+                                    
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el" if("smear" not in smearing_Q) else "el_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip" if("smear" not in smearing_Q) else "pip_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 10, 500, -3, 3, 9, -1, 7), "el", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 8, 500, -3, 3, 9, -1, 7), "pip", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
+                                    
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    # Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Ele_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "elth", "Delta_Theta_el_Cors" if("smear" not in smearing_Q) else "Delta_Theta_el_Cors_smeared", "esec")
+                                    Mom_Cor_Histos[Mom_Cor_Histos_Name_DTheta_Pip_Theta] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 9, -1, 7), "pipth", "Delta_Theta_pip_Cors" if("smear" not in smearing_Q) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                    
                                     
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Ele] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title), 200, 0, 40, 360, 0, 360, 9, -1, 7), "elth" if("smear" not in smearing_Q) else "elth_smeared", "elPhi" if("smear" not in smearing_Q) else "elPhi_smeared", "esec")
                                     Mom_Cor_Histos[Mom_Cor_Histos_Name_Angle_Pip] = MCH_rdf.Histo3D((Mom_Cor_Histos_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title), 200, 0, 40, 360, 0, 360, 9, -1, 7), "pipth" if("smear" not in smearing_Q) else "pipth_smeared", "pipPhi" if("smear" not in smearing_Q) else "pipPhi_smeared", "pipsec")
@@ -6890,6 +6961,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     ###################################################################################################################################################################
                                     
                                     if((option == "normal_2D" or option == "normal" or option == "has_matched") and datatype_2 != "gen"):
+                                        
+                                        if("EDIS" in cut_choice):
+                                            continue
                                         ##===================================##
                                         ##=====##    Variable Loop    ##=====##
                                         ##===================================##
@@ -7110,6 +7184,76 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                                 histo_for_migration[Migration_Histo_REF].Write()
                                             Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 1
+                                            
+                                            
+                                elif(option == "response_matrix_norm"):
+    
+                                    Res_Binning_2D_Q2_xB = [Q2_xB_Bin_Filter_str, -1.5, (8 + 1.5) if("_2" in Q2_xB_Bin_Filter_str) else (9 + 1.5), 12 if("_2" in Q2_xB_Bin_Filter_str) else 13]
+                                    
+                                    # Res_Var_List = [['Q2', 2, 11.9, 20], ['xB', 0.09, 0.83, 20], ['z', 0.12, 0.75, 20], ['pT', 0, 1.05, 20]]
+                                    Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB]
+                                    
+                                    for Var_List in Res_Var_List:
+                                        
+                                        variable = Var_List[0]
+                                
+                                        if(("smear" in smearing_Q) and ("smear" not in variable)):
+                                            variable = "".join([variable, "_smeared"])
+                                            
+                                        cutname = DF_Filter_Function_Full(rdf, sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "Cut")
+
+                                        if("continue" in cutname):
+                                            continue
+                                            
+                                        Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
+
+                                        
+                                        BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 3)
+                                        Bin_Range = "".join([str(round(Min_range, 3)), " #rightarrow ", str(round(Max_range, 3))])
+                                        
+                                        
+                                        Migration_Title_L1 = "".join(["#scale[1.5]{Response Matrix of ", variable_Title_name(variable), "}"]) if(datatype_2 == "mdf" or datatype_2 == "pdf") else "".join(["#scale[1.5]{", "Experimental" if(datatype_2 == "rdf") else "Generated" if(datatype_2 != "mdf") else "Reconstructed (MC)", " Distribution of ", variable_Title_name(variable), "}"])                                            
+                                        Migration_Title_L2 = "".join(["#scale[1.15]{Cut: ", str(cutname), "}"])
+                                        Migration_Title_L3 = "".join(["#scale[1.35]{Range: ", str(Bin_Range), "}"])
+
+                                        Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable.replace("_smeared", "")), " (GEN); ", variable_Title_name(variable), " (REC)"])
+                                        
+                                        if(datatype_2 != "mdf" and datatype_2 != "pdf"):
+                                            Migration_Title = "".join(["#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " (REC)" if("g" not in datatype_2) else " (GEN)", "; Count"])
+                                            
+
+                                        Migration_Histo_REF = ("Response_Matrix_Normal" if(datatype_2 == "mdf" or datatype_2 == "pdf") else "Response_Matrix_Normal_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
+                                        
+                                        if(datatype_2 == "mdf"):
+                                            Migration_Title_L1_2 = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ", variable_Title_name(variable), "}"])
+                                            Migration_Title_2 = "".join(["#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}; ", variable_Title_name(variable), " (REC); Count"])
+                                            Migration_Histo_REF_2 = ("Response_Matrix_Normal_1D", variable, smearing_Q, cut_choice, sec_type, sec_num, datatype_2)
+
+                                        sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(rdf if("rdf" in datatype_2 or "gdf" in datatype_2) else rdf.Filter("PID_el != 0 && PID_pip != 0"), sec_type, sec_num, -1, -2, variable, smearing_Q, datatype_2, cut_choice, "DF"), variable, Min_range, Max_range, Num_of_Bins, datatype_2)
+                                        
+                                        Variable_Gen = str("".join([str(variable).replace("_smeared", ""), "_gen"]))
+                                        Variable_Rec = str(variable)
+
+                                        
+                                        if(datatype_2 == "mdf" or datatype_2 == "pdf"):
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo2D((str(Migration_Histo_REF), str(Migration_Title), Num_of_Bins, Min_range, Max_range, Num_of_Bins, Min_range, Max_range), str(Variable_Gen), str(Variable_Rec))
+                                            if(datatype_2 == "mdf"):
+                                                histo_for_migration[Migration_Histo_REF_2] = sdf.Histo1D((str(Migration_Histo_REF_2), str(Migration_Title_2), Num_of_Bins, Min_range, Max_range), str(Variable_Rec))                                                
+                                        else:
+                                            histo_for_migration[Migration_Histo_REF] = sdf.Histo1D((str(Migration_Histo_REF), str(Migration_Title), Num_of_Bins, Min_range, Max_range), str(Variable_Rec))
+
+                                            
+                                        if(datatype_2 == "mdf"):
+                                            if(str(file_location) != 'time'):
+                                                histo_for_migration[Migration_Histo_REF].Write()
+                                                histo_for_migration[Migration_Histo_REF_2].Write()
+                                            Print_Progress(count_of_histograms, 2, 200 if(str(file_location) != 'time') else 50)
+                                            count_of_histograms += 2
+                                        else:
+                                            if(str(file_location) != 'time'):
+                                                histo_for_migration[Migration_Histo_REF].Write()
+                                            Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                            count_of_histograms += 1
                                         
 
 
@@ -7215,4 +7359,4 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 9-22-2022
+# This Code was last updated on 9-28-2022

@@ -8,27 +8,84 @@ This list will be updated as items are completed. Items here may not always rela
     - [x] (1) Check Momentum Corrections (comparison between data and MC)
     - [ ] (2) Develop new code to allow for new smearing functions to be created
 - [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
+- [ ] Create a new, more streamlined version of the jupyter code
+
+
 
 
 ---
 
 ## File Updates (by name):
-(These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced)
+(These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced. Sorted from OLDEST to NEWEST)
 
 ### Extra_Name = "Mom_Cor_Response_Matrix_V2_"
 * Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
 
 ### Extra_Name = "Mom_Cor_Response_Matrix_V3_"
 * Needed the Matrices to be square for unfolding
-* Also changed:
+* Also changed :
     * The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
     * The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V4_"
+* Testing new smearing functions (failed to update properly)
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V5_"
+* Modified FX's smearing function for momentum (pol2 function of electron momentum)
+* Changed datatype names so that the Matched MC REC data now runs with mdf
+    * pdf is no specifically used for selecting ONLY matched events
+    * mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
+* Added additional histograms for correction/smearing functions
+* Removed unnecessary options including:
+    1) option = bin_2D_purity
+    2) option = counts
+    3) option = bin_migration_V2
+    4) option = bin_migration_V4
+* Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
+* Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
+    * Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
+* Removed cut option: cut_Complete
+    * This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
+* Added phi_t Binning to response matrices
+
+### Extra_Name = "DNP_"
+* Turned off Momentum Corrections and new smearing functions
+* Only making response matrices
+
+### Extra_Name = "DNP_V2_"
+* Turned on Momentum Corrections and new smearing functions
+
+### Extra_Name = "DNP_V3_"
+* Made more 2D histograms to show kinematic cuts
+
+
+### Extra_Name = "Unfolding_Tests_V1_"
+* Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
+* Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
+* Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
+* Turned off momentum corrections (new ones are in development and will be applied soon)
+
+
+
 
 
 
 
 
 ## Other Commit Updates:
+
+### Update on 11-14-2022:
+* Moved all code to the work directory due to corrupted git file
+* Added the .gitignore file
+* Will be reworking the Jupyter notebook (cleaner version will be "SIDIS_rga_richcap_python_new.ipynb")
+
+
+
+### Update on 11-3-2022:
+* Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
+* Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
+* Code created AFTER the DNP/CLAS Collaboration meeting(s) will have the name: "Unfolding_Tests_V#_"
+
 
 ### Update on 9-22-2022:
 * Updated to Extra_Name = "Mom_Cor_Response_Matrix_V5_"

@@ -1,0 +1,13 @@
+*.hipo.root
+*.ipynb_checkpoints/
+*0.root
+*1.root
+*2.root
+*3.root
+*4.root
+*5.root
+*6.root
+*7.root
+*8.root
+*9.root
+Data_Files_Groovy/GEN_MC/Outdated_SIDIS_epip_TTree_Batch_MC_GEN.sh
