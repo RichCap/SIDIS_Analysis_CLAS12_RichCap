@@ -5,6 +5,13 @@ Some items here may also be thought of as a long-term/non-essential, to-do list.
 
 ## Potential Ideas
 These ideas may or may not be implemented later (put here as a reminder to think about later)
+- [ ] Rework the Jupyter notebook/python code with the following ideas:
+    - [ ] Streamline remaining naming convensions
+        * Momentum Correction/Smearing histograms already do this - apply to normal histograms and all response matrices
+    - [ ] Remove the old 2D binning schemes as the default
+    - [ ] Rewrite variable calculations so that a simpler method of writing the unsmeared/smeared variables is possible
+        * Will reduce repetitiveness in code
+    - [ ] Will be making these updates in a new python file called "makeROOT_epip_SIDIS_histos_new.py" (must update other files to interact with this version of the code)
 - [ ] Create interactive webpage to plot each 1D phi_t plot in each Q2-xB-z-PT bin
     * Purpose: see the distribution in each bin to check if new binning definitions will be required
     * Will need the following:
