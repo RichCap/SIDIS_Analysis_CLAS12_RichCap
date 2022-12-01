@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Matching_Unfolding_Tests_V1_SIDIS_histo_11_3_2022
+#SBATCH --job-name=MC_Matching_Unfolding_Tests_V4_SIDIS_histo_11_30_2022
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
@@ -19,4 +19,5 @@ FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidi
 # # Above is for (mdf/pdf) #SBATCH --array=0-219
 
 
-srun python /lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos.py mdf ${FILES[$SLURM_ARRAY_TASK_ID]}
+# srun python /lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos.py mdf ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf ${FILES[$SLURM_ARRAY_TASK_ID]}

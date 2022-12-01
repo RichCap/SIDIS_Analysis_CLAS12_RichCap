@@ -8,7 +8,10 @@ This list will be updated as items are completed. Items here may not always rela
     - [x] (1) Check Momentum Corrections (comparison between data and MC)
     - [ ] (2) Develop new code to allow for new smearing functions to be created
 - [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
-- [ ] Create a new, more streamlined version of the jupyter code
+- [x] Create a new, more streamlined version of the jupyter code (Done as of 12-1-2022)
+- [ ] Test new binning schemes for all variables:
+    - [ ] Larger phi_t bins (i.e., use fewer bins)
+    - [ ] More 'square' Q2-xB bins (make each bin smaller for more bins in total)
 
 
 
@@ -16,7 +19,7 @@ This list will be updated as items are completed. Items here may not always rela
 ---
 
 ## File Updates (by name):
-(These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced. Sorted from OLDEST to NEWEST)
+These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced. Sorted from OLDEST to NEWEST.
 
 ### Extra_Name = "Mom_Cor_Response_Matrix_V2_"
 * Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
@@ -65,6 +68,21 @@ This list will be updated as items are completed. Items here may not always rela
 * Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
 * Turned off momentum corrections (new ones are in development and will be applied soon)
 
+### Extra_Name = "Unfolding_Tests_V2_"
+* Major rework and new momentum corrections (not being run at this time)
+* Will plot Response Matrices in separate Q2-xB bins
+
+
+### Extra_Name = "Unfolding_Tests_V3_"
+* Same as V2 but needed to change the naming convensions again to remove ";" and ":" (replaced with ")," and "=" instead)
+    * Binning now grouped with "[]" instead of "()"
+
+### Extra_Name = "Unfolding_Tests_V4_"
+* Replaced (some of) the sector information in the 'Mom_Cor_Code' histograms with theta bins (4˚ per bin)
+* Fixed some issues with the Q2-xB bins being skipped (response matrices and 'Normal' histograms)
+* Skipping 'Normal_1D' histogram options (unnecessary when running the response matrix code)
+* Fixed some binning options (too many bins with the multidimensional bin variables and rounded the 1D variable boundries to have less digits)
+
 
 
 
@@ -73,6 +91,11 @@ This list will be updated as items are completed. Items here may not always rela
 
 
 ## Other Commit Updates:
+
+### Update on 12-1-2022:
+* Made major revisions to the jupyter notebook and python code within the new files called "Analysis_Notebook_SIDIS_richcap.ipynb" and "makeROOT_epip_SIDIS_histos_new.py"
+    * This update is in effect as of the file for: Extra_Name = "Unfolding_Tests_V2_"
+    * The new code uses different naming schemes to save the histograms
 
 ### Update on 11-14-2022:
 * Moved all code to the work directory due to corrupted git file
