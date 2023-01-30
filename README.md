@@ -7,7 +7,11 @@ This list will be updated as items are completed. Items here may not always rela
 - [ ] Add Code used for Momentum Corrections to do the following things:
     - [x] (1) Check Momentum Corrections (comparison between data and MC)
     - [ ] (2) Develop new code to allow for new smearing functions to be created
+        * [ ] Allow for multiple smearing functions to compare between mine and FX's
+        * [ ] Make the function dependent on which particle is being smeared (do not assume that they would be identical anymore)
+        * [ ] Make as a function of momentum and theta
 - [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
+    * [ ] New jupyter format needs to be updated to save images (feature not yet added)
 - [x] Create a new, more streamlined version of the jupyter code (Done as of 12-1-2022)
 - [ ] Test new binning schemes for all variables:
     - [ ] Larger phi_t bins (i.e., use fewer bins)
@@ -20,47 +24,6 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## File Updates (by name):
 These note correspond to updates made between the outputs of the python code. When the output of the python code changes, the updates will be noted here with the name of the file produced. Sorted from OLDEST to NEWEST.
-
-### Extra_Name = "Mom_Cor_Response_Matrix_V2_"
-* Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
-
-### Extra_Name = "Mom_Cor_Response_Matrix_V3_"
-* Needed the Matrices to be square for unfolding
-* Also changed :
-    * The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
-    * The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
-
-### Extra_Name = "Mom_Cor_Response_Matrix_V4_"
-* Testing new smearing functions (failed to update properly)
-
-### Extra_Name = "Mom_Cor_Response_Matrix_V5_"
-* Modified FX's smearing function for momentum (pol2 function of electron momentum)
-* Changed datatype names so that the Matched MC REC data now runs with mdf
-    * pdf is no specifically used for selecting ONLY matched events
-    * mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
-* Added additional histograms for correction/smearing functions
-* Removed unnecessary options including:
-    1) option = bin_2D_purity
-    2) option = counts
-    3) option = bin_migration_V2
-    4) option = bin_migration_V4
-* Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
-* Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
-    * Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
-* Removed cut option: cut_Complete
-    * This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
-* Added phi_t Binning to response matrices
-
-### Extra_Name = "DNP_"
-* Turned off Momentum Corrections and new smearing functions
-* Only making response matrices
-
-### Extra_Name = "DNP_V2_"
-* Turned on Momentum Corrections and new smearing functions
-
-### Extra_Name = "DNP_V3_"
-* Made more 2D histograms to show kinematic cuts
-
 
 ### Extra_Name = "Unfolding_Tests_V1_"
 * Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
@@ -84,6 +47,24 @@ These note correspond to updates made between the outputs of the python code. Wh
 * Fixed some binning options (too many bins with the multidimensional bin variables and rounded the 1D variable boundries to have less digits)
 
 
+### Extra_Name = "Unfolding_Tests_V5_"
+* Deleted unused functions including:
+    * "bin_purity_save_fuction"
+    * "bin_purity_save_filter_fuction"
+* Replaced (name of) "bin_purity_save_fuction_New" with "Bin_Number_Variable_Function"
+    * Works the same, but the name is more meaningful (and updated) now
+* Replaced (name of) "bin_purity_filter_fuction" with "Bin_Purity_Filter_Fuction"
+    * Same function, just with a very minor change of name to be easier to read in code
+* Made new function called: "Multi_Dimensional_Bin_Construction"
+    * Will combine any list of variables into a linearized 1D binning scheme
+    * Plan to test in "MC_DataFrame_Volume_Calculation.ipynb" (?) --> Not tested yet (as of this update)
+* Using all Q2-xB bin options (-1 to 8)
+* Added additional dimension to the "Response_Matrix" histogram options (now includes a dimension for z-pT bins)
+* Made the "Normal_2D" histograms use the same number of bins as all of the 1D histograms used (same as the Response_Matrix options)
+    
+
+
+
 
 
 
@@ -97,11 +78,11 @@ These note correspond to updates made between the outputs of the python code. Wh
     * This update is in effect as of the file for: Extra_Name = "Unfolding_Tests_V2_"
     * The new code uses different naming schemes to save the histograms
 
+
 ### Update on 11-14-2022:
 * Moved all code to the work directory due to corrupted git file
 * Added the .gitignore file
 * Will be reworking the Jupyter notebook (cleaner version will be "SIDIS_rga_richcap_python_new.ipynb")
-
 
 
 ### Update on 11-3-2022:
@@ -278,6 +259,66 @@ Note on this commit: Data files used for this analysis have been lost. Must reco
 
 ### Update on 7-18-2022:
 * Updated file names in python code (Extra_Name = "Bin_Test_20_" - for output file name)
+
+
+
+
+
+
+
+---
+
+
+
+## Older File Updates (by name):
+These updates were removed from the python code and were moved down here as opposed to the more recent updates decribed in the 'File Updates (by name)' section. These updates have been re-ordered so that the more recent notes come first
+
+### Extra_Name = "DNP_V3_"
+* Made more 2D histograms to show kinematic cuts
+
+### Extra_Name = "DNP_V2_"
+* Turned on Momentum Corrections and new smearing functions
+
+### Extra_Name = "DNP_"
+* Turned off Momentum Corrections and new smearing functions
+* Only making response matrices
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V5_"
+* Modified FX's smearing function for momentum (pol2 function of electron momentum)
+* Changed datatype names so that the Matched MC REC data now runs with mdf
+    * pdf is no specifically used for selecting ONLY matched events
+    * mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
+* Added additional histograms for correction/smearing functions
+* Removed unnecessary options including:
+    1) option = bin_2D_purity
+    2) option = counts
+    3) option = bin_migration_V2
+    4) option = bin_migration_V4
+* Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
+* Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
+    * Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
+* Removed cut option: cut_Complete
+    * This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
+* Added phi_t Binning to response matrices
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V4_"
+* Testing new smearing functions (failed to update properly)
+
+### Extra_Name = "Mom_Cor_Response_Matrix_V3_"
+* Needed the Matrices to be square for unfolding
+* Also changed :
+    * The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
+    * The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
+    
+### Extra_Name = "Mom_Cor_Response_Matrix_V2_"
+* Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
+
+
+
+
+
+
+
 
 
 

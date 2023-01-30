@@ -89,20 +89,21 @@ import ROOT, numpy
 import array
 from datetime import datetime
 import copy
+import traceback
 
 
 class color:
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
+    PURPLE    = '\033[95m'
+    CYAN      = '\033[96m'
+    DARKCYAN  = '\033[36m'
+    BLUE      = '\033[94m'
+    GREEN     = '\033[92m'
+    YELLOW    = '\033[93m'
+    RED       = '\033[91m'
+    BOLD      = '\033[1m'
     UNDERLINE = '\033[4m'
-    DELTA = '\u0394' # symbol
-    END = '\033[0m'
+    DELTA     = '\u0394' # symbol
+    END       = '\033[0m'
 
 
 
@@ -112,7 +113,7 @@ if(str(file_location) == 'time'):
     print("\nRunning Count. Not saving results...\n")
     
 
-if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'pdf'):
+if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     file_num = str(file_location)
 
@@ -221,69 +222,91 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     ROOT_File_Output_Name = "Data_REC"
     
-    Extra_Name = "Mom_Cor_Response_Matrix_V2_"
-    # Removed everything except the the "Response Matrix" and "Momentum Correction" histograms from 'Mom_Cor_Response_Matrix_V2'
+    # Extra_Name = "Unfolding_Tests_V1_"
+    # # Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
+    # # Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
+    # # Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
+    # # Turned off momentum corrections (new ones are in development and will be applied soon)
     
-    Extra_Name = "Mom_Cor_Response_Matrix_V3_"
-    # Needed the Matrices to be square for unfolding
-        # Also changed :
-        # (*) The reconstructed MC files do not produce 1D histograms anymore (only produce the ∆P histograms and the 2D Response Matrices)
-        # (*) The ∆P histograms will now note (in the title) whether or not the momentums were being corrected when run (only affects the experimental files)
+    
+    # Extra_Name = "Unfolding_Tests_V2_"
+    # # Major rework and new momentum corrections (not being run at this time)
+    # # Will plot Response Matrices in separate Q2-xB bins
+    
+    
+    # Extra_Name = "Unfolding_Tests_V3_"
+    # # Same as V2 but needed to change the naming convensions again to remove ";" and ":" (replaced with ")," and "=" instead)
+    #     # Binning now grouped with "[]" instead of "()"
         
-    Extra_Name = "Mom_Cor_Response_Matrix_V4_"
-    # Testing new smearing functions (failed to update properly)
+    # Extra_Name = "Unfolding_Tests_V4_"
+    # # Replaced (some of) the sector information in the 'Mom_Cor_Code' histograms with theta bins (4˚ per bin)
+    # # Fixed some issues with the Q2-xB bins being skipped (response matrices and 'Normal' histograms)
+    # # Skipping 'Normal_1D' histogram options (unnecessary when running the response matrix code)
+    # # Fixed some binning options (too many bins with the multidimensional bin variables and rounded the 1D variable boundries to have less digits)
     
-    Extra_Name = "Mom_Cor_Response_Matrix_V5_"
-    # Modified FX's smearing function for momentum (pol2 function of electron momentum)
-    # Changed datatype names so that the Matched MC REC data now runs with mdf
-        # pdf is no specifically used for selecting ONLY matched events
-        # mdf does not run the option for gen histograms (i.e., matched generated events) --> pdf option still runs these options
-    # Added additional histograms for correction/smearing functions
-    # Removed unnecessary options including:
-      # 1) option = bin_2D_purity
-      # 2) option = counts
-      # 3) option = bin_migration_V2
-      # 4) option = bin_migration_V4
-    # Added option to run regular 2D histograms separately from regular 1D histograms (options "normal_1D" and "normal_2D")
-    # Correction/Smearing Histograms (i.e., option == "Mom_Cor_Code") now requires either fully exclusive events or full SIDIS cuts (requirment for cuts)
-        # Calculations are designed only for exclusive reactions, but SIDIS reactions are allowed here for comparison purposes
-    # Removed cut option: cut_Complete
-        # This option is missing final cuts to make the event selection either exclusive or propperly semi-inclusive. Not worth running at this time
-    # Added phi_t Binning to response matrices
-    
-    
-    Extra_Name = "DNP_"
-    # Turned off Momentum Corrections and new smearing functions
-    # Only making response matrices
-    
-    Extra_Name = "DNP_V2_"
-    # Turned on Momentum Corrections and new smearing functions
-    
-    Extra_Name = "DNP_V3_"
-    # Made more 2D histograms to show kinematic cuts
+    Extra_Name = "Unfolding_Tests_V5_"
+    # Deleted unused functions including:
+        # "bin_purity_save_fuction"
+        # "bin_purity_save_filter_fuction"
+    # Replaced (name of) "bin_purity_save_fuction_New" with "Bin_Number_Variable_Function"
+        # Works the same, but the name is more meaningful (and updated) now
+    # Replaced (name of) "bin_purity_filter_fuction" with "Bin_Purity_Filter_Fuction"
+        # Same function, just with a very minor change of name to be easier to read in code
+    # Made new function called: "Multi_Dimensional_Bin_Construction"
+        # Will combine any list of variables into a linearized 1D binning scheme
+        # Plan to test in "MC_DataFrame_Volume_Calculation.ipynb" (?) --> Not tested yet (as of this update)
+    # Using all Q2-xB bin options (-1 to 8)
+    # Added additional dimension to the "Response_Matrix" histogram options (now includes a dimension for z-pT bins)
+    # Made the "Normal_2D" histograms use the same number of bins as all of the 1D histograms used (same as the Response_Matrix options)
     
     
-    Extra_Name = "Unfolding_Tests_V1_"
-    # Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
-    # Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
-    # Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
-    # Turned off momentum corrections (new ones are in development and will be applied soon)
+    Extra_Name = "Unfolding_Tests_V6_"
+    # Y-axis in Response Matrices needed to be renamed from "Count" to "z-P_{T} Bins" (due to the additional dimension added to these histograms)
+    # (Temporarily) Reduced number of histograms being made:
+        # Stopped running Mom_Cor_Code
+        # Fewer Variables being plotted (only the 2D histograms for binning, and the 1D/unfolded phi_t/Q2 histograms are being run)
+        # Removed EDIS cuts from list
+        # Only running 'Response_Matrix_Normal' option (for now)
+            # Removed 'Response_Matrix' to reduce run-time
+    # Added 'gen' to 'mdf' run options (only plots the Normal_2D histograms)
+    # Added run-time estimate to end of code (does not affect the files produced)
     
     
-    Extra_Name = "Unfolding_Tests_V2_"
-    # Major rework and new momentum corrections (not being run at this time)
-    # Will plot Response Matrices in separate Q2-xB bins
+    
+    Extra_Name = "Unfolding_Tests_V7_"
+    # Changed the number of phi_t bins (now 15˚ per bin instead of 10˚ per bin)
+    # Added the following histograms back:
+        # Running Mom_Cor_Code again (with momentum corrections)
+        # More Variables being plotted 
+            # Same number of 2D histograms as in V6 but now the electron and pion kinematics are also being run (in addition to the 1D/unfolded phi_t/Q2 histograms that were already in V6)
+        # Added EDIS cuts back
+        # Still removed 'Response_Matrix' to reduce run-time (only running 'Response_Matrix_Normal')
+    # Ran for all data sets (V6 was only done for 'mdf')
     
     
-    Extra_Name = "Unfolding_Tests_V3_"
-    # Same as V2 but needed to change the naming convensions again to remove ";" and ":" (replaced with ")," and "=" instead)
-        # Binning now grouped with "[]" instead of "()"
+    Extra_Name = "Unfolding_Tests_V8_"
+    # New (Modified) Smearing Functions (Particle-dependant)
+        # Smeared the momentum as a function of theta
         
-    Extra_Name = "Unfolding_Tests_V4_"
-    # Replaced (some of) the sector information in the 'Mom_Cor_Code' histograms with theta bins (4˚ per bin)
-    # Fixed some issues with the Q2-xB bins being skipped (response matrices and 'Normal' histograms)
-    # Skipping 'Normal_1D' histogram options (unnecessary when running the response matrix code)
-    # Fixed some binning options (too many bins with the multidimensional bin variables and rounded the 1D variable boundries to have less digits)
+        
+    Extra_Name = "Unfolding_Tests_V9_"
+    # New (Modified) Smearing Functions (Particle-dependant)
+        # Modified the momentum smearing (As a function of theta/momentum - not both - choose to smear based on which variable provided the easiest fit to get the smearing factor)
+        # New Theta smearing as a function of momentum
+        
+        
+    Extra_Name = "Unfolding_Tests_V10_"
+    # New (Modified) Smearing Functions (Particle-dependant)
+    # Reduced number of plots made (for faster runtime)
+    
+    Extra_Name = "Unfolding_Tests_V11_"
+    # New (Modified) Smearing Functions (Particle-dependant)
+    # Increased number of plots made (relative to last version)
+    
+    
+    Extra_Name = "Unfolding_Tests_V12_"
+    # Extended the 2D plots and added more to show the phase space of the data
+    # Modified the Pi+ Theta smearing function (as function of momentum)
     
     
     
@@ -572,9 +595,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
 
     if(Mom_Correction_Q != "yes"):
-        print("\nNot running with Momentum Corrections\n")
+        print("".join([color.BOLD, color.BLUE, "\nNot running with Momentum Corrections\n", color.END]))
     else:
-        print("\nRunning with Momentum Corrections\n")
+        print("".join([color.BOLD, color.BLUE, "\nRunning with Momentum Corrections\n", color.END]))
         
 
         
@@ -1359,6 +1382,77 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     """
     
     
+    smearing_function = """
+        //===========================================================================//
+        //=================//     Modified Smearing Function      //=================//
+        //===========================================================================//
+        auto smear_func = [&](TLorentzVector V4, int ivec){
+            // True generated values (i.e., values of the unsmeared TLorentzVector)
+            double inM = V4.M();
+            double smeared_P  = V4.P();
+            double smeared_Th = V4.Theta();
+            double smeared_Phi = V4.Phi();
+            TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
+            // Calculate resolutions
+            double smeared_ThD = TMath::RadToDeg()*smeared_Th;
+            double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
+            double momS2 = 0.02*smeared_ThD;
+            double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
+            momR *= 2.0;
+            if(ivec == 0){
+                // From ∆P(Electron) Sigma distributions:
+                momR *= (-1.0429e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.3654e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0663e+00);
+                momR *= (-8.4052e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (9.8234e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0144e+00);
+                momR *= (1.5861e-02)*(V4.P())*(V4.P()) + (-1.5747e-01)*(V4.P()) + (1.3121e+00);
+            }
+            if(ivec == 1){
+                // From ∆P(Pi+ Pion) Sigma distributions:
+                momR *= (-1.1676e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (4.3908e-02)*(V4.Theta()*TMath::RadToDeg()) + (4.3709e-01);
+                momR *= (-2.3121e-02)*(V4.P())*(V4.P()) + (5.6810e-02)*(V4.P()) + (8.7293e-01);
+                momR *= (-2.5476e-02)*(V4.P())*(V4.P()) + (7.6973e-02)*(V4.P()) + (8.6465e-01);
+                momR *= (-2.6101e-02)*(V4.P())*(V4.P()) + (1.1440e-01)*(V4.P()) + (7.8815e-01);
+            }
+            double theS1 = 0.004*smeared_ThD + 0.1;
+            double theS2 = 0;
+            double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
+            theR *= 2.5;
+            if(ivec == 0){
+                // From ∆Theta(Electron) Sigma distributions (Function of Momentum):
+                theR *= (-7.9405e-02)*(V4.P())*(V4.P()) + (9.3003e-01)*(V4.P()) + (-1.4985e+00);
+                // From ∆Theta(Electron) Sigma distributions (Function of Theta):
+                theR *= (-1.5170e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (5.1704e-02)*(V4.Theta()*TMath::RadToDeg()) + (7.9883e-01);
+                // From ∆Theta(Electron) Sigma distributions (Function of Momentum):
+                theR *= (-9.9576e-02)*(V4.P())*(V4.P()) + (1.1164e+00)*(V4.P()) + (-1.7216e+00);
+            }
+            if(ivec == 1){
+                // From ∆Theta(Pi+ Pion) Sigma distributions (Function of Momentum):
+                theR *= (-2.2858e-02)*(V4.P())*(V4.P()) + (2.3043e-01)*(V4.P()) + (5.7916e-01);                
+                // From ∆Theta(Pi+ Pion) Sigma distributions (Function of Theta):
+                theR *= (-1.5395e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (7.6614e-02)*(V4.Theta()*TMath::RadToDeg()) + (2.3594e-01);
+                // From ∆Theta(Pi+ Pion) Sigma distributions (Function of Momentum):
+                theR *= (-4.8283e-03)*(V4.P())*(V4.P()) + (1.6123e-01)*(V4.P()) + (7.6315e-01);
+                // From ∆Theta(Pi+ Pion) Sigma distributions (Function of Momentum):
+                theR *= (1.9715e-02)*(V4.P())*(V4.P()) + (-4.9812e-02)*(V4.P()) + (1.2059e+00);
+            }   
+
+            double phiS1 = 0.85 - 0.015*smeared_ThD;
+            double phiS2 = 0.17 - 0.003*smeared_ThD;
+            double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
+            phiR *= 3.5;
+
+            // overwrite EB (i.e., applying the smear)
+            smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
+            smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
+            smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
+            V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
+            V4_new.SetRho( smeared_P );
+            V4_new.SetTheta( smeared_Th );
+            V4_new.SetPhi( smeared_Phi );
+            return V4_new;
+        };
+    """
+    
+    
     
     ##===============================================================================================================##
     ##---------------------------------##=========================================##---------------------------------##
@@ -1390,14 +1484,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         //=================//     Smearing PxPyPzMVector's     //=================//
         //========================================================================//
 
-        // smear_func(beam) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
-        // smear_func(targ) //===// DO NOT SMEAR BEAM/TARGET -- ONLY SMEAR OUTGOING PARTICLES //===//
 
-
-        TLorentzVector ele_smeared = smear_func(ele);
-
-
-        TLorentzVector pip0_smeared = smear_func(pip0);
+        TLorentzVector ele_smeared  = smear_func(ele""", (");"  if("ivec" not in str(smearing_function)) else ", 0);"), """
+        TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
 
 
         //=========================================================================//
@@ -2771,8 +2860,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
 
-            TLorentzVector ele_smeared = smear_func(ele);
-            TLorentzVector pip0_smeared = smear_func(pip0);
+            TLorentzVector ele_smeared  = smear_func(ele""", (");"  if("ivec" not in str(smearing_function)) else ", 0);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -2809,8 +2898,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
 
-            TLorentzVector ele_smeared = smear_func(ele);
-            TLorentzVector pip0_smeared = smear_func(pip0);
+            TLorentzVector ele_smeared  = smear_func(ele""", (");"  if("ivec" not in str(smearing_function)) else ", 0);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -2868,8 +2957,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
 
-            TLorentzVector ele_smeared = smear_func(ele);
-            TLorentzVector pip0_smeared = smear_func(pip0);
+            TLorentzVector ele_smeared  = smear_func(ele""", (");"  if("ivec" not in str(smearing_function)) else ", 0);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -2908,8 +2997,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
 
-            TLorentzVector ele_smeared = smear_func(ele);
-            TLorentzVector pip0_smeared = smear_func(pip0);
+            TLorentzVector ele_smeared  = smear_func(ele""", (");"  if("ivec" not in str(smearing_function)) else ", 0);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -3060,10 +3149,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         TLorentzVector eleS(ex, ey, ez, ele.E());
         TLorentzVector pipS(pipx, pipy, pipz, pip0.E());
         
-        TLorentzVector ele_smeared = smear_func(eleS);
-        TLorentzVector pip_smeared = smear_func(pipS);
+        TLorentzVector ele_smeared = smear_func(eleS""", (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
+        TLorentzVector pip_smeared = smear_func(pipS""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
         
-        ele = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), 0);
+        ele  = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), 0);
         pip0 = ROOT::Math::PxPyPzMVector(pip_smeared.X(), pip_smeared.Y(), pip_smeared.Z(), 0.13957);
         
         """ if("smear" in Smear_Q) else "", """
@@ -4953,6 +5042,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(Q2_xB_Bin_2 == 0 || z_pT_Bin_2 == 0){
             Bin_Res_4D = -1; // Might want to change to 0 later...
             return Bin_Res_4D;
+            // Events outside of either binning scheme is automatically given a Bin_Res_4D bin value of -1
+            // No spaces are given between bins
         }
         if(Q2_xB_Bin_2 == 1){
             add_to_bin = 0;
@@ -5041,6 +5132,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         if(Q2_xB_Bin == 0 || z_pT_Bin == 0){
             Bin_Res_4D_OG = -1;
             return Bin_Res_4D_OG;
+            // Events outside of either binning scheme is automatically given a Bin_Res_4D bin value of -1
+            // No spaces are given between bins
         }
         if(Q2_xB_Bin == 1){
             add_to_bin = 0;
@@ -5126,6 +5219,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             if(Q2_xB_Bin_2_smeared == 0 || z_pT_Bin_2_smeared == 0){
                 Bin_Res_4D_smeared = -1;
                 return Bin_Res_4D_smeared;
+                // Events outside of either binning scheme is automatically given a Bin_Res_4D_smeared bin value of -1
+                // No spaces are given between bins
             }
             if(Q2_xB_Bin_2_smeared == 1){
                 add_to_bin = 0;
@@ -5209,6 +5304,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             if(Q2_xB_Bin_smeared == 0 || z_pT_Bin_smeared == 0){
                 Bin_Res_4D_OG_smeared = -1;
                 return Bin_Res_4D_OG_smeared;
+                // Events outside of either binning scheme is automatically given a Bin_Res_4D_OG_smeared bin value of -1
+                // No spaces are given between bins
             }
             if(Q2_xB_Bin_smeared == 1){
                 add_to_bin = 0;
@@ -5495,7 +5592,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     return Bin_5D_OG;
     """)
     
-    if(datatype == "mdf" or datatype == "pdf"):
+    if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define('Bin_5D_smeared', """
         int phi_t_bin_smeared = (smeared_vals[11]/10) + 1;
         auto Bin_5D_smeared = Bin_4D_smeared + phi_t_bin_smeared;
@@ -5544,7 +5641,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     #####################      Matched Bin Definitions      #####################
 
 
-    def bin_purity_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins):
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
+    
+    
+    def Bin_Purity_Filter_Fuction(dataframe, variable, min_range, max_range, number_of_bins):
 
         gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
 
@@ -5583,68 +5684,39 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
 
         return dataframe.Filter(str(filter_name))
-
-
-
-
-    def bin_purity_save_fuction(dataframe, variable, min_range, max_range, number_of_bins):
-
-        variable = variable.replace("_gen", "")
-
-        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-
-        out_put_DF = dataframe
-
-
-        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
-            # Already defined
-            return dataframe
-
-        else:
-
-            bin_size = (max_range - min_range)/number_of_bins
-
-
-            rec_bin = "".join(["(", str(variable), " - ", str(min_range), ")/", str(bin_size)])
-
-            gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
-
-            out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
-            out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
-
-
-        return out_put_DF
-
-
-
-    def bin_purity_save_fuction_New(dataframe, variable, min_range, max_range, number_of_bins, DFrame):
+    
+    
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
+    
+    def Bin_Number_Variable_Function(DF, Variable, min_range, max_range, number_of_bins, DF_Type=datatype):
         
-        if(dataframe == "continue"):
-            return "continue"
-
-        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-
-        out_put_DF = dataframe
-
-
-        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
+        # if("Q2_xB_Bin" in Variable or "z_pT_Bin" in Variable or "sec" in Variable or "Bin_4D" in Variable or "Bin_5D" in Variable):
+        #     # Already defined
+        #     return DF
+        
+        if((("Bin" in Variable) or ("sec" in Variable)) or (DF == "continue")):
             # Already defined
-            return dataframe
-
+            return DF
+        
         else:
+            
+            GEN_Variable = "".join([Variable.replace("_smeared", ""), "_gen"])
+
+            out_put_DF = DF
 
             bin_size = (max_range - min_range)/number_of_bins
 
             rec_bin = "".join(["""
 
-            int rec_bin = ((""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
+            int rec_bin = ((""", str(Variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
 
-            if(""", str(variable), """ < """, str(min_range), """){
+            if(""", str(Variable), """ < """, str(min_range), """){
                 // Below binning range
                 rec_bin = 0;
             }
 
-            if(""", str(variable), """ > """, str(max_range), """){
+            if(""", str(Variable), """ > """, str(max_range), """){
                 // Above binning range
                 rec_bin = """, str(number_of_bins + 1), """;
             }
@@ -5656,14 +5728,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
             gen_bin = "".join(["""
 
-            int gen_bin = ((""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
+            int gen_bin = ((""", str(GEN_Variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
 
-            if(""", str(gen_variable), """ < """, str(min_range), """){
+            if(""", str(GEN_Variable), """ < """, str(min_range), """){
                 // Below binning range
                 gen_bin = 0;
             }
 
-            if(""", str(gen_variable), """ > """, str(max_range), """){
+            if(""", str(GEN_Variable), """ > """, str(max_range), """){
                 // Above binning range
                 gen_bin = """, str(number_of_bins + 1), """;
             }
@@ -5677,51 +5749,140 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
             """])
 
-            out_put_DF = out_put_DF.Define("".join([str(variable), "_REC_BIN"]), rec_bin)
-            if(DFrame != "rdf" and DFrame != "gdf"):
-                out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
+            out_put_DF = out_put_DF.Define("".join([str(Variable), "_REC_BIN"]), rec_bin)
+            if(DF_Type not in ["rdf", "gdf"]):
+                out_put_DF = out_put_DF.Define("".join([str(Variable), "_GEN_BIN"]), gen_bin)
 
 
         return out_put_DF
 
 
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
 
-    def bin_purity_save_filter_fuction(dataframe, variable, min_range, max_range, number_of_bins, REC_BIN_FILTER):
+    def Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine, Data_Type=datatype, Smearing_Q=""):
+        # Try to test later in the randomly generated rdataframe (see 'MC_DataFrame_Volume_Calculation.ipynb')
+        try:
+            if(DF == "continue"):
+                return "continue"
+            if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
+                print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
+                return DF
+            else:
+               
+                try:
+                    variable_name_1, Min_Bin_1, Max_Bin_1, Num_Bin_1 = Variables_To_Combine[0]
+                    Bin_Size_1 = (Max_Bin_1 - Min_Bin_1)/Num_Bin_1
+                    Bin_Group_Numbers = Num_Bin_1
+                    
+                    # Combined_Bin_All = "".join(["""
+                    # int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+                    # if(""", str(variable_name_1), """ < """, str(Min_Bin_1), """){
+                    #     // Below binning range
+                    #     Combined_Bin_Start = 0;
+                    # }
+                    # if(""", str(variable_name_1), """ > """, str(Max_Bin_1), """){
+                    #     // Above binning range
+                    #     Combined_Bin_Start = """, str(Num_Bin_1 + 1), """;
+                    # }
+                    # """])
+                    
+                    Combined_Bin_All = "".join(["""
+                    
+                    int Combined_Bin_Final = 0;
+                    
+                    int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
 
-        variable = variable.replace("_gen", "")
+                    if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
+                        // Outside binning range (will only combine events which are within all given binning schemes)
+                        Combined_Bin_Final = -1;
+                        return Combined_Bin_Final;
+                    }
+                    
+                    Combined_Bin_Final = Combined_Bin_Start;
+                    
+                    """])
+                    
+                except:
+                    print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in retriving base variable for new multidimensional bin variable.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+                    
+                try:
+                    if(Smearing_Q != ""):
+                        DF_Final = smear_frame_compatible(DF, variable_name_1, Smearing_Q)
+                    else:
+                        DF_Final = DF
+                except:
+                    print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+                
+                
+                Combined_Bin_Title = "".join(["Combined_", str(variable_name_1)])
+                
+                
+                for variable_binning in Variables_To_Combine:
+                    if(variable_name_1 == variable_binning[0]):
+                        # Skip first variable in list
+                        continue
+                        
+                    try:
+                        if(Smearing_Q != ""):
+                            DF_Final = smear_frame_compatible(DF_Final, variable_binning[0], Smearing_Q)
+                    except:
+                        print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+                        
+                    variable_name, Min_Bin, Max_Bin, Num_Bin = variable_binning
+                    
+                    # Combined_Bin_All = "".join([Combined_Bin_All, """
+                    # int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """) + 1;
+                    # if(""", str(variable_name), """ < """, str(Min_Bin), """){
+                    #     // Below binning range
+                    #     Combined_Add_""", str(variable_name), """ = 0;
+                    # }
+                    # if(""", str(variable_name), """ > """, str(Max_Bin), """){
+                    #     // Above binning range
+                    #     Combined_Add_""", str(variable_name), """ = """, str(Num_Bin + 1), """;
+                    # }
+                    # """])
+                    
+                    Combined_Bin_All = "".join([Combined_Bin_All, """
+                    
+                    int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """);
 
-        gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-
-        variable = variable.replace("_gen", "")
-
-        out_put_DF = dataframe
-
-        if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable):
-            filter_name = "".join([variable, " == ", str(REC_BIN_FILTER), " && PID_el != 0 && PID_pip != 0"])
-
-        else:
-
-            bin_size = (max_range - min_range)/number_of_bins
-
-            filter_name = "".join(["""
-
-            int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
-
-            bool filter_Q = (rec_bin == """, str(REC_BIN_FILTER), """ && PID_el != 0 && PID_pip != 0);
-
-            return filter_Q;
-
+                    if((""", str(variable_name), """ < """, str(Min_Bin), """) || (""", str(variable_name), """ > """, str(Max_Bin), """)){
+                        // Outside binning range (will only combine events which are within all given binning schemes)
+                        Combined_Bin_Final = -1;
+                        return Combined_Bin_Final;
+                    }
+                    
+                    Combined_Bin_Final += (""", str(Bin_Group_Numbers), """*Combined_Add_""", str(variable_name), """);
+                    
+                    """])
+                    
+                    Bin_Group_Numbers = Bin_Group_Numbers*Num_Bin
+                    
+                    Combined_Bin_Title = "".join([Combined_Bin_Title, "__", str(variable_name)])
+                    
+                    
+            Combined_Bin_All = "".join([Combined_Bin_All, """
+            
+                    return Combined_Bin_Final;
             """])
 
-            gen_bin = "".join(["(", str(gen_variable), " - ", str(min_range), ")/", str(bin_size)])
-
-            out_put_DF = out_put_DF.Define("".join([str(variable), "_GEN_BIN"]), gen_bin)
-
-
-        return out_put_DF.Filter(filter_name)
-
-
-
+            
+            try:
+                DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
+                return DF_Final
+            except:
+                print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+            
+        except:
+            print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+            
+        print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\nFAILURE TO RETURN ANYTHING", color.END]))
+        return DF
+         
+    
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
 
     def Delta_Matched_DF(dataframe, variable):
         output = "continue"
@@ -5735,7 +5896,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return output
 
 
-
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
 
 
     def Delta_Matched_Bin_Calc(Variable, Min_Bin, Max_Bin):
@@ -5770,7 +5932,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         return output
     
     
-    
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
     
     
     
@@ -5782,6 +5945,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ###################################################          Defining Helpful Functions for Histograms          ###################################################
     ###################################################################################################################################################################
 
+    
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
     
     
     ###################=========================###################
@@ -5942,7 +6108,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ###################=========================###################
     
     
-    
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
     
     
     ###################=======================================###################
@@ -6175,6 +6342,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     ###################=======================================###################
     
     
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
+    
+    
     ###################=======================================###################
     ##===============##   (Other) Histogram Functions Title   ##===============##
     ###################=======================================###################
@@ -6203,6 +6374,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         return Data_Title
 
+    
+##########################################################################################################################################################################################
 
     def Cut_Choice_Title(Cut_Type="no_cut"):
         Cut_Name = "Undefined Cut (ERROR)"
@@ -6217,6 +6390,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
         return Cut_Name
 
+##########################################################################################################################################################################################
 
     def Dimension_Name_Function(Histo_Var_D1, Histo_Var_D2="None", Histo_Var_D3="None"):
         Dimensions_Output = "Variable_Error"
@@ -6233,13 +6407,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
             Dimensions_Output = Dimensions_Output.replace(":", "=")
             
-#             if(Histo_Var_D2 == "None" and Histo_Var_D3 == "None"):
-#                 Dimensions_Output = Dimensions_Output.replace("_smeared", "")
-#             try:
-#                 if(Histo_Var_D2 != "None" and Histo_Var_D3 == "None" and ("smear" in str(Histo_Var_D1[0]) and "smear" in str(Histo_Var_D2[0]))):
-#                     Dimensions_Output = Dimensions_Output.replace("_smeared", "")
-#             except:
-#                 print("".join([color.BOLD, color.RED, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            # if(Histo_Var_D2 == "None" and Histo_Var_D3 == "None"):
+            #     Dimensions_Output = Dimensions_Output.replace("_smeared", "")
+            # try:
+            #     if(Histo_Var_D2 != "None" and Histo_Var_D3 == "None" and ("smear" in str(Histo_Var_D1[0]) and "smear" in str(Histo_Var_D2[0]))):
+            #         Dimensions_Output = Dimensions_Output.replace("_smeared", "")
+            # except:
+            #     print("".join([color.BOLD, color.RED, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
             
         except:
             print("".join([color.BOLD, color.RED, "ERROR IN DIMENSIONS:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
@@ -6368,6 +6542,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
     # cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
     cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
+    # cut_list = ['no_cut', 'cut_Complete_SIDIS']
 
     
     
@@ -6455,8 +6630,13 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # Bin size: 0.05 per bin
     y_Binning     = ['y',      0,     1,      20]
     # Bin size: 0.05 per bin
-    phi_t_Binning = ['phi_t',  0,     360,    36]
-    # Bin size: 10 per bin
+    
+#     phi_t_Binning = ['phi_t',  0,     360,    36]
+#     # Bin size: 10 per bin
+    
+    phi_t_Binning = ['phi_t',  0,     360,    24]
+    # Bin size: 15 per bin
+    
     MM_Binning    = ['MM',     0,     3.5,   500]
     # Bin size: 0.007 per bin
     W_Binning     = ['W',      0,     6,     200]
@@ -6467,6 +6647,25 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # Binning_5D_OG = ['Bin_5D_OG', -1.5, 13525.5, 13527]
     
     
+    El_Binning      = ['el',    0, 8,   200]
+    El_Th_Binning   = ['elth',  0, 40,  200]
+    El_Phi_Binning  = ['elPhi', 0, 360, 200]
+    
+    Pip_Binning     = ['pip',    0, 6,   200]
+    Pip_Th_Binning  = ['pipth',  0, 40,  200]
+    Pip_Phi_Binning = ['pipPhi', 0, 360, 200]
+    
+    
+     
+    # New 2023 2D Binning
+    Q2_Binning = ['Q2', 1.48,  11.87, 100]
+    # Bin size: 0.1039  per bin
+    xB_Binning = ['xB', 0.09,  0.826, 100]
+    # Bin size: 0.00736 per bin
+    z_Binning  = ['z',  0.017, 0.935, 100]
+    # Bin size: 0.00918 per bin
+    pT_Binning = ['pT', 0,     1.26,  120]
+    # Bin size: 0.0105 per bin
     
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
@@ -6474,8 +6673,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], phi_t_Binning_Smeared, Binning_4D_Smeared, W_Binning_Smeared]
     
     
-    List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
+    List_of_Quantities_1D = [phi_t_Binning]
     
+    # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
+    # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    
+    
+    # Reduced Variable Options
+    # List_of_Quantities_1D = [Q2_Binning,  xB_Binning,  z_Binning,  pT_Binning, phi_t_Binning]
+    List_of_Quantities_1D = [Q2_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, phi_t_Binning]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
     # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['y',         0, 1, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['elth',         0, 40, 200], ['elPhi',         0, 360, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]], [['pipth',         0, 40, 200], ['pipPhi',         0, 360, 200]]]
     # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
@@ -6492,7 +6701,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
     
     if(len(List_of_Quantities_2D) == 0):
-        print("Not running 2D histograms...")
+        print("".join([color.BLUE, color.BOLD, "Not running 2D histograms...", color.END]))
     
     
     
@@ -6500,10 +6709,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     # run_Mom_Cor_Code = "no"
 
     if(run_Mom_Cor_Code == "yes"):
-        print("\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)\n")
+        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
     else:
-        print("\nNOT Running Momentum Correction Histograms\n")
-    
+        print("".join([color.BLUE, "\nNOT Running Momentum Correction Histograms", color.END]))
     
     
     smearing_options_list = ["", "smear"]
@@ -6519,7 +6727,12 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                 smearing_options_list.remove(ii)
     
     
-    
+    if(("ivec" in smearing_function) and ("smear" in smearing_options_list)):
+        print("".join([color.BLUE, color.BOLD, "\nRunning Modified Smearing Funtion", color.END]))
+    elif("smear" in smearing_options_list):
+        print("".join([color.BLUE, color.BOLD, "\nRunning FX's Smearing Funtion", color.END]))
+    else:
+        print("".join([color.BLUE, "\nNot Smearing...", color.END]))
     
     
     def Print_Progress(Total, Increase, Rate):
@@ -6581,14 +6794,14 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     if(output_type in ["histo", "time"]):
         Histograms_All = {}
         count_of_histograms = 0
-        print("Making Histograms...\n")
+        print("".join([color.BOLD, color.BLUE, "\n\nMaking Histograms...\n", color.END]))
 
 ######################################################################
 ##=====##=====##=====##    Top of Main Loop    ##=====##=====##=====##
 ######################################################################
 
 ##======##     Data-Type Loop      ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
-        datatype_list = ["mdf", "pdf", "gen"] if(datatype == "pdf") else [datatype]
+        datatype_list = ["mdf", "pdf", "gen"] if(datatype == "pdf") else ["mdf", "gen"] if(datatype == "mdf") else [datatype]
 
         for Histo_Data in datatype_list:
 
@@ -6624,27 +6837,29 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                             Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "".join([Q2_xB_Bin_Filter_str, "_smeared"]), "".join([z_pT_Bin_Filter_str, "_smeared"])
                             Variable_Loop = copy.deepcopy(List_of_Quantities_1D)
                             for list1 in Variable_Loop:
-                                list1[0] = "".join([str(list1[0]), "_smeared"])
+                                list1[0] = "".join([str(list1[0]), "_smeared" if("_smeared" not in str(list1[0])) else ""])
 
                             Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
                             for list2 in Variable_Loop_2D:
-                                list2[0][0] = "".join([str(list2[0][0]), "_smeared"])
-                                list2[1][0] = "".join([str(list2[1][0]), "_smeared"])
+                                list2[0][0] = "".join([str(list2[0][0]), "_smeared" if("_smeared" not in str(list2[0][0])) else ""])
+                                list2[1][0] = "".join([str(list2[1][0]), "_smeared" if("_smeared" not in str(list2[1][0])) else ""])
 
                         if("gen" in Histo_Data):
                             Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "".join([Q2_xB_Bin_Filter_str, "_gen"]), "".join([z_pT_Bin_Filter_str, "_gen"])
                             Variable_Loop = copy.deepcopy(List_of_Quantities_1D)
                             for list1 in Variable_Loop:
-                                list1[0] = "".join([str(list1[0]), "_gen"])
+                                list1[0] = "".join([str(list1[0]), "_gen" if("_gen" not in str(list1[0])) else ""])
                             Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
                             for list2 in Variable_Loop_2D:
-                                list2[0][0] = "".join([str(list2[0][0]), "_gen"])
-                                list2[1][0] = "".join([str(list2[1][0]), "_gen"])
+                                list2[0][0] = "".join([str(list2[0][0]), "_gen" if("_gen" not in str(list2[0][0])) else ""])
+                                list2[1][0] = "".join([str(list2[1][0]), "_gen" if("_gen" not in str(list2[1][0])) else ""])
 
 
 ##======##======##======##======##======##     Histogram Option Selection  ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 
-                        histo_options = ["Normal", "Response_Matrix", "Response_Matrix_Normal"]
+                        # histo_options = ["Normal", "Response_Matrix", "Response_Matrix_Normal"]
+                        histo_options = ["Normal", "Response_Matrix_Normal"]
+                        # histo_options = ["Response_Matrix_Normal"]
 
                         # # Types of Histogram Groups (Histo_Group)
                           # # (*) "Normal"                 --> Makes normal 1D and 2D histograms
@@ -6662,9 +6877,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # # (*) 'Delta_Matched' --> Makes histograms which plot the difference between the reconstructed and generated (∆val) versus the reconstructed value
                         elif(Histo_Data == "gen"):
                             histo_options = ["Normal"]
-                            # Running 'Response_Matrix' options is unnecessary for the matched generated plots
+                            # Running 'Response_Matrix' options is unnecessary for the matched generated plots (only useful for 2D (or 1D) histograms)
 
-                        if(run_Mom_Cor_Code == "yes" and Histo_Data != 'pdf'):
+                        if(run_Mom_Cor_Code == "yes" and Histo_Data not in ['pdf', 'gen']):
                             histo_options.append("Mom_Cor_Code")
                             # "Mom_Cor_Code" --> Makes the plots used for Momentum Corrections/Smearing Functions
                             
@@ -6897,7 +7112,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(Histo_Group not in ["Bin_Purity", "Delta_Matched"]):
                                             Histograms_All[Histo_Name] = Normal_rdf.Histo3D((str(Histo_Name), str(Title_1D_Out), 15, -3.5, 11.5, 55, -3.5, 51.5, Vars_1D[3], Vars_1D[1], Vars_1D[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(Vars_1D[0]))
                                         elif(Histo_Group == "Bin_Purity"):
-                                            Histograms_All[Histo_Name] = bin_purity_filter_fuction(Normal_rdf, Vars_1D[0], Vars_1D[1], Vars_1D[2], Vars_1D[3]).Histo3D((str(Histo_Name), str(Title_1D_Out), 15, -3.5, 11.5, 55, -3.5, 51.5, Vars_1D[3], Vars_1D[1], Vars_1D[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(Vars_1D[0]))
+                                            Histograms_All[Histo_Name] = Bin_Purity_Filter_Fuction(Normal_rdf, Vars_1D[0], Vars_1D[1], Vars_1D[2], Vars_1D[3]).Histo3D((str(Histo_Name), str(Title_1D_Out), 15, -3.5, 11.5, 55, -3.5, 51.5, Vars_1D[3], Vars_1D[1], Vars_1D[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(Vars_1D[0]))
                                         elif(Histo_Group == "Delta_Matched"):
                                             if("el" not in Vars_1D[0] and "pip" not in Vars_1D[0]):
                                                 continue # Don't need these extra ∆(REC-GEN) histograms (angles/momentum are the only criteria being considered)
@@ -6922,7 +7137,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                             count_of_histograms += 1
                                             
                                 else:
-                                    print("Skipping Normal 1D Histograms...")
+                                    print("\tSkipping Normal 1D Histograms...")
                                     # continue
 
 
@@ -6994,8 +7209,8 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     continue
                                 
                                 
-                                Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -3.5, 11.5, 15]
-                                Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -3.5, 51.5, 55]
+                                Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -1.5, 10.5, 12]
+                                Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5, 52]
                                 Res_Binning_4D       = ['Bin_Res_4D',              -1.5, 441.5, 443]
                                 # Res_Binning_4D_OG  = ['Bin_Res_4D_OG',           -1.5, 441.5, 443]
 
@@ -7006,9 +7221,9 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                 # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
-                                Res_Var_List.append(Res_Binning_2D_Q2_xB)
+#                                 Res_Var_List.append(Res_Binning_2D_Q2_xB)
                                 # Res_Var_List.append(Res_Binning_2D_z_pT)
-                                Res_Var_List.append(Res_Binning_4D)
+#                                 Res_Var_List.append(Res_Binning_4D)
 
                                 for Var_List in Res_Var_List:
 
@@ -7022,10 +7237,11 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                     BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 4)
                                     Bin_Range = "".join([str(Min_range), " #rightarrow ", str(Max_range)])
 
-                                    Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2="None")
+                                    # Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2="None")
+                                    Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
                                     
-                                    sdf = bin_purity_save_fuction_New(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1), variable, Min_range, Max_range, Num_of_Bins, Histo_Data)
-                                    
+                                    sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
+
                                     if(sdf == "continue"):
                                         continue
 
@@ -7066,18 +7282,18 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
                                         if(Histo_Group == "Response_Matrix"):
                                             Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
                                             if(Histo_Data not in ["mdf", "pdf"]):
-                                                Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC" if("g" not in Histo_Data) else " GEN", " Bins; Count"])
+                                                Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC" if("g" not in Histo_Data) else " GEN", " Bins; z-P_{T} Bins; Count"])
                                         else:
                                             Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " (GEN); ", str(variable_Title_name(variable)), " (REC)"])
                                             if(Histo_Data not in ["mdf", "pdf"]):
-                                                Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " (REC" if("g" not in Histo_Data) else " (GEN", "); Count"])
+                                                Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " (REC" if("g" not in Histo_Data) else " (GEN", "); z-P_{T} Bins; Count"])
 
 
                                         if(Histo_Data == "mdf"):
                                             Migration_Title_L1_2  = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ", str(variable_Title_name(variable)), "}"])
-                                            Migration_Title_2     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC Bins; Count"])
+                                            Migration_Title_2     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC Bins; z-P_{T} Bins; Count"])
                                             if(Histo_Group == "Response_Matrix_Normal"):
-                                                Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), "; Count"])
+                                                Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), "; z-P_{T} Bins; Count"])
                                         
                                         
                                         if(Histo_Group == "Response_Matrix"):
@@ -7095,13 +7311,28 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
 
                                             
                                         Bin_Filter = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
-
+                                        
+                                        if(("Bin" not in str(variable)) and (Histo_Data in ["mdf", "pdf", "gen"])):
+                                            # 1D Unfolding requires events be generated and reconstructed in the same bin
+                                            Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
+                                            
+                                            
+                                        Migration_Title = "".join([str(Migration_Title), "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
+                                        if(Histo_Data == "mdf"):
+                                            Migration_Title_2 = "".join([str(Migration_Title_2), "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
+                                        
                                         if(Histo_Data in ["mdf", "pdf"]):
-                                            Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   num_of_GEN_bins, min_GEN_bin, Max_GEN_bin,  num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                                            Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),   num_of_GEN_bins, min_GEN_bin, Max_GEN_bin,  num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                             if(Histo_Data == "mdf"):
-                                                Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))                                                
+                                                Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                         else:
-                                            Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),   num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                            Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),   num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                        # if(Histo_Data in ["mdf", "pdf"]):
+                                        #     Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   num_of_GEN_bins, min_GEN_bin, Max_GEN_bin,  num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                                        #     if(Histo_Data == "mdf"):
+                                        #         Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                        # else:
+                                        #     Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),   num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
 
 
                                         if(Histo_Data == "mdf"):
@@ -7134,7 +7365,7 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
             ROOT_File_Output.Close()
         # File has been saved
 
-        print("".join(["Total Number of Histograms Made: ", str(count_of_histograms)]))
+        print("".join([color.BOLD, "\nTotal Number of Histograms Made: ", str(count_of_histograms), color.END]))
         
         
         # See beginning of code...
@@ -7211,6 +7442,10 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
         print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
     
 
+    # if(str(file_location) in ['time' , 'test'] and (datatype == "mdf")):
+    if(str(file_location) in ['time' , 'test']):
+        print("".join(["\nEstimated time to run: ", "".join([str(round(count_of_histograms/6, 4)), " mins"]) if(round(count_of_histograms/6, 4) < 60) else  "".join([str(int(round(count_of_histograms/6, 4)/60)), " hrs and ", str(round(((round(count_of_histograms/6, 4)/60)%1)*60, 3)), " mins (Total: ", str(round(count_of_histograms/6, 3)), " mins)"])]))
+        # Estimate based on observations made on 12-2-2022 (estimates are very rough - based on the "mdf" run option)
     
     
     print("\n")
