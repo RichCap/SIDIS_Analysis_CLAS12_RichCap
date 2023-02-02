@@ -6830,7 +6830,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         else:
                             print("\n\nERROR\n\n")
 
-                        Variable_Loop = copy.deepcopy(List_of_Quantities_1D)
+                        Variable_Loop   = copy.deepcopy(List_of_Quantities_1D)
                         Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
 
                         if("smear" in Histo_Smear):
