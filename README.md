@@ -4,18 +4,20 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
-- [ ] Add Code used for Momentum Corrections to do the following things:
-    - [x] (1) Check Momentum Corrections (comparison between data and MC)
+- [x] Add Code used for Momentum Corrections to do the following things:
+    - [ ] (1) Check Momentum Corrections (comparison between data and MC)
+        * [ ] MC may need its own momentum corrections (test after smearing is complete)
     - [ ] (2) Develop new code to allow for new smearing functions to be created
-        * [ ] Allow for multiple smearing functions to compare between mine and FX's
-        * [ ] Make the function dependent on which particle is being smeared (do not assume that they would be identical anymore)
-        * [ ] Make as a function of momentum and theta
-- [ ] Improve how images are saved (see Notes_and_Ideas.md for ideas)
-    * [ ] New jupyter format needs to be updated to save images (feature not yet added)
-- [x] Create a new, more streamlined version of the jupyter code (Done as of 12-1-2022)
+        * [x] Make the function dependent on which particle is being smeared (do not assume that they would be identical anymore)
+        * [x] Make as a function of momentum and theta
+        * [ ] Continue improving the smearing functions
+- [x] Improve how images are saved (see Notes_and_Ideas.md for ideas)
+    * [x] New jupyter format needs to be updated to save images
 - [ ] Test new binning schemes for all variables:
-    - [ ] Larger phi_t bins (i.e., use fewer bins)
+    - [x] Larger phi_t bins (i.e., use fewer bins)
     - [ ] More 'square' Q2-xB bins (make each bin smaller for more bins in total)
+    - [ ] Multidimensional bins (test combining bins into a single variable for unfolding)
+    - [ ] Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins)
 
 
 
@@ -62,7 +64,60 @@ These note correspond to updates made between the outputs of the python code. Wh
 * Added additional dimension to the "Response_Matrix" histogram options (now includes a dimension for z-pT bins)
 * Made the "Normal_2D" histograms use the same number of bins as all of the 1D histograms used (same as the Response_Matrix options)
     
+    
+### Extra_Name = "Unfolding_Tests_V6_"
+* Y-axis in Response Matrices needed to be renamed from "Count" to "z-P_{T} Bins" (due to the additional dimension added to these histograms)
+* (Temporarily) Reduced number of histograms being made:
+    * Stopped running Mom_Cor_Code
+    * Fewer Variables being plotted (only the 2D histograms for binning, and the 1D/unfolded phi_t/Q2 histograms are being run)
+    * Removed EDIS cuts from list
+    * Only running 'Response_Matrix_Normal' option (for now)
+        * Removed 'Response_Matrix' to reduce run-time
+* Added 'gen' to 'mdf' run options (only plots the Normal_2D histograms)
+* Added run-time estimate to end of code (does not affect the files produced)
 
+
+### Extra_Name = "Unfolding_Tests_V7_"
+* Changed the number of phi_t bins (now 15˚ per bin instead of 10˚ per bin)
+* Added the following histograms back:
+    * Running Mom_Cor_Code again (with momentum corrections)
+    * More Variables being plotted 
+        * Same number of 2D histograms as in V6 but now the electron and pion kinematics are also being run (in addition to the 1D/unfolded phi_t/Q2 histograms that were already in V6)
+    * Added EDIS cuts back
+    * Still removed 'Response_Matrix' to reduce run-time (only running 'Response_Matrix_Normal')
+* Ran for all data sets (V6 was only done for 'mdf')
+
+
+### Extra_Name = "Unfolding_Tests_V8_"
+* New (Modified) Smearing Functions (Particle-dependant)
+    * Smeared the momentum as a function of theta
+
+
+### Extra_Name = "Unfolding_Tests_V9_"
+* New (Modified) Smearing Functions (Particle-dependant)
+    * Modified the momentum smearing (As a function of theta/momentum - not both - choose to smear based on which variable provided the easiest fit to get the smearing factor)
+    * New Theta smearing as a function of momentum
+
+
+### Extra_Name = "Unfolding_Tests_V10_"
+* New (Modified) Smearing Functions (Particle-dependant)
+* Reduced number of plots made (for faster runtime)
+
+
+### Extra_Name = "Unfolding_Tests_V11_"
+* New (Modified) Smearing Functions (Particle-dependant)
+* Increased number of plots made (relative to last version)
+
+
+### Extra_Name = "Unfolding_Tests_V12_"
+* Extended the 2D plots and added more to show the phase space of the data
+* Modified the Pi+ Theta smearing function (as function of momentum)
+
+
+### Extra_Name = "Unfolding_Tests_V13_"
+* Running fewer 1D histograms (just phi_t)
+* Added new multidimensional response matrix option which combines multiple variables into a new linearized bin definition
+* Modified the Pi+ Theta smearing function (as function of momentum) and the Electron Momentum smearing function (as a function of theta)
 
 
 
@@ -72,6 +127,15 @@ These note correspond to updates made between the outputs of the python code. Wh
 
 
 ## Other Commit Updates:
+
+### Update on 2-15-2022:
+* Added new python code to create and sort images for the different unfolding methods
+* Updated how images are saved to make it easier to upload to the (new) webpage
+* Making updates (in-progress) for "Unfolding_Tests_V14_" including:
+    * New Smearing function
+    * Fixing issues with the (new) multidimension variable creation function
+    * Changing the phase space histograms (in 'Mom_Cor_Code') to include the particle momentum instead of the sector information
+
 
 ### Update on 12-1-2022:
 * Made major revisions to the jupyter notebook and python code within the new files called "Analysis_Notebook_SIDIS_richcap.ipynb" and "makeROOT_epip_SIDIS_histos_new.py"

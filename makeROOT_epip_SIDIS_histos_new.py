@@ -1,4 +1,4 @@
-# This Code was last updated on 9-28-2022
+# This Code was last updated on 2-13-2023
 # # Note-to-self: Also always update this note at end of script
 
 
@@ -222,73 +222,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     ROOT_File_Output_Name = "Data_REC"
     
-    # Extra_Name = "Unfolding_Tests_V1_"
-    # # Groovy Code moved to work directory (safer than keeping these files on the volatile directory)
-    # # Filtered unmatched events from the "normal" 2D Response Matrices (necessary for proper matrix construction when not using pre-defined bin numbers)
-    # # Made the Correction (∆P) plots use the UNSMEARED particle kinematics on the x-axis (this will allow the new smearing functions to be developed as a function of the unsmeared kinematics - this will be the simplest way to create these corrections)
-    # # Turned off momentum corrections (new ones are in development and will be applied soon)
-    
-    
-    # Extra_Name = "Unfolding_Tests_V2_"
-    # # Major rework and new momentum corrections (not being run at this time)
-    # # Will plot Response Matrices in separate Q2-xB bins
-    
-    
-    # Extra_Name = "Unfolding_Tests_V3_"
-    # # Same as V2 but needed to change the naming convensions again to remove ";" and ":" (replaced with ")," and "=" instead)
-    #     # Binning now grouped with "[]" instead of "()"
-        
-    # Extra_Name = "Unfolding_Tests_V4_"
-    # # Replaced (some of) the sector information in the 'Mom_Cor_Code' histograms with theta bins (4˚ per bin)
-    # # Fixed some issues with the Q2-xB bins being skipped (response matrices and 'Normal' histograms)
-    # # Skipping 'Normal_1D' histogram options (unnecessary when running the response matrix code)
-    # # Fixed some binning options (too many bins with the multidimensional bin variables and rounded the 1D variable boundries to have less digits)
-    
-    Extra_Name = "Unfolding_Tests_V5_"
-    # Deleted unused functions including:
-        # "bin_purity_save_fuction"
-        # "bin_purity_save_filter_fuction"
-    # Replaced (name of) "bin_purity_save_fuction_New" with "Bin_Number_Variable_Function"
-        # Works the same, but the name is more meaningful (and updated) now
-    # Replaced (name of) "bin_purity_filter_fuction" with "Bin_Purity_Filter_Fuction"
-        # Same function, just with a very minor change of name to be easier to read in code
-    # Made new function called: "Multi_Dimensional_Bin_Construction"
-        # Will combine any list of variables into a linearized 1D binning scheme
-        # Plan to test in "MC_DataFrame_Volume_Calculation.ipynb" (?) --> Not tested yet (as of this update)
-    # Using all Q2-xB bin options (-1 to 8)
-    # Added additional dimension to the "Response_Matrix" histogram options (now includes a dimension for z-pT bins)
-    # Made the "Normal_2D" histograms use the same number of bins as all of the 1D histograms used (same as the Response_Matrix options)
-    
-    
-    Extra_Name = "Unfolding_Tests_V6_"
-    # Y-axis in Response Matrices needed to be renamed from "Count" to "z-P_{T} Bins" (due to the additional dimension added to these histograms)
-    # (Temporarily) Reduced number of histograms being made:
-        # Stopped running Mom_Cor_Code
-        # Fewer Variables being plotted (only the 2D histograms for binning, and the 1D/unfolded phi_t/Q2 histograms are being run)
-        # Removed EDIS cuts from list
-        # Only running 'Response_Matrix_Normal' option (for now)
-            # Removed 'Response_Matrix' to reduce run-time
-    # Added 'gen' to 'mdf' run options (only plots the Normal_2D histograms)
-    # Added run-time estimate to end of code (does not affect the files produced)
-    
-    
-    
-    Extra_Name = "Unfolding_Tests_V7_"
-    # Changed the number of phi_t bins (now 15˚ per bin instead of 10˚ per bin)
-    # Added the following histograms back:
-        # Running Mom_Cor_Code again (with momentum corrections)
-        # More Variables being plotted 
-            # Same number of 2D histograms as in V6 but now the electron and pion kinematics are also being run (in addition to the 1D/unfolded phi_t/Q2 histograms that were already in V6)
-        # Added EDIS cuts back
-        # Still removed 'Response_Matrix' to reduce run-time (only running 'Response_Matrix_Normal')
-    # Ran for all data sets (V6 was only done for 'mdf')
-    
-    
-    Extra_Name = "Unfolding_Tests_V8_"
-    # New (Modified) Smearing Functions (Particle-dependant)
-        # Smeared the momentum as a function of theta
-        
-        
+    # # # See README.md file for notes on versions older than "Unfolding_Tests_V9_"
+         
     Extra_Name = "Unfolding_Tests_V9_"
     # New (Modified) Smearing Functions (Particle-dependant)
         # Modified the momentum smearing (As a function of theta/momentum - not both - choose to smear based on which variable provided the easiest fit to get the smearing factor)
@@ -307,6 +242,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Extra_Name = "Unfolding_Tests_V12_"
     # Extended the 2D plots and added more to show the phase space of the data
     # Modified the Pi+ Theta smearing function (as function of momentum)
+    
+    
+    Extra_Name = "Unfolding_Tests_V13_"
+    # Running fewer 1D histograms (just phi_t)
+    # Added new multidimensional response matrix option which combines multiple variables into a new linearized bin definition
+    # Modified the Pi+ Theta smearing function (as function of momentum) and the Electron Momentum smearing function (as a function of theta)
+    
+    
+    Extra_Name = "Unfolding_Tests_V14_"
+    # Modified the Pi+ Theta smearing function (as function of momentum) 
+        # Testing to see if it is better to smear only one variable at a time (other variables could be improved at this moment, but only changing one aspect of the smearing function in this iteration)
     
     
     
@@ -1404,6 +1350,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 momR *= (-1.0429e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.3654e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0663e+00);
                 momR *= (-8.4052e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (9.8234e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0144e+00);
                 momR *= (1.5861e-02)*(V4.P())*(V4.P()) + (-1.5747e-01)*(V4.P()) + (1.3121e+00);
+                momR *= (-9.6572e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.6144e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.5746e-01);
+                
             }
             if(ivec == 1){
                 // From ∆P(Pi+ Pion) Sigma distributions:
@@ -1433,6 +1381,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 theR *= (-4.8283e-03)*(V4.P())*(V4.P()) + (1.6123e-01)*(V4.P()) + (7.6315e-01);
                 // From ∆Theta(Pi+ Pion) Sigma distributions (Function of Momentum):
                 theR *= (1.9715e-02)*(V4.P())*(V4.P()) + (-4.9812e-02)*(V4.P()) + (1.2059e+00);
+                theR *= (2.7160e-02)*(V4.P())*(V4.P()) + (-1.0975e-01)*(V4.P()) + (1.2968e+00);
+                // From ∆Theta(Pi+ Pion) Vs Momentum Sigma distributions:
+                theR *= (-1.2412e-02)*(V4.P())*(V4.P()) + (1.8465e-01)*(V4.P()) + (7.5162e-01);
             }   
 
             double phiS1 = 0.85 - 0.015*smeared_ThD;
@@ -5695,7 +5646,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         #     # Already defined
         #     return DF
         
-        if((("Bin" in Variable) or ("sec" in Variable)) or (DF == "continue")):
+        if((("Bin" in Variable) or ("sec" in Variable)) or (DF == "continue") or ("Combined_" in Variable)):
             # Already defined
             return DF
         
@@ -5760,125 +5711,153 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
 
-    def Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine, Data_Type=datatype, Smearing_Q=""):
+    def Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine, Smearing_Q="", Data_Type=datatype, return_option="DF"):
+        # print("".join(["Combining Variables: Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine='", str(Variables_To_Combine), "', Smearing_Q='", str(Smearing_Q), "', Data_Type='", str(Data_Type), "', return_option='", str(return_option), "')"]))
         # Try to test later in the randomly generated rdataframe (see 'MC_DataFrame_Volume_Calculation.ipynb')
+        # When combining variables, each subsequent entry in the list 'Variables_To_Combine' will be inserted within the previous variable
+            # Therefore, to see the phi_h distribution in a combined Q2-xB-z-pT bin, let Variables_To_Combine = [['Q2-xB bin info'], ['z-pT bin info'], ['phi_h info']]
+            # For the bin info of the Q2-xB/z-pT bins, make sure that the Min_Bin = 0 and Max_Bin = Num_Bin
+            # Note: This function should be able to combine any number of variables, but the rest of the code may not be optimized to combine 4 variables at the same time (rewrite other parts of code if this becomes necessary)
+        DF_Res_Error = False # Helps trigger error message for when this function fails to calculate the variables for the response matrices
         try:
             if(DF == "continue"):
                 return "continue"
             if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
                 print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
-                return DF
+                if(return_option == "DF"):
+                    return DF
+                else:
+                    return Variables_To_Combine
             else:
-               
-                try:
-                    variable_name_1, Min_Bin_1, Max_Bin_1, Num_Bin_1 = Variables_To_Combine[0]
-                    Bin_Size_1 = (Max_Bin_1 - Min_Bin_1)/Num_Bin_1
-                    Bin_Group_Numbers = Num_Bin_1
-                    
-                    # Combined_Bin_All = "".join(["""
-                    # int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
-                    # if(""", str(variable_name_1), """ < """, str(Min_Bin_1), """){
-                    #     // Below binning range
-                    #     Combined_Bin_Start = 0;
-                    # }
-                    # if(""", str(variable_name_1), """ > """, str(Max_Bin_1), """){
-                    #     // Above binning range
-                    #     Combined_Bin_Start = """, str(Num_Bin_1 + 1), """;
-                    # }
-                    # """])
-                    
-                    Combined_Bin_All = "".join(["""
-                    
-                    int Combined_Bin_Final = 0;
-                    
-                    int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
-
-                    if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
-                        // Outside binning range (will only combine events which are within all given binning schemes)
-                        Combined_Bin_Final = -1;
-                        return Combined_Bin_Final;
-                    }
-                    
-                    Combined_Bin_Final = Combined_Bin_Start;
-                    
-                    """])
-                    
-                except:
-                    print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in retriving base variable for new multidimensional bin variable.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
-                    
-                try:
-                    if(Smearing_Q != ""):
-                        DF_Final = smear_frame_compatible(DF, variable_name_1, Smearing_Q)
-                    else:
-                        DF_Final = DF
-                except:
-                    print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
                 
+                Vars_Data_Type_Output = [""] if((return_option != "DF_Res") or (Data_Type in ["rdf", "gdf"])) else ["", "_gen"]
                 
-                Combined_Bin_Title = "".join(["Combined_", str(variable_name_1)])
-                
-                
-                for variable_binning in Variables_To_Combine:
-                    if(variable_name_1 == variable_binning[0]):
-                        # Skip first variable in list
-                        continue
-                        
+                for rec_or_gen in Vars_Data_Type_Output:
                     try:
-                        if(Smearing_Q != ""):
-                            DF_Final = smear_frame_compatible(DF_Final, variable_binning[0], Smearing_Q)
+                        variable_name_1, Min_Bin_1, Max_Bin_1, Num_Bin_1 = Variables_To_Combine[0]
+                        Bin_Size_1 = (Max_Bin_1 - Min_Bin_1)/Num_Bin_1
+                        Bin_Group_Numbers = Num_Bin_1
+
+                        if(rec_or_gen == ""):
+                            if((Smearing_Q != "") and ("_smeared" not in variable_name_1)):
+                                print("".join([color.RED, color.BOLD, "ERROR: MISSING SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+                                variable_name_1 = "".join([str(variable_name_1), "_smeared"])
+                            if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
+                                print("".join([color.RED, color.BOLD, "ERROR: SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+                                variable_name_1 = str(variable_name_1).replace("_smeared", "")
+                        else:
+                            variable_name_1 = "".join([str(variable_name_1).replace("_smeared", ""), "_gen"])
+
+
+                        # Combined_Bin_All = "".join(["""
+                        # int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+                        # if(""", str(variable_name_1), """ < """, str(Min_Bin_1), """){
+                        #     // Below binning range
+                        #     Combined_Bin_Start = 0;
+                        # }
+                        # if(""", str(variable_name_1), """ > """, str(Max_Bin_1), """){
+                        #     // Above binning range
+                        #     Combined_Bin_Start = """, str(Num_Bin_1 + 1), """;
+                        # }
+                        # """])
+
+                        Combined_Bin_All = "".join(["""
+    int Combined_Bin_Final = 0;
+    int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+    if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
+        // Outside binning range (will only combine events which are within all given binning schemes)
+        Combined_Bin_Final = -1;
+        return Combined_Bin_Final;
+    }
+    Combined_Bin_Final = Combined_Bin_Start;
+                        """])
+
                     except:
-                        print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
-                        
-                    variable_name, Min_Bin, Max_Bin, Num_Bin = variable_binning
-                    
-                    # Combined_Bin_All = "".join([Combined_Bin_All, """
-                    # int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """) + 1;
-                    # if(""", str(variable_name), """ < """, str(Min_Bin), """){
-                    #     // Below binning range
-                    #     Combined_Add_""", str(variable_name), """ = 0;
-                    # }
-                    # if(""", str(variable_name), """ > """, str(Max_Bin), """){
-                    #     // Above binning range
-                    #     Combined_Add_""", str(variable_name), """ = """, str(Num_Bin + 1), """;
-                    # }
-                    # """])
-                    
+                        print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in retriving base variable for new multidimensional bin variable.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+
+
+                    if(("DF" in return_option) and (rec_or_gen == "")):
+                        try:
+                            if(Smearing_Q != ""):
+                                DF_Final = smear_frame_compatible(DF, variable_name_1, Smearing_Q)
+                            else:
+                                DF_Final = DF
+                        except:
+                            print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+
+
+                    Combined_Bin_Title = "".join(["Combined_", str(variable_name_1)])
+
+                    for variable_binning in Variables_To_Combine:
+                        variable_name, Min_Bin, Max_Bin, Num_Bin = variable_binning
+                        Bin_Size = (Max_Bin - Min_Bin)/Num_Bin
+
+                        if(rec_or_gen == ""):
+                            if((Smearing_Q != "") and ("_smeared" not in variable_name)):
+                                print("".join([color.RED, "ERROR: MISSING (SECONDARY) SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+                                variable_name = "".join([str(variable_name), "_smeared"])
+                            if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
+                                print("".join([color.RED, "ERROR: (SECONDARY) SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+                                variable_name = str(variable_name).replace("_smeared", "")
+                            if((("_smeared" in variable_name_1) and ("_smeared" not in variable_name)) or (("_smeared" not in variable_name_1) and ("_smeared" in variable_name))):
+                                print("".join([color.BOLD, color.RED, "/nMAJOR WARNING: COMBINING VARIABLES THAT DO NOT HAVE THE SAME SMEARING OPTION APPLIED (CHECK Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ") MANUALLY)\n", color.END]))
+                        else:
+                            variable_name = "".join([str(variable_name).replace("_smeared", ""), "_gen"])
+                            
+                        if(variable_name_1 == variable_name):
+                            # Skip first variable in list
+                            continue
+
+                        if(("DF" in return_option) and (rec_or_gen == "")):
+                            try:
+                                if(Smearing_Q != ""):
+                                    DF_Final = smear_frame_compatible(DF_Final, variable_name, Smearing_Q)
+                            except:
+                                print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+
+
+                        Combined_Bin_All = "".join([Combined_Bin_All, """
+    int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """);
+    if((""", str(variable_name), """ < """, str(Min_Bin), """) || (""", str(variable_name), """ > """, str(Max_Bin), """)){
+        // Outside binning range (will only combine events which are within all given binning schemes)
+        Combined_Bin_Final = -1;
+        return Combined_Bin_Final;
+    }
+    Combined_Bin_Final += (""", str(Bin_Group_Numbers), """*Combined_Add_""", str(variable_name), """);
+                        """])
+
+                        Bin_Group_Numbers = Bin_Group_Numbers*Num_Bin
+                        Combined_Bin_Title = "".join([str(Combined_Bin_Title.replace("_smeared", "")).replace("_gen", ""), "_", str(variable_name)])
+                        if((rec_or_gen != "") and ("_gen" not in Combined_Bin_Title)):
+                            Combined_Bin_Title = "".join([str(Combined_Bin_Title), "_gen"])
+
                     Combined_Bin_All = "".join([Combined_Bin_All, """
-                    
-                    int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """);
+    return Combined_Bin_Final;"""])
 
-                    if((""", str(variable_name), """ < """, str(Min_Bin), """) || (""", str(variable_name), """ > """, str(Max_Bin), """)){
-                        // Outside binning range (will only combine events which are within all given binning schemes)
-                        Combined_Bin_Final = -1;
-                        return Combined_Bin_Final;
-                    }
-                    
-                    Combined_Bin_Final += (""", str(Bin_Group_Numbers), """*Combined_Add_""", str(variable_name), """);
-                    
-                    """])
-                    
-                    Bin_Group_Numbers = Bin_Group_Numbers*Num_Bin
-                    
-                    Combined_Bin_Title = "".join([Combined_Bin_Title, "__", str(variable_name)])
-                    
-                    
-            Combined_Bin_All = "".join([Combined_Bin_All, """
-            
-                    return Combined_Bin_Final;
-            """])
-
-            
-            try:
-                DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
-                return DF_Final
-            except:
-                print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    if(return_option == "DF"):
+                        try:
+                            DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
+                            return DF_Final
+                        except:
+                            print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    elif(return_option == "DF_Res"):
+                        try:
+                            # print("".join(["DF_Final = DF_Final.Define(", str(Combined_Bin_Title), ", ", str(Combined_Bin_All), ")"]))
+                            DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
+                        except:
+                            print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    else:
+                        return [str(Combined_Bin_Title), -1.5, Bin_Group_Numbers + 1.5, Bin_Group_Numbers + 3]
             
         except:
             print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
-            
-        print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\nFAILURE TO RETURN ANYTHING", color.END]))
-        return DF
+            DF_Res_Error = True
+           
+        if(return_option != "DF_Res" or DF_Res_Error):
+            print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\nFAILURE TO RETURN ANYTHING", color.END]))
+            return DF
+        else:
+            return DF_Final
          
     
 ##########################################################################################################################################################################################
@@ -6006,8 +5985,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = "#epsilon"
         if(variable == 'pT'):
             output = "P_{T}"
-        if(variable == 'phi_t'):
-            output = "#phi_{t}"
+        if(variable in ['phi_t', 'phi_h']):
+            output = "#phi_{h}"
         if(variable == 'xF'):
             output = "x_{F} (Feynman x)"
         if(variable == 'pipx_CM'):
@@ -6088,6 +6067,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = "".join(["Combined 5D Bin", " (Original)" if("OG" in variable) else ""])
         if("Bin_Res_4D" in variable):
             output = "".join(["Q^{2}-x_{B}-z-P_{T} Bin", " (Original)" if("OG" in variable) else ""])
+        if("Combined_" in variable):
+            output = "".join(["Combined Binning: ", str(variable.replace("Combined_", ""))])
             
 
         if(smeared_named == 'yes'):
@@ -6300,13 +6281,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##====================================================##
         ##----------## Smearing Variables (Start) ##----------##
         ##====================================================##
-        # This information does not need to be run if titles are the only things of interest
-        if((Data_Type in ["mdf", "pdf", "udf"] or ("miss_idf" in Data_Type)) and "smear" in Smearing_Q and Titles_or_DF == 'DF'):
-            if('str' in str(type(Variables))):
-                DF_Out = smear_frame_compatible(DF_Out, Variables, Smearing_Q)
-            else:
-                for variable in Variables:
-                    DF_Out = smear_frame_compatible(DF_Out, variable, Smearing_Q)
+        if((Variables not in ["Cuts Only", "Cuts_Only", "Cuts"]) and ("Combined_" not in Variables)):
+            # If the above condition is FALSE, then the 'Variables' input does not specify a real variable that can be smeared or is already defined by another function (use to run this function for cuts only)
+            # This information does not need to be run if titles are the only things of interest
+            if((Data_Type in ["mdf", "pdf", "udf"] or ("miss_idf" in Data_Type)) and "smear" in Smearing_Q and Titles_or_DF == 'DF'):
+                if('str' in str(type(Variables))):
+                    DF_Out = smear_frame_compatible(DF_Out, Variables, Smearing_Q)
+                else:
+                    for variable in Variables:
+                        DF_Out = smear_frame_compatible(DF_Out, variable, Smearing_Q)
         ##====================================================##
         ##----------##  Smearing Variables (End)  ##----------##
         ##====================================================##
@@ -6682,7 +6665,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Reduced Variable Options
     # List_of_Quantities_1D = [Q2_Binning,  xB_Binning,  z_Binning,  pT_Binning, phi_t_Binning]
-    List_of_Quantities_1D = [Q2_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, phi_t_Binning]
+#     List_of_Quantities_1D = [Q2_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, phi_t_Binning]
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
@@ -6830,14 +6813,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         else:
                             print("\n\nERROR\n\n")
 
-                        Variable_Loop   = copy.deepcopy(List_of_Quantities_1D)
+                        Variable_Loop    = copy.deepcopy(List_of_Quantities_1D)
                         Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
 
                         if("smear" in Histo_Smear):
                             Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "".join([Q2_xB_Bin_Filter_str, "_smeared"]), "".join([z_pT_Bin_Filter_str, "_smeared"])
                             Variable_Loop = copy.deepcopy(List_of_Quantities_1D)
                             for list1 in Variable_Loop:
-                                list1[0] = "".join([str(list1[0]), "_smeared" if("_smeared" not in str(list1[0])) else ""])
+                                if(len(list1) == 4):
+                                    list1[0] = "".join([str(list1[0]), "_smeared" if("_smeared" not in str(list1[0])) else ""])
+                                else:
+                                    # Smearing Combined 1D Variables
+                                    for combined_vars in list1:
+                                        combined_vars[0] = "".join([str(combined_vars[0]), "_smeared" if("_smeared" not in str(combined_vars[0])) else ""])
 
                             Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
                             for list2 in Variable_Loop_2D:
@@ -6848,7 +6836,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = "".join([Q2_xB_Bin_Filter_str, "_gen"]), "".join([z_pT_Bin_Filter_str, "_gen"])
                             Variable_Loop = copy.deepcopy(List_of_Quantities_1D)
                             for list1 in Variable_Loop:
-                                list1[0] = "".join([str(list1[0]), "_gen" if("_gen" not in str(list1[0])) else ""])
+                                if(len(list1) == 4):
+                                    list1[0] = "".join([str(list1[0]), "_gen" if("_gen" not in str(list1[0])) else ""])
+                                else:
+                                    # Matched Gen Combined 1D Variables
+                                    for combined_vars in list1:
+                                        combined_vars[0] = "".join([str(combined_vars[0]), "_gen" if("_gen" not in str(combined_vars[0])) else ""])
                             Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
                             for list2 in Variable_Loop_2D:
                                 list2[0][0] = "".join([str(list2[0][0]), "_gen" if("_gen" not in str(list2[0][0])) else ""])
@@ -7073,8 +7066,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ###################################################################################
 
                                 if(Histo_Group in ["Has_Matched", "Bin_Purity", "Delta_Matched"]):
-                                    for Vars_1D in Variable_Loop:
-
+                                    for Vars_1D_Test in Variable_Loop:
+                                        if(len(Vars_1D_Test) == 4):
+                                            # Normal 1D Variable
+                                            Vars_1D = Vars_1D_Test
+                                        else:
+                                            Vars_1D = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
+                                            
                                         if("2" not in Binning and "Bin_4D" in str(Vars_1D[0]) and "OG" not in str(Vars_1D[0])):
                                             continue # These 4D bins have only been defined with my new binning schemes
                                         if("2" in Binning and "Bin_4D" in str(Vars_1D[0]) and "OG" in str(Vars_1D[0])):
@@ -7085,6 +7083,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Histo_Name = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_1D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D1_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
 
                                         Normal_rdf = DF_Filter_Function_Full(DF=rdf, Variables=Vars_1D[0], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
+                                        if("Combined_" in Vars_1D[0]):
+                                            Normal_rdf = Multi_Dimensional_Bin_Construction(DF=Normal_rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF")
 
                                         if(Normal_rdf == "continue"):
                                             continue
@@ -7213,19 +7213,33 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5, 52]
                                 Res_Binning_4D       = ['Bin_Res_4D',              -1.5, 441.5, 443]
                                 # Res_Binning_4D_OG  = ['Bin_Res_4D_OG',           -1.5, 441.5, 443]
+                                
+                                phi_t_Binning_New = copy.deepcopy(phi_t_Binning)
+                                if("smear" in Histo_Smear):
+                                    phi_t_Binning_New[0] = "".join([str(phi_t_Binning_New[0]), "_smeared" if("smear" not in phi_t_Binning_New[0]) else ""])
 
                                 # Res_Binning_4D       = ['Bin_Res_4D', -1.5, 295 + 1.5, 295 + 4]
                                 # # Res_Binning_4D_OG  = ['Bin_Res_4D_OG', -1.5, 344 + 1.5, 344 + 4]
 
                                 # # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
                                 # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
+                                
+                                Res_Var_Add = []
+                                # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
-#                                 Res_Var_List.append(Res_Binning_2D_Q2_xB)
-                                # Res_Var_List.append(Res_Binning_2D_z_pT)
-#                                 Res_Var_List.append(Res_Binning_4D)
+                                if(Res_Var_Add != []):
+                                    for Response_Added in Res_Var_Add:
+                                        Res_Var_List.append(Response_Added)
 
-                                for Var_List in Res_Var_List:
+                                for Var_List_Test in Res_Var_List:
+                                    
+                                    if(len(Var_List_Test) == 4):
+                                        # Normal 1D Variable
+                                        Var_List = Var_List_Test
+                                    else:
+                                        Var_List = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
 
                                     variable = Var_List[0]
 
@@ -7241,6 +7255,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
                                     
                                     sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
+                                    if("Combined_" in variable):
+                                        sdf = Multi_Dimensional_Bin_Construction(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
 
                                     if(sdf == "continue"):
                                         continue
@@ -7296,7 +7312,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), "; z-P_{T} Bins; Count"])
                                         
                                         
-                                        if(Histo_Group == "Response_Matrix"):
+                                        if((Histo_Group == "Response_Matrix") and ("Combined_" not in variable)):
                                             num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
                                             num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5)
 
@@ -7308,6 +7324,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                                             Variable_Gen = str("".join([str(variable).replace("_smeared", ""), "_gen"]))
                                             Variable_Rec = str(variable)
+                                            
+                                        # if("Combined_" in variable):
+                                        #     print("".join([color.BOLD, "Variable_Gen = ", str(Variable_Gen), color.END]))
+                                        #     print("".join([color.BOLD, "Variable_Rec = ", str(Variable_Rec), color.END]))
+                                        #     print("\n")
+                                        #     print("Printing the full list of variables (and their object types) in the DataFrame...")
+                                        #     for ii in range(0, len(sdf.GetColumnNames()), 1):
+                                        #         print("".join([str((sdf.GetColumnNames())[ii]), " ( type -> ", sdf.GetColumnType(sdf.GetColumnNames()[ii]), " )"]))
+                                        #     print("".join(["\tTotal length= ", str(len(sdf.GetColumnNames()))]))
+                                        #     print("\n\n\n\n\n")
 
                                             
                                         Bin_Filter = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
@@ -7458,4 +7484,4 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 else:
     print("\nERROR: No valid datatype selected...\n")
     
-# This Code was last updated on 9-28-2022
+# This Code was last updated on 2-13-2023

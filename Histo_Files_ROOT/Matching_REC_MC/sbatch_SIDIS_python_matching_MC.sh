@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Matching_Unfolding_Tests_V12_SIDIS_histo_1_18_2023
+#SBATCH --job-name=MC_Matching_Unfolding_Tests_V13_V4_SIDIS_histo_2_13_2023
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=8000
+#SBATCH --mem-per-cpu=28000
 #SBATCH --time=24:00:00
 #SBATCH --array=0-219
 
