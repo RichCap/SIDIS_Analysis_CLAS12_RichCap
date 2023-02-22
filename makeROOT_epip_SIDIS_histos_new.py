@@ -253,7 +253,34 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Extra_Name = "Unfolding_Tests_V14_"
     # Modified the Pi+ Theta smearing function (as function of momentum) 
         # Testing to see if it is better to smear only one variable at a time (other variables could be improved at this moment, but only changing one aspect of the smearing function in this iteration)
+    # Attempting to fix the issue with the multidimension variable creation function
+        # Flipped the order of the Res_Var_Add variable list
+    # Removed the Combined z-pT-phi_h variable from test (switched with the Q2-xB bin variable as an already defined multidimensional variable that can be unfolded as is)
+        # The removed option has to many bins for efficient testing at this stage
+    # Changed the phase space histograms (in 'Mom_Cor_Code') to include the particle momentum instead of the sector information
+        # May be redundant with other histograms (in 'Normal_2D') which should be removed in the future (must make the other scripts compatible with these histograms before removing the 'Normal_2D' options)
+    # Modified Dimension_Name_Function() to remove all ";"s from the outputs
+    # Removed notification of "Skipping Normal 1D Histograms..." (now just assumed)
     
+    
+    Extra_Name = "Analysis_Note_Update_"
+    # Added response matrices for the variables already shown in the analysis note (for update)
+    # Removed smearing histograms, exclusive cuts, and combined variables (not needed here)
+    
+    
+    Extra_Name = "Analysis_Note_Update_V2_"
+    # Extended the z-pT bin axis for the response matrices (caused errors in the plots without kinematic binning)
+    # Switched the kinematic variables (other than phi_h) to use the same binning scheme as was used at the last DNP meeting (just for the response matrix/1D plots)
+
+    
+    Extra_Name = "Analysis_Note_Update_V3_"
+    # Resetted the z-pT bin axis for the response matrices (was not necessary before)
+    # Fixed the issue with replicating old plots (issue was caused by a cut that prevented bin migration between the kinematic Q2-xB-z-pT bins which is only useful in the phi_t plots)
+    # Using FX's smearing function
+    
+    
+    Extra_Name = "Analysis_Note_Update_V4_"
+    # Using my smearing function and momentum corrections
     
     
     if(datatype == 'rdf'):
@@ -1350,8 +1377,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 momR *= (-1.0429e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.3654e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0663e+00);
                 momR *= (-8.4052e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (9.8234e-03)*(V4.Theta()*TMath::RadToDeg()) + (1.0144e+00);
                 momR *= (1.5861e-02)*(V4.P())*(V4.P()) + (-1.5747e-01)*(V4.P()) + (1.3121e+00);
-                momR *= (-9.6572e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.6144e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.5746e-01);
-                
+                momR *= (-9.6572e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.6144e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.5746e-01); 
             }
             if(ivec == 1){
                 // From ∆P(Pi+ Pion) Sigma distributions:
@@ -1385,12 +1411,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 // From ∆Theta(Pi+ Pion) Vs Momentum Sigma distributions:
                 theR *= (-1.2412e-02)*(V4.P())*(V4.P()) + (1.8465e-01)*(V4.P()) + (7.5162e-01);
             }   
-
             double phiS1 = 0.85 - 0.015*smeared_ThD;
             double phiS2 = 0.17 - 0.003*smeared_ThD;
             double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
             phiR *= 3.5;
-
             // overwrite EB (i.e., applying the smear)
             smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
             smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
@@ -6099,11 +6123,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     def DF_Filter_Function_Full(DF, Variables, Titles_or_DF, Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type="rdf", Cut_Choice="no_cut", Smearing_Q="", Binning_Q="", Sec_type="", Sec_num=-1):
 
-        if("2" not in Binning_Q and "P2" in Cut_Choice):
-            return "continue"
-
-        if('str' in str(type(Variables)) and Q2_xB_Bin_Filter != -1 and Variables != "2D_Purity"):
-            return "continue"
+        # if("2" not in Binning_Q and "P2" in Cut_Choice):
+        #     return "continue"
+        # if('str' in str(type(Variables)) and Q2_xB_Bin_Filter != -1 and Variables != "2D_Purity"):
+        #     return "continue"
 
         ##===============================================##
         ##----------## Skipping Bad Requests ##----------##
@@ -6189,6 +6212,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
             if(Filter_Name != ""):
+                print(Filter_Name)
                 DF_Out = DF.Filter(Filter_Name)
             else:
                 DF_Out = DF
@@ -6389,6 +6413,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     Dimensions_Output = "".join([str(Histo_Var_D1_Name), "; ", str(Histo_Var_D2_Name)])
 
             Dimensions_Output = Dimensions_Output.replace(":", "=")
+            Dimensions_Output = Dimensions_Output.replace("; ", "), (")
             
             # if(Histo_Var_D2 == "None" and Histo_Var_D3 == "None"):
             #     Dimensions_Output = Dimensions_Output.replace("_smeared", "")
@@ -6458,7 +6483,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
     List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
-    # List_of_Q2_xB_Bins_to_include = [-1, 1, 3, 5]
+    # List_of_Q2_xB_Bins_to_include = [-1, 1]
     
     
     
@@ -6525,7 +6550,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     # cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
     cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
-    # cut_list = ['no_cut', 'cut_Complete_SIDIS']
+    cut_list = ['no_cut', 'cut_Complete_SIDIS']
+    # cut_list = ['cut_Complete_SIDIS']
 
     
     
@@ -6584,33 +6610,33 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 # #     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
 # #     # Bin size: 10 per bin
     
-#     # Post-GRC Binning
-#     Q2_Binning = ['Q2', 1.4805, 11.8705, 20]
-#     # Q2_Binning_Smeared = ['Q2_smeared', 1.4805, 11.8705, 20]
-#     # Bin size: 0.5195 per bin
-#     xB_Binning = ['xB', 0.08977, 0.82643, 20]
-#     # xB_Binning_Smeared = ['xB_smeared', 0.08977, 0.82643, 20]
-#     # Bin size: 0.03683 per bin
-#     z_Binning = ['z', 0.11944, 0.73056, 20]
-#     # z_Binning_Smeared = ['z_smeared', 0.11944, 0.73056, 20]
-#     # Bin size: 0.03056 per bin
-#     pT_Binning = ['pT', 0, 1.05, 20]
-#     # pT_Binning_Smeared = ['pT_smeared', 0, 1.05, 20]
-#     # Bin size: 0.05 per bin
-#     y_Binning = ['y', 0, 1, 20]
-#     # y_Binning_Smeared = ['y_smeared', 0, 1, 20]
-#     # Bin size: 0.05 per bin
+    # Post-GRC Binning
+    Q2_Binning_Old = ['Q2', 1.4805, 11.8705, 20]
+    # Q2_Binning_Smeared = ['Q2_smeared', 1.4805, 11.8705, 20]
+    # Bin size: 0.5195 per bin
+    xB_Binning_Old = ['xB', 0.08977, 0.82643, 20]
+    # xB_Binning_Smeared = ['xB_smeared', 0.08977, 0.82643, 20]
+    # Bin size: 0.03683 per bin
+    z_Binning_Old = ['z', 0.11944, 0.73056, 20]
+    # z_Binning_Smeared = ['z_smeared', 0.11944, 0.73056, 20]
+    # Bin size: 0.03056 per bin
+    pT_Binning_Old = ['pT', 0, 1.05, 20]
+    # pT_Binning_Smeared = ['pT_smeared', 0, 1.05, 20]
+    # Bin size: 0.05 per bin
+    y_Binning_Old = ['y', 0, 1, 20]
+    # y_Binning_Smeared = ['y_smeared', 0, 1, 20]
+    # Bin size: 0.05 per bin
 
     
-    # Post-DNP Binning
-    Q2_Binning    = ['Q2',     1.48,  11.87,  20]
-    # Bin size: 0.5195 per bin
-    xB_Binning    = ['xB',     0.09,  0.826,  20]
-    # Bin size: 0.0368 per bin
-    z_Binning     = ['z',      0.119, 0.731,  20]
-    # Bin size: 0.0306 per bin
-    pT_Binning    = ['pT',     0,     1.05,   20]
-    # Bin size: 0.05 per bin
+#     # Post-DNP Binning
+#     Q2_Binning    = ['Q2',     1.48,  11.87,  20]
+#     # Bin size: 0.5195 per bin
+#     xB_Binning    = ['xB',     0.09,  0.826,  20]
+#     # Bin size: 0.0368 per bin
+#     z_Binning     = ['z',      0.119, 0.731,  20]
+#     # Bin size: 0.0306 per bin
+#     pT_Binning    = ['pT',     0,     1.05,   20]
+#     # Bin size: 0.05 per bin
     y_Binning     = ['y',      0,     1,      20]
     # Bin size: 0.05 per bin
     
@@ -6650,13 +6676,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     pT_Binning = ['pT', 0,     1.26,  120]
     # Bin size: 0.0105 per bin
     
+    # Q2_Binning_Old = ['Q2', 0.0, 12.5, 25]
+    # # Bin size: 0.5 per bin
+    # xB_Binning_Old = ['xB', -0.003,  0.997, 25]
+    # # Bin size: 0.04 per bin
+    
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
     # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], phi_t_Binning_Smeared, Binning_4D_Smeared, W_Binning_Smeared]
     
-    
-    List_of_Quantities_1D = [phi_t_Binning]
+    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
+    List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
+#     List_of_Quantities_1D = [phi_t_Binning]
+#     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old]
+#     List_of_Quantities_1D = [phi_t_Binning, Q2_Binning_Old, xB_Binning_Old]
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -6677,7 +6711,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['y_smeared', 0, 1, 200], ['xF_smeared', -1, 1, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]]]
     
     # # # 2D histograms are turned off with these options
-    # List_of_Quantities_2D = []
+#     List_of_Quantities_2D = []
     # List_of_Quantities_2D_smeared = []
     
     
@@ -6689,7 +6723,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     run_Mom_Cor_Code = "yes"
-    # run_Mom_Cor_Code = "no"
+    run_Mom_Cor_Code = "no"
 
     if(run_Mom_Cor_Code == "yes"):
         print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
@@ -6698,6 +6732,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     smearing_options_list = ["", "smear"]
+    # smearing_options_list = [""]
     
     # binning_option_list = ["", "2"]
     binning_option_list = ["2"]
@@ -6879,10 +6914,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             
 ##======##======##======##======##======##     Histogram Option Loop       ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
                         for Histo_Group in histo_options:
-                            Histo_Group_Name   = "".join(["Histo-Group:'", str(Histo_Group), "'"])
-                            Histo_Data_Name    = "".join(["Data-Type:'", str(Histo_Data), "'"])
-                            Histo_Cut_Name     = "".join(["Data-Cut:'", str(Histo_Cut), "'"])
-                            Histo_Smear_Name   = "".join(["Smear-Type:'", str(Histo_Smear), "'"])
+                            Histo_Group_Name   = "".join(["Histo-Group:'",  str(Histo_Group), "'"])
+                            Histo_Data_Name    = "".join(["Data-Type:'",    str(Histo_Data),  "'"])
+                            Histo_Cut_Name     = "".join(["Data-Cut:'",     str(Histo_Cut),   "'"])
+                            Histo_Smear_Name   = "".join(["Smear-Type:'",   str(Histo_Smear), "'"])
                             Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-(Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), ")"])
 
 
@@ -6909,38 +6944,27 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##==========##     Correction Histogram ID's     ##==========##
                             ###############################################################
 
-                                # Mom_Cor_Histo_Name_Main = ("".join(["(", "; ".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name]), ")"])).replace("; )", ")")
                                 Mom_Cor_Histo_Name_Main = ((("".join(["((", "), (".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name])])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
 
-                                # Mom_Cor_Histo_Name_MM_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_MM_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), ")"])
                                 Mom_Cor_Histo_Name_MM_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_MM_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
 
-                                # Mom_Cor_Histo_Name_DP_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_DP_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), ")"])
                                 Mom_Cor_Histo_Name_DP_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DP_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
 
-                                # Mom_Cor_Histo_Name_DP_Ele_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_DP_Pip_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), ")"])
                                 Mom_Cor_Histo_Name_DP_Ele_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DP_Pip_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
 
-                                # Mom_Cor_Histo_Name_DTheta_Ele        = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_DTheta_Pip        = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), ")"])
                                 Mom_Cor_Histo_Name_DTheta_Ele        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DTheta_Pip        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
 
-                                # Mom_Cor_Histo_Name_DTheta_Ele_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_DTheta_Pip_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), ")"])
                                 Mom_Cor_Histo_Name_DTheta_Ele_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
 
-                                # Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension, Histo_Var_D2=Histo_Var_Ele_Phi_Dimension)), ")"])
-                                # Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "; ", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension, Histo_Var_D2=Histo_Var_Pip_Phi_Dimension)), ")"])
-                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension, Histo_Var_D2=Histo_Var_Ele_Phi_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension, Histo_Var_D2=Histo_Var_Pip_Phi_Dimension)), "))"])
+                                # Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension, Histo_Var_D2=Histo_Var_Ele_Phi_Dimension)), "))"])
+                                # Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension, Histo_Var_D2=Histo_Var_Pip_Phi_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension, Histo_Var_D2=Histo_Var_Ele_Phi_Dimension, Histo_Var_D3=Histo_Var_Ele_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension, Histo_Var_D2=Histo_Var_Pip_Phi_Dimension, Histo_Var_D3=Histo_Var_Pip_Dimension)), "))"])
                                 
                                 
                                 Mom_Cor_Histo_Name_MM_Ele            = Mom_Cor_Histo_Name_MM_Ele.replace("; ", "), ")
@@ -6966,25 +6990,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##==========##    Correction Histogram Titles    ##==========##
                             ###############################################################
 
-
-                                # Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; El Sector"])
-                                # Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; #pi^{+} Sector"])
-                                # Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el}; El Sector"])
-                                # Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
-                                # Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el}; El Sector"])
-                                # Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
-                                # Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el}; El Sector"])
-                                # Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+}; #pi^{+} Sector"])
                                 
                                 Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; #theta_{el} Bins"])
                                 Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; #theta_{#pi+} Bins"])
+                                
                                 Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el}; #theta_{el} Bins"])
                                 Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+}; #theta_{#pi+} Bins"])
                                 
                                 Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el}; El Sector"])
                                 Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
-                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el}; El Sector"])
-                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+}; #pi^{+} Sector"])
+                                
+                                # Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el}; El Sector"])
+                                # Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+}; #pi^{+} Sector"])
+                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{el}"])
+                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
 
 
                             ###############################################################
@@ -6992,7 +7011,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ###############################################################
 
 
-                                variables_Mom_Cor = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "Delta_Theta_el_Cors", "Delta_Theta_pip_Cors", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
+                                variables_Mom_Cor     = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "Delta_Theta_el_Cors", "Delta_Theta_pip_Cors", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
                                 if("smear" in Histo_Smear):
                                     variables_Mom_Cor = ["MM_smeared", "Delta_Pel_Cors_smeared", "Delta_Ppip_Cors_smeared", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors_smeared", "el_smeared", "pip_smeared", "elth_smeared", "pipth_smeared", "elPhi_smeared", "pipPhi_smeared", "el", "pip", "elth", "pipth"]
 
@@ -7019,8 +7038,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title), 200, 0, 40, 500, -3, 3, 8, -0.5, 7.5), "pipth", "Delta_Ppip_Cors" if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared", "pipsec")
                                 Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 8, -0.5, 7.5), "elth",  "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "esec")
                                 Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 40, 500, -3, 3, 8, -0.5, 7.5), "pipth", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipsec")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title), 200, 0, 40, 360, 0, 360, 8, -0.5, 7.5), "elth"  if("smear" not in Histo_Smear) else "elth_smeared",  "elPhi"  if("smear" not in Histo_Smear) else "elPhi_smeared",  "esec")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title), 200, 0, 40, 360, 0, 360, 8, -0.5, 7.5), "pipth" if("smear" not in Histo_Smear) else "pipth_smeared", "pipPhi" if("smear" not in Histo_Smear) else "pipPhi_smeared", "pipsec")
+                                # Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title), 200, 0, 40, 360, 0, 360, 8, -0.5, 7.5), "elth"  if("smear" not in Histo_Smear) else "elth_smeared",  "elPhi"  if("smear" not in Histo_Smear) else "elPhi_smeared",  "esec")
+                                # Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title), 200, 0, 40, 360, 0, 360, 8, -0.5, 7.5), "pipth" if("smear" not in Histo_Smear) else "pipth_smeared", "pipPhi" if("smear" not in Histo_Smear) else "pipPhi_smeared", "pipsec")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title), 200, 0, 40, 360, 0, 360, 200, 0, 10), "elth"  if("smear" not in Histo_Smear) else "elth_smeared",  "elPhi"  if("smear" not in Histo_Smear) else "elPhi_smeared",  "el"  if("smear" not in Histo_Smear) else "el_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title), 200, 0, 40, 360, 0, 360, 200, 0, 8),  "pipth" if("smear" not in Histo_Smear) else "pipth_smeared", "pipPhi" if("smear" not in Histo_Smear) else "pipPhi_smeared", "pip" if("smear" not in Histo_Smear) else "pip_smeared")
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
@@ -7058,7 +7079,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##################################################=========================================##########################################################################################################################################
                             if(Histo_Group in ["Normal", "Has_Matched", "Bin_Purity", "Delta_Matched"]):
 
-                                Histo_Binning = [Binning, "All", "All"]
+                                Histo_Binning      = [Binning, "All", "All"]
                                 Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
 
             ###################################################################################
@@ -7136,9 +7157,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if("Phi" in Vars_1D[0] and Histo_Group == "Delta_Matched"):
                                             count_of_histograms += 1
                                             
-                                else:
-                                    print("\tSkipping Normal 1D Histograms...")
-                                    # continue
+                                # else:
+                                #     print("\tSkipping Normal 1D Histograms...")
+                                #     # continue
 
 
 
@@ -7153,8 +7174,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 for Vars_2D in Variable_Loop_2D:
 
                                     Histo_Var_D2_Name = Dimension_Name_Function(Histo_Var_D1=Vars_2D[0], Histo_Var_D2=Vars_2D[1], Histo_Var_D3="None")
-                        
-                                    Normal_rdf = DF_Filter_Function_Full(DF=rdf, Variables=[Vars_2D[0][0], Vars_2D[1][0]], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
+                                    Normal_rdf        = DF_Filter_Function_Full(DF=rdf, Variables=[Vars_2D[0][0], Vars_2D[1][0]], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
                             
                                     if(Normal_rdf == "continue"):
                                         continue
@@ -7168,10 +7188,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # This binning scheme only goes up to 8 Q2-xB bins
                                             continue
 
-                                        Histo_Binning = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
+                                        Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
-                                        Histo_Name = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                        Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
                                             
                                         Title_2D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_2D[0][0])).replace(" (Smeared)", ""), " vs. ", str(variable_Title_name(Vars_2D[1][0]))])
                                         Title_2D_L2   = "".join(["Q^{2}-x_{B} Bin: ", str(Histo_Binning[1])])
@@ -7182,7 +7202,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                                         Title_2D_Out  = Title_2D_Out.replace(") (", " - ")
                                         
-                                        Bin_Filter = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
                                         Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
 
@@ -7209,10 +7229,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     continue
                                 
                                 
-                                Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -1.5, 10.5, 12]
-                                Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5, 52]
+                                Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -1.5, 10.5,  12]
+                                Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5,  52]
                                 Res_Binning_4D       = ['Bin_Res_4D',              -1.5, 441.5, 443]
                                 # Res_Binning_4D_OG  = ['Bin_Res_4D_OG',           -1.5, 441.5, 443]
+                                
+                                # Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -3.5, 11.5,  15]
+                                # Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -3.5, 51.5,  55]
+                                # Res_Binning_4D       = ['Bin_Res_4D',              -3.5, 442.5, 446]
                                 
                                 phi_t_Binning_New = copy.deepcopy(phi_t_Binning)
                                 if("smear" in Histo_Smear):
@@ -7225,8 +7249,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
                                 
                                 Res_Var_Add = []
-                                # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
-                                Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
                                 if(Res_Var_Add != []):
@@ -7242,13 +7267,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Var_List = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
 
                                     variable = Var_List[0]
-
                                     if(("smear" in Histo_Smear) and ("smear" not in variable)):
                                         variable = "".join([variable, "_smeared"])
 
                                     Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
 
-                                    BIN_SIZE = round((Max_range - Min_range)/Num_of_Bins, 4)
+                                    BIN_SIZE  = round((Max_range - Min_range)/Num_of_Bins, 4)
                                     Bin_Range = "".join([str(Min_range), " #rightarrow ", str(Max_range)])
 
                                     # Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2="None")
@@ -7266,15 +7290,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 ###################################################################################
                                     for Q2_xB_Bin_Num in List_of_Q2_xB_Bins_to_include:
 
-                                        if(Q2_xB_Bin_Num > 8 and Binning == "2"):
+                                        if((Q2_xB_Bin_Num > 8) and (Binning == "2")):
                                             # This binning scheme only goes up to 8 Q2-xB bins
                                             continue
 
-                                        if(Q2_xB_Bin_Num > 0 and str(variable) == str(Q2_xB_Bin_Filter_str)):
+                                        if((Q2_xB_Bin_Num > 0) and (str(Q2_xB_Bin_Filter_str) in str(variable))):
                                             # Making a response matrix with cuts on the Q2-xB bins is unnecessary for the Q2-xB bin response matrix
                                             continue
+                                            
+                                        if((Q2_xB_Bin_Num > 0) and (str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"])):
+                                            # Making a response matrix with cuts on the Q2-xB bins is unnecessary for these response matrices (just using as examples for analysis note)
+                                            continue
 
-                                        Histo_Binning = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
+                                        Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
                                         Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_RM_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
@@ -7296,11 +7324,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
                                         if(Histo_Group == "Response_Matrix"):
-                                            Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
+                                            Migration_Title     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
                                             if(Histo_Data not in ["mdf", "pdf"]):
                                                 Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC" if("g" not in Histo_Data) else " GEN", " Bins; z-P_{T} Bins; Count"])
                                         else:
-                                            Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " (GEN); ", str(variable_Title_name(variable)), " (REC)"])
+                                            Migration_Title     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " (GEN); ", str(variable_Title_name(variable)), " (REC)"])
                                             if(Histo_Data not in ["mdf", "pdf"]):
                                                 Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " (REC" if("g" not in Histo_Data) else " (GEN", "); z-P_{T} Bins; Count"])
 
@@ -7335,31 +7363,45 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         #     print("".join(["\tTotal length= ", str(len(sdf.GetColumnNames()))]))
                                         #     print("\n\n\n\n\n")
 
-                                            
+                                          
+                                        ## Filter for the Q2-xB Bins
                                         Bin_Filter = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
-                                        if(("Bin" not in str(variable)) and (Histo_Data in ["mdf", "pdf", "gen"])):
+                                        ## Cut for 1D bin migration (don't use for the Q2, xB, z, and pT variables - will result in improper cuts within those plots)
+                                        if(("Bin" not in str(variable)) and (Histo_Data in ["mdf", "pdf", "gen"]) and "'phi_t" in str(variable)):
                                             # 1D Unfolding requires events be generated and reconstructed in the same bin
-                                            Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
+                                            Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
                                             
                                             
-                                        Migration_Title = "".join([str(Migration_Title), "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
+                                        Migration_Title       = "".join([str(Migration_Title),   "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
                                         if(Histo_Data == "mdf"):
                                             Migration_Title_2 = "".join([str(Migration_Title_2), "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
                                         
                                         if(Histo_Data in ["mdf", "pdf"]):
-                                            Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),   num_of_GEN_bins, min_GEN_bin, Max_GEN_bin,  num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                            if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
+                                                # Do not need to see the z-pT bins for these plots
+                                                Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")).replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+                                                Migration_Title_Simple            = str(Migration_Title.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
+                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                                            else:
+                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                             if(Histo_Data == "mdf"):
-                                                Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                 = str((Histo_Name_1D).replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")).replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+                                                    Migration_Title_Simple        = str(Migration_Title_2.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
+                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                else:
+                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2),      num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                         else:
-                                            Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),   num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                        # if(Histo_Data in ["mdf", "pdf"]):
-                                        #     Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   num_of_GEN_bins, min_GEN_bin, Max_GEN_bin,  num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
-                                        #     if(Histo_Data == "mdf"):
-                                        #         Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
-                                        # else:
-                                        #     Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),   num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
-
+                                            Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                            if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
+                                                # Do not need to see the z-pT bins for these plots
+                                                Histo_Name_1D                     = str((Histo_Name_1D).replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")).replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+                                                Migration_Title_Simple            = str(Migration_Title.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
+                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                            else:
+                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
 
                                         if(Histo_Data == "mdf"):
                                             if(str(file_location) != 'time'):
@@ -7400,7 +7442,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             for ii in Histograms_All:
                 print(str(ii))
                 if(";" in str(ii)):
-                    print("".join([color.RED, "SEMI-COLON ERROR", color.END]))
+                    print("".join([color.RED, "SEMI-COLON ERROR: ", str(ii), color.END]))
             print("\n")
         elif(str(file_location) == "time"):
             print("\nChoose not to print list of final histograms...\nSet output_all_histo_names_Q = 'yes' or enter 'test' instead of a file name to print a list of histograms made while running...\n")

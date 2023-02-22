@@ -11,3 +11,12 @@
 *8.root
 *9.root
 Data_Files_Groovy/GEN_MC/Outdated_SIDIS_epip_TTree_Batch_MC_GEN.sh
+SIDIS_python_Images_From*
+Test_Unfold.ipynb
+Untitled.ipynb
+*_All.root
+*_Most.root
+RooUnfoldExample.py
+*.pdf
+Histo_Files_ROOT/REAL_Data/single_sbatch_SIDIS_python_real_data.sh
+Old_Images/

@@ -729,6 +729,7 @@ def FileLocation(FileName, Datatype):
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
 Common_Name = "Unfolding_Tests_V13_All"
+Common_Name = "Analysis_Note_Update_V4_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -899,9 +900,9 @@ os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 ##====================================================##
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual]:
-    for Q2_xB_Bin in range(1, 9, 1):
+    for Q2_xB_Bin in range(0, 9, 1):
         # print("".join([str(folder), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
-        os.mkdir("".join([str(folder), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
+        os.mkdir("".join([str(folder), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 ##====================================================##
 
@@ -911,27 +912,23 @@ for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destin
 for Entry in os.listdir():
     if('.png' in str(Entry)):
         # print("\n"+str(Entry))
-#         if("_Pars_" in str(Entry)):
-#             shutil.move(Entry, destination_pars)
+        # if("_Pars_" in str(Entry)):
+        #     shutil.move(Entry, destination_pars)
         if("Response_Matrix_" in str(Entry) and "_z_pT_Bin_" in str(Entry)):
-            for Q2_xB_Bin in range(1, 9, 1):
+            for Q2_xB_Bin in range(0, 9, 1):
                 if("".join(["Q2_xB_Bin_", str(Q2_xB_Bin)]) in str(Entry)):
-                    if("Smeared" not in str(Entry)):
-                        # print("".join([str(destination_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
+                    if(("Smeared" not in str(Entry)) and ("smear" not in str(Entry))):
+                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                     else:
-                        # print("".join([str(destination_Smeared_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
-                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
+                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 
         elif("Unfolded_Histos" in str(Entry) and "_z_pT_Bin_" not in str(Entry)):
-            for Q2_xB_Bin in range(1, 9, 1):
+            for Q2_xB_Bin in range(0, 9, 1):
                 if("".join(["Q2_xB_Bin_", str(Q2_xB_Bin)]) in str(Entry)):
                     if("Smeared" not in str(Entry)):
-                        # print("".join([str(destination_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
+                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                     else:
-                        # print("".join([str(destination_Smeared_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
-                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
+                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
         else:
             # print(destination)
             shutil.move(Entry, destination)
