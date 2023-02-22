@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Matching_Analysis_Note_Update_V4_SIDIS_histo_2_20_2023
+#SBATCH --job-name=MC_Matching_New_Smearing_Creation_SIDIS_histo_2_22_2023
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
