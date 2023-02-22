@@ -289,6 +289,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Running with all versions of the cuts
     
     
+    Extra_Name = "New_Smearing_Creation_V1_"
+    # Only running Mom_Cor_Code plots
+    # Modified Electron Smearing as function of momentum
+    
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -1434,49 +1439,50 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     """
     
     
-#     smearing_function = """
-#         //===========================================================================//
-#         //=================//     Modified Smearing Function      //=================//
-#         //===========================================================================//
-#         auto smear_func = [&](TLorentzVector V4, int ivec){
-#             // True generated values (i.e., values of the unsmeared TLorentzVector)
-#             double inM = V4.M();
-#             double smeared_P  = V4.P();
-#             double smeared_Th = V4.Theta();
-#             double smeared_Phi = V4.Phi();
-#             TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
-#             // Calculate resolutions
-#             double smeared_ThD = TMath::RadToDeg()*smeared_Th;
-#             double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
-#             double momS2 = 0.02*smeared_ThD;
-#             double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
-#             momR *= 2.0;
-#             if(ivec == 0){
-#                 // From ∆P(Electron) Sigma distributions:
-#             }
-#             if(ivec == 1){
-#                 // From ∆P(Pi+ Pion) Sigma distributions:
-#             }
-#             double theS1 = 0.004*smeared_ThD + 0.1;
-#             double theS2 = 0;
-#             double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
-#             theR *= 2.5;
+    smearing_function = """
+        //===========================================================================//
+        //=================//     Modified Smearing Function      //=================//
+        //===========================================================================//
+        auto smear_func = [&](TLorentzVector V4, int ivec){
+            // True generated values (i.e., values of the unsmeared TLorentzVector)
+            double inM = V4.M();
+            double smeared_P  = V4.P();
+            double smeared_Th = V4.Theta();
+            double smeared_Phi = V4.Phi();
+            TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
+            // Calculate resolutions
+            double smeared_ThD = TMath::RadToDeg()*smeared_Th;
+            double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
+            double momS2 = 0.02*smeared_ThD;
+            double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
+            momR *= 2.0;
+            if(ivec == 0){
+                // From ∆P(Electron) Sigma Vs Momentum distributions:
+                momR *= (2.0604e-02)*(V4.P())*(V4.P()) + (-1.1212e-01)*(V4.P()) + (7.1348e-01);
+            }
+            // if(ivec == 1){
+            //     // From ∆P(Pi+ Pion) Sigma distributions:
+            // }
+            double theS1 = 0.004*smeared_ThD + 0.1;
+            double theS2 = 0;
+            double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
+            theR *= 2.5;
             
-#             double phiS1 = 0.85 - 0.015*smeared_ThD;
-#             double phiS2 = 0.17 - 0.003*smeared_ThD;
-#             double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
-#             phiR *= 3.5;
-#             // overwrite EB (i.e., applying the smear)
-#             smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
-#             smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
-#             smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
-#             V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
-#             V4_new.SetRho( smeared_P );
-#             V4_new.SetTheta( smeared_Th );
-#             V4_new.SetPhi( smeared_Phi );
-#             return V4_new;
-#         };
-#     """
+            double phiS1 = 0.85 - 0.015*smeared_ThD;
+            double phiS2 = 0.17 - 0.003*smeared_ThD;
+            double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
+            phiR *= 3.5;
+            // overwrite EB (i.e., applying the smear)
+            smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
+            smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
+            smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
+            V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
+            V4_new.SetRho( smeared_P );
+            V4_new.SetTheta( smeared_Th );
+            V4_new.SetPhi( smeared_Phi );
+            return V4_new;
+        };
+    """
     
     
     
