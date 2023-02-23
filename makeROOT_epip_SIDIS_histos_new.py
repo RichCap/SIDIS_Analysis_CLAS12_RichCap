@@ -294,6 +294,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Modified Electron Smearing as function of momentum
     
     
+    Extra_Name = "New_Smearing_Creation_V2_"
+    # Only running Mom_Cor_Code plots
+    # Modified Electron Smearing (again) as function of momentum
+    
+    
+    Extra_Name = "New_Smearing_Creation_V3_"
+    # Only running Mom_Cor_Code plots
+    # Modified Electron Smearing as function of theta
+    
+    
+    Extra_Name = "New_Smearing_Creation_V4_"
+    # Only running Mom_Cor_Code plots
+    # Modified Electron Smearing (again) as function of theta
+    
+    
+    Extra_Name = "New_Smearing_Creation_V5_"
+    # Only running Mom_Cor_Code plots
+    # Modified Pi+ Pion Smearing as function of momentum
+    
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -1459,10 +1479,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(ivec == 0){
                 // From ∆P(Electron) Sigma Vs Momentum distributions:
                 momR *= (2.0604e-02)*(V4.P())*(V4.P()) + (-1.1212e-01)*(V4.P()) + (7.1348e-01);
+                momR *= (-1.1295e-02)*(V4.P())*(V4.P()) + (2.3416e-01)*(V4.P()) + (-1.0974e-01);
+                // From ∆P(Electron) Sigma Vs Theta distributions:
+                momR *= (-2.7657e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (8.1714e-02)*(V4.Theta()*TMath::RadToDeg()) + (4.0196e-01);
+                momR *= (-7.3974e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.0908e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.9876e-01);
             }
-            // if(ivec == 1){
-            //     // From ∆P(Pi+ Pion) Sigma distributions:
-            // }
+            if(ivec == 1){
+                // From ∆P(Pi+ Pion) Sigma Vs Momentum distributions:
+                momR *= (-5.2125e-02)*(V4.P())*(V4.P()) + (2.7110e-01)*(V4.P()) + (4.8534e-01);
+            }
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
             double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
