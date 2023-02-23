@@ -314,6 +314,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Modified Pi+ Pion Smearing as function of momentum
     
     
+    Extra_Name = "New_Smearing_Creation_V6_"
+    # Only running Mom_Cor_Code plots
+    # Modified Pi+ Pion Smearing (again) as function of momentum
+    
+    
+    Extra_Name = "New_Smearing_Creation_V7_"
+    # Only running Mom_Cor_Code plots
+    # Modified Pi+ Pion Smearing as function of theta
+    
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -1487,6 +1497,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(ivec == 1){
                 // From ∆P(Pi+ Pion) Sigma Vs Momentum distributions:
                 momR *= (-5.2125e-02)*(V4.P())*(V4.P()) + (2.7110e-01)*(V4.P()) + (4.8534e-01);
+                momR *= (-3.4607e-02)*(V4.P())*(V4.P()) + (1.5836e-01)*(V4.P()) + (6.8845e-01);
+                // From ∆P(Pi+ Pion) Sigma Vs Theta distributions:
+                momR *= (-5.7711e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (2.4354e-02)*(V4.Theta()*TMath::RadToDeg()) + (6.6472e-01);
             }
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
