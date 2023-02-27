@@ -324,6 +324,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Modified Pi+ Pion Smearing as function of theta
     
     
+    Extra_Name = "New_Smearing_Creation_V8_"
+    # Only running Mom_Cor_Code plots
+    # Modified Pi+ Pion Smearing (again) as function of theta
+    
+    
+    Extra_Name = "Analysis_Note_Update_V5_"
+    # Using my (new) smearing function
+    
+    
+    Extra_Name = "Analysis_Note_Update_V6_"
+    # Using my (new) smearing function (only smearing)
+    
+    
+    Extra_Name = "Analysis_Note_Update_VF_APS_"
+    # Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
+    
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -918,15 +935,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """]))
 
 
-        rdf = rdf.Define('MM', 'vals[0]') # Missing Mass
+        rdf = rdf.Define('MM',  'vals[0]') # Missing Mass
         rdf = rdf.Define('MM2', 'vals[1]') # Missing Mass Squared 
-        rdf = rdf.Define('Q2', 'vals[2]') # lepton momentum transfer squared
-        rdf = rdf.Define('xB', 'vals[3]') # fraction of the proton momentum that is carried by the struck quark
-        rdf = rdf.Define('v', 'vals[4]') # energy of the virtual photon
-        rdf = rdf.Define('s', 'vals[5]') # center-of-mass energy squared
-        rdf = rdf.Define('W', 'vals[6]') # center-of-mass energy
-        rdf = rdf.Define('y', 'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
-        rdf = rdf.Define('z', 'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
+        rdf = rdf.Define('Q2',  'vals[2]') # lepton momentum transfer squared
+        rdf = rdf.Define('xB',  'vals[3]') # fraction of the proton momentum that is carried by the struck quark
+        rdf = rdf.Define('v',   'vals[4]') # energy of the virtual photon
+        rdf = rdf.Define('s',   'vals[5]') # center-of-mass energy squared
+        rdf = rdf.Define('W',   'vals[6]') # center-of-mass energy
+        rdf = rdf.Define('y',   'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
+        rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
         rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
         
@@ -955,15 +972,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return vals_gen;
             """)
 
-            rdf = rdf.Define('MM_gen', 'vals_gen[0]')
+            rdf = rdf.Define('MM_gen',  'vals_gen[0]')
             rdf = rdf.Define('MM2_gen', 'vals_gen[1]')
-            rdf = rdf.Define('Q2_gen', 'vals_gen[2]')
-            rdf = rdf.Define('xB_gen', 'vals_gen[3]')
-            rdf = rdf.Define('v_gen', 'vals_gen[4]')
-            rdf = rdf.Define('s_gen', 'vals_gen[5]')
-            rdf = rdf.Define('W_gen', 'vals_gen[6]')
-            rdf = rdf.Define('y_gen', 'vals_gen[7]')
-            rdf = rdf.Define('z_gen', 'vals_gen[8]')
+            rdf = rdf.Define('Q2_gen',  'vals_gen[2]')
+            rdf = rdf.Define('xB_gen',  'vals_gen[3]')
+            rdf = rdf.Define('v_gen',   'vals_gen[4]')
+            rdf = rdf.Define('s_gen',   'vals_gen[5]')
+            rdf = rdf.Define('W_gen',   'vals_gen[6]')
+            rdf = rdf.Define('y_gen',   'vals_gen[7]')
+            rdf = rdf.Define('z_gen',   'vals_gen[8]')
             rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
         
     
@@ -1162,9 +1179,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
 
-    rdf = rdf.Define('pT', 'vals2[0]')    # transverse momentum of the final state hadron
-    rdf = rdf.Define('phi_t',' vals2[1]') # Most important angle (between lepton and hadron planes)
-    rdf = rdf.Define('xF', 'vals2[2]')    # x Feynmann
+    rdf = rdf.Define('pT',    'vals2[0]')    # transverse momentum of the final state hadron
+    rdf = rdf.Define('phi_t', 'vals2[1]') # Most important angle (between lepton and hadron planes)
+    rdf = rdf.Define('xF',    'vals2[2]')    # x Feynmann
 
     # rdf = rdf.Define('pipx_CM','vals2[3]') # CM pi+ x-momentum
     # rdf = rdf.Define('pipy_CM','vals2[4]') # CM pi+ y-momentum
@@ -1300,9 +1317,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         """]))
 
-        rdf = rdf.Define('pT_gen','vals2_gen[0]')
-        rdf = rdf.Define('phi_t_gen','vals2_gen[1]')
-        rdf = rdf.Define('xF_gen','vals2_gen[2]')
+        rdf = rdf.Define('pT_gen',    'vals2_gen[0]')
+        rdf = rdf.Define('phi_t_gen', 'vals2_gen[1]')
+        rdf = rdf.Define('xF_gen',    'vals2_gen[2]')
     
     
     
@@ -1500,6 +1517,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 momR *= (-3.4607e-02)*(V4.P())*(V4.P()) + (1.5836e-01)*(V4.P()) + (6.8845e-01);
                 // From ∆P(Pi+ Pion) Sigma Vs Theta distributions:
                 momR *= (-5.7711e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (2.4354e-02)*(V4.Theta()*TMath::RadToDeg()) + (6.6472e-01);
+                momR *= (-1.3210e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (3.5065e-02)*(V4.Theta()*TMath::RadToDeg()) + (8.3333e-01);
             }
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
@@ -6806,7 +6824,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['y_smeared', 0, 1, 200], ['xF_smeared', -1, 1, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]]]
     
     # # # 2D histograms are turned off with these options
-    List_of_Quantities_2D = []
+#     List_of_Quantities_2D = []
     # List_of_Quantities_2D_smeared = []
     
     
@@ -6827,7 +6845,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     smearing_options_list = ["", "smear"]
-    # smearing_options_list = [""]
+    # smearing_options_list = ["smear"]
     
     # binning_option_list = ["", "2"]
     binning_option_list = ["2"]
@@ -6984,8 +7002,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         histo_options = ["Normal", "Response_Matrix_Normal"]
                         # histo_options = ["Response_Matrix_Normal"]
             
-                        # # All options off (will still allow the Momentum Correction plots to run)
-                        histo_options = []
+                        # # # All options off (will still allow the Momentum Correction plots to run)
+                        # histo_options = []
 
                         # # Types of Histogram Groups (Histo_Group)
                           # # (*) "Normal"                 --> Makes normal 1D and 2D histograms

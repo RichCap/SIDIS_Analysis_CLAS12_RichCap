@@ -1660,11 +1660,12 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
+    MC_REC_File_Name = "Analysis_Note_Update_V6_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -2137,7 +2138,7 @@ for ii in mdf.GetListOfKeys():
 
                 
                 Plot_Version = "Web"
-                # Plot_Version = "Note"
+                Plot_Version = "Note"
                 
                 if(Plot_Version == "Web"):
                     # Unfolded_Canvas[out_print_main_binned] = Canvas_Create(Name=out_print_main_binned, Num_Columns=1, Num_Rows=3, Size_X=1200, Size_Y=1200, cd_Space=0)
@@ -3171,7 +3172,7 @@ if(count != 0):
             Smearing_final_list = ["", "smear"]
 
             
-        # Smearing_final_list = ["smear"]
+        Smearing_final_list = ["smear"]
         
         for Smear in Smearing_final_list:
 #             # for Histos_Type in ["Data", "Response", "SVD", "Bin", "RooUnfold_bayes", "RooUnfold_svd", "RooUnfold_bbb"]:
