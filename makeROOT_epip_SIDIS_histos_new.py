@@ -53,7 +53,7 @@ from sys import argv
 
 # To see how many histograms will be made without processing any files, let the last arguement given be 'time'
 # i.e., run the command:
-# # python makeROOT_epip_SIDIS_histos.py df time
+# # python makeROOT_epip_SIDIS_histos_new.py df time
 # # # df above can be any of the data-type options given above
 
 try:
@@ -77,9 +77,9 @@ if(output_type == "test"):
     print("Will be printing the histogram's IDs...")
     file_location = "time"
     output_type = "time"
-elif(output_type != "histo" and output_type != "data" and output_type != "tree"):
+elif(output_type not in ["histo", "data", "tree"]):
     file_location = output_type
-    if(output_type != "test" and output_type != "time"):
+    if(output_type not in ["test", "time"]):
         output_type = "histo"
 
 
@@ -119,9 +119,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     if(datatype == "rdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")     
 
-    if(datatype == "mdf" or datatype == "pdf"):
+    if(datatype in ["mdf", "pdf"]):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         
@@ -139,7 +139,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     if(datatype == 'rdf'):
-        if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
+        if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
             files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"
@@ -147,8 +147,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = ROOT.RDataFrame("h22", str(file_location))
             files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00", str(file_num), "*"])
             
-    if(datatype == 'mdf' or datatype == 'pdf'):
-        if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
+    if(datatype in ['mdf', 'pdf']):
+        if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
             files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
@@ -157,7 +157,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
-        if(str(file_location) == 'all' or str(file_location) == 'All' or str(file_location) == 'time'):
+        if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
             files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
@@ -341,6 +341,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
     
     
+    Extra_Name = "Multi_Dimension_Unfold_V1_"
+    # ∆P now uses the generated kinematics for comparison instead of the calculated ones for the matched monte carlo files
+    # Made a general update to some lines of code to 'clean up' their appearance (does not affect how code is run)
+    # Testing first multidmimensional binning using just Q2 and phi_h
+    
+    
+    Extra_Name = "Multi_Dimension_Unfold_V2_"
+    # Turned off ∆P plots for now (use the version above)
+    # Testing second multidmimensional binning using Q2_xB_Bins with phi_h
+        # Use the prior version for all other plots
+        # These plots will be cut as to ignore bin migration in the z-pT bins
+    
+    
+    Extra_Name = "Multi_Dimension_Unfold_V3_"
+    # ∆P plots are still off
+    # Fixed the multidmimensional binning (had overlapping bins and missed the last bin that was not phi)
+        # Running both the Q2_phi and Q2_xB_phi plots
+    # Added cut to Q2-xB bin 0 in Multidimensional unfolding
+    
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
@@ -350,7 +369,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype == 'pdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", str(Extra_Name), str(file_num), ".root"])
         
-    if(output_type == "data" or output_type == "test"):
+    if(output_type in ["data", "test"]):
         ROOT_File_Output_Name = "".join(["DataFrame_", ROOT_File_Output_Name])
     
     print("".join(["\nFile being made is: \033[1m", ROOT_File_Output_Name, "\033[0m"]))
@@ -658,14 +677,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         #####################     Energy     #####################
 
         try:
-            rdf = rdf.Define("el_E","".join([str(Correction_Code_Full_In), """
+            rdf = rdf.Define("el_E", "".join([str(Correction_Code_Full_In), """
             auto fe = dppC(ex, ey, ez, esec, 0, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
             auto ele = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
             auto ele_E = ele.E();
             return ele_E;
             """]))
 
-            rdf = rdf.Define("pip_E","".join([str(Correction_Code_Full_In), """
+            rdf = rdf.Define("pip_E", "".join([str(Correction_Code_Full_In), """
             auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "1", """) + 1;
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
             auto pip0_E = pip0.E();
@@ -674,26 +693,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
         except:
             print("\nMomentum Corrections Failed...\n")
-            rdf = rdf.Define("el_E","""
+            rdf = rdf.Define("el_E", """
             auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
             auto ele_E = ele.E();
             return ele_E;
             """)
-            rdf = rdf.Define("pip_E","""
+            rdf = rdf.Define("pip_E", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
             auto pip0_E = pip0.E();
             return pip0_E;
             """)
 
         
-        if(datatype == "mdf" or datatype == "pdf"):
-            rdf = rdf.Define("el_E_gen","""
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("el_E_gen", """
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto ele_E_gen = ele.E();
             return ele_E_gen;
             """)
 
-            rdf = rdf.Define("pip_E_gen","""
+            rdf = rdf.Define("pip_E_gen", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
             auto pip0_E_gen = pip0.E();
             return pip0_E_gen;
@@ -717,30 +736,30 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             """]))
         except:
             print("\nMomentum Corrections Failed...\n")
-            rdf = rdf.Define("el","sqrt(ex*ex + ey*ey + ez*ez)")
-            rdf = rdf.Define("pip","sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
+            rdf = rdf.Define("el",  "sqrt(ex*ex + ey*ey + ez*ez)")
+            rdf = rdf.Define("pip", "sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
 
         
-        if(datatype == "mdf" or datatype == "pdf"):
-            rdf = rdf.Define("el_gen","sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
-            rdf = rdf.Define("pip_gen","sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("el_gen",  "sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
+            rdf = rdf.Define("pip_gen", "sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
 
 
 
         #####################     Theta Angle     #####################
 
-        rdf = rdf.Define("elth","atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
-        rdf = rdf.Define("pipth","atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
+        rdf = rdf.Define("elth",  "atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
+        rdf = rdf.Define("pipth", "atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
         
-        if(datatype == "mdf" or datatype == "pdf"):
-            rdf = rdf.Define("elth_gen","atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
-            rdf = rdf.Define("pipth_gen","atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("elth_gen",  "atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
+            rdf = rdf.Define("pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
 
 
 
         #####################     Phi Angle     #####################
 
-        rdf = rdf.Define("elPhi","""
+        rdf = rdf.Define("elPhi", """
         auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
         auto elPhi = ele.Phi()*TMath::RadToDeg();
         if(elPhi < 0){
@@ -749,7 +768,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         return elPhi;
         """)
 
-        rdf = rdf.Define("pipPhi","""
+        rdf = rdf.Define("pipPhi", """
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
         auto pipPhi = pip0.Phi()*TMath::RadToDeg();
         if(pipPhi < 0){
@@ -759,8 +778,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """)
         
         
-        if(datatype == "mdf" or datatype == "pdf"):
-            rdf = rdf.Define("elPhi_gen","""
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("elPhi_gen", """
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto elPhi_gen = ele.Phi()*TMath::RadToDeg();
             if(elPhi_gen < 0){
@@ -769,7 +788,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return elPhi_gen;
             """)
 
-            rdf = rdf.Define("pipPhi_gen","""
+            rdf = rdf.Define("pipPhi_gen", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipy_gen, 0.13957);
             auto pipPhi_gen = pip0.Phi()*TMath::RadToDeg();
             if(pipPhi_gen < 0){
@@ -782,7 +801,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         #####################     Sectors (angle definitions)     #####################
 
-        rdf = rdf.Define("esec_a","""
+        rdf = rdf.Define("esec_a", """
 
         auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
         auto ele_phi = (180/3.1415926)*ele.Phi();
@@ -812,7 +831,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """)
 
 
-        rdf = rdf.Define("pipsec_a","""
+        rdf = rdf.Define("pipsec_a", """
 
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
         auto pip_phi = (180/3.1415926)*pip0.Phi();
@@ -843,7 +862,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         
         
-        if(datatype == "mdf" or datatype == "pdf"):
+        if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("esec_gen","""
 
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -948,7 +967,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         
         
-        if(datatype == "mdf" or datatype == "pdf"):
+        if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen","""
             auto beam_gen = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
             auto targ_gen = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
@@ -1201,7 +1220,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     
-    if(datatype == "mdf" or datatype == "pdf"):
+    if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
         auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
         auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
@@ -2641,87 +2660,87 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             done_Q = 'no'
             
-            if('MM' == Variable or 'MM_smeared' == Variable):
+            if(Variable in ['MM', 'MM_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('MM_smeared', 'smeared_vals[0]')
 
-            if('MM2' == Variable or 'MM2_smeared' == Variable):
+            if(Variable in ['MM2', 'MM2_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('MM2_smeared', 'smeared_vals[1]')
 
-            if('Q2' == Variable or 'Q2_smeared' == Variable):
+            if(Variable in ['Q2', 'Q2_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('Q2_smeared', 'smeared_vals[2]')
 
-            if('xB' == Variable or 'xB_smeared' == Variable):
+            if(Variable in ['xB', 'xB_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('xB_smeared', 'smeared_vals[3]')
 
-            if('v' == Variable or 'v_smeared' == Variable):
+            if(Variable in ['v', 'v_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('v_smeared', 'smeared_vals[4]')
 
-            if('s' == Variable or 's_smeared' == Variable):
+            if(Variable in ['s', 's_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('s_smeared', 'smeared_vals[5]')
 
-            if('W' == Variable or 'W_smeared' == Variable):
+            if(Variable in ['W', 'W_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('W_smeared', 'smeared_vals[6]')
 
-            if('y' == Variable or 'y_smeared' == Variable):
+            if(Variable in ['y', 'y_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('y_smeared', 'smeared_vals[7]')
 
-            if('z' == Variable or 'z_smeared' == Variable):
+            if(Variable in ['z', 'z_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('z_smeared', 'smeared_vals[8]')
 
-            if('epsilon' == Variable or 'epsilon_smeared' == Variable):
+            if(Variable in ['epsilon', 'epsilon_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('epsilon_smeared', 'smeared_vals[9]')
 
-            if('pT' == Variable or 'pT_smeared' == Variable):
+            if(Variable in ['pT', 'pT_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pT_smeared', 'smeared_vals[10]')
 
-            if('phi_t' == Variable or 'phi_t_smeared' == Variable):
+            if(Variable in ['phi_t', 'phi_t_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('phi_t_smeared', 'smeared_vals[11]')
 
-            if('xF' == Variable or 'xF_smeared' == Variable):
+            if(Variable in ['xF', 'xF_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('xF_smeared', 'smeared_vals[12]')
 
-            if('el' == Variable or 'el_smeared' == Variable):
+            if(Variable in ['el', 'el_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('el_smeared', 'smeared_vals[15]')
 
-            if('el_E' == Variable or 'el_E_smeared' == Variable):
+            if(Variable in ['el_E', 'el_E_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('el_E_smeared', 'smeared_vals[16]')
 
-            if('elth' == Variable or 'elth_smeared' == Variable):
+            if(Variable in ['elth', 'elth_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('elth_smeared', 'smeared_vals[17]')
 
-            if('elPhi' == Variable or 'elPhi_smeared' == Variable):
+            if(Variable in ['elPhi', 'elPhi_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('elPhi_smeared', 'smeared_vals[18]')
 
-            if('pip' == Variable or 'pip_smeared' == Variable):
+            if(Variable in ['pip', 'pip_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pip_smeared', 'smeared_vals[19]')
 
-            if('pip_E' == Variable or 'pip_E_smeared' == Variable):
+            if(Variable in ['pip_E', 'pip_E_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pip_E_smeared', 'smeared_vals[20]')
 
-            if('pipth' == Variable or 'pipth_smeared' == Variable):
+            if(Variable in ['pipth', 'pipth_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pipth_smeared', 'smeared_vals[21]')
 
-            if('pipPhi' == Variable or 'pipPhi_smeared' == Variable):
+            if(Variable in ['pipPhi', 'pipPhi_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pipPhi_smeared', 'smeared_vals[22]')
 
@@ -2805,6 +2824,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto pel_Calculated = (termA + termC)/termB;
 
         auto Delta_Pel_Cors = pel_Calculated - eleC.P();
+        
+        """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Pel_Cors = el_gen - eleC.P();", """
 
         return Delta_Pel_Cors;
 
@@ -2850,6 +2871,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         }
 
         auto Delta_Ppip_Cors = pip_Calculate - pipC.P();
+        
+        """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Ppip_Cors = pip_gen - pipC.P();", """
 
         return Delta_Ppip_Cors;
 
@@ -2891,6 +2914,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto Theta_el_Calculated = acos((1/Beam_Energy)*(((termA + termC)/eleC.P()) - termB));
 
         auto Delta_Theta_el_Cors = (180/3.1415926)*(Theta_el_Calculated - eleC.Theta());
+        
+        """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_el_Cors = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
         return Delta_Theta_el_Cors;
 
@@ -2925,6 +2950,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto Theta_pip_Calculated = acos((termA + termC - termB*eleC.P())/(Beam_Energy*pipC.P()));
 
         auto Delta_Theta_pip_Cors = (180/3.1415926)*(Theta_pip_Calculated - pipC.Theta());
+        
+        """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_pip_Cors = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
         return Delta_Theta_pip_Cors;
 
@@ -2972,6 +2999,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto pel_Calculated = (termA + termC)/termB;
 
             auto Delta_Pel_Cors_smeared = pel_Calculated - eleC.P();
+            
+            """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Pel_Cors_smeared = el_gen - eleC.P();", """
 
             return Delta_Pel_Cors_smeared;
 
@@ -3024,6 +3053,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             }
 
             auto Delta_Ppip_Cors_smeared = pip_Calculate - pipC.P();
+            
+            """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Ppip_Cors_smeared = pip_gen - pipC.P();", """
 
             return Delta_Ppip_Cors_smeared;
 
@@ -3071,6 +3102,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto Theta_el_Calculated_smeared = acos((1/Beam_Energy)*(((termA + termC)/eleC.P()) - termB));
 
             auto Delta_Theta_el_Cors_smeared = (180/3.1415926)*(Theta_el_Calculated_smeared - eleC.Theta());
+            
+            """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_el_Cors_smeared = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
             return Delta_Theta_el_Cors_smeared;
 
@@ -3111,6 +3144,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto Theta_pip_Calculated_smeared = acos((termA + termC - termB*eleC.P())/(Beam_Energy*pipC.P()));
 
             auto Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(Theta_pip_Calculated_smeared - pipC.Theta());
+            
+            """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
             return Delta_Theta_pip_Cors_smeared;
 
@@ -3165,8 +3200,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     double widthChange = 0;
                     if (cutLevel == 0)  widthChange = -1;
                     if (cutLevel == 2)  widthChange = 1;
-
-
                     
                     if (sector == 5) return true;
 
@@ -3747,7 +3780,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     # z and pT Binning (See Table 4.3 on page 20 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-    rdf = rdf.Define("z_pT_Bin","""
+    rdf = rdf.Define("z_pT_Bin", """
 
         int z_pT_Bin = 0;
         int Num_z_Borders = 0;
@@ -4222,7 +4255,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     
-    if(datatype == "mdf" or datatype == "pdf"):
+    if(datatype in ["mdf", "pdf"]):
         
         #############################################################################
         #####################     Generated Bin Definitions     #####################
@@ -4230,7 +4263,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##############     Definitions for Generated Q2 and xB Bins     #############
 
         # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-        rdf = rdf.Define("Q2_xB_Bin_gen","""
+        rdf = rdf.Define("Q2_xB_Bin_gen", """
 
             int Q2_xB_Bin_gen = 0;
 
@@ -4610,7 +4643,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
         # z and pT Binning (See Table 4.3 on page 20 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-        rdf = rdf.Define("z_pT_Bin_gen","""
+        rdf = rdf.Define("z_pT_Bin_gen", """
 
             int z_pT_Bin_gen = 0;
             int Num_z_Borders = 0;
@@ -5900,7 +5933,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                         Combined_Bin_All = "".join(["""
     int Combined_Bin_Final = 0;
-    int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+    // int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+    int Combined_Bin_Start = ((""",    str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """);
     if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
         // Outside binning range (will only combine events which are within all given binning schemes)
         Combined_Bin_Final = -1;
@@ -5960,10 +5994,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Combined_Bin_Final = -1;
         return Combined_Bin_Final;
     }
-    Combined_Bin_Final += (""", str(Bin_Group_Numbers), """*Combined_Add_""", str(variable_name), """);
+    Combined_Bin_Final += ((""", str(Bin_Group_Numbers), """ + 1)*Combined_Add_""", str(variable_name), """);
                         """])
 
-                        Bin_Group_Numbers = Bin_Group_Numbers*Num_Bin
+                        Bin_Group_Numbers = (Bin_Group_Numbers + 1)*(Num_Bin + 1)
                         Combined_Bin_Title = "".join([str(Combined_Bin_Title.replace("_smeared", "")).replace("_gen", ""), "_", str(variable_name)])
                         if((rec_or_gen != "") and ("_gen" not in Combined_Bin_Title)):
                             Combined_Bin_Title = "".join([str(Combined_Bin_Title), "_gen"])
@@ -6679,65 +6713,45 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 #     # Bin Set Option: 20 bins
 # #     Q2_Binning = ['Q2', 0, 12.5, 25]
-# #     Q2_Binning_Smeared = ['Q2_smeared', 0, 12.5, 25]
 #     # Bin Set Option: 20 bins (Actual total bins = 27)
 #     Q2_Binning = ['Q2', -0.3378, 12.2861, 27]
-#     # Q2_Binning_Smeared = ['Q2_smeared', -0.3378, 12.2861, 27]
 #     # Bin size: 0.46755 per bin
 # #     xB_Binning = ['xB', -0.08, 0.92, 25]
-# #     xB_Binning_Smeared = ['xB_smeared', -0.08, 0.92, 25]
 #     # Bin Set Option: 20 bins (Actual total bins = 25)
 #     xB_Binning = ['xB', -0.006, 0.8228, 25]
-#     # xB_Binning_Smeared = ['xB_smeared', -0.006, 0.8228, 25]
 #     # Bin size: 0.03315 per bin
 #     z_Binning = ['z', 0.006, 1.014, 28]
-#     # z_Binning_Smeared = ['z_smeared', 0.006, 1.014, 28]
 #     pT_Binning = ['pT', -0.15, 1.8, 26]
-#     # pT_Binning_Smeared = ['pT_smeared', -0.15, 1.8, 26]
 #     y_Binning = ['y', -0.0075, 0.9975, 36]
-#     # y_Binning_Smeared = ['y_smeared', -0.0075, 0.9975, 36]
 #     # Bin size: 0.0275
 #     phi_t_Binning = ['phi_t', 0, 360, 36]
-#     # phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
 # #     # Reduced Phi Binning (as of 11-28-2022) -- 15˚ per bin
 # #     phi_t_Binning = ['phi_t', 0, 360, 24]
-# #     # phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 24]
 
 # #     # Bin Set Option: GRC Poster binning
 # #     Q2_Binning = ['Q2', 2, 11.351, 5]
-# #     Q2_Binning_Smeared = ['Q2_smeared', 2, 11.351, 5]
 # #     # Bin size: 1.8702 per bin
 # #     xB_Binning = ['xB', 0.126602, 0.7896, 5]
-# #     xB_Binning_Smeared = ['xB_smeared', 0.126602, 0.7896, 5]
 # #     # Bin size: 0.1325996 per bin
 # #     z_Binning = ['z', 0.15, 0.7, 5]
-# #     z_Binning_Smeared = ['z_smeared', 0.15, 0.7, 5]
 # #     # Bin size: 0.11 per bin
 # #     pT_Binning = ['pT', 0.05, 1, 5]
-# #     pT_Binning_Smeared = ['pT_smeared', 0.05, 1, 5]
 # #     # Bin size: 0.19 per bin
 # #     y_Binning = ['y', 0, 1, 5]
-# #     y_Binning_Smeared = ['y_smeared', 0, 1, 5]
 # #     # Bin size: 0.2 per bin
 # #     phi_t_Binning = ['phi_t', 0, 360, 36]
-# #     phi_t_Binning_Smeared = ['phi_t_smeared', 0, 360, 36]
 # #     # Bin size: 10 per bin
     
     # Post-GRC Binning
     Q2_Binning_Old = ['Q2', 1.4805, 11.8705, 20]
-    # Q2_Binning_Smeared = ['Q2_smeared', 1.4805, 11.8705, 20]
     # Bin size: 0.5195 per bin
     xB_Binning_Old = ['xB', 0.08977, 0.82643, 20]
-    # xB_Binning_Smeared = ['xB_smeared', 0.08977, 0.82643, 20]
     # Bin size: 0.03683 per bin
     z_Binning_Old = ['z', 0.11944, 0.73056, 20]
-    # z_Binning_Smeared = ['z_smeared', 0.11944, 0.73056, 20]
     # Bin size: 0.03056 per bin
     pT_Binning_Old = ['pT', 0, 1.05, 20]
-    # pT_Binning_Smeared = ['pT_smeared', 0, 1.05, 20]
     # Bin size: 0.05 per bin
     y_Binning_Old = ['y', 0, 1, 20]
-    # y_Binning_Smeared = ['y_smeared', 0, 1, 20]
     # Bin size: 0.05 per bin
 
     
@@ -6797,7 +6811,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
-    # List_of_Quantities_1D_smeared = [Q2_Binning_Smeared, xB_Binning_Smeared, z_Binning_Smeared, pT_Binning_Smeared, y_Binning_Smeared, MM_Binning_Smeared, ['el_smeared', 0, 10, 200], ['pip_smeared', 0, 8, 200], phi_t_Binning_Smeared, Binning_4D_Smeared, W_Binning_Smeared]
     
     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
@@ -6817,15 +6830,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
     # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['y',         0, 1, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['elth',         0, 40, 200], ['elPhi',         0, 360, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]], [['pipth',         0, 40, 200], ['pipPhi',         0, 360, 200]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['y_smeared', 0, 1, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['elth_smeared', 0, 40, 200], ['elPhi_smeared', 0, 360, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]], [['pipth_smeared', 0, 40, 200], ['pipPhi_smeared', 0, 360, 200]]]
-    
-    
     # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['y',         0, 1, 200], ['xF',         -1, 1, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]]]
-    # List_of_Quantities_2D_smeared = [[['Q2_smeared', 0, 12, 200], ['xB_smeared', 0, 0.8, 200]], [['z_smeared', 0, 1, 200], ['pT_smeared', 0, 1.6, 200]], [['y_smeared', 0, 1, 200], ['xF_smeared', -1, 1, 200]], [['el_smeared', 0, 8, 200], ['elth_smeared', 0, 40, 200]], [['pip_smeared', 0, 6, 200], ['pipth_smeared', 0, 40, 200]]]
     
     # # # 2D histograms are turned off with these options
 #     List_of_Quantities_2D = []
-    # List_of_Quantities_2D_smeared = []
     
     
     
@@ -6836,7 +6844,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     run_Mom_Cor_Code = "yes"
-    # run_Mom_Cor_Code = "no"
+    run_Mom_Cor_Code = "no"
 
     if(run_Mom_Cor_Code == "yes"):
         print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
@@ -7368,6 +7376,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
                                 # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
                                 # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
+                                Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old]]
+                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]]
+                                Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]]
 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
                                 if(Res_Var_Add != []):
@@ -7487,7 +7498,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if(("Bin" not in str(variable)) and (Histo_Data in ["mdf", "pdf", "gen"]) and "'phi_t" in str(variable)):
                                             # 1D Unfolding requires events be generated and reconstructed in the same bin
                                             Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
-                                            
+                                        
+                                        if((Histo_Data in ["mdf", "pdf", "gen"]) and ("Combined" in str(variable) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                            # Multidimensional unfolding should still exclude bin migration from other kinematic bins not included in the response matrix
+                                            Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
+                                        if(("Combined" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                            Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " != 0", "".join([" && ", str((Q2_xB_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 0"]) if(Histo_Data in ["mdf", "pdf", "gen"]) else ""])
                                             
                                         Migration_Title       = "".join([str(Migration_Title),   "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
                                         if(Histo_Data == "mdf"):
@@ -7581,13 +7597,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Printing current time
     if(datetime_object_end.hour > 12 and datetime_object_end.hour < 24):
-        print("".join(["The time that this code finished is ", str((datetime_object_end.hour) - 12), ":", timeMin_end, " p.m."]))
+        print("".join(["The time that this code finished is ", str((datetime_object_end.hour) - 12), ":", str(timeMin_end), " p.m."]))
     if(datetime_object_end.hour < 12 and datetime_object_end.hour > 0):
-        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", timeMin_end, " a.m."]))
+        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " a.m."]))
     if(datetime_object_end.hour == 12):
-        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", timeMin_end, " p.m."]))
+        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " p.m."]))
     if(datetime_object_end.hour == 0 or datetime_object_end.hour == 24):
-        print("".join(["The time that this code finished is 12:", timeMin_end, " a.m."]))
+        print("".join(["The time that this code finished is 12:", str(timeMin_end), " a.m."]))
         
     print("".join(["Made ", str(count_of_histograms), " histograms..."]))
         

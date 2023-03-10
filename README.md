@@ -4,20 +4,28 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
-- [x] Add Code used for Momentum Corrections to do the following things:
-    - [ ] (1) Check Momentum Corrections (comparison between data and MC)
-        * [ ] MC may need its own momentum corrections (test after smearing is complete)
-    - [ ] (2) Develop new code to allow for new smearing functions to be created
-        * [x] Make the function dependent on which particle is being smeared (do not assume that they would be identical anymore)
-        * [x] Make as a function of momentum and theta
-        * [ ] Continue improving the smearing functions
-- [x] Improve how images are saved (see Notes_and_Ideas.md for ideas)
-    * [x] New jupyter format needs to be updated to save images
-- [ ] Test new binning schemes for all variables:
-    - [x] Larger phi_t bins (i.e., use fewer bins)
-    - [ ] More 'square' Q2-xB bins (make each bin smaller for more bins in total)
-    - [ ] Multidimensional bins (test combining bins into a single variable for unfolding)
-    - [ ] Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins)
+- [ ] Unfolding Tests:
+    - [ ] 1) Plot the fit parameters B, C as functions of z and pT
+        * Need to fix the plots
+    - [ ] 2) Replace the experimental data with MC data to test if the unfolding procedures reproduce the generated data properly
+        * [ ] Tested for 1D
+        * [ ] Tested for higher dimensions
+    - [ ] 3) Calculate (1 + B*cos(phi) + C*cos(2*phi)) from theory and rewieght the response matrices to test modulations in generated phi_h
+        * [ ] Test this with the test (2) above
+- [ ] Test new binning schemes:
+    - [ ] (1) Multidimensional bins (testing combining bins into a single variable for unfolding)
+        * [x] Tested up to 2D (Finished [ ])
+        * [x] Tested up to 3D (Finished [ ])
+        * [ ] Tested up to 4D (Finished [ ])
+        * [ ] Tested up to 5D (Finished [ ])
+    - [ ] (2) New definitions for the Q2-xB bins (more square)
+    - [ ] (3) Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins)
+- [ ] For Momentum Correction Code, do the following:
+    - [ ] (1) MC needs its own momentum corrections 
+        * Use ∆P = P_gen - P_rec instead of calculations
+    - [ ] (2) Develop new smearing functions
+        * Use ∆P = P_gen - P_rec instead of calculations
+        * Only smear momentum
 
 
 
@@ -119,6 +127,117 @@ These note correspond to updates made between the outputs of the python code. Wh
 * Added new multidimensional response matrix option which combines multiple variables into a new linearized bin definition
 * Modified the Pi+ Theta smearing function (as function of momentum) and the Electron Momentum smearing function (as a function of theta)
 
+    
+### Extra_Name = "Unfolding_Tests_V14_"
+* Modified the Pi+ Theta smearing function (as function of momentum) 
+    * Testing to see if it is better to smear only one variable at a time (other variables could be improved at this moment, but only changing one aspect of the smearing function in this iteration)
+* Attempting to fix the issue with the multidimension variable creation function
+    * Flipped the order of the Res_Var_Add variable list
+* Removed the Combined z-pT-phi_h variable from test (switched with the Q2-xB bin variable as an already defined multidimensional variable that can be unfolded as is)
+    * The removed option has to many bins for efficient testing at this stage
+* Changed the phase space histograms (in 'Mom_Cor_Code') to include the particle momentum instead of the sector information
+    * May be redundant with other histograms (in 'Normal_2D') which should be removed in the future (must make the other scripts compatible with these histograms before removing the 'Normal_2D' options)
+* Modified Dimension_Name_Function() to remove all ";"s from the outputs
+* Removed notification of "Skipping Normal 1D Histograms..." (now just assumed)
+
+
+### Extra_Name = "Analysis_Note_Update_"
+* Added response matrices for the variables already shown in the analysis note (for update)
+* Removed smearing histograms, exclusive cuts, and combined variables (not needed here)
+
+
+### Extra_Name = "Analysis_Note_Update_V2_"
+* Extended the z-pT bin axis for the response matrices (caused errors in the plots without kinematic binning)
+* Switched the kinematic variables (other than phi_h) to use the same binning scheme as was used at the last DNP meeting (just for the response matrix/1D plots)
+
+
+### Extra_Name = "Analysis_Note_Update_V3_"
+* Resetted the z-pT bin axis for the response matrices (was not necessary before)
+* Fixed the issue with replicating old plots (issue was caused by a cut that prevented bin migration between the kinematic Q2-xB-z-pT bins which is only useful in the phi_t plots)
+* Using FX's smearing function
+
+
+### Extra_Name = "Analysis_Note_Update_V4_"
+* Using my smearing function and momentum corrections
+
+
+### Extra_Name = "New_Smearing_Creation_"
+* Only running Mom_Cor_Code plots
+* Starting new smearing functions from FX's version
+* Running with all versions of the cuts
+
+
+### Extra_Name = "New_Smearing_Creation_V1_"
+* Only running Mom_Cor_Code plots
+* Modified Electron Smearing as function of momentum
+
+
+### Extra_Name = "New_Smearing_Creation_V2_"
+* Only running Mom_Cor_Code plots
+* Modified Electron Smearing (again) as function of momentum
+
+
+### Extra_Name = "New_Smearing_Creation_V3_"
+* Only running Mom_Cor_Code plots
+* Modified Electron Smearing as function of theta
+
+
+### Extra_Name = "New_Smearing_Creation_V4_"
+* Only running Mom_Cor_Code plots
+* Modified Electron Smearing (again) as function of theta
+
+
+### Extra_Name = "New_Smearing_Creation_V5_"
+* Only running Mom_Cor_Code plots
+* Modified Pi+ Pion Smearing as function of momentum
+
+
+### Extra_Name = "New_Smearing_Creation_V6_"
+* Only running Mom_Cor_Code plots
+* Modified Pi+ Pion Smearing (again) as function of momentum
+
+
+### Extra_Name = "New_Smearing_Creation_V7_"
+* Only running Mom_Cor_Code plots
+* Modified Pi+ Pion Smearing as function of theta
+
+
+### Extra_Name = "New_Smearing_Creation_V8_"
+* Only running Mom_Cor_Code plots
+* Modified Pi+ Pion Smearing (again) as function of theta
+
+
+### Extra_Name = "Analysis_Note_Update_V5_"
+* Using my (new) smearing function
+
+
+### Extra_Name = "Analysis_Note_Update_V6_"
+* Using my (new) smearing function (only smearing)
+
+
+### Extra_Name = "Analysis_Note_Update_VF_APS_"
+* Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
+
+
+### Extra_Name = "Multi_Dimension_Unfold_V1_"
+* ∆P now uses the generated kinematics for comparison instead of the calculated ones for the matched monte carlo files
+* Made a general update to some lines of code to 'clean up' their appearance (does not affect how code is run)
+* Testing first multidmimensional binning using just Q2 and phi_h
+
+
+### Extra_Name = "Multi_Dimension_Unfold_V2_"
+* Turned off ∆P plots for now (use the version above)
+* Testing second multidmimensional binning using Q2_xB_Bins with phi_h
+    * Use the prior version for all other plots
+    * These plots will be cut as to ignore bin migration in the z-pT bins
+
+
+### Extra_Name = "Multi_Dimension_Unfold_V3_"
+* ∆P plots are still off
+* Fixed the multidmimensional binning (had overlapping bins and missed the last bin that was not phi)
+    * Running both the Q2_phi and Q2_xB_phi plots
+* Added cut to Q2-xB bin 0 in Multidimensional unfolding
+
 
 
 
@@ -128,7 +247,12 @@ These note correspond to updates made between the outputs of the python code. Wh
 
 ## Other Commit Updates:
 
-### Update on 2-15-2022:
+### Update on 3-9-2023:
+* Updated up to the APS analysis note (see individual files for more details - from 'Unfolding_Tests_V14_' to 'Multi_Dimension_Unfold_V3_')
+* Working on Multi-dimensional unfolding plots
+
+
+### Update on 2-15-2023:
 * Added new python code to create and sort images for the different unfolding methods
 * Updated how images are saved to make it easier to upload to the (new) webpage
 * Making updates (in-progress) for "Unfolding_Tests_V14_" including:
