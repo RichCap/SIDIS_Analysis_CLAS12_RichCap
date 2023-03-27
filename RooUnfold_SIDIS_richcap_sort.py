@@ -730,6 +730,8 @@ def FileLocation(FileName, Datatype):
 ################################################################################################################################################################
 Common_Name = "Unfolding_Tests_V13_All"
 Common_Name = "Analysis_Note_Update_V6_All"
+Common_Name = "Multi_Dimension_Unfold_V3_All"
+Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -784,30 +786,28 @@ else:
 
 
 
-###############################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-###############################################################################################################################################################
-try:
-    rdf = ROOT.TFile(str(FileLocation(str(REAL_File_Name), "rdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.BLUE , " Real (Experimental) Data", color.END, " in '", color.BOLD, REAL_File_Name, color.END, "' is ", color.BOLD, str(len(rdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
-try:
-    mdf = ROOT.TFile(str(FileLocation(str(MC_REC_File_Name), "mdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.RED , " Reconstructed Monte Carlo Data", color.END, " in '", color.BOLD, MC_REC_File_Name, color.END, "' is ", color.BOLD, str(len(mdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
-try:
-    gdf = ROOT.TFile(str(FileLocation(str(MC_GEN_File_Name), "gdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.GREEN , " Generated Monte Carlo Data", color.END, " in '", color.BOLD, MC_GEN_File_Name, color.END, "' is ", color.BOLD, str(len(gdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
-###############################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-###############################################################################################################################################################
-
-
-print("".join(["\n\n", color.BOLD, "Done Loading RDataFrame files...\n", color.END]))
+# ###############################################################################################################################################################
+# ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
+# ###############################################################################################################################################################
+# try:
+#     rdf = ROOT.TFile(str(FileLocation(str(REAL_File_Name), "rdf")), "READ")
+#     print("".join(["The total number of histograms available for the", color.BLUE , " Real (Experimental) Data", color.END, " in      '", color.BOLD, REAL_File_Name, color.END, "' is ", color.BOLD, str(len(rdf.GetListOfKeys())), color.END]))
+# except:
+#     print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+# try:
+#     mdf = ROOT.TFile(str(FileLocation(str(MC_REC_File_Name), "mdf")), "READ")
+#     print("".join(["The total number of histograms available for the", color.RED , " Reconstructed Monte Carlo Data", color.END, " in '", color.BOLD, MC_REC_File_Name, color.END, "' is ", color.BOLD, str(len(mdf.GetListOfKeys())), color.END]))
+# except:
+#     print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+# try:
+#     gdf = ROOT.TFile(str(FileLocation(str(MC_GEN_File_Name), "gdf")), "READ")
+#     print("".join(["The total number of histograms available for the", color.GREEN , " Generated Monte Carlo Data", color.END, " in   '", color.BOLD, MC_GEN_File_Name, color.END, "' is ", color.BOLD, str(len(gdf.GetListOfKeys())), color.END]))
+# except:
+#     print("".join([color.RED, color.BOLD, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+# ###############################################################################################################################################################
+# ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
+# ###############################################################################################################################################################
+# print("".join(["\n\n", color.BOLD, "Done Loading RDataFrame files...\n", color.END]))
 
 
 ########################################################################################################################################################
@@ -869,15 +869,17 @@ os.mkdir(destination)
 ##=====##   Category Folder Creation   ##=====##
 destination_main = "".join([str(destination), "/Unfolding_Images"])
 destination_pars = "".join([str(destination), "/Parameter_Images"])
+destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
 os.mkdir(destination_main)
 os.mkdir(destination_pars)
+os.mkdir(destination_mult)
 ##=====##   Category Folder Creation   ##=====##
 ##============================================##
 
 
 ##===================================================##
 ##=====##   z-pT Unfolding Folders Creation   ##=====##
-destination_z_pT_Bin_All = "".join([str(destination_main), "/z_pT_Bin_All"])
+destination_z_pT_Bin_All        = "".join([str(destination_main), "/z_pT_Bin_All"])
 destination_z_pT_Bin_Individual = "".join([str(destination_main), "/z_pT_Bin_Individual"])
 os.mkdir(destination_z_pT_Bin_All)
 os.mkdir(destination_z_pT_Bin_Individual)
@@ -887,8 +889,8 @@ os.mkdir(destination_z_pT_Bin_Individual)
 
 ##=============================================================##
 ##=====##   z-pT (Smeared) Unfolding Folders Creation   ##=====##
-destination_Smeared = "".join([str(destination_main), "/Smeared"])
-destination_Smeared_z_pT_Bin_All = "".join([str(destination_main), "/Smeared/z_pT_Bin_All"])
+destination_Smeared                     = "".join([str(destination_main), "/Smeared"])
+destination_Smeared_z_pT_Bin_All        = "".join([str(destination_main), "/Smeared/z_pT_Bin_All"])
 destination_Smeared_z_pT_Bin_Individual = "".join([str(destination_main), "/Smeared/z_pT_Bin_Individual"])
 os.mkdir(destination_Smeared)
 os.mkdir(destination_Smeared_z_pT_Bin_All)
@@ -901,7 +903,6 @@ os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual]:
     for Q2_xB_Bin in range(0, 9, 1):
-        # print("".join([str(folder), "/Q2_xB_Bin_", str(Q2_xB_Bin)]))
         os.mkdir("".join([str(folder), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 ##====================================================##
@@ -910,28 +911,34 @@ for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destin
 ##=================================##
 ##=====##   Image Sorting   ##=====##
 for Entry in os.listdir():
+    if("Sim_Test_" in str(Entry)):
+        os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
+        Entry = str(Entry).replace("Sim_Test_", "")
     if('.png' in str(Entry)):
         # print("\n"+str(Entry))
-        # if("_Pars_" in str(Entry)):
-        #     shutil.move(Entry, destination_pars)
-        if("Response_Matrix_" in str(Entry) and "_z_pT_Bin_" in str(Entry)):
+        if("_Pars_" in str(Entry)):
+            shutil.move(Entry, destination_pars)
+        elif("Multi_Dim_Histo_" in str(Entry)):
+            shutil.move(Entry, destination_mult)
+        elif("Response_Matrix_" in str(Entry) and "_z_pT_Bin_" in str(Entry)):
             for Q2_xB_Bin in range(0, 9, 1):
                 if("".join(["Q2_xB_Bin_", str(Q2_xB_Bin)]) in str(Entry)):
-                    if(("Smeared" not in str(Entry)) and ("smear" not in str(Entry))):
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                    if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
+                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                     else:
                         shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 
         elif("Unfolded_Histos" in str(Entry) and "_z_pT_Bin_" not in str(Entry)):
             for Q2_xB_Bin in range(0, 9, 1):
                 if("".join(["Q2_xB_Bin_", str(Q2_xB_Bin)]) in str(Entry)):
-                    if("Smeared" not in str(Entry)):
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                    if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
+                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                     else:
                         shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/Q2_xB_Bin_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
         else:
             # print(destination)
             shutil.move(Entry, destination)
+            
 ##=====##   Image Sorting   ##=====##
 ##=================================##
 
