@@ -222,120 +222,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     ROOT_File_Output_Name = "Data_REC"
     
-    # # # See README.md file for notes on versions older than "Unfolding_Tests_V9_"
-         
-    Extra_Name = "Unfolding_Tests_V9_"
-    # New (Modified) Smearing Functions (Particle-dependant)
-        # Modified the momentum smearing (As a function of theta/momentum - not both - choose to smear based on which variable provided the easiest fit to get the smearing factor)
-        # New Theta smearing as a function of momentum
+    # # # See File_Name_Updates.md file for notes on versions older than "Analysis_Note_Update_VF_APS_"
         
-        
-    Extra_Name = "Unfolding_Tests_V10_"
-    # New (Modified) Smearing Functions (Particle-dependant)
-    # Reduced number of plots made (for faster runtime)
-    
-    Extra_Name = "Unfolding_Tests_V11_"
-    # New (Modified) Smearing Functions (Particle-dependant)
-    # Increased number of plots made (relative to last version)
-    
-    
-    Extra_Name = "Unfolding_Tests_V12_"
-    # Extended the 2D plots and added more to show the phase space of the data
-    # Modified the Pi+ Theta smearing function (as function of momentum)
-    
-    
-    Extra_Name = "Unfolding_Tests_V13_"
-    # Running fewer 1D histograms (just phi_t)
-    # Added new multidimensional response matrix option which combines multiple variables into a new linearized bin definition
-    # Modified the Pi+ Theta smearing function (as function of momentum) and the Electron Momentum smearing function (as a function of theta)
-    
-    
-    Extra_Name = "Unfolding_Tests_V14_"
-    # Modified the Pi+ Theta smearing function (as function of momentum) 
-        # Testing to see if it is better to smear only one variable at a time (other variables could be improved at this moment, but only changing one aspect of the smearing function in this iteration)
-    # Attempting to fix the issue with the multidimension variable creation function
-        # Flipped the order of the Res_Var_Add variable list
-    # Removed the Combined z-pT-phi_h variable from test (switched with the Q2-xB bin variable as an already defined multidimensional variable that can be unfolded as is)
-        # The removed option has to many bins for efficient testing at this stage
-    # Changed the phase space histograms (in 'Mom_Cor_Code') to include the particle momentum instead of the sector information
-        # May be redundant with other histograms (in 'Normal_2D') which should be removed in the future (must make the other scripts compatible with these histograms before removing the 'Normal_2D' options)
-    # Modified Dimension_Name_Function() to remove all ";"s from the outputs
-    # Removed notification of "Skipping Normal 1D Histograms..." (now just assumed)
-    
-    
-    Extra_Name = "Analysis_Note_Update_"
-    # Added response matrices for the variables already shown in the analysis note (for update)
-    # Removed smearing histograms, exclusive cuts, and combined variables (not needed here)
-    
-    
-    Extra_Name = "Analysis_Note_Update_V2_"
-    # Extended the z-pT bin axis for the response matrices (caused errors in the plots without kinematic binning)
-    # Switched the kinematic variables (other than phi_h) to use the same binning scheme as was used at the last DNP meeting (just for the response matrix/1D plots)
-
-    
-    Extra_Name = "Analysis_Note_Update_V3_"
-    # Resetted the z-pT bin axis for the response matrices (was not necessary before)
-    # Fixed the issue with replicating old plots (issue was caused by a cut that prevented bin migration between the kinematic Q2-xB-z-pT bins which is only useful in the phi_t plots)
-    # Using FX's smearing function
-    
-    
-    Extra_Name = "Analysis_Note_Update_V4_"
-    # Using my smearing function and momentum corrections
-    
-    
-    Extra_Name = "New_Smearing_Creation_"
-    # Only running Mom_Cor_Code plots
-    # Starting new smearing functions from FX's version
-    # Running with all versions of the cuts
-    
-    
-    Extra_Name = "New_Smearing_Creation_V1_"
-    # Only running Mom_Cor_Code plots
-    # Modified Electron Smearing as function of momentum
-    
-    
-    Extra_Name = "New_Smearing_Creation_V2_"
-    # Only running Mom_Cor_Code plots
-    # Modified Electron Smearing (again) as function of momentum
-    
-    
-    Extra_Name = "New_Smearing_Creation_V3_"
-    # Only running Mom_Cor_Code plots
-    # Modified Electron Smearing as function of theta
-    
-    
-    Extra_Name = "New_Smearing_Creation_V4_"
-    # Only running Mom_Cor_Code plots
-    # Modified Electron Smearing (again) as function of theta
-    
-    
-    Extra_Name = "New_Smearing_Creation_V5_"
-    # Only running Mom_Cor_Code plots
-    # Modified Pi+ Pion Smearing as function of momentum
-    
-    
-    Extra_Name = "New_Smearing_Creation_V6_"
-    # Only running Mom_Cor_Code plots
-    # Modified Pi+ Pion Smearing (again) as function of momentum
-    
-    
-    Extra_Name = "New_Smearing_Creation_V7_"
-    # Only running Mom_Cor_Code plots
-    # Modified Pi+ Pion Smearing as function of theta
-    
-    
-    Extra_Name = "New_Smearing_Creation_V8_"
-    # Only running Mom_Cor_Code plots
-    # Modified Pi+ Pion Smearing (again) as function of theta
-    
-    
-    Extra_Name = "Analysis_Note_Update_V5_"
-    # Using my (new) smearing function
-    
-    
-    Extra_Name = "Analysis_Note_Update_V6_"
-    # Using my (new) smearing function (only smearing)
-    
     
     Extra_Name = "Analysis_Note_Update_VF_APS_"
     # Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
@@ -379,8 +267,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Currently called binning scheme '3' with the title of "(Square)" - will likely change later
         # Consists of 12 rectangular bins
         # z-pT bins are not uniquely defined yet (using whatever the default is from the new bin fuctions)
-    # Removed the 'Mom_Cor_Code' option from the gdf files
+    # Removed the 'EDIS' cuts when not using the 'Mom_Cor_Code' option
+    # 'Mom_Cor_Code' option now runs completely separately from the other histogram options (other than the simple 2D histograms - See 'Multi_Dimension_Unfold_V4_Mom_Cor_')
+    # Removed the unfolding histograms of all kinematic variables that were not 'phi_t' (done for memory constraints)
+    # Added 'Quality-of-Life' improvements to print out all run options (including binning, cut, variable selection, etc.)
+    
+    
+    # Extra_Name = "Multi_Dimension_Unfold_V4_Mom_Cor_"
+    # # Ran at the same time as 'Multi_Dimension_Unfold_V4_' but only used 'Mom_Cor_Code' option
         
+        
+    Extra_Name = "Multi_Dimension_Unfold_V4_Norm_"
+    # Will just use the '2' binning option
+    
+    Extra_Name = "Multi_Dimension_Unfold_V4_Test_"
+    # Will just use the 'Test' binning option
+
+#     Extra_Name = "Multi_Dimension_Unfold_V4_New_"
+#     # Will just use the '3' binning option
         
 
 
@@ -975,25 +879,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         rdf = rdf.Define("vals", "".join([str(Correction_Code_Full_In), """
         
-        auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
-        auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+        auto fe      = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+        auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         
-        auto beam = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-        auto targ = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto beam    = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto targ    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         
-        auto ele = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
-        auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+        auto ele     = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pip0    = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        auto epipX = beam + targ - ele - pip0;
-        auto q = beam - ele;
-        auto Q2 = - q.M2();
-        auto v = beam.E() - ele.E();
-        auto xB = Q2/(2*targ.M()*v);
-        auto W2 = targ.M2() + 2*targ.M()*v - Q2;
-        auto W = sqrt(W2);
-        auto y = (targ.Dot(q))/(targ.Dot(beam));
-        auto z = ((pip0.E())/(q.E()));
-        auto gamma = 2*targ.M()*(xB/sqrt(Q2));
+        auto epipX   = beam + targ - ele - pip0;
+        auto q       = beam - ele;
+        auto Q2      = - q.M2();
+        auto v       = beam.E() - ele.E();
+        auto xB      = Q2/(2*targ.M()*v);
+        auto W2      = targ.M2() + 2*targ.M()*v - Q2;
+        auto W       = sqrt(W2);
+        auto y       = (targ.Dot(q))/(targ.Dot(beam));
+        auto z       = ((pip0.E())/(q.E()));
+        auto gamma   = 2*targ.M()*(xB/sqrt(Q2));
         auto epsilon = (1 - y - 0.25*(gamma*gamma)*(y*y))/(1 - y + 0.5*(y*y) + 0.25*(gamma*gamma)*(y*y));
         
         std::vector<double> vals = {epipX.M(), epipX.M2(), Q2, xB, v, W2, W, y, z, epsilon};
@@ -1017,21 +921,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen","""
-            auto beam_gen = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-            auto targ_gen = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-            auto ele_gen = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-            auto pip0_gen = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+            auto beam_gen    = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+            auto targ_gen    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+            auto ele_gen     = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+            auto pip0_gen    = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
 
-            auto epipX_gen = beam_gen + targ_gen - ele_gen - pip0_gen;
-            auto q_gen = beam_gen - ele_gen;
-            auto Q2_gen = - q_gen.M2();
-            auto v_gen = beam_gen.E() - ele_gen.E();
-            auto xB_gen = Q2_gen/(2*targ_gen.M()*v_gen);
-            auto W2_gen = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
-            auto W_gen = sqrt(W2_gen);
-            auto y_gen = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
-            auto z_gen = ((pip0_gen.E())/(q_gen.E()));
-            auto gamma_gen = 2*targ_gen.M()*(xB_gen/sqrt(Q2_gen));
+            auto epipX_gen   = beam_gen + targ_gen - ele_gen - pip0_gen;
+            auto q_gen       = beam_gen - ele_gen;
+            auto Q2_gen      = - q_gen.M2();
+            auto v_gen       = beam_gen.E() - ele_gen.E();
+            auto xB_gen      = Q2_gen/(2*targ_gen.M()*v_gen);
+            auto W2_gen      = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
+            auto W_gen       = sqrt(W2_gen);
+            auto y_gen       = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
+            auto z_gen       = ((pip0_gen.E())/(q_gen.E()));
+            auto gamma_gen   = 2*targ_gen.M()*(xB_gen/sqrt(Q2_gen));
             auto epsilon_gen = (1 - y_gen - 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen))/(1 - y_gen + 0.5*(y_gen*y_gen) + 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen));
 
             std::vector<double> vals_gen = {epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen, epsilon_gen};
@@ -1119,14 +1023,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     rdf = rdf.Define("vals2", "".join([str(Correction_Code_Full_In), """
         
-    auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
-    auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+    auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+    auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
     
-    auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-    auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0,       0.938272);
+    auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+    auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0,       0.938272);
     
-    auto eleM  = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
-    auto pip0M = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+    auto eleM   = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
+    auto pip0M  = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
     
     auto lv_qMM = beamM - eleM;
 
@@ -1143,10 +1047,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     double Theta_q = lv_q.Theta();
     double Phi_el  = ele.Phi();
 
-
     """, str(Rotation_Matrix), """
-
-
 
     ///////////////     Rotating to CM Frame     ///////////////
 
@@ -1175,10 +1076,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     double eley = ele_Clone.Y();
     double elez = ele_Clone.Z();
 
-
     ///////////////     Boosting Vectors     ///////////////
 
-    auto fCM = lv_q_Clone + targ_Clone;
+    auto fCM   = lv_q_Clone + targ_Clone;
     auto boost = -(fCM.BoostVector());
 
     auto qlv_Boost(lv_q_Clone);
@@ -1224,27 +1124,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ///////////////   x Feynmann   ///////////////
     double xF = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W);
 
-
     // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
     double pT = sqrt(pipx_1*pipx_1 + pipy_1*pipy_1);
     double phi_t = pip0_Clone.Phi()*TMath::RadToDeg();
-
 
     if(phi_t < 0){
         phi_t += 360;
     }
 
 
-
     // std::vector<double> vals2 = {pT, phi_t, xF, pipx_1, pipy_1, pipz_1, qx, qy, qz, beamx, beamy, beamz, elex, eley, elez};
     std::vector<double> vals2 = {pT, phi_t, xF};
-
 
     return vals2;
 
     """]))
-
-
 
     rdf = rdf.Define('pT',    'vals2[0]')    # transverse momentum of the final state hadron
     rdf = rdf.Define('phi_t', 'vals2[1]')    # Most important angle (between lepton and hadron planes)
@@ -1267,13 +1161,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # rdf = rdf.Define('eleZ_CM','vals2[14]') # CM scattered electron z-momentum
     
     
-    
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
-        auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-        auto targM = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-        auto eleM = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-        auto pip0M = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto eleM   = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        auto pip0M  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
         auto lv_qMM = beamM - eleM;
 
         TLorentzVector beam(0, 0, 10.6041, beamM.E());
@@ -1282,14 +1175,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         TLorentzVector pip0(pipx_gen, pipy_gen, pipz_gen, pip0M.E());
         TLorentzVector lv_q = beam - ele;
 
-
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
-        double Phi_el = ele.Phi();
-
+        double Phi_el  = ele.Phi();
 
         """, str(Rotation_Matrix), """
-
 
         ///////////////     Rotating to CM Frame     ///////////////
 
@@ -1298,7 +1188,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto ele_Clone  = Rot_Matrix(ele,  -1, Theta_q, Phi_el);
         auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
         auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
-
 
         ///////////////     Saving CM components     ///////////////
 
@@ -1318,7 +1207,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         double eley_gen = ele_Clone.Y();
         double elez_gen = ele_Clone.Z();
 
-
         ///////////////     Boosting Vectors     ///////////////
 
         auto fCM = lv_q_Clone + targ_Clone;
@@ -1336,7 +1224,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         beamBoost.Boost(boost);
         targBoost.Boost(boost);
 
-
         ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
 
         TVector3 v0, v1;
@@ -1352,7 +1239,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
 
         double Cos_theta_t = (pip0.Vect().Dot(lv_q.Vect()))/(pip0.Vect().Mag()*lv_q.Vect().Mag());
-        double theta_t = TMath::ACos(Cos_theta_t);
+        double theta_t     = TMath::ACos(Cos_theta_t);
 
         double pipTx_gen = pip0.P()*TMath::Cos(phi_t_cross_product)*TMath::Sin(theta_t);
         double pipTy_gen = pip0.P()*TMath::Sin(phi_t_cross_product)*TMath::Sin(theta_t);
@@ -1360,17 +1247,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         TVector3 pipT(pipTx_gen, pipTy_gen, pipTz_gen);
 
-
         double phi_t_cross_product_gen = phi_t_cross_product_gen*TMath::RadToDeg();
 
         ///////////////   x Feynmann   ///////////////
         double xF_gen = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W_gen);
 
-
         // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
-        double pT_gen = sqrt(pipx_1_gen*pipx_1_gen + pipy_1_gen*pipy_1_gen);
+        double pT_gen    = sqrt(pipx_1_gen*pipx_1_gen + pipy_1_gen*pipy_1_gen);
         double phi_t_gen = pip0_Clone.Phi()*TMath::RadToDeg();
-
 
         if(phi_t_gen < 0){
             phi_t_gen += 360;
@@ -1378,7 +1262,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         // std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen, pipx_1_gen, pipy_1_gen, pipz_1_gen, qx_gen, qy_gen, qz_gen, beamx_gen, beamy_gen, beamz_gen, elex_gen, eley_gen, elez_gen};
         std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen};
-
 
         return vals2_gen;
 
@@ -1665,23 +1548,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         // Rest of calculations are performed as normal from here
 
 
-        auto epipX = beam + targ - ele_smeared - pip0_smeared;
+        auto epipX         = beam + targ - ele_smeared - pip0_smeared;
 
-        auto q_smeared = beam - ele_smeared;
+        auto q_smeared     = beam - ele_smeared;
 
-        auto Q2_smeared = -q_smeared.M2();
+        auto Q2_smeared    = -q_smeared.M2();
 
-        auto v_smeared = beam.E() - ele_smeared.E();
+        auto v_smeared     = beam.E() - ele_smeared.E();
 
-        auto xB_smeared = Q2_smeared/(2*targ.M()*v_smeared);
+        auto xB_smeared    = Q2_smeared/(2*targ.M()*v_smeared);
 
-        auto W2_smeared = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
+        auto W2_smeared    = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
 
-        auto W_smeared = sqrt(W2_smeared);
+        auto W_smeared     = sqrt(W2_smeared);
 
-        auto y_smeared = (targ.Dot(q_smeared))/(targ.Dot(beam));
+        auto y_smeared     = (targ.Dot(q_smeared))/(targ.Dot(beam));
 
-        auto z_smeared = ((pip0_smeared.E())/(q_smeared.E()));
+        auto z_smeared     = ((pip0_smeared.E())/(q_smeared.E()));
 
         auto gamma_smeared = 2*targ.M()*(xB_smeared/sqrt(Q2_smeared));
 
@@ -1709,21 +1592,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             pipPhi_smeared += 360;
         }
 
-
-
         //=================================================================================================================================//
         //==============================================//          Rotation Code          //==============================================//
         //=================================================================================================================================//
-
-
 
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
         double Phi_el  = ele_smeared.Phi();
 
-
         """, str(Rotation_Matrix), """
-
 
         ///////////////     Rotating to CM Frame     ///////////////
 
@@ -1732,7 +1609,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto ele_Clone  = Rot_Matrix(ele_smeared,  -1, Theta_q, Phi_el);
         auto pip0_Clone = Rot_Matrix(pip0_smeared, -1, Theta_q, Phi_el);
         auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
-
 
         ///////////////     Saving CM components     ///////////////
 
@@ -1752,7 +1628,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         double eley_smeared  = ele_Clone.Y();
         double elez_smeared  = ele_Clone.Z();
 
-
         ///////////////     Boosting Vectors     ///////////////
 
         auto fCM   = lv_q_Clone + targ_Clone;
@@ -1770,9 +1645,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         beamBoost.Boost(boost);
         targBoost.Boost(boost);
 
-
         ///////////////////////////////////     At This Point: The particle vectors have all been rotated and boosted into the CM frame     ///////////////////////////////////
-
 
         TVector3 v0, v1;
         v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
@@ -1783,13 +1656,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         c2 = v0.Mag();
         c3 = v1.Mag();
 
-
         // Phi Trento (using Stefan's equation)
         double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
 
-
         double Cos_theta_t = (pip0_smeared.Vect().Dot(lv_q.Vect()))/(pip0_smeared.Vect().Mag()*lv_q.Vect().Mag());
-        double theta_t = TMath::ACos(Cos_theta_t);
+        double theta_t     = TMath::ACos(Cos_theta_t);
 
         double pipTx = pip0_smeared.P()*TMath::Cos(phi_t_cross_product)*TMath::Sin(theta_t);
         double pipTy = pip0_smeared.P()*TMath::Sin(phi_t_cross_product)*TMath::Sin(theta_t);
@@ -1797,13 +1668,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         TVector3 pipT(pipTx, pipTy, pipTz);
 
-
         phi_t_cross_product = phi_t_cross_product*TMath::RadToDeg();
-
 
         ///////////////   x Feynmann   ///////////////
         double xF_smeared = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W);
-
 
         // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
         double pT_smeared    = sqrt(pipx_smeared*pipx_smeared + pipy_smeared*pipy_smeared);
@@ -1818,7 +1686,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         //==============================================//          Smeared Binning          //==============================================//
         //----------------------------------------------//===================================//----------------------------------------------//
         //===================================================================================================================================//
-
 
         //===================================================================================//
         //=======================//          Q2-xB Binning          //=======================//
@@ -3153,6 +3020,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if("Valerii_Cut" in Valerii_Cut or "Complete" in Valerii_Cut):
 
+            
             Data_Frame_Clone = Data_Frame.Filter("""
 
                 auto func = [&](double x, double k, double b)
@@ -3759,6 +3627,92 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return z_pT_Bin_event_val;
 
         """])
+        
+        if(Bin_Version in ["Square", "3"]):
+            z_pT_Bin_Standard_Def = "".join(["""
+
+                /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
+
+                auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry){
+                    // z_or_pT = 0 corresponds to z bins
+                    // z_or_pT = 1 corresponds to pT bins
+
+                    // For Q2_xB Bin 1 (was 3 in old scheme - Using as default until a unique binning scheme can be developed for the new Q2-xB bins)
+                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60,  0.75, 1.0};
+
+                    if(z_or_pT == 0){return z_Borders[7 - entry];}
+                    if(z_or_pT == 1){return pT_Borders[entry];}
+
+                    float empty = 0;
+                    return empty;
+                };
+
+                /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
+
+
+                double z_event_val  = """, "smeared_vals[8]"  if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "z",  "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
+                double pT_event_val = """, "smeared_vals[10]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "pT", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
+
+                int Q2_xB_Bin_event_val = """, str(Q2_xB_Bin_event_name), """;
+                int z_pT_Bin_event_val  = 0;
+
+                // Default:
+                int Num_z_Borders  = 0;
+                int Num_pT_Borders = 0;
+
+                // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
+
+                // For Q2_xB Bin 0
+                if(Q2_xB_Bin_event_val == 0){
+                    z_pT_Bin_event_val = 0;
+                    return z_pT_Bin_event_val; // Cannot create z-pT Bins without propper Q2-xB Bins
+                }
+                else{ 
+                    // Using a default number of bins for any event within one of the new Q2-xB bins
+                    Num_z_Borders = 8; Num_pT_Borders = 8;
+                }
+                if(Q2_xB_Bin_event_val == 0){
+                    Num_z_Borders  = 1; Num_pT_Borders = 1;
+                }
+                if(Num_z_Borders == 0){
+                    Num_z_Borders = 1; Num_pT_Borders = 1;
+                }
+
+                int z_pT_Bin_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
+                                        // based on the number of times the loop has run
+
+                // Determining z-pT Bins
+                for(int zbin = 1; zbin < Num_z_Borders; zbin++){
+                    if(z_pT_Bin_event_val != 0){continue;     // If the bin has already been assigned, this line will end the loop.
+                                                              // This is to make sure the loop does not run longer than what is necessary.
+                    }
+                    if(z_event_val > Borders_function(Q2_xB_Bin_event_val, 0, zbin) && z_event_val < Borders_function(Q2_xB_Bin_event_val, 0, zbin - 1)){
+                        // Found the correct z bin
+                        for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
+                            if(z_pT_Bin_event_val != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
+
+                            if(pT_event_val > Borders_function(Q2_xB_Bin_event_val, 1, pTbin) && pT_event_val < Borders_function(Q2_xB_Bin_event_val, 1, pTbin+1)){
+                                // Found the correct pT bin
+                                z_pT_Bin_event_val = z_pT_Bin_count; 
+                                // The value of the z_pT_Bin has been set
+                                return z_pT_Bin_event_val;
+                            }
+                            else{
+                                z_pT_Bin_count = z_pT_Bin_count + 1; // Checking the next bin
+                            }
+                        }
+                    }
+                    else{
+                        z_pT_Bin_count = z_pT_Bin_count + (Num_pT_Borders - 1);
+                        // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
+                        // This represents checking each pT bin for the given z bin without going through each entry in the loop.
+                    }    
+                }
+
+                return z_pT_Bin_event_val;
+
+            """])
         
         return z_pT_Bin_Standard_Def
         
@@ -7000,75 +6954,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 
     
-    
-    ###############################################################
-    #####################     Bin Choices     #####################
-    
-    # For Q2_xB Bins:
-            # A value of -2 --> Only Binned Events
-            # A value of -1 --> All Events
-            # A value of 0 --> Only Non-Binned Events (Events that do not correspond to a bin)
-            
-    # For z_pT Bins (relavent to later parts of the analysis):
-            # A value of -2 --> Skip z-pT bins (This means that only the option for Q2-xB bins will matter for this value of z-pT)
-            # A value of -1 --> Only Binned Events
-            # A value of 0 --> Only Non-Binned Events (Events that do not correspond to a bin)
-
-    # Q2_xB Bins have a maximum value of 10 (9 total bins)
-    
-    
-    # The following list should include all the desired kinematic bins to be included.
-    # # Only necessary for 3D->2D histograms (All binning is already built into the 3D->1D histograms)
-    # # # z-pT bins are built into all 3D histograms that this code creates
-    # If a Q2-xB bin is missing from this list, then that bin will be skipped when making the histograms
-
-
-    # # The following are the maximum number of Q2-xB this code recognizes 
-#     List_of_Q2_xB_Bins_to_include = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-    # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    # List_of_Q2_xB_Bins_to_include = [-1, -2]
-#     List_of_Q2_xB_Bins_to_include = [-1]
-
-
-    List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
-    
-    List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    # List_of_Q2_xB_Bins_to_include = [-1, 1]
-    
-    
-    
-    #####################     Bin Choices     #####################
-    ###############################################################
-    
-    
-    
-    ##################################################################
-    #####################     Sector Choices     #####################
-    
-    
-    # Types_Of_Sectors = ['', 'esec', 'pipsec', 'esec_a', 'pipsec_a']
-    # Types_Of_Sectors = ['', 'esec_a', 'pipsec_a']
-    # Types_Of_Sectors = ['', 'esec', 'pipsec']
-    Types_Of_Sectors = ['']
-
-    # Types_Of_Sectors = '' --> No Sector Filter
-
-    # Sector_Numbers = [-1, 1, 2, 3, 4, 5, 6]
-    Sector_Numbers = [-1]
-
-    # Sector_Numbers = -1 or Types_Of_Sectors = '' --> All Sectors
-    # Sector_Numbers = 0 --> No Sectors (should have no events but if it does, those events exist as errors in the sector definitions)
-    
-    
-    #####################     Sector Choices     #####################
-    ##################################################################
-    
-    
-    
     ###################################################################
     #####################       Cut Choices       #####################
     
+    
+    run_Mom_Cor_Code = "yes"
+    run_Mom_Cor_Code = "no"
+
+    if(run_Mom_Cor_Code == "yes"):
+        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
+    else:
+        print("".join([color.RED, "\nNOT Running Momentum Correction Histograms", color.END]))
     
     # # Cut Naming Conventions:
         # 1) 'no_cut' --> no new cuts are applied (only cuts are made during particle identification (PID))
@@ -7096,13 +6992,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # # cut_list = ["no_cut", "cut_all", "cut_Mom_SIDIS"]
           # # The first two cuts in the above list are the same as describles in entry (1) and (4) in the list above. The 3rd entry is a combination of "Mom" and "SIDIS" where both cuts are applied together (order doesn't matter). This combination can be done with any of the cuts given in the list above (except 'no_cut') and can be done with as many of them as desired (no limits to number of cuts that can be added to one entry).
     
-    
-    
 
     # cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
     cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
     # cut_list = ['no_cut', 'cut_Complete_SIDIS']
     # cut_list = ['cut_Complete_SIDIS']
+    
+    cut_list = ['no_cut']
+    if(datatype not in ["gdf"]):
+        cut_list.append('cut_Complete_SIDIS')
+        if(run_Mom_Cor_Code == "yes"):
+            cut_list.append('cut_Complete_EDIS')
+    
+    print("".join([color.BLUE, color.BOLD, "\nCuts in use: ", color.END]))
+    for cuts in cut_list:
+        print("".join(["\t(*) ", str(cuts)]))
 
     
     
@@ -7110,6 +7014,96 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################################
     
     
+    ###############################################################
+    #####################     Bin Choices     #####################
+    
+    # For Q2_xB Bins:
+            # A value of -2 --> Only Binned Events
+            # A value of -1 --> All Events
+            # A value of 0 --> Only Non-Binned Events (Events that do not correspond to a bin)
+            
+    # For z_pT Bins (relavent to later parts of the analysis):
+            # A value of -2 --> Skip z-pT bins (This means that only the option for Q2-xB bins will matter for this value of z-pT)
+            # A value of -1 --> Only Binned Events
+            # A value of 0 --> Only Non-Binned Events (Events that do not correspond to a bin)
+
+    # Q2_xB Bins have a maximum value of 10 (9 total bins)
+    
+    
+    # The following list should include all the desired kinematic bins to be included.
+    # # Only necessary for 3D->2D histograms (All binning is already built into the 3D->1D histograms)
+    # # # z-pT bins are built into all 3D histograms that this code creates
+    # If a Q2-xB bin is missing from this list, then that bin will be skipped when making the histograms
+    
+    # binning_option_list = ["", "2"]
+    binning_option_list = ["2"]
+    binning_option_list = ["Test"]
+#     binning_option_list = ["2", "Test", "3"]
+#     binning_option_list = ["2", "Test"]
+
+    # The option '2' uses the modified binning schemes developed for this analysis (instead of the binning used by Stefan)
+    # The option 'Test' uses the same binning as option '2', but uses TH2Poly (meant to test this new code)
+    
+    
+
+    # # The following are the maximum number of Q2-xB this code recognizes 
+#     List_of_Q2_xB_Bins_to_include = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # List_of_Q2_xB_Bins_to_include = [-1, -2]
+#     List_of_Q2_xB_Bins_to_include = [-1]
+
+
+    List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
+    
+#     List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    # List_of_Q2_xB_Bins_to_include = [-1, 1]
+    
+    if("3" in binning_option_list or "Square" in binning_option_list):
+        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        
+        
+    if(run_Mom_Cor_Code == "yes"):
+        binning_option_list = ["2"]
+        List_of_Q2_xB_Bins_to_include = [-1]
+    
+    print("".join([color.BLUE, color.BOLD, "\nBinning Scheme(s) in use: ", color.END]))
+    for binning in binning_option_list:
+        print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "".join(["Binning Scheme - ", str(binning)])]))
+        
+    print("".join([color.BLUE, color.BOLD, "\n(Possible) Q2-xB bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
+#     for Q2_xB_bin in List_of_Q2_xB_Bins_to_include:
+#         print("".join(["\t(*) ", str(Q2_xB_bin)]))
+
+
+
+    #####################     Bin Choices     #####################
+    ###############################################################
+    
+    
+    
+    ##################################################################
+    #####################     Sector Choices     #####################
+    
+    
+    # Types_Of_Sectors = ['', 'esec', 'pipsec', 'esec_a', 'pipsec_a']
+    # Types_Of_Sectors = ['', 'esec_a', 'pipsec_a']
+    # Types_Of_Sectors = ['', 'esec', 'pipsec']
+    Types_Of_Sectors = ['']
+
+    # Types_Of_Sectors = '' --> No Sector Filter
+
+    # Sector_Numbers = [-1, 1, 2, 3, 4, 5, 6]
+    Sector_Numbers = [-1]
+
+    # Sector_Numbers = -1 or Types_Of_Sectors = '' --> All Sectors
+    # Sector_Numbers = 0 --> No Sectors (should have no events but if it does, those events exist as errors in the sector definitions)
+    
+    
+    #####################     Sector Choices     #####################
+    ##################################################################
+    
+        
     
     #####################################################################################################################
     ###############################################     3D Histograms     ###############################################
@@ -7218,7 +7212,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
-#     List_of_Quantities_1D = [phi_t_Binning]
+    List_of_Quantities_1D = [phi_t_Binning]
 #     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old]
 #     List_of_Quantities_1D = [phi_t_Binning, Q2_Binning_Old, xB_Binning_Old]
     
@@ -7241,36 +7235,30 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     
+    print("".join([color.BLUE, color.BOLD, "\n1D Histograms Selected Include: ", color.END]))
+    for histo_1D in List_of_Quantities_1D:
+        print("".join(["\t(*) ", str(histo_1D)]))
+    
     
     if(len(List_of_Quantities_2D) == 0):
-        print("".join([color.BLUE, color.BOLD, "Not running 2D histograms...", color.END]))
-    
-    
-    
-    run_Mom_Cor_Code = "yes"
-    # run_Mom_Cor_Code = "no"
-
-    if(run_Mom_Cor_Code == "yes"):
-        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
+        print("".join([color.RED, color.BOLD,  "\nNot running 2D histograms...", color.END]))
     else:
-        print("".join([color.BLUE, "\nNOT Running Momentum Correction Histograms", color.END]))
+        print("".join([color.BLUE, color.BOLD, "\n2D Histograms Selected Include: ", color.END]))
+        for histo_2D in List_of_Quantities_2D:
+            print("".join(["\t(*) ", str(histo_2D)]))
+            
     
     
     smearing_options_list = ["", "smear"]
     # smearing_options_list = ["smear"]
     
-    # binning_option_list = ["", "2"]
-    binning_option_list = ["2"]
-    binning_option_list = ["2", "Test", "3"]
-    binning_option_list = ["2", "Test"]
-    # The option '2' uses the modified binning schemes developed for this analysis (instead of the binning used by Stefan)
-    # The option 'Test' uses the same binning as option '2', but uses TH2Poly (meant to test this new code)
     
     if(datatype in ["rdf", "gdf"]):
         # Do not smear data or generated MC
         for ii in smearing_options_list:
             if("smear" in ii):
                 smearing_options_list.remove(ii)
+                
     
     
     if(("ivec" in smearing_function) and ("smear" in smearing_options_list)):
@@ -7278,7 +7266,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     elif("smear" in smearing_options_list):
         print("".join([color.BLUE, color.BOLD, "\nRunning FX's Smearing Funtion", color.END]))
     else:
-        print("".join([color.BLUE, "\nNot Smearing...", color.END]))
+        print("".join([color.RED, "\nNot Smearing...", color.END]))
     
     
     def Print_Progress(Total, Increase, Rate):
@@ -7330,9 +7318,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     #################     Final ROOT File     #################
     ###########################################################
-    
-    
-    
     
     
     
@@ -7445,6 +7430,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         if(run_Mom_Cor_Code == "yes" and Histo_Data not in ['pdf', 'gen', 'gdf']):
                             histo_options.append("Mom_Cor_Code")
                             # "Mom_Cor_Code" --> Makes the plots used for Momentum Corrections/Smearing Functions
+                            
+                        if(run_Mom_Cor_Code == "yes"):
+                            histo_options = ["Normal"]
+                            if(Histo_Data not in ['pdf', 'gen', 'gdf']):
+                                histo_options.append("Mom_Cor_Code")
+
                             
                             
 ##======##======##======##======##======##     Histogram Option Loop       ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
@@ -7757,7 +7748,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Do not need exclusive cuts for the response matrices
                                     continue
                                 
-                                
                                 Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -1.5, 10.5 + 4,  12 + 4]
                                 Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5,  52]
                                 Res_Binning_4D       = ['Bin_Res_4D',              -1.5, 441.5, 443]
@@ -7782,9 +7772,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
                                 # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
                                 Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old]]
-                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
-                                Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
+                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", "Test", ""]) else 12, 8 if(Binning in ["2", "Test", ""]) else 12]]]
+                                # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
 
+                                if(Binning not in ["2"]):
+                                    Res_Var_Add = []
+                                
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
                                 if(Res_Var_Add != []):
                                     for Response_Added in Res_Var_Add:
