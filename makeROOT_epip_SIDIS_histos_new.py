@@ -1,34 +1,15 @@
-# This Code was last updated on 2-13-2023
-# # Note-to-self: Also always update this note at end of script
-
-
 # Most recent update notes:
-
 # # All Updates have been moved to the github page/README.md file
-
-    
 # # This Code has been coverted such that 3D histograms are made instead of filtering Q2-xB/z-pT bins
 
 
 
-
-
-
-
-# NOTE TO SELF: "Do not need 1D MC REC histograms (can make from the Response Matrix)"
-
-
-
-
-
-
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
 
 
-
-
+import sys
 from sys import argv
 # Let there be 4 arguements in argv when running this code
 # arguement 1: Name of this code (makeROOT_epip_SIDIS_histos.py)
@@ -68,7 +49,7 @@ except:
 datatype, output_type = str(datatype), str(output_type)
 
 
-output_all_histo_names_Q = "yes"
+# output_all_histo_names_Q = "yes"
 output_all_histo_names_Q = "no"
 
 
@@ -82,7 +63,6 @@ elif(output_type not in ["histo", "data", "tree"]):
     if(output_type not in ["test", "time"]):
         output_type = "histo"
 
-
 print("".join(["Output type will be: ", output_type]))
 
 import ROOT, numpy
@@ -90,6 +70,17 @@ import array
 from datetime import datetime
 import copy
 import traceback
+import os
+import psutil
+def my_function():
+    # Get the current process ID
+    pid = os.getpid()
+    # Create a Process object for the current process
+    process = psutil.Process(pid)
+    # Get the memory usage of the process in bytes
+    mem_usage = process.memory_info().rss
+    # Print the memory usage in MB
+    print("Current Memory usage: {:.6f} MB".format(mem_usage / (1024 * 1024)))
 
 
 class color:
@@ -106,7 +97,6 @@ class color:
     END       = '\033[0m'
 
 
-
 if(str(file_location) == 'all'):
     print("\nRunning all files together...\n")
 if(str(file_location) == 'time'):
@@ -114,21 +104,16 @@ if(str(file_location) == 'time'):
     
 
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
-    
     file_num = str(file_location)
-
     if(datatype == "rdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")     
-
     if(datatype in ["mdf", "pdf"]):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-
     
     
     ########################################################################################################################################################################
@@ -166,10 +151,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
             
             
-            
-    
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
-    
     
     
     ##========================================================================##
@@ -178,116 +160,123 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Getting Current Date
     datetime_object_full = datetime.now()
-
     startMin_full, startHr_full, startDay_full = datetime_object_full.minute, datetime_object_full.hour, datetime_object_full.day
-
     if(datetime_object_full.minute < 10):
         timeMin_full = ''.join(['0', str(datetime_object_full.minute)])
     else:
         timeMin_full = str(datetime_object_full.minute)
-    
     # Printing Current Time
-    if(datetime_object_full.hour > 12 and datetime_object_full.hour < 24):
+    if(datetime_object_full.hour >  12 and datetime_object_full.hour <  24):
         print("".join(["The time that this code started is ", str((datetime_object_full.hour) - 12), ":", timeMin_full, " p.m."]))
-    if(datetime_object_full.hour < 12 and datetime_object_full.hour > 0):
-        print("".join(["The time that this code started is ", str(datetime_object_full.hour), ":", timeMin_full, " a.m."]))
+    if(datetime_object_full.hour <  12 and datetime_object_full.hour >   0):
+        print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " a.m."]))
     if(datetime_object_full.hour == 12):
-        print("".join(["The time that this code started is ", str(datetime_object_full.hour), ":", timeMin_full, " p.m."]))
-    if(datetime_object_full.hour == 0 or datetime_object_full.hour == 24):
+        print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " p.m."]))
+    if(datetime_object_full.hour == 0 or   datetime_object_full.hour == 24):
         print("".join(["The time that this code started is 12:", timeMin_full, " a.m."]))
     
     
     ##========================================================================##
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
     ###########################################################
     #################     Final ROOT File     #################
     
-    
     ROOT_File_Output_Name = "Data_REC"
     
-    # # # See File_Name_Updates.md file for notes on versions older than "Analysis_Note_Update_VF_APS_"
+#     # # # See File_Name_Updates.md file for notes on versions older than "Analysis_Note_Update_VF_APS_"
         
-    
-    Extra_Name = "Analysis_Note_Update_VF_APS_"
-    # Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
-    
-    
-    Extra_Name = "Multi_Dimension_Unfold_V1_"
-    # ∆P now uses the generated kinematics for comparison instead of the calculated ones for the matched monte carlo files
-    # Made a general update to some lines of code to 'clean up' their appearance (does not affect how code is run)
-    # Testing first multidmimensional binning using just Q2 and phi_h
+#     Extra_Name = "Analysis_Note_Update_VF_APS_"
+#     # Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
     
     
-    Extra_Name = "Multi_Dimension_Unfold_V2_"
-    # Turned off ∆P plots for now (use the version above)
-    # Testing second multidmimensional binning using Q2_xB_Bins with phi_h
-        # Use the prior version for all other plots
-        # These plots will be cut as to ignore bin migration in the z-pT bins
+#     Extra_Name = "Multi_Dimension_Unfold_V1_"
+#     # ∆P now uses the generated kinematics for comparison instead of the calculated ones for the matched monte carlo files
+#     # Made a general update to some lines of code to 'clean up' their appearance (does not affect how code is run)
+#     # Testing first multidmimensional binning using just Q2 and phi_h
     
     
-    Extra_Name = "Multi_Dimension_Unfold_V3_"
-    # ∆P plots are still off
-    # Fixed the multidmimensional binning (had overlapping bins and missed the last bin that was not phi)
-        # Running both the Q2_phi and Q2_xB_phi plots
-    # Added cut to Q2-xB bin 0 in Multidimensional unfolding
+#     Extra_Name = "Multi_Dimension_Unfold_V2_"
+#     # Turned off ∆P plots for now (use the version above)
+#     # Testing second multidmimensional binning using Q2_xB_Bins with phi_h
+#         # Use the prior version for all other plots
+#         # These plots will be cut as to ignore bin migration in the z-pT bins
     
     
-    Extra_Name = "Multi_Dimension_Unfold_V4_"
-    # Fixed the cuts where Valerii's Fiducial cuts were not being applied
-    # ∆P plots are turned on
-    # Made a new momentum correction for the simulated data
-        # Correcting both particles as a quadratic function of momentum
-        # Corrections are based on ∆P = P_GEN - P_REC instead of P_calc and P_meas (i.e., not calculating the correct kinematics - just taking from the event generator)
-            # Means that the corrections of each particle can be obtained completely independently from the other particle
-    # Made new function for defining the Q2-xB binning schemes
-        # Much more condensed, works for normal, gen, and smeared bins
-            # New z-pT bin function was created to condense the code for the normal, gen, and smeared bins as well, but this code is otherwise the same as how it was written before
-        # Will make future iterations of new bins much easier
-        # Should make my modified binning the default with update - Stefan's binning needs to be added to Q2_xB_Bin_Standard_Def_Function() (Double check to make sure it is correct - not tested fully but shouldn't matter)
-        # Testing the function with the binning scheme of 'Test' - which is identical to the standard binning scheme used which is called '2'
-    # Added new binning scheme for Q2-xB bins
-        # Still in testing - will need more work
-        # Currently called binning scheme '3' with the title of "(Square)" - will likely change later
-        # Consists of 12 rectangular bins
-        # z-pT bins are not uniquely defined yet (using whatever the default is from the new bin fuctions)
-    # Removed the 'EDIS' cuts when not using the 'Mom_Cor_Code' option
-    # 'Mom_Cor_Code' option now runs completely separately from the other histogram options (other than the simple 2D histograms - See 'Multi_Dimension_Unfold_V4_Mom_Cor_')
-    # Removed the unfolding histograms of all kinematic variables that were not 'phi_t' (done for memory constraints)
-    # Added 'Quality-of-Life' improvements to print out all run options (including binning, cut, variable selection, etc.)
+#     Extra_Name = "Multi_Dimension_Unfold_V3_"
+#     # ∆P plots are still off
+#     # Fixed the multidmimensional binning (had overlapping bins and missed the last bin that was not phi)
+#         # Running both the Q2_phi and Q2_xB_phi plots
+#     # Added cut to Q2-xB bin 0 in Multidimensional unfolding
     
     
-    # Extra_Name = "Multi_Dimension_Unfold_V4_Mom_Cor_"
-    # # Ran at the same time as 'Multi_Dimension_Unfold_V4_' but only used 'Mom_Cor_Code' option
+#     Extra_Name = "Multi_Dimension_Unfold_V4_"
+#     # Fixed the cuts where Valerii's Fiducial cuts were not being applied
+#     # ∆P plots are turned on
+#     # Made a new momentum correction for the simulated data
+#         # Correcting both particles as a quadratic function of momentum
+#         # Corrections are based on ∆P = P_GEN - P_REC instead of P_calc and P_meas (i.e., not calculating the correct kinematics - just taking from the event generator)
+#             # Means that the corrections of each particle can be obtained completely independently from the other particle
+#     # Made new function for defining the Q2-xB binning schemes
+#         # Much more condensed, works for normal, gen, and smeared bins
+#             # New z-pT bin function was created to condense the code for the normal, gen, and smeared bins as well, but this code is otherwise the same as how it was written before
+#         # Will make future iterations of new bins much easier
+#         # Should make my modified binning the default with update - Stefan's binning needs to be added to Q2_xB_Bin_Standard_Def_Function() (Double check to make sure it is correct - not tested fully but shouldn't matter)
+#         # Testing the function with the binning scheme of 'Test' - which is identical to the standard binning scheme used which is called '2'
+#     # Added new binning scheme for Q2-xB bins
+#         # Still in testing - will need more work
+#         # Currently called binning scheme '3' with the title of "(Square)" - will likely change later
+#         # Consists of 12 rectangular bins
+#         # z-pT bins are not uniquely defined yet (using whatever the default is from the new bin fuctions)
+#     # Removed the 'EDIS' cuts when not using the 'Mom_Cor_Code' option
+#     # 'Mom_Cor_Code' option now runs completely separately from the other histogram options (other than the simple 2D histograms - See 'Multi_Dimension_Unfold_V4_Mom_Cor_')
+#     # Removed the unfolding histograms of all kinematic variables that were not 'phi_t' (done for memory constraints)
+#     # Added 'Quality-of-Life' improvements to print out all run options (including binning, cut, variable selection, etc.)
+    
+    
+#     # Extra_Name = "Multi_Dimension_Unfold_V4_Mom_Cor_"
+#     # # Ran at the same time as 'Multi_Dimension_Unfold_V4_' but only used 'Mom_Cor_Code' option
         
         
-    Extra_Name = "Multi_Dimension_Unfold_V4_Norm_"
-    # Will just use the '2' binning option
+#     Extra_Name = "Multi_Dimension_Unfold_V4_Norm_"
+#     # Will just use the '2' binning option
     
-    Extra_Name = "Multi_Dimension_Unfold_V4_Test_"
-    # Will just use the 'Test' binning option
+#     Extra_Name = "Multi_Dimension_Unfold_V4_Test_"
+#     # Will just use the 'Test' binning option
 
-#     Extra_Name = "Multi_Dimension_Unfold_V4_New_"
-#     # Will just use the '3' binning option
-        
+# #     Extra_Name = "Multi_Dimension_Unfold_V4_New_"
+# #     # Will just use the '3' binning option
 
 
+    Extra_Name = "Multi_Dimension_Unfold_V5_"
+    # Just ran the SIDIS Histograms (no momentum correction histograms)
+    # Updated the kinematic binning with the following updates:
+        # 1) Now using the condensed code (with TH2Poly) for all binning schemes (most of the old code has been removed or otherwise commented out)
+        # 2) New 'Square' bins (i.e. Binning option '3') now has 14 Q2-xB bins total (extra bins were added to this scheme since the last committed version used in 'Multi_Dimension_Unfold_V4_')
+            # (Still no z-pT bins for these yet)
+        # 3) Will be running with both bin option '2' and '3'
+    # New Multidimensional binning function was written to combine variables (running the same options but the code should be an improvement - still in testing)
+        # All overflow bin events are given the value of -1
+    # Removed a lot of unnecessary code from this script (general clean up) including pre-defined Multidimensional bins (like Bin_4D)
+    # Reduced the number of bins in some 2D histograms such as the particle momentums and Q2-xB distributions (should have little effect on the plots outside of some minor visual changes)
+        # Done to avoid memory overload as the code was crashing even when I wasn't trying to create the root files.
+    # Updated the Pi+ momentum smearing function as a funtion of theta (may be quite large)
+        # MC momentum corrections have already been applied (same as 'Multi_Dimension_Unfold_V4_')
+    # The kinematic bins are now only defined if they are considered necessary 
+    # Removed the angular definitions for sectors amoung other unused variables (were not necessary)
+    # Made several changes in the hopes of improving memory consumption of the code
+    
+    
+#     Extra_Name = "Multi_Dimension_Unfold_V5_Mom_Cor_"
+#     # Same as 'Multi_Dimension_Unfold_V5_' but running the momentum correction histograms instead of the SIDIS ones
+    
+    
+#     Extra_Name = "Multi_Dimension_Unfold_V5_FX_Mom_Cor_"
+#     # Same as 'Multi_Dimension_Unfold_V5_Mom_Cor_' but using FX's smearing function
+        
     
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_",        str(Extra_Name), str(file_num), ".root"])
@@ -304,26 +293,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("".join(["\nFile being made is: \033[1m",    str(ROOT_File_Output_Name), "\033[0m"]))
     
     
-    
     #################     Final ROOT File     #################
     ###########################################################
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     ################################################################     Done Loading Data Files     ################################################################
@@ -331,8 +302,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
     ##                                                                                                                                                             ##
     ############################################################    Particle Momentum Correction Code    ############################################################
-
-    
     
     Mom_Correction_Q = "yes"
     # Mom_Correction_Q = "no"
@@ -341,7 +310,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Mom_Correction_Q = "no"
         
     Correction_Code_Full_In = """
-
     auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
     
         // corON == 0 --> DOES NOT apply the momentum corrections (i.e., turns the corrections 'off')
@@ -354,7 +322,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         }
 
         else{ // corON != 0 --> Applies the momentum corrections (i.e., turns the corrections 'on')
-        
             // ivec = 0 --> Electron Corrections
             // ivec = 1 --> π+ Corrections
             // ivec = 2 --> π- Corrections
@@ -395,7 +362,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 phi = PhiLocal - (32/(pp-0.05));
             }
 
-        
             if(corON == 2){ // Monte Carlo Simulated Corrections
                 // Not Sector or Angle dependent (as of 3-21-2023)
                 
@@ -448,7 +414,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 //////////////////////////////////////////////////////////////////////////////////
 
 
-
                 /////////////////////////////////////////////////////////////////////////////////
                 //=============================================================================//
                 //==========//==========//     π+ Pion Corrections     //==========//==========//
@@ -493,10 +458,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
                 //=============================================================================//
                 /////////////////////////////////////////////////////////////////////////////////
-
-
-
-
+                
+                
                 /////////////////////////////////////////////////////////////////////////////////
                 //=============================================================================//
                 //==========//==========//     π- Pion Corrections     //==========//==========//
@@ -541,9 +504,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 //==========//==========//  π- Pion Corrections (End)  //==========//==========//
                 //=============================================================================//
                 /////////////////////////////////////////////////////////////////////////////////
-
-
-
+                
+                
                 //////////////////////////////////////////////////////////////////////////////////
                 //==============================================================================//
                 //==========//==========//      Proton Corrections      //==========//==========//
@@ -583,25 +545,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 //==============================================================================//
                 //////////////////////////////////////////////////////////////////////////////////
 
-
                 return dp/pp;
-
             }
-            
         }
-    };
-
-
-
-    """
+    };"""
     
-
     if(Mom_Correction_Q != "yes"):
         print("".join([color.BOLD, color.BLUE, "\nNot running with Momentum Corrections\n", color.END]))
     else:
         print("".join([color.BOLD, color.BLUE, "\nRunning with Momentum Corrections\n",     color.END]))
         
-
         
     ###################################################################################################################################################################
     #################################################################   End of Momentum Corrections   #################################################################
@@ -623,54 +576,44 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if("pipz" not in rdf.GetColumnNames()):
         rdf = rdf.Define("pipz", "pz")
     
-    
     if('calc' not in files_used_for_data_frame):
-        
         #####################     Energy     #####################
-
         try:
             rdf = rdf.Define("el_E", "".join([str(Correction_Code_Full_In), """
-            auto fe  = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
-            auto ele = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+            auto fe    = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+            auto ele   = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
             auto ele_E = ele.E();
-            return ele_E;
-            """]))
+            return ele_E;"""]))
 
             rdf = rdf.Define("pip_E", "".join([str(Correction_Code_Full_In), """
-            auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
-            auto pip0 = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+            auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
+            auto pip0   = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
             auto pip0_E = pip0.E();
-            return pip0_E;
-            """]))
+            return pip0_E;"""]))
             
         except:
             print("\nMomentum Corrections Failed...\n")
             rdf = rdf.Define("el_E", """
             auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
             auto ele_E = ele.E();
-            return ele_E;
-            """)
+            return ele_E;""")
             rdf = rdf.Define("pip_E", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
             auto pip0_E = pip0.E();
-            return pip0_E;
-            """)
+            return pip0_E;""")
 
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("el_E_gen", """
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto ele_E_gen = ele.E();
-            return ele_E_gen;
-            """)
+            return ele_E_gen;""")
 
             rdf = rdf.Define("pip_E_gen", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
             auto pip0_E_gen = pip0.E();
-            return pip0_E_gen;
-            """)
-        
-        
+            return pip0_E_gen;""")
+            
         
         #####################     Momentum     #####################
 
@@ -678,36 +621,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = rdf.Define("el", "".join([str(Correction_Code_Full_In), """
             auto fe     = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
             double el_P = fe*(sqrt(ex*ex + ey*ey + ez*ez));
-            return el_P;
-            """]))
-            
+            return el_P;"""]))
             rdf = rdf.Define("pip", "".join([str(Correction_Code_Full_In), """
             auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
             double pip_P = fpip*(sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
-            return pip_P;
-            """]))
+            return pip_P;"""]))
         except:
             print("\nMomentum Corrections Failed...\n")
             rdf = rdf.Define("el",  "sqrt(ex*ex + ey*ey + ez*ez)")
             rdf = rdf.Define("pip", "sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
-
-        
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("el_gen",  "sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
             rdf = rdf.Define("pip_gen", "sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
-
-
 
         #####################     Theta Angle     #####################
 
         rdf = rdf.Define("elth",  "atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
         rdf = rdf.Define("pipth", "atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
-        
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("elth_gen",  "atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
             rdf = rdf.Define("pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
-
-
 
         #####################     Phi Angle     #####################
 
@@ -717,19 +650,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(elPhi < 0){
             elPhi += 360;
         }
-        return elPhi;
-        """)
-
+        return elPhi;""")
         rdf = rdf.Define("pipPhi", """
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
         auto pipPhi = pip0.Phi()*TMath::RadToDeg();
         if(pipPhi < 0){
             pipPhi += 360;
         }
-        return pipPhi;
-        """)
-        
-        
+        return pipPhi;""")
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("elPhi_gen", """
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -737,148 +665,116 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(elPhi_gen < 0){
                 elPhi_gen += 360;
             }
-            return elPhi_gen;
-            """)
-
+            return elPhi_gen;""")
             rdf = rdf.Define("pipPhi_gen", """
             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipy_gen, 0.13957);
             auto pipPhi_gen = pip0.Phi()*TMath::RadToDeg();
             if(pipPhi_gen < 0){
                 pipPhi_gen += 360;
             }
-            return pipPhi_gen;
-            """)
-
+            return pipPhi_gen;""")
 
 
         #####################     Sectors (angle definitions)     #####################
 
-        rdf = rdf.Define("esec_a", """
-
-        auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-        auto ele_phi = (180/3.1415926)*ele.Phi();
-
-        int esec_a = 0;
-
-        if(ele_phi >= -30 && ele_phi < 30){
-            esec_a = 1;
-        }
-        if(ele_phi >= 30 && ele_phi < 90){
-            esec_a = 2;
-        }
-        if(ele_phi >= 90 && ele_phi < 150){
-            esec_a = 3;
-        }
-        if(ele_phi >= 150 || ele_phi < -150){
-            esec_a = 4;
-        }
-        if(ele_phi >= -90 && ele_phi < -30){
-            esec_a = 5;
-        }
-        if(ele_phi >= -150 && ele_phi < -90){
-            esec_a = 6;
-        }
-
-        return esec_a;
-        """)
-
-
-        rdf = rdf.Define("pipsec_a", """
-
-        auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-        auto pip_phi = (180/3.1415926)*pip0.Phi();
-
-        int pipsec_a = 0;
-
-        if(pip_phi >= -45 && pip_phi < 15){
-            pipsec_a = 1;
-        }
-        if(pip_phi >= 15 && pip_phi < 75){
-            pipsec_a = 2;
-        }
-        if(pip_phi >= 75 && pip_phi < 135){
-            pipsec_a = 3;
-        }
-        if(pip_phi >= 135 || pip_phi < -165){
-            pipsec_a = 4;
-        }
-        if(pip_phi >= -105 && pip_phi < -45){
-            pipsec_a = 5;
-        }
-        if(pip_phi >= -165 && pip_phi < -105){
-            pipsec_a = 6;
-        }
-
-        return pipsec_a;
-        """)
-        
-        
-        
-        if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("esec_gen","""
-
-            auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-            auto ele_phi = (180/3.1415926)*ele.Phi();
-
-            int esec_gen = 0;
-
-            if(ele_phi >= -30 && ele_phi < 30){
-                esec_gen = 1;
-            }
-            if(ele_phi >= 30 && ele_phi < 90){
-                esec_gen = 2;
-            }
-            if(ele_phi >= 90 && ele_phi < 150){
-                esec_gen = 3;
-            }
-            if(ele_phi >= 150 || ele_phi < -150){
-                esec_gen = 4;
-            }
-            if(ele_phi >= -90 && ele_phi < -30){
-                esec_gen = 5;
-            }
-            if(ele_phi >= -150 && ele_phi < -90){
-                esec_gen = 6;
-            }
-
-            return esec_gen;
-            """)
-
-
-            rdf = rdf.Define("pipsec_gen","""
-
-            auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-            auto pip_phi = (180/3.1415926)*pip0.Phi();
-
-            int pipsec_gen = 0;
-
-            if(pip_phi >= -45 && pip_phi < 15){
-                pipsec_gen = 1;
-            }
-            if(pip_phi >= 15 && pip_phi < 75){
-                pipsec_gen = 2;
-            }
-            if(pip_phi >= 75 && pip_phi < 135){
-                pipsec_gen = 3;
-            }
-            if(pip_phi >= 135 || pip_phi < -165){
-                pipsec_gen = 4;
-            }
-            if(pip_phi >= -105 && pip_phi < -45){
-                pipsec_gen = 5;
-            }
-            if(pip_phi >= -165 && pip_phi < -105){
-                pipsec_gen = 6;
-            }
-
-            return pipsec_gen;
-            """)
+#         rdf = rdf.Define("esec_a", """
+#         auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+#         auto ele_phi = (180/3.1415926)*ele.Phi();
+#         int esec_a = 0;
+#         if(ele_phi >= -30 && ele_phi < 30){
+#             esec_a = 1;
+#         }
+#         if(ele_phi >= 30 && ele_phi < 90){
+#             esec_a = 2;
+#         }
+#         if(ele_phi >= 90 && ele_phi < 150){
+#             esec_a = 3;
+#         }
+#         if(ele_phi >= 150 || ele_phi < -150){
+#             esec_a = 4;
+#         }
+#         if(ele_phi >= -90 && ele_phi < -30){
+#             esec_a = 5;
+#         }
+#         if(ele_phi >= -150 && ele_phi < -90){
+#             esec_a = 6;
+#         }
+#         return esec_a;""")
+#         rdf = rdf.Define("pipsec_a", """
+#         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+#         auto pip_phi = (180/3.1415926)*pip0.Phi();
+#         int pipsec_a = 0;
+#         if(pip_phi >= -45 && pip_phi < 15){
+#             pipsec_a = 1;
+#         }
+#         if(pip_phi >= 15 && pip_phi < 75){
+#             pipsec_a = 2;
+#         }
+#         if(pip_phi >= 75 && pip_phi < 135){
+#             pipsec_a = 3;
+#         }
+#         if(pip_phi >= 135 || pip_phi < -165){
+#             pipsec_a = 4;
+#         }
+#         if(pip_phi >= -105 && pip_phi < -45){
+#             pipsec_a = 5;
+#         }
+#         if(pip_phi >= -165 && pip_phi < -105){
+#             pipsec_a = 6;
+#         }
+#         return pipsec_a;""")
+#         if(datatype in ["mdf", "pdf"]):
+#             rdf = rdf.Define("esec_gen","""
+#             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+#             auto ele_phi = (180/3.1415926)*ele.Phi();
+#             int esec_gen = 0;
+#             if(ele_phi >= -30 && ele_phi < 30){
+#                 esec_gen = 1;
+#             }
+#             if(ele_phi >= 30 && ele_phi < 90){
+#                 esec_gen = 2;
+#             }
+#             if(ele_phi >= 90 && ele_phi < 150){
+#                 esec_gen = 3;
+#             }
+#             if(ele_phi >= 150 || ele_phi < -150){
+#                 esec_gen = 4;
+#             }
+#             if(ele_phi >= -90 && ele_phi < -30){
+#                 esec_gen = 5;
+#             }
+#             if(ele_phi >= -150 && ele_phi < -90){
+#                 esec_gen = 6;
+#             }
+#             return esec_gen;""")
+#             rdf = rdf.Define("pipsec_gen","""
+#             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+#             auto pip_phi = (180/3.1415926)*pip0.Phi();
+#             int pipsec_gen = 0;
+#             if(pip_phi >= -45 && pip_phi < 15){
+#                 pipsec_gen = 1;
+#             }
+#             if(pip_phi >= 15 && pip_phi < 75){
+#                 pipsec_gen = 2;
+#             }
+#             if(pip_phi >= 75 && pip_phi < 135){
+#                 pipsec_gen = 3;
+#             }
+#             if(pip_phi >= 135 || pip_phi < -165){
+#                 pipsec_gen = 4;
+#             }
+#             if(pip_phi >= -105 && pip_phi < -45){
+#                 pipsec_gen = 5;
+#             }
+#             if(pip_phi >= -165 && pip_phi < -105){
+#                 pipsec_gen = 6;
+#             }
+#             return pipsec_gen;""")
 
 
         #####################     Other Values     #####################
 
         rdf = rdf.Define("vals", "".join([str(Correction_Code_Full_In), """
-        
         auto fe      = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         
@@ -902,22 +798,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         std::vector<double> vals = {epipX.M(), epipX.M2(), Q2, xB, v, W2, W, y, z, epsilon};
 
-        return vals;
-        """]))
-
-
+        return vals;"""]))
+        
         rdf = rdf.Define('MM',  'vals[0]') # Missing Mass
         rdf = rdf.Define('MM2', 'vals[1]') # Missing Mass Squared 
         rdf = rdf.Define('Q2',  'vals[2]') # lepton momentum transfer squared
         rdf = rdf.Define('xB',  'vals[3]') # fraction of the proton momentum that is carried by the struck quark
-        rdf = rdf.Define('v',   'vals[4]') # energy of the virtual photon
-        rdf = rdf.Define('s',   'vals[5]') # center-of-mass energy squared
+        # rdf = rdf.Define('v',   'vals[4]') # energy of the virtual photon
+        # rdf = rdf.Define('s',   'vals[5]') # center-of-mass energy squared
         rdf = rdf.Define('W',   'vals[6]') # center-of-mass energy
         rdf = rdf.Define('y',   'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
         rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
-        rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
-        
-        
+        # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen","""
@@ -940,26 +832,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             std::vector<double> vals_gen = {epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen, epsilon_gen};
 
-            return vals_gen;
-            """)
+            return vals_gen;""")
 
             rdf = rdf.Define('MM_gen',  'vals_gen[0]')
             rdf = rdf.Define('MM2_gen', 'vals_gen[1]')
             rdf = rdf.Define('Q2_gen',  'vals_gen[2]')
             rdf = rdf.Define('xB_gen',  'vals_gen[3]')
-            rdf = rdf.Define('v_gen',   'vals_gen[4]')
-            rdf = rdf.Define('s_gen',   'vals_gen[5]')
+            # rdf = rdf.Define('v_gen',   'vals_gen[4]')
+            # rdf = rdf.Define('s_gen',   'vals_gen[5]')
             rdf = rdf.Define('W_gen',   'vals_gen[6]')
             rdf = rdf.Define('y_gen',   'vals_gen[7]')
             rdf = rdf.Define('z_gen',   'vals_gen[8]')
-            rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
+            # rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
         
     
     ##############################################################################
     ##=====##  The above calculations used to be run in the groovy code  ##=====##
     ##############################################################################
-    
-    
     
     
     
@@ -969,14 +858,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################       Rotation Matrix and Center-of-Mass/Boosted Frame       ###################################################
     ####################################################################################################################################################################
     
-    
     Rotation_Matrix = """
-    
     /////////////////////////////////////////////          Rotation Matrix          /////////////////////////////////////////////
-
-
-    auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot)
-    {
+    
+    auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot){
         double Rot_X1 = vector.X();
         double Rot_Y1 = vector.Y();
         double Rot_Z1 = vector.Z();
@@ -988,7 +873,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         // Lab2CM_or_CM2Lab is a parameter which determines if you rotating from the lab frame to the CM frame, or if you are rotating back in the opposite direction
         // Lab2CM_or_CM2Lab = -1 gives a rotation to the CM frame (from the lab frame)
         // Lab2CM_or_CM2Lab = +1 gives a rotation to the lab frame (from the CM frame)
-
 
         Theta_Rot = -1*Theta_Rot;   // Always give the angle of rotation Theta as the value given by .Theta()
                                     // This subroutine will handle the fact that the matrix rotation wants the negative of the angle of rotation
@@ -1013,16 +897,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     };
 
-
-
-    /////////////////////////////////////////////          (End of) Rotation Matrix          /////////////////////////////////////////////
-    
-    
-    """
-    
+    /////////////////////////////////////////////          (End of) Rotation Matrix          /////////////////////////////////////////////"""
     
     rdf = rdf.Define("vals2", "".join([str(Correction_Code_Full_In), """
-        
     auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
     
@@ -1042,7 +919,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     TLorentzVector lv_q = beam - ele;
 
-
     ///////////////     Angles for Rotation     ///////////////
     double Theta_q = lv_q.Theta();
     double Phi_el  = ele.Phi();
@@ -1056,7 +932,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     auto ele_Clone  = Rot_Matrix(ele,  -1, Theta_q, Phi_el);
     auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
     auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
-
 
     ///////////////     Saving CM components     ///////////////
 
@@ -1093,7 +968,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     beamBoost.Boost(boost);
     targBoost.Boost(boost);
 
-
     TVector3 v0, v1;
     v0 = qlv_Boost.Vect().Cross(ele_Boost.Vect());
     v1 = qlv_Boost.Vect().Cross(pip_Boost.Vect());
@@ -1103,11 +977,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     c2 = v0.Mag();
     c3 = v1.Mag();
 
-
     // Phi Trento (using Stefan's equation)
     double phi_t_cross_product = (c0/TMath::Abs(c0)) * TMath::ACos(c1 /(c2*c3));
     
-
     double Cos_theta_t = (pip0.Vect().Dot(lv_q.Vect()))/(pip0.Vect().Mag()*lv_q.Vect().Mag());
     double theta_t = TMath::ACos(Cos_theta_t);
 
@@ -1117,10 +989,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     TVector3 pipT(pipTx, pipTy, pipTz);
 
-
     phi_t_cross_product = phi_t_cross_product*TMath::RadToDeg();
-
-
+    
     ///////////////   x Feynmann   ///////////////
     double xF = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W);
 
@@ -1132,13 +1002,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         phi_t += 360;
     }
 
-
     // std::vector<double> vals2 = {pT, phi_t, xF, pipx_1, pipy_1, pipz_1, qx, qy, qz, beamx, beamy, beamz, elex, eley, elez};
     std::vector<double> vals2 = {pT, phi_t, xF};
 
-    return vals2;
-
-    """]))
+    return vals2;"""]))
 
     rdf = rdf.Define('pT',    'vals2[0]')    # transverse momentum of the final state hadron
     rdf = rdf.Define('phi_t', 'vals2[1]')    # Most important angle (between lepton and hadron planes)
@@ -1159,7 +1026,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # rdf = rdf.Define('eleX_CM','vals2[12]') # CM scattered electron x-momentum
     # rdf = rdf.Define('eleY_CM','vals2[13]') # CM scattered electron y-momentum
     # rdf = rdf.Define('eleZ_CM','vals2[14]') # CM scattered electron z-momentum
-    
     
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
@@ -1263,9 +1129,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         // std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen, pipx_1_gen, pipy_1_gen, pipz_1_gen, qx_gen, qy_gen, qz_gen, beamx_gen, beamy_gen, beamz_gen, elex_gen, eley_gen, elez_gen};
         std::vector<double> vals2_gen = {pT_gen, phi_t_gen, xF_gen};
 
-        return vals2_gen;
-
-        """]))
+        return vals2_gen;"""]))
 
         rdf = rdf.Define('pT_gen',    'vals2_gen[0]')
         rdf = rdf.Define('phi_t_gen', 'vals2_gen[1]')
@@ -1280,87 +1144,67 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #################################################################################################################################################################
     
     
-    
     ##===============================================================================================================##
     ##---------------------------------##=========================================##---------------------------------##
     ##=================================##     Defining the Smearing Functions     ##=================================##
     ##---------------------------------##=========================================##---------------------------------##
     ##===============================================================================================================##
     
-    smearing_function = """
+#     smearing_function = """
+#         //===========================================================================//
+#         //=================//     Smearing Function (From FX)     //=================//
+#         //===========================================================================//
+#         auto smear_func = [&](TLorentzVector V4){
+#             // True generated values (i.e., values of the unsmeared TLorentzVector)
+#             double inM = V4.M();
+#             double smeared_P  = V4.P();
+#             double smeared_Th = V4.Theta();
+#             double smeared_Phi = V4.Phi();
+#             TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
+#             // Calculate resolutions
+#             double smeared_ThD = TMath::RadToDeg()*smeared_Th;
+#             double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
+#             double momS2 = 0.02*smeared_ThD;
+#             double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
+#             momR *= 2.0;
+#             // // From ∆P(El) Sigma distributions:
+#             // momR *= (0.02408)*V4.P()*V4.P() + (-0.25556)*V4.P() + (1.33331);
+#             double theS1 = 0.004*smeared_ThD + 0.1;
+#             double theS2 = 0;
+#             double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
+#             theR *= 2.5;
+#             double phiS1 = 0.85 - 0.015*smeared_ThD;
+#             double phiS2 = 0.17 - 0.003*smeared_ThD;
+#             double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
+#             phiR *= 3.5;
+#             // cout<<"Smearing Factor for Phi: "<<phiR<<endl;
+#             // cout<<"Smearing Factor for Th: "<<theR<<endl;
+#             // cout<<"Smearing Factor for P: "<<momR<<endl;
+#             // cout<<"Pre-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
+#             // cout<<"Pre-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
+#             // cout<<"Pre-Smear P : "<<smeared_P<<endl;
+#             // overwrite EB (i.e., applying the smear)
+#             smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
+#             smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
+#             smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
+#             // cout<<"Smear-Factor Phi (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * phiR * gRandom->Gaus(0,1)))<<endl;
+#             // cout<<"Smear-Factor Th (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * theR * gRandom->Gaus(0,1)))<<endl;
+#             // cout<<"Smear-Factor P : "<<(momR  * gRandom->Gaus(0,1) *  V4.P())<<endl;
+#             // cout<<"Post-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
+#             // cout<<"Post-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
+#             // cout<<"Post-Smear P : "<<smeared_P<<endl;
+#             // EB_rec_mom = GEN_mom + resolution_momentum x gaussian x GEN_mom
+#             // EB_rec_ang = GEN_ang + resolution_angle x gaussian
+#             V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
+#             V4_new.SetRho( smeared_P );
+#             V4_new.SetTheta( smeared_Th );
+#             V4_new.SetPhi( smeared_Phi );
+#             return V4_new;
+#         };"""
     
-        //===========================================================================//
-        //=================//     Smearing Function (From FX)     //=================//
-        //===========================================================================//
-        
-        auto smear_func = [&](TLorentzVector V4){
-
-            // True generated values (i.e., values of the unsmeared TLorentzVector)
-
-            double inM = V4.M();
-            double smeared_P  = V4.P();
-            double smeared_Th = V4.Theta();
-            double smeared_Phi = V4.Phi();
-
-            TLorentzVector V4_new(V4.X(), V4.Y(), V4.Z(), V4.E());
-
-            // Calculate resolutions
-
-            double smeared_ThD = TMath::RadToDeg()*smeared_Th;
-            double momS1 = 0.0184291 - 0.0110083*smeared_ThD + 0.00227667*smeared_ThD*smeared_ThD - 0.000140152*smeared_ThD*smeared_ThD*smeared_ThD + (3.07424e-06)*smeared_ThD*smeared_ThD*smeared_ThD*smeared_ThD;
-            double momS2 = 0.02*smeared_ThD;
-            double momR  = 0.01 * TMath::Sqrt( TMath::Power(momS1*smeared_P,2) + TMath::Power(momS2,2));
-            momR *= 2.0;
-
-            // // From ∆P(El) Sigma distributions:
-            // momR *= (0.02408)*V4.P()*V4.P() + (-0.25556)*V4.P() + (1.33331);
-
-            double theS1 = 0.004*smeared_ThD + 0.1;
-            double theS2 = 0;
-            double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
-            theR *= 2.5;
-
-            double phiS1 = 0.85 - 0.015*smeared_ThD;
-            double phiS2 = 0.17 - 0.003*smeared_ThD;
-            double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
-            phiR *= 3.5;
-            
-            
-            // cout<<"Smearing Factor for Phi: "<<phiR<<endl;
-            // cout<<"Smearing Factor for Th: "<<theR<<endl;
-            // cout<<"Smearing Factor for P: "<<momR<<endl;
-
-
-            // cout<<"Pre-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
-            // cout<<"Pre-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
-            // cout<<"Pre-Smear P : "<<smeared_P<<endl;
-
-            // overwrite EB (i.e., applying the smear)
-            smeared_Phi += TMath::DegToRad() * phiR * gRandom->Gaus(0,1);
-            smeared_Th += TMath::DegToRad() * theR * gRandom->Gaus(0,1);
-            smeared_P  += momR  * gRandom->Gaus(0,1) *  V4.P();
-
-            // cout<<"Smear-Factor Phi (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * phiR * gRandom->Gaus(0,1)))<<endl;
-            // cout<<"Smear-Factor Th (degrees): "<<TMath::RadToDeg()*((TMath::DegToRad() * theR * gRandom->Gaus(0,1)))<<endl;
-            // cout<<"Smear-Factor P : "<<(momR  * gRandom->Gaus(0,1) *  V4.P())<<endl;
-
-            // cout<<"Post-Smear Phi (degrees): "<<TMath::RadToDeg()*(smeared_Phi)<<endl;
-            // cout<<"Post-Smear Th (degrees): "<<TMath::RadToDeg()*(smeared_Th)<<endl;
-            // cout<<"Post-Smear P : "<<smeared_P<<endl;
-
-            // EB_rec_mom = GEN_mom + resolution_momentum x gaussian x GEN_mom
-            // EB_rec_ang = GEN_ang + resolution_angle x gaussian
-
-            V4_new.SetE( TMath::Sqrt( smeared_P*smeared_P + inM*inM )  );
-            V4_new.SetRho( smeared_P );
-            V4_new.SetTheta( smeared_Th );
-            V4_new.SetPhi( smeared_Phi );
-
-            return V4_new;
-
-        };
     
-    """
+    
+    
     
     
 #     smearing_function = """
@@ -1436,6 +1280,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     """
     
     
+    
+    
+    
+    
     smearing_function = """
         //===========================================================================//
         //=================//     Modified Smearing Function      //=================//
@@ -1458,22 +1306,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 momR *= (2.0604e-02)*(V4.P())*(V4.P()) + (-1.1212e-01)*(V4.P()) + (7.1348e-01);
                 momR *= (-1.1295e-02)*(V4.P())*(V4.P()) + (2.3416e-01)*(V4.P()) + (-1.0974e-01);
                 // From ∆P(Electron) Sigma Vs Theta distributions:
-                momR *= (-2.7657e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (8.1714e-02)*(V4.Theta()*TMath::RadToDeg()) + (4.0196e-01);
-                momR *= (-7.3974e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (1.0908e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.9876e-01);
+                momR *= (-2.7657e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) +  (8.1714e-02)*(V4.Theta()*TMath::RadToDeg()) + (4.0196e-01);
+                momR *= (-7.3974e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) +  (1.0908e-02)*(V4.Theta()*TMath::RadToDeg()) + (9.9876e-01);
             }
             if(ivec == 1){
                 // From ∆P(Pi+ Pion) Sigma Vs Momentum distributions:
                 momR *= (-5.2125e-02)*(V4.P())*(V4.P()) + (2.7110e-01)*(V4.P()) + (4.8534e-01);
                 momR *= (-3.4607e-02)*(V4.P())*(V4.P()) + (1.5836e-01)*(V4.P()) + (6.8845e-01);
                 // From ∆P(Pi+ Pion) Sigma Vs Theta distributions:
-                momR *= (-5.7711e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (2.4354e-02)*(V4.Theta()*TMath::RadToDeg()) + (6.6472e-01);
-                momR *= (-1.3210e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (3.5065e-02)*(V4.Theta()*TMath::RadToDeg()) + (8.3333e-01);
+                momR *= (-5.7711e-04)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) +  (2.4354e-02)*(V4.Theta()*TMath::RadToDeg()) + (6.6472e-01);
+                momR *= (-1.3210e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) +  (3.5065e-02)*(V4.Theta()*TMath::RadToDeg()) + (8.3333e-01);
+                // From ∆P(Pi+ Pion) Sigma Vs Theta distributions:
+                momR *=  (6.9462e-03)*(V4.Theta()*TMath::RadToDeg())*(V4.Theta()*TMath::RadToDeg()) + (-4.8277e-01)*(V4.Theta()*TMath::RadToDeg()) + (9.8916e+00);
             }
             double theS1 = 0.004*smeared_ThD + 0.1;
             double theS2 = 0;
             double theR  = TMath::Sqrt(TMath::Power(theS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(theS2,2) );
             theR *= 2.5;
-            
             double phiS1 = 0.85 - 0.015*smeared_ThD;
             double phiS2 = 0.17 - 0.003*smeared_ThD;
             double phiR  = TMath::Sqrt(TMath::Power(phiS1*TMath::Sqrt(smeared_P*smeared_P + 0.13957*0.13957)/(smeared_P*smeared_P),2) + TMath::Power(phiS2,2) );
@@ -1487,10 +1336,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             V4_new.SetTheta( smeared_Th );
             V4_new.SetPhi( smeared_Phi );
             return V4_new;
-        };
-    """
-    
-    
+        };"""
     
     ##===============================================================================================================##
     ##---------------------------------##=========================================##---------------------------------##
@@ -1519,22 +1365,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         TLorentzVector ele_NO_SMEAR(ex*fe,      ey*fe,     ez*fe,     eleM.E());
         TLorentzVector pip0_NO_SMEAR(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
 
-
         //========================================================================//
         //=================//     Smearing PxPyPzMVector's     //=================//
         //========================================================================//
 
-
         TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
         TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
-
 
         //=========================================================================//
         //=================//     Vectors have been Smeared     //=================//
         //=========================================================================//
 
         TLorentzVector lv_q = beam - ele_smeared;
-
 
         auto Delta_Smear_El_P   = abs(ele_smeared.P())        - abs(ele_NO_SMEAR.P());                         // Delta_Smear_El.P();
         auto Delta_Smear_El_Th  = (abs(ele_smeared.Theta())   - abs(ele_NO_SMEAR.Theta()))*TMath::RadToDeg();  // Delta_Smear_El.Theta()*TMath::RadToDeg();
@@ -1544,30 +1386,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto Delta_Smear_Pip_Th  = (abs(pip0_smeared.Theta()) - abs(pip0_NO_SMEAR.Theta()))*TMath::RadToDeg(); // Delta_Smear_Pip.Theta()*TMath::RadToDeg();
         auto Delta_Smear_Pip_Phi = (abs(pip0_smeared.Phi())   - abs(pip0_NO_SMEAR.Phi()))*TMath::RadToDeg();   // Delta_Smear_Pip.Phi()*TMath::RadToDeg();
 
-
         // Rest of calculations are performed as normal from here
 
-
         auto epipX         = beam + targ - ele_smeared - pip0_smeared;
-
         auto q_smeared     = beam - ele_smeared;
-
         auto Q2_smeared    = -q_smeared.M2();
-
         auto v_smeared     = beam.E() - ele_smeared.E();
-
         auto xB_smeared    = Q2_smeared/(2*targ.M()*v_smeared);
-
         auto W2_smeared    = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
-
         auto W_smeared     = sqrt(W2_smeared);
-
         auto y_smeared     = (targ.Dot(q_smeared))/(targ.Dot(beam));
-
         auto z_smeared     = ((pip0_smeared.E())/(q_smeared.E()));
-
         auto gamma_smeared = 2*targ.M()*(xB_smeared/sqrt(Q2_smeared));
-
         auto epsilon_smeared = (1 - y_smeared - 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared))/(1 - y + 0.5*(y_smeared*y_smeared) + 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared));
 
         // Particles' (Smeared) Energies/Momentums/Angles
@@ -1712,7 +1542,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             // If the condition has been met, its value will be set to 1.
             // If either is still 0 when checked, the event will be consided as being outside of Bin 1
 
-
             // Testing Upper Border of Bin 1
             if(Q2_smeared <= ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_smeared - 0.0835) + 1.3){
                 Condition_Up = 1; // Condition for upper border of Bin 1 has been met
@@ -1730,7 +1559,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 }
             }
 
-
             if(Condition_Up == 1 && Condition_Down == 1){
                 Q2_xB_Bin_smeared = 1;
                 // Bin 1 Confirmed
@@ -1738,8 +1566,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         }
         /////////////////////////     End of Bin 1     /////////////////////////
-
-
 
         /////////////////////////       Bin 2 or 3       /////////////////////////
         if(xB_smeared > 0.15 && xB_smeared < 0.24){
@@ -1756,33 +1582,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(Q2_smeared > ((2.75 - 1.98)/(0.24 - 0.15))*(xB_smeared - 0.15) + 1.98){
                 BinTest = 3; // Event will NOT go to bin 2
             }
-
-
             // Final Border Test
-
             // Bin 2
             if(BinTest == 2){
                 // Border lines of Bin 2:   Q2_smeared = ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38   (if xB_smeared < 0.2)
                 //                          Q2_smeared = ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50   (if xB_smeared > 0.2)
-
                 if(xB_smeared < 0.2){
                     if(Q2_smeared >= ((1.45 - 1.38)/(0.20 - 0.15))*(xB_smeared - 0.15) + 1.38){
                         Q2_xB_Bin_smeared = 2;
                         // Bin 2 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.2){
                     if(Q2_smeared >= ((1.50 - 1.45)/(0.24 - 0.20))*(xB_smeared - 0.24) + 1.50){
                         Q2_xB_Bin_smeared = 2;
                         // Bin 2 Confirmed
                     }
                 }
-
             }
             // End of Bin 2
-
-
+            
             // Bin 3
             if(BinTest == 3){
                 // Border line of Bin 3:   Q2_smeared = ((3.625 - 2.28)/(0.24 - 0.15))*(xB_smeared - 0.15) + 2.28
@@ -1794,12 +1613,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             }
             // End of Bin 3
-
-
         }
         /////////////////////////     End of Bin 2 and 3     /////////////////////////
-
-
 
         /////////////////////////       Bin 4 or 5       /////////////////////////
         if(xB_smeared > 0.24 && xB_smeared < 0.34){
@@ -1817,115 +1632,81 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 BinTest = 5; // Event will NOT go to bin 4
             }
 
-
             // Final Border Test
-
             // Bin 4
             if(BinTest == 4){
                 // Border lines of Bin 4:   Q2_smeared = ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50   (if xB_smeared < 0.27)
                 //                          Q2_smeared = ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53   (if 0.27 < xB_smeared < 0.30)
                 //                          Q2_smeared = ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56   (if xB_smeared > 0.3)
-
                 if(xB_smeared < 0.27){
                     if(Q2_smeared >= ((1.53 - 1.50)/(0.27 - 0.24))*(xB_smeared - 0.24) + 1.50){
                         Q2_xB_Bin_smeared = 4;
                         // Bin 4 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.27 && xB_smeared < 0.30){
                     if(Q2_smeared >= ((1.56 - 1.53)/(0.30 - 0.27))*(xB_smeared - 0.27) + 1.53){
                         Q2_xB_Bin_smeared = 4;
                         // Bin 4 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.30){
                     if(Q2_smeared >= ((1.60 - 1.56)/(0.34 - 0.30))*(xB_smeared - 0.30) + 1.56){
                         Q2_xB_Bin_smeared = 4;
                         // Bin 4 Confirmed
                     }
                 }
-
             }
             // End of Bin 4
-
-
             // Bin 5
             if(BinTest == 5){
                 // Border line of Bin 5:   Q2_smeared = ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625
-
                 if(Q2_smeared <= ((5.12 - 3.625)/(0.34 - 0.24))*(xB_smeared - 0.24) + 3.625){
                     Q2_xB_Bin_smeared = 5;
                     // Bin 5 Confirmed
                 }
-
             }
             // End of Bin 5
-
-
         }
         /////////////////////////     End of Bin 4 and 5     /////////////////////////
 
-
-
         /////////////////////////       Bin 6 or 7       /////////////////////////
         if(xB_smeared > 0.34 && xB_smeared < 0.45){
-
             int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
             // line between bins: Q2_smeared = ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63
-
             // Deciding between Bins
             if(Q2_smeared < ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
                 BinTest = 6; // Event will NOT go to bin 7
             }
-
             if(Q2_smeared > ((4.7 - 3.63)/(0.45 - 0.34))*(xB_smeared - 0.34) + 3.63){
                 BinTest = 7; // Event will NOT go to bin 6
             }
-
-
             // Final Border Test
-
             // Bin 6
             if(BinTest == 6){
                 // Border line of Bin 6:   Q2_smeared = ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60
-
                 if(Q2_smeared >= ((2.52 - 1.60)/(0.45 - 0.34))*(xB_smeared - 0.34) + 1.60){
                     Q2_xB_Bin_smeared = 6;
                     // Bin 6 Confirmed
                 }
-
             }
             // End of Bin 6
-
-
             // Bin 7
             if(BinTest == 7){
                 // Border line of Bin 7:   Q2_smeared = ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12
-
                 if(Q2_smeared <= ((6.76 - 5.12)/(0.45 - 0.34))*(xB_smeared - 0.34) + 5.12){
                     Q2_xB_Bin_smeared = 7;
                     // Bin 7 Confirmed
                 }
-
             }
             // End of Bin 7
-
-
         }
         /////////////////////////     End of Bin 6 and 7     /////////////////////////
 
-
-
         /////////////////////////       Bin 8 or 9       /////////////////////////
         if(xB_smeared > 0.45){
-
             int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
             // line between bins: Q2_smeared = ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70    
-
             // Deciding between Bins
             if(Q2_smeared < ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
                 BinTest = 8; // Event will NOT go to bin 9
@@ -1933,49 +1714,39 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(Q2_smeared > ((7.42 - 4.70)/(0.708 - 0.45))*(xB_smeared - 0.45) + 4.70){
                 BinTest = 9; // Event will NOT go to bin 8
             }
-
-
             // Final Border Test
-
             // Bin 8
             if(BinTest == 8){
                 // Border lines of Bin 8:   Q2_smeared = ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52   (if xB_smeared < 0.50)
                 //                          Q2_smeared = ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05   (if 0.50 < xB_smeared < 0.57)
                 //                          Q2_smeared = ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05   (if 0.57 < xB_smeared < 0.64)
                 //                          Q2_smeared = ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40   (if xB_smeared > 0.64)
-
                 if(xB_smeared < 0.50){
                     if(Q2_smeared >= ((3.05 - 2.52)/(0.500 - 0.45))*(xB_smeared - 0.45) + 2.52){
                         Q2_xB_Bin_smeared = 8;
                         // Bin 8 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.50 && xB_smeared < 0.57){
                     if(Q2_smeared >= ((4.05 - 3.05)/(0.570 - 0.50))*(xB_smeared - 0.50) + 3.05){
                         Q2_xB_Bin_smeared = 8;
                         // Bin 8 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.57 && xB_smeared < 0.64){
                     if(Q2_smeared >= ((5.40 - 4.05)/(0.640 - 0.57))*(xB_smeared - 0.57) + 4.05){
                         Q2_xB_Bin_smeared = 8;
                         // Bin 8 Confirmed
                     }
                 }
-
                 if(xB_smeared > 0.64){
                     if(Q2_smeared >= ((7.42 - 5.40)/(0.708 - 0.64))*(xB_smeared - 0.64) + 5.40){
                         Q2_xB_Bin_smeared = 8;
                         // Bin 8 Confirmed
                     }
                 }
-
             }
             // End of Bin 8
-
-
             // Bin 9
             if(BinTest == 9){
                 // Border lines of Bin 9:
@@ -1995,7 +1766,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 // Code will verify both conditions seperately before checking that they have been met.
                 // If the condition has been met, its value will be set to 1.
                 // If either is still 0 when checked, the event will be consided as being outside of Bin 9
-
 
                 // Testing Uppermost Border of Bin 9
                 if(xB_smeared < 0.677){
@@ -2021,19 +1791,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }
                 }
 
-
                 if(Condition_Up == 1 && Condition_Right == 1){
                     Q2_xB_Bin_smeared = 9;
                     // Bin 9 Confirmed
                 }
-
             }
             // End of Bin 9
-
         }
         /////////////////////////     End of Bin 8 and 9     /////////////////////////
-
-
 
         //==================================================================================//
         //=======================//      End of Q2-xB Binning      //=======================//
@@ -2041,18 +1806,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         //=======================//          z-pT Binning          //=======================//
         //==================================================================================//
 
-
-
         double z_pT_Bin_smeared = 0;
         int Num_z_Borders = 0;
         int Num_pT_Borders = 0;
 
-
         /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
 
-        auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-        {
-
+        auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry){
             // z_or_pT = 0 corresponds to z bins
             // z_or_pT = 1 corresponds to pT bins
 
@@ -2165,16 +1925,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 }
             }
 
-
             // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
             // return empty_Borders;
             float empty = 0;
             return empty;
         };
 
-
         /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
 
         // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
 
@@ -2290,12 +2047,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             }    
         }
 
-
-
         //===================================================================================//
         //=======================//       End of z-pT Binning       //=======================//
         //===================================================================================//
-
 
 
         //==================================================================================================================================//
@@ -2304,385 +2058,293 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         //----------------------------------------------//==================================//----------------------------------------------//
         //==================================================================================================================================//
 
-
-
         // std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, pipx_smeared, pipy_smeared, pipz_smeared, qx_smeared, qy_smeared, qz_smeared, beamx_smeared, beamy_smeared, beamz_smeared, elex_smeared, eley_smeared, elez_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, ele_E_smeared, pip0_E_smeared, el_smeared, pip_smeared, elth_smeared, pipth_smeared, elPhi_smeared, pipPhi_smeared};
 
 
         std::vector<double> smeared_vals = {epipX.M(), epipX.M2(), Q2_smeared, xB_smeared, v_smeared, W2_smeared, W_smeared, y_smeared, z_smeared, epsilon_smeared, pT_smeared, phi_t_smeared, xF_smeared, Q2_xB_Bin_smeared, z_pT_Bin_smeared, el_smeared, ele_E_smeared, elth_smeared, elPhi_smeared, pip_smeared, pip0_E_smeared, pipth_smeared, pipPhi_smeared, Delta_Smear_El_P, Delta_Smear_El_Th, Delta_Smear_El_Phi, Delta_Smear_Pip_P, Delta_Smear_Pip_Th, Delta_Smear_Pip_Phi};
         //                  smeared_vals = {    1    ,     2     ,      3    ,      4    ,     5    ,      6    ,     7    ,     8    ,     9    ,        10      ,     11    ,        12    ,     13    ,        14        ,       15        ,     16    ,       17     ,       18    ,        19    ,      20    ,        21     ,        22    ,         23    ,      24         ,      25          ,      26           ,      27          ,      28           ,      29            };
 
-        return smeared_vals;
+        return smeared_vals;"""]))
 
-        """]))
-
-        # Data_Frame_Clone = Data_Frame_Clone.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
-        # Data_Frame_Clone = Data_Frame_Clone.Define('z_pT_Bin_smeared', 'smeared_vals[14]')
         rdf = rdf.Define('Q2_xB_Bin_smeared', 'smeared_vals[13]')
         rdf = rdf.Define('z_pT_Bin_smeared',  'smeared_vals[14]')
 
-        rdf = rdf.Define('Q2_xB_Bin_2_smeared', '''
-            int Q2_xB_Bin_2_smeared = Q2_xB_Bin_smeared;
+#         rdf = rdf.Define('Q2_xB_Bin_2_smeared', '''
+#             int Q2_xB_Bin_2_smeared = Q2_xB_Bin_smeared;
+#             if(Q2_xB_Bin_smeared > 1 && Q2_xB_Bin_2_smeared%2 != 0){
+#                 Q2_xB_Bin_2_smeared += -2;
+#             }
+#             if(smeared_vals[2] < 2){
+#             // if(Q2_smeared < 2){
+#                 Q2_xB_Bin_2_smeared = 0; 
+#             }
+#             return Q2_xB_Bin_2_smeared;''')
+#         rdf = rdf.Define('z_pT_Bin_2_smeared', '''
+#             double z_smeared = smeared_vals[8];
+#             double pT_smeared = smeared_vals[10];
+#             auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry){
+#                 // z_or_pT = 0 corresponds to z bins
+#                 // z_or_pT = 1 corresponds to pT bins
+#                 // For Q2_xB Bin 1 (was 3 in old scheme)
+#                 if(Q2_xB_Bin_Num == 1){
+#                     float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+#                     float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[7 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 2
+#                 if(Q2_xB_Bin_Num == 2){
+#                     float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
+#                     float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[7 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 3 (was 5 in old scheme)
+#                 if(Q2_xB_Bin_Num == 3){
+#                     float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
+#                     float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[7 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 4
+#                 if(Q2_xB_Bin_Num == 4){
+#                     float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
+#                     float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[6 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 5 (was 7 in old scheme)
+#                 if(Q2_xB_Bin_Num == 5){
+#                     float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
+#                     float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[6 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }    
+#                 // For Q2_xB Bin 6
+#                 if(Q2_xB_Bin_Num == 6){
+#                     float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
+#                     float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[5 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 7 (was 9 in old scheme)
+#                 if(Q2_xB_Bin_Num == 7){
+#                     float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
+#                     float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[5 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // For Q2_xB Bin 8
+#                 if(Q2_xB_Bin_Num == 8){
+#                     float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
+#                     float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
+#                     if(z_or_pT == 0){
+#                         return z_Borders[5 - entry];
+#                     }
+#                     if(z_or_pT == 1){
+#                         return pT_Borders[entry];
+#                     }
+#                 }
+#                 // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
+#                 // return empty_Borders;
+#                 float empty = 0;
+#                 return empty;
+#             };
+#             /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
+#             // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
+#             // Default:
+#             int Num_z_Borders = 8;
+#             int Num_pT_Borders = 8;
+#             int z_pT_Bin_2_smeared = 0;
+#             // For Q2_xB Bin 0
+#             if(Q2_xB_Bin_2_smeared == 0){
+#                 z_pT_Bin_2_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
+#                 Num_z_Borders = 0; Num_pT_Borders = 0;
+#             }
+#             // For Q2_xB Bin 1 (Uses Default for both borders)
+#             // For Q2_xB Bin 2 (Uses Default for both borders)
+#             // For Q2_xB Bin 3 (Uses Default for both borders)
+#             // For Q2_xB Bin 4 (Uses Default for pT borders)
+#             if(Q2_xB_Bin_2_smeared == 4){
+#                 Num_z_Borders = 7;
+#             }
+#             // For Q2_xB Bin 5 (New scheme)
+#             if(Q2_xB_Bin_2_smeared == 5){
+#                 Num_z_Borders = 7; Num_pT_Borders = 7;
+#             }
+#             // For Q2_xB Bin 6
+#             if(Q2_xB_Bin_2_smeared == 6){
+#                 Num_z_Borders = 6; Num_pT_Borders = 6;
+#             }
+#             // For Q2_xB Bin 7 (New scheme)
+#             if(Q2_xB_Bin_2_smeared == 7){
+#                 Num_z_Borders = 6; Num_pT_Borders = 6;
+#             }
+#             // For Q2_xB Bin 8
+#             if(Q2_xB_Bin_2_smeared == 8){
+#                 Num_z_Borders = 6; Num_pT_Borders = 5;
+#             }
+#             if(Num_z_Borders == 0){
+#                 Num_z_Borders = 1; Num_pT_Borders = 1;
+#             }
+#             int z_pT_Bin_2_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
+#                                     // based on the number of times the loop has run
+#             // Determining z_pT Bins
+#             for(int zbin = 1; zbin < Num_z_Borders; zbin++){
+#                 if(z_pT_Bin_2_smeared != 0){
+#                     continue;   // If the bin has already been assigned, this line will end the loop.
+#                                 // This is to make sure the loop does not run longer than what is necessary.
+#                 }    
+#                 if(z_smeared > Borders_function(Q2_xB_Bin_2_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_2_smeared, 0, zbin - 1)){
+#                     // Found the correct z bin
+#                     for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
+#                         if(z_pT_Bin_2_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
+#                         if(pT_smeared > Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin+1)){
+#                             // Found the correct pT bin
+#                             z_pT_Bin_2_smeared = z_pT_Bin_2_smeared_count; // The value of the z_pT_Bin_2_smeared has been set
+#                             // cout<<"The value of the z_pT_Bin_2_smeared has been set as: "<<z_pT_Bin_2_smeared<<endl;
+#                             break;
+#                         }
+#                         else{
+#                             z_pT_Bin_2_smeared_count += 1; // Checking the next bin
+#                             // cout<<"Checking the next bin"<<endl;
+#                         }
+#                     }
+#                 }
+#                 else{
+#                     z_pT_Bin_2_smeared_count += (Num_pT_Borders - 1);
+#                     // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
+#                     // This represents checking each pT bin for the given z bin without going through each entry in the loop.
+#                 }    
+#             }
+#             return z_pT_Bin_2_smeared;''')
 
-            if(Q2_xB_Bin_smeared > 1 && Q2_xB_Bin_2_smeared%2 != 0){
-                Q2_xB_Bin_2_smeared += -2;
-            }
-
-            if(smeared_vals[2] < 2){
-            // if(Q2_smeared < 2){
-                Q2_xB_Bin_2_smeared = 0; 
-            }
-
-            return Q2_xB_Bin_2_smeared;
-        ''')
-
-
-        rdf = rdf.Define('z_pT_Bin_2_smeared', '''
-
-            double z_smeared = smeared_vals[8];
-            double pT_smeared = smeared_vals[10];
-
-            auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-            {
-                // z_or_pT = 0 corresponds to z bins
-                // z_or_pT = 1 corresponds to pT bins
-
-                // For Q2_xB Bin 1 (was 3 in old scheme)
-                if(Q2_xB_Bin_Num == 1){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 2
-                if(Q2_xB_Bin_Num == 2){
-                    float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 3 (was 5 in old scheme)
-                if(Q2_xB_Bin_Num == 3){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 4
-                if(Q2_xB_Bin_Num == 4){
-                    float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 5 (was 7 in old scheme)
-                if(Q2_xB_Bin_Num == 5){
-                    float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                    float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }    
-                // For Q2_xB Bin 6
-                if(Q2_xB_Bin_Num == 6){
-                    float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                    float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 7 (was 9 in old scheme)
-                if(Q2_xB_Bin_Num == 7){
-                    float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-                    float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 8
-                if(Q2_xB_Bin_Num == 8){
-                    float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                    float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-
-
-
-                // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-                // return empty_Borders;
-                float empty = 0;
-                return empty;
-            };
-
-
-            /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-            // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
-
-            // Default:
-            int Num_z_Borders = 8;
-            int Num_pT_Borders = 8;
-            int z_pT_Bin_2_smeared = 0;
-
-            // For Q2_xB Bin 0
-            if(Q2_xB_Bin_2_smeared == 0){
-                z_pT_Bin_2_smeared = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
-                Num_z_Borders = 0; Num_pT_Borders = 0;
-            }
-            // For Q2_xB Bin 1 (Uses Default for both borders)
-
-            // For Q2_xB Bin 2 (Uses Default for both borders)
-
-            // For Q2_xB Bin 3 (Uses Default for both borders)
-
-            // For Q2_xB Bin 4 (Uses Default for pT borders)
-            if(Q2_xB_Bin_2_smeared == 4){
-                Num_z_Borders = 7;
-            }
-
-            // For Q2_xB Bin 5 (New scheme)
-            if(Q2_xB_Bin_2_smeared == 5){
-                Num_z_Borders = 7; Num_pT_Borders = 7;
-            }
-
-            // For Q2_xB Bin 6
-            if(Q2_xB_Bin_2_smeared == 6){
-                Num_z_Borders = 6; Num_pT_Borders = 6;
-            }
-
-            // For Q2_xB Bin 7 (New scheme)
-            if(Q2_xB_Bin_2_smeared == 7){
-                Num_z_Borders = 6; Num_pT_Borders = 6;
-            }
-
-            // For Q2_xB Bin 8
-            if(Q2_xB_Bin_2_smeared == 8){
-                Num_z_Borders = 6; Num_pT_Borders = 5;
-            }
-
-            if(Num_z_Borders == 0){
-                Num_z_Borders = 1; Num_pT_Borders = 1;
-            }
-
-
-            int z_pT_Bin_2_smeared_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                                    // based on the number of times the loop has run
-
-            // Determining z_pT Bins
-            for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-                if(z_pT_Bin_2_smeared != 0){
-                    continue;   // If the bin has already been assigned, this line will end the loop.
-                                // This is to make sure the loop does not run longer than what is necessary.
-                }    
-
-                if(z_smeared > Borders_function(Q2_xB_Bin_2_smeared, 0, zbin) && z_smeared < Borders_function(Q2_xB_Bin_2_smeared, 0, zbin - 1)){
-                    // Found the correct z bin
-
-                    for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                        if(z_pT_Bin_2_smeared != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                        if(pT_smeared > Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin) && pT_smeared < Borders_function(Q2_xB_Bin_2_smeared, 1, pTbin+1)){
-                            // Found the correct pT bin
-                            z_pT_Bin_2_smeared = z_pT_Bin_2_smeared_count; // The value of the z_pT_Bin_2_smeared has been set
-                            // cout<<"The value of the z_pT_Bin_2_smeared has been set as: "<<z_pT_Bin_2_smeared<<endl;
-                            break;
-                        }
-                        else{
-                            z_pT_Bin_2_smeared_count += 1; // Checking the next bin
-                            // cout<<"Checking the next bin"<<endl;
-                        }
-                    }
-
-                }
-                else{
-                    z_pT_Bin_2_smeared_count += (Num_pT_Borders - 1);
-                    // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-                    // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-                }    
-            }
-
-            return z_pT_Bin_2_smeared;
-
-        ''')
-
-        
-        
         ##==================================================##
         ##==========## End of Smeared DataFrame ##==========##
         ##==================================================##
         
-        
-        
-
     def smear_frame_compatible(Data_Frame, Variable, Smearing_Q):
-        
         if("smear" not in Smearing_Q or (datatype not in ["mdf", "pdf"]) or (str(Variable) in Data_Frame.GetColumnNames())):
             # Variable should already be defined/cannot smear real/generated data
-            
             # if(str(Variable) in Data_Frame.GetColumnNames()):
             #     print("".join(["Already defined: ", str(Variable)]))
-            
             return Data_Frame
-        
         else:
-
             done_Q = 'no'
-            
             if(Variable in ['MM', 'MM_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('MM_smeared',      'smeared_vals[0]')
-
             if(Variable in ['MM2', 'MM2_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('MM2_smeared',     'smeared_vals[1]')
-
             if(Variable in ['Q2', 'Q2_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('Q2_smeared',      'smeared_vals[2]')
-
             if(Variable in ['xB', 'xB_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('xB_smeared',      'smeared_vals[3]')
-
             if(Variable in ['v', 'v_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('v_smeared',       'smeared_vals[4]')
-
             if(Variable in ['s', 's_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('s_smeared',       'smeared_vals[5]')
-
             if(Variable in ['W', 'W_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('W_smeared',       'smeared_vals[6]')
-
             if(Variable in ['y', 'y_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('y_smeared',       'smeared_vals[7]')
-
             if(Variable in ['z', 'z_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('z_smeared',       'smeared_vals[8]')
-
             if(Variable in ['epsilon', 'epsilon_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('epsilon_smeared', 'smeared_vals[9]')
-
             if(Variable in ['pT', 'pT_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pT_smeared',      'smeared_vals[10]')
-
             if(Variable in ['phi_t', 'phi_t_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('phi_t_smeared',   'smeared_vals[11]')
-
             if(Variable in ['xF', 'xF_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('xF_smeared',      'smeared_vals[12]')
-
             if(Variable in ['el', 'el_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('el_smeared',      'smeared_vals[15]')
-
             if(Variable in ['el_E', 'el_E_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('el_E_smeared',    'smeared_vals[16]')
-
             if(Variable in ['elth', 'elth_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('elth_smeared',    'smeared_vals[17]')
-
             if(Variable in ['elPhi', 'elPhi_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('elPhi_smeared',   'smeared_vals[18]')
-
             if(Variable in ['pip', 'pip_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pip_smeared',     'smeared_vals[19]')
-
             if(Variable in ['pip_E', 'pip_E_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pip_E_smeared',   'smeared_vals[20]')
-
             if(Variable in ['pipth', 'pipth_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pipth_smeared',   'smeared_vals[21]')
-
             if(Variable in ['pipPhi', 'pipPhi_smeared']):
                 done_Q = 'yes'
                 return Data_Frame.Define('pipPhi_smeared',  'smeared_vals[22]')
-
             if('Delta_Smear_El_P' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[23]')
-            
             if('Delta_Smear_El_Th' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[24]')
-            
             if('Delta_Smear_El_Phi' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[25]')
-            
             if('Delta_Smear_Pip_P' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[26]')
-            
             if('Delta_Smear_Pip_Th' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[27]')
-            
             if('Delta_Smear_Pip_Phi' in Variable):
                 done_Q = 'yes'
                 return Data_Frame.Define(str(Variable),     'smeared_vals[28]')
-
 
             if(done_Q != 'yes'):
                 # Failed to get a new definition
                 return Data_Frame
             
-        
-    
-    
     ##=========================================================================================================##
     ##---------------------------------##===================================##---------------------------------##
     ##=================================##     End of Smearing Functions     ##=================================##
@@ -2690,13 +2352,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##=========================================================================================================##
     
     
-    
     ##==========================================================================================================##
     ##---------------------------------##====================================##---------------------------------##
     ##=================================##   ∆P from Exclusive Calculations   ##=================================##
     ##---------------------------------##====================================##---------------------------------##
     ##==========================================================================================================##
-    
 
     ########################################################################################
     ####================================================================================####
@@ -2704,9 +2364,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####================================================================================####
     ########################################################################################
 
-
     rdf = rdf.Define("Delta_Pel_Cors", "".join([str(Correction_Code_Full_In), """
-
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
 
@@ -2734,13 +2392,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Pel_Cors = el_gen - eleC.P();", """
 
-        return Delta_Pel_Cors;
-
-    """]))
+        return Delta_Pel_Cors;"""]))
 
 
     rdf = rdf.Define("Delta_Ppip_Cors", "".join([str(Correction_Code_Full_In), """
-
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
 
@@ -2751,7 +2406,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         // Defined by the run group/data set
 
         double neutronM2 = 0.9396*0.9396;
-
 
         // Below are the kinematic calculations of the π+ momentum (from el+pro->el+Pip+N) based on the assumption that the π+ angle and electron reconstruction were measured by the detector correctly for elastic events in the epipX channel
         // (The neutron is used as the "missing" particle)
@@ -2778,12 +2432,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         }
 
         auto Delta_Ppip_Cors = pip_Calculate - pipC.P();
-        
         """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Ppip_Cors = pip_gen - pipC.P();", """
-
-        return Delta_Ppip_Cors;
-
-    """]))
+        return Delta_Ppip_Cors;"""]))
     
 
     ############################################################################################
@@ -2792,9 +2442,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####====================================================================================####
     ############################################################################################
 
-
     rdf = rdf.Define("Delta_Theta_el_Cors", "".join([str(Correction_Code_Full_In), """
-
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
 
@@ -2824,13 +2472,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_el_Cors = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
-        return Delta_Theta_el_Cors;
-
-    """]))
+        return Delta_Theta_el_Cors;"""]))
 
 
     rdf = rdf.Define("Delta_Theta_pip_Cors",  "".join([str(Correction_Code_Full_In), """
-
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
 
@@ -2860,9 +2505,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_pip_Cors = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
-        return Delta_Theta_pip_Cors;
-
-    """]))
+        return Delta_Theta_pip_Cors;"""]))
 
     
 
@@ -2893,8 +2536,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             auto Delta_Pel_Cors_smeared = el_gen - eleC.P();
 
-            return Delta_Pel_Cors_smeared;
-        """]))
+            return Delta_Pel_Cors_smeared;"""]))
 
 
         rdf = rdf.Define("Delta_Ppip_Cors_smeared", "".join([str(smearing_function), """
@@ -2907,16 +2549,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             auto Delta_Ppip_Cors_smeared = pip_gen - pipC.P();
 
-            return Delta_Ppip_Cors_smeared;
-        """]))
+            return Delta_Ppip_Cors_smeared;"""]))
     
 
         ############################################################################################
         ####====================================================================================####
-        ##==========##==========##      ∆Theta Calculations (Smeared)      ##==========##==========##
+        ##==========##==========##     ∆Theta Calculations (Smeared)      ##==========##==========##
         ####====================================================================================####
         ############################################################################################
-
 
         rdf = rdf.Define("Delta_Theta_el_Cors_smeared", "".join([str(smearing_function), """
 
@@ -2955,9 +2595,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_el_Cors_smeared = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
-            return Delta_Theta_el_Cors_smeared;
-
-        """]))
+            return Delta_Theta_el_Cors_smeared;"""]))
 
 
         rdf = rdf.Define("Delta_Theta_pip_Cors_smeared",  "".join([str(smearing_function),  """
@@ -2997,15 +2635,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             """, "" if(str(datatype) not in ["mdf", "pdf"]) else "Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
-            return Delta_Theta_pip_Cors_smeared;
+            return Delta_Theta_pip_Cors_smeared;"""]))
 
-        """]))
-
-        
-        
-        
         
     print("Kinematic Variables have been calculated.")
+    
+    
     ###################################################################################################################################################################
     ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
     ###                                              ##-------------------------------------------------------------##                                              ###
@@ -3013,49 +2648,32 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###                                              ##-------------------------------------------------------------##                                              ###
     ###################################################                  Making Cuts to DataFrames                  ###################################################
     ###################################################################################################################################################################
-
-
+    
     
     def filter_Valerii(Data_Frame, Valerii_Cut):
-        
         if("Valerii_Cut" in Valerii_Cut or "Complete" in Valerii_Cut):
-
-            
             Data_Frame_Clone = Data_Frame.Filter("""
-
-                auto func = [&](double x, double k, double b)
-                {
+                auto func = [&](double x, double k, double b){
                     return k * x + b;
                 };
-
                 struct line{
                     double k;
                     double b;
                 };
-
-                auto isOutOfLines = [&](double x, double y, line topLine, line botLine)
-                {
+                auto isOutOfLines = [&](double x, double y, line topLine, line botLine){
                     return y > func(x, topLine.k, topLine.b) || y < func(x, botLine.k, botLine.b);
                 };
-
-                // bool BadElementKnockOut(double hx, double hy, int sector, int cutLevel);     
-
-                auto BadElementKnockOut = [&](double hx, double hy, int sector, int cutLevel)
-                {
-
+                auto BadElementKnockOut = [&](double hx, double hy, int sector, int cutLevel){
                     double widthChange = 0;
                     if (cutLevel == 0)  widthChange = -1;
                     if (cutLevel == 2)  widthChange = 1;
-                    
                     if (sector == 5) return true;
-
                     if (sector == 1){
                         double k = tan(29.5*3.1415/180);
                         double b = -92;
                         bool test_sec_1 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 9.1} , {k, b - widthChange - 9.1 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127} , {k, b - widthChange - 127 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127 - 8} , {k, b - widthChange -127 - 8 - 2.4}) );
                                
-                        return test_sec_1;
-                               
+                        return test_sec_1;       
                     }
                     if (sector == 2){
                         double k = tan(30.4*3.1415/180);
@@ -3067,7 +2685,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         bool test_sec_3 = ((hx - widthChange) > - 303 || (hx + widthChange) < -310);
                         return test_sec_3;
                     }
-
                     if (sector == 4){
                         double k = tan(-29.6*3.1415/180);
                         double b = -232.8;
@@ -3075,7 +2692,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         
                         return test_sec_4;
                     }
-
                     if (sector == 6){
                         double k = tan(-30.6*3.1415/180);
                         double b = -185;
@@ -3084,35 +2700,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         
                         return test_sec_6;
                     }
-
                     return false;
                 };
-
-
-                return BadElementKnockOut(Hx, Hy, esec, 1);
-
-                """)
-
+                return BadElementKnockOut(Hx, Hy, esec, 1);""")
             return Data_Frame_Clone
-        
         else:
             return Data_Frame
-    
     
     
     # Meant for the exclusive ep->eπ+(N) reaction
     def Calculated_Exclusive_Cuts(Smear_Q):
         output = "".join(["""
-        
         """, str(smearing_function), """
-
-        auto beam = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
-        auto targ = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938);
-        auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-        auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-        
+        auto beam = ROOT::Math::PxPyPzMVector(0,    0,    10.6041, 0);
+        auto targ = ROOT::Math::PxPyPzMVector(0,    0,    0,       0.938);
+        auto ele  = ROOT::Math::PxPyPzMVector(ex,   ey,   ez,      0);
+        auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz,    0.13957);
         """, """
-        
         TLorentzVector eleS(ex, ey, ez, ele.E());
         TLorentzVector pipS(pipx, pipy, pipz, pip0.E());
         
@@ -3223,16 +2827,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 cut_down = (-0.009952)*ele.P() + (0.922387);
             }
         }
-
-        return (MM_Vector.M() < cut_up && MM_Vector.M() > cut_down);
-
-        """])
+        return (MM_Vector.M() < cut_up && MM_Vector.M() > cut_down);"""])
         
         return output
     
-    
-    
-
     
     ####################################################################################################################################################################
     ###################################################                Done Making Cuts to DataFrames                ###################################################
@@ -3243,7 +2841,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####################################################################################################################################################################
     
     
-
     def Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2"):
 
         if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
@@ -3294,23 +2891,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             }
         }
 
-        return Q2_xB_Bin_New;
-
-        """])
-        
+        return Q2_xB_Bin_New;"""])
         
         # New Q2 and xB Binning (My new original binning scheme)
         if(Bin_Version in ["Square", "3"]):
             Q2_xB_Bin_Poly_Def = "".join(["""
             auto Q2_xB_Bin_Poly = new TH2Poly();
             
-            double xB_0 = 0.126;
-            double xB_1 = 0.17;
-            double xB_2 = 0.24;
-            double xB_3 = 0.34;
+            double xB_0   = 0.126;
+            double xB_1   = 0.17;
+            double xB_2   = 0.24;
+            double xB_3   = 0.34;
             double xB_3_5 = 0.388;
-            double xB_4 = 0.464;
-            double xB_5 = 0.626;
+            double xB_4   = 0.464;
+            double xB_5   = 0.626;
             
             double Q2_0 = 2;
             double Q2_1 = 2.634;
@@ -3321,73 +2915,76 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             //=====// xB Group 1 //=====//
             // Q2-xB Bin 1
-            double Q2_1_V[] = {Q2_0,  Q2_0,  Q2_1,  Q2_0};
-            double xB_1_V[] = {xB_0,  xB_1,  xB_1,  xB_0};
+            double Q2_1_V[]  = {Q2_0,  Q2_0,   Q2_1,  Q2_0};
+            double xB_1_V[]  = {xB_0,  xB_1,   xB_1,  xB_0};
             //=====// xB Group 2 //=====//
             // Q2-xB Bin 2
-            double Q2_2_V[] = {Q2_0,  Q2_0,  Q2_1,  Q2_1,  Q2_0};
-            double xB_2_V[] = {xB_1,  xB_2,  xB_2,  xB_1,  xB_1};
+            double Q2_2_V[]  = {Q2_0,  Q2_0,   Q2_1,  Q2_1,  Q2_0};
+            double xB_2_V[]  = {xB_1,  xB_2,   xB_2,  xB_1,  xB_1};
             // Q2-xB Bin 3
-            double Q2_3_V[] = {Q2_1,  Q2_1,  Q2_2,  Q2_1};
-            double xB_3_V[] = {xB_1,  xB_2,  xB_2,  xB_1};
+            double Q2_3_V[]  = {Q2_1,  Q2_1,   Q2_2,  Q2_1};
+            double xB_3_V[]  = {xB_1,  xB_2,   xB_2,  xB_1};
             //=====// xB Group 3 //=====//
             // Q2-xB Bin 4
-            double Q2_4_V[] = {Q2_0,  Q2_0,  Q2_1,  Q2_1,  Q2_0};
-            double xB_4_V[] = {xB_2,  xB_3,  xB_3,  xB_2,  xB_2};
+            double Q2_4_V[]  = {Q2_0,  Q2_0,   Q2_1,  Q2_1,  Q2_0};
+            double xB_4_V[]  = {xB_2,  xB_3,   xB_3,  xB_2,  xB_2};
             // Q2-xB Bin 5
-            double Q2_5_V[] = {Q2_1,  Q2_1,  Q2_2,  Q2_2,  Q2_1};
-            double xB_5_V[] = {xB_2,  xB_3,  xB_3,  xB_2,  xB_2};
+            double Q2_5_V[]  = {Q2_1,  Q2_1,   Q2_2,  Q2_2,  Q2_1};
+            double xB_5_V[]  = {xB_2,  xB_3,   xB_3,  xB_2,  xB_2};
             // Q2-xB Bin 6
-            double Q2_6_V[] = {Q2_1,  Q2_1,  Q2_2,  Q2_1};
-            double xB_6_V[] = {xB_2,  xB_3,  xB_3,  xB_2};
+            double Q2_6_V[]  = {Q2_1,  Q2_1,   Q2_2,  Q2_1};
+            double xB_6_V[]  = {xB_2,  xB_3,   xB_3,  xB_2};
             //=====// xB Group 4 //=====//
             // Q2-xB Bin 7
-            double Q2_7_V[]  = {Q2_0,  Q2_0,    Q2_1,  Q2_1,  Q2_0};
-            double xB_7_V[]  = {xB_2,  xB_3_5,  xB_3,  xB_2,  xB_2};
+            double Q2_7_V[]  = {Q2_0,  Q2_0,   Q2_1,  Q2_1,   Q2_0};
+            double xB_7_V[]  = {xB_2,  xB_3_5, xB_3,  xB_2,   xB_2};
             // Q2-xB Bin 8
-            double Q2_8_V[]  = {Q2_1,  Q2_1,    Q2_2,  Q2_2,  Q2_1};
-            double xB_8_V[]  = {xB_2,  xB_3,    xB_3,  xB_2,  xB_2};
+            double Q2_8_V[]  = {Q2_1,  Q2_1,   Q2_2,  Q2_2,   Q2_1};
+            double xB_8_V[]  = {xB_2,  xB_3,   xB_3,  xB_2,   xB_2};
             // Q2-xB Bin 9
-            double Q2_9_V[]  = {Q2_2,  Q2_2,    Q2_3,  Q2_3,  Q2_2};
-            double xB_9_V[]  = {xB_2,  xB_3,    xB_3,  xB_2,  xB_2};
+            double Q2_9_V[]  = {Q2_2,  Q2_2,   Q2_3,  Q2_3,   Q2_2};
+            double xB_9_V[]  = {xB_2,  xB_3,   xB_3,  xB_2,   xB_2};
             // Q2-xB Bin 10
-            double Q2_10_V[] = {Q2_3,  Q2_3,    Q2_4,  Q2_3};
-            double xB_10_V[] = {xB_2,  xB_3,    xB_3,  xB_2};
+            double Q2_10_V[] = {Q2_3,  Q2_3,   Q2_4,  Q2_3};
+            double xB_10_V[] = {xB_2,  xB_3,   xB_3,  xB_2};
             //=====// xB Group 5 //=====//
             // Q2-xB Bin 11
-            double Q2_11_V[] = {Q2_1,  Q2_3,    Q2_3,    4.05,  3.05,   Q2_1};
-            double xB_11_V[] = {xB_4,  xB_4,    xB_5,    0.57,  0.50,   xB_4};
+            double Q2_11_V[] = {Q2_1,  Q2_3,   Q2_3,  3.05,   Q2_1};
+            double xB_11_V[] = {xB_4,  xB_4,   0.54,  0.50,   xB_4};
             // Q2-xB Bin 12
-            double Q2_12_V[] = {Q2_3,  Q2_4,  10.185,    Q2_5,  9.52,   7.42,  Q2_3,  Q2_3};
-            double xB_12_V[] = {xB_4,  xB_4,   0.677,  0.7896,  0.75,  0.708,  xB_5,  xB_4};
-
-            Q2_xB_Bin_Poly->AddBin(4, Q2_1_V, xB_1_V);   //  1
-            Q2_xB_Bin_Poly->AddBin(5, Q2_2_V, xB_2_V);   //  2
-            Q2_xB_Bin_Poly->AddBin(4, Q2_3_V, xB_3_V);   //  3
-            Q2_xB_Bin_Poly->AddBin(5, Q2_4_V, xB_4_V);   //  4
-            Q2_xB_Bin_Poly->AddBin(5, Q2_5_V, xB_5_V);   //  5
-            Q2_xB_Bin_Poly->AddBin(4, Q2_6_V, xB_6_V);   //  6
-            Q2_xB_Bin_Poly->AddBin(5, Q2_7_V, xB_7_V);   //  7
-            Q2_xB_Bin_Poly->AddBin(5, Q2_8_V, xB_8_V);   //  8
-            Q2_xB_Bin_Poly->AddBin(5, Q2_9_V, xB_9_V);   //  9
-            Q2_xB_Bin_Poly->AddBin(4, Q2_10_V, xB_10_V); // 10
-            Q2_xB_Bin_Poly->AddBin(6, Q2_11_V, xB_11_V); // 11
-            Q2_xB_Bin_Poly->AddBin(8, Q2_12_V, xB_12_V); // 12
+            double Q2_12_V[] = {Q2_2,  Q2_2,   4.05,  Q2_3,   Q2_3,  Q2_2};
+            double xB_12_V[] = {xB_4,  0.54,   0.57,  xB_5,   xB_4,  xB_4};
+            // Q2-xB Bin 13
+            double Q2_13_V[] = {Q2_3,  Q2_4,   Q2_4,  Q2_3,   Q2_3};
+            double xB_13_V[] = {xB_4,  xB_4,   0.692, xB_5,   xB_4};
+            // Q2-xB Bin 14
+            double Q2_14_V[] = {Q2_4,  Q2_4,   7.42,  9.52,   Q2_5, 10.185,  Q2_4};
+            double xB_14_V[] = {xB_4,  0.692,  0.708, 0.75, 0.7896,  0.677,  xB_4};
+            
+            Q2_xB_Bin_Poly->AddBin(4, Q2_1_V,  xB_1_V);   //  1
+            Q2_xB_Bin_Poly->AddBin(5, Q2_2_V,  xB_2_V);   //  2
+            Q2_xB_Bin_Poly->AddBin(4, Q2_3_V,  xB_3_V);   //  3
+            Q2_xB_Bin_Poly->AddBin(5, Q2_4_V,  xB_4_V);   //  4
+            Q2_xB_Bin_Poly->AddBin(5, Q2_5_V,  xB_5_V);   //  5
+            Q2_xB_Bin_Poly->AddBin(4, Q2_6_V,  xB_6_V);   //  6
+            Q2_xB_Bin_Poly->AddBin(5, Q2_7_V,  xB_7_V);   //  7
+            Q2_xB_Bin_Poly->AddBin(5, Q2_8_V,  xB_8_V);   //  8
+            Q2_xB_Bin_Poly->AddBin(5, Q2_9_V,  xB_9_V);   //  9
+            Q2_xB_Bin_Poly->AddBin(4, Q2_10_V, xB_10_V);  // 10
+            Q2_xB_Bin_Poly->AddBin(5, Q2_11_V, xB_11_V);  // 11
+            Q2_xB_Bin_Poly->AddBin(6, Q2_12_V, xB_12_V);  // 12
+            Q2_xB_Bin_Poly->AddBin(5, Q2_13_V, xB_13_V);  // 13
+            Q2_xB_Bin_Poly->AddBin(7, Q2_14_V, xB_14_V);  // 14
 
             int Q2_xB_Bin_New = 0;
-            for(int bin_ii=0; bin_ii < 13; bin_ii++){
+            for(int bin_ii=0; bin_ii < 15; bin_ii++){
                 if(Q2_xB_Bin_Poly->IsInsideBin(bin_ii, """, "smeared_vals[2]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "Q2", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", ", ", "smeared_vals[3]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "xB", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """)){
                     Q2_xB_Bin_New = bin_ii + 1;
                     return Q2_xB_Bin_New;
                 }
             }
-
-            return Q2_xB_Bin_New;
-
-            """])
+            return Q2_xB_Bin_New;"""])
     
-
-        
         # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
         if(Bin_Version in ["OG", "Stefan"]):
             Q2_xB_Bin_Poly_Def = "".join(["""
@@ -3437,14 +3034,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     return Q2_xB_Bin_New;
                 }
             }
-
-            return Q2_xB_Bin_New;
-
-            """])
+            return Q2_xB_Bin_New;"""])
 
         return Q2_xB_Bin_Poly_Def
-    
-    
         
         
     def z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2"):
@@ -3455,12 +3047,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Q2_xB_Bin_event_name = "".join(["Q2_xB_Bin", "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in [""]) else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
         z_pT_Bin_event_name  = "".join(["z_pT_Bin",  "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in [""]) else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
         
-        if(str(Q2_xB_Bin_event_name) not in rdf.GetColumnNames()):
-            print("".join(["The Q2-xB Bin: ", color.RED, str(Q2_xB_Bin_event_name), color.END, " was not recognized by the function z_pT_Bin_Standard_Def_Function(Variable_Type='", str(Variable_Type), "', Bin_Version='", str(Bin_Version), "').\nNeed to correctly define the Q2-xB bin (using Q2_xB_Bin_2 as default).."]))
-            Q2_xB_Bin_event_name = "Q2_xB_Bin_2"
+        # if(str(Q2_xB_Bin_event_name) not in rdf.GetColumnNames()):
+        #     print("".join(["The Q2-xB Bin: ", color.RED, str(Q2_xB_Bin_event_name), color.END, " was not recognized by the function z_pT_Bin_Standard_Def_Function(Variable_Type='", str(Variable_Type), "', Bin_Version='", str(Bin_Version), "').\nNeed to correctly define the Q2-xB bin (using Q2_xB_Bin_2 as default).."]))
+        #     Q2_xB_Bin_event_name = "Q2_xB_Bin_2"
         
         z_pT_Bin_Standard_Def = "".join(["""
-
             /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
 
             auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry){
@@ -3546,7 +3137,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
 
-
             double z_event_val  = """, "smeared_vals[8]"  if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "z",  "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
             double pT_event_val = """, "smeared_vals[10]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "pT", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
 
@@ -3556,7 +3146,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             // Default:
             int Num_z_Borders  = 0;
             int Num_pT_Borders = 0;
-
 
             // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
             
@@ -3623,14 +3212,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     // This represents checking each pT bin for the given z bin without going through each entry in the loop.
                 }    
             }
-
-            return z_pT_Bin_event_val;
-
-        """])
+            return z_pT_Bin_event_val;"""])
         
         if(Bin_Version in ["Square", "3"]):
             z_pT_Bin_Standard_Def = "".join(["""
-
                 /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
 
                 auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry){
@@ -3649,8 +3234,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 };
 
                 /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
+                
                 double z_event_val  = """, "smeared_vals[8]"  if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "z",  "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
                 double pT_event_val = """, "smeared_vals[10]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "pT", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
 
@@ -3709,2673 +3293,283 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         // This represents checking each pT bin for the given z bin without going through each entry in the loop.
                     }    
                 }
-
-                return z_pT_Bin_event_val;
-
-            """])
+                return z_pT_Bin_event_val;"""])
         
         return z_pT_Bin_Standard_Def
-        
-        
-    
-    
-    rdf = rdf.Define("Q2_xB_Bin_Test", Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Test"))
-    rdf = rdf.Define("z_pT_Bin_Test",  z_pT_Bin_Standard_Def_Function( Variable_Type="", Bin_Version="Test"))
-    rdf = rdf.Define("Q2_xB_Bin_3",    Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="3"))
-    rdf = rdf.Define("z_pT_Bin_3",     z_pT_Bin_Standard_Def_Function( Variable_Type="", Bin_Version="3"))
-    if(datatype in ["mdf", "pdf"]):
-        rdf = rdf.Define("Q2_xB_Bin_Test_gen",     Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Test"))
-        rdf = rdf.Define("Q2_xB_Bin_Test_smeared", Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Test"))
-        rdf = rdf.Define("z_pT_Bin_Test_gen",      z_pT_Bin_Standard_Def_Function( Variable_Type="gen",   Bin_Version="Test"))
-        rdf = rdf.Define("z_pT_Bin_Test_smeared",  z_pT_Bin_Standard_Def_Function( Variable_Type="smear", Bin_Version="Test"))
-        
-        rdf = rdf.Define("Q2_xB_Bin_3_gen",     Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="3"))
-        rdf = rdf.Define("Q2_xB_Bin_3_smeared", Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3"))
-        rdf = rdf.Define("z_pT_Bin_3_gen",      z_pT_Bin_Standard_Def_Function( Variable_Type="gen",   Bin_Version="3"))
-        rdf = rdf.Define("z_pT_Bin_3_smeared",  z_pT_Bin_Standard_Def_Function( Variable_Type="smear", Bin_Version="3"))
-
-        
-        
-
-
-        
-    ###################################################################
-    #####################     Bin Definitions     #####################
-    #-----------------------------------------------------------------#
-    ##############     Definitions for Q2 and xB Bins     #############
-    
-    
-    # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-    rdf = rdf.Define("Q2_xB_Bin", """
-
-        int Q2_xB_Bin = 0;
-
-        /////////////////////////       Bin 1       /////////////////////////
-        if(xB > 0.0835 && xB < 0.15){
-            // Border lines of Bin 1:
-            //                 Upper Border:
-            //                          Q2 = ((2.28 - 1.3)/(0.15 - 0.0835))*(xB - 0.0835) + 1.3
-            //                 Q2 must be less than the equation above for Bin 1
-            //
-            //                 Lower Border:
-            //                          Q2 = ((1.30 - 1.30)/(0.12 - 0.0835))*(xB - 0.0835) + 1.30   (if xB < 0.12)
-            //                          Q2 = ((1.38 - 1.30)/(0.15 - 0.1200))*(xB - 0.1200) + 1.30   (if xB > 0.12)
-            //                 Q2 must be greater than the equations above for Bin 1
-
-            int Condition_Up = 0;
-            int Condition_Down = 0;
-            // Both Condition_Up and Condition_Down should be met for Bin 1 to be confirmed.
-            // Code will verify both conditions seperately before checking that they have been met.
-            // If the condition has been met, its value will be set to 1.
-            // If either is still 0 when checked, the event will be consided as being outside of Bin 1
-
-
-            // Testing Upper Border of Bin 1
-            if(Q2 <= ((2.28 - 1.3)/(0.15 - 0.0835))*(xB - 0.0835) + 1.3){
-                Condition_Up = 1; // Condition for upper border of Bin 1 has been met
-            }
-
-            // Testing Lower Border of Bin 1
-            if(xB < 0.12){
-                if(Q2 >= ((1.30 - 1.30)/(0.12 - 0.0835))*(xB - 0.0835) + 1.30){
-                    Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-                }
-            }
-            if(xB > 0.12){
-                if(Q2 >= ((1.38 - 1.30)/(0.15 - 0.1200))*(xB - 0.1200) + 1.30){
-                    Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-                }
-            }
-
-
-            if(Condition_Up == 1 && Condition_Down == 1){
-                Q2_xB_Bin = 1;
-                return Q2_xB_Bin; // Bin 1 Confirmed
-            }
-
-        }
-        /////////////////////////     End of Bin 1     /////////////////////////
-
-
-
-
-        /////////////////////////       Bin 2 or 3       /////////////////////////
-        if(xB > 0.15 && xB < 0.24){
-
-            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-            // line between bins: Q2 = ((2.75 - 1.98)/(0.24 - 0.15))*(xB - 0.15) + 1.98
-
-            // Deciding between Bins
-            if(Q2 < ((2.75 - 1.98)/(0.24 - 0.15))*(xB - 0.15) + 1.98){
-                BinTest = 2; // Event will NOT go to bin 3
-            }
-
-            if(Q2 > ((2.75 - 1.98)/(0.24 - 0.15))*(xB - 0.15) + 1.98){
-                BinTest = 3; // Event will NOT go to bin 2
-            }
-
-
-
-            // Final Border Test
-
-            // Bin 2
-            if(BinTest == 2){
-                // Border lines of Bin 2:   Q2 = ((1.45 - 1.38)/(0.20 - 0.15))*(xB - 0.15) + 1.38   (if xB < 0.2)
-                //                          Q2 = ((1.50 - 1.45)/(0.24 - 0.20))*(xB - 0.24) + 1.50   (if xB > 0.2)
-
-                if(xB < 0.2){
-                    if(Q2 >= ((1.45 - 1.38)/(0.20 - 0.15))*(xB - 0.15) + 1.38){
-                        Q2_xB_Bin = 2;
-                        return Q2_xB_Bin; // Bin 2 Confirmed
-                    }
-                }
-
-                if(xB > 0.2){
-                    if(Q2 >= ((1.50 - 1.45)/(0.24 - 0.20))*(xB - 0.24) + 1.50){
-                        Q2_xB_Bin = 2;
-                        return Q2_xB_Bin; // Bin 2 Confirmed
-                    }
-                }
-
-            }
-            // End of Bin 2
-
-
-            // Bin 3
-            if(BinTest == 3){
-                // Border line of Bin 3:   Q2 = ((3.625 - 2.28)/(0.24 - 0.15))*(xB - 0.15) + 2.28
-
-                if(Q2 <= ((3.625 - 2.28)/(0.24 - 0.15))*(xB - 0.15) + 2.28){
-                    Q2_xB_Bin = 3;
-                    return Q2_xB_Bin; // Bin 3 Confirmed
-                }
-
-            }
-            // End of Bin 3
-
-
-        }
-        /////////////////////////     End of Bin 2 and 3     /////////////////////////
-
-
-
-
-        /////////////////////////       Bin 4 or 5       /////////////////////////
-        if(xB > 0.24 && xB < 0.34){
-
-            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-            // line between bins: Q2 = ((3.63 - 2.75)/(0.34 - 0.24))*(xB - 0.24) + 2.75
-
-            // Deciding between Bins
-            if(Q2 < ((3.63 - 2.75)/(0.34 - 0.24))*(xB - 0.24) + 2.75){
-                BinTest = 4; // Event will NOT go to bin 5
-            }
-
-            if(Q2 > ((3.63 - 2.75)/(0.34 - 0.24))*(xB - 0.24) + 2.75){
-                BinTest = 5; // Event will NOT go to bin 4
-            }
-
-
-
-            // Final Border Test
-
-            // Bin 4
-            if(BinTest == 4){
-                // Border lines of Bin 4:   Q2 = ((1.53 - 1.50)/(0.27 - 0.24))*(xB - 0.24) + 1.50   (if xB < 0.27)
-                //                          Q2 = ((1.56 - 1.53)/(0.30 - 0.27))*(xB - 0.27) + 1.53   (if 0.27 < xB < 0.30)
-                //                          Q2 = ((1.60 - 1.56)/(0.34 - 0.30))*(xB - 0.30) + 1.56   (if xB > 0.3)
-
-                if(xB < 0.27){
-                    if(Q2 >= ((1.53 - 1.50)/(0.27 - 0.24))*(xB - 0.24) + 1.50){
-                        Q2_xB_Bin = 4;
-                        return Q2_xB_Bin; // Bin 4 Confirmed
-                    }
-                }
-
-                if(xB > 0.27 && xB < 0.30){
-                    if(Q2 >= ((1.56 - 1.53)/(0.30 - 0.27))*(xB - 0.27) + 1.53){
-                        Q2_xB_Bin = 4;
-                        return Q2_xB_Bin; // Bin 4 Confirmed
-                    }
-                }
-
-                if(xB > 0.30){
-                    if(Q2 >= ((1.60 - 1.56)/(0.34 - 0.30))*(xB - 0.30) + 1.56){
-                        Q2_xB_Bin = 4;
-                        return Q2_xB_Bin; // Bin 4 Confirmed
-                    }
-                }
-
-            }
-            // End of Bin 4
-
-
-            // Bin 5
-            if(BinTest == 5){
-                // Border line of Bin 5:   Q2 = ((5.12 - 3.625)/(0.34 - 0.24))*(xB - 0.24) + 3.625
-
-                if(Q2 <= ((5.12 - 3.625)/(0.34 - 0.24))*(xB - 0.24) + 3.625){
-                    Q2_xB_Bin = 5;
-                    return Q2_xB_Bin; // Bin 5 Confirmed
-                }
-
-            }
-            // End of Bin 5
-
-
-        }
-        /////////////////////////     End of Bin 4 and 5     /////////////////////////
-
-
-
-
-        /////////////////////////       Bin 6 or 7       /////////////////////////
-        if(xB > 0.34 && xB < 0.45){
-
-            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-            // line between bins: Q2 = ((4.7 - 3.63)/(0.45 - 0.34))*(xB - 0.34) + 3.63
-
-            // Deciding between Bins
-            if(Q2 < ((4.7 - 3.63)/(0.45 - 0.34))*(xB - 0.34) + 3.63){
-                BinTest = 6; // Event will NOT go to bin 7
-            }
-
-            if(Q2 > ((4.7 - 3.63)/(0.45 - 0.34))*(xB - 0.34) + 3.63){
-                BinTest = 7; // Event will NOT go to bin 6
-            }
-
-
-
-            // Final Border Test
-
-            // Bin 6
-            if(BinTest == 6){
-                // Border line of Bin 6:   Q2 = ((2.52 - 1.60)/(0.45 - 0.34))*(xB - 0.34) + 1.60
-
-                if(Q2 >= ((2.52 - 1.60)/(0.45 - 0.34))*(xB - 0.34) + 1.60){
-                    Q2_xB_Bin = 6;
-                    return Q2_xB_Bin; // Bin 6 Confirmed
-                }
-
-            }
-            // End of Bin 6
-
-
-            // Bin 7
-            if(BinTest == 7){
-                // Border line of Bin 7:   Q2 = ((6.76 - 5.12)/(0.45 - 0.34))*(xB - 0.34) + 5.12
-
-                if(Q2 <= ((6.76 - 5.12)/(0.45 - 0.34))*(xB - 0.34) + 5.12){
-                    Q2_xB_Bin = 7;
-                    return Q2_xB_Bin; // Bin 7 Confirmed
-                }
-
-            }
-            // End of Bin 7
-
-
-        }
-        /////////////////////////     End of Bin 6 and 7     /////////////////////////
-
-
-
-
-        /////////////////////////       Bin 8 or 9       /////////////////////////
-        if(xB > 0.45){
-
-            int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-            // line between bins: Q2 = ((7.42 - 4.70)/(0.708 - 0.45))*(xB - 0.45) + 4.70    
-
-            // Deciding between Bins
-            if(Q2 < ((7.42 - 4.70)/(0.708 - 0.45))*(xB - 0.45) + 4.70){
-                BinTest = 8; // Event will NOT go to bin 9
-            }
-            if(Q2 > ((7.42 - 4.70)/(0.708 - 0.45))*(xB - 0.45) + 4.70){
-                BinTest = 9; // Event will NOT go to bin 8
-            }
-
-
-
-            // Final Border Test
-
-            // Bin 8
-            if(BinTest == 8){
-                // Border lines of Bin 8:   Q2 = ((3.05 - 2.52)/(0.500 - 0.45))*(xB - 0.45) + 2.52   (if xB < 0.50)
-                //                          Q2 = ((4.05 - 3.05)/(0.570 - 0.50))*(xB - 0.50) + 3.05   (if 0.50 < xB < 0.57)
-                //                          Q2 = ((5.40 - 4.05)/(0.640 - 0.57))*(xB - 0.57) + 4.05   (if 0.57 < xB < 0.64)
-                //                          Q2 = ((7.42 - 5.40)/(0.708 - 0.64))*(xB - 0.64) + 5.40   (if xB > 0.64)
-
-                if(xB < 0.50){
-                    if(Q2 >= ((3.05 - 2.52)/(0.500 - 0.45))*(xB - 0.45) + 2.52){
-                        Q2_xB_Bin = 8;
-                        return Q2_xB_Bin; // Bin 8 Confirmed
-                    }
-                }
-
-                if(xB > 0.50 && xB < 0.57){
-                    if(Q2 >= ((4.05 - 3.05)/(0.570 - 0.50))*(xB - 0.50) + 3.05){
-                        Q2_xB_Bin = 8;
-                        return Q2_xB_Bin; // Bin 8 Confirmed
-                    }
-                }
-
-                if(xB > 0.57 && xB < 0.64){
-                    if(Q2 >= ((5.40 - 4.05)/(0.640 - 0.57))*(xB - 0.57) + 4.05){
-                        Q2_xB_Bin = 8;
-                        return Q2_xB_Bin; // Bin 8 Confirmed
-                    }
-                }
-
-                if(xB > 0.64){
-                    if(Q2 >= ((7.42 - 5.40)/(0.708 - 0.64))*(xB - 0.64) + 5.40){
-                        Q2_xB_Bin = 8;
-                        return Q2_xB_Bin; // Bin 8 Confirmed
-                    }
-                }
-
-            }
-            // End of Bin 8
-
-
-            // Bin 9
-            if(BinTest == 9){
-                // Border lines of Bin 9:
-                //                 Uppermost Border:
-                //                          Q2 = ((10.185 -  6.760)/(0.6770 - 0.450))*(xB - 0.450) +  6.760   (if xB < 0.677)
-                //                          Q2 = ((11.351 - 10.185)/(0.7896 - 0.677))*(xB - 0.677) + 10.185   (if xB > 0.677)
-                //                 Q2 must be less than the equations above for Bin 9
-                //
-                //                 Rightmost Border:
-                //                          Q2 =  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB - 0.708) + 7.42   (if xB < 0.75)
-                //                          Q2 = ((11.351 - 9.52)/(0.7896 - 0.750))*(xB - 0.750) + 9.52   (if xB > 0.75)
-                //                 Q2 must be greater than the equations above for Bin 9
-
-                int Condition_Up = 0;
-                int Condition_Right = 0;
-                // Both Condition_Up and Condition_Right should be met for Bin 9 to be confirmed.
-                // Code will verify both conditions seperately before checking that they have been met.
-                // If the condition has been met, its value will be set to 1.
-                // If either is still 0 when checked, the event will be consided as being outside of Bin 9
-
-
-                // Testing Uppermost Border of Bin 9
-                if(xB < 0.677){
-                    if(Q2 <= ((10.185 -  6.760)/(0.6770 - 0.450))*(xB - 0.450) +  6.760){
-                        Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                    }
-                }
-                if(xB > 0.677){
-                    if(Q2 <= ((11.351 - 10.185)/(0.7896 - 0.677))*(xB - 0.677) + 10.185){
-                        Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                    }
-                }
-
-                // Testing Rightmost Border of Bin 9
-                if(xB < 0.75){
-                    if(Q2 >=  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB - 0.708) + 7.42){
-                        Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
-                    }
-                }
-                if(xB > 0.75){
-                    if(Q2 >= ((11.351 - 9.52)/(0.7896 - 0.750))*(xB - 0.750) + 9.52){
-                        Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
-                    }
-                }
-
-
-                if(Condition_Up == 1 && Condition_Right == 1){
-                    Q2_xB_Bin = 9;
-                    return Q2_xB_Bin; // Bin 9 Confirmed
-                }
-
-            }
-            // End of Bin 9
-
-        }
-        /////////////////////////     End of Bin 8 and 9     /////////////////////////
-
-
-
-        return Q2_xB_Bin;
-
-    """)
-    
-    rdf = rdf.Define('Q2_xB_Bin_2', '''
-        int Q2_xB_Bin_2 = Q2_xB_Bin;
-
-        if(Q2_xB_Bin > 1 && Q2_xB_Bin_2%2 != 0){
-            Q2_xB_Bin_2 += -2;
-        }
-
-        if(Q2 < 2){
-            Q2_xB_Bin_2 = 0; 
-        }
-
-        return Q2_xB_Bin_2;
-    ''')
-    
-    ###########     End of Definitions for Q2 and xB Bins     ##########
-    #------------------------------------------------------------------#
-    ###############     Definitions for z and pT Bins     ##############
-    
-    
-    # z and pT Binning (See Table 4.3 on page 20 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-    rdf = rdf.Define("z_pT_Bin", """
-
-        int z_pT_Bin = 0;
-        int Num_z_Borders = 0;
-        int Num_pT_Borders = 0;
-
-
-        /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
-
-        auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-        {
-
-            // z_or_pT = 0 corresponds to z bins
-            // z_or_pT = 1 corresponds to pT bins
-
-            // For Q2_xB Bin 1
-            if(Q2_xB_Bin_Num == 1){
-                float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60,  0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 2
-            if(Q2_xB_Bin_Num == 2){
-                float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 3
-            if(Q2_xB_Bin_Num == 3){
-                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60,  0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 4
-            if(Q2_xB_Bin_Num == 4){
-                float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30,  0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[6 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 5
-            if(Q2_xB_Bin_Num == 5){
-                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60,  0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 6
-            if(Q2_xB_Bin_Num == 6){
-                float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 7
-            if(Q2_xB_Bin_Num == 7){
-                float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                float pT_Borders[7] = {0.05, 0.22,  0.32, 0.41, 0.51, 0.65, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[6 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 8
-            if(Q2_xB_Bin_Num == 8){
-                float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45,  0.70};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 9
-            if(Q2_xB_Bin_Num == 9){
-                float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39,  0.50, 0.70};
-                float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-
-
-            // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-            // return empty_Borders;
-            float empty = 0;
-            return empty;
-        };
-
-
-
-
-        /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-
-        // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
-
-        // For Q2_xB Bin 0
-        if(Q2_xB_Bin == 0){
-            return z_pT_Bin; // Cannot create z-pT Bins without propper Q2-xB Bins
-        }
-        // For Q2_xB Bin 1
-        if(Q2_xB_Bin == 1){
-            // float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            Num_z_Borders = 8;
-            // float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
-            Num_pT_Borders = 8;
-        }
-        // For Q2_xB Bin 2
-        if(Q2_xB_Bin == 2){
-            // float z_Borders[]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-            Num_z_Borders = 8;
-            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-            Num_pT_Borders = 8;
-        }
-        // For Q2_xB Bin 3
-        if(Q2_xB_Bin == 3){
-            // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            Num_z_Borders = 8;
-            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-            Num_pT_Borders = 8;
-        }
-        // For Q2_xB Bin 4
-        if(Q2_xB_Bin == 4){
-            // float z_Borders[]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-            Num_z_Borders = 7;
-            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-            Num_pT_Borders = 8;
-        }
-        // For Q2_xB Bin 5
-        if(Q2_xB_Bin == 5){
-            // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-            Num_z_Borders = 8;
-            // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-            Num_pT_Borders = 8;
-        }
-        // For Q2_xB Bin 6
-        if(Q2_xB_Bin == 6){
-            // float z_Borders[]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-            Num_z_Borders = 6;
-            // float pT_Borders[] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-            Num_pT_Borders = 6;
-        }
-        // For Q2_xB Bin 7
-        if(Q2_xB_Bin == 7){
-            // float z_Borders[]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-            Num_z_Borders = 7;
-            // float pT_Borders[] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-            Num_pT_Borders = 7;
-        }
-        // For Q2_xB Bin 8
-        if(Q2_xB_Bin == 8){
-            // float z_Borders[]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-            Num_z_Borders = 6;
-            // float pT_Borders[] = {0.05, 0.23, 0.34, 0.45, 0.70};
-            Num_pT_Borders = 5;
-        }
-        // For Q2_xB Bin 9
-        if(Q2_xB_Bin == 9){
-            // float z_Borders[]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-            Num_z_Borders = 6;
-            // float pT_Borders[] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-            Num_pT_Borders = 6;
-        }
-
-        if(Num_z_Borders == 0){
-            // float  z_Borders[1]  = {0};
-            Num_z_Borders = 1;
-            // float  pT_Borders[1] = {0};
-            Num_pT_Borders = 1;
-        }
-
-
-
-        int z_pT_Bin_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                                // based on the number of times the loop has run
-
-        // Determining z_pT Bins
-        for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-            if(z_pT_Bin != 0){
-                continue;   // If the bin has already been assigned, this line will end the loop.
-                            // This is to make sure the loop does not run longer than what is necessary.
-            }    
-
-            if(z > Borders_function(Q2_xB_Bin, 0, zbin) && z < Borders_function(Q2_xB_Bin, 0, zbin - 1)){
-                // Found the correct z bin
-
-                for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                    if(z_pT_Bin != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                    if(pT > Borders_function(Q2_xB_Bin, 1, pTbin) && pT < Borders_function(Q2_xB_Bin, 1, pTbin+1)){
-                        // Found the correct pT bin
-                        z_pT_Bin = z_pT_Bin_count; // The value of the z_pT_Bin has been set
-                        return z_pT_Bin;
-                    }
-                    else{
-                        z_pT_Bin_count = z_pT_Bin_count + 1; // Checking the next bin
-                    }
-                }
-
-            }
-            else{
-                z_pT_Bin_count = z_pT_Bin_count + (Num_pT_Borders - 1);
-                // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-                // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-            }    
-        }
-
-
-        return z_pT_Bin;
-
-
-
-    """)
-    
-    
-    rdf = rdf.Define('z_pT_Bin_2', '''
-    
-        auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-        {
-            // z_or_pT = 0 corresponds to z bins
-            // z_or_pT = 1 corresponds to pT bins
-
-            // For Q2_xB Bin 1 (was 3 in old scheme)
-            if(Q2_xB_Bin_Num == 1){
-                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 2
-            if(Q2_xB_Bin_Num == 2){
-                float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 3 (was 5 in old scheme)
-            if(Q2_xB_Bin_Num == 3){
-                float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[7 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 4
-            if(Q2_xB_Bin_Num == 4){
-                float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[6 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 5 (was 7 in old scheme)
-            if(Q2_xB_Bin_Num == 5){
-                float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-
-                if(z_or_pT == 0){
-                    return z_Borders[6 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }    
-            // For Q2_xB Bin 6
-            if(Q2_xB_Bin_Num == 6){
-                float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 7 (was 9 in old scheme)
-            if(Q2_xB_Bin_Num == 7){
-                float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-                float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-            // For Q2_xB Bin 8
-            if(Q2_xB_Bin_Num == 8){
-                float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
-
-                if(z_or_pT == 0){
-                    return z_Borders[5 - entry];
-                }
-                if(z_or_pT == 1){
-                    return pT_Borders[entry];
-                }
-            }
-
-
-
-            // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-            // return empty_Borders;
-            float empty = 0;
-            return empty;
-        };
-
-
-        /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-        // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
-
-        // Default:
-        int Num_z_Borders = 8; 
-        int Num_pT_Borders = 8;
-        int z_pT_Bin_2 = 0;
-
-        // For Q2_xB Bin 0
-        if(Q2_xB_Bin_2 == 0){
-            z_pT_Bin_2 = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
-            Num_z_Borders = 0; Num_pT_Borders = 0;
-        }
-        // For Q2_xB Bin 1 (Uses Default for both borders)
-
-        // For Q2_xB Bin 2 (Uses Default for both borders)
-
-        // For Q2_xB Bin 3 (Uses Default for both borders)
-
-        // For Q2_xB Bin 4 (Uses Default for pT borders)
-        if(Q2_xB_Bin_2 == 4){
-            Num_z_Borders = 7;
-        }
-
-        // For Q2_xB Bin 5 (New scheme)
-        if(Q2_xB_Bin_2 == 5){
-            Num_z_Borders = 7; Num_pT_Borders = 7;
-        }
-
-        // For Q2_xB Bin 6
-        if(Q2_xB_Bin_2 == 6){
-            Num_z_Borders = 6; Num_pT_Borders = 6;
-        }
-
-        // For Q2_xB Bin 7 (New scheme)
-        if(Q2_xB_Bin_2 == 7){
-            Num_z_Borders = 6; Num_pT_Borders = 6;
-        }
-
-        // For Q2_xB Bin 8
-        if(Q2_xB_Bin_2 == 8){
-            Num_z_Borders = 6; Num_pT_Borders = 5;
-        }
-
-        if(Num_z_Borders == 0){
-            Num_z_Borders = 1; Num_pT_Borders = 1;
-        }
-
-
-        int z_pT_Bin_2_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                                // based on the number of times the loop has run
-
-        // Determining z_pT Bins
-        for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-            if(z_pT_Bin_2 != 0){
-                continue;   // If the bin has already been assigned, this line will end the loop.
-                            // This is to make sure the loop does not run longer than what is necessary.
-            }    
-
-            if(z > Borders_function(Q2_xB_Bin_2, 0, zbin) && z < Borders_function(Q2_xB_Bin_2, 0, zbin - 1)){
-                // Found the correct z bin
-
-                for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                    if(z_pT_Bin_2 != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                    if(pT > Borders_function(Q2_xB_Bin_2, 1, pTbin) && pT < Borders_function(Q2_xB_Bin_2, 1, pTbin+1)){
-                        // Found the correct pT bin
-                        z_pT_Bin_2 = z_pT_Bin_2_count; // The value of the z_pT_Bin_2 has been set
-                        // cout<<"The value of the z_pT_Bin_2 has been set as: "<<z_pT_Bin_2<<endl;
-                        break;
-                    }
-                    else{
-                        z_pT_Bin_2_count += 1; // Checking the next bin
-                        // cout<<"Checking the next bin"<<endl;
-                    }
-                }
-
-            }
-            else{
-                z_pT_Bin_2_count += (Num_pT_Borders - 1);
-                // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-                // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-            }    
-        }
-
-
-        return z_pT_Bin_2;
-
-    
-    ''')
-    
-    
-    ###########     End of Definitions for z and pT Bins     ##########
-    #-----------------------------------------------------------------#
-    #####################     Bin Definitions     #####################
-    ###################################################################
-    
-    
-    
-    
-    
-    if(datatype in ["mdf", "pdf"]):
-        
-        #############################################################################
-        #####################     Generated Bin Definitions     #####################
-        #---------------------------------------------------------------------------#
-        ##############     Definitions for Generated Q2 and xB Bins     #############
-
-        # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-        rdf = rdf.Define("Q2_xB_Bin_gen", """
-
-            int Q2_xB_Bin_gen = 0;
-
-            /////////////////////////       Bin 1       /////////////////////////
-            if(xB_gen > 0.0835 && xB_gen < 0.15){
-                // Border lines of Bin 1:
-                //                 Upper Border:
-                //                          Q2_gen = ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_gen - 0.0835) + 1.3
-                //                 Q2_gen must be less than the equation above for Bin 1
-                //
-                //                 Lower Border:
-                //                          Q2_gen = ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_gen - 0.0835) + 1.30   (if xB_gen < 0.12)
-                //                          Q2_gen = ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_gen - 0.1200) + 1.30   (if xB_gen > 0.12)
-                //                 Q2_gen must be greater than the equations above for Bin 1
-
-                int Condition_Up = 0;
-                int Condition_Down = 0;
-                // Both Condition_Up and Condition_Down should be met for Bin 1 to be confirmed.
-                // Code will verify both conditions seperately before checking that they have been met.
-                // If the condition has been met, its value will be set to 1.
-                // If either is still 0 when checked, the event will be consided as being outside of Bin 1
-
-
-                // Testing Upper Border of Bin 1
-                if(Q2_gen <= ((2.28 - 1.3)/(0.15 - 0.0835))*(xB_gen - 0.0835) + 1.3){
-                    Condition_Up = 1; // Condition for upper border of Bin 1 has been met
-                }
-
-                // Testing Lower Border of Bin 1
-                if(xB_gen < 0.12){
-                    if(Q2_gen >= ((1.30 - 1.30)/(0.12 - 0.0835))*(xB_gen - 0.0835) + 1.30){
-                        Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-                    }
-                }
-                if(xB_gen > 0.12){
-                    if(Q2_gen >= ((1.38 - 1.30)/(0.15 - 0.1200))*(xB_gen - 0.1200) + 1.30){
-                        Condition_Down = 1; // Condition for lower border of Bin 1 has been met
-                    }
-                }
-
-
-                if(Condition_Up == 1 && Condition_Down == 1){
-                    Q2_xB_Bin_gen = 1;
-                    return Q2_xB_Bin_gen; // Bin 1 Confirmed
-                }
-
-            }
-            /////////////////////////     End of Bin 1     /////////////////////////
-
-
-
-
-            /////////////////////////       Bin 2 or 3       /////////////////////////
-            if(xB_gen > 0.15 && xB_gen < 0.24){
-
-                int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-                // line between bins: Q2_gen = ((2.75 - 1.98)/(0.24 - 0.15))*(xB_gen - 0.15) + 1.98
-
-                // Deciding between Bins
-                if(Q2_gen < ((2.75 - 1.98)/(0.24 - 0.15))*(xB_gen - 0.15) + 1.98){
-                    BinTest = 2; // Event will NOT go to bin 3
-                }
-
-                if(Q2_gen > ((2.75 - 1.98)/(0.24 - 0.15))*(xB_gen - 0.15) + 1.98){
-                    BinTest = 3; // Event will NOT go to bin 2
-                }
-
-
-
-                // Final Border Test
-
-                // Bin 2
-                if(BinTest == 2){
-                    // Border lines of Bin 2:   Q2_gen = ((1.45 - 1.38)/(0.20 - 0.15))*(xB_gen - 0.15) + 1.38   (if xB_gen < 0.2)
-                    //                          Q2_gen = ((1.50 - 1.45)/(0.24 - 0.20))*(xB_gen - 0.24) + 1.50   (if xB_gen > 0.2)
-
-                    if(xB_gen < 0.2){
-                        if(Q2_gen >= ((1.45 - 1.38)/(0.20 - 0.15))*(xB_gen - 0.15) + 1.38){
-                            Q2_xB_Bin_gen = 2;
-                            return Q2_xB_Bin_gen; // Bin 2 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.2){
-                        if(Q2_gen >= ((1.50 - 1.45)/(0.24 - 0.20))*(xB_gen - 0.24) + 1.50){
-                            Q2_xB_Bin_gen = 2;
-                            return Q2_xB_Bin_gen; // Bin 2 Confirmed
-                        }
-                    }
-
-                }
-                // End of Bin 2
-
-
-                // Bin 3
-                if(BinTest == 3){
-                    // Border line of Bin 3:   Q2_gen = ((3.625 - 2.28)/(0.24 - 0.15))*(xB_gen - 0.15) + 2.28
-
-                    if(Q2_gen <= ((3.625 - 2.28)/(0.24 - 0.15))*(xB_gen - 0.15) + 2.28){
-                        Q2_xB_Bin_gen = 3;
-                        return Q2_xB_Bin_gen; // Bin 3 Confirmed
-                    }
-
-                }
-                // End of Bin 3
-
-
-            }
-            /////////////////////////     End of Bin 2 and 3     /////////////////////////
-
-
-
-
-            /////////////////////////       Bin 4 or 5       /////////////////////////
-            if(xB_gen > 0.24 && xB_gen < 0.34){
-
-                int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-                // line between bins: Q2_gen = ((3.63 - 2.75)/(0.34 - 0.24))*(xB_gen - 0.24) + 2.75
-
-                // Deciding between Bins
-                if(Q2_gen < ((3.63 - 2.75)/(0.34 - 0.24))*(xB_gen - 0.24) + 2.75){
-                    BinTest = 4; // Event will NOT go to bin 5
-                }
-
-                if(Q2_gen > ((3.63 - 2.75)/(0.34 - 0.24))*(xB_gen - 0.24) + 2.75){
-                    BinTest = 5; // Event will NOT go to bin 4
-                }
-
-
-
-                // Final Border Test
-
-                // Bin 4
-                if(BinTest == 4){
-                    // Border lines of Bin 4:   Q2_gen = ((1.53 - 1.50)/(0.27 - 0.24))*(xB_gen - 0.24) + 1.50   (if xB_gen < 0.27)
-                    //                          Q2_gen = ((1.56 - 1.53)/(0.30 - 0.27))*(xB_gen - 0.27) + 1.53   (if 0.27 < xB_gen < 0.30)
-                    //                          Q2_gen = ((1.60 - 1.56)/(0.34 - 0.30))*(xB_gen - 0.30) + 1.56   (if xB_gen > 0.3)
-
-                    if(xB_gen < 0.27){
-                        if(Q2_gen >= ((1.53 - 1.50)/(0.27 - 0.24))*(xB_gen - 0.24) + 1.50){
-                            Q2_xB_Bin_gen = 4;
-                            return Q2_xB_Bin_gen; // Bin 4 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.27 && xB_gen < 0.30){
-                        if(Q2_gen >= ((1.56 - 1.53)/(0.30 - 0.27))*(xB_gen - 0.27) + 1.53){
-                            Q2_xB_Bin_gen = 4;
-                            return Q2_xB_Bin_gen; // Bin 4 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.30){
-                        if(Q2_gen >= ((1.60 - 1.56)/(0.34 - 0.30))*(xB_gen - 0.30) + 1.56){
-                            Q2_xB_Bin_gen = 4;
-                            return Q2_xB_Bin_gen; // Bin 4 Confirmed
-                        }
-                    }
-
-                }
-                // End of Bin 4
-
-
-                // Bin 5
-                if(BinTest == 5){
-                    // Border line of Bin 5:   Q2_gen = ((5.12 - 3.625)/(0.34 - 0.24))*(xB_gen - 0.24) + 3.625
-
-                    if(Q2_gen <= ((5.12 - 3.625)/(0.34 - 0.24))*(xB_gen - 0.24) + 3.625){
-                        Q2_xB_Bin_gen = 5;
-                        return Q2_xB_Bin_gen; // Bin 5 Confirmed
-                    }
-
-                }
-                // End of Bin 5
-
-
-            }
-            /////////////////////////     End of Bin 4 and 5     /////////////////////////
-
-
-
-
-            /////////////////////////       Bin 6 or 7       /////////////////////////
-            if(xB_gen > 0.34 && xB_gen < 0.45){
-
-                int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-                // line between bins: Q2_gen = ((4.7 - 3.63)/(0.45 - 0.34))*(xB_gen - 0.34) + 3.63
-
-                // Deciding between Bins
-                if(Q2_gen < ((4.7 - 3.63)/(0.45 - 0.34))*(xB_gen - 0.34) + 3.63){
-                    BinTest = 6; // Event will NOT go to bin 7
-                }
-
-                if(Q2_gen > ((4.7 - 3.63)/(0.45 - 0.34))*(xB_gen - 0.34) + 3.63){
-                    BinTest = 7; // Event will NOT go to bin 6
-                }
-
-
-
-                // Final Border Test
-
-                // Bin 6
-                if(BinTest == 6){
-                    // Border line of Bin 6:   Q2_gen = ((2.52 - 1.60)/(0.45 - 0.34))*(xB_gen - 0.34) + 1.60
-
-                    if(Q2_gen >= ((2.52 - 1.60)/(0.45 - 0.34))*(xB_gen - 0.34) + 1.60){
-                        Q2_xB_Bin_gen = 6;
-                        return Q2_xB_Bin_gen; // Bin 6 Confirmed
-                    }
-
-                }
-                // End of Bin 6
-
-
-                // Bin 7
-                if(BinTest == 7){
-                    // Border line of Bin 7:   Q2_gen = ((6.76 - 5.12)/(0.45 - 0.34))*(xB_gen - 0.34) + 5.12
-
-                    if(Q2_gen <= ((6.76 - 5.12)/(0.45 - 0.34))*(xB_gen - 0.34) + 5.12){
-                        Q2_xB_Bin_gen = 7;
-                        return Q2_xB_Bin_gen; // Bin 7 Confirmed
-                    }
-
-                }
-                // End of Bin 7
-
-
-            }
-            /////////////////////////     End of Bin 6 and 7     /////////////////////////
-
-
-
-
-            /////////////////////////       Bin 8 or 9       /////////////////////////
-            if(xB_gen > 0.45){
-
-                int BinTest = 0; //Test value for bin number (used while determining which bin the event belongs to)
-
-                // line between bins: Q2_gen = ((7.42 - 4.70)/(0.708 - 0.45))*(xB_gen - 0.45) + 4.70    
-
-                // Deciding between Bins
-                if(Q2_gen < ((7.42 - 4.70)/(0.708 - 0.45))*(xB_gen - 0.45) + 4.70){
-                    BinTest = 8; // Event will NOT go to bin 9
-                }
-                if(Q2_gen > ((7.42 - 4.70)/(0.708 - 0.45))*(xB_gen - 0.45) + 4.70){
-                    BinTest = 9; // Event will NOT go to bin 8
-                }
-
-
-
-                // Final Border Test
-
-                // Bin 8
-                if(BinTest == 8){
-                    // Border lines of Bin 8:   Q2_gen = ((3.05 - 2.52)/(0.500 - 0.45))*(xB_gen - 0.45) + 2.52   (if xB_gen < 0.50)
-                    //                          Q2_gen = ((4.05 - 3.05)/(0.570 - 0.50))*(xB_gen - 0.50) + 3.05   (if 0.50 < xB_gen < 0.57)
-                    //                          Q2_gen = ((5.40 - 4.05)/(0.640 - 0.57))*(xB_gen - 0.57) + 4.05   (if 0.57 < xB_gen < 0.64)
-                    //                          Q2_gen = ((7.42 - 5.40)/(0.708 - 0.64))*(xB_gen - 0.64) + 5.40   (if xB_gen > 0.64)
-
-                    if(xB_gen < 0.50){
-                        if(Q2_gen >= ((3.05 - 2.52)/(0.500 - 0.45))*(xB_gen - 0.45) + 2.52){
-                            Q2_xB_Bin_gen = 8;
-                            return Q2_xB_Bin_gen; // Bin 8 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.50 && xB_gen < 0.57){
-                        if(Q2_gen >= ((4.05 - 3.05)/(0.570 - 0.50))*(xB_gen - 0.50) + 3.05){
-                            Q2_xB_Bin_gen = 8;
-                            return Q2_xB_Bin_gen; // Bin 8 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.57 && xB_gen < 0.64){
-                        if(Q2_gen >= ((5.40 - 4.05)/(0.640 - 0.57))*(xB_gen - 0.57) + 4.05){
-                            Q2_xB_Bin_gen = 8;
-                            return Q2_xB_Bin_gen; // Bin 8 Confirmed
-                        }
-                    }
-
-                    if(xB_gen > 0.64){
-                        if(Q2_gen >= ((7.42 - 5.40)/(0.708 - 0.64))*(xB_gen - 0.64) + 5.40){
-                            Q2_xB_Bin_gen = 8;
-                            return Q2_xB_Bin_gen; // Bin 8 Confirmed
-                        }
-                    }
-
-                }
-                // End of Bin 8
-
-
-                // Bin 9
-                if(BinTest == 9){
-                    // Border lines of Bin 9:
-                    //                 Uppermost Border:
-                    //                          Q2_gen = ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_gen - 0.450) +  6.760   (if xB_gen < 0.677)
-                    //                          Q2_gen = ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_gen - 0.677) + 10.185   (if xB_gen > 0.677)
-                    //                 Q2_gen must be less than the equations above for Bin 9
-                    //
-                    //                 Rightmost Border:
-                    //                          Q2_gen =  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_gen - 0.708) + 7.42   (if xB_gen < 0.75)
-                    //                          Q2_gen = ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_gen - 0.750) + 9.52   (if xB_gen > 0.75)
-                    //                 Q2_gen must be greater than the equations above for Bin 9
-
-                    int Condition_Up = 0;
-                    int Condition_Right = 0;
-                    // Both Condition_Up and Condition_Right should be met for Bin 9 to be confirmed.
-                    // Code will verify both conditions seperately before checking that they have been met.
-                    // If the condition has been met, its value will be set to 1.
-                    // If either is still 0 when checked, the event will be consided as being outside of Bin 9
-
-
-                    // Testing Uppermost Border of Bin 9
-                    if(xB_gen < 0.677){
-                        if(Q2_gen <= ((10.185 -  6.760)/(0.6770 - 0.450))*(xB_gen - 0.450) +  6.760){
-                            Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                        }
-                    }
-                    if(xB_gen > 0.677){
-                        if(Q2_gen <= ((11.351 - 10.185)/(0.7896 - 0.677))*(xB_gen - 0.677) + 10.185){
-                            Condition_Up = 1; // Condition for upper border of Bin 9 has been met
-                        }
-                    }
-
-                    // Testing Rightmost Border of Bin 9
-                    if(xB_gen < 0.75){
-                        if(Q2_gen >=  ((9.520 - 7.42)/(0.7500 - 0.708))*(xB_gen - 0.708) + 7.42){
-                            Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
-                        }
-                    }
-                    if(xB_gen > 0.75){
-                        if(Q2_gen >= ((11.351 - 9.52)/(0.7896 - 0.750))*(xB_gen - 0.750) + 9.52){
-                            Condition_Right = 1; // Condition for rightmost border of Bin 9 has been met
-                        }
-                    }
-
-
-                    if(Condition_Up == 1 && Condition_Right == 1){
-                        Q2_xB_Bin_gen = 9;
-                        return Q2_xB_Bin_gen; // Bin 9 Confirmed
-                    }
-
-                }
-                // End of Bin 9
-
-            }
-            /////////////////////////     End of Bin 8 and 9     /////////////////////////
-
-
-
-            return Q2_xB_Bin_gen;
-
-        """)
-
-        
-        rdf = rdf.Define('Q2_xB_Bin_2_gen', '''
-            int Q2_xB_Bin_2_gen = Q2_xB_Bin_gen;
-
-            if(Q2_xB_Bin_gen > 1 && Q2_xB_Bin_2_gen%2 != 0){
-                Q2_xB_Bin_2_gen += -2;
-            }
-
-            if(Q2_gen < 1.94){
-                Q2_xB_Bin_2_gen = 0; 
-            }
-
-            return Q2_xB_Bin_2_gen;
-        ''')
-        
-
-        ###########     End of Definitions for Generated Q2 and xB Bins     ##########
-        #----------------------------------------------------------------------------#
-        ###############     Definitions for Generated z and pT Bins     ##############
-
-
-        # z and pT Binning (See Table 4.3 on page 20 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
-        rdf = rdf.Define("z_pT_Bin_gen", """
-
-            int z_pT_Bin_gen = 0;
-            int Num_z_Borders = 0;
-            int Num_pT_Borders = 0;
-
-
-            /////////////////////////////////////////          Automatic Function for Border Creation          /////////////////////////////////////////
-
-            auto Borders_function = [&](int Q2_xB_Bin_gen_Num, int z_or_pT_gen, int entry)
-            {
-
-                // z_or_pT_gen = 0 corresponds to z bins
-                // z_or_pT_gen = 1 corresponds to pT bins
-
-                // For Q2_xB Bin 1
-                if(Q2_xB_Bin_gen_Num == 1){
-                    float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 2
-                if(Q2_xB_Bin_gen_Num == 2){
-                    float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 3
-                if(Q2_xB_Bin_gen_Num == 3){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 4
-                if(Q2_xB_Bin_gen_Num == 4){
-                    float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 5
-                if(Q2_xB_Bin_gen_Num == 5){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 6
-                if(Q2_xB_Bin_gen_Num == 6){
-                    float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                    float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 7
-                if(Q2_xB_Bin_gen_Num == 7){
-                    float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                    float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 8
-                if(Q2_xB_Bin_gen_Num == 8){
-                    float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                    float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 9
-                if(Q2_xB_Bin_gen_Num == 9){
-                    float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-                    float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-                    if(z_or_pT_gen == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT_gen == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-
-
-                // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-                // return empty_Borders;
-                float empty = 0;
-                return empty;
-            };
-
-
-
-
-            /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-
-            // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin_gen')
-
-            // For Q2_xB Bin 0
-            if(Q2_xB_Bin_gen == 0){
-                return z_pT_Bin_gen; // Cannot create z-pT Bins without propper Q2-xB Bins
-            }
-            // For Q2_xB Bin 1
-            if(Q2_xB_Bin_gen == 1){
-                // float  z_Borders[8] = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                Num_z_Borders = 8;
-                // float pT_Borders[8] = {0.05, 0.22, 0.32, 0.41, 0.50, 0.60,  0.75, 1.0};
-                Num_pT_Borders = 8;
-            }
-            // For Q2_xB Bin 2
-            if(Q2_xB_Bin_gen == 2){
-                // float z_Borders[]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                Num_z_Borders = 8;
-                // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-                Num_pT_Borders = 8;
-            }
-            // For Q2_xB Bin 3
-            if(Q2_xB_Bin_gen == 3){
-                // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                Num_z_Borders = 8;
-                // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60,  0.75, 1.0};
-                Num_pT_Borders = 8;
-            }
-            // For Q2_xB Bin 4
-            if(Q2_xB_Bin_gen == 4){
-                // float z_Borders[]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                Num_z_Borders = 7;
-                // float pT_Borders[] = {0.05, 0.20, 0.30,  0.40, 0.50, 0.60, 0.75, 1.0};
-                Num_pT_Borders = 8;
-            }
-            // For Q2_xB Bin 5
-            if(Q2_xB_Bin_gen == 5){
-                // float z_Borders[]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                Num_z_Borders = 8;
-                // float pT_Borders[] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60,  0.75, 1.0};
-                Num_pT_Borders = 8;
-            }
-            // For Q2_xB Bin 6
-            if(Q2_xB_Bin_gen == 6){
-                // float z_Borders[]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                Num_z_Borders = 6;
-                // float pT_Borders[] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-                Num_pT_Borders = 6;
-            }
-            // For Q2_xB Bin 7
-            if(Q2_xB_Bin_gen == 7){
-                // float z_Borders[]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                Num_z_Borders = 7;
-                // float pT_Borders[] = {0.05, 0.22,  0.32, 0.41, 0.51, 0.65, 1.0};
-                Num_pT_Borders = 7;
-            }
-            // For Q2_xB Bin 8
-            if(Q2_xB_Bin_gen == 8){
-                // float z_Borders[]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                Num_z_Borders = 6;
-                // float pT_Borders[] = {0.05, 0.23, 0.34, 0.45,  0.70};
-                Num_pT_Borders = 5;
-            }
-            // For Q2_xB Bin 9
-            if(Q2_xB_Bin_gen == 9){
-                // float z_Borders[]  = {0.15, 0.23, 0.30, 0.39,  0.50, 0.70};
-                Num_z_Borders = 6;
-                // float pT_Borders[] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-                Num_pT_Borders = 6;
-            }
-
-            if(Num_z_Borders == 0){
-                // float  z_Borders[1]  = {0};
-                Num_z_Borders = 1;
-                // float  pT_Borders[1] = {0};
-                Num_pT_Borders = 1;
-            }
-
-
-
-            int z_pT_Bin_gen_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                                        // based on the number of times the loop has run
-
-            // Determining z_pT Bins
-            for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-                if(z_pT_Bin_gen != 0){
-                    continue;   // If the bin has already been assigned, this line will end the loop.
-                                // This is to make sure the loop does not run longer than what is necessary.
-                }    
-
-                if(z_gen > Borders_function(Q2_xB_Bin_gen, 0, zbin) && z_gen < Borders_function(Q2_xB_Bin_gen, 0, zbin - 1)){
-                    // Found the correct z bin
-
-                    for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                        if(z_pT_Bin_gen != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                        if(pT_gen > Borders_function(Q2_xB_Bin_gen, 1, pTbin) && pT_gen < Borders_function(Q2_xB_Bin_gen, 1, pTbin+1)){
-                            // Found the correct pT bin
-                            z_pT_Bin_gen = z_pT_Bin_gen_count; // The value of the z_pT_Bin_gen has been set
-                            return z_pT_Bin_gen;
-                        }
-                        else{
-                            z_pT_Bin_gen_count = z_pT_Bin_gen_count + 1; // Checking the next bin
-                        }
-                    }
-
-                }
-                else{
-                    z_pT_Bin_gen_count = z_pT_Bin_gen_count + (Num_pT_Borders - 1);
-                    // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-                    // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-                }    
-            }
-
-
-            return z_pT_Bin_gen;
-
-
-
-        """)
-        
-        
-        rdf = rdf.Define('z_pT_Bin_2_gen', '''
-
-            auto Borders_function = [&](int Q2_xB_Bin_Num, int z_or_pT, int entry)
-            {
-                // z_or_pT = 0 corresponds to z bins
-                // z_or_pT = 1 corresponds to pT bins
-
-                // For Q2_xB Bin 1 (was 3 in old scheme)
-                if(Q2_xB_Bin_Num == 1){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 2
-                if(Q2_xB_Bin_Num == 2){
-                    float z_Borders[8]  = {0.18, 0.25, 0.29, 0.34, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 3 (was 5 in old scheme)
-                if(Q2_xB_Bin_Num == 3){
-                    float z_Borders[8]  = {0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[7 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 4
-                if(Q2_xB_Bin_Num == 4){
-                    float z_Borders[7]  = {0.20, 0.29, 0.345, 0.41, 0.50, 0.60, 0.70};
-                    float pT_Borders[8] = {0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 5 (was 7 in old scheme)
-                if(Q2_xB_Bin_Num == 5){
-                    float z_Borders[7]  = {0.15, 0.215, 0.26, 0.32, 0.40, 0.50, 0.70};
-                    float pT_Borders[7] = {0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[6 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }    
-                // For Q2_xB Bin 6
-                if(Q2_xB_Bin_Num == 6){
-                    float z_Borders[6]  = {0.22, 0.32, 0.40, 0.47, 0.56, 0.70};
-                    float pT_Borders[6] = {0.05, 0.22, 0.32, 0.42, 0.54, 0.80};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 7 (was 9 in old scheme)
-                if(Q2_xB_Bin_Num == 7){
-                    float z_Borders[6]  = {0.15, 0.23, 0.30, 0.39, 0.50, 0.70};
-                    float pT_Borders[6] = {0.05, 0.23, 0.34, 0.435, 0.55, 0.80};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-                // For Q2_xB Bin 8
-                if(Q2_xB_Bin_Num == 8){
-                    float z_Borders[6]  = {0.22, 0.30, 0.36, 0.425, 0.50, 0.70};
-                    float pT_Borders[5] = {0.05, 0.23, 0.34, 0.45, 0.70};
-
-                    if(z_or_pT == 0){
-                        return z_Borders[5 - entry];
-                    }
-                    if(z_or_pT == 1){
-                        return pT_Borders[entry];
-                    }
-                }
-
-                // float  empty_Borders[1]  = {0}; // In case all other conditions fail somehow
-                // return empty_Borders;
-                float empty = 0;
-                return empty;
-            };
-
-
-            /////////////////////////////////////////          End of Automatic Function for Border Creation          /////////////////////////////////////////
-
-
-            // Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
-
-            // Default:
-            int Num_z_Borders = 8;
-            int Num_pT_Borders = 8;
-            int z_pT_Bin_2_gen = 0;
-
-            // For Q2_xB Bin 0
-            if(Q2_xB_Bin_2_gen == 0){
-                z_pT_Bin_2_gen = 0; // Cannot create z-pT Bins without propper Q2-xB Bins
-                Num_z_Borders = 0; Num_pT_Borders = 0;
-            }
-            // For Q2_xB Bin 1 (Uses Default for both borders)
-
-            // For Q2_xB Bin 2 (Uses Default for both borders)
-
-            // For Q2_xB Bin 3 (Uses Default for both borders)
-
-            // For Q2_xB Bin 4 (Uses Default for pT borders)
-            if(Q2_xB_Bin_2_gen == 4){
-                Num_z_Borders = 7;
-            }
-
-            // For Q2_xB Bin 5 (New scheme)
-            if(Q2_xB_Bin_2_gen == 5){
-                Num_z_Borders = 7; Num_pT_Borders = 7;
-            }
-
-            // For Q2_xB Bin 6
-            if(Q2_xB_Bin_2_gen == 6){
-                Num_z_Borders = 6; Num_pT_Borders = 6;
-            }
-
-            // For Q2_xB Bin 7 (New scheme)
-            if(Q2_xB_Bin_2_gen == 7){
-                Num_z_Borders = 6; Num_pT_Borders = 6;
-            }
-
-            // For Q2_xB Bin 8
-            if(Q2_xB_Bin_2_gen == 8){
-                Num_z_Borders = 6; Num_pT_Borders = 5;
-            }
-
-            if(Num_z_Borders == 0){
-                Num_z_Borders = 1; Num_pT_Borders = 1;
-            }
-
-
-            int z_pT_Bin_2_gen_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
-                                    // based on the number of times the loop has run
-
-            // Determining z_pT Bins
-            for(int zbin = 1; zbin < Num_z_Borders; zbin++){
-                if(z_pT_Bin_2_gen != 0){
-                    continue;   // If the bin has already been assigned, this line will end the loop.
-                                // This is to make sure the loop does not run longer than what is necessary.
-                }    
-
-                if(z_gen > Borders_function(Q2_xB_Bin_2_gen, 0, zbin) && z_gen < Borders_function(Q2_xB_Bin_2_gen, 0, zbin - 1)){
-                    // Found the correct z bin
-
-                    for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
-                        if(z_pT_Bin_2_gen != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
-                        if(pT_gen > Borders_function(Q2_xB_Bin_2_gen, 1, pTbin) && pT_gen < Borders_function(Q2_xB_Bin_2_gen, 1, pTbin+1)){
-                            // Found the correct pT bin
-                            z_pT_Bin_2_gen = z_pT_Bin_2_gen_count; // The value of the z_pT_Bin_2_gen has been set
-                            // cout<<"The value of the z_pT_Bin_2_gen has been set as: "<<z_pT_Bin_2_gen<<endl;
-                            break;
-                        }
-                        else{
-                            z_pT_Bin_2_gen_count += 1; // Checking the next bin
-                            // cout<<"Checking the next bin"<<endl;
-                        }
-                    }
-
-                }
-                else{
-                    z_pT_Bin_2_gen_count += (Num_pT_Borders - 1);
-                    // For each z bin that fails, the bin count goes up by (Num_pT_Borders - 1).
-                    // This represents checking each pT bin for the given z bin without going through each entry in the loop.
-                }    
-            }
-
-
-            return z_pT_Bin_2_gen;
-        
-        
-        ''')
-
-
-        ###########     End of Definitions for Generated z and pT Bins     ##########
-        #---------------------------------------------------------------------------#
-        
-        
-        
-    ##===================================================##
-    ##=====##=====##   4D Kinematic Bins   ##=====##=====##
-    ##===================================================##
-    
-    rdf = rdf.Define('Bin_4D', """
-
-        int add_to_bin = 0;
-        int Bin_4D = -1; // Updated on 7-19-2022
-
-        if(Q2_xB_Bin_2 == 0){
-            Bin_4D = -1; // Updated on 7-19-2022
-            return Bin_4D;
-        }
-        if(Q2_xB_Bin_2 == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin_2 == 2){
-            add_to_bin = 50;
-        }
-        if(Q2_xB_Bin_2 == 3){
-            add_to_bin = 100;
-        }
-        if(Q2_xB_Bin_2 == 4){
-            add_to_bin = 150;
-        }
-        if(Q2_xB_Bin_2 == 5){
-            add_to_bin = 193;
-        }
-        if(Q2_xB_Bin_2 == 6){
-            add_to_bin = 230;
-        }
-        if(Q2_xB_Bin_2 == 7){
-            add_to_bin = 256;
-        }
-        if(Q2_xB_Bin_2 == 8){
-            add_to_bin = 283;
-        }
-
-        Bin_4D = z_pT_Bin_2 + add_to_bin;
-
-        return Bin_4D;
-
-    """)
-    
-    
-    rdf = rdf.Define('Bin_Res_4D', """
-    
-        int add_to_bin = 0;
-        int Bin_Res_4D = -1;
-
-        if(Q2_xB_Bin_2 == 0 || z_pT_Bin_2 == 0){
-            Bin_Res_4D = -1; // Might want to change to 0 later...
-            return Bin_Res_4D;
-            // Events outside of either binning scheme is automatically given a Bin_Res_4D bin value of -1
-            // No spaces are given between bins
-        }
-        if(Q2_xB_Bin_2 == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin_2 == 2){
-            add_to_bin = 49;
-        }
-        if(Q2_xB_Bin_2 == 3){
-            add_to_bin = 98;
-        }
-        if(Q2_xB_Bin_2 == 4){
-            add_to_bin = 147;
-        }
-        if(Q2_xB_Bin_2 == 5){
-            add_to_bin = 189;
-        }
-        if(Q2_xB_Bin_2 == 6){
-            add_to_bin = 225;
-        }
-        if(Q2_xB_Bin_2 == 7){
-            add_to_bin = 250;
-        }
-        if(Q2_xB_Bin_2 == 8){
-            add_to_bin = 275;
-        }
-
-        Bin_Res_4D = z_pT_Bin_2 + add_to_bin;
-
-        return Bin_Res_4D;
-
-    
-    """)
     
 
-    
-    rdf = rdf.Define('Bin_4D_OG', """
-
-        int add_to_bin = 0;
-        int Bin_4D_OG = -1;
-
-        if(Q2_xB_Bin == 0){
-            Bin_4D_OG = -1;
-            return Bin_4D_OG;
-        }
-        if(Q2_xB_Bin == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin == 2){
-            add_to_bin = 50;
-        }
-        if(Q2_xB_Bin == 3){
-            add_to_bin = 100;
-        }
-        if(Q2_xB_Bin == 4){
-            add_to_bin = 150;
-        }
-        if(Q2_xB_Bin == 5){
-            add_to_bin = 193;
-        }
-        if(Q2_xB_Bin == 6){
-            add_to_bin = 243;
-        }
-        if(Q2_xB_Bin == 7){
-            add_to_bin = 269;
-        }
-        if(Q2_xB_Bin == 8){
-            add_to_bin = 306;
-        }
-        if(Q2_xB_Bin == 9){
-            add_to_bin = 327;
-        }
-
-        Bin_4D_OG = z_pT_Bin + add_to_bin;
-
-        return Bin_4D_OG;
-
-    """)
-    
-    
-    
-    rdf = rdf.Define('Bin_Res_4D_OG', """
-    
-        int add_to_bin = 0;
-        int Bin_Res_4D_OG = -1;
-
-        if(Q2_xB_Bin == 0 || z_pT_Bin == 0){
-            Bin_Res_4D_OG = -1;
-            return Bin_Res_4D_OG;
-            // Events outside of either binning scheme is automatically given a Bin_Res_4D bin value of -1
-            // No spaces are given between bins
-        }
-        if(Q2_xB_Bin == 1){
-            add_to_bin = 0;
-        }
-        if(Q2_xB_Bin == 2){
-            add_to_bin = 49;
-        }
-        if(Q2_xB_Bin == 3){
-            add_to_bin = 98;
-        }
-        if(Q2_xB_Bin == 4){
-            add_to_bin = 147;
-        }
-        if(Q2_xB_Bin == 5){
-            add_to_bin = 189;
-        }
-        if(Q2_xB_Bin == 6){
-            add_to_bin = 238;
-        }
-        if(Q2_xB_Bin == 7){
-            add_to_bin = 263;
-        }
-        if(Q2_xB_Bin == 8){
-            add_to_bin = 299;
-        }
-        if(Q2_xB_Bin == 9){
-            add_to_bin = 319;
-        }
-
-        Bin_Res_4D_OG = z_pT_Bin + add_to_bin;
-
-        return Bin_Res_4D_OG;
-    
-    """)
-
-
-    if(datatype == "mdf" or datatype == "pdf"):
-        rdf = rdf.Define('Bin_4D_smeared', """
-
-            int add_to_bin = 0;
-            int Bin_4D_smeared = -1; // Updated on 7-19-2022
-
-            if(Q2_xB_Bin_2_smeared == 0){
-                Bin_4D_smeared = -1; // Updated on 7-19-2022
-                return Bin_4D_smeared;
-            }
-            if(Q2_xB_Bin_2_smeared == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_2_smeared == 2){
-                add_to_bin = 50;
-            }
-            if(Q2_xB_Bin_2_smeared == 3){
-                add_to_bin = 100;
-            }
-            if(Q2_xB_Bin_2_smeared == 4){
-                add_to_bin = 150;
-            }
-            if(Q2_xB_Bin_2_smeared == 5){
-                add_to_bin = 193;
-            }
-            if(Q2_xB_Bin_2_smeared == 6){
-                add_to_bin = 230;
-            }
-            if(Q2_xB_Bin_2_smeared == 7){
-                add_to_bin = 256;
-            }
-            if(Q2_xB_Bin_2_smeared == 8){
-                add_to_bin = 283;
-            }
-
-            Bin_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
-
-            return Bin_4D_smeared;
-
-        """)
         
-        rdf = rdf.Define('Bin_Res_4D_smeared', """
-
-            int add_to_bin = 0;
-            int Bin_Res_4D_smeared = -1;
-
-            if(Q2_xB_Bin_2_smeared == 0 || z_pT_Bin_2_smeared == 0){
-                Bin_Res_4D_smeared = -1;
-                return Bin_Res_4D_smeared;
-                // Events outside of either binning scheme is automatically given a Bin_Res_4D_smeared bin value of -1
-                // No spaces are given between bins
-            }
-            if(Q2_xB_Bin_2_smeared == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_2_smeared == 2){
-                add_to_bin = 49;
-            }
-            if(Q2_xB_Bin_2_smeared == 3){
-                add_to_bin = 98;
-            }
-            if(Q2_xB_Bin_2_smeared == 4){
-                add_to_bin = 147;
-            }
-            if(Q2_xB_Bin_2_smeared == 5){
-                add_to_bin = 189;
-            }
-            if(Q2_xB_Bin_2_smeared == 6){
-                add_to_bin = 225;
-            }
-            if(Q2_xB_Bin_2_smeared == 7){
-                add_to_bin = 250;
-            }
-            if(Q2_xB_Bin_2_smeared == 8){
-                add_to_bin = 275;
-            }
-
-            Bin_Res_4D_smeared = z_pT_Bin_2_smeared + add_to_bin;
-
-            return Bin_Res_4D_smeared;
-
-        """)
-
-        rdf = rdf.Define('Bin_4D_OG_smeared', """
-
-            int add_to_bin = 0;
-            int Bin_4D_OG_smeared = -1;
-
-            if(Q2_xB_Bin_smeared == 0){
-                Bin_4D_OG_smeared = -1;
-                return Bin_4D_OG_smeared;
-            }
-            if(Q2_xB_Bin_smeared == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_smeared == 2){
-                add_to_bin = 50;
-            }
-            if(Q2_xB_Bin_smeared == 3){
-                add_to_bin = 100;
-            }
-            if(Q2_xB_Bin_smeared == 4){
-                add_to_bin = 150;
-            }
-            if(Q2_xB_Bin_smeared == 5){
-                add_to_bin = 193;
-            }
-            if(Q2_xB_Bin_smeared == 6){
-                add_to_bin = 243;
-            }
-            if(Q2_xB_Bin_smeared == 7){
-                add_to_bin = 269;
-            }
-            if(Q2_xB_Bin_smeared == 8){
-                add_to_bin = 306;
-            }
-            if(Q2_xB_Bin_smeared == 9){
-                add_to_bin = 327;
-            }
-
-            Bin_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
-
-            return Bin_4D_OG_smeared;
-
-        """)
-        
-        rdf = rdf.Define('Bin_Res_4D_OG_smeared', """
-
-            int add_to_bin = 0;
-            int Bin_Res_4D_OG_smeared = -1;
-
-            if(Q2_xB_Bin_smeared == 0 || z_pT_Bin_smeared == 0){
-                Bin_Res_4D_OG_smeared = -1;
-                return Bin_Res_4D_OG_smeared;
-                // Events outside of either binning scheme is automatically given a Bin_Res_4D_OG_smeared bin value of -1
-                // No spaces are given between bins
-            }
-            if(Q2_xB_Bin_smeared == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_smeared == 2){
-                add_to_bin = 49;
-            }
-            if(Q2_xB_Bin_smeared == 3){
-                add_to_bin = 98;
-            }
-            if(Q2_xB_Bin_smeared == 4){
-                add_to_bin = 147;
-            }
-            if(Q2_xB_Bin_smeared == 5){
-                add_to_bin = 189;
-            }
-            if(Q2_xB_Bin_smeared == 6){
-                add_to_bin = 238;
-            }
-            if(Q2_xB_Bin_smeared == 7){
-                add_to_bin = 263;
-            }
-            if(Q2_xB_Bin_smeared == 8){
-                add_to_bin = 299;
-            }
-            if(Q2_xB_Bin_smeared == 9){
-                add_to_bin = 319;
-            }
-
-            Bin_Res_4D_OG_smeared = z_pT_Bin_smeared + add_to_bin;
-
-            return Bin_Res_4D_OG_smeared;
-
-        """)
-        
-        
-        rdf = rdf.Define('Bin_4D_gen', """
-        
-            int add_to_bin = 0;
-            int Bin_4D_gen = -1; // Updated on 7-19-2022
-            
-            
-            if(PID_el == 0 || PID_pip == 0){
-                // Event is unmatched
-                Bin_4D_gen = -2; // Added on 7-19-2022
-                return Bin_4D_gen;
-                
-                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
-                // bin = -1 is given to matched event that did not land in any defined Q2-xB bins
-                // bin = 0 is given to events which land within the boarders of the first Q2-xB but does not land in any z-pT bins
-                // Note: Only bin = -2 is unique to the 'Bin_4D_gen' variable. "bin = -1" and "bin = 0" hold identical meanings for all other datasets to which this scheme is applied
-                
-            }
-            
-            if(Q2_xB_Bin_2_gen == 0){
-                Bin_4D_gen = -1; // Updated on 7-19-2022
-                return Bin_4D_gen;
-            }
-            if(Q2_xB_Bin_2_gen == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_2_gen == 2){
-                add_to_bin = 50;
-            }
-            if(Q2_xB_Bin_2_gen == 3){
-                add_to_bin = 100;
-            }
-            if(Q2_xB_Bin_2_gen == 4){
-                add_to_bin = 150;
-            }
-            if(Q2_xB_Bin_2_gen == 5){
-                add_to_bin = 193;
-            }
-            if(Q2_xB_Bin_2_gen == 6){
-                add_to_bin = 230;
-            }
-            if(Q2_xB_Bin_2_gen == 7){
-                add_to_bin = 256;
-            }
-            if(Q2_xB_Bin_2_gen == 8){
-                add_to_bin = 283;
-            }
-            
-            Bin_4D_gen = z_pT_Bin_2_gen + add_to_bin;
-            
-            return Bin_4D_gen;
-        
-        """)
-        
-        
-        rdf = rdf.Define('Bin_Res_4D_gen', """
-
-            int add_to_bin = 0;
-            int Bin_Res_4D_gen = -1;
-            
-            if(PID_el == 0 || PID_pip == 0){
-                // Event is unmatched
-                Bin_Res_4D_gen = -2;
-                return Bin_Res_4D_gen;
-                
-                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
-                // bin = -1 is given to matched event that did not land in any defined Q2-xB or z-pT bins
-                // bin = 0 is empty, in keeping with prior definitions of the binning schemes (may change later)
-                // Other 'Bin_Res_4D' binning schemes are identical to this except for the addition of the -2 bin
-                
-            }
-
-            if(Q2_xB_Bin_2_gen == 0 || z_pT_Bin_2_gen == 0){
-                Bin_Res_4D_gen = -1;
-                return Bin_Res_4D_gen;
-            }
-            if(Q2_xB_Bin_2_gen == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_2_gen == 2){
-                add_to_bin = 49;
-            }
-            if(Q2_xB_Bin_2_gen == 3){
-                add_to_bin = 98;
-            }
-            if(Q2_xB_Bin_2_gen == 4){
-                add_to_bin = 147;
-            }
-            if(Q2_xB_Bin_2_gen == 5){
-                add_to_bin = 189;
-            }
-            if(Q2_xB_Bin_2_gen == 6){
-                add_to_bin = 225;
-            }
-            if(Q2_xB_Bin_2_gen == 7){
-                add_to_bin = 250;
-            }
-            if(Q2_xB_Bin_2_gen == 8){
-                add_to_bin = 275;
-            }
-
-            Bin_Res_4D_gen = z_pT_Bin_2_gen + add_to_bin;
-
-            return Bin_Res_4D_gen;
-
-
-        """)
-        
-        
-        
-        rdf = rdf.Define('Bin_4D_OG_gen', """
-        
-            int add_to_bin = 0;
-            int Bin_4D_OG_gen = -1;
-            
-            
-            if(PID_el == 0 || PID_pip == 0){
-                // Event is unmatched
-                Bin_4D_OG_gen = -2;
-                return Bin_4D_OG_gen;
-                
-                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
-                // bin = -1 is given to matched event that did not land in any defined Q2-xB bins
-                // bin = 0 is given to events which land within the boarders of the first Q2-xB but does not land in any z-pT bins
-                // Note: Only bin = -2 is unique to the 'Bin_4D_OG_gen' variable. "bin = -1" and "bin = 0" hold identical meanings for all other datasets to which this scheme is applied
-                
-            }
-            
-            if(Q2_xB_Bin_gen == 0){
-                Bin_4D_OG_gen = -1;
-                return Bin_4D_OG_gen;
-            }
-            if(Q2_xB_Bin_gen == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_gen == 2){
-                add_to_bin = 50;
-            }
-            if(Q2_xB_Bin_gen == 3){
-                add_to_bin = 100;
-            }
-            if(Q2_xB_Bin_gen == 4){
-                add_to_bin = 150;
-            }
-            if(Q2_xB_Bin_gen == 5){
-                add_to_bin = 193;
-            }
-            if(Q2_xB_Bin_gen == 6){
-                add_to_bin = 243;
-            }
-            if(Q2_xB_Bin_gen == 7){
-                add_to_bin = 269;
-            }
-            if(Q2_xB_Bin_gen == 8){
-                add_to_bin = 306;
-            }
-           if(Q2_xB_Bin_gen == 9){
-                add_to_bin = 327;
-            }
-            
-            Bin_4D_OG_gen = z_pT_Bin_gen + add_to_bin;
-            
-            return Bin_4D_OG_gen;
-        
-        """)
-        
-        
-        rdf = rdf.Define('Bin_Res_4D_OG_gen', """
-
-            int add_to_bin = 0;
-            int Bin_Res_4D_OG_gen = -1;
-            
-            if(PID_el == 0 || PID_pip == 0){
-                // Event is unmatched
-                Bin_Res_4D_OG_gen = -2;
-                return Bin_Res_4D_OG_gen;
-                
-                // When a reconstructed event does not have a matching generated event, the missing generated bin will be defined as bin = -2
-                // bin = -1 is given to matched event that did not land in any defined Q2-xB or z-pT bins
-                // bin = 0 is empty, in keeping with prior definitions of the binning schemes (may change later)
-                // Other 'Bin_Res_4D' binning schemes are identical to this except for the addition of the -2 bin
-                
-            }
-            
-            if(Q2_xB_Bin_gen == 0 || z_pT_Bin_gen == 0){
-                Bin_Res_4D_OG_gen = -1;
-                return Bin_Res_4D_OG_gen;
-            }
-            if(Q2_xB_Bin_gen == 1){
-                add_to_bin = 0;
-            }
-            if(Q2_xB_Bin_gen == 2){
-                add_to_bin = 49;
-            }
-            if(Q2_xB_Bin_gen == 3){
-                add_to_bin = 98;
-            }
-            if(Q2_xB_Bin_gen == 4){
-                add_to_bin = 147;
-            }
-            if(Q2_xB_Bin_gen == 5){
-                add_to_bin = 189;
-            }
-            if(Q2_xB_Bin_gen == 6){
-                add_to_bin = 238;
-            }
-            if(Q2_xB_Bin_gen == 7){
-                add_to_bin = 263;
-            }
-            if(Q2_xB_Bin_gen == 8){
-                add_to_bin = 299;
-            }
-            if(Q2_xB_Bin_gen == 9){
-                add_to_bin = 319;
-            }
-
-            Bin_Res_4D_OG_gen = z_pT_Bin_gen + add_to_bin;
-
-            return Bin_Res_4D_OG_gen;
-
-        """)
-        
-
-        
-        
-        
-        
-    ##===================================================##
-    ##=====##=====##   5D Kinematic Bins   ##=====##=====##
-    ##===================================================##
-        
-    rdf = rdf.Define('Bin_5D', """
-    int phi_t_bin = (phi_t/10) + 1;
-    auto Bin_5D = Bin_4D + phi_t_bin;
-    if(phi_t_bin < 0 || phi_t_bin > 37){
-        // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-        Bin_5D = -2;
-    }
-    return Bin_5D;
-    """)
-    
-    rdf = rdf.Define('Bin_5D_OG', """
-    int phi_t_bin = (phi_t/10) + 1;
-    auto Bin_5D_OG = Bin_4D_OG + phi_t_bin;
-    if(phi_t_bin < 0 || phi_t_bin > 37){
-        // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-        Bin_5D_OG = -2;
-    }
-    return Bin_5D_OG;
-    """)
-    
-    if(datatype in ["mdf", "pdf"]):
-        rdf = rdf.Define('Bin_5D_smeared', """
-        int phi_t_bin_smeared = (smeared_vals[11]/10) + 1;
-        auto Bin_5D_smeared = Bin_4D_smeared + phi_t_bin_smeared;
-        if(phi_t_bin_smeared < 0 || phi_t_bin_smeared > 37){
-            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-            Bin_5D_smeared = -2;
-        }
-        return Bin_5D_smeared;
-        """)
-        rdf = rdf.Define('Bin_5D_OG_smeared', """
-        int phi_t_bin_smeared = (smeared_vals[11]/10) + 1;
-        auto Bin_5D_OG_smeared = Bin_4D_OG_smeared + phi_t_bin_smeared;
-        if(phi_t_bin_smeared < 0 || phi_t_bin_smeared > 37){
-            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-            Bin_5D_OG_smeared = -2;
-        }
-        return Bin_5D_OG_smeared;
-        """)
-    
-        rdf = rdf.Define('Bin_5D_gen', """
-        int phi_t_bin_gen = (phi_t_gen/10) + 1;
-        auto Bin_5D_gen = Bin_4D_gen + phi_t_bin_gen;
-        if(phi_t_bin_gen < 0 || phi_t_bin_gen > 37){
-            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-            Bin_5D_gen = -3;
-        }
-        return Bin_5D_gen;
-        """)
-        
-        rdf = rdf.Define('Bin_5D_OG_gen', """
-        int phi_t_bin_gen = (phi_t_gen/10) + 1;
-        auto Bin_5D_OG_gen = Bin_4D_OG_gen + phi_t_bin_gen;
-        if(phi_t_bin_gen < 0 || phi_t_bin_gen > 37){
-            // The phi angle should not be less than 0˚ or greater than 360˚ (by definition, there should not be any overflow bins)
-            Bin_5D_OG_gen = -3;
-        }
-        return Bin_5D_OG_gen;
-        """)
-        
-        
-        
-        
-        
-    #####################     Generated Bin Definitions     #####################
     #############################################################################
     #####################      Matched Bin Definitions      #####################
 
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
     
     def Bin_Purity_Filter_Fuction(dataframe, variable, min_range, max_range, number_of_bins):
-
         gen_variable = "".join([variable.replace("_smeared", ""), "_gen"])
-
-
         if("Q2_xB_Bin" in variable or "z_pT_Bin" in variable or "sec" in variable or "Bin_4D" in variable or "Bin_5D" in variable):
-
             if("sec" in variable):
                 gen_variable = gen_variable.replace("_a", "")
-
             filter_name = "".join([variable, " == ", gen_variable, " && ", variable, " != 0"])
-
         else:
-
             bin_size = (max_range - min_range)/number_of_bins
-
-
             filter_name = "".join(["""
-
             // cout<<endl<<"Starting a new line of purity filtering..."<<endl;
-
             int rec_bin = (""", str(variable), """ - """, str(min_range), """)/""", str(bin_size), """;
             int gen_bin = (""", str(gen_variable), """ - """, str(min_range), """)/""", str(bin_size), """;
-
             // cout<<endl<<"The reconstructed event (with the value Name_""", str(variable), """ = "<<""", str(variable), """<<") was found in bin "<<rec_bin<<" (Range = "<<(""", str(min_range), """ + (rec_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (rec_bin + 1)*""", str(bin_size), """)<<")"<<endl;
             // cout<<"The generated event (with the value Name_""", str(gen_variable), """ = "<<""", str(gen_variable), """<<") was found in bin "<<gen_bin<<" (Range = "<<(""", str(min_range), """ + (gen_bin)*""", str(bin_size), """)<<" --> "<<(""", str(min_range), """ + (gen_bin + 1)*""", str(bin_size), """)<<")"<<endl<<endl;
-
-
             bool filter_Q = (rec_bin == gen_bin && PID_el != 0 && PID_pip != 0);
-
-
-            return filter_Q;
-
-
-
-            """])
-
+            return filter_Q;"""])
 
         return dataframe.Filter(str(filter_name))
-    
     
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
     
     def Bin_Number_Variable_Function(DF, Variable, min_range, max_range, number_of_bins, DF_Type=datatype):
-        
         # if("Q2_xB_Bin" in Variable or "z_pT_Bin" in Variable or "sec" in Variable or "Bin_4D" in Variable or "Bin_5D" in Variable):
         #     # Already defined
         #     return DF
-        
-        if((("Bin" in Variable) or ("sec" in Variable)) or (DF == "continue") or ("Combined_" in Variable)):
+        if((("Bin" in Variable) or ("sec" in Variable)) or (DF == "continue") or ("Combined_" in Variable or "Multi_Dim" in Variable)):
             # Already defined
             return DF
-        
         else:
-            
             GEN_Variable = "".join([Variable.replace("_smeared", ""), "_gen"])
-
             out_put_DF = DF
-
             bin_size = (max_range - min_range)/number_of_bins
-
             rec_bin = "".join(["""
-
             int rec_bin = ((""", str(Variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
-
             if(""", str(Variable), """ < """, str(min_range), """){
                 // Below binning range
                 rec_bin = 0;
             }
-
             if(""", str(Variable), """ > """, str(max_range), """){
                 // Above binning range
                 rec_bin = """, str(number_of_bins + 1), """;
             }
-
-            return rec_bin;
-
-            """])
-
-
+            return rec_bin;"""])
             gen_bin = "".join(["""
-
             int gen_bin = ((""", str(GEN_Variable), """ - """, str(min_range), """)/""", str(bin_size), """) + 1;
-
             if(""", str(GEN_Variable), """ < """, str(min_range), """){
                 // Below binning range
                 gen_bin = 0;
             }
-
             if(""", str(GEN_Variable), """ > """, str(max_range), """){
                 // Above binning range
                 gen_bin = """, str(number_of_bins + 1), """;
             }
-
             if(PID_el == 0 || PID_pip == 0){
                 // Event is unmatched
                 gen_bin = """, str(number_of_bins + 2), """;
             }
-
-            return gen_bin;
-
-            """])
-
+            return gen_bin;"""])
             out_put_DF = out_put_DF.Define("".join([str(Variable), "_REC_BIN"]), rec_bin)
             if(DF_Type not in ["rdf", "gdf"]):
                 out_put_DF = out_put_DF.Define("".join([str(Variable), "_GEN_BIN"]), gen_bin)
-
-
         return out_put_DF
 
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
 
-    def Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine, Smearing_Q="", Data_Type=datatype, return_option="DF"):
-        # print("".join(["Combining Variables: Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine='", str(Variables_To_Combine), "', Smearing_Q='", str(Smearing_Q), "', Data_Type='", str(Data_Type), "', return_option='", str(return_option), "')"]))
-        # Try to test later in the randomly generated rdataframe (see 'MC_DataFrame_Volume_Calculation.ipynb')
-        # When combining variables, each subsequent entry in the list 'Variables_To_Combine' will be inserted within the previous variable
-            # Therefore, to see the phi_h distribution in a combined Q2-xB-z-pT bin, let Variables_To_Combine = [['Q2-xB bin info'], ['z-pT bin info'], ['phi_h info']]
-            # For the bin info of the Q2-xB/z-pT bins, make sure that the Min_Bin = 0 and Max_Bin = Num_Bin
-            # Note: This function should be able to combine any number of variables, but the rest of the code may not be optimized to combine 4 variables at the same time (rewrite other parts of code if this becomes necessary)
-        DF_Res_Error = False # Helps trigger error message for when this function fails to calculate the variables for the response matrices
-        try:
-            if(DF == "continue"):
-                return "continue"
-            if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
-                print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
-                if(return_option == "DF"):
-                    return DF
-                else:
-                    return Variables_To_Combine
+#     def Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine, Smearing_Q="", Data_Type=datatype, return_option="DF"):
+#         # print("".join(["Combining Variables: Multi_Dimensional_Bin_Construction(DF, Variables_To_Combine='", str(Variables_To_Combine), "', Smearing_Q='", str(Smearing_Q), "', Data_Type='", str(Data_Type), "', return_option='", str(return_option), "')"]))
+#         # Try to test later in the randomly generated rdataframe (see 'MC_DataFrame_Volume_Calculation.ipynb')
+#         # When combining variables, each subsequent entry in the list 'Variables_To_Combine' will be inserted within the previous variable
+#             # Therefore, to see the phi_h distribution in a combined Q2-xB-z-pT bin, let Variables_To_Combine = [['Q2-xB bin info'], ['z-pT bin info'], ['phi_h info']]
+#             # For the bin info of the Q2-xB/z-pT bins, make sure that the Min_Bin = 0 and Max_Bin = Num_Bin
+#             # Note: This function should be able to combine any number of variables, but the rest of the code may not be optimized to combine 4 variables at the same time (rewrite other parts of code if this becomes necessary)
+#         DF_Res_Error = False # Helps trigger error message for when this function fails to calculate the variables for the response matrices
+#         try:
+#             if(DF == "continue"):
+#                 return "continue"
+#             if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
+#                 print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
+#                 if(return_option == "DF"):
+#                     return DF
+#                 else:
+#                     return Variables_To_Combine
+#             else:
+#                 Vars_Data_Type_Output = [""] if((return_option != "DF_Res") or (Data_Type in ["rdf", "gdf"])) else ["", "_gen"]
+#                 for rec_or_gen in Vars_Data_Type_Output:
+#                     try:
+#                         variable_name_1, Min_Bin_1, Max_Bin_1, Num_Bin_1 = Variables_To_Combine[0]
+#                         Bin_Size_1 = (Max_Bin_1 - Min_Bin_1)/Num_Bin_1
+#                         Bin_Group_Numbers = Num_Bin_1
+#                         if(rec_or_gen == ""):
+#                             if((Smearing_Q != "") and ("_smeared" not in variable_name_1)):
+#                                 print("".join([color.RED, color.BOLD, "ERROR: MISSING SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+#                                 variable_name_1 = "".join([str(variable_name_1), "_smeared"])
+#                             if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
+#                                 print("".join([color.RED, color.BOLD, "ERROR: SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+#                                 variable_name_1 = str(variable_name_1).replace("_smeared", "")
+#                         else:
+#                             variable_name_1 = "".join([str(variable_name_1).replace("_smeared", ""), "_gen"])
+#                         # Combined_Bin_All = "".join(["""
+#                         # int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+#                         # if(""", str(variable_name_1), """ < """, str(Min_Bin_1), """){
+#                         #     // Below binning range
+#                         #     Combined_Bin_Start = 0;
+#                         # }
+#                         # if(""", str(variable_name_1), """ > """, str(Max_Bin_1), """){
+#                         #     // Above binning range
+#                         #     Combined_Bin_Start = """, str(Num_Bin_1 + 1), """;
+#                         # }
+#                         # """])
+#                         Combined_Bin_All = "".join(["""
+#     int Combined_Bin_Final = 0;
+#     // int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
+#     int Combined_Bin_Start = ((""",    str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """);
+#     if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
+#         // Outside binning range (will only combine events which are within all given binning schemes)
+#         Combined_Bin_Final = -1;
+#         return Combined_Bin_Final;
+#     }
+#     Combined_Bin_Final = Combined_Bin_Start;"""])
+#                     except:
+#                         print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in retriving base variable for new multidimensional bin variable.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+#                     if(("DF" in return_option) and (rec_or_gen == "")):
+#                         try:
+#                             if(Smearing_Q != ""):
+#                                 DF_Final = smear_frame_compatible(DF, variable_name_1, Smearing_Q)
+#                             else:
+#                                 DF_Final = DF
+#                         except:
+#                             print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+#                     Combined_Bin_Title = "".join(["Combined_", str(variable_name_1)])
+#                     for variable_binning in Variables_To_Combine:
+#                         variable_name, Min_Bin, Max_Bin, Num_Bin = variable_binning
+#                         Bin_Size = (Max_Bin - Min_Bin)/Num_Bin
+#                         if(rec_or_gen == ""):
+#                             if((Smearing_Q != "") and ("_smeared" not in variable_name)):
+#                                 print("".join([color.RED, "ERROR: MISSING (SECONDARY) SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+#                                 variable_name = "".join([str(variable_name), "_smeared"])
+#                             if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
+#                                 print("".join([color.RED, "ERROR: (SECONDARY) SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
+#                                 variable_name = str(variable_name).replace("_smeared", "")
+#                             if((("_smeared" in variable_name_1) and ("_smeared" not in variable_name)) or (("_smeared" not in variable_name_1) and ("_smeared" in variable_name))):
+#                                 print("".join([color.BOLD, color.RED, "/nMAJOR WARNING: COMBINING VARIABLES THAT DO NOT HAVE THE SAME SMEARING OPTION APPLIED (CHECK Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ") MANUALLY)\n", color.END]))
+#                         else:
+#                             variable_name = "".join([str(variable_name).replace("_smeared", ""), "_gen"])
+#                         if(variable_name_1 == variable_name):
+#                             # Skip first variable in list
+#                             continue
+#                         if(("DF" in return_option) and (rec_or_gen == "")):
+#                             try:
+#                                 if(Smearing_Q != ""):
+#                                     DF_Final = smear_frame_compatible(DF_Final, variable_name, Smearing_Q)
+#                             except:
+#                                 print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
+#                         Combined_Bin_All = "".join([Combined_Bin_All, """
+#     int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """);
+#     if((""", str(variable_name), """ < """, str(Min_Bin), """) || (""", str(variable_name), """ > """, str(Max_Bin), """)){
+#         // Outside binning range (will only combine events which are within all given binning schemes)
+#         Combined_Bin_Final = -1;
+#         return Combined_Bin_Final;
+#     }
+#     Combined_Bin_Final += ((""", str(Bin_Group_Numbers), """ + 1)*Combined_Add_""", str(variable_name), """);"""])
+#                         Bin_Group_Numbers = (Bin_Group_Numbers + 1)*(Num_Bin + 1)
+#                         Combined_Bin_Title = "".join([str(Combined_Bin_Title.replace("_smeared", "")).replace("_gen", ""), "_", str(variable_name)])
+#                         if((rec_or_gen != "") and ("_gen" not in Combined_Bin_Title)):
+#                             Combined_Bin_Title = "".join([str(Combined_Bin_Title), "_gen"])
+#                     Combined_Bin_All = "".join([Combined_Bin_All, """
+#     return Combined_Bin_Final;"""])
+#                     if(return_option == "DF"):
+#                         try:
+#                             DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
+#                             return DF_Final
+#                         except:
+#                             print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+#                     elif(return_option == "DF_Res"):
+#                         try:
+#                             # print("".join(["DF_Final = DF_Final.Define(", str(Combined_Bin_Title), ", ", str(Combined_Bin_All), ")"]))
+#                             DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
+#                         except:
+#                             print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+#                     else:
+#                         return [str(Combined_Bin_Title), -1.5, Bin_Group_Numbers + 1.5, Bin_Group_Numbers + 3]
+#         except:
+#             print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+#             DF_Res_Error = True
+#         if(return_option != "DF_Res" or DF_Res_Error):
+#             print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\nFAILURE TO RETURN ANYTHING", color.END]))
+#             return DF
+#         else:
+#             return DF_Final
+        
+##########################################################################################################################################################################################
+##########################################################################################################################################################################################
+
+    def Multi_Dim_Bin_Def(DF, Variables_To_Combine, Smearing_Q="", Data_Type=datatype, return_option="DF"):
+        if(DF == "continue"):
+            return "continue"
+        if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
+            print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
+            if(return_option == "DF"):
+                return DF
             else:
-                
-                Vars_Data_Type_Output = [""] if((return_option != "DF_Res") or (Data_Type in ["rdf", "gdf"])) else ["", "_gen"]
-                
-                for rec_or_gen in Vars_Data_Type_Output:
+                return Variables_To_Combine
+        Vars_Data_Type_Output = [""] if((return_option != "DF_Res") or (Data_Type in ["rdf", "gdf"])) else ["" if("mear" not in Smearing_Q) else "_smeared", "_gen"]
+        var_name, var_mins, var_maxs, var_bins = zip(*Variables_To_Combine)
+        var_name, var_mins, var_maxs, var_bins = list(var_name), list(var_mins), list(var_maxs), list(var_bins)
+        for list_invert in [var_name, var_mins, var_maxs, var_bins]:
+            list_invert.reverse()
+        Multi_Dim_Bin_Title, combined_bin_formula = {}, {}
+        DF_Final = DF
+        # print("var_name:", var_name, "\nvar_mins:", var_mins, "\nvar_maxs:", var_maxs, "\nvar_bins:", var_bins)
+        for var_type in Vars_Data_Type_Output:
+            Multi_Dim_Bin_Title[var_type] = "Multi_Dim"
+            for ii, var in enumerate(var_name):
+                Multi_Dim_Bin_Title[var_type] += str("".join(["_", str(var).replace("_smeared", "")])).replace("_gen", "")
+                if(var_type not in str(var)):
+                    var_name[ii] = "".join([str(var), str(var_type)])
+                if(var_type in [""]):
+                    var_name[ii] = str((var).replace("_smeared", "")).replace("_gen", "")
+                else:
+                    var_name[ii] = str((var).replace("_smeared" if("gen" in str(var_type)) else "_gen", ""))
+                if(str(var_name[ii]) not in list(DF_Final.GetColumnNames()) and var_type in ["_smeared"]):
+                    DF_Final = smear_frame_compatible(DF_Final, str(var_name[ii]), Smearing_Q)
+                elif(str(var_name[ii]) not in list(DF_Final.GetColumnNames())):
+                    print("".join(["ERROR IN 'Multi_Dim_Bin_Def': Variable '", str(var_name[ii]), "' is not in the DataFrame (check code for errors)"]))
+            Multi_Dim_Bin_Title[var_type] += str(var_type)
+            combined_bin_formula[var_type] = "".join(["int combined_bin", str(var_type), " = "])
+            for ii, var in enumerate(var_name):
+                if(combined_bin_formula[var_type]  != "".join(["int combined_bin", str(var_type), " = "])):
+                    combined_bin_formula[var_type] += " + "
+                if("_Bin" not in str(var)):
+                    var_bin_product = str(var_bins[ii])
+                    for jj in range(ii + 1, len(var_name)):
+                        var_bin_product            += "".join(["*", str(var_bins[jj])])
+                    norm_var                        = "(({0} - {1})/({2} - {1}))".format(var, var_mins[ii], var_maxs[ii])
+                    combined_bin_formula[var_type] += "int({0}*{1}) + ".format(norm_var, var_bin_product)
+                else:
                     try:
-                        variable_name_1, Min_Bin_1, Max_Bin_1, Num_Bin_1 = Variables_To_Combine[0]
-                        Bin_Size_1 = (Max_Bin_1 - Min_Bin_1)/Num_Bin_1
-                        Bin_Group_Numbers = Num_Bin_1
-
-                        if(rec_or_gen == ""):
-                            if((Smearing_Q != "") and ("_smeared" not in variable_name_1)):
-                                print("".join([color.RED, color.BOLD, "ERROR: MISSING SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
-                                variable_name_1 = "".join([str(variable_name_1), "_smeared"])
-                            if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
-                                print("".join([color.RED, color.BOLD, "ERROR: SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
-                                variable_name_1 = str(variable_name_1).replace("_smeared", "")
-                        else:
-                            variable_name_1 = "".join([str(variable_name_1).replace("_smeared", ""), "_gen"])
-
-
-                        # Combined_Bin_All = "".join(["""
-                        # int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
-                        # if(""", str(variable_name_1), """ < """, str(Min_Bin_1), """){
-                        #     // Below binning range
-                        #     Combined_Bin_Start = 0;
-                        # }
-                        # if(""", str(variable_name_1), """ > """, str(Max_Bin_1), """){
-                        #     // Above binning range
-                        #     Combined_Bin_Start = """, str(Num_Bin_1 + 1), """;
-                        # }
-                        # """])
-
-                        Combined_Bin_All = "".join(["""
-    int Combined_Bin_Final = 0;
-    // int Combined_Bin_Start = ((""", str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """) + 1;
-    int Combined_Bin_Start = ((""",    str(variable_name_1), """ - """, str(Min_Bin_1), """)/""", str(Bin_Size_1), """);
-    if((""", str(variable_name_1), """ < """, str(Min_Bin_1), """) || (""", str(variable_name_1), """ > """, str(Max_Bin_1), """)){
-        // Outside binning range (will only combine events which are within all given binning schemes)
-        Combined_Bin_Final = -1;
-        return Combined_Bin_Final;
-    }
-    Combined_Bin_Final = Combined_Bin_Start;
-                        """])
-
+                        combined_bin_formula[var_type] += "".join(["(", str(var), "*", str(var_bins[ii + 1]), ")"])
                     except:
-                        print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in retriving base variable for new multidimensional bin variable.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
-
-
-                    if(("DF" in return_option) and (rec_or_gen == "")):
-                        try:
-                            if(Smearing_Q != ""):
-                                DF_Final = smear_frame_compatible(DF, variable_name_1, Smearing_Q)
-                            else:
-                                DF_Final = DF
-                        except:
-                            print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
-
-
-                    Combined_Bin_Title = "".join(["Combined_", str(variable_name_1)])
-
-                    for variable_binning in Variables_To_Combine:
-                        variable_name, Min_Bin, Max_Bin, Num_Bin = variable_binning
-                        Bin_Size = (Max_Bin - Min_Bin)/Num_Bin
-
-                        if(rec_or_gen == ""):
-                            if((Smearing_Q != "") and ("_smeared" not in variable_name)):
-                                print("".join([color.RED, "ERROR: MISSING (SECONDARY) SMEARING OPTION DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
-                                variable_name = "".join([str(variable_name), "_smeared"])
-                            if((Smearing_Q == "") and ("_smeared" in variable_name_1)):
-                                print("".join([color.RED, "ERROR: (SECONDARY) SMEARING OPTION NOT SELECTED DURING Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ")", color.END]))
-                                variable_name = str(variable_name).replace("_smeared", "")
-                            if((("_smeared" in variable_name_1) and ("_smeared" not in variable_name)) or (("_smeared" not in variable_name_1) and ("_smeared" in variable_name))):
-                                print("".join([color.BOLD, color.RED, "/nMAJOR WARNING: COMBINING VARIABLES THAT DO NOT HAVE THE SAME SMEARING OPTION APPLIED (CHECK Multi_Dimensional_Bin_Construction(Variables_To_Combine=", str(Variables_To_Combine), ") MANUALLY)\n", color.END]))
-                        else:
-                            variable_name = "".join([str(variable_name).replace("_smeared", ""), "_gen"])
-                            
-                        if(variable_name_1 == variable_name):
-                            # Skip first variable in list
-                            continue
-
-                        if(("DF" in return_option) and (rec_or_gen == "")):
-                            try:
-                                if(Smearing_Q != ""):
-                                    DF_Final = smear_frame_compatible(DF_Final, variable_name, Smearing_Q)
-                            except:
-                                print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dimensional_Bin_Construction...\nError in smearing.\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))   
-
-
-                        Combined_Bin_All = "".join([Combined_Bin_All, """
-    int Combined_Add_""", str(variable_name), """ = ((""", str(variable_name), """ - """, str(Min_Bin), """)/""", str(Bin_Size), """);
-    if((""", str(variable_name), """ < """, str(Min_Bin), """) || (""", str(variable_name), """ > """, str(Max_Bin), """)){
-        // Outside binning range (will only combine events which are within all given binning schemes)
-        Combined_Bin_Final = -1;
-        return Combined_Bin_Final;
-    }
-    Combined_Bin_Final += ((""", str(Bin_Group_Numbers), """ + 1)*Combined_Add_""", str(variable_name), """);
-                        """])
-
-                        Bin_Group_Numbers = (Bin_Group_Numbers + 1)*(Num_Bin + 1)
-                        Combined_Bin_Title = "".join([str(Combined_Bin_Title.replace("_smeared", "")).replace("_gen", ""), "_", str(variable_name)])
-                        if((rec_or_gen != "") and ("_gen" not in Combined_Bin_Title)):
-                            Combined_Bin_Title = "".join([str(Combined_Bin_Title), "_gen"])
-
-                    Combined_Bin_All = "".join([Combined_Bin_All, """
-    return Combined_Bin_Final;"""])
-
-                    if(return_option == "DF"):
-                        try:
-                            DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
-                            return DF_Final
-                        except:
-                            print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
-                    elif(return_option == "DF_Res"):
-                        try:
-                            # print("".join(["DF_Final = DF_Final.Define(", str(Combined_Bin_Title), ", ", str(Combined_Bin_All), ")"]))
-                            DF_Final = DF_Final.Define(str(Combined_Bin_Title), str(Combined_Bin_All))
-                        except:
-                            print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
-                    else:
-                        return [str(Combined_Bin_Title), -1.5, Bin_Group_Numbers + 1.5, Bin_Group_Numbers + 3]
-            
-        except:
-            print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
-            DF_Res_Error = True
-           
-        if(return_option != "DF_Res" or DF_Res_Error):
-            print("".join([color.BOLD, color.RED, "\n\nMAJOR ERROR IN Multi_Dimensional_Bin_Construction:\nFAILURE TO RETURN ANYTHING", color.END]))
-            return DF
-        else:
-            return DF_Final
-         
+                        print("ERROR")
+                        combined_bin_formula[var_type] += str(var)
+            combined_bin_formula[var_type] += """1;
+            if("""
+            for ii, var in enumerate(var_name):
+                combined_bin_formula[var_type] += "".join([str(var), " < ", str(var_mins[ii]), " || ", str(var), " > ", str(var_maxs[ii])])
+                if(ii != (len(var_name) - 1)):
+                    combined_bin_formula[var_type] += " || "
+            combined_bin_formula[var_type]     += "".join(["){combined_bin", str(var_type), """ = -1;}
+            return combined_bin""", str(var_type), ";"])
+            # print(combined_bin_formula[var_type])
+            if(return_option == "DF"):
+                try:
+                    DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
+                except:
+                    print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+            elif(return_option == "DF_Res"):
+                try:
+                    DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
+                except:
+                    print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+            else:
+                return [str(Multi_Dim_Bin_Title[var_type]), -1.5, (numpy.prod(var_bins)) + 1.5, (numpy.prod(var_bins)) + 3]
+        return DF_Final
     
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
@@ -6391,47 +3585,36 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         return output
 
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-
 
     def Delta_Matched_Bin_Calc(Variable, Min_Bin, Max_Bin):
         output = "continue"
         Min_Dif, Max_Dif = (Min_Bin - Max_Bin), (Max_Bin - Min_Bin)
-
         if("th" in Variable):
             Min_Dif, Max_Dif = -6, 6
-
         if("Phi" in Variable):
             Min_Dif, Max_Dif = -10, 10
-
         Num_of_Bins = int((Max_Dif - Min_Dif)/0.005)
-        if(Num_of_Bins < 400):
-            Num_of_Bins = 400
+        if(Num_of_Bins   < 400):
+            Num_of_Bins  = 400
         elif(Num_of_Bins < 200):
-            Num_of_Bins = 200
+            Num_of_Bins  = 200
         elif(Num_of_Bins > 1500):
-            Num_of_Bins = 1500
+            Num_of_Bins  = 1500
         elif(Num_of_Bins > 1200):
-            Num_of_Bins = 1200
+            Num_of_Bins  = 1200
         elif(Num_of_Bins > 800):
-            Num_of_Bins = 800
+            Num_of_Bins  = 800
         else:
-            Num_of_Bins = 600
+            Num_of_Bins  = 600
         if(((Max_Dif - Min_Dif)/Num_of_Bins) > 1 and (Max_Dif - Min_Dif) < 800):
             Num_of_Bins = int(Max_Dif - Min_Dif)
-
-
         output = [Num_of_Bins, Min_Dif, Max_Dif]
-
         return output
     
-    
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
-    
     
     ###################################################################################################################################################################
     ###################################################                 Done With Kinematic Binning                 ###################################################
@@ -6441,19 +3624,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################          Defining Helpful Functions for Histograms          ###################################################
     ###################################################################################################################################################################
 
-    
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
     
     ###################=========================###################
     ##===============##     Variable Titles     ##===============##
     ###################=========================###################
     
     def variable_Title_name(variable):
-
         smeared_named, bank_named = '', ''
-        
         if("_smeared" in variable):
             smeared_named = 'yes'
             variable = variable.replace("_smeared","")
@@ -6592,10 +3771,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = "".join(["Combined 5D Bin", " (Original)" if("OG" in variable) else ""])
         if("Bin_Res_4D" in variable):
             output = "".join(["Q^{2}-x_{B}-z-P_{T} Bin", " (Original)" if("OG" in variable) else ""])
-        if("Combined_" in variable):
-            output = "".join(["Combined Binning: ", str(variable.replace("Combined_", ""))])
+        if("Combined_" in variable or "Multi_Dim" in variable):
+            output = "".join(["Combined Binning: ", str(variable.replace("Combined_", ""))]).replace("Multi_Dim_", "")
             
-
         if(smeared_named == 'yes'):
             output = "".join([output, " (Smeared)"])
             
@@ -6607,23 +3785,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = str(variable)
 
         return output
-    
 
     ###################=========================###################
     ##===============##     Variable Titles     ##===============##
     ###################=========================###################
     
-    
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
     
     ###################=======================================###################
     ##===============##        Full Filter + Cut Title        ##===============##
     ###################=======================================###################
     
     def DF_Filter_Function_Full(DF, Variables, Titles_or_DF, Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type="rdf", Cut_Choice="no_cut", Smearing_Q="", Binning_Q="", Sec_type="", Sec_num=-1):
-
         # if("2" not in Binning_Q and "P2" in Cut_Choice):
         #     return "continue"
         # if('str' in str(type(Variables)) and Q2_xB_Bin_Filter != -1 and Variables != "2D_Purity"):
@@ -6681,19 +3855,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(Q2_xB_Bin_Filter > 0):
             Q2_xB_BinList_Name, Filter_1 = "".join([variable_Title_name(Q2_xB_Bin_Filter_str), ": ", str(Q2_xB_Bin_Filter)]), "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter)])
 
-        if(z_pT_Bin_Filter == -2): # This skips z-pT bins
+        if(z_pT_Bin_Filter  == -2): # This skips z-pT bins
             z_pT_BinList_Name, Filter_2 = "", ""
 
-        if(z_pT_Bin_Filter == -1):
+        if(z_pT_Bin_Filter  == -1):
             z_pT_BinList_Name, Filter_2 = "Only Binned Events", "".join([str(z_pT_Bin_Filter_str), " != 0"])
 
-        if(z_pT_Bin_Filter == 0):
+        if(z_pT_Bin_Filter  == 0):
             z_pT_BinList_Name, Filter_2 = "None - Events without a bin", "".join([str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter)])
 
-        if(z_pT_Bin_Filter > 0):
+        if(z_pT_Bin_Filter  > 0):
             z_pT_BinList_Name, Filter_2 = "".join([variable_Title_name(z_pT_Bin_Filter_str), ": ", str(z_pT_Bin_Filter)]), "".join([str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter)])
-
-
+            
         if(Filter_2 != ""):
             Filter_Name = "".join([Filter_1, " && ", Filter_2])
         else:
@@ -6712,14 +3885,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     Filter_Name = "".join([Filter_Name, " && ", str(Sec_type), " == ", str(Sec_num)])
             elif(Sec_type != '' and Sec_num != -1):
                 Filter_Name = "".join([str(Sec_type), " == ", str(Sec_num)])
-
-
+                
             if(Filter_Name != ""):
                 print(Filter_Name)
                 DF_Out = DF.Filter(Filter_Name)
             else:
                 DF_Out = DF
-
         else:
             particle_sector = ""
             if(Sec_type != '' and Sec_num != -1):
@@ -6737,8 +3908,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##----------##  Sector Filter (End)  ##----------##
         ##===============================================##
 
-
-
+        
         ##################################################
         ##==========## General Cuts (Start) ##==========##
         ##################################################
@@ -6758,17 +3928,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(Data_Type == "miss_idf_pip" and Titles_or_DF == 'DF'):
             DF_Out = DF_Out.Filter("(PID_el != 0 && PID_pip != 0) && PID_pip != 211")
 
-
-
         if(Data_Type not in ["gdf", "gen"] and "no_cut" != Cut_Choice):
 
             if("Complete" in Cut_Choice):
-
                 cutname = "Complete Set of "
-
+                
                 if("smear" in Smearing_Q and Data_Type != "rdf"):
                     cutname = "".join([cutname, "(Smeared) "])
-
+                    
                 if(Titles_or_DF == 'DF'):
                     if("smear" in Smearing_Q and Data_Type != "rdf"):
                         #        DF_Out.Filter("              y < 0.75 &&               xF > 0 &&               W > 2 &&              Q2 > 2 &&              pip > 1.25 &&              pip < 5 && 5 < elth             &&             elth < 35 && 5 < pipth            &&            pipth < 35")
@@ -6777,8 +3944,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     else:
                         DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out = filter_Valerii(DF_Out, Cut_Choice)
-
-
+                        
                 if("EDIS" in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -6792,23 +3958,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             DF_Out = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
                         else:
                             DF_Out = DF_Out.Filter("sqrt(MM2) > 1.5")
-
                 cutname = "".join([cutname, "Cuts"])
-
         else:
             # Generated Monte Carlo should not have cuts applied to it
             cutname = "No Cuts"
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
         ##################################################
-
-
-
-
+        
+        
         ##====================================================##
         ##----------## Smearing Variables (Start) ##----------##
         ##====================================================##
-        if((Variables not in ["Cuts Only", "Cuts_Only", "Cuts"]) and ("Combined_" not in Variables)):
+        if((Variables not in ["Cuts Only", "Cuts_Only", "Cuts"]) and ("Combined_" not in Variables and "Multi_Dim" not in Variables)):
             # If the above condition is FALSE, then the 'Variables' input does not specify a real variable that can be smeared or is already defined by another function (use to run this function for cuts only)
             # This information does not need to be run if titles are the only things of interest
             if((Data_Type in ["mdf", "pdf", "udf"] or ("miss_idf" in Data_Type)) and "smear" in Smearing_Q and Titles_or_DF == 'DF'):
@@ -6822,19 +3984,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##====================================================##
 
 
-
         ###########################################
         ##=======================================##
         ##==========## Final Outputs ##==========##
         ##=======================================##
         ###########################################
 
-
         ##==========## Cut Name ##==========##
         if(Titles_or_DF == 'Cut'):
             return cutname
         ##==========## Cut Name ##==========##
-
 
         ##==========## Data Frame Output ##==========##
         if(Titles_or_DF == 'DF'): 
@@ -6851,10 +4010,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##===============##     Full Filter + Cut Title (End)     ##===============##
     ###################=======================================###################
     
-    
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
     
     ###################=======================================###################
     ##===============##   (Other) Histogram Functions Title   ##===============##
@@ -6897,7 +4054,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Cut_Name = "SIDIS Cuts"
         if("Complete" in Cut_Type):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
-
         return Cut_Name
 
 ##########################################################################################################################################################################################
@@ -6915,8 +4071,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 else:
                     Dimensions_Output = "".join([str(Histo_Var_D1_Name), "; ", str(Histo_Var_D2_Name)])
 
-            Dimensions_Output = Dimensions_Output.replace(":", "=")
-            Dimensions_Output = Dimensions_Output.replace("; ", "), (")
+            Dimensions_Output = (Dimensions_Output.replace(":", "=")).replace("; ", "), (")
             
             # if(Histo_Var_D2 == "None" and Histo_Var_D3 == "None"):
             #     Dimensions_Output = Dimensions_Output.replace("_smeared", "")
@@ -6931,16 +4086,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         return Dimensions_Output
 
-    
     ###################=======================================###################
     ##===============##    Histogram Functions Title (End)    ##===============##
     ###################=======================================###################
-    
-    
-    
-    
-    
-    
     
     
     ##################################################################################################################################################################
@@ -6952,13 +4100,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################                    Choices For Graphing                    ###################################################
     ##################################################################################################################################################################
     
-
     
     ###################################################################
     #####################       Cut Choices       #####################
     
-    
-    run_Mom_Cor_Code = "yes"
+#     run_Mom_Cor_Code = "yes"
     run_Mom_Cor_Code = "no"
 
     if(run_Mom_Cor_Code == "yes"):
@@ -6968,33 +4114,27 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # # Cut Naming Conventions:
         # 1) 'no_cut' --> no new cuts are applied (only cuts are made during particle identification (PID))
-        #
         # 2) 'Mom' --> (See below)
           # 1.25 < pip < 5
           # 5 < elth < 35
           # 5 < pipth < 35"
-        #
         # 3) 'SIDIS' --> (See below)
           # y < 0.75
           # xF > 0
           # W > 2
           # Q2 > 1
-        #
         # 4) 'all' --> Combination of 'Mom', 'SIDIS', with an additional Missing Mass cut of: "MM > 1.5"
           # Do not combine with "Mom" or "SIDIS" separately as doing so will be meaningless (combination is already built in) 
-        #
         # 5) 'Valerii_Cut' --> Valerii's Fiducial cuts to remove bad detectors
-        #
         # 6) 'Q2'  -> New Q2 cut of "Q2 > 2"
         
     # # Other than 'no_cut', all of the above cuts can be combined separately by adding them to the str in cut_list as a suffix of another cut
     # # # Example:
         # # cut_list = ["no_cut", "cut_all", "cut_Mom_SIDIS"]
           # # The first two cuts in the above list are the same as describles in entry (1) and (4) in the list above. The 3rd entry is a combination of "Mom" and "SIDIS" where both cuts are applied together (order doesn't matter). This combination can be done with any of the cuts given in the list above (except 'no_cut') and can be done with as many of them as desired (no limits to number of cuts that can be added to one entry).
-    
 
     # cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
-    cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
+#     cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
     # cut_list = ['no_cut', 'cut_Complete_SIDIS']
     # cut_list = ['cut_Complete_SIDIS']
     
@@ -7007,8 +4147,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("".join([color.BLUE, color.BOLD, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
-
-    
+        
     
     #####################       Cut Choices       #####################
     ###################################################################
@@ -7037,54 +4176,70 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # binning_option_list = ["", "2"]
     binning_option_list = ["2"]
-    binning_option_list = ["Test"]
-#     binning_option_list = ["2", "Test", "3"]
-#     binning_option_list = ["2", "Test"]
+    # binning_option_list = ["Test"]
+    # binning_option_list = ["2", "Test", "3"]
+    binning_option_list = ["2", "3"]
 
     # The option '2' uses the modified binning schemes developed for this analysis (instead of the binning used by Stefan)
     # The option 'Test' uses the same binning as option '2', but uses TH2Poly (meant to test this new code)
     
-    
-
     # # The following are the maximum number of Q2-xB this code recognizes 
-#     List_of_Q2_xB_Bins_to_include = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
+    # List_of_Q2_xB_Bins_to_include = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    # List_of_Q2_xB_Bins_to_include = [-1, -2]
-#     List_of_Q2_xB_Bins_to_include = [-1]
-
-
     List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
-    
-#     List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     # List_of_Q2_xB_Bins_to_include = [-1, 1]
     
     if("3" in binning_option_list or "Square" in binning_option_list):
-        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
         
         
     if(run_Mom_Cor_Code == "yes"):
         binning_option_list = ["2"]
         List_of_Q2_xB_Bins_to_include = [-1]
+        
+    # List_of_Q2_xB_Bins_to_include = [-1]
+        
+    print("")
+    if(("2" in binning_option_list or "OG" in binning_option_list)     and ("Q2_xB_Bin_2"     not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_OG"     not in list(rdf.GetColumnNames()))):
+        print("Modified Binning Scheme --> '2'")
+        rdf = rdf.Define("Q2_xB_Bin_2", str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2")))
+        rdf = rdf.Define("z_pT_Bin_2",   str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2")))
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("Q2_xB_Bin_2_gen",     str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="2")))
+            rdf = rdf.Define("Q2_xB_Bin_2_smeared", str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="2")))
+            rdf = rdf.Define("z_pT_Bin_2_gen",       str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="2")))
+            rdf = rdf.Define("z_pT_Bin_2_smeared",   str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="2")))
+    if(("3" in binning_option_list or "Square" in binning_option_list) and ("Q2_xB_Bin_3" not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_Square" not in list(rdf.GetColumnNames()))):
+        print("New (rectangular) Binning Scheme --> '3'")
+        rdf = rdf.Define("Q2_xB_Bin_3", str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="3")))
+        rdf = rdf.Define("z_pT_Bin_3",   str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="3")))
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("Q2_xB_Bin_3_gen",     str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="3")))
+            rdf = rdf.Define("Q2_xB_Bin_3_smeared", str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3")))
+            rdf = rdf.Define("z_pT_Bin_3_gen",       str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="3")))
+            rdf = rdf.Define("z_pT_Bin_3_smeared",   str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3")))
+            
+#     my_function()
+#     print("Caching DataFrame...")
+#     rdf = rdf.Cache()
+#     print("Cached DataFrame.")
+#     my_function()
+            
     
     print("".join([color.BLUE, color.BOLD, "\nBinning Scheme(s) in use: ", color.END]))
     for binning in binning_option_list:
         print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "".join(["Binning Scheme - ", str(binning)])]))
         
     print("".join([color.BLUE, color.BOLD, "\n(Possible) Q2-xB bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
-#     for Q2_xB_bin in List_of_Q2_xB_Bins_to_include:
-#         print("".join(["\t(*) ", str(Q2_xB_bin)]))
-
-
+    
 
     #####################     Bin Choices     #####################
     ###############################################################
     
     
-    
     ##################################################################
     #####################     Sector Choices     #####################
-    
     
     # Types_Of_Sectors = ['', 'esec', 'pipsec', 'esec_a', 'pipsec_a']
     # Types_Of_Sectors = ['', 'esec_a', 'pipsec_a']
@@ -7141,18 +4296,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 # #     # Bin size: 10 per bin
     
     # Post-GRC Binning
-    Q2_Binning_Old = ['Q2', 1.4805, 11.8705, 20]
+    Q2_Binning_Old = ['Q2', 1.4805,  11.8705, 20]
     # Bin size: 0.5195 per bin
     xB_Binning_Old = ['xB', 0.08977, 0.82643, 20]
     # Bin size: 0.03683 per bin
-    z_Binning_Old = ['z', 0.11944, 0.73056, 20]
+    z_Binning_Old  = ['z',  0.11944, 0.73056, 20]
     # Bin size: 0.03056 per bin
-    pT_Binning_Old = ['pT', 0, 1.05, 20]
+    pT_Binning_Old = ['pT', 0,       1.05,    20]
     # Bin size: 0.05 per bin
-    y_Binning_Old = ['y', 0, 1, 20]
+    y_Binning_Old  = ['y',  0,       1,       20]
     # Bin size: 0.05 per bin
 
-    
 #     # Post-DNP Binning
 #     Q2_Binning    = ['Q2',     1.48,  11.87,  20]
 #     # Bin size: 0.5195 per bin
@@ -7175,31 +4329,48 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Bin size: 0.007 per bin
     W_Binning     = ['W',      0,     6,     200]
     # Bin size: 0.03 per bin
-    Binning_4D    = ['Bin_4D', -1.5,  303.5, 305]
+    
+    # Binning_4D    = ['Bin_4D', -1.5,  303.5, 305]
     # Binning_4D_OG = ['Bin_4D_OG', -1.5, 353.5, 355]
     # Binning_5D  = ['Bin_5D', -1.5, 11625.5, 11627]
     # Binning_5D_OG = ['Bin_5D_OG', -1.5, 13525.5, 13527]
     
+#     El_Binning      = ['el',    0, 8,   200]
+#     El_Th_Binning   = ['elth',  0, 40,  200]
+#     El_Phi_Binning  = ['elPhi', 0, 360, 200]
     
-    El_Binning      = ['el',    0, 8,   200]
-    El_Th_Binning   = ['elth',  0, 40,  200]
-    El_Phi_Binning  = ['elPhi', 0, 360, 200]
-    
-    Pip_Binning     = ['pip',    0, 6,   200]
-    Pip_Th_Binning  = ['pipth',  0, 40,  200]
-    Pip_Phi_Binning = ['pipPhi', 0, 360, 200]
+#     Pip_Binning     = ['pip',    0, 6,   200]
+#     Pip_Th_Binning  = ['pipth',  0, 40,  200]
+#     Pip_Phi_Binning = ['pipPhi', 0, 360, 200]
     
     
+    El_Binning      = ['el',    0, 8,   100]
+    El_Th_Binning   = ['elth',  0, 40,  100]
+    El_Phi_Binning  = ['elPhi', 0, 360, 100]
+    
+    Pip_Binning     = ['pip',    0, 6,   100]
+    Pip_Th_Binning  = ['pipth',  0, 40,  100]
+    Pip_Phi_Binning = ['pipPhi', 0, 360, 100]
      
-    # New 2023 2D Binning
-    Q2_Binning = ['Q2', 1.48,  11.87, 100]
-    # Bin size: 0.1039  per bin
-    xB_Binning = ['xB', 0.09,  0.826, 100]
-    # Bin size: 0.00736 per bin
-    z_Binning  = ['z',  0.017, 0.935, 100]
-    # Bin size: 0.00918 per bin
-    pT_Binning = ['pT', 0,     1.26,  120]
-    # Bin size: 0.0105 per bin
+#     # New 2023 2D Binning
+#     Q2_Binning = ['Q2', 1.48,  11.87, 100]
+#     # Bin size: 0.1039  per bin
+#     xB_Binning = ['xB', 0.09,  0.826, 100]
+#     # Bin size: 0.00736 per bin
+#     z_Binning  = ['z',  0.017, 0.935, 100]
+#     # Bin size: 0.00918 per bin
+#     pT_Binning = ['pT', 0,     1.26,  120]
+#     # Bin size: 0.0105 per bin
+    
+    # New (April 20) 2023 2D Binning
+    Q2_Binning = ['Q2', 1.48,  11.87, 50]
+    # Bin size: 0.2078  per bin
+    xB_Binning = ['xB', 0.09,  0.826, 50]
+    # Bin size: 0.01472 per bin
+    z_Binning  = ['z',  0.017, 0.935, 50]
+    # Bin size: 0.01836 per bin
+    pT_Binning = ['pT', 0,     1.26,  60]
+    # Bin size: 0.021 per bin
     
     # Q2_Binning_Old = ['Q2', 0.0, 12.5, 25]
     # # Bin size: 0.5 per bin
@@ -7208,17 +4379,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
-    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
+#     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
     
-    List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
-    List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
+#     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
+#     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
     List_of_Quantities_1D = [phi_t_Binning]
 #     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old]
 #     List_of_Quantities_1D = [phi_t_Binning, Q2_Binning_Old, xB_Binning_Old]
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
     
     # Reduced Variable Options
@@ -7227,6 +4398,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
+#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
+    
     # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['y',         0, 1, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['elth',         0, 40, 200], ['elPhi',         0, 360, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]], [['pipth',         0, 40, 200], ['pipPhi',         0, 360, 200]]]
     # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['y',         0, 1, 200], ['xF',         -1, 1, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]]]
     
@@ -7234,24 +4407,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     List_of_Quantities_2D = []
     
     
-    
-    print("".join([color.BLUE, color.BOLD, "\n1D Histograms Selected Include: ", color.END]))
+    print("".join([color.BLUE, color.BOLD,     "\n1D Histograms Selected Include: ", color.END]))
     for histo_1D in List_of_Quantities_1D:
         print("".join(["\t(*) ", str(histo_1D)]))
     
     
     if(len(List_of_Quantities_2D) == 0):
-        print("".join([color.RED, color.BOLD,  "\nNot running 2D histograms...", color.END]))
+        print("".join([color.RED,  color.BOLD, "\nNot running 2D histograms...",     color.END]))
     else:
         print("".join([color.BLUE, color.BOLD, "\n2D Histograms Selected Include: ", color.END]))
         for histo_2D in List_of_Quantities_2D:
             print("".join(["\t(*) ", str(histo_2D)]))
-            
-    
     
     smearing_options_list = ["", "smear"]
     # smearing_options_list = ["smear"]
-    
     
     if(datatype in ["rdf", "gdf"]):
         # Do not smear data or generated MC
@@ -7259,8 +4428,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if("smear" in ii):
                 smearing_options_list.remove(ii)
                 
-    
-    
     if(("ivec" in smearing_function) and ("smear" in smearing_options_list)):
         print("".join([color.BLUE, color.BOLD, "\nRunning Modified Smearing Funtion", color.END]))
     elif("smear" in smearing_options_list):
@@ -7274,54 +4441,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             print("".join([str(Total+Increase), " Histograms Have Been Made..."]))
     
     
-    
-    
-    
     ##############################################################     End of Choices For Graphing     ##############################################################
     ##                                                                                                                                                             ##
     ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
     ##                                                                                                                                                             ##
     ###########################################################     Graphing Results + Final ROOT File     ##########################################################
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-    
     ###########################################################
     #################     Final ROOT File     #################
-    
     
     # File to be saved
     if(str(file_location) != 'time' and output_type == "histo"):
         ROOT_File_Output = ROOT.TFile(str(ROOT_File_Output_Name), 'recreate')
         print("\nFinal ROOT file has been created...")
     
-    
     #################     Final ROOT File     #################
     ###########################################################
     
-    
-    
-    
+    # my_function()
     if(output_type in ["histo", "time"]):
         Histograms_All = {}
         count_of_histograms = 0
@@ -7403,8 +4540,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##======##======##======##     Histogram Option Selection  ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 
                         # histo_options = ["Normal", "Response_Matrix", "Response_Matrix_Normal"]
-                        histo_options = ["Normal", "Response_Matrix_Normal"]
-                        # histo_options = ["Response_Matrix_Normal"]
+#                         histo_options = ["Normal", "Response_Matrix_Normal"]
+#                         histo_options = ["Response_Matrix_Normal"]
+            
+                        if("2" in Binning):
+                            histo_options = ["Normal", "Response_Matrix_Normal"]
+                        else:
+                            histo_options = ["Normal"]
             
                         # # # All options off (will still allow the Momentum Correction plots to run)
                         # histo_options = []
@@ -7433,11 +4575,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             
                         if(run_Mom_Cor_Code == "yes"):
                             histo_options = ["Normal"]
+                            histo_options = []
                             if(Histo_Data not in ['pdf', 'gen', 'gdf']):
                                 histo_options.append("Mom_Cor_Code")
-
-                            
-                            
+                                
 ##======##======##======##======##======##     Histogram Option Loop       ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
                         for Histo_Group in histo_options:
                             Histo_Group_Name   = "".join(["Histo-Group:'",  str(Histo_Group), "'"])
@@ -7446,23 +4587,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             Histo_Smear_Name   = "".join(["Smear-Type:'",   str(Histo_Smear), "'"])
                             Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-(Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), ")"])
 
-
-
 ##################################################=================================================##################################################################################################################################
 ##======##======##======##======##======##======##     Momentum Correction/Smearing Histograms     ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 ##################################################=================================================##################################################################################################################################
                             if(Histo_Group == "Mom_Cor_Code"):
 
                                 # Removed the "_smeared" from all variable names as of 11-29-2022
-                                Histo_Var_Dp_Ele_Dimension      = ['Delta_Pel_Cors',       -3, 3, 500]
-                                Histo_Var_Dp_Pip_Dimension      = ['Delta_Ppip_Cors',      -3, 3, 500]
-                                Histo_Var_DTheta_Ele_Dimension  = ['Delta_Theta_el_Cors',  -3, 3, 500]
-                                Histo_Var_DTheta_Pip_Dimension  = ['Delta_Theta_pip_Cors', -3, 3, 500]
-                                Histo_Var_MM_Dimension          = ['MM',     0, 3.5, 500]
-                                Histo_Var_Ele_Dimension         = ['el',     0, 10,  200]
-                                Histo_Var_Pip_Dimension         = ['pip',    0, 8,   200]
-                                Histo_Var_Ele_Theta_Dimension   = ['elth',   0, 40,  200]
-                                Histo_Var_Pip_Theta_Dimension   = ['pipth',  0, 40,  200]
+                                Histo_Var_Dp_Ele_Dimension      = ['Delta_Pel_Cors',       -0.75, 0.75, 125]
+                                Histo_Var_Dp_Pip_Dimension      = ['Delta_Ppip_Cors',      -0.75, 0.75, 125]
+                                Histo_Var_DTheta_Ele_Dimension  = ['Delta_Theta_el_Cors',  -0.75, 0.75, 125]
+                                Histo_Var_DTheta_Pip_Dimension  = ['Delta_Theta_pip_Cors', -0.75, 0.75, 125]
+                                Histo_Var_MM_Dimension          = ['MM',     0, 3.5, 350]
+                                Histo_Var_Ele_Dimension         = ['el',     0, 10,  100]
+                                Histo_Var_Pip_Dimension         = ['pip',    0, 8,   100]
+                                Histo_Var_Ele_Theta_Dimension   = ['elth',   0, 40,  100]
+                                Histo_Var_Pip_Theta_Dimension   = ['pipth',  0, 40,  100]
                                 Histo_Var_Ele_Phi_Dimension     = ['elPhi',  0, 360, 360]
                                 Histo_Var_Pip_Phi_Dimension     = ['pipPhi', 0, 360, 360]
 
@@ -7490,7 +4629,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension,  Histo_Var_D2=Histo_Var_Ele_Phi_Dimension, Histo_Var_D3=Histo_Var_Ele_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension,  Histo_Var_D2=Histo_Var_Pip_Phi_Dimension, Histo_Var_D3=Histo_Var_Pip_Dimension)), "))"])
                                 
-                                
                                 Mom_Cor_Histo_Name_MM_Ele            = Mom_Cor_Histo_Name_MM_Ele.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_MM_Pip            = Mom_Cor_Histo_Name_MM_Pip.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_DP_Ele            = Mom_Cor_Histo_Name_DP_Ele.replace("; ", "), ")
@@ -7503,8 +4641,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = Mom_Cor_Histo_Name_DTheta_Pip_Theta.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_Angle_Ele         = Mom_Cor_Histo_Name_Angle_Ele.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_Angle_Pip         = Mom_Cor_Histo_Name_Angle_Pip.replace("; ", "), ")
-
-
+                                
                             ###############################################################
                             ##==========##  Correction Histogram ID's (End)  ##==========##
                             ###############################################################
@@ -7513,7 +4650,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ###############################################################
                             ##==========##    Correction Histogram Titles    ##==========##
                             ###############################################################
-
                                 
                                 Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics", " - Corrected"            if(Mom_Correction_Q == "yes") else "", "); p_{el};", "(Smeared) "        if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; #theta_{el} Bins"])
                                 Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics", " - Corrected"        if(Mom_Correction_Q == "yes") else "", "); p_{#pi+};", "(Smeared) "      if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)}; #theta_{#pi+} Bins"])
@@ -7527,11 +4663,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics", " - Corrected"     if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) "                if("smear" in Histo_Smear) else " ", "#theta_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el};", "(Smeared) "   if("smear" in Histo_Smear) else " ", "#p_{el}"])
                                 Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) "                if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
 
-
                             ###############################################################
                             ##==========## Correction Histogram Titles (End) ##==========##
                             ###############################################################
-
 
                                 variables_Mom_Cor     = ["MM", "Delta_Pel_Cors", "Delta_Ppip_Cors", "Delta_Theta_el_Cors", "Delta_Theta_pip_Cors", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"]
                                 if("smear" in Histo_Smear):
@@ -7541,7 +4675,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 
                                 if(MCH_rdf == "continue"):
                                     continue
-                                    
                                 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
@@ -7549,50 +4682,64 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##          ##          ##                               ##          ##          ##
                             ###################################################################################
 
-                                Histograms_All[Mom_Cor_Histo_Name_MM_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Ele, str(Mom_Cor_Histos_Name_MM_Ele_Title),                                                       200,  0, 10, 500,  0, 3.5, 10, 0, 40),      "el",  "MM" if("smear" not in Histo_Smear) else "MM_smeared", "elth")
-                                Histograms_All[Mom_Cor_Histo_Name_MM_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Pip, str(Mom_Cor_Histos_Name_MM_Pip_Title),                                                       200,  0, 8,  500,  0, 3.5, 10, 0, 40),      "pip", "MM" if("smear" not in Histo_Smear) else "MM_smeared", "pipth")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title),                                                    200,  0, 10, 500, -3,   3, 10, 0, 40),      "el",  "Delta_Pel_Cors"  if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",  "elth")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title),                                                    200,  0, 8,  500, -3,   3, 10, 0, 40),      "pip", "Delta_Ppip_Cors" if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared", "pipth")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele, str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 10, 500, -3, 3,  10,   0,  40),                 "el",  "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "elth")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip, str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"), 200, 0, 8,  500, -3, 3,  10,   0,  40),                 "pip", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipth")
+                                Histograms_All[Mom_Cor_Histo_Name_MM_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Ele,           str(Mom_Cor_Histos_Name_MM_Ele_Title),                                             100,  0, 10, 350,  0,     3.5, 10, 0, 40),      "el",    "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                   "elth")
+                                Histograms_All[Mom_Cor_Histo_Name_MM_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Pip,           str(Mom_Cor_Histos_Name_MM_Pip_Title),                                             100,  0, 8,  350,  0,     3.5, 10, 0, 40),      "pip",   "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                   "pipth")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele,           str(Mom_Cor_Histos_Name_Delta_Ele_Title),                                          100,  0, 10, 125, -0.75, 0.75, 10, 0, 40),      "el",    "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",       "elth")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip,           str(Mom_Cor_Histos_Name_Delta_Pip_Title),                                          100,  0, 8,  125, -0.75, 0.75, 10, 0, 40),      "pip",   "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipth")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele,       str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"),       100,  0, 10, 125, -0.75, 0.75, 10, 0, 40),      "el",    "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "elth")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip,       str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"),       100,  0, 8,  125, -0.75, 0.75, 10, 0, 40),      "pip",   "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipth")
                                 
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title),                                        200,  0, 40, 500, -3,   3,   8, -0.5, 7.5), "elth",  "Delta_Pel_Cors"  if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",  "esec")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title),                                        200,  0, 40, 500, -3,   3,   8, -0.5, 7.5), "pipth", "Delta_Ppip_Cors" if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared", "pipsec")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200,  0, 40, 500, -3,   3,   8, -0.5, 7.5), "elth",  "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "esec")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 200,  0, 40, 500, -3,   3,   8, -0.5, 7.5), "pipth", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipsec")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele, str(Mom_Cor_Histos_Name_Angle_Ele_Title),                                                 200,  0, 40, 360,  0, 360, 200,    0,  10), "elth"  if("smear" not in Histo_Smear) else "elth_smeared",  "elPhi"  if("smear" not in Histo_Smear) else "elPhi_smeared",  "el"  if("smear" not in Histo_Smear) else "el_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip, str(Mom_Cor_Histos_Name_Angle_Pip_Title),                                                 200,  0, 40, 360,  0, 360, 200,    0,   8), "pipth" if("smear" not in Histo_Smear) else "pipth_smeared", "pipPhi" if("smear" not in Histo_Smear) else "pipPhi_smeared", "pip" if("smear" not in Histo_Smear) else "pip_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta,     str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5), "elth",  "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",       "esec")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta,     str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5), "pipth", "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipsec")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5), "elth",  "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "esec")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5), "pipth", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele,        str(Mom_Cor_Histos_Name_Angle_Ele_Title),                                          100,  0, 40, 360,  0,     360, 100,    0,  10), "elth"   if("smear" not in Histo_Smear) else "elth_smeared",  "elPhi"  if("smear" not in Histo_Smear) else "elPhi_smeared",  "el"  if("smear" not in Histo_Smear) else "el_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip,        str(Mom_Cor_Histos_Name_Angle_Pip_Title),                                          100,  0, 40, 360,  0,     360, 100,    0,   8), "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared", "pipPhi" if("smear" not in Histo_Smear) else "pipPhi_smeared", "pip" if("smear" not in Histo_Smear) else "pip_smeared")
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
                             ##==========##==========##  Correction Histograms (End)  ##==========##==========##
                             ##          ##          ##                               ##          ##          ##
                             ###################################################################################
-
-
+                                # print("Histo_Group = ", Histo_Group)
                                 if(str(file_location) != 'time'):
+                                    # print("")
+                                    # my_function()
+
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_MM_Ele)
                                     Histograms_All[Mom_Cor_Histo_Name_MM_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_MM_Pip].Write()
-
+                                    
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_DP_Ele)
                                     Histograms_All[Mom_Cor_Histo_Name_DP_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_DP_Pip].Write()
-
+                                    
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_DP_Ele_Theta)
                                     Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta].Write()
-
+                                    
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_DTheta_Ele)
                                     Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip].Write()
-
+                                    
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_DTheta_Ele_Theta)
                                     Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta].Write()
-
+                                    
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_Angle_Ele)
                                     Histograms_All[Mom_Cor_Histo_Name_Angle_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_Angle_Pip].Write()
-
-
+                                    
+                                    del Histograms_All
+                                    Histograms_All = {}
+                                    # my_function()
+                                    # print("")
+                                    
                                 Print_Progress(count_of_histograms, 12, 200 if(str(file_location) != 'time') else 50)
                                 count_of_histograms += 12
-                                
+                                # my_function()
+                                del MCH_rdf
+                                # my_function()
 
 ##################################################=========================================##########################################################################################################################################
 ##======##======##======##======##======##======##     Normal (1D/2D) Histograms           ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
@@ -7612,24 +4759,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # Normal 1D Variable
                                             Vars_1D = Vars_1D_Test
                                         else:
-                                            Vars_1D = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
+                                            # Vars_1D = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
+                                            Vars_1D = Multi_Dim_Bin_Def(DF=rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
                                             
                                         if("2" not in Binning and "Bin_4D" in str(Vars_1D[0]) and "OG" not in str(Vars_1D[0])):
                                             continue # These 4D bins have only been defined with my new binning schemes
                                         if("2" in     Binning and "Bin_4D" in str(Vars_1D[0]) and "OG" in     str(Vars_1D[0])):
                                             continue # These 4D bins were defined with the original binning scheme
-
+                                            
                                         Histo_Var_D1_Name = Dimension_Name_Function(Histo_Var_D1=Vars_1D, Histo_Var_D2="None")
 
                                         Histo_Name = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_1D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D1_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
 
                                         Normal_rdf = DF_Filter_Function_Full(DF=rdf, Variables=Vars_1D[0], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
-                                        if("Combined_" in Vars_1D[0]):
-                                            Normal_rdf = Multi_Dimensional_Bin_Construction(DF=Normal_rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF")
-
+                                        if(("Combined_" in Vars_1D[0]) or ("Multi_Dim" in Vars_1D[0])):
+                                            # Normal_rdf = Multi_Dimensional_Bin_Construction(DF=Normal_rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF")
+                                            Normal_rdf = Multi_Dim_Bin_Def(DF=Normal_rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF")
                                         if(Normal_rdf == "continue"):
                                             continue
-
                                         Title_1D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_1D[0]))])
                                         Title_1D_L2   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
                                         Title_1D_L3   = "" if(Histo_Group == "Normal") else "Matched" if(Histo_Group == "Has_Matched") else "Bin Purity" if(Histo_Group == "Bin_Purity") else "#Delta Between Matches" if(Histo_Group == "Delta_Matched") else "Error"
@@ -7641,15 +4788,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_1D_Out      = "".join(["#splitline{", str(Title_1D_L1), "}{", str(Title_1D_L2), "};", str(Title_1D_Axis)])
                                         if(Title_1D_L3 != ""):
                                             Title_1D_Out  = "".join(["#splitline{#splitline{", str(Title_1D_L1), "}{", str(Title_1D_L2), "}}{", str(Title_1D_L3), "};", str(Title_1D_Axis)])
-
+                                            
                                         Title_1D_Out  = Title_1D_Out.replace(") (", " - ")
 
                                         if(Histo_Group == "Delta_Matched"):
                                             D_Matched_rdf = Delta_Matched_DF(Normal_rdf, Vars_1D[0]) # Calculates the different between the matched reconstructed and generated events (rec - gen)
                                             if(Final_DF == "continue"):
                                                 continue
-
-
                                         if(Histo_Group not in ["Bin_Purity", "Delta_Matched"]):
                                             Histograms_All[Histo_Name] = Normal_rdf.Histo3D((str(Histo_Name), str(Title_1D_Out), 17, -3.5, 14.5, 55, -3.5, 51.5, Vars_1D[3], Vars_1D[1], Vars_1D[2]), str(Q2_xB_Bin_Filter_str), str(z_pT_Bin_Filter_str), str(Vars_1D[0]))
                                         elif(Histo_Group == "Bin_Purity"):
@@ -7663,26 +4808,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             Histograms_All[Histo_Name] = D_Matched_rdf.Histo3D((str(Histo_Name), str(Title_1D_Out), Vars_1D[3], Vars_1D[1], Vars_1D[2], delta_bins[0], delta_bins[1], delta_bins[2], 8, -0.5, 7.5), str(Vars_1D[0]), "Delta_Matched_Value", "pipsec" if("pip" in Vars_1D[0]) else "esec")
                                             if("Phi" in Vars_1D[0]):
                                                 Histograms_All["".join([str(Histo_Name), "_Extra_3D"])] = DF_Filter_Function_Full(DF=D_Matched_rdf, Variables=str(Vars_1D[0].replace("Phi", "th")), Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1).Histo3D(("".join([str(Histo_Name), "_Extra_3D"]), "".join([Title_1D_Out.replace("".join(["; ", "#pi^{+} Pion" if("pip" in Vars_1D[0]) else "Electron", " Sector"]), ""), ";#theta_{", "el" if "el" in Vars_1D[0] else "#pi+" ,"}"]), Vars_1D[3], Vars_1D[1], Vars_1D[2], delta_bins[0], delta_bins[1], delta_bins[2], 34, 0, 40), str(Vars_1D[0]), "Delta_Matched_Value", str(Vars_1D[0].replace("Phi", "th")))
-
-
+                                        
+                                        # print("(1D) Histo_Group = ", Histo_Group)
                                         if(str(file_location) != 'time'):
                                             Histograms_All[Histo_Name].Write()
-
                                             if("Phi" in Vars_1D[0] and Histo_Group == "Delta_Matched"):
                                                 Histograms_All["".join([str(Histo_Name), "_Extra_3D"])].Write()
+                                        if(output_all_histo_names_Q != "yes"):
+                                            del Histograms_All
+                                            Histograms_All = {}
 
                                         # The 1D Histograms are being saved
                                         Print_Progress(count_of_histograms, 2 if("Phi" in Vars_1D[0] and Histo_Group == "Delta_Matched") else 1, 200 if(str(file_location) != 'time') else 50)
                                         count_of_histograms += 1
                                         if("Phi" in Vars_1D[0] and Histo_Group == "Delta_Matched"):
                                             count_of_histograms += 1
-                                            
-                                # else:
-                                #     print("\tSkipping Normal 1D Histograms...")
-                                #     # continue
-
-
-
+                                        # my_function()
+                                        del Normal_rdf
+                                        # print("\n1D Histograms:")
+                                        # my_function()
+                                
             ###################################################################################
             #####====================#####  1D Histograms (End)  #####====================#####
             ###################################################################################
@@ -7690,54 +4835,56 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #####====================#####     2D Histograms     #####====================#####
             ###################################################################################
 
-
                                 for Vars_2D in Variable_Loop_2D:
 
                                     Histo_Var_D2_Name = Dimension_Name_Function(Histo_Var_D1=Vars_2D[0], Histo_Var_D2=Vars_2D[1], Histo_Var_D3="None")
                                     Normal_rdf        = DF_Filter_Function_Full(DF=rdf, Variables=[Vars_2D[0][0], Vars_2D[1][0]], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
-                            
                                     if(Normal_rdf == "continue"):
                                         continue
-
                 ###################################################################################
                 #####====================#####     Q2-xB Bin Loop    #####====================#####
                 ###################################################################################
+                
                                     for Q2_xB_Bin_Num in List_of_Q2_xB_Bins_to_include:
-
                                         if(Q2_xB_Bin_Num > 8 and Binning in ["2", "Test"]):
                                             # This binning scheme only goes up to 8 Q2-xB bins
                                             continue
-
+                                        if(Q2_xB_Bin_Num > 9 and Binning in ["", "Stefan"]):
+                                            # This binning scheme only goes up to 8 Q2-xB bins
+                                            continue
                                         Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
                                         Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
-                                            
                                         Title_2D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_2D[0][0])).replace(" (Smeared)", ""), " vs. ", str(variable_Title_name(Vars_2D[1][0]))])
                                         Title_2D_L2   = "".join(["Q^{2}-x_{B} Bin: ", str(Histo_Binning[1])])
                                         Title_2D_L3   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
                                         Title_2D_Axis = "".join(["z-P_{T} Bin", " (Smeared)" if("smear" in Histo_Smear) else "", "; ", str(variable_Title_name(Vars_2D[0][0])), "; ", str(variable_Title_name(Vars_2D[1][0]))])
-
                                         Title_2D_Out  = "".join(["#splitline{#splitline{", str(Title_2D_L1), "}{", str(Title_2D_L2), "}}{", str(Title_2D_L3), "};", str(Title_2D_Axis)])
-
                                         Title_2D_Out  = Title_2D_Out.replace(") (", " - ")
-                                        
                                         Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
                                         Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
 
+                                        # print("(2D) Histo_Group = ", Histo_Group)
+                                        # print("Drawing: ", Histo_Name)
                                         if(str(file_location) != 'time'):
                                             Histograms_All[Histo_Name].Write()
+                                        if(output_all_histo_names_Q != "yes"):
+                                            del Histograms_All
+                                            Histograms_All = {}
 
                                         # The 2D Histograms are being saved
                                         Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                         count_of_histograms += 1
+                                    # my_function()
+                                    del Normal_rdf
+                                    # print("\n2D Histograms:")
+                                    # my_function()
 
             ###################################################################################
             #####====================#####  2D Histograms (End)  #####====================#####
             ###################################################################################
-
-
 
 ##################################################=========================================##########################################################################################################################################
 ##======##======##======##======##======##======##     Response Matrix (Both Types)        ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
@@ -7750,29 +4897,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 
                                 Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -1.5, 10.5 + 4,  12 + 4]
                                 Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -1.5, 50.5,  52]
-                                Res_Binning_4D       = ['Bin_Res_4D',              -1.5, 441.5, 443]
-                                # Res_Binning_4D_OG  = ['Bin_Res_4D_OG',           -1.5, 441.5, 443]
                                 
                                 # Res_Binning_2D_Q2_xB = [str(Q2_xB_Bin_Filter_str), -3.5, 11.5,  15]
                                 # Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -3.5, 51.5,  55]
-                                # Res_Binning_4D       = ['Bin_Res_4D',              -3.5, 442.5, 446]
                                 
                                 phi_t_Binning_New = copy.deepcopy(phi_t_Binning)
                                 if("smear" in Histo_Smear):
                                     phi_t_Binning_New[0] = "".join([str(phi_t_Binning_New[0]), "_smeared" if("smear" not in phi_t_Binning_New[0]) else ""])
-
-                                # Res_Binning_4D       = ['Bin_Res_4D', -1.5, 295 + 1.5, 295 + 4]
-                                # # Res_Binning_4D_OG  = ['Bin_Res_4D_OG', -1.5, 344 + 1.5, 344 + 4]
-
-                                # # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Binning_4D_OG, Res_Binning_4D, Res_Binning_4D_OG, Binning_5D, Binning_5D_OG]
-                                # Res_Var_List = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning, y_Binning, W_Binning, Res_Binning_2D_Q2_xB, Res_Binning_2D_z_pT, Binning_4D, Res_Binning_4D]
+                                    
                                 
                                 Res_Var_Add = []
                                 # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
                                 # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
                                 # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
                                 Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old]]
-                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", "Test", ""]) else 12, 8 if(Binning in ["2", "Test", ""]) else 12]]]
+                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", "Test", ""]) else 14, 8 if(Binning in ["2", "Test", ""]) else 14]]]
                                 # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
 
                                 if(Binning not in ["2"]):
@@ -7789,7 +4928,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         # Normal 1D Variable
                                         Var_List = Var_List_Test
                                     else:
-                                        Var_List = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
+                                        # Var_List = Multi_Dimensional_Bin_Construction(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
+                                        Var_List = Multi_Dim_Bin_Def(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
 
                                     variable = Var_List[0]
                                     if(("smear" in Histo_Smear) and ("smear" not in variable)):
@@ -7804,8 +4944,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
                                     
                                     sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
-                                    if("Combined_" in variable):
-                                        sdf = Multi_Dimensional_Bin_Construction(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
+                                    if(("Combined_" in variable) or ("Multi_Dim" in variable)):
+                                        # sdf = Multi_Dimensional_Bin_Construction(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
+                                        sdf = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
 
                                     if(sdf == "continue"):
                                         continue
@@ -7841,12 +4982,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             Migration_Title_L3 = "".join(["#scale[1.35]{Range: ", str(Bin_Range), " - Size: ", str(BIN_SIZE), " per bin}"])
                                         if("Bin" in variable):
                                             Migration_Title_L3 = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), "}"])
-
-                                        if(Q2_xB_Bin_Num > 0):
-                                            Migration_Title_L4 = "".join(["Q^{2}-x_{B} Bin: ", str(Histo_Binning[1])])
-                                        else:
-                                            Migration_Title_L4 = ""
-
+                                            
+                                        Migration_Title_L4 = "".join(["Q^{2}-x_{B} Bin: ", str(Histo_Binning[1])]) if(Q2_xB_Bin_Num > 0) else ""
 
                                         if(Histo_Group == "Response_Matrix"):
                                             Migration_Title     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
@@ -7857,17 +4994,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             if(Histo_Data not in ["mdf", "pdf"]):
                                                 Migration_Title = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " (REC" if("g" not in Histo_Data) else " (GEN", "); z-P_{T} Bins; Count"])
 
-
                                         if(Histo_Data == "mdf"):
                                             Migration_Title_L1_2  = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ", str(variable_Title_name(variable)), "}"])
                                             Migration_Title_2     = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC Bins; z-P_{T} Bins; Count"])
                                             if(Histo_Group == "Response_Matrix_Normal"):
                                                 Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), "; z-P_{T} Bins; Count"])
                                         
-                                        
-                                        if((Histo_Group == "Response_Matrix") and ("Combined_" not in variable)):
-                                            num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
-                                            num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 4), -0.5, (Num_of_Bins + 3.5)
+                                        if((Histo_Group == "Response_Matrix") and ("Combined_" not in variable and "Multi_Dim" not in variable)):
+                                            num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
+                                            num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5)
 
                                             Variable_Gen = str("".join([str(variable), "_GEN_BIN"])) if("Bin" not in str(variable)) else str("".join([str(variable).replace("_smeared", ""), "_gen"]))
                                             Variable_Rec = str("".join([str(variable), "_REC_BIN"])) if("Bin" not in str(variable)) else str(variable)
@@ -7888,7 +5023,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         #     print("".join(["\tTotal length= ", str(len(sdf.GetColumnNames()))]))
                                         #     print("\n\n\n\n\n")
 
-                                          
                                         ## Filter for the Q2-xB Bins
                                         Bin_Filter = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
@@ -7897,10 +5031,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # 1D Unfolding requires events be generated and reconstructed in the same bin
                                             Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
                                         
-                                        if((Histo_Data in ["mdf", "pdf", "gen"]) and ("Combined" in str(variable) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                        if((Histo_Data in ["mdf", "pdf", "gen"]) and (("Combined" in str(variable) or "Multi_Dim" in str(variable)) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             # Multidimensional unfolding should still exclude bin migration from other kinematic bins not included in the response matrix
                                             Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
-                                        if(("Combined" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                        if(("Combined" in str(variable) or "Multi_Dim" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " != 0", "".join([" && ", str((Q2_xB_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 0"]) if(Histo_Data in ["mdf", "pdf", "gen"]) else ""])
                                             
                                         Migration_Title       = "".join([str(Migration_Title),   "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
@@ -7914,46 +5048,54 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Migration_Title_Simple            = str(Migration_Title.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
                                                 Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
                                             else:
-                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        num_of_GEN_bins, min_GEN_bin, Max_GEN_bin, num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                             if(Histo_Data == "mdf"):
                                                 if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name_1D                 = str((Histo_Name_1D).replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")).replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
                                                     Migration_Title_Simple        = str(Migration_Title_2.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
-                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
                                                 else:
-                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2),      num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2),      int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                         else:
-                                            Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                            Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                             if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
                                                 # Do not need to see the z-pT bins for these plots
                                                 Histo_Name_1D                     = str((Histo_Name_1D).replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")).replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
                                                 Migration_Title_Simple            = str(Migration_Title.replace("; z-P_{T} Bin (New) (Smeared)", "")).replace("; z-P_{T} Bin (New)", "")
-                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), num_of_REC_bins, min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
                                             else:
-                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        num_of_REC_bins, min_REC_bin, Max_REC_bin, Res_Binning_2D_z_pT[3], Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
 
+                                        # print("Histo_Group = ", Histo_Group)
                                         if(Histo_Data == "mdf"):
                                             if(str(file_location) != 'time'):
                                                 Histograms_All[Histo_Name].Write()
                                                 Histograms_All[Histo_Name_1D].Write()
+                                            if(output_all_histo_names_Q != "yes"):
+                                                del Histograms_All
+                                                Histograms_All = {}
                                             Print_Progress(count_of_histograms, 2, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 2
                                         else:
                                             if(str(file_location) != 'time'):
                                                 Histograms_All[Histo_Name_1D].Write()
+                                            if(output_all_histo_names_Q != "yes"):
+                                                del Histograms_All
+                                                Histograms_All = {}
                                             Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 1
-
-
+                                            
+                                    # my_function()
+                                    del sdf
+                                    # print("\nResponse Matrix Histograms:")
+                                    # my_function()
+                                    
 
 
 ######################################################################
 ##=====##=====##=====##    End of Main Loop    ##=====##=====##=====##
 ######################################################################
-
-
-
 
         ######################################===============================######################################
         ##==========##==========##==========##          End of Code          ##==========##==========##==========##
@@ -7962,13 +5104,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(str(file_location) != 'time'):
             ROOT_File_Output.Close()
         # File has been saved
-
-        print("".join([color.BOLD, "\nTotal Number of Histograms Made: ", str(count_of_histograms), color.END]))
         
+        print("".join([color.BOLD, "\nTotal Number of Histograms Made: ", str(count_of_histograms), color.END]))
+#         my_function()
         
         # See beginning of code...
         if(output_all_histo_names_Q == "yes"):
-            print("\nHistograms be made:")
+            print("\nHistograms made:")
             for ii in Histograms_All:
                 print(str(ii))
                 if(";" in str(ii)):
@@ -7976,7 +5118,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             print("\n")
         elif(str(file_location) == "time"):
             print("\nChoose not to print list of final histograms...\nSet output_all_histo_names_Q = 'yes' or enter 'test' instead of a file name to print a list of histograms made while running...\n")
-        
         
     elif(output_type not in ["histo", "test", "time"]):
         print("Taking Snapshot...")
@@ -7988,10 +5129,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     endMin_full, endHr_full, endDay_full = datetime_object_end.minute, datetime_object_end.hour, datetime_object_end.day
 
-    if(datetime_object_end.minute < 10):
-        timeMin_end = ''.join(['0', str(datetime_object_end.minute)])
-    else:
-        timeMin_end = str(datetime_object_end.minute)
+    timeMin_end = "".join(["0", str(datetime_object_end.minute)]) if(datetime_object_end.minute < 10) else str(datetime_object_end.minute)
     
     # Printing current time
     if(datetime_object_end.hour > 12 and datetime_object_end.hour < 24):
@@ -8006,7 +5144,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("".join(["Made ", str(count_of_histograms), " histograms..."]))
         
     Num_of_Days, Num_of_Hrs, Num_of_Mins = 0, 0, 0
-    
     
     if(startDay_full > endDay_full):
         Num_of_Days = endDay_full + (30 - startDay_full)
@@ -8030,21 +5167,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(Num_of_Days > 0 and startHr_full >= endHr_full):
         Num_of_Days += -1
         
-        
     print("\nThe total time the code took to run the given files is:")
     print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
-    
     
     if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
         rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
         print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
     
-
-    # if(str(file_location) in ['time' , 'test'] and (datatype == "mdf")):
     if(str(file_location) in ['time' , 'test']):
         print("".join(["\nEstimated time to run: ", "".join([str(round(count_of_histograms/6, 4)), " mins"]) if(round(count_of_histograms/6, 4) < 60) else  "".join([str(int(round(count_of_histograms/6, 4)/60)), " hrs and ", str(round(((round(count_of_histograms/6, 4)/60)%1)*60, 3)), " mins (Total: ", str(round(count_of_histograms/6, 3)), " mins)"])]))
         # Estimate based on observations made on 12-2-2022 (estimates are very rough - based on the "mdf" run option)
-    
     
     print("\n")
     
@@ -8052,8 +5184,5 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##==========##==========##==========##          End of Code          ##==========##==========##==========##
     ######################################===============================######################################
     
-    
 else:
     print("\nERROR: No valid datatype selected...\n")
-    
-# This Code was last updated on 2-13-2023

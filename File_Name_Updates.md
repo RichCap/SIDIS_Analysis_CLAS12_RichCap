@@ -7,6 +7,21 @@ See the README.md file for more general updates (especially those which pertain 
 
 
 
+# Notes Commited on 4-21-2023:
+
+## Extra_Name = "Multi_Dimension_Unfold_V5_"
+* Just ran the SIDIS Histograms (no momentum correction histograms)
+* Updated the kinematic binning with the following updates:
+    * 1) Now using the condensed code (with TH2Poly) for all binning schemes (most of the old code has been removed or otherwise commented out)
+    * 2) New 'Square' bins (i.e. Binning option '3') now has 14 Q2-xB bins total (extra bins were added to this scheme since the last committed version used in 'Multi_Dimension_Unfold_V4_')
+        * Still no z-pT bins for these yet
+    * 3) Will be running with both bin option '2' and '3'
+* New Multidimensional binning function was written to combine variables (running the same options but the code should be an improvement - still in testing)
+    * All overflow bin events are given the value of -1
+* Removed a lot of unnecessary code from this script (general clean up) including pre-defined Multidimensional bins (like Bin_4D)
+* Reduced the number of bins in some 2D histograms such as the particle momentums and Q2-xB distributions (should have little effect on the plots outside of some minor visual changes)
+    * Done to avoid memory overload as the code was crashing even when I wasn't trying to create the root files.
+
 
 # Notes Committed on 4-16-2023:
 

@@ -42,6 +42,14 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 4-21-2023:
+* Updated the 'makeROOT_epip_SIDIS_histos_new.py' code (removed a lot of unnecessary code among other changes)
+    * See "File_Name_Updates.md" for more details
+* Updated the 'RooUnfold_SIDIS_richcap.py' code a little to improve the visual appearance of the images
+    * Will likely require some new rewrites to clean up the code soon (there are a lot of commented/inefficient examples of code which could be cleaned up in a later update)
+        * This note is not something new, but rather is included here to add to the To-do list above (not significant enough to add as a priority at this time)
+
+
 ### Update on 4-16-2023:
 * Added new markdown file called "File_Name_Updates.md" which will contain the individual update notes for each file made by the python code
     * Many (now older) updates are included in the python code where 'Extra_Name' is defined (notes about other files are not detailed as much at the time of this commit)

@@ -67,7 +67,7 @@ from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 
 # Turns off the canvases when running in the command line
-# ROOT.gROOT.SetBatch(1)
+ROOT.gROOT.SetBatch(1)
 
 import numpy
 import traceback
@@ -205,6 +205,8 @@ print("\n\n")
 
 
 File_Save_Format = ".png"
+# File_Save_Format = ".root"
+# File_Save_Format = ".pdf"
 
 
 
@@ -1709,7 +1711,7 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             Output_Canvas.Modified()
             Output_Canvas.Update()
             
-        Save_Name = "".join(["Multi_Dim_Histo_", str(Variable).replace("_smeared", ""), "_", str(Method) if(Method not in ["N/A"]) else "", "_smeared" if("mear" in Smear) else "", ".png"]).replace(" ", "_")
+        Save_Name = "".join(["Multi_Dim_Histo_", str(Variable).replace("_smeared", ""), "_", str(Method) if(Method not in ["N/A"]) else "", "_smeared" if("mear" in Smear) else "", str(File_Save_Format)]).replace(" ", "_")
         Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
         if(Sim_Test):
             Save_Name = "".join(["Sim_Test_", Save_Name])
@@ -1809,7 +1811,7 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
                     Histo_mdf_list[name_mdf].DrawNormalized("same HIST")
                     Legends_ExREC[cd_ii].AddEntry(Histo_mdf_list[name_mdf], "#scale[2]{MC REC}", "lpE")
                     Legends_ExREC[cd_ii].Draw("same")
-                Save_Name = "".join(["Multi_Dim_Histo_ExREC_", str(Variable_Combine), ".png"]).replace(" ", "_")
+                Save_Name = "".join(["Multi_Dim_Histo_ExREC_", str(Variable_Combine), str(File_Save_Format)]).replace(" ", "_")
                 Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
                 if(Sim_Test):
                     Save_Name = "".join(["Sim_Test_", Save_Name])
@@ -1863,7 +1865,7 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
 
 
                     
-                Save_Name = "".join(["Multi_Dim_Histo_TrueH_", str(Variable_Combine).replace("_smeared", ""), "" if("mear" not in Smear_Combine) else "_smeared", ".png"]).replace(" ", "_")
+                Save_Name = "".join(["Multi_Dim_Histo_TrueH_", str(Variable_Combine).replace("_smeared", ""), "" if("mear" not in Smear_Combine) else "_smeared", str(File_Save_Format)]).replace(" ", "_")
                 Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
                 if(Sim_Test):
                     Save_Name = "".join(["Sim_Test_", Save_Name])
@@ -2228,7 +2230,7 @@ for ii in mdf.GetListOfKeys():
 
 
         
-        Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else "Undefined..."
+        Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else 11 if("Q2-xB-Bin=11" in str(out_print_main)) else 12 if("Q2-xB-Bin=12" in str(out_print_main)) else "Undefined..."
         if(type(Q2_xB_Bin_Unfold) is str):
             print("".join([color.RED, color.BOLD, "\nERROR - Q2_xB_Bin_Unfold = ", str(Q2_xB_Bin_Unfold), color.END]))
 
@@ -2265,7 +2267,7 @@ for ii in mdf.GetListOfKeys():
         # test = Canvas_Create(Name="".join([str(out_print_main), str(Q2_xB_Bin_Unfold)]), Num_Columns=1, Num_Rows=1, Size_X=60, Size_Y=80, cd_Space=0)
         # test.Draw()
 
-        z_pT_Bin_Range = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3]) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
+        z_pT_Bin_Range = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
         
         # if(Q2_xB_Bin_Unfold != 1):
         #     continue
@@ -2277,6 +2279,9 @@ for ii in mdf.GetListOfKeys():
             if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
                 # print("Testing z_pT_Bin_Unfold...")
                 continue
+                
+            # if(z_pT_Bin_Unfold not in [0, 10]):
+            #     continue
 
     #########################################################
     ##===============##     3D Slices     ##===============##
@@ -2407,6 +2412,18 @@ for ii in mdf.GetListOfKeys():
             Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
             Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
             
+
+            ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)")))
+            ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",  "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+            MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)")))
+            MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",  "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+            MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)")))
+            MC_GEN_1D.GetXaxis().SetTitle((str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)")))
+            Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)")))
+            Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+            Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+            
+            
             ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("phi_t_Q2", "#phi_{h}+Q^{2}")))
             ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",  "#phi_{h}+Q^{2}"))
             MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("phi_t_Q2", "#phi_{h}+Q^{2}")))
@@ -2416,7 +2433,6 @@ for ii in mdf.GetListOfKeys():
             Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("phi_t_Q2", "#phi_{h}+Q^{2}")))
             Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2", "#phi_{h}+Q^{2}"))
             Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2", "#phi_{h}+Q^{2}"))
-            
             
             Q2_Bin_Range         = "Range: 1.4805 #rightarrow 11.8705 - Size: 0.5195 per bin"
             Q2_Bin_Replace_Range = "Range: 1.48 #rightarrow 11.87 GeV^{2} - Size: 0.52 GeV^{2}/bin"
@@ -2521,7 +2537,7 @@ for ii in mdf.GetListOfKeys():
                     MultiD_Canvas_Combine(Histo_rdf=ExREAL_1D, Histo_mdf=MC_REC_1D, Histo_gdf=MC_GEN_1D, Histo_bin=Bin_Unfolded[out_print_main_binned], Histo_bay=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Name_Combine=out_print_main, Variable_Combine="Combined_phi_t_Q2",          Smear_Combine="" if("mear" not in out_print_main) else "Smear")
                 
                 Plot_Version = "Web"
-                Plot_Version = "Note"
+                # Plot_Version = "Note"
                 
                 # if("phi_t" not in out_print_main):
                 #     Plot_Version = "Note"
@@ -2766,6 +2782,7 @@ for ii in mdf.GetListOfKeys():
     ##################################################################
     ##=====##=====##   Drawing the Response Matrix    ##=====##=====##
                 try:
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                     if(Plot_Version == "Web"):
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=2, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
                         ROOT.gPad.SetLogz(1)
@@ -2803,7 +2820,11 @@ for ii in mdf.GetListOfKeys():
                         Bin_Unfolded[out_print_main_binned].SetTitle(str(Bin_Unfolded[out_print_main_binned].GetTitle()).replace("Bin-By-Bin Unfolded Distribution", "Unfolded Distributions"))
                     elif(Plot_Version == "Note"):
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=2, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
+                        if("'phi_t" in out_print_main or "'phi_t_smeared'" in out_print_main):
+                            Bin_Unfolded[out_print_main_binned].GetXaxis().SetRangeUser(0, 360)
                         Bin_Unfolded[out_print_main_binned].SetTitle(str(Bin_Unfolded[out_print_main_binned].GetTitle()).replace("Bin-By-Bin Unfolded Distribution", "Unfolded Distributions"))
+                        Bin_Unfolded[out_print_main_binned].SetTitle(str(Bin_Unfolded[out_print_main_binned].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
+                        # print(Bin_Unfolded[out_print_main_binned].GetTitle())
                     
                     # Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("H PL E0 same"))
                     Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("PL E0 same"))
@@ -2813,6 +2834,7 @@ for ii in mdf.GetListOfKeys():
                             Bin_Unfolded[(out_print_main_binned, "Norm")].SetBinContent(ii, 0)
                             Bin_Unfolded[(out_print_main_binned, "Norm")].SetBinError(ii,   0)
                     Bin_Unfolded[(out_print_main_binned, "Norm")].GetYaxis().SetRangeUser(0, Unfolded_Max)
+                    Bin_Unfolded[(out_print_main_binned, "Norm")].SetTitle(str(Bin_Unfolded[(out_print_main_binned, "Norm")].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                     Legends[(out_print_main_binned,  "Unfolded")].AddEntry(Bin_Unfolded[out_print_main_binned], "".join(["#scale[", "2" if("'Combined_" not in str(out_print_main)) else "1", "]{Bin-by-Bin}"]), "lpE")
                     
                     if("'Combined_" not in str(out_print_main)):
@@ -2842,7 +2864,7 @@ for ii in mdf.GetListOfKeys():
                     #         RooUnfolded_Histos["".join([str(out_print_main_binned), "_bbb_Norm"])].SetBinError(ii,   0)
                     # Legends[(out_print_main_binned, "Unfolded")].AddEntry(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bbb_Norm"])], "#scale[2]{Bin-by-Bin (RooUnfold)}", "lpE")
 
-                    # Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H PL E0 same")
+#                     Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H PL E0 same")
 #                     if("phi_t" in out_print_main or "phi_t_smeared'" in out_print_main):
 #                         Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("PL E0 same")
 #                     else:
@@ -2862,6 +2884,7 @@ for ii in mdf.GetListOfKeys():
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=3, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
                     elif(Plot_Version == "Note"):
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=1, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
+                    Bin_Acceptance[out_print_main_binned].SetTitle(str(Bin_Acceptance[out_print_main_binned].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                     Bin_Acceptance[out_print_main_binned].Draw("same E1 H")
                     # Bin_Acceptance[out_print_main_binned].DrawNormalized("Hist E1 same")
                 except:
@@ -2877,12 +2900,14 @@ for ii in mdf.GetListOfKeys():
                     elif(Plot_Version == "Note"):
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_1, cd_num=2, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
 
-                    if("phi_t" in out_print_main or "phi_t_smeared'" in out_print_main):
+                    if("'phi_t'" in out_print_main or "'phi_t_smeared''" in out_print_main):
+                        ExREAL_1D.GetXaxis().SetRangeUser(0, 360)
                         if(Plot_Version == "Web"):
                             Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("H PL E0 same"))
                         else:
                             Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("PL E0 same"))
                       # Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = ExREAL_1D_Norm.Clone()
+                        Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].SetTitle(str(Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                         Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].GetYaxis().SetRangeUser(0, Data_REC_Max)
                     else:
                         if(Plot_Version == "Web"):
@@ -2903,7 +2928,18 @@ for ii in mdf.GetListOfKeys():
                             MC_REC_1D.DrawNormalized("PL E0 same")
                     # MC_REC_1D_Norm = (MC_REC_1D.DrawNormalized("PL E1 same"))
                     Legends[(out_print_main_binned, "REC")].AddEntry(MC_REC_1D, "#scale[2]{MC REC}" if(Plot_Version == "Web") else "#scale[1]{MC REC}", "lpE")
+                    
+                    
+                    MC_GEN_1D.GetXaxis().SetRangeUser(0, 360)
+                    Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    if("phi_t" in out_print_main or "phi_t_smeared'" in out_print_main):
+                        Save_Response_Matrix["".join(["Multi Variable " if("Combined" in out_print_main) else "", "MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("PL E0 same")
+                    else:
+                        MC_GEN_1D.DrawNormalized("PL E0 same")
+                    Legends[(out_print_main_binned, "REC")].AddEntry(MC_GEN_1D, "#scale[2]{MC GEN}" if(Plot_Version == "Web") else "#scale[1]{MC GEN}", "lpE")
+                    
                     Legends[(out_print_main_binned, "REC")].Draw("same")
+                    
                 except:
                     print("".join([color.BOLD, color.RED, "ERROR IN CANVAS (Experimental/Reconstructed):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                     
@@ -2950,10 +2986,8 @@ for ii in mdf.GetListOfKeys():
                     fit_function_title = "A + B Cos(#phi_{h}) + C Cos(2#phi_{h})"
                     fit_function = "[A] + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180))"
 
-
                     fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
                     fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
-
 
                     # Q2_xB_Bin_Title = "" if("Q2-xB-Bin=All" in str(out_print_main)) else "".join(["Q^{2}-x_{B} Bin: ", "1" if("Q2-xB-Bin=1" in str(out_print_main)) else "2" if("Q2-xB-Bin=2" in str(out_print_main)) else "3" if("Q2-xB-Bin=3" in str(out_print_main)) else "4" if("Q2-xB-Bin=4" in str(out_print_main)) else "5" if("Q2-xB-Bin=5" in str(out_print_main)) else "6" if("Q2-xB-Bin=6" in str(out_print_main)) else "7" if("Q2-xB-Bin=7" in str(out_print_main)) else "8" if("Q2-xB-Bin=8" in str(out_print_main)) else "9" if("Q2-xB-Bin=9" in str(out_print_main)) else "Error"])
                     Q2_xB_Bin_Title = "" if("Q2-xB-Bin=All" in str(out_print_main)) else "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"])
@@ -2984,6 +3018,7 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetYaxis().SetTitle("")
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetXaxis().SetTitle(str(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])].GetXaxis().GetTitle()).replace("(REC)", ""))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
+                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
@@ -3022,6 +3057,7 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetYaxis().SetTitle("")
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetXaxis().SetTitle(str(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])].GetXaxis().GetTitle()).replace("(REC)", ""))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
+                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
@@ -3137,6 +3173,7 @@ for ii in mdf.GetListOfKeys():
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetYaxis().SetTitle("")
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetXaxis().SetTitle(str(Bin_Unfolded[(out_print_main_binned, "Norm")].GetXaxis().GetTitle()).replace("(REC)", ""))
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
+                    Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetXaxis().SetRangeUser(0, 360)
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
@@ -3249,7 +3286,6 @@ for Canvas_name in Unfolded_Canvas:
         
         if(Sim_Test):
             Save_Name = "".join(["Sim_Test_", Save_Name])
-        
         if(Saving_Q):
             Unfolded_Canvas[Canvas_name].SaveAs(Save_Name)
         count_of_images += 1
@@ -3296,7 +3332,8 @@ elif(Smearing_Options in ["both"]):
 
 print("".join([color.BOLD, color.GREEN, "\n\nDone with main Unfolded Histograms (Now getting parameter plots...)\n", color.END]))
 Canvas_Parameters_List, Histo_Par_A_z, Histo_Par_B_z, Histo_Par_C_z, Histo_Par_A_pT, Histo_Par_B_pT, Histo_Par_C_pT, Par_Legends = {}, {}, {}, {}, {}, {}, {}, {}
-for Method in ["Bayes", "SVD", "Bin"]:
+# for Method in ["Bayes", "SVD", "Bin"]:
+for Method in ["Bayes", "Bin"]:
     for smearing_par in Smearing_final_list:
         z_value_Start, pT_value_Start = 1, 0
         try:
@@ -3711,8 +3748,8 @@ for Method in ["Bayes", "SVD", "Bin"]:
         
 print("".join([color.BOLD, color.GREEN, "\n\nDone with getting parameter plots (Now Saving...)\n", color.END]))    
 for ii in Canvas_Parameters_List:
-    if("TMultiGraph" not in str(ii)):
-        Saving_Name_Pars = "".join([str(ii), ".png"])
+    if("TMultiGraph" not in str(ii) and File_Save_Format == ".png"):
+        Saving_Name_Pars = "".join([str(ii), str(File_Save_Format)])
         
         Saving_Name_Pars = Saving_Name_Pars.replace("Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
         Saving_Name_Pars = Saving_Name_Pars.replace("Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
@@ -3861,6 +3898,8 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
             for Variable_Type in ["", "Combined"]:
             # for Variable_Type in ["Combined"]:
             # for Variable_Type in [""]:
+                if(File_Save_Format != ".png"):
+                    continue
                 if((Q2_xB_Bin != 0) and (Variable_Type in ["Combined"])):
                     print("".join([color.RED, "\t'Combined' histogram variables only run with Q2_xB_Bin = 0 (at this time)", color.END]))
                     continue
