@@ -42,6 +42,11 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 6-2-2023:
+* Updated the code to use Q2-y bins and fixed many issues with the code
+    * Q2-xB bins are still not working as of this update, with the problem being the 'TH2Poly' object which consumes a lot of memory and takes to much extra time to create for each event (must fix by finding a way to create it once and use the same 'TH2Poly' object for each event in the dataframe)
+    
+
 ### Update on 4-21-2023:
 * Updated the 'makeROOT_epip_SIDIS_histos_new.py' code (removed a lot of unnecessary code among other changes)
     * See "File_Name_Updates.md" for more details

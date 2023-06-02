@@ -12,6 +12,6 @@
 #SBATCH --array=0-8
 
 source /group/clas12/packages/setup.csh
-source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold/build/setup.sh
+source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build/setup.sh
 
-srun python /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py save_sim $SLURM_ARRAY_TASK_ID
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py save_sim $SLURM_ARRAY_TASK_ID

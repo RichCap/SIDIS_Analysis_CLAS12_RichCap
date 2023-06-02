@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_GEN_Multi_Dimension_Unfold_V3_SIDIS_histo_3_8_2023
+#SBATCH --job-name=MC_GEN_New_Binning_Schemes_V6_SIDIS_histo_6_2_2023
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=8000
+#SBATCH --mem-per-cpu=4000
 #SBATCH --time=24:00:00
 #SBATCH --array=0-219
 
@@ -15,9 +15,5 @@
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*)
 # Above is for (gdf) #SBATCH --array=0-219
 
-# FILES=(/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*)
-# # Above is for (gdf) #SBATCH --array=0-219
 
-
-# srun python /lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos.py gdf ${FILES[$SLURM_ARRAY_TASK_ID]}
-srun python /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py gdf ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py gdf ${FILES[$SLURM_ARRAY_TASK_ID]}

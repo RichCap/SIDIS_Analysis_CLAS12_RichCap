@@ -25,8 +25,22 @@ else:
     
 # if(Sim_Test):
 #     print("\033[1m\033[91m\nWARNING: Sim_Test is not set up to run yet...\n\033[0m")
-    
+
+
+
+File_Save_Format = ".png"
+# File_Save_Format = ".root"
+# File_Save_Format = ".pdf"
+
+
+
+Binning_Method = "_2"
+Binning_Method = "_y_bin"
+
 Q2_xB_Bin_List = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
+if("y_bin" in Binning_Method):
+    Q2_xB_Bin_List = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13']
+
 if(len(sys.argv) > 2):
     Q2_xB_Bin_List = []
     for ii_bin in range(2, len(sys.argv), 1):
@@ -34,15 +48,15 @@ if(len(sys.argv) > 2):
     if(Q2_xB_Bin_List == []):
         print("Error")
         Q2_xB_Bin_List = ['1']
-    print(str(("".join(["\nRunning for Q2-xB Bins: ", str(Q2_xB_Bin_List)]).replace("[", "")).replace("]", "")))
+    print(str(("".join(["\nRunning for Q2-xB/Q2-y Bins: ", str(Q2_xB_Bin_List)]).replace("[", "")).replace("]", "")))
 
     
 # # How to run code in the commandline:
 # # # Step 1) Run these commands before running this code:
 #         source /group/clas12/packages/setup.csh
-#         source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold/build/setup.sh
+#         source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build/setup.sh
 # # # Step 2) Run this code with the following command (optional inputs are in []): 
-#         python /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py [saving/smearing options] [list of Q2-xB bins to run]
+#         python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py [saving/smearing options] [list of Q2-xB bins to run]
 
 # # # Possible input options for the above command:
 # # # # "saving/smearing" options (include as one word without spaces - use '_' when combining options):
@@ -61,15 +75,14 @@ if(len(sys.argv) > 2):
     
     
 # # Test code with the command:
-# # # python /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py test [list of Q2-xB bins to run]
+# # # python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py test [list of Q2-xB bins to run]
 
 from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 
-# Turns off the canvases when running in the command line
-ROOT.gROOT.SetBatch(1)
+# # Turns off the canvases when running in the command line
+# ROOT.gROOT.SetBatch(1)
 
-import numpy
 import traceback
 from datetime import datetime
 
@@ -181,7 +194,7 @@ print("")
 
 try:
     import RooUnfold
-    print("".join([color.GREEN, color.BOLD, "Perfect Success", color.END]))
+    # print("".join([color.GREEN, color.BOLD, "Perfect Success", color.END]))
 except ImportError:
     print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n"]))
     # print("Somehow the python module was not found, let's try loading the library by hand...")
@@ -192,29 +205,14 @@ except ImportError:
     #     print("".join([color.RED, color.BOLD, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
     
-for ii in sys.modules:
-    if(str(ii) in ["ROOT", "RooUnfold"]):
-        # print(ii)
-        print(sys.modules[ii])
+# for ii in sys.modules:
+#     if(str(ii) in ["ROOT", "RooUnfold"]):
+#         # print(ii)
+#         print(sys.modules[ii])
         
         
         
 print("\n\n")
-
-
-
-
-File_Save_Format = ".png"
-# File_Save_Format = ".root"
-# File_Save_Format = ".pdf"
-
-
-
-
-
-
-
-
 
 
 
@@ -380,11 +378,192 @@ def z_pT_Border_Lines(Q2_xB_Bin_Select):
         Num_z_Borders = 6
         pT_Borders = [0.05, 0.23, 0.34, 0.45, 0.70]
         Num_pT_Borders = 5
+        
+        
+        
+    if("y_bin" in str(Binning_Method)):
+        # Defining Borders for z and pT Bins (based on 'Q2_y_Bin')
+        # For Q2_y Bin 1
+        if(Q2_xB_Bin_Select == 1):
+            z_Borders      = [0.15, 0.20, 0.24, 0.29, 0.36, 0.445, 0.55, 0.73]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 2
+        if(Q2_xB_Bin_Select == 2):
+            z_Borders      = [0.18, 0.24, 0.30, 0.36, 0.43, 0.52, 0.62, 0.74]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 3
+        if(Q2_xB_Bin_Select == 3):
+            z_Borders      = [0.20, 0.24, 0.29, 0.36, 0.45, 0.55, 0.65, 0.78]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 4
+        if(Q2_xB_Bin_Select == 4):
+            z_Borders      = [0.26, 0.315, 0.365, 0.43, 0.515, 0.615, 0.715]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 0.96]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 5
+        if(Q2_xB_Bin_Select == 5):
+            z_Borders      = [0.15, 0.205, 0.26, 0.32, 0.41, 0.52, 0.73]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 6
+        if(Q2_xB_Bin_Select == 6):
+            z_Borders      = [0.18,  0.245, 0.305, 0.40, 0.515, 0.73]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 7
+        if(Q2_xB_Bin_Select == 7):
+            z_Borders      = [0.20, 0.245, 0.295, 0.36, 0.45, 0.55, 0.65, 0.78]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 8
+        if(Q2_xB_Bin_Select in [8]):
+            z_Borders      = [0.26, 0.315, 0.365, 0.43, 0.515, 0.615, 0.715]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 9/10
+        if(Q2_xB_Bin_Select in [9, 10, 11, 12]):
+            z_Borders      = [0.15, 0.21, 0.26, 0.32, 0.40, 0.50, 0.70] if(Q2_xB_Bin_Select in [9, 11, 12]) else [0.21, 0.26, 0.32, 0.40, 0.50, 0.70]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 0.95]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 13/14
+        if(Q2_xB_Bin_Select in [13, 14]):
+            z_Borders      = [0.15, 0.23, 0.30, 0.39, 0.50, 0.70]
+            Num_z_Borders  = len(z_Borders)
+            pT_Borders     = [0.05, 0.23, 0.34, 0.435, 0.55, 0.80]
+            Num_pT_Borders = len(pT_Borders)
+        # For Q2_y Bin 0 and -1
+        if(Q2_xB_Bin_Select < 1):
+            z_Borders      = [0.15, 0.70]
+            Num_z_Borders  = 1
+            pT_Borders     = [0.05, 1.0]
+            Num_pT_Borders = 1
+        if(Q2_xB_Bin_Select == 0):
+            print("ERROR")
 
                     # Info about z bins              # Info about pT bins         # Total number of z-pT bins
     output = [['z', Num_z_Borders, z_Borders],['pT', Num_pT_Borders, pT_Borders], (Num_z_Borders-1)*(Num_pT_Borders-1)]
     
     return output
+
+
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def Q2_y_Border_Lines(Q2_y_Bin_Select):
+    # Defining Borders for Q2 and y Bins (based on 'Q2_y_Bin_Select')
+    # Notation used: points are given by [y, Q2] in sets of 2 points so they can be used to create the appropriate TLines 
+    Draw_Lines = []
+    
+    ##=====####################=====##
+    ##=====##   Q2 Group 1   ##=====##
+    ##=====####################=====##
+    # For Q2_y Bin 1
+    if(Q2_y_Bin_Select == 1 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.65, 2],      [0.65, 2.7268]])
+        Draw_Lines.append([[0.65, 2.7268], [0.75, 2.7268]])
+        Draw_Lines.append([[0.75, 2.7268], [0.75, 2]])
+        Draw_Lines.append([[0.75, 2],      [0.65, 2]])
+    # For Q2_y Bin 2
+    if(Q2_y_Bin_Select == 2 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.55, 2],      [0.55, 2.7268]])
+        Draw_Lines.append([[0.55, 2.7268], [0.65, 2.7268]])
+        Draw_Lines.append([[0.65, 2.7268], [0.65, 2]])
+        Draw_Lines.append([[0.65, 2],      [0.55, 2]])
+    # For Q2_y Bin 3
+    if(Q2_y_Bin_Select == 3 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.45, 2],      [0.45, 2.7268]])
+        Draw_Lines.append([[0.45, 2.7268], [0.55, 2.7268]])
+        Draw_Lines.append([[0.55, 2.7268], [0.55, 2]])
+        Draw_Lines.append([[0.55, 2],      [0.45, 2]])
+    # For Q2_y Bin 4
+    if(Q2_y_Bin_Select == 4 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.3,  2],      [0.3,  2.7268]])
+        Draw_Lines.append([[0.3,  2.7268], [0.45, 2.7268]])
+        Draw_Lines.append([[0.45, 2.7268], [0.45, 2]])
+        Draw_Lines.append([[0.45, 2],      [0.3,  2]])
+    ##=====####################=====##
+    ##=====##   Q2 Group 2   ##=====##
+    ##=====####################=====##
+    # For Q2_y Bin 5
+    if(Q2_y_Bin_Select == 5 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.65, 2.7268], [0.65, 3.558]])
+        Draw_Lines.append([[0.65, 3.558],  [0.75, 3.558]])
+        Draw_Lines.append([[0.75, 3.558],  [0.75, 2.7268]])
+        Draw_Lines.append([[0.75, 2.7268], [0.65, 2.7268]])
+    # For Q2_y Bin 6
+    if(Q2_y_Bin_Select == 6 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.55, 2.7268], [0.55, 3.558]])
+        Draw_Lines.append([[0.55, 3.558],  [0.65, 3.558]])
+        Draw_Lines.append([[0.65, 3.558],  [0.65, 2.7268]])
+        Draw_Lines.append([[0.65, 2.7268], [0.55, 2.7268]])
+    # For Q2_y Bin 7
+    if(Q2_y_Bin_Select == 7 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.45, 2.7268], [0.45, 3.558]])
+        Draw_Lines.append([[0.45, 3.558],  [0.55, 3.558]])
+        Draw_Lines.append([[0.55, 3.558],  [0.55, 2.7268]])
+        Draw_Lines.append([[0.55, 2.7268], [0.45, 2.7268]])
+    # For Q2_y Bin 8
+    if(Q2_y_Bin_Select == 8 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.35, 2.7268], [0.35, 4.3892]])
+        Draw_Lines.append([[0.35, 4.3892], [0.45, 4.3892]])
+        Draw_Lines.append([[0.45, 4.3892], [0.45, 2.7268]])
+        Draw_Lines.append([[0.45, 2.7268], [0.35, 2.7268]])
+    ##=====####################=====##
+    ##=====##   Q2 Group 3   ##=====##
+    ##=====####################=====##
+    # For Q2_y Bin 9
+    if(Q2_y_Bin_Select == 9 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.55, 3.558],  [0.55, 4.3892]])
+        Draw_Lines.append([[0.55, 4.3892], [0.75, 4.3892]])
+        Draw_Lines.append([[0.75, 4.3892], [0.75, 3.558]])
+        Draw_Lines.append([[0.75, 3.558],  [0.55, 3.558]])
+    # For Q2_y Bin 10
+    if(Q2_y_Bin_Select == 10 or Q2_y_Bin_Select < 1):
+        # Draw_Lines.append([[0.45, 3.558], [0.45, 6.636]])
+        # Draw_Lines.append([[0.45, 6.636], [0.55, 6.636]])
+        # Draw_Lines.append([[0.55, 6.636], [0.55, 3.558]])
+        # Draw_Lines.append([[0.55, 3.558], [0.45, 3.558]])
+        Draw_Lines.append([[0.45, 3.558], [0.45, 5.636]])
+        Draw_Lines.append([[0.45, 5.636], [0.55, 5.636]])
+        Draw_Lines.append([[0.55, 5.636], [0.55, 3.558]])
+        Draw_Lines.append([[0.55, 3.558], [0.45, 3.558]])
+    ##=====####################=====##
+    ##=====##   Q2 Group 4   ##=====##
+    ##=====####################=====##
+    # For Q2_y Bin 11
+    if(Q2_y_Bin_Select == 11 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.55, 4.3892], [0.55, 5.636]])
+        Draw_Lines.append([[0.55, 5.636],  [0.75, 5.636]])
+        Draw_Lines.append([[0.75, 5.636],  [0.75, 4.3892]])
+        Draw_Lines.append([[0.75, 4.3892], [0.55, 4.3892]])
+    # For Q2_y Bin 12
+    if(Q2_y_Bin_Select == 12 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.55, 5.636],  [0.55, 8.1296]])
+        Draw_Lines.append([[0.55, 8.1296], [0.75, 8.1296]])
+        Draw_Lines.append([[0.75, 8.1296], [0.75, 5.636]])
+        Draw_Lines.append([[0.75, 5.636],  [0.55, 5.636]])
+    # For Q2_y Bin 13
+    if(Q2_y_Bin_Select == 13 or Q2_y_Bin_Select < 1):
+        Draw_Lines.append([[0.6,  8.1296], [0.6,  9.473]])
+        Draw_Lines.append([[0.6,  9.473],  [0.75, 9.473]])
+        Draw_Lines.append([[0.75, 9.473],  [0.75, 8.1296]])
+        Draw_Lines.append([[0.75, 8.1296], [0.6,  8.1296]])
+
+    return Draw_Lines
 
 
 ##=========================================================================================##
@@ -1006,40 +1185,58 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
         if(variable in ["el", "el_smeared"]):
             MinBin_List.append(0)
             MaxBin_List.append(8)
-            NumBins_List.append(200)
+            # NumBins_List.append(200)
+            NumBins_List.append(100)
         if(variable in ["pip", "pip_smeared"]):
             MinBin_List.append(0)
             MaxBin_List.append(6)
-            NumBins_List.append(200)
+            # NumBins_List.append(200)
+            NumBins_List.append(100)
         if(variable in ["elth", "pipth", "elth_smeared", "pipth_smeared"]):
             MinBin_List.append(0)
             MaxBin_List.append(40)
-            NumBins_List.append(200)
+            # NumBins_List.append(200)
+            NumBins_List.append(100)
         if(variable in ["elPhi", "pipPhi", "elPhi_smeared", "pipPhi_smeared"]):
             MinBin_List.append(0)
             MaxBin_List.append(360)
-            NumBins_List.append(200)
+            # NumBins_List.append(200)
+            NumBins_List.append(100)
             
         if(variable in ["Q2", "Q2_smeared"]):
-            MinBin_List.append(1.48)
-            MaxBin_List.append(11.87)
-            NumBins_List.append(100)
+            if("y_bin" not in str(Binning_Method)):
+                MinBin_List.append(1.48)
+                MaxBin_List.append(11.87)
+                NumBins_List.append(100)
+            else:
+                MinBin_List.append(1.154)
+                MaxBin_List.append(12.434)
+                NumBins_List.append(80)
         if(variable in ["xB", "xB_smeared"]):
             MinBin_List.append(0.09)
             MaxBin_List.append(0.826)
-            NumBins_List.append(100)
+            # NumBins_List.append(100)
+            NumBins_List.append(50)
         if(variable in ["z",  "z_smeared"]):
             MinBin_List.append(0.017)
             MaxBin_List.append(0.935)
-            NumBins_List.append(100)
+            # NumBins_List.append(100)
+            NumBins_List.append(50)
         if(variable in ["pT", "pT_smeared"]):
             MinBin_List.append(0)
             MaxBin_List.append(1.26)
-            NumBins_List.append(120)
+            # NumBins_List.append(120)
+            NumBins_List.append(60)
+            
+        if(variable in ["y", "y_smeared"]):
+            MinBin_List.append(0)
+            MaxBin_List.append(1)
+#             NumBins_List.append(20)
+            NumBins_List.append(80)
             
     # Find_Name = "".join(["((Histo-Group='Normal_2D'), (Data-Type='", str(Data_Type), "'), (Data-Cut='", str(Cut_Type), "'), (Smear-Type='", str(Smear_Q), "'), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='", str(Var_D1), "'-[NumBins=", str(NumBins_List[0]), ", MinBin=", str(MinBin_List[0]), ", MaxBin=", str(MaxBin_List[0]), "]), (Var-D2='", str(Var_D2), "'-[NumBins=", str(NumBins_List[1]), ", MinBin=", str(MinBin_List[1]), ", MaxBin=", str(MaxBin_List[1]), "]))"])
-    Find_Name = "".join(["((Histo-Group='Normal_2D'), (Data-Type='", str(Data_Type), "'), (Data-Cut='", str(Cut_Type), "'), (Smear-Type='", str(Smear_Q), "'), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin) if(Q2_xB_Bin not in [0, '0', 'all', 'All']) else "All", ", z-PT-Bin=All]), (Var-D1='", str(Var_D1), "'-[NumBins=", str(NumBins_List[0]), ", MinBin=", str(MinBin_List[0]), ", MaxBin=", str(MaxBin_List[0]), "]), (Var-D2='", str(Var_D2), "'-[NumBins=", str(NumBins_List[1]), ", MinBin=", str(MinBin_List[1]), ", MaxBin=", str(MaxBin_List[1]), "]))"])
-    # print(Find_Name)
+    Find_Name = "".join(["((Histo-Group='Normal_2D'), (Data-Type='", str(Data_Type), "'), (Data-Cut='", str(Cut_Type), "'), (Smear-Type='", str(Smear_Q), "'), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'[Q2-y-Bin=", str(Q2_xB_Bin) if(Q2_xB_Bin not in [0, '0', 'all', 'All']) else "All", ", z-PT-Bin=All]), (Var-D1='", str(Var_D1), "'-[NumBins=", str(NumBins_List[0]), ", MinBin=", str(MinBin_List[0]), ", MaxBin=", str(MaxBin_List[0]), "]), (Var-D2='", str(Var_D2), "'-[NumBins=", str(NumBins_List[1]), ", MinBin=", str(MinBin_List[1]), ", MaxBin=", str(MaxBin_List[1]), "]))"])
+#     print("Find_Name =", Find_Name)
     
     Drawing_Histo_Found = DataFrame.Get(Find_Name)
     #########################################################
@@ -1051,7 +1248,7 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
                 Drawing_Histo_Found.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
             Drawing_Histo_Set = Drawing_Histo_Found.Project3D('yz')
             Drawing_Histo_Set.SetName(str(Drawing_Histo_Found.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin in ["All", 0]) else str(z_pT_Bin)])))
-            Drawing_Histo_Title = (str(Drawing_Histo_Set.GetTitle()).replace("yz projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(z_pT_Bin not in ["All", 0]) else "All", "}}}"]))
+            Drawing_Histo_Title = (str(Drawing_Histo_Set.GetTitle()).replace("yz projection", "")).replace("".join(["Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "Q^{2}-y Bin: ", str(Q2_xB_Bin)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "]{Q^{2}-y Bin: ", str(Q2_xB_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(z_pT_Bin not in ["All", 0]) else "All", "}}}"]))
             Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
             if(Data_Type == "mdf"):
                 Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "MC Reconstructed")
@@ -1062,10 +1259,10 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
         except:
             print("".join([color.RED, color.BOLD, "\nERROR IN z-pT BIN SLICING (2D Histograms):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
             Drawing_Histo_Set = Drawing_Histo_Found
-            print("ERROR: Using Drawing_Histo_Found = " + str(Drawing_Histo_Found))
+            print("ERROR: Using Drawing_Histo_Found =", str(Drawing_Histo_Found))
     else:
         Drawing_Histo_Set = Drawing_Histo_Found
-        print("Using Drawing_Histo_Found = " + str(Drawing_Histo_Found))
+        print("Using Drawing_Histo_Found =", str(Drawing_Histo_Found))
     ##===============##     3D Slices     ##===============##
     #########################################################
     # Draw_Canvas(Canvas_Input, CD_Num, 0.15)
@@ -1077,8 +1274,11 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
     
     palette_move(canvas=Canvas_Input, histo=Drawing_Histo_Set, x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
     
+    if("el" in str(Var_D1)):
+        Drawing_Histo_Set.GetYaxis().SetRangeUser(2, 8)
+    
     if("Var-D1='Q2" in str(Find_Name) and "Var-D2='xB" in str(Find_Name)):
-        Drawing_Histo_Set.SetTitle((Drawing_Histo_Set.GetTitle()).replace("Q^{2}-x_{B} Bin: All", "".join(["#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin) if(Q2_xB_Bin not in ["All", 0]) else "All", "}"])))
+        Drawing_Histo_Set.SetTitle((Drawing_Histo_Set.GetTitle()).replace("Q^{2}-x_{B} Bin: All" if("y_bin" not in str(Binning_Method)) else "Q^{2}-y Bin: All", "".join(["#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "]{Q^{2}-y Bin: ", str(Q2_xB_Bin) if(Q2_xB_Bin not in ["All", 0]) else "All", "}"])))
         # print("".join([color.BLUE, "Q2-xB plots:", color.END, "\n", str(Drawing_Histo_Set.GetTitle()), "\n", str(Find_Name), "\n\n"]))
         Q2_xB_borders, line_num = {}, 0
         for b_lines in Q2_xB_Border_Lines(-1):
@@ -1102,6 +1302,48 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
             ##=====================================================##
             ##==========##     Selecting Q2-xB Bin     ##==========##
             ##=====================================================##
+            
+            
+    if("Var-D1='Q2" in str(Find_Name) and "Var-D2='y" in str(Find_Name)):
+        Drawing_Histo_Set.SetTitle((Drawing_Histo_Set.GetTitle()).replace("Q^{2}-x_{B} Bin: All" if("y_bin" not in str(Binning_Method)) else "Q^{2}-y Bin: All", "".join(["#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "]{Q^{2}-y Bin: ", str(Q2_xB_Bin) if(Q2_xB_Bin not in ["All", 0]) else "All", "}"])))
+        try:
+            Q2_y_borders, Q2_y_borders_New = {}, {}
+            line_num, line_num_New = 0, 0
+            for b_lines in Q2_y_Border_Lines(-1):
+                try:
+                    Q2_y_borders[(line_num)] = ROOT.TLine()
+                except:
+                    print(color.RED, "Error in Q2_y_borders[(line_num)]", color.END)
+                Q2_y_borders[(line_num)].SetLineColor(1)
+                Q2_y_borders[(line_num)].SetLineWidth(2)
+                Q2_y_borders[(line_num)].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
+                line_num += 1
+                
+            if(Q2_xB_Bin != -1):
+                for b_lines_New in Q2_y_Border_Lines(Q2_xB_Bin):
+                    try:
+                        Q2_y_borders_New[(line_num_New)] = ROOT.TLine()
+                    except:
+                        print(color.RED, "Error in Q2_y_borders_New[(line_num_New)]", color.END)
+                    Q2_y_borders_New[(line_num_New)].SetLineColor(2)
+                    Q2_y_borders_New[(line_num_New)].SetLineWidth(3)
+                    Q2_y_borders_New[(line_num_New)].DrawLine(b_lines_New[0][0], b_lines_New[0][1], b_lines_New[1][0], b_lines_New[1][1])
+                    line_num_New += 1
+                
+            # # print(Q2_y_Border_Lines(13))
+            # Q2_y_borders_New["Cancel_1"] = ROOT.TLine()
+            # Q2_y_borders_New["Cancel_1"].SetLineColor(2)
+            # Q2_y_borders_New["Cancel_1"].SetLineWidth(2)
+            # Q2_y_borders_New["Cancel_1"].DrawLine(Q2_y_Border_Lines(13)[0][0][0], Q2_y_Border_Lines(13)[0][0][1], Q2_y_Border_Lines(13)[1][1][0], Q2_y_Border_Lines(13)[1][1][1])
+            # Q2_y_borders_New["Cancel_2"] = ROOT.TLine()
+            # Q2_y_borders_New["Cancel_2"].SetLineColor(2)
+            # Q2_y_borders_New["Cancel_2"].SetLineWidth(2)
+            # Q2_y_borders_New["Cancel_2"].DrawLine(Q2_y_Border_Lines(13)[1][0][0], Q2_y_Border_Lines(13)[1][0][1], Q2_y_Border_Lines(13)[2][1][0], Q2_y_Border_Lines(13)[2][1][1])
+ 
+        except:
+            print("".join([color.RED, color.BOLD, "Q2-y line fail...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            
+            
             
     if((Q2_xB_Bin not in ["All", 0]) and ("Var-D1='z" in str(Find_Name)) and ("Var-D2='pT" in str(Find_Name))):
         z_pT_borders = {}
@@ -1202,7 +1444,12 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
     if(Method in ["SVD", "Default"]):
         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.BLUE, "SVD", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))
         Name_Main = Response_2D.GetName()
-        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main).replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")]))
+        if((str(Name_Main).find("-[NumBins")) != -1):
+            Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
+        else:
+            Name_Main_Print = str(Name_Main)
+        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print)]))
+#         print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main).replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")]))
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
@@ -1305,7 +1552,12 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 ############################################################################################################
     elif(Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.PURPLE, "Bin-by-Bin", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))
-        print("".join([color.BOLD, "\tAcceptance Correction of Histogram:\n\t", color.END, str(MC_REC_1D.GetName()).replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", ""), ""]))
+        # print("".join([color.BOLD, "\tAcceptance Correction of Histogram:\n\t", color.END, str(MC_REC_1D.GetName()).replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""), ""]))
+        if((str(MC_REC_1D.GetName()).find("-[NumBins")) != -1):
+            Name_Print = str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName())[:(str(MC_REC_1D.GetName()).find("-[NumBins"))], ""), "))")
+        else:
+            Name_Print = str(MC_REC_1D.GetName())
+        print("".join([color.BOLD, "\tAcceptance Correction of Histogram:\n\t", color.END, str(Name_Print)]))
         try:
             Bin_Acceptance = MC_REC_1D.Clone()
             Bin_Acceptance.Sumw2()
@@ -1350,7 +1602,12 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
     elif("RooUnfold" in str(Method)):
         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))        
         Name_Main = Response_2D.GetName()
-        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main).replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")]))
+        if((str(Name_Main).find("-[NumBins")) != -1):
+            Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
+        else:
+            Name_Main_Print = str(Name_Main)
+        # print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main).replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")]))
+        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print)]))
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
@@ -1425,7 +1682,7 @@ MAJOR ERROR: sum_of_gen (""", str(sum_of_gen), """) is greater than gen_val_TRUE
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
-                    bayes_iterations = 10
+                    bayes_iterations = 10 if("Multi_Dim_Q2_phi_t" not in str(Name_Main)) else 4
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -1579,7 +1836,7 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
                 print(Name)
                 return "Error"
 
-        if(Variable not in ["Combined_phi_t_Q2", "Combined_phi_t_Q2_smeared", "Combined_phi_t_Q2_xB_Bin_2", "Combined_phi_t_Q2_xB_Bin_2_smeared"]):
+        if(Variable not in ["Combined_phi_t_Q2", "Combined_phi_t_Q2_smeared", "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method), "_smeared"])]):
             print("ERROR in MultiD_Slice(): Not set up for other variables (yet)")
             print(Variable)
             return "Error"
@@ -1590,10 +1847,12 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             Smear = "Smear"
 
         Name = Name.replace("(Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), ", "".join(["(Multi-Dim Histo='", str(Method), "'), (Multi_Dim_Var_Info), "]))
-        Name = Name.replace("(Binning-Type='2'-[Q2-xB-Bin=All, z-PT-Bin=All]), ", "")
-        Name = Name.replace("Binning-Type='2'-", "")
-        Name = Name.replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
-        Name = Name.replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+        Name = Name.replace("".join(["(Binning-Type='y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), "]), "")
+        Name = Name.replace("Binning-Type='y_bin'-", "")
+        Name = Name.replace("".join(["(Binning-Type='", str(Binning_Method).replace("_", ""), "'-[Q2-xB-Bin=All, z-PT-Bin=All]), "]), "")
+        Name = Name.replace("".join(["Binning-Type='",  str(Binning_Method).replace("_", ""), "'-"]), "")
+        Name = Name.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
+        Name = Name.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
         
         Method_Title = ""
         if(Method in ["rdf", "Experimental"]):
@@ -1766,12 +2025,21 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
             Histo_bay_list = MultiD_Slice(Histo=Histo_bay, Title="norm", Name=Name_Combine, Method="Bayesian",   Variable=Variable_Combine, Smear=Smear_Combine, Out_Option="Histo", Fitting="Off")[0]
 
 
-        Name_Combine = Name_Combine.replace("(Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), ", "".join(["(Multi-Dim Histo=Multi_Dim_Var_Info), "]))
-        Name_Combine = Name_Combine.replace("(Binning-Type='2'-[Q2-xB-Bin=All, z-PT-Bin=All]), ", "")
-        Name_Combine = Name_Combine.replace("Binning-Type='2'-", "")
-        Name_Combine = Name_Combine.replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
-        Name_Combine = Name_Combine.replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+        # Name_Combine = Name_Combine.replace("(Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), ", "".join(["(Multi-Dim Histo=Multi_Dim_Var_Info), "]))
+        # Name_Combine = Name_Combine.replace("(Binning-Type='2'-[Q2-xB-Bin=All, z-PT-Bin=All]), ", "")
+        # Name_Combine = Name_Combine.replace("Binning-Type='2'-", "")
+        # Name_Combine = Name_Combine.replace(", (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
+        # Name_Combine = Name_Combine.replace(", (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])", "")
 
+        Name_Combine = Name_Combine.replace("(Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), ", "(Multi-Dim Histo=Multi_Dim_Var_Info), ")
+        Name_Combine = Name_Combine.replace("".join(["(Binning-Type='y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), "]), "")
+        Name_Combine = Name_Combine.replace("Binning-Type='y_bin'-", "")
+        Name_Combine = Name_Combine.replace("".join(["(Binning-Type='", str(Binning_Method).replace("_", ""), "'-[Q2-xB-Bin=All, z-PT-Bin=All]), "]), "")
+        Name_Combine = Name_Combine.replace("".join(["Binning-Type='", str(Binning_Method).replace("_", ""), "'-"]), "")
+        Name_Combine = Name_Combine.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
+        Name_Combine = Name_Combine.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
+
+        
                                # ['min',  'max',   'num_bins', 'size']
         Q2_Binning             = [1.4805, 11.8705, 20,         0.5195]
         Q2_xB_Binning          = [0,      8,       8,          1]
@@ -1972,6 +2240,8 @@ Common_Name = "Multi_Dimension_Unfold_V1_All"
 # Common_Name = "Multi_Dimension_Unfold_V2_All"
 Common_Name = "Multi_Dimension_Unfold_V3_All"
 Common_Name = "Analysis_Note_Update_VF_APS_All"
+
+Common_Name = "New_Binning_Schemes_V5_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -2135,7 +2405,7 @@ for ii in mdf.GetListOfKeys():
     Conditions_For_Unfolding = ["DataFrame_Type" in str(out_print_main)]
     
     ## Correct Histogram Type:
-    Conditions_For_Unfolding.append("Response_Matrix_Normal" in str(out_print_main))
+    Conditions_For_Unfolding.append("Response_Matrix_Normal"        in str(out_print_main))
     Conditions_For_Unfolding.append("Response_Matrix_Normal_1D" not in str(out_print_main))
     
     ## Correct Cuts:
@@ -2147,7 +2417,9 @@ for ii in mdf.GetListOfKeys():
     # Conditions_For_Unfolding.append("'phi_t" not in str(out_print_main))
     # Conditions_For_Unfolding.append("'Combined_Q2_xB_Bin_2_" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("'Combined_" in str(out_print_main))
-#     Conditions_For_Unfolding.append("phi_t" in str(out_print_main))
+    Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
+
     
     ## Correct Binning:
     # Conditions_For_Unfolding.append("Q2-xB-Bin=1" in str(out_print_main))
@@ -2157,7 +2429,7 @@ for ii in mdf.GetListOfKeys():
     if(Smearing_Options not in ["no_smear", "both"]):
         Conditions_For_Unfolding.append("(Smear-Type='')" not in str(out_print_main))
     if(Smearing_Options not in ["smear", "both"]):
-        Conditions_For_Unfolding.append("(Smear-Type='')" in str(out_print_main))
+        Conditions_For_Unfolding.append("(Smear-Type='')"     in str(out_print_main))
     
     ##========================================================##
     ##=====##    Conditions for Histogram Selection    ##=====##
@@ -2212,8 +2484,8 @@ for ii in mdf.GetListOfKeys():
             continue
 
         out_print_main_mdf_1D = out_print_main_mdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
-        if((", (Var-D2='z_pT_Bin_2" not in out_print_main_mdf_1D) and ("Var-D1='phi_t'" in out_print_main_mdf_1D)):
-            out_print_main_mdf_1D = out_print_main_mdf_1D.replace("]))", "]), (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))" if("smear" not in str(out_print_main_mdf_1D)) else "]), (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))")
+        if(("".join([", (Var-D2='z_pT_Bin", str(Binning_Method)]) not in out_print_main_mdf_1D) and ("Var-D1='phi_t'" in out_print_main_mdf_1D)):
+            out_print_main_mdf_1D = out_print_main_mdf_1D.replace("]))", "".join(["]), (Var-D2='z_pT_Bin", str(Binning_Method), "" if("smear" not in str(out_print_main_mdf_1D)) else "_smeared", "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
         if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
             print("".join([color.BOLD, color.RED, "ERROR IN MDF...\n", color.END, color.RED, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
             for ii in mdf.GetListOfKeys():
@@ -2230,7 +2502,9 @@ for ii in mdf.GetListOfKeys():
 
 
         
-        Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else 11 if("Q2-xB-Bin=11" in str(out_print_main)) else 12 if("Q2-xB-Bin=12" in str(out_print_main)) else "Undefined..."
+        # Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else 11 if("Q2-xB-Bin=11" in str(out_print_main)) else 12 if("Q2-xB-Bin=12" in str(out_print_main)) else "Undefined..."
+        Q2_xB_Bin_Unfold = 0 if ("Q2-xB-Bin=All" in str(out_print_main) or "Q2-y-Bin=All," in str(out_print_main)) else 1 if ("Q2-xB-Bin=1," in str(out_print_main) or "Q2-y-Bin=1," in str(out_print_main)) else 2 if ("Q2-xB-Bin=2," in str(out_print_main) or "Q2-y-Bin=2," in str(out_print_main)) else 3 if ("Q2-xB-Bin=3," in str(out_print_main) or "Q2-y-Bin=3," in str(out_print_main)) else 4 if ("Q2-xB-Bin=4," in str(out_print_main) or "Q2-y-Bin=4," in str(out_print_main)) else 5 if ("Q2-xB-Bin=5," in str(out_print_main) or "Q2-y-Bin=5," in str(out_print_main)) else 6 if ("Q2-xB-Bin=6," in str(out_print_main) or "Q2-y-Bin=6," in str(out_print_main)) else 7 if ("Q2-xB-Bin=7," in str(out_print_main) or "Q2-y-Bin=7," in str(out_print_main)) else 8 if ("Q2-xB-Bin=8," in str(out_print_main) or "Q2-y-Bin=8," in str(out_print_main)) else 9 if ("Q2-xB-Bin=9," in str(out_print_main) or "Q2-y-Bin=9," in str(out_print_main)) else 10 if ("Q2-xB-Bin=10," in str(out_print_main) or "Q2-y-Bin=10," in str(out_print_main)) else 11 if ("Q2-xB-Bin=11," in str(out_print_main) or "Q2-y-Bin=11," in str(out_print_main)) else 12 if ("Q2-xB-Bin=12," in str(out_print_main) or "Q2-y-Bin=12," in str(out_print_main)) else 13 if ("Q2-xB-Bin=13," in str(out_print_main) or "Q2-y-Bin=13," in str(out_print_main)) else 14 if ("Q2-xB-Bin=14," in str(out_print_main) or "Q2-y-Bin=14," in str(out_print_main)) else 15 if ("Q2-xB-Bin=15," in str(out_print_main) or "Q2-y-Bin=15," in str(out_print_main)) else "Undefined..."
+
         if(type(Q2_xB_Bin_Unfold) is str):
             print("".join([color.RED, color.BOLD, "\nERROR - Q2_xB_Bin_Unfold = ", str(Q2_xB_Bin_Unfold), color.END]))
 
@@ -2238,7 +2512,6 @@ for ii in mdf.GetListOfKeys():
             # print("Skipping unselected Q2-xB Bin...")
             print("".join(["Bin ", str(Q2_xB_Bin_Unfold), " is not in Q2_xB_Bin_List = ", str(Q2_xB_Bin_List)]))
             continue
-        
         
         count += 1
         # print("".join([color.BOLD, str(out_print_main_mdf_1D), color.END]))
@@ -2267,7 +2540,10 @@ for ii in mdf.GetListOfKeys():
         # test = Canvas_Create(Name="".join([str(out_print_main), str(Q2_xB_Bin_Unfold)]), Num_Columns=1, Num_Rows=1, Size_X=60, Size_Y=80, cd_Space=0)
         # test.Draw()
 
-        z_pT_Bin_Range = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
+        z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
+        
+        if("y_bin" in Binning_Method):
+            z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin_Unfold in [6, 10]) else 25 if(Q2_xB_Bin_Unfold in [13]) else 1
         
         # if(Q2_xB_Bin_Unfold != 1):
         #     continue
@@ -2276,9 +2552,14 @@ for ii in mdf.GetListOfKeys():
         for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
             # Bin_Title = "" if(z_pT_Bin_Unfold == 0) else "".join(["z-P_{T} Bin: ", str(z_pT_Bin_Unfold)])
 
-            if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
-                # print("Testing z_pT_Bin_Unfold...")
-                continue
+            if("y_bin" not in Binning_Method):
+                if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
+                    # print("Testing z_pT_Bin_Unfold...")
+                    continue
+            else:
+                if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
+                    # print("Testing z_pT_Bin_Unfold...")
+                    continue
                 
             # if(z_pT_Bin_Unfold not in [0, 10]):
             #     continue
@@ -2293,7 +2574,10 @@ for ii in mdf.GetListOfKeys():
                         Response_2D_initial.GetZaxis().SetRange(bin_Response_2D_0, bin_Response_2D_1)
                     Response_2D           = Response_2D_initial.Project3D('yx')
                     Response_2D.SetName(str(Response_2D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])))
-                    Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    if("y_bin" not in Binning_Method):
+                        Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    else:
+                        Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))                        
                     Response_2D.SetTitle(Response_2D_Title_New)
                     # print(str(Response_2D.GetTitle()))
                 except:
@@ -2310,8 +2594,11 @@ for ii in mdf.GetListOfKeys():
             if("2D" in str(type(ExREAL_1D_initial))):
                 try:
                     bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
-                    ExREAL_1D           = ExREAL_1D_initial.ProjectionX(str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExREAL_1D_0, bin_ExREAL_1D_1)
-                    ExREAL_1D_Title_New = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    ExREAL_1D                        = ExREAL_1D_initial.ProjectionX(str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExREAL_1D_0, bin_ExREAL_1D_1)
+                    if("y_bin" not in Binning_Method):
+                        ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    else:
+                        ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     ExREAL_1D.SetTitle(ExREAL_1D_Title_New)
                     # print("\n" + color.BOLD + str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])) + color.END)
                 except:
@@ -2323,8 +2610,11 @@ for ii in mdf.GetListOfKeys():
             if("2D" in str(type(MC_REC_1D_initial))):
                 try:
                     bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
-                    MC_REC_1D           = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_REC_1D_0, bin_MC_REC_1D_1)
-                    MC_REC_1D_Title_New = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    MC_REC_1D                        = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_REC_1D_0, bin_MC_REC_1D_1)
+                    if("y_bin" not in Binning_Method):
+                        MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    else:
+                        MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     MC_REC_1D.SetTitle(MC_REC_1D_Title_New)
                     # print("\n" + color.BOLD + str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])) + color.END)
                 except:
@@ -2337,7 +2627,10 @@ for ii in mdf.GetListOfKeys():
                 try:
                     bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
                     MC_GEN_1D                        = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_GEN_1D_0, bin_MC_GEN_1D_1)
-                    MC_GEN_1D_Title_New              = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    if("y_bin" not in Binning_Method):
+                        MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                    else:
+                        MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     MC_GEN_1D.SetTitle(MC_GEN_1D_Title_New)
                     # print("\n" + color.BOLD + str(MC_GEN_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])) + color.END)
                 except:
@@ -2357,35 +2650,55 @@ for ii in mdf.GetListOfKeys():
 
             if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and ("Combined_" in out_print_main)):
                 continue
-            if("'phi_t" not in out_print_main and "'phi_t_smeared'" not in out_print_main and "Combined_phi_t" not in out_print_main):
-                print("\nADDING CUTS\n")
-                if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and ("Combined_phi_t" not in out_print_main)):
-                    # Do not plot other variables that are not phi_t
-                    continue
+#             if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'Multi_Dim" not in out_print_main)):
+#             if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'MM" not in out_print_main) and ("'W" not in out_print_main)):
+            if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main)):
+                print("\nADDING CUTS FOR:", out_print_main, "\n")
+                
+                if("'MM" not in out_print_main):
+                    if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and ("Combined_phi_t" not in out_print_main)):
+                        # Do not plot other variables that are not phi_t
+                        continue
+
+                    # Extra Y-Bins in 2D Histogram:
+                    for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+                        Response_2D.SetBinContent(0, ybin, 0)
+                        if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
+                            Response_2D.SetBinContent(1, ybin, 0)
+
+                    try:
+                        # Extra Bins in 1D Histogram:
+                        ExREAL_1D.SetBinContent(0, 0)
+                        MC_REC_1D.SetBinContent(0, 0)
+                        MC_GEN_1D.SetBinContent(0, 0)
+                        ExREAL_1D.SetBinContent(ExREAL_1D.GetNbinsX() + 1, 0)
+                        MC_REC_1D.SetBinContent(MC_REC_1D.GetNbinsX() + 1, 0)
+                        MC_GEN_1D.SetBinContent(MC_GEN_1D.GetNbinsX() + 1, 0)
+                        if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
+                            ExREAL_1D.SetBinContent(1, 0)
+                            MC_REC_1D.SetBinContent(1, 0)
+                            MC_GEN_1D.SetBinContent(1, 0)
+                    except:
+                        print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
+                        print(type(MC_REC_1D))
+                        
+                else:
+                    # Cut on Response Matrix (Gen)
+                    for xbin in range(0, Response_2D.GetXaxis().GetNbins() + 2, 1):
+                        if(Response_2D.GetXaxis().GetBinCenter(xbin) > 1):
+                            print("Done with MM Cuts...")
+                            break
+                        for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+                            Response_2D.SetBinContent(xbin, ybin, 0)
+                    # Cut on gdf histogram
+                    for xbin in range(0, MC_GEN_1D.GetNbinsX() + 1, 1):
+                        if(MC_GEN_1D.GetBinCenter(xbin) > 1):
+                            print("Done with MM Cuts...")
+                            break
+                        else:
+                            MC_GEN_1D.SetBinContent(xbin, 0)
                     
-                # Extra Y-Bins in 2D Histogram:
-                for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                    Response_2D.SetBinContent(0, ybin, 0)
-                    if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
-                        Response_2D.SetBinContent(1, ybin, 0)
-
-                try:
-                    # Extra Bins in 1D Histogram:
-                    ExREAL_1D.SetBinContent(0, 0)
-                    MC_REC_1D.SetBinContent(0, 0)
-                    MC_GEN_1D.SetBinContent(0, 0)
-                    ExREAL_1D.SetBinContent(ExREAL_1D.GetNbinsX() + 1, 0)
-                    MC_REC_1D.SetBinContent(MC_REC_1D.GetNbinsX() + 1, 0)
-                    MC_GEN_1D.SetBinContent(MC_GEN_1D.GetNbinsX() + 1, 0)
-                    if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
-                        ExREAL_1D.SetBinContent(1, 0)
-                        MC_REC_1D.SetBinContent(1, 0)
-                        MC_GEN_1D.SetBinContent(1, 0)
-                except:
-                    print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
-                    print(type(MC_REC_1D))
-
-
+                    
             ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("Cut: No Cuts", "")).replace("Cut:  No Cuts", ""))
@@ -2403,9 +2716,9 @@ for ii in mdf.GetListOfKeys():
             Response_2D.GetYaxis().SetTitle(str((str(Response_2D.GetYaxis().GetTitle()).replace("_{t}", "_{h}")).replace(") (", " - ")))
 
             ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin")))
-            ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",  "#phi_{h}+Q^{2-x_{B} Bin}"))
+            ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",  "#phi_{h}+Q^{2}-x_{B} Bin}"))
             MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin")))
-            MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",  "#phi_{h}+Q^{2-x_{B} Bin}"))
+            MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",  "#phi_{h}+Q^{2}-x_{B} Bin}"))
             MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin")))
             MC_GEN_1D.GetXaxis().SetTitle((str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin")))
             Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin")))
@@ -2481,9 +2794,9 @@ for ii in mdf.GetListOfKeys():
 
                 
             if("'Combined_phi_t_Q2_xB" in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Combined_phi_t_Q2_xB_Bin_2", Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Combined_phi_t_Q2_xB_Bin_2", Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="Combined_phi_t_Q2_xB_Bin_2", Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear="", Out_Option="Save")
             elif("'Combined_phi_t_Q2" in str(out_print_main)):
                 MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Combined_phi_t_Q2", Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Combined_phi_t_Q2", Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
@@ -2506,18 +2819,18 @@ for ii in mdf.GetListOfKeys():
                     Bin_Method_Histograms = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Bin")
                     Bin_Unfolded[out_print_main_binned], Bin_Acceptance[out_print_main_binned] = Bin_Method_Histograms
                     if("'Combined_phi_t_Q2_xB" in str(out_print_main)):
-                        MultiD_Slice(Histo=Bin_Unfolded[out_print_main_binned], Title="norm", Name=out_print_main, Method="Bin-by-bin", Variable="Combined_phi_t_Q2_xB_Bin_2", Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                        MultiD_Slice(Histo=Bin_Unfolded[out_print_main_binned], Title="norm", Name=out_print_main, Method="Bin-by-bin", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
                     elif("'Combined_phi_t_Q2"  in str(out_print_main)):
-                        MultiD_Slice(Histo=Bin_Unfolded[out_print_main_binned], Title="norm", Name=out_print_main, Method="Bin-by-bin", Variable="Combined_phi_t_Q2",          Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                        MultiD_Slice(Histo=Bin_Unfolded[out_print_main_binned], Title="norm", Name=out_print_main, Method="Bin-by-bin", Variable="Combined_phi_t_Q2",                                        Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
                 except:
                     print("".join([color.BOLD, color.RED, "ERROR IN BIN UNFOLDING ('Bin_Method_Histograms'):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                     
                 try: 
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])]   = (Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="RooUnfold_bayes"))[0]
                     if("'Combined_phi_t_Q2_xB" in str(out_print_main)):
-                        MultiD_Slice(Histo=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Title="norm", Name=out_print_main, Method="Bayesian", Variable="Combined_phi_t_Q2_xB_Bin_2", Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                        MultiD_Slice(Histo=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Title="norm", Name=out_print_main, Method="Bayesian", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
                     elif("'Combined_phi_t_Q2" in str(out_print_main)):
-                        MultiD_Slice(Histo=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Title="norm", Name=out_print_main, Method="Bayesian", Variable="Combined_phi_t_Q2", Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
+                        MultiD_Slice(Histo=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Title="norm", Name=out_print_main, Method="Bayesian", Variable="Combined_phi_t_Q2",                                        Smear="" if("mear" not in out_print_main) else "Smear", Out_Option="Save")
                     if("'Combined_" not in str(out_print_main)):
                         RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd"])] = (Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="RooUnfold_svd"))[0]
                     else:
@@ -2532,9 +2845,9 @@ for ii in mdf.GetListOfKeys():
                     print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold UNFOLDING METHOD(s):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                 if("'Combined_phi_t_Q2_xB" in str(out_print_main)):
-                    MultiD_Canvas_Combine(Histo_rdf=ExREAL_1D, Histo_mdf=MC_REC_1D, Histo_gdf=MC_GEN_1D, Histo_bin=Bin_Unfolded[out_print_main_binned], Histo_bay=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Name_Combine=out_print_main, Variable_Combine="Combined_phi_t_Q2_xB_Bin_2", Smear_Combine="" if("mear" not in out_print_main) else "Smear")
+                    MultiD_Canvas_Combine(Histo_rdf=ExREAL_1D, Histo_mdf=MC_REC_1D, Histo_gdf=MC_GEN_1D, Histo_bin=Bin_Unfolded[out_print_main_binned], Histo_bay=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Name_Combine=out_print_main, Variable_Combine="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), Smear_Combine="" if("mear" not in out_print_main) else "Smear")
                 elif("'Combined_phi_t_Q2"  in str(out_print_main)):
-                    MultiD_Canvas_Combine(Histo_rdf=ExREAL_1D, Histo_mdf=MC_REC_1D, Histo_gdf=MC_GEN_1D, Histo_bin=Bin_Unfolded[out_print_main_binned], Histo_bay=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Name_Combine=out_print_main, Variable_Combine="Combined_phi_t_Q2",          Smear_Combine="" if("mear" not in out_print_main) else "Smear")
+                    MultiD_Canvas_Combine(Histo_rdf=ExREAL_1D, Histo_mdf=MC_REC_1D, Histo_gdf=MC_GEN_1D, Histo_bin=Bin_Unfolded[out_print_main_binned], Histo_bay=RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])], Name_Combine=out_print_main, Variable_Combine="Combined_phi_t_Q2",                                        Smear_Combine="" if("mear" not in out_print_main) else "Smear")
                 
                 Plot_Version = "Web"
                 # Plot_Version = "Note"
@@ -2784,7 +3097,8 @@ for ii in mdf.GetListOfKeys():
                 try:
                     Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                     if(Plot_Version == "Web"):
-                        Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=2, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
+                        # Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=2, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
+                        Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=3, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
                         ROOT.gPad.SetLogz(1)
                         Response_2D.Draw("colz")
                     elif(Plot_Version == "Note"):
@@ -2881,7 +3195,8 @@ for ii in mdf.GetListOfKeys():
     ##=====##=====##    Drawing the Bin Acceptance    ##=====##=====##
                 try:
                     if(Plot_Version == "Web"):
-                        Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=3, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
+                        # Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=3, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
+                        Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=4, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
                     elif(Plot_Version == "Note"):
                         Draw_Canvas(canvas=Unfolded_Canvas_main_Row_2, cd_num=1, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
                     Bin_Acceptance[out_print_main_binned].SetTitle(str(Bin_Acceptance[out_print_main_binned].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
@@ -2951,18 +3266,19 @@ for ii in mdf.GetListOfKeys():
     ##=====##=====##   Drawing the Extra 2D Histos    ##=====##=====##
                 try:
                     if(Plot_Version == "Web"):
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",         Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=2, Var_D1="z_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "z",   Var_D2="pT_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pT",         Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=2, Var_D1="z_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "z",   Var_D2="pT_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pT",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="y_smeared"      if(Sim_Test and "smear" in str(out_print_main_mdf)) else "y",      Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
 
                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=1, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elth_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=2, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elPhi_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=3, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipth_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=4, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipPhi_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
 
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=5, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elth_smeared"   if("smear" in str(out_print_main_mdf)) else "elth",                Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=6, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elPhi_smeared"  if("smear" in str(out_print_main_mdf)) else "elPhi",               Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=7, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipth_smeared"  if("smear" in str(out_print_main_mdf)) else "pipth",               Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=8, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipPhi_smeared" if("smear" in str(out_print_main_mdf)) else "pipPhi",              Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=5, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elth_smeared"   if("smear" in str(out_print_main_mdf))              else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=6, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elPhi_smeared"  if("smear" in str(out_print_main_mdf))              else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=7, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipth_smeared"  if("smear" in str(out_print_main_mdf))              else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=8, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipPhi_smeared" if("smear" in str(out_print_main_mdf))              else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
                     
                 except:
                     print("".join([color.BOLD, color.RED, "ERROR IN CANVAS (2D Histograms):\n", color.END, str(traceback.format_exc())]))
@@ -2990,7 +3306,7 @@ for ii in mdf.GetListOfKeys():
                     fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
 
                     # Q2_xB_Bin_Title = "" if("Q2-xB-Bin=All" in str(out_print_main)) else "".join(["Q^{2}-x_{B} Bin: ", "1" if("Q2-xB-Bin=1" in str(out_print_main)) else "2" if("Q2-xB-Bin=2" in str(out_print_main)) else "3" if("Q2-xB-Bin=3" in str(out_print_main)) else "4" if("Q2-xB-Bin=4" in str(out_print_main)) else "5" if("Q2-xB-Bin=5" in str(out_print_main)) else "6" if("Q2-xB-Bin=6" in str(out_print_main)) else "7" if("Q2-xB-Bin=7" in str(out_print_main)) else "8" if("Q2-xB-Bin=8" in str(out_print_main)) else "9" if("Q2-xB-Bin=9" in str(out_print_main)) else "Error"])
-                    Q2_xB_Bin_Title = "" if("Q2-xB-Bin=All" in str(out_print_main)) else "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"])
+                    Q2_xB_Bin_Title = "" if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "]{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"])
                 ##################################################################
                 ##==========##         Matrix Unfolded Fits         ##==========##
                 ##################################################################
@@ -3009,10 +3325,28 @@ for ii in mdf.GetListOfKeys():
                     # Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_lower"])].Divide(1, 1, 0)
                     
                     
+                    
+                    Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 1, 0.15)
+                    ExREAL_1D_Single = ExREAL_1D.Clone()
+                    ExREAL_1D_Single_Title = str(ExREAL_1D_Single.GetTitle()).replace("Reconstucted Distribution", "Pre-Unfolded Distributions")
+                    ExREAL_1D_Single_Title = ExREAL_1D_Single_Title.replace("#splitline{#splitline{#splitline{", "#splitline{")
+                    ExREAL_1D_Single_Title = ExREAL_1D_Single_Title.replace("}}{#scale[1.15]{}}}", "}}")
+                    ExREAL_1D_Single_Title = ExREAL_1D_Single_Title.replace("#scale[1.35]{Range: 0 #rightarrow 360 - Size: 15.0 per bin}}}{}", "".join(["#scale[1.15]{", str(Q2_xB_Bin_Title), "}}"]))
+                    
+                    ExREAL_1D_Single.SetTitle(ExREAL_1D_Single_Title)
+                    # print(str(ExREAL_1D_Single.GetTitle()))
+                    
+                    ExREAL_1D_Single.DrawNormalized("H PL E0 same")
+                    MC_REC_1D.DrawNormalized("H PL E0 same")
+                    MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    # MC_GEN_1D.DrawNormalized("PL E0 same")
+                    Legends[(out_print_main_binned, "REC")].Draw("same")
+                    
                     ###################################################################
                     ##==========##         Bayesian Unfolded Fit         ##==========##
                     ###################################################################
-                    Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 1, 0.15)
+#                     Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 1, 0.15)
+                    Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 2, 0.15)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])] = RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])].Clone()
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(30),"]{RooUnfold Bayesian} Distribution of #phi_{h}}}{", root_color.Bold, "{Fit Function = ", str(fit_function_title), "}}}{", str(Q2_xB_Bin_Title), "}"]))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetYaxis().SetTitle("")
@@ -3050,7 +3384,8 @@ for ii in mdf.GetListOfKeys():
                     ####################################################################
                     ##==========##      (RooUnfold) SVD Unfolded Fit      ##==========##
                     ####################################################################
-                    Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 2, 0.15)
+#                     Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_upper"])], 2, 0.15)
+                    Draw_Canvas(Unfolded_Canvas["".join([str(out_print_main_binned), "extra_cd_lower"])], 1, 0.15)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])] = RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])].Clone()
 #                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(46),"]{RooUnfold SVD} Distribution of #phi_{h}}}{", root_color.Bold, "{Fit Function = ", str(fit_function_title), "}}}{", str(Q2_xB_Bin_Title), "}"]))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(root_color.Pink),"]{RooUnfold SVD} Distribution of #phi_{h}}}{", root_color.Bold, "{Fit Function = ", str(fit_function_title), "}}}{", str(Q2_xB_Bin_Title), "}"]))
@@ -3231,10 +3566,10 @@ for Canvas_name in Unfolded_Canvas:
         Save_Name = "".join([str(Canvas_name).replace("Unfolded_Canvas_All_", "Unfolded_Histos_Q2_xB_Bin_"), str(File_Save_Format)])
         if("smear" in str(Canvas_name)):
             Save_Name = "".join([str(Canvas_name).replace("Unfolded_Canvas_All_", "Unfolded_Histos_Q2_xB_Bin_"), "_Smeared", str(File_Save_Format)])
-        Save_Name = Save_Name.replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))", "")
-        Save_Name = Save_Name.replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))", "")
-        Save_Name = Save_Name.replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2'-[NumBins=55, MinBin=-3.5, MaxBin=51.5]))", "")
-        Save_Name = Save_Name.replace(", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2_smeared'-[NumBins=55, MinBin=-3.5, MaxBin=51.5]))", "")
+        Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]), "")
+        Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]), "")
+        Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=55, MinBin=-3.5, MaxBin=51.5]))"]), "")
+        Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=55, MinBin=-3.5, MaxBin=51.5]))"]), "")
         Save_Name = Save_Name.replace("Smear-Type=''", "")
         Save_Name = Save_Name.replace("Smear-Type='smear'", "")
         Save_Name = str(str(Save_Name.replace("(", "")).replace(")", "").replace(", ", "_")).replace("'", "")
@@ -3244,42 +3579,47 @@ for Canvas_name in Unfolded_Canvas:
         Save_Name = str(Save_Name.replace("Data-", ""))
         Save_Name = str(Save_Name.replace("z-PT-Bin=", "_z_pT_Bin_"))
         Save_Name = str(Save_Name.replace("Q2-xB-Bin=", "Q2_xB_Bin_"))
-        Save_Name = str(Save_Name.replace("Binning-Type=2-[" , "_")).replace("]", "")
+        Save_Name = str(Save_Name.replace("".join(["Binning-Type=", str(Binning_Method).replace("_", ""), "-["]) , "_")).replace("]", "")
+        Save_Name = str(Save_Name.replace("Q2-y-Bin=", "Q2_y_Bin_"))
+        Save_Name = str(Save_Name.replace("".join(["Binning-Type=y_bin-["]) , "_")).replace("]", "")
         Save_Name = str(Save_Name.replace("_Cut=cut_Complete_SIDIS", ""))
         Save_Name = Save_Name.replace("__", "_")
         
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0_MaxBin=1.05_Var-D2=z_pT_Bin_2-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0_MaxBin=1.05_Var-D2=z_pT_Bin_2_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0_MaxBin=1.05_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0_MaxBin=1.05_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
         Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0_MaxBin=1.05", "")
         
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.11944_MaxBin=0.73056_Var-D2=z_pT_Bin_2-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.11944_MaxBin=0.73056_Var-D2=z_pT_Bin_2_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0.11944_MaxBin=0.73056_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0.11944_MaxBin=0.73056_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
         Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.11944_MaxBin=0.73056", "")
         
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.08977_MaxBin=0.82643_Var-D2=z_pT_Bin_2-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.08977_MaxBin=0.82643_Var-D2=z_pT_Bin_2_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0.08977_MaxBin=0.82643_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=0.08977_MaxBin=0.82643_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
         Save_Name = Save_Name.replace("-[NumBins=20_MinBin=0.08977_MaxBin=0.82643", "")
         
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=1.4805_MaxBin=11.8705_Var-D2=z_pT_Bin_2-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=20_MinBin=1.4805_MaxBin=11.8705_Var-D2=z_pT_Bin_2_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5", "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=1.4805_MaxBin=11.8705_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=20_MinBin=1.4805_MaxBin=11.8705_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=55_MinBin=-3.5_MaxBin=51.5"]), "")
         Save_Name = Save_Name.replace("-[NumBins=20_MinBin=1.4805_MaxBin=11.8705", "")
         
         Save_Name = Save_Name.replace("Q2_xB_Bin_All_z_pT_Bin_All_1D_Var-D1=", "All_Events_")
         
-        Save_Name = Save_Name.replace("_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=483_MinBin=-1.5_MaxBin=481.5_Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
+        Save_Name = Save_Name.replace("".join(["_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=483_MinBin=-1.5_MaxBin=481.5_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
         
-        Save_Name = Save_Name.replace("_smeared-[NumBins=195_MinBin=-1.5_MaxBin=193.5_Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-        Save_Name = Save_Name.replace("-[NumBins=195_MinBin=-1.5_MaxBin=193.5_Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
+        Save_Name = Save_Name.replace("".join(["_smeared-[NumBins=195_MinBin=-1.5_MaxBin=193.5_Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+        Save_Name = Save_Name.replace("".join(["-[NumBins=195_MinBin=-1.5_MaxBin=193.5_Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
         
-        Save_Name = Save_Name.replace("Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-        Save_Name = Save_Name.replace("Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
+        Save_Name = Save_Name.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+        Save_Name = Save_Name.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
         Save_Name = Save_Name.replace("_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
         Save_Name = Save_Name.replace("-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
         Save_Name = Save_Name.replace("_smeared-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
         Save_Name = Save_Name.replace("-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
         Save_Name = Save_Name.replace("_smeared-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
         Save_Name = Save_Name.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
+        
+        if((str(Save_Name).find("-[NumBins")) != -1):
+            Save_Name = str(Save_Name).replace(str(Save_Name).replace(str(Save_Name)[:(str(Save_Name).find("-[NumBins"))], ""), "".join(["_Unfolded_Histos" if("_Unfolded_Histos" in Save_Name) else "", str(File_Save_Format)]))
         
         Save_Name = Save_Name.replace("Var-D1=", "")
         Save_Name = Save_Name.replace("__", "_")
@@ -3330,153 +3670,204 @@ elif(Smearing_Options in ["both"]):
 
 # Smearing_final_list = ["smear"]
 
-print("".join([color.BOLD, color.GREEN, "\n\nDone with main Unfolded Histograms (Now getting parameter plots...)\n", color.END]))
-Canvas_Parameters_List, Histo_Par_A_z, Histo_Par_B_z, Histo_Par_C_z, Histo_Par_A_pT, Histo_Par_B_pT, Histo_Par_C_pT, Par_Legends = {}, {}, {}, {}, {}, {}, {}, {}
-# for Method in ["Bayes", "SVD", "Bin"]:
-for Method in ["Bayes", "Bin"]:
-    for smearing_par in Smearing_final_list:
-        z_value_Start, pT_value_Start = 1, 0
-        try:
-            for bin_ii in Parameter_List_Unfold_Methods[Method]:
-                Q2_xB_Bin, z_pT_Bin, Par_A, Par_A_Error, Par_B, Par_B_Error, Par_C, Par_C_Error, Smearing_Title = bin_ii
-                if((0 in [Q2_xB_Bin, z_pT_Bin]) or ("mear" in smearing_par and "mear" not in Smearing_Title) or ("mear" not in smearing_par and "mear" in Smearing_Title)):
-                    continue
-                z_value,       pT_value       = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Default")
-                z_value_title, pT_value_title = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Title")
-
-                if("Error" in [z_value, pT_value]):
-                    print("".join([color.BOLD, color.RED, "ERROR IN Q2-xB Bin ",  str(Q2_xB_Bin), " --- z-pT Bin ",  str(z_pT_Bin), color.END]))
-                    print("".join(["z_value = ", str(z_value), "\tpT_value = ", str(pT_value)]))
-
-                Histo_Name_z  = "".join([str(pT_value_title), "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "".join(["_", str(Smearing_Title)]) if("" != Smearing_Title) else ""])
-                Histo_Name_pT = "".join([str(z_value_title),  "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "".join(["_", str(Smearing_Title)]) if("" != Smearing_Title) else ""])
-                Unfolding_Title_Name = "bin-by-bin" if(Method in ["Bin", "bin", "bbb"]) else "Bayesian" if(Method in ["Bayes", "bayes", "bayesian"]) else str(Method)
-
-
-                Title_Q2_xB_Bin = "".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin)])
-                Title_Line_1    = "".join(["(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{PARAMETER}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}"])
-
-                Title_z_Line_3  = "".join([root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]"])
-                Title_pT_Line_3 = "".join([root_color.Bold, "{z Bin:} ",     str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title"))])
-
-                Title_z_All     = "".join(["#splitline{#splitline{", str(Title_Line_1), "}{", str(Title_Q2_xB_Bin), "}}{", str(Title_z_Line_3),  "}; z; PARAMETER"])
-                Title_pT_All    = "".join(["#splitline{#splitline{", str(Title_Line_1), "}{", str(Title_Q2_xB_Bin), "}}{", str(Title_pT_Line_3), "}; P_{T} [GeV]; PARAMETER"])
-
-                # try:
-                #     Histo_Par_A_z[Histo_Name_z]
-                # except:
-                #     Histo_Par_A_z[Histo_Name_z] = ROOT.TGraph()
-                #     Histo_Par_A_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_A"]))
-                #     Histo_Par_A_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter A"))
-                try:
-                    Histo_Par_B_z[Histo_Name_z]
-                except:
-                    # Histo_Par_B_z[Histo_Name_z] = ROOT.TGraph()
-                    Histo_Par_B_z[Histo_Name_z] = ROOT.TGraphErrors()
-                    Histo_Par_B_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_B"]))
-                    Histo_Par_B_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter B"))
-                    # Histo_Par_B_z[Histo_Name_z].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter B}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]}; z; Parameter B"]))
-                try:
-                    Histo_Par_C_z[Histo_Name_z]
-                except:
-                    # Histo_Par_C_z[Histo_Name_z] = ROOT.TGraph()
-                    Histo_Par_C_z[Histo_Name_z] = ROOT.TGraphErrors()
-                    Histo_Par_C_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_C"]))
-                    Histo_Par_C_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter C"))
-                    # Histo_Par_C_z[Histo_Name_z].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter C}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]}; z; Parameter C"]))
-
-                # try:
-                #     Histo_Par_A_pT[Histo_Name_pT]
-                # except:
-                #     Histo_Par_A_pT[Histo_Name_pT] = ROOT.TGraph()
-                #     Histo_Par_A_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT),  "_Par_A"]))
-                #     Histo_Par_A_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter A"))
-                try:
-                    Histo_Par_B_pT[Histo_Name_pT]
-                except:
-                    # Histo_Par_B_pT[Histo_Name_pT] = ROOT.TGraph()
-                    Histo_Par_B_pT[Histo_Name_pT] = ROOT.TGraphErrors()
-                    Histo_Par_B_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT), "_Par_B"]))
-                    Histo_Par_B_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter B"))
-                    # Histo_Par_B_pT[Histo_Name_pT].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter B}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{z Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title")), "}; P_{T} [GeV]; Parameter B"]))
-                try:
-                    Histo_Par_C_pT[Histo_Name_pT]
-                except:
-                    # Histo_Par_C_pT[Histo_Name_pT] = ROOT.TGraph()
-                    Histo_Par_C_pT[Histo_Name_pT] = ROOT.TGraphErrors()
-                    Histo_Par_C_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT), "_Par_C"]))
-                    Histo_Par_C_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter C"))
-                    # Histo_Par_C_pT[Histo_Name_pT].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter C}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{z Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title")), "}; P_{T} [GeV]; Parameter C"]))
-
-
-                # print("\n============================================================================")
-                # print("".join(["Histo_Par_B_z[Histo_Name_z].GetN()   = ", str(Histo_Par_B_z[Histo_Name_z].GetN())]))
-                # print("".join(["Histo_Par_B_pT[Histo_Name_pT].GetN() = ", str(Histo_Par_B_pT[Histo_Name_pT].GetN())]))
-                # print("".join(["Q2_xB_Bin = ", str(Q2_xB_Bin)]))
-                # print("".join(["z_pT_Bin  = ", str(z_pT_Bin)]))
-                # print("".join(["z_value   = ", str(round(z_value,  3))]))
-                # print("".join(["pT_value  = ", str(round(pT_value, 3))]))
-                # # print("".join(["Par_B     = ", str(Par_B)]))
-                # # print("".join(["Par_C     = ", str(Par_C)]))
-                # print("============================================================================\n")
-
-                # if((z_value_Start  > z_value)  and (z_value  != z_value_Start)):
-                #     z_value_Start  = z_value
-                # Histo_Par_A_z[Histo_Name_z].SetPoint(Histo_Par_A_z[Histo_Name_z].GetN(), z_value, Par_A)
-                Histo_Par_B_z[Histo_Name_z].SetPoint(Histo_Par_B_z[Histo_Name_z].GetN(), z_value, Par_B)
-                Histo_Par_B_z[Histo_Name_z].SetPointError(Histo_Par_B_z[Histo_Name_z].GetN() - 1, 0, Par_B_Error)
-                Histo_Par_C_z[Histo_Name_z].SetPoint(Histo_Par_C_z[Histo_Name_z].GetN(), z_value, Par_C)
-                Histo_Par_C_z[Histo_Name_z].SetPointError(Histo_Par_C_z[Histo_Name_z].GetN() - 1, 0, Par_C_Error)
-
-                # if((pT_value_Start < pT_value) and (pT_value != pT_value_Start)):
-                #     pT_value_Start = pT_value
-                # Histo_Par_A_pT[Histo_Name_pT].SetPoint(Histo_Par_A_pT[Histo_Name_pT].GetN(), pT_value, Par_A)
-                Histo_Par_B_pT[Histo_Name_pT].SetPoint(Histo_Par_B_pT[Histo_Name_pT].GetN(), pT_value, Par_B)
-                Histo_Par_B_pT[Histo_Name_pT].SetPointError(Histo_Par_B_pT[Histo_Name_pT].GetN() - 1, 0, Par_B_Error)
-                Histo_Par_C_pT[Histo_Name_pT].SetPoint(Histo_Par_C_pT[Histo_Name_pT].GetN(), pT_value, Par_C)
-                Histo_Par_C_pT[Histo_Name_pT].SetPointError(Histo_Par_C_pT[Histo_Name_pT].GetN() - 1, 0, Par_C_Error)
-
-
-            #################################################################################################################################################################################################################################################################################################################################################
-            #################################################################################################################################################################################################################################################################################################################################################
-            #################################################################################################################################################################################################################################################################################################################################################
-            #################################################################################################################################################################################################################################################################################################################################################
-            #################################################################################################################################################################################################################################################################################################################################################
-            
-            for Q2_xB_Bin_Name_ii in Q2_xB_Bin_List:
-                if(Q2_xB_Bin_Name_ii in ['0']):
-                    continue
-                Q2_xB_Bin_Name     = "".join(["Q2_xB_Bin_", str(Q2_xB_Bin_Name_ii)])
-                Q2_xB_Bin          = 1 if("Q2_xB_Bin_1" in str(Q2_xB_Bin_Name)) else 2 if("Q2_xB_Bin_2" in str(Q2_xB_Bin_Name)) else 3 if("Q2_xB_Bin_3" in str(Q2_xB_Bin_Name)) else 4 if("Q2_xB_Bin_4" in str(Q2_xB_Bin_Name)) else 5 if("Q2_xB_Bin_5" in str(Q2_xB_Bin_Name)) else 6 if("Q2_xB_Bin_6" in str(Q2_xB_Bin_Name)) else 7 if("Q2_xB_Bin_7" in str(Q2_xB_Bin_Name)) else 8 if("Q2_xB_Bin_8" in str(Q2_xB_Bin_Name)) else 9 if("Q2_xB_Bin_9" in str(Q2_xB_Bin_Name)) else "ERROR"
-                z_pT_Bin_Range     = 49 if(Q2_xB_Bin_Name_ii in ['1', '2', '3']) else 42 if(Q2_xB_Bin_Name_ii in ['4']) else 36 if(Q2_xB_Bin_Name_ii in ['5']) else 25 if(Q2_xB_Bin_Name_ii in ['6', '7']) else 20 if(Q2_xB_Bin_Name_ii in ['8']) else 1
-                
-                canvas_name_z      = "".join(["z_Pars_",  str(Method), "_", str(Q2_xB_Bin_Name), "_Smeared" if("mear" in smearing_par) else ""])
-                canvas_name_PT     = "".join(["PT_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "_Smeared" if("mear" in smearing_par) else ""])
-                
-                Histo_Name_z_list  = []
-                Histo_Name_pT_list = []
-                
-                root_color_ii_z, root_color_ii_pT = 1, 1
-                for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):                
+if("y_bin" not in Binning_Method):
+    print("".join([color.BOLD, color.GREEN, "\n\nDone with main Unfolded Histograms (Now getting parameter plots...)\n", color.END]))
+    Canvas_Parameters_List, Histo_Par_A_z, Histo_Par_B_z, Histo_Par_C_z, Histo_Par_A_pT, Histo_Par_B_pT, Histo_Par_C_pT, Par_Legends = {}, {}, {}, {}, {}, {}, {}, {}
+    # for Method in ["Bayes", "SVD", "Bin"]:
+    for Method in ["Bayes", "Bin"]:
+        for smearing_par in Smearing_final_list:
+            z_value_Start, pT_value_Start = 1, 0
+            try:
+                for bin_ii in Parameter_List_Unfold_Methods[Method]:
+                    Q2_xB_Bin, z_pT_Bin, Par_A, Par_A_Error, Par_B, Par_B_Error, Par_C, Par_C_Error, Smearing_Title = bin_ii
+                    if((0 in [Q2_xB_Bin, z_pT_Bin]) or ("mear" in smearing_par and "mear" not in Smearing_Title) or ("mear" not in smearing_par and "mear" in Smearing_Title)):
+                        continue
                     z_value,       pT_value       = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Default")
                     z_value_title, pT_value_title = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Title")
-                    
-                    Histo_Name_z  = "".join([str(pT_value_title), "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "_Smeared" if("mear" in smearing_par) else ""])
-                    Histo_Name_pT = "".join([str(z_value_title),  "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "_Smeared" if("mear" in smearing_par) else ""])
-                    
+
+                    if("Error" in [z_value, pT_value]):
+                        print("".join([color.BOLD, color.RED, "ERROR IN Q2-xB Bin ",  str(Q2_xB_Bin), " --- z-pT Bin ",  str(z_pT_Bin), color.END]))
+                        print("".join(["z_value = ", str(z_value), "\tpT_value = ", str(pT_value)]))
+
+                    Histo_Name_z  = "".join([str(pT_value_title), "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "".join(["_", str(Smearing_Title)]) if("" != Smearing_Title) else ""])
+                    Histo_Name_pT = "".join([str(z_value_title),  "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "".join(["_", str(Smearing_Title)]) if("" != Smearing_Title) else ""])
+                    Unfolding_Title_Name = "bin-by-bin" if(Method in ["Bin", "bin", "bbb"]) else "Bayesian" if(Method in ["Bayes", "bayes", "bayesian"]) else str(Method)
+
+
+                    Title_Q2_xB_Bin = "".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin)])
+                    Title_Line_1    = "".join(["(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{PARAMETER}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}"])
+
+                    Title_z_Line_3  = "".join([root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]"])
+                    Title_pT_Line_3 = "".join([root_color.Bold, "{z Bin:} ",     str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title"))])
+
+                    Title_z_All     = "".join(["#splitline{#splitline{", str(Title_Line_1), "}{", str(Title_Q2_xB_Bin), "}}{", str(Title_z_Line_3),  "}; z; PARAMETER"])
+                    Title_pT_All    = "".join(["#splitline{#splitline{", str(Title_Line_1), "}{", str(Title_Q2_xB_Bin), "}}{", str(Title_pT_Line_3), "}; P_{T} [GeV]; PARAMETER"])
+
+                    # try:
+                    #     Histo_Par_A_z[Histo_Name_z]
+                    # except:
+                    #     Histo_Par_A_z[Histo_Name_z] = ROOT.TGraph()
+                    #     Histo_Par_A_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_A"]))
+                    #     Histo_Par_A_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter A"))
                     try:
-                        Canvas_Parameters_List[canvas_name_z].GetName()
-                        
-                        if(Histo_Name_z not in Histo_Name_z_list):
-                            
-                            # print("".join(["Histo_Name_z_list = ", str(Histo_Name_z_list)]))
-                            # print("".join(["Histo_Name_z      = ", str(Histo_Name_z)]))
-                            
-                            Histo_Name_z_list.append(Histo_Name_z)
-                            
-                            root_color_ii_z += 1
-                            if(root_color_ii_z in [5, 10, 19]):
+                        Histo_Par_B_z[Histo_Name_z]
+                    except:
+                        # Histo_Par_B_z[Histo_Name_z] = ROOT.TGraph()
+                        Histo_Par_B_z[Histo_Name_z] = ROOT.TGraphErrors()
+                        Histo_Par_B_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_B"]))
+                        Histo_Par_B_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter B"))
+                        # Histo_Par_B_z[Histo_Name_z].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter B}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]}; z; Parameter B"]))
+                    try:
+                        Histo_Par_C_z[Histo_Name_z]
+                    except:
+                        # Histo_Par_C_z[Histo_Name_z] = ROOT.TGraph()
+                        Histo_Par_C_z[Histo_Name_z] = ROOT.TGraphErrors()
+                        Histo_Par_C_z[Histo_Name_z].SetName("".join([str(Histo_Name_z), "_Par_C"]))
+                        Histo_Par_C_z[Histo_Name_z].SetTitle(str(Title_z_All).replace("PARAMETER", "Parameter C"))
+                        # Histo_Par_C_z[Histo_Name_z].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter C}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{P_{T} Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="pT_title")), " [GeV]}; z; Parameter C"]))
+
+                    # try:
+                    #     Histo_Par_A_pT[Histo_Name_pT]
+                    # except:
+                    #     Histo_Par_A_pT[Histo_Name_pT] = ROOT.TGraph()
+                    #     Histo_Par_A_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT),  "_Par_A"]))
+                    #     Histo_Par_A_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter A"))
+                    try:
+                        Histo_Par_B_pT[Histo_Name_pT]
+                    except:
+                        # Histo_Par_B_pT[Histo_Name_pT] = ROOT.TGraph()
+                        Histo_Par_B_pT[Histo_Name_pT] = ROOT.TGraphErrors()
+                        Histo_Par_B_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT), "_Par_B"]))
+                        Histo_Par_B_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter B"))
+                        # Histo_Par_B_pT[Histo_Name_pT].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter B}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{z Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title")), "}; P_{T} [GeV]; Parameter B"]))
+                    try:
+                        Histo_Par_C_pT[Histo_Name_pT]
+                    except:
+                        # Histo_Par_C_pT[Histo_Name_pT] = ROOT.TGraph()
+                        Histo_Par_C_pT[Histo_Name_pT] = ROOT.TGraphErrors()
+                        Histo_Par_C_pT[Histo_Name_pT].SetName("".join([str(Histo_Name_pT), "_Par_C"]))
+                        Histo_Par_C_pT[Histo_Name_pT].SetTitle(str(Title_pT_All).replace("PARAMETER", "Parameter C"))
+                        # Histo_Par_C_pT[Histo_Name_pT].SetTitle("".join(["#splitline{#splitline{", "(Smeared) " if("" != Smearing_Title) else "", "Fit ", root_color.Bold, "{#color[", str(root_color.Blue), "]{Parameter C}} from ", root_color.Bold, "{#color[", str(root_color.Red), "]{", str(Unfolding_Title_Name), "} unfolding}}{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "}}{", root_color.Bold, "{z Bin:} ", str(Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="z_title")), "}; P_{T} [GeV]; Parameter C"]))
+
+
+                    # print("\n============================================================================")
+                    # print("".join(["Histo_Par_B_z[Histo_Name_z].GetN()   = ", str(Histo_Par_B_z[Histo_Name_z].GetN())]))
+                    # print("".join(["Histo_Par_B_pT[Histo_Name_pT].GetN() = ", str(Histo_Par_B_pT[Histo_Name_pT].GetN())]))
+                    # print("".join(["Q2_xB_Bin = ", str(Q2_xB_Bin)]))
+                    # print("".join(["z_pT_Bin  = ", str(z_pT_Bin)]))
+                    # print("".join(["z_value   = ", str(round(z_value,  3))]))
+                    # print("".join(["pT_value  = ", str(round(pT_value, 3))]))
+                    # # print("".join(["Par_B     = ", str(Par_B)]))
+                    # # print("".join(["Par_C     = ", str(Par_C)]))
+                    # print("============================================================================\n")
+
+                    # if((z_value_Start  > z_value)  and (z_value  != z_value_Start)):
+                    #     z_value_Start  = z_value
+                    # Histo_Par_A_z[Histo_Name_z].SetPoint(Histo_Par_A_z[Histo_Name_z].GetN(), z_value, Par_A)
+                    Histo_Par_B_z[Histo_Name_z].SetPoint(Histo_Par_B_z[Histo_Name_z].GetN(), z_value, Par_B)
+                    Histo_Par_B_z[Histo_Name_z].SetPointError(Histo_Par_B_z[Histo_Name_z].GetN() - 1, 0, Par_B_Error)
+                    Histo_Par_C_z[Histo_Name_z].SetPoint(Histo_Par_C_z[Histo_Name_z].GetN(), z_value, Par_C)
+                    Histo_Par_C_z[Histo_Name_z].SetPointError(Histo_Par_C_z[Histo_Name_z].GetN() - 1, 0, Par_C_Error)
+
+                    # if((pT_value_Start < pT_value) and (pT_value != pT_value_Start)):
+                    #     pT_value_Start = pT_value
+                    # Histo_Par_A_pT[Histo_Name_pT].SetPoint(Histo_Par_A_pT[Histo_Name_pT].GetN(), pT_value, Par_A)
+                    Histo_Par_B_pT[Histo_Name_pT].SetPoint(Histo_Par_B_pT[Histo_Name_pT].GetN(), pT_value, Par_B)
+                    Histo_Par_B_pT[Histo_Name_pT].SetPointError(Histo_Par_B_pT[Histo_Name_pT].GetN() - 1, 0, Par_B_Error)
+                    Histo_Par_C_pT[Histo_Name_pT].SetPoint(Histo_Par_C_pT[Histo_Name_pT].GetN(), pT_value, Par_C)
+                    Histo_Par_C_pT[Histo_Name_pT].SetPointError(Histo_Par_C_pT[Histo_Name_pT].GetN() - 1, 0, Par_C_Error)
+
+
+                #################################################################################################################################################################################################################################################################################################################################################
+                #################################################################################################################################################################################################################################################################################################################################################
+                #################################################################################################################################################################################################################################################################################################################################################
+                #################################################################################################################################################################################################################################################################################################################################################
+                #################################################################################################################################################################################################################################################################################################################################################
+
+                for Q2_xB_Bin_Name_ii in Q2_xB_Bin_List:
+                    if(Q2_xB_Bin_Name_ii in ['0']):
+                        continue
+                    Q2_xB_Bin_Name     = "".join(["Q2_xB_Bin_", str(Q2_xB_Bin_Name_ii)])
+                    Q2_xB_Bin          = 1 if("Q2_xB_Bin_1" in str(Q2_xB_Bin_Name)) else 2 if("Q2_xB_Bin_2" in str(Q2_xB_Bin_Name)) else 3 if("Q2_xB_Bin_3" in str(Q2_xB_Bin_Name)) else 4 if("Q2_xB_Bin_4" in str(Q2_xB_Bin_Name)) else 5 if("Q2_xB_Bin_5" in str(Q2_xB_Bin_Name)) else 6 if("Q2_xB_Bin_6" in str(Q2_xB_Bin_Name)) else 7 if("Q2_xB_Bin_7" in str(Q2_xB_Bin_Name)) else 8 if("Q2_xB_Bin_8" in str(Q2_xB_Bin_Name)) else 9 if("Q2_xB_Bin_9" in str(Q2_xB_Bin_Name)) else "ERROR"
+                    z_pT_Bin_Range     = 49 if(Q2_xB_Bin_Name_ii in ['1', '2', '3']) else 42 if(Q2_xB_Bin_Name_ii in ['4']) else 36 if(Q2_xB_Bin_Name_ii in ['5']) else 25 if(Q2_xB_Bin_Name_ii in ['6', '7']) else 20 if(Q2_xB_Bin_Name_ii in ['8']) else 1
+
+                    canvas_name_z      = "".join(["z_Pars_",  str(Method), "_", str(Q2_xB_Bin_Name), "_Smeared" if("mear" in smearing_par) else ""])
+                    canvas_name_PT     = "".join(["PT_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "_Smeared" if("mear" in smearing_par) else ""])
+
+                    Histo_Name_z_list  = []
+                    Histo_Name_pT_list = []
+
+                    root_color_ii_z, root_color_ii_pT = 1, 1
+                    for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):                
+                        z_value,       pT_value       = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Default")
+                        z_value_title, pT_value_title = Find_z_pT_Bin_Center(Q2_xB_Bin, z_pT_Bin, variable_return="Title")
+
+                        Histo_Name_z  = "".join([str(pT_value_title), "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "_Smeared" if("mear" in smearing_par) else ""])
+                        Histo_Name_pT = "".join([str(z_value_title),  "_Unfold_", str(Method), "_Q2_xB_Bin_", str(Q2_xB_Bin), "_Smeared" if("mear" in smearing_par) else ""])
+
+                        try:
+                            Canvas_Parameters_List[canvas_name_z].GetName()
+
+                            if(Histo_Name_z not in Histo_Name_z_list):
+
+                                # print("".join(["Histo_Name_z_list = ", str(Histo_Name_z_list)]))
+                                # print("".join(["Histo_Name_z      = ", str(Histo_Name_z)]))
+
+                                Histo_Name_z_list.append(Histo_Name_z)
+
                                 root_color_ii_z += 1
+                                if(root_color_ii_z in [5, 10, 19]):
+                                    root_color_ii_z += 1
+
+                                Histo_Par_B_z[Histo_Name_z].SetMarkerSize(2)
+                                Histo_Par_B_z[Histo_Name_z].SetMarkerColor(root_color_ii_z)
+                                Histo_Par_B_z[Histo_Name_z].SetLineColor(root_color_ii_z)
+                                Histo_Par_B_z[Histo_Name_z].SetLineWidth(1)
+                                Canvas_Parameters_List[TMulti_Graph_B_name_z].Add(Histo_Par_B_z[Histo_Name_z])
+                                Par_Legends[TMulti_Graph_B_name_z].AddEntry(Histo_Par_B_z[Histo_Name_z], "".join(["#color[", str(root_color_ii_z), "]{", str(pT_value_title),"}"]), "lpE")
+                                Histo_Par_C_z[Histo_Name_z].SetMarkerSize(2)
+                                Histo_Par_C_z[Histo_Name_z].SetMarkerColor(root_color_ii_z)
+                                Histo_Par_C_z[Histo_Name_z].SetLineColor(root_color_ii_z)
+                                Histo_Par_C_z[Histo_Name_z].SetLineWidth(1)
+                                Canvas_Parameters_List[TMulti_Graph_C_name_z].Add(Histo_Par_C_z[Histo_Name_z])
+                                Par_Legends[TMulti_Graph_C_name_z].AddEntry(Histo_Par_C_z[Histo_Name_z], "".join(["#color[", str(root_color_ii_z), "]{", str(pT_value_title),"}"]), "lpE")
+
+                        except:
+                            Canvas_Parameters_List[canvas_name_z]          = Canvas_Create(Name=canvas_name_z,  Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
+                            TMulti_Graph_B_name_z, TMulti_Graph_B_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_B"]), "".join([str(canvas_name_PT), "_TMultiGraph_B"])
+                            TMulti_Graph_C_name_z, TMulti_Graph_C_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_C"]), "".join([str(canvas_name_PT), "_TMultiGraph_C"])
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_z]  = ROOT.TMultiGraph(TMulti_Graph_B_name_z,  "".join([str(str(Histo_Par_B_z[Histo_Name_z].GetTitle()).replace(str(z_value_title), "All Bins")).replace(" [GeV]", ""),   ";", str(Histo_Par_B_z[Histo_Name_z].GetXaxis().GetTitle()),   ";", str(Histo_Par_B_z[Histo_Name_z].GetYaxis().GetTitle())]))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_z]  = ROOT.TMultiGraph(TMulti_Graph_C_name_z,  "".join([str(str(Histo_Par_C_z[Histo_Name_z].GetTitle()).replace(str(z_value_title), "All Bins")).replace(" [GeV]", ""),   ";", str(Histo_Par_C_z[Histo_Name_z].GetXaxis().GetTitle()),   ";", str(Histo_Par_C_z[Histo_Name_z].GetYaxis().GetTitle())]))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.55 - 0.7", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.55 - 0.7", "All Bins"))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.56 - 0.7", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.56 - 0.7", "All Bins"))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.6 - 0.7", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.6 - 0.7", "All Bins"))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.5 - 0.7", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.5 - 0.7", "All Bins"))
+
+                            # print(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()))
+
+                            Par_Legends[TMulti_Graph_B_name_z] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+                            Par_Legends[TMulti_Graph_B_name_z].SetNColumns(1)
+                            Par_Legends[TMulti_Graph_B_name_z].SetBorderSize(0)
+                            Par_Legends[TMulti_Graph_B_name_z].SetFillColor(0)
+                            Par_Legends[TMulti_Graph_B_name_z].SetFillStyle(0)
+
+                            Par_Legends[TMulti_Graph_C_name_z] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+                            Par_Legends[TMulti_Graph_C_name_z].SetNColumns(1)
+                            Par_Legends[TMulti_Graph_C_name_z].SetBorderSize(0)
+                            Par_Legends[TMulti_Graph_C_name_z].SetFillColor(0)
+                            Par_Legends[TMulti_Graph_C_name_z].SetFillStyle(0)
+
+                            root_color_ii_z   = 1
+                            Histo_Name_z_list.append(Histo_Name_z)
 
                             Histo_Par_B_z[Histo_Name_z].SetMarkerSize(2)
                             Histo_Par_B_z[Histo_Name_z].SetMarkerColor(root_color_ii_z)
@@ -3490,67 +3881,60 @@ for Method in ["Bayes", "Bin"]:
                             Histo_Par_C_z[Histo_Name_z].SetLineWidth(1)
                             Canvas_Parameters_List[TMulti_Graph_C_name_z].Add(Histo_Par_C_z[Histo_Name_z])
                             Par_Legends[TMulti_Graph_C_name_z].AddEntry(Histo_Par_C_z[Histo_Name_z], "".join(["#color[", str(root_color_ii_z), "]{", str(pT_value_title),"}"]), "lpE")
-                        
-                    except:
-                        Canvas_Parameters_List[canvas_name_z]          = Canvas_Create(Name=canvas_name_z,  Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
-                        TMulti_Graph_B_name_z, TMulti_Graph_B_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_B"]), "".join([str(canvas_name_PT), "_TMultiGraph_B"])
-                        TMulti_Graph_C_name_z, TMulti_Graph_C_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_C"]), "".join([str(canvas_name_PT), "_TMultiGraph_C"])
 
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z]  = ROOT.TMultiGraph(TMulti_Graph_B_name_z,  "".join([str(str(Histo_Par_B_z[Histo_Name_z].GetTitle()).replace(str(z_value_title), "All Bins")).replace(" [GeV]", ""),   ";", str(Histo_Par_B_z[Histo_Name_z].GetXaxis().GetTitle()),   ";", str(Histo_Par_B_z[Histo_Name_z].GetYaxis().GetTitle())]))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z]  = ROOT.TMultiGraph(TMulti_Graph_C_name_z,  "".join([str(str(Histo_Par_C_z[Histo_Name_z].GetTitle()).replace(str(z_value_title), "All Bins")).replace(" [GeV]", ""),   ";", str(Histo_Par_C_z[Histo_Name_z].GetXaxis().GetTitle()),   ";", str(Histo_Par_C_z[Histo_Name_z].GetYaxis().GetTitle())]))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.55 - 0.7", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.55 - 0.7", "All Bins"))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.56 - 0.7", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.56 - 0.7", "All Bins"))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.6 - 0.7", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.6 - 0.7", "All Bins"))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()).replace("0.5 - 0.7", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_z].GetTitle()).replace("0.5 - 0.7", "All Bins"))
-                        
-                        # print(str(Canvas_Parameters_List[TMulti_Graph_B_name_z].GetTitle()))
-                        
-                        Par_Legends[TMulti_Graph_B_name_z] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-                        Par_Legends[TMulti_Graph_B_name_z].SetNColumns(1)
-                        Par_Legends[TMulti_Graph_B_name_z].SetBorderSize(0)
-                        Par_Legends[TMulti_Graph_B_name_z].SetFillColor(0)
-                        Par_Legends[TMulti_Graph_B_name_z].SetFillStyle(0)
 
-                        Par_Legends[TMulti_Graph_C_name_z] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-                        Par_Legends[TMulti_Graph_C_name_z].SetNColumns(1)
-                        Par_Legends[TMulti_Graph_C_name_z].SetBorderSize(0)
-                        Par_Legends[TMulti_Graph_C_name_z].SetFillColor(0)
-                        Par_Legends[TMulti_Graph_C_name_z].SetFillStyle(0)
+                        try:
+                            Canvas_Parameters_List[canvas_name_PT].GetName()
 
-                        root_color_ii_z   = 1
-                        Histo_Name_z_list.append(Histo_Name_z)
+                            if(Histo_Name_pT not in Histo_Name_pT_list):
+                                Histo_Name_pT_list.append(Histo_Name_pT)
 
-                        Histo_Par_B_z[Histo_Name_z].SetMarkerSize(2)
-                        Histo_Par_B_z[Histo_Name_z].SetMarkerColor(root_color_ii_z)
-                        Histo_Par_B_z[Histo_Name_z].SetLineColor(root_color_ii_z)
-                        Histo_Par_B_z[Histo_Name_z].SetLineWidth(1)
-                        Canvas_Parameters_List[TMulti_Graph_B_name_z].Add(Histo_Par_B_z[Histo_Name_z])
-                        Par_Legends[TMulti_Graph_B_name_z].AddEntry(Histo_Par_B_z[Histo_Name_z], "".join(["#color[", str(root_color_ii_z), "]{", str(pT_value_title),"}"]), "lpE")
-                        Histo_Par_C_z[Histo_Name_z].SetMarkerSize(2)
-                        Histo_Par_C_z[Histo_Name_z].SetMarkerColor(root_color_ii_z)
-                        Histo_Par_C_z[Histo_Name_z].SetLineColor(root_color_ii_z)
-                        Histo_Par_C_z[Histo_Name_z].SetLineWidth(1)
-                        Canvas_Parameters_List[TMulti_Graph_C_name_z].Add(Histo_Par_C_z[Histo_Name_z])
-                        Par_Legends[TMulti_Graph_C_name_z].AddEntry(Histo_Par_C_z[Histo_Name_z], "".join(["#color[", str(root_color_ii_z), "]{", str(pT_value_title),"}"]), "lpE")
-                        
-
-                    try:
-                        Canvas_Parameters_List[canvas_name_PT].GetName()
-                        
-                        if(Histo_Name_pT not in Histo_Name_pT_list):
-                            Histo_Name_pT_list.append(Histo_Name_pT)
-                            
-                            root_color_ii_pT += 1
-                            if(root_color_ii_pT in [5, 10, 19]):
                                 root_color_ii_pT += 1
+                                if(root_color_ii_pT in [5, 10, 19]):
+                                    root_color_ii_pT += 1
+
+                                Histo_Par_B_pT[Histo_Name_pT].SetMarkerSize(2)
+                                Histo_Par_B_pT[Histo_Name_pT].SetMarkerColor(root_color_ii_pT)
+                                Histo_Par_B_pT[Histo_Name_pT].SetLineColor(root_color_ii_pT)
+                                Histo_Par_B_pT[Histo_Name_pT].SetLineWidth(1)
+                                Canvas_Parameters_List[TMulti_Graph_B_name_PT].Add(Histo_Par_B_pT[Histo_Name_pT])
+                                Par_Legends[TMulti_Graph_B_name_PT].AddEntry(Histo_Par_B_pT[Histo_Name_pT], "".join(["#color[", str(root_color_ii_pT), "]{", str(z_value_title),"}"]), "lpE")
+                                Histo_Par_C_pT[Histo_Name_pT].SetMarkerSize(2)
+                                Histo_Par_C_pT[Histo_Name_pT].SetMarkerColor(root_color_ii_pT)
+                                Histo_Par_C_pT[Histo_Name_pT].SetLineColor(root_color_ii_pT)
+                                Histo_Par_C_pT[Histo_Name_pT].SetLineWidth(1)
+                                Canvas_Parameters_List[TMulti_Graph_C_name_PT].Add(Histo_Par_C_pT[Histo_Name_pT])
+                                Par_Legends[TMulti_Graph_C_name_PT].AddEntry(Histo_Par_C_pT[Histo_Name_pT], "".join(["#color[", str(root_color_ii_pT), "]{", str(z_value_title),"}"]), "lpE")
+
+                        except:
+                            Canvas_Parameters_List[canvas_name_PT]         = Canvas_Create(Name=canvas_name_PT, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
+
+                            TMulti_Graph_B_name_z, TMulti_Graph_B_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_B"]), "".join([str(canvas_name_PT), "_TMultiGraph_B"])
+                            TMulti_Graph_C_name_z, TMulti_Graph_C_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_C"]), "".join([str(canvas_name_PT), "_TMultiGraph_C"])
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_PT] = ROOT.TMultiGraph(TMulti_Graph_B_name_PT, "".join([str(str(Histo_Par_B_pT[Histo_Name_pT].GetTitle()).replace(str(pT_value_title), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_pT[Histo_Name_pT].GetXaxis().GetTitle()), ";", str(Histo_Par_B_pT[Histo_Name_pT].GetYaxis().GetTitle())]))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_PT] = ROOT.TMultiGraph(TMulti_Graph_C_name_PT, "".join([str(str(Histo_Par_C_pT[Histo_Name_pT].GetTitle()).replace(str(pT_value_title), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_pT[Histo_Name_pT].GetXaxis().GetTitle()), ";", str(Histo_Par_C_pT[Histo_Name_pT].GetYaxis().GetTitle())]))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_PT].GetTitle()).replace("0.05 - 0.2", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_PT].GetTitle()).replace("0.05 - 0.2", "All Bins"))
+
+                            Canvas_Parameters_List[TMulti_Graph_B_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_PT].GetTitle()).replace("0.05 - 0.22", "All Bins"))
+                            Canvas_Parameters_List[TMulti_Graph_C_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_PT].GetTitle()).replace("0.05 - 0.22", "All Bins"))
+
+                            Par_Legends[TMulti_Graph_B_name_PT] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+                            Par_Legends[TMulti_Graph_B_name_PT].SetNColumns(1)
+                            Par_Legends[TMulti_Graph_B_name_PT].SetBorderSize(0)
+                            Par_Legends[TMulti_Graph_B_name_PT].SetFillColor(0)
+                            Par_Legends[TMulti_Graph_B_name_PT].SetFillStyle(0)
+
+                            Par_Legends[TMulti_Graph_C_name_PT] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+                            Par_Legends[TMulti_Graph_C_name_PT].SetNColumns(1)
+                            Par_Legends[TMulti_Graph_C_name_PT].SetBorderSize(0)
+                            Par_Legends[TMulti_Graph_C_name_PT].SetFillColor(0)
+                            Par_Legends[TMulti_Graph_C_name_PT].SetFillStyle(0)
+
+                            root_color_ii_pT   = 1
+                            Histo_Name_pT_list.append(Histo_Name_pT)
 
                             Histo_Par_B_pT[Histo_Name_pT].SetMarkerSize(2)
                             Histo_Par_B_pT[Histo_Name_pT].SetMarkerColor(root_color_ii_pT)
@@ -3564,212 +3948,171 @@ for Method in ["Bayes", "Bin"]:
                             Histo_Par_C_pT[Histo_Name_pT].SetLineWidth(1)
                             Canvas_Parameters_List[TMulti_Graph_C_name_PT].Add(Histo_Par_C_pT[Histo_Name_pT])
                             Par_Legends[TMulti_Graph_C_name_PT].AddEntry(Histo_Par_C_pT[Histo_Name_pT], "".join(["#color[", str(root_color_ii_pT), "]{", str(z_value_title),"}"]), "lpE")
-                        
-                    except:
-                        Canvas_Parameters_List[canvas_name_PT]         = Canvas_Create(Name=canvas_name_PT, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
-
-                        TMulti_Graph_B_name_z, TMulti_Graph_B_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_B"]), "".join([str(canvas_name_PT), "_TMultiGraph_B"])
-                        TMulti_Graph_C_name_z, TMulti_Graph_C_name_PT  = "".join([str(canvas_name_z), "_TMultiGraph_C"]), "".join([str(canvas_name_PT), "_TMultiGraph_C"])
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_PT] = ROOT.TMultiGraph(TMulti_Graph_B_name_PT, "".join([str(str(Histo_Par_B_pT[Histo_Name_pT].GetTitle()).replace(str(pT_value_title), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_pT[Histo_Name_pT].GetXaxis().GetTitle()), ";", str(Histo_Par_B_pT[Histo_Name_pT].GetYaxis().GetTitle())]))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_PT] = ROOT.TMultiGraph(TMulti_Graph_C_name_PT, "".join([str(str(Histo_Par_C_pT[Histo_Name_pT].GetTitle()).replace(str(pT_value_title), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_pT[Histo_Name_pT].GetXaxis().GetTitle()), ";", str(Histo_Par_C_pT[Histo_Name_pT].GetYaxis().GetTitle())]))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_PT].GetTitle()).replace("0.05 - 0.2", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_PT].GetTitle()).replace("0.05 - 0.2", "All Bins"))
-                        
-                        Canvas_Parameters_List[TMulti_Graph_B_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_B_name_PT].GetTitle()).replace("0.05 - 0.22", "All Bins"))
-                        Canvas_Parameters_List[TMulti_Graph_C_name_PT].SetTitle(str(Canvas_Parameters_List[TMulti_Graph_C_name_PT].GetTitle()).replace("0.05 - 0.22", "All Bins"))
-                        
-                        Par_Legends[TMulti_Graph_B_name_PT] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-                        Par_Legends[TMulti_Graph_B_name_PT].SetNColumns(1)
-                        Par_Legends[TMulti_Graph_B_name_PT].SetBorderSize(0)
-                        Par_Legends[TMulti_Graph_B_name_PT].SetFillColor(0)
-                        Par_Legends[TMulti_Graph_B_name_PT].SetFillStyle(0)
-
-                        Par_Legends[TMulti_Graph_C_name_PT] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-                        Par_Legends[TMulti_Graph_C_name_PT].SetNColumns(1)
-                        Par_Legends[TMulti_Graph_C_name_PT].SetBorderSize(0)
-                        Par_Legends[TMulti_Graph_C_name_PT].SetFillColor(0)
-                        Par_Legends[TMulti_Graph_C_name_PT].SetFillStyle(0)
-
-                        root_color_ii_pT   = 1
-                        Histo_Name_pT_list.append(Histo_Name_pT)
-                    
-                        Histo_Par_B_pT[Histo_Name_pT].SetMarkerSize(2)
-                        Histo_Par_B_pT[Histo_Name_pT].SetMarkerColor(root_color_ii_pT)
-                        Histo_Par_B_pT[Histo_Name_pT].SetLineColor(root_color_ii_pT)
-                        Histo_Par_B_pT[Histo_Name_pT].SetLineWidth(1)
-                        Canvas_Parameters_List[TMulti_Graph_B_name_PT].Add(Histo_Par_B_pT[Histo_Name_pT])
-                        Par_Legends[TMulti_Graph_B_name_PT].AddEntry(Histo_Par_B_pT[Histo_Name_pT], "".join(["#color[", str(root_color_ii_pT), "]{", str(z_value_title),"}"]), "lpE")
-                        Histo_Par_C_pT[Histo_Name_pT].SetMarkerSize(2)
-                        Histo_Par_C_pT[Histo_Name_pT].SetMarkerColor(root_color_ii_pT)
-                        Histo_Par_C_pT[Histo_Name_pT].SetLineColor(root_color_ii_pT)
-                        Histo_Par_C_pT[Histo_Name_pT].SetLineWidth(1)
-                        Canvas_Parameters_List[TMulti_Graph_C_name_PT].Add(Histo_Par_C_pT[Histo_Name_pT])
-                        Par_Legends[TMulti_Graph_C_name_PT].AddEntry(Histo_Par_C_pT[Histo_Name_pT], "".join(["#color[", str(root_color_ii_pT), "]{", str(z_value_title),"}"]), "lpE")
-                
 
 
 
-            for canvas_loop in Canvas_Parameters_List:
-                if("_TMultiGraph" not in canvas_loop):
-                    print(canvas_loop)
-                    if("PT_Pars" in canvas_loop):
-                        # Canvas_Parameters_List[canvas_loop].Draw()
-                        Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].GetTitle()).replace("0.5 - 0.7", "All Bins"))
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
-                        Par_Legends[TMulti_Graph_B_name_PT].Draw("same")
-                        Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].GetTitle()).replace("0.5 - 0.7", "All Bins"))
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
-                        Par_Legends[TMulti_Graph_C_name_PT].Draw("same")
-                    else:
-                        # Canvas_Parameters_List[canvas_loop].Draw()
-                        Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].GetTitle()).replace("0.05 - 0.23", "All Bins"))
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
-                        Par_Legends[TMulti_Graph_B_name_z].Draw("same")
-                        Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].GetTitle()).replace("0.05 - 0.23", "All Bins"))
-                        Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
-                        Par_Legends[TMulti_Graph_C_name_z].Draw("same")
 
-        except:
-            print("".join([color.BOLD, color.RED, "\nError in getting parameter plots with method: ", color.BLUE, str(Method), color.RED, "\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
-#             for name in Histo_Par_B_z:
-#                 if(("".join(["Unfold_", str(Method)]) not in str(name)) or ("mear" in smearing_par and "mear" not in str(name)) or ("mear" not in smearing_par and "mear" in str(name))):
-#                     continue
-#                 Q2_xB_Bin_Name = "Q2_xB_Bin_1" if("Q2_xB_Bin_1" in str(name)) else "Q2_xB_Bin_2" if("Q2_xB_Bin_2" in str(name)) else "Q2_xB_Bin_3" if("Q2_xB_Bin_3" in str(name)) else "Q2_xB_Bin_4" if("Q2_xB_Bin_4" in str(name)) else "Q2_xB_Bin_5" if("Q2_xB_Bin_5" in str(name)) else "Q2_xB_Bin_6" if("Q2_xB_Bin_6" in str(name)) else "Q2_xB_Bin_7" if("Q2_xB_Bin_7" in str(name)) else "Q2_xB_Bin_8" if("Q2_xB_Bin_8" in str(name)) else "Q2_xB_Bin_9" if("Q2_xB_Bin_9" in str(name)) else "ERROR"
-#                 canvas_name    = "".join(["PT_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "" if("Smeared" not in str(name) and "mear" not in smearing_par) else "_Smeared"])
-#                 Bin_Range_str  = str(name.replace("".join(["_Unfold_", str(Method), "_", str(Q2_xB_Bin_Name)]), ""))
-#                 Bin_Range_str  = str(Bin_Range_str).replace("_Smeared", "")
-#                 try:
-#                     Canvas_Parameters_List[canvas_name].GetName()
-#                     root_color_ii += 1
-#                     if(root_color_ii in [5, 10, 19]):
-#                         root_color_ii += 1
-#                 except:
-#                     Canvas_Parameters_List[canvas_name] = Canvas_Create(Name=canvas_name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
-#                     # Canvas_Parameters_List[canvas_name].Draw()
-#                     TMulti_Graph_B_name = "".join([str(canvas_name), "_TMultiGraph_B"])
-#                     TMulti_Graph_C_name = "".join([str(canvas_name), "_TMultiGraph_C"])
-#                     Canvas_Parameters_List[TMulti_Graph_B_name] = ROOT.TMultiGraph(TMulti_Graph_B_name, "".join([str(str(Histo_Par_B_z[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_z[name].GetXaxis().GetTitle()), ";", str(Histo_Par_B_z[name].GetYaxis().GetTitle())]))
-#                     Canvas_Parameters_List[TMulti_Graph_C_name] = ROOT.TMultiGraph(TMulti_Graph_C_name, "".join([str(str(Histo_Par_C_z[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_z[name].GetXaxis().GetTitle()), ";", str(Histo_Par_C_z[name].GetYaxis().GetTitle())]))
-#                     Par_Legends[TMulti_Graph_B_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-#                     Par_Legends[TMulti_Graph_B_name].SetNColumns(1)
-#                     Par_Legends[TMulti_Graph_B_name].SetBorderSize(0)
-#                     Par_Legends[TMulti_Graph_B_name].SetFillColor(0)
-#                     Par_Legends[TMulti_Graph_B_name].SetFillStyle(0)
+                for canvas_loop in Canvas_Parameters_List:
+                    if("_TMultiGraph" not in canvas_loop):
+                        print(canvas_loop)
+                        if("PT_Pars" in canvas_loop):
+                            # Canvas_Parameters_List[canvas_loop].Draw()
+                            Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].GetTitle()).replace("0.5 - 0.7", "All Bins"))
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
+                            Par_Legends[TMulti_Graph_B_name_PT].Draw("same")
+                            Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].GetTitle()).replace("0.5 - 0.7", "All Bins"))
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
+                            Par_Legends[TMulti_Graph_C_name_PT].Draw("same")
+                        else:
+                            # Canvas_Parameters_List[canvas_loop].Draw()
+                            Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].GetTitle()).replace("0.05 - 0.23", "All Bins"))
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
+                            Par_Legends[TMulti_Graph_B_name_z].Draw("same")
+                            Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].SetTitle(str(Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].GetTitle()).replace("0.05 - 0.23", "All Bins"))
+                            Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
+                            Par_Legends[TMulti_Graph_C_name_z].Draw("same")
 
-#                     Par_Legends[TMulti_Graph_C_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-#                     Par_Legends[TMulti_Graph_C_name].SetNColumns(1)
-#                     Par_Legends[TMulti_Graph_C_name].SetBorderSize(0)
-#                     Par_Legends[TMulti_Graph_C_name].SetFillColor(0)
-#                     Par_Legends[TMulti_Graph_C_name].SetFillStyle(0)
+            except:
+                print("".join([color.BOLD, color.RED, "\nError in getting parameter plots with method: ", color.BLUE, str(Method), color.RED, "\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+    #             for name in Histo_Par_B_z:
+    #                 if(("".join(["Unfold_", str(Method)]) not in str(name)) or ("mear" in smearing_par and "mear" not in str(name)) or ("mear" not in smearing_par and "mear" in str(name))):
+    #                     continue
+    #                 Q2_xB_Bin_Name = "Q2_xB_Bin_1" if("Q2_xB_Bin_1" in str(name)) else "Q2_xB_Bin_2" if("Q2_xB_Bin_2" in str(name)) else "Q2_xB_Bin_3" if("Q2_xB_Bin_3" in str(name)) else "Q2_xB_Bin_4" if("Q2_xB_Bin_4" in str(name)) else "Q2_xB_Bin_5" if("Q2_xB_Bin_5" in str(name)) else "Q2_xB_Bin_6" if("Q2_xB_Bin_6" in str(name)) else "Q2_xB_Bin_7" if("Q2_xB_Bin_7" in str(name)) else "Q2_xB_Bin_8" if("Q2_xB_Bin_8" in str(name)) else "Q2_xB_Bin_9" if("Q2_xB_Bin_9" in str(name)) else "ERROR"
+    #                 canvas_name    = "".join(["PT_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "" if("Smeared" not in str(name) and "mear" not in smearing_par) else "_Smeared"])
+    #                 Bin_Range_str  = str(name.replace("".join(["_Unfold_", str(Method), "_", str(Q2_xB_Bin_Name)]), ""))
+    #                 Bin_Range_str  = str(Bin_Range_str).replace("_Smeared", "")
+    #                 try:
+    #                     Canvas_Parameters_List[canvas_name].GetName()
+    #                     root_color_ii += 1
+    #                     if(root_color_ii in [5, 10, 19]):
+    #                         root_color_ii += 1
+    #                 except:
+    #                     Canvas_Parameters_List[canvas_name] = Canvas_Create(Name=canvas_name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
+    #                     # Canvas_Parameters_List[canvas_name].Draw()
+    #                     TMulti_Graph_B_name = "".join([str(canvas_name), "_TMultiGraph_B"])
+    #                     TMulti_Graph_C_name = "".join([str(canvas_name), "_TMultiGraph_C"])
+    #                     Canvas_Parameters_List[TMulti_Graph_B_name] = ROOT.TMultiGraph(TMulti_Graph_B_name, "".join([str(str(Histo_Par_B_z[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_z[name].GetXaxis().GetTitle()), ";", str(Histo_Par_B_z[name].GetYaxis().GetTitle())]))
+    #                     Canvas_Parameters_List[TMulti_Graph_C_name] = ROOT.TMultiGraph(TMulti_Graph_C_name, "".join([str(str(Histo_Par_C_z[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_z[name].GetXaxis().GetTitle()), ";", str(Histo_Par_C_z[name].GetYaxis().GetTitle())]))
+    #                     Par_Legends[TMulti_Graph_B_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+    #                     Par_Legends[TMulti_Graph_B_name].SetNColumns(1)
+    #                     Par_Legends[TMulti_Graph_B_name].SetBorderSize(0)
+    #                     Par_Legends[TMulti_Graph_B_name].SetFillColor(0)
+    #                     Par_Legends[TMulti_Graph_B_name].SetFillStyle(0)
 
-#                     root_color_ii = 1
+    #                     Par_Legends[TMulti_Graph_C_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+    #                     Par_Legends[TMulti_Graph_C_name].SetNColumns(1)
+    #                     Par_Legends[TMulti_Graph_C_name].SetBorderSize(0)
+    #                     Par_Legends[TMulti_Graph_C_name].SetFillColor(0)
+    #                     Par_Legends[TMulti_Graph_C_name].SetFillStyle(0)
 
-#                 Histo_Par_B_z[name].SetMarkerSize(2)
-#                 Histo_Par_B_z[name].SetMarkerColor(root_color_ii)
-#                 Histo_Par_B_z[name].SetLineColor(root_color_ii)
-#                 Histo_Par_B_z[name].SetLineWidth(1)
-#                 Canvas_Parameters_List[TMulti_Graph_B_name].Add(Histo_Par_B_z[name])
-#                 Par_Legends[TMulti_Graph_B_name].AddEntry(Histo_Par_B_z[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
-#                 Histo_Par_C_z[name].SetMarkerSize(2)
-#                 Histo_Par_C_z[name].SetMarkerColor(root_color_ii)
-#                 Histo_Par_C_z[name].SetLineColor(root_color_ii)
-#                 Histo_Par_C_z[name].SetLineWidth(1)
-#                 Canvas_Parameters_List[TMulti_Graph_C_name].Add(Histo_Par_C_z[name])
-#                 Par_Legends[TMulti_Graph_C_name].AddEntry(Histo_Par_C_z[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
+    #                     root_color_ii = 1
 
-#             root_color_ii = 1
-#             for name in Histo_Par_B_pT:
-#                 if(("".join(["Unfold_", str(Method)]) not in str(name)) or ("mear" in smearing_par and "mear" not in str(name)) or ("mear" not in smearing_par and "mear" in str(name))):
-#                     continue
-#                 Q2_xB_Bin_Name = "Q2_xB_Bin_1" if("Q2_xB_Bin_1" in str(name)) else "Q2_xB_Bin_2" if("Q2_xB_Bin_2" in str(name)) else "Q2_xB_Bin_3" if("Q2_xB_Bin_3" in str(name)) else "Q2_xB_Bin_4" if("Q2_xB_Bin_4" in str(name)) else "Q2_xB_Bin_5" if("Q2_xB_Bin_5" in str(name)) else "Q2_xB_Bin_6" if("Q2_xB_Bin_6" in str(name)) else "Q2_xB_Bin_7" if("Q2_xB_Bin_7" in str(name)) else "Q2_xB_Bin_8" if("Q2_xB_Bin_8" in str(name)) else "Q2_xB_Bin_9" if("Q2_xB_Bin_9" in str(name)) else "ERROR"
-#                 canvas_name    = "".join(["z_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "" if("Smeared" not in str(name) and "mear" not in smearing_par) else "_Smeared"])
-#                 Bin_Range_str  = str(name.replace("".join(["_Unfold_", str(Method), "_", str(Q2_xB_Bin_Name)]), ""))
-#                 Bin_Range_str  = str(Bin_Range_str).replace("_Smeared", "")
-#                 try:
-#                     Canvas_Parameters_List[canvas_name].GetName()
-#                     root_color_ii += 1
-#                     if(root_color_ii in [5, 10, 19]):
-#                         root_color_ii += 1
-#                 except:
-#                     Canvas_Parameters_List[canvas_name] = Canvas_Create(Name=canvas_name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
-#                     # Canvas_Parameters_List[canvas_name].Draw()
-#                     TMulti_Graph_B_name = "".join([str(canvas_name), "_TMultiGraph_B"])
-#                     TMulti_Graph_C_name = "".join([str(canvas_name), "_TMultiGraph_C"])
-#                     Canvas_Parameters_List[TMulti_Graph_B_name] = ROOT.TMultiGraph(TMulti_Graph_B_name, "".join([str(str(Histo_Par_B_pT[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_pT[name].GetXaxis().GetTitle()), ";", str(Histo_Par_B_pT[name].GetYaxis().GetTitle())]))
-#                     Canvas_Parameters_List[TMulti_Graph_C_name] = ROOT.TMultiGraph(TMulti_Graph_C_name, "".join([str(str(Histo_Par_C_pT[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_pT[name].GetXaxis().GetTitle()), ";", str(Histo_Par_C_pT[name].GetYaxis().GetTitle())]))
-#                     Par_Legends[TMulti_Graph_B_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-#                     Par_Legends[TMulti_Graph_B_name].SetNColumns(1)
-#                     Par_Legends[TMulti_Graph_B_name].SetBorderSize(0)
-#                     Par_Legends[TMulti_Graph_B_name].SetFillColor(0)
-#                     Par_Legends[TMulti_Graph_B_name].SetFillStyle(0)
+    #                 Histo_Par_B_z[name].SetMarkerSize(2)
+    #                 Histo_Par_B_z[name].SetMarkerColor(root_color_ii)
+    #                 Histo_Par_B_z[name].SetLineColor(root_color_ii)
+    #                 Histo_Par_B_z[name].SetLineWidth(1)
+    #                 Canvas_Parameters_List[TMulti_Graph_B_name].Add(Histo_Par_B_z[name])
+    #                 Par_Legends[TMulti_Graph_B_name].AddEntry(Histo_Par_B_z[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
+    #                 Histo_Par_C_z[name].SetMarkerSize(2)
+    #                 Histo_Par_C_z[name].SetMarkerColor(root_color_ii)
+    #                 Histo_Par_C_z[name].SetLineColor(root_color_ii)
+    #                 Histo_Par_C_z[name].SetLineWidth(1)
+    #                 Canvas_Parameters_List[TMulti_Graph_C_name].Add(Histo_Par_C_z[name])
+    #                 Par_Legends[TMulti_Graph_C_name].AddEntry(Histo_Par_C_z[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
 
-#                     Par_Legends[TMulti_Graph_C_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
-#                     Par_Legends[TMulti_Graph_C_name].SetNColumns(1)
-#                     Par_Legends[TMulti_Graph_C_name].SetBorderSize(0)
-#                     Par_Legends[TMulti_Graph_C_name].SetFillColor(0)
-#                     Par_Legends[TMulti_Graph_C_name].SetFillStyle(0)
+    #             root_color_ii = 1
+    #             for name in Histo_Par_B_pT:
+    #                 if(("".join(["Unfold_", str(Method)]) not in str(name)) or ("mear" in smearing_par and "mear" not in str(name)) or ("mear" not in smearing_par and "mear" in str(name))):
+    #                     continue
+    #                 Q2_xB_Bin_Name = "Q2_xB_Bin_1" if("Q2_xB_Bin_1" in str(name)) else "Q2_xB_Bin_2" if("Q2_xB_Bin_2" in str(name)) else "Q2_xB_Bin_3" if("Q2_xB_Bin_3" in str(name)) else "Q2_xB_Bin_4" if("Q2_xB_Bin_4" in str(name)) else "Q2_xB_Bin_5" if("Q2_xB_Bin_5" in str(name)) else "Q2_xB_Bin_6" if("Q2_xB_Bin_6" in str(name)) else "Q2_xB_Bin_7" if("Q2_xB_Bin_7" in str(name)) else "Q2_xB_Bin_8" if("Q2_xB_Bin_8" in str(name)) else "Q2_xB_Bin_9" if("Q2_xB_Bin_9" in str(name)) else "ERROR"
+    #                 canvas_name    = "".join(["z_Pars_", str(Method), "_", str(Q2_xB_Bin_Name), "" if("Smeared" not in str(name) and "mear" not in smearing_par) else "_Smeared"])
+    #                 Bin_Range_str  = str(name.replace("".join(["_Unfold_", str(Method), "_", str(Q2_xB_Bin_Name)]), ""))
+    #                 Bin_Range_str  = str(Bin_Range_str).replace("_Smeared", "")
+    #                 try:
+    #                     Canvas_Parameters_List[canvas_name].GetName()
+    #                     root_color_ii += 1
+    #                     if(root_color_ii in [5, 10, 19]):
+    #                         root_color_ii += 1
+    #                 except:
+    #                     Canvas_Parameters_List[canvas_name] = Canvas_Create(Name=canvas_name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=1000, cd_Space=0)
+    #                     # Canvas_Parameters_List[canvas_name].Draw()
+    #                     TMulti_Graph_B_name = "".join([str(canvas_name), "_TMultiGraph_B"])
+    #                     TMulti_Graph_C_name = "".join([str(canvas_name), "_TMultiGraph_C"])
+    #                     Canvas_Parameters_List[TMulti_Graph_B_name] = ROOT.TMultiGraph(TMulti_Graph_B_name, "".join([str(str(Histo_Par_B_pT[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_B_pT[name].GetXaxis().GetTitle()), ";", str(Histo_Par_B_pT[name].GetYaxis().GetTitle())]))
+    #                     Canvas_Parameters_List[TMulti_Graph_C_name] = ROOT.TMultiGraph(TMulti_Graph_C_name, "".join([str(str(Histo_Par_C_pT[name].GetTitle()).replace(str(Bin_Range_str), "All Bins")).replace(" [GeV]", ""), ";", str(Histo_Par_C_pT[name].GetXaxis().GetTitle()), ";", str(Histo_Par_C_pT[name].GetYaxis().GetTitle())]))
+    #                     Par_Legends[TMulti_Graph_B_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+    #                     Par_Legends[TMulti_Graph_B_name].SetNColumns(1)
+    #                     Par_Legends[TMulti_Graph_B_name].SetBorderSize(0)
+    #                     Par_Legends[TMulti_Graph_B_name].SetFillColor(0)
+    #                     Par_Legends[TMulti_Graph_B_name].SetFillStyle(0)
 
-#                     root_color_ii = 1
+    #                     Par_Legends[TMulti_Graph_C_name] = ROOT.TLegend(0.65, 0.15, 0.95, 0.5)
+    #                     Par_Legends[TMulti_Graph_C_name].SetNColumns(1)
+    #                     Par_Legends[TMulti_Graph_C_name].SetBorderSize(0)
+    #                     Par_Legends[TMulti_Graph_C_name].SetFillColor(0)
+    #                     Par_Legends[TMulti_Graph_C_name].SetFillStyle(0)
 
-#                 Histo_Par_B_pT[name].SetMarkerSize(2)
-#                 Histo_Par_B_pT[name].SetMarkerColor(root_color_ii)
-#                 Histo_Par_B_pT[name].SetLineColor(root_color_ii)
-#                 Histo_Par_B_pT[name].SetLineWidth(1)
-#                 Canvas_Parameters_List[TMulti_Graph_B_name].Add(Histo_Par_B_pT[name])
-#                 Par_Legends[TMulti_Graph_B_name].AddEntry(Histo_Par_B_pT[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
-#                 Histo_Par_C_pT[name].SetMarkerSize(2)
-#                 Histo_Par_C_pT[name].SetMarkerColor(root_color_ii)
-#                 Histo_Par_C_pT[name].SetLineColor(root_color_ii)
-#                 Histo_Par_C_pT[name].SetLineWidth(1)
-#                 Canvas_Parameters_List[TMulti_Graph_C_name].Add(Histo_Par_C_pT[name])
-#                 Par_Legends[TMulti_Graph_C_name].AddEntry(Histo_Par_C_pT[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
+    #                     root_color_ii = 1
+
+    #                 Histo_Par_B_pT[name].SetMarkerSize(2)
+    #                 Histo_Par_B_pT[name].SetMarkerColor(root_color_ii)
+    #                 Histo_Par_B_pT[name].SetLineColor(root_color_ii)
+    #                 Histo_Par_B_pT[name].SetLineWidth(1)
+    #                 Canvas_Parameters_List[TMulti_Graph_B_name].Add(Histo_Par_B_pT[name])
+    #                 Par_Legends[TMulti_Graph_B_name].AddEntry(Histo_Par_B_pT[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
+    #                 Histo_Par_C_pT[name].SetMarkerSize(2)
+    #                 Histo_Par_C_pT[name].SetMarkerColor(root_color_ii)
+    #                 Histo_Par_C_pT[name].SetLineColor(root_color_ii)
+    #                 Histo_Par_C_pT[name].SetLineWidth(1)
+    #                 Canvas_Parameters_List[TMulti_Graph_C_name].Add(Histo_Par_C_pT[name])
+    #                 Par_Legends[TMulti_Graph_C_name].AddEntry(Histo_Par_C_pT[name], "".join(["#color[", str(root_color_ii), "]{", str(Bin_Range_str),"}"]), "lpE")
 
 
-#             for canvas_loop in Canvas_Parameters_List:
-#                 if("_TMultiGraph" not in canvas_loop):
-#                     # Canvas_Parameters_List[canvas_loop].Draw()
-#                     Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-#                     Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
-#                     Par_Legends[TMulti_Graph_B_name].Draw("same")
-#                     Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
-#                     Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
-#                     Par_Legends[TMulti_Graph_C_name].Draw("same")
+    #             for canvas_loop in Canvas_Parameters_List:
+    #                 if("_TMultiGraph" not in canvas_loop):
+    #                     # Canvas_Parameters_List[canvas_loop].Draw()
+    #                     Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=1, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+    #                     Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_B"])].Draw("APL* same")
+    #                     Par_Legends[TMulti_Graph_B_name].Draw("same")
+    #                     Draw_Canvas(canvas=Canvas_Parameters_List[canvas_loop], cd_num=2, left_add=0.1, right_add=0.1, up_add=0.1, down_add=0.1)
+    #                     Canvas_Parameters_List["".join([str(canvas_loop), "_TMultiGraph_C"])].Draw("APL* same")
+    #                     Par_Legends[TMulti_Graph_C_name].Draw("same")
 
-#         except:
-#             print("".join([color.BOLD, color.RED, "\nError in getting parameter plots with method: ", color.BLUE, str(Method), color.RED, "\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+    #         except:
+    #             print("".join([color.BOLD, color.RED, "\nError in getting parameter plots with method: ", color.BLUE, str(Method), color.RED, "\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
-        
-        
-print("".join([color.BOLD, color.GREEN, "\n\nDone with getting parameter plots (Now Saving...)\n", color.END]))    
-for ii in Canvas_Parameters_List:
-    if("TMultiGraph" not in str(ii) and File_Save_Format == ".png"):
-        Saving_Name_Pars = "".join([str(ii), str(File_Save_Format)])
-        
-        Saving_Name_Pars = Saving_Name_Pars.replace("Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
-        Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
-        
-        if(Sim_Test):
-            Saving_Name_Pars = "".join(["Sim_Test_", Saving_Name_Pars])
-            
-        # print(Saving_Name_Pars)
-        if(Saving_Q):
-            Canvas_Parameters_List[ii].SaveAs(Saving_Name_Pars)
-        else:
-            Canvas_Parameters_List[ii].Draw()
-        count_of_images += 1
-        print("".join(["Saved: " if(Saving_Q) else "".join([color.RED, "Would be Saving: ", color.END]), color.BOLD, color.BLUE, str(Saving_Name_Pars), color.END]))
+
+
+    print("".join([color.BOLD, color.GREEN, "\n\nDone with getting parameter plots (Now Saving...)\n", color.END]))    
+    for ii in Canvas_Parameters_List:
+        if("TMultiGraph" not in str(ii) and File_Save_Format == ".png"):
+            Saving_Name_Pars = "".join([str(ii), str(File_Save_Format)])
+
+            Saving_Name_Pars = Saving_Name_Pars.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
+            Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
+
+            if(Sim_Test):
+                Saving_Name_Pars = "".join(["Sim_Test_", Saving_Name_Pars])
+
+            # print(Saving_Name_Pars)
+            if(Saving_Q):
+                Canvas_Parameters_List[ii].SaveAs(Saving_Name_Pars)
+            else:
+                Canvas_Parameters_List[ii].Draw()
+            count_of_images += 1
+            print("".join(["Saved: " if(Saving_Q) else "".join([color.RED, "Would be Saving: ", color.END]), color.BOLD, color.BLUE, str(Saving_Name_Pars), color.END]))
+else:
+    print(color.RED, "\n\nNot Making Parameter Plots for y-binning yet (in developement)...\n\n", color.END)
     
     
 ##=======================================================================================================================================================================================================##
@@ -3812,9 +4155,13 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
 
     print("".join([color.BOLD, color.BLUE, "\n\nStarting Combined Images...\n", color.END]))
     Unfolded_Canvas_Test, Main_Unfolding_Images, Main_Final_Unfolding_Images = {}, {}, {}
-    for Q2_xB_Bin in range(1, 9, 1):
+    for Q2_xB in Q2_xB_Bin_List:
+        Q2_xB_Bin = int(Q2_xB)
         z_pT_Bin_Range = 0 if(Q2_xB_Bin in [0]) else 49 if(Q2_xB_Bin in [1, 2, 3]) else 42 if(Q2_xB_Bin in [4]) else 36 if(Q2_xB_Bin in [5]) else 25 if(Q2_xB_Bin in [6, 7]) else 20 if(Q2_xB_Bin in [8]) else 1
+        if("y_bin" in Binning_Method):
+            z_pT_Bin_Range = 0 if(Q2_xB_Bin in [0]) else 49 if(Q2_xB_Bin in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin in [4]) else 36 if(Q2_xB_Bin in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin in [6, 10]) else 25 if(Q2_xB_Bin in [13]) else 1
 
+            
         if(str(Q2_xB_Bin) not in Q2_xB_Bin_List):
             print("Skipping unselected Q2-xB Bin...")
             print("".join(["Bin ", str(Q2_xB_Bin), " is not in Q2_xB_Bin_List = ", str(Q2_xB_Bin_List)]))
@@ -3826,9 +4173,11 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                 out_print = str(ii.GetName())
                 Conditions_For_Histograms = []
                 Conditions_For_Histograms.append("Normal_2D" in str(out_print))
-                Conditions_For_Histograms.append(("cut_Complete_SIDIS" in str(out_print)) or  ("no_cut"       in str(out_print)   and (("gdf" in str(out_print))          or  ("gen" in str(out_print)))))
-                Conditions_For_Histograms.append(("Var-D1='Q2'"        in str(out_print)  and ("Var-D2='xB'"  in str(out_print))) or  (("Var-D1='z'" in str(out_print))   and ("Var-D2='pT'" in str(out_print))))
-                Conditions_For_Histograms.append(("Q2-xB-Bin=All"      in str(out_print)  and (("Var-D1='Q2'" in str(out_print))  and ("Var-D2='xB'" in str(out_print)))) or  (("".join(["Q2-xB-Bin=", str(Q2_xB_Bin)]) in str(out_print)) and ("Var-D1='z" in str(out_print) and ("Var-D2='pT" in str(out_print)))))
+                Conditions_For_Histograms.append(("cut_Complete_SIDIS" in str(out_print)) or  ("no_cut"       in str(out_print)   and (("gdf"         in str(out_print)) or  ("gen"         in str(out_print)))))
+                Conditions_For_Histograms.append(("Var-D1='Q2'"        in str(out_print)  and ("Var-D2='xB'"  in str(out_print))) or  (("Var-D1='z'"  in str(out_print)) and ("Var-D2='pT'" in str(out_print))))
+                Conditions_For_Histograms.append(((("Q2-xB-Bin=All"    in str(out_print)) or  ("Q2-y-Bin=All" in str(out_print))) and (("Var-D1='Q2'" in str(out_print)) and ("Var-D2='xB'" in str(out_print)))) or ((("".join(["Q2-xB-Bin=", str(Q2_xB_Bin)]) in str(out_print)) or ("".join(["Q2-y-Bin=", str(Q2_xB_Bin)]) in str(out_print))) and ("Var-D1='z" in str(out_print) and ("Var-D2='pT" in str(out_print)))))
+                # Conditions_For_Histograms.append(("".join(["Q2-xB-Bin=", str(Q2_xB_Bin)]) in str(out_print)) and ("Var-D1='z" in str(out_print) and ("Var-D2='pT" in str(out_print))))
+                # print(Conditions_For_Histograms)
                 if(False not in Conditions_For_Histograms):
                     Main_Unfolding_Images[out_print] = DF_Current.Get(out_print)
                     z_pT_Bin = 0
@@ -3852,7 +4201,6 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                                 New_2D_Title = (str(Main_Unfolding_Images[out_print].GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(z_pT_Bin != 0) else "All", "}}}"]))
                                 New_2D_Title = str(str(New_2D_Title).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut: ", "")
                                 Main_Final_Unfolding_Images[out_print_binned].SetTitle(New_2D_Title)
-
                             elif(("Normal_2D" in str(out_print)) and True):
                                 bin_2D_0, bin_2D_1 = Main_Unfolding_Images[out_print].GetXaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else 0), Main_Unfolding_Images[out_print].GetXaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else Main_Unfolding_Images[out_print].GetNbinsX())
                                 if(z_pT_Bin != 0):
@@ -3867,14 +4215,12 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                                 if("z vs. P_{T}" in New_2D_Title):
                                     New_2D_Title = New_2D_Title.replace("z vs. P_{T}", "P_{T} vs. z")
                                 Main_Final_Unfolding_Images[out_print_binned].SetTitle(New_2D_Title)
-
                             else:
                                 bin_2D_0, bin_2D_1 = Main_Unfolding_Images[out_print].GetYaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else 0), Main_Unfolding_Images[out_print].GetYaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else Main_Unfolding_Images[out_print].GetNbinsY())
                                 if(z_pT_Bin != 0):
                                     Main_Unfolding_Images[out_print].GetYaxis().SetRange(bin_2D_0, bin_2D_1)
                                 New_2D_Title = (str(Main_Unfolding_Images[out_print].GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(z_pT_Bin != 0) else "All", "}}}"]))
                                 Main_Unfolding_Images[out_print].SetTitle(New_2D_Title)
-
                         elif("2D" in str(type(Main_Unfolding_Images[out_print]))):
                             if(("Response_Matrix" in str(out_print)) and True):
                                 bin_1D_0, bin_1D_1 = Main_Unfolding_Images[out_print].GetYaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else 0), Main_Unfolding_Images[out_print].GetYaxis().FindBin(z_pT_Bin if(z_pT_Bin != 0) else Main_Unfolding_Images[out_print].GetNbinsY())
@@ -3883,10 +4229,12 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                                 New_1D_Title = str(str(New_1D_Title).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut: ", "")
                                 Main_Final_Unfolding_Images[out_print_binned].SetTitle(New_1D_Title)
                     except:
-                        print("".join(["Failed...\n", color.RED, color.BOLD, "ERROR before line 3540: \n", color.END, color.RED, str(traceback.format_exc()), color.END]))
-
+                        print("".join(["Failed...\n", color.RED, color.BOLD, "ERROR in 2D Plot Creation: \n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+                        
+                # elif(Conditions_For_Histograms[0] and Conditions_For_Histograms[1]):
+                #     print(color.RED, "Failed:\n", out_print, color.END, "\n")
         print("".join([color.BOLD, "\n\tDone Making the 2D Plots for this bin...", color.END]))
-
+        # print(Main_Final_Unfolding_Images)
 
         
         # Histos_Type_List = ["Data", "Response", "SVD", "Bin", "RooUnfold_bayes", "RooUnfold_svd", "RooUnfold_bbb"]
@@ -3961,80 +4309,107 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
 
                         ##############################################################################################################################################################################################################################################################################################################################################################################################################
                         ####  Upper Left  ############################################################################################################################################################################################################################################################################################################################################################################################
-                        cd_test = 1
+                        
+                        if("y_bin" not in Binning_Method):
+                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="xB_smeared" if(Sim_Test and "mear" in str(Smear)) else "xB", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                        else:
+                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="y_smeared"  if(Sim_Test and "mear" in str(Smear)) else "y",  Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                        # Draw_2D_Histograms_Simple(DataFrame=rdf,     Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=2, Var_D1="z_smeared"  if(Sim_Test and "mear" in str(Smear)) else "z",  Var_D2="pT_smeared" if(Sim_Test and "mear" in str(Smear)) else "pT", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                        Draw_Canvas(Unfolded_Canvas_Test_cd_1_Upper, 2, 0.15)
                         for ii in Main_Final_Unfolding_Images:
-                            # if(cd_test > 2 or ("Q2-xB-Bin=All" not in str(ii) and "".join(["Q2-xB-Bin=", str(Q2_xB_Bin) if(Q2_xB_Bin not in [0, "0"]) else "All"]) not in str(ii)) or (("Var-D1='z'" in str(ii)) and ("Var-D2='pT'" in str(ii)) and cd_test != 2) or (("Var-D1='z'" not in str(ii)) and ("Var-D2='pT'" not in str(ii)) and cd_test != 1)):
-                            #     continue
-
-
-                            if(str(ii) == "((Histo-Group='Normal_2D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='2'-[Q2-xB-Bin=All, z-PT-Bin=All_1D]), (Var-D1='Q2'-[NumBins=100, MinBin=1.48, MaxBin=11.87]), (Var-D2='xB'-[NumBins=100, MinBin=0.09, MaxBin=0.826]))" if(not Sim_Test) else "".join(["((Histo-Group='Normal_2D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='2'-[Q2-xB-Bin=All, z-PT-Bin=All_1D]), (Var-D1='Q2'-[NumBins=100, MinBin=1.48, MaxBin=11.87]), (Var-D2='xB'-[NumBins=100, MinBin=0.09, MaxBin=0.826]))"])):
-                                cd_test = 1
-                            else:
-                                cd_test += 1
-                                # print(ii)
-                                # if(cd_test > 2):
-                                #     print(cd_test)
-                                #     break
-
-
-
-                            Draw_Canvas(Unfolded_Canvas_Test_cd_1_Upper, cd_test, 0.15)
-                            # Unfolded_Canvas_Test_cd_1_Upper.cd(cd_test)
-                            Main_Final_Unfolding_Images[ii].Draw("colz")
-
-                            Unfolded_Canvas_Test_cd_1_Upper.Modified()
-                            Unfolded_Canvas_Test_cd_1_Upper.Update()
-
-                            palette_move(canvas=Unfolded_Canvas_Test_cd_1_Upper, histo=Main_Final_Unfolding_Images[ii], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
-
-                            if(("Var-D1='Q2'" in str(ii)) and ("Var-D2='xB'" in str(ii))):
-                                Main_Final_Unfolding_Images[ii].SetTitle((Main_Final_Unfolding_Images[ii].GetTitle()).replace("Q^{2}-x_{B} Bin: All", "".join(["#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All", "}"])))
-                                # print("".join([color.BLUE, "Q2-xB plots:", color.END]))
-                                # print(Main_Final_Unfolding_Images[ii].GetTitle())
-                                # print(ii)
-                                # print("\n\n")
-                                Q2_xB_borders = {}
-                                line_num      = 0
-                                for b_lines in Q2_xB_Border_Lines(-1):
-                                    Q2_xB_borders[line_num] = ROOT.TLine()
-                                    Q2_xB_borders[line_num].SetLineColor(1)    
-                                    Q2_xB_borders[line_num].SetLineWidth(5)
-                                    Q2_xB_borders[line_num].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
-                                    line_num += 1
+                            if(("Var-D1='z" in str(ii)) and ("Var-D2='pT" in str(ii))):
+                                Main_Final_Unfolding_Images[ii].Draw("colz")
                                 if(Q2_xB_Bin != 0):
-                                    ##=====================================================##
-                                    ##==========##     Selecting Q2-xB Bin     ##==========##
-                                    ##=====================================================##
-                                    line_num_2 = 0
-                                    for b_lines_2 in Q2_xB_Border_Lines(Q2_xB_Bin):
-                                        Q2_xB_borders[line_num_2] = ROOT.TLine()
-                                        Q2_xB_borders[line_num_2].SetLineColor(2)
-                                        Q2_xB_borders[line_num_2].SetLineWidth(10)
-                                        Q2_xB_borders[line_num_2].DrawLine(b_lines_2[0][0], b_lines_2[0][1], b_lines_2[1][0], b_lines_2[1][1])
-                                        line_num_2 += + 1
-                                    ##=====================================================##
-                                    ##==========##     Selecting Q2-xB Bin     ##==========##
-                                    ##=====================================================##
+                                    z_pT_borders = {}
+                                    Max_z  = max(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
+                                    Min_z  = min(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
+                                    Max_pT = max(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
+                                    Min_pT = min(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
+                                    for zline in z_pT_Border_Lines(Q2_xB_Bin)[0][2]:
+                                        for pTline in z_pT_Border_Lines(Q2_xB_Bin)[1][2]:
+                                            z_pT_borders[zline] = ROOT.TLine()
+                                            z_pT_borders[zline].SetLineColor(1)
+                                            z_pT_borders[zline].SetLineWidth(4)
+                                            z_pT_borders[zline].DrawLine(zline, Max_pT, zline, Min_pT)
+                                            z_pT_borders[pTline] = ROOT.TLine()
+                                            z_pT_borders[pTline].SetLineColor(1)
+                                            z_pT_borders[pTline].SetLineWidth(4)
+                                            z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
 
-
-                            if((Q2_xB_Bin != 0) and ("Var-D1='z'" in str(ii)) and ("Var-D2='pT'" in str(ii))):
-                                z_pT_borders = {}
-                                Max_z  = max(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
-                                Min_z  = min(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
-                                Max_pT = max(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
-                                Min_pT = min(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
-                                for zline in z_pT_Border_Lines(Q2_xB_Bin)[0][2]:
-                                    for pTline in z_pT_Border_Lines(Q2_xB_Bin)[1][2]:
-                                        z_pT_borders[zline] = ROOT.TLine()
-                                        z_pT_borders[zline].SetLineColor(1)
-                                        z_pT_borders[zline].SetLineWidth(4)
-                                        z_pT_borders[zline].DrawLine(zline, Max_pT, zline, Min_pT) # z_pT_borders[zline].DrawLine(Max_pT, zline, Min_pT, zline)
-                                        z_pT_borders[pTline] = ROOT.TLine()
-                                        z_pT_borders[pTline].SetLineColor(1)
-                                        z_pT_borders[pTline].SetLineWidth(4)
-                                        z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline) # z_pT_borders[pTline].DrawLine(pTline, Max_z, pTline, Min_z)
-
-                            # cd_test += 1
+#                         cd_test = 1
+#                         for ii in Main_Final_Unfolding_Images:
+#                             # if(cd_test > 2 or ("Q2-xB-Bin=All" not in str(ii) and "".join(["Q2-xB-Bin=", str(Q2_xB_Bin) if(Q2_xB_Bin not in [0, "0"]) else "All"]) not in str(ii)) or (("Var-D1='z'" in str(ii)) and ("Var-D2='pT'" in str(ii)) and cd_test != 2) or (("Var-D1='z'" not in str(ii)) and ("Var-D2='pT'" not in str(ii)) and cd_test != 1)):
+#                             #     continue
+#
+#
+#                             if(str(ii) == "".join(["((Histo-Group='Normal_2D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", "All, z-PT-Bin=All_1D]), (Var-D1='Q2'-[NumBins=100, MinBin=1.48, MaxBin=11.87]), (Var-D2='xB'-[NumBins=100, MinBin=0.09, MaxBin=0.826]))"]) if(not Sim_Test) else "".join(["((Histo-Group='Normal_2D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", "All, z-PT-Bin=All_1D]), (Var-D1='Q2'-[NumBins=100, MinBin=1.48, MaxBin=11.87]), (Var-D2='xB'-[NumBins=100, MinBin=0.09, MaxBin=0.826]))"])):
+#                                 cd_test = 1
+#                             else:
+#                                 cd_test += 1
+#                                 # print(ii)
+#                                 # if(cd_test > 2):
+#                                 #     print(cd_test)
+#                                 #     break
+#
+#
+#
+#                             Draw_Canvas(Unfolded_Canvas_Test_cd_1_Upper, cd_test, 0.15)
+#                             # Unfolded_Canvas_Test_cd_1_Upper.cd(cd_test)
+#                             Main_Final_Unfolding_Images[ii].Draw("colz")
+#
+#                             Unfolded_Canvas_Test_cd_1_Upper.Modified()
+#                             Unfolded_Canvas_Test_cd_1_Upper.Update()
+#
+#                             palette_move(canvas=Unfolded_Canvas_Test_cd_1_Upper, histo=Main_Final_Unfolding_Images[ii], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
+#
+#                             if(("Var-D1='Q2'" in str(ii)) and ("Var-D2='xB'" in str(ii))):
+#                                 Main_Final_Unfolding_Images[ii].SetTitle((Main_Final_Unfolding_Images[ii].GetTitle()).replace("Q^{2}-x_{B} Bin: All", "".join(["#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All", "}"])))
+#                                 # print("".join([color.BLUE, "Q2-xB plots:", color.END]))
+#                                 # print(Main_Final_Unfolding_Images[ii].GetTitle())
+#                                 # print(ii)
+#                                 # print("\n\n")
+#                                 Q2_xB_borders = {}
+#                                 line_num      = 0
+#                                 for b_lines in Q2_xB_Border_Lines(-1):
+#                                     Q2_xB_borders[line_num] = ROOT.TLine()
+#                                     Q2_xB_borders[line_num].SetLineColor(1)    
+#                                     Q2_xB_borders[line_num].SetLineWidth(5)
+#                                     Q2_xB_borders[line_num].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
+#                                     line_num += 1
+#                                 if(Q2_xB_Bin != 0):
+#                                     ##=====================================================##
+#                                     ##==========##     Selecting Q2-xB Bin     ##==========##
+#                                     ##=====================================================##
+#                                     line_num_2 = 0
+#                                     for b_lines_2 in Q2_xB_Border_Lines(Q2_xB_Bin):
+#                                         Q2_xB_borders[line_num_2] = ROOT.TLine()
+#                                         Q2_xB_borders[line_num_2].SetLineColor(2)
+#                                         Q2_xB_borders[line_num_2].SetLineWidth(10)
+#                                         Q2_xB_borders[line_num_2].DrawLine(b_lines_2[0][0], b_lines_2[0][1], b_lines_2[1][0], b_lines_2[1][1])
+#                                         line_num_2 += + 1
+#                                     ##=====================================================##
+#                                     ##==========##     Selecting Q2-xB Bin     ##==========##
+#                                     ##=====================================================##
+#
+#
+#                             if((Q2_xB_Bin != 0) and ("Var-D1='z'" in str(ii)) and ("Var-D2='pT'" in str(ii))):
+#                                 z_pT_borders = {}
+#                                 Max_z  = max(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
+#                                 Min_z  = min(z_pT_Border_Lines(Q2_xB_Bin)[0][2])
+#                                 Max_pT = max(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
+#                                 Min_pT = min(z_pT_Border_Lines(Q2_xB_Bin)[1][2])
+#                                 for zline in z_pT_Border_Lines(Q2_xB_Bin)[0][2]:
+#                                     for pTline in z_pT_Border_Lines(Q2_xB_Bin)[1][2]:
+#                                         z_pT_borders[zline] = ROOT.TLine()
+#                                         z_pT_borders[zline].SetLineColor(1)
+#                                         z_pT_borders[zline].SetLineWidth(4)
+#                                         z_pT_borders[zline].DrawLine(zline, Max_pT, zline, Min_pT) # z_pT_borders[zline].DrawLine(Max_pT, zline, Min_pT, zline)
+#                                         z_pT_borders[pTline] = ROOT.TLine()
+#                                         z_pT_borders[pTline].SetLineColor(1)
+#                                         z_pT_borders[pTline].SetLineWidth(4)
+#                                         z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline) # z_pT_borders[pTline].DrawLine(pTline, Max_z, pTline, Min_z)
+#
+#                             # cd_test += 1
                         ####  Upper Left  ############################################################################################################################################################################################################################################################################################################################################################################################
                         ##############################################################################################################################################################################################################################################################################################################################################################################################################
 
@@ -4066,10 +4441,10 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
 
                         if("SVD" in Histos_Type):
                             try:
-                                Unfolding_Histogram_1_Norm_Clone["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                Unfolding_Histogram_1_Norm_Clone[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin",                                                str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                             except Exception as e:
                                 try:
-                                    Unfolding_Histogram_1_Norm_Clone["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                    Unfolding_Histogram_1_Norm_Clone["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                 except:
                                     print("".join([color.BOLD, color.RED, "ERROR IN SVD Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                                 # print("".join([color.RED, color.BOLD, "ERROR IN SVD Method Histogram (line 2730): ", color.END, color.RED, str(e), color.END]))
@@ -4077,15 +4452,15 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                         if("Bin" in Histos_Type):
                             try:
                                 if("Combined" not in Variable_Type):
-                                    Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                    Bin_Unfolded[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin",                                                                                               str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                 else:
                                     if("Combined_phi_t_Q2_xB" in Variable_Type):
-                                        Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2_xB_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=195, MinBin=-1.5, MaxBin=193.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                        Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2_xB_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=195, MinBin=-1.5, MaxBin=193.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                     elif("Combined_phi_t_Q2" in Variable_Type):
-                                        Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                        Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2",                             "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                             except Exception as e:
                                 try:
-                                    Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                    Bin_Unfolded[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t",                                         "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin",        str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                 except:
                                     print("".join([color.BOLD, color.RED, "ERROR IN Bin-by-bin Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                                 # print("".join([color.RED, color.BOLD, "ERROR IN Bin-by-bin Method Histogram (line 2737): ", color.END, color.RED, str(e), color.END]))
@@ -4094,34 +4469,34 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                         if("RooUnfold_bayes" in Histos_Type):
                             try:
                                 if("Combined" not in Variable_Type):
-                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                    RooUnfolded_Histos[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method),                                                "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                 else:
                                     if("Combined_phi_t_Q2_xB" in Variable_Type):
-                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2_xB_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=195, MinBin=-1.5, MaxBin=193.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2_xB_Bin", str(Binning_Method),                                                                                     "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=195, MinBin=-1.5, MaxBin=193.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                     elif("Combined_phi_t_Q2" in Variable_Type):
-                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='Combined_phi_t_Q2",                                                                                                                 "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                         
                             except Exception as e:
                                 try:
-                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                    RooUnfolded_Histos[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                 except:
                                     print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (Bayesian) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                         if("RooUnfold_svd" in Histos_Type):
                             try:
-                                RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
+                                RooUnfolded_Histos[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin",                                                str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
                             except Exception as e:
                                 try:
-                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
+                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
                                 except:
                                     print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (SVD) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                         if("RooUnfold_bbb" in Histos_Type):
                             try:
-                                RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
+                                RooUnfolded_Histos[    "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin",                                                str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
                             except Exception as e:
                                 try:
-                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
+                                    RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=All_1D]), (Var-D1='phi_t", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
                                 except:
                                     print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (Bin-by-Bin) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
@@ -4156,6 +4531,10 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                             Unfolded_Canvas_Test_cd_2_z_pT_Bin.SetFillColor(root_color.LGrey)
                             Unfolded_Canvas_Test_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
                             Draw_Canvas(Unfolded_Canvas_Test_cd_2_z_pT_Bin, 1, 0.15)
+                            
+                            if("y_bin" in Binning_Method):
+                                if(((Q2_xB_Bin in [1]) and (z_pT_Bin in [42, 48, 49])) or ((Q2_xB_Bin in [2]) and (z_pT_Bin in [42, 49])) or (Q2_xB_Bin in [3] and z_pT_Bin in [7, 42, 48, 49]) or (Q2_xB_Bin in [4] and z_pT_Bin in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin in [5] and z_pT_Bin in [36]) or (Q2_xB_Bin in [6] and z_pT_Bin in [30]) or (Q2_xB_Bin in [7] and z_pT_Bin in [7, 35, 42, 48, 49]) or (Q2_xB_Bin in [8] and z_pT_Bin in [5, 6, 36]) or (Q2_xB_Bin in [9] and z_pT_Bin in [30, 36]) or (Q2_xB_Bin in [10] and z_pT_Bin in [24, 29, 30]) or (Q2_xB_Bin in [11, 12] and z_pT_Bin in [30, 35, 36])  or (Q2_xB_Bin in [13] and z_pT_Bin in [5, 20, 24, 25])):
+                                    continue
 
                             try:
                                 if("Data" in Histos_Type):
@@ -4175,31 +4554,31 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
 
                                 if("SVD" in Histos_Type):
                                     try:
-                                        Unfolding_Histogram_1_Norm_Clone["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                        Unfolding_Histogram_1_Norm_Clone["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                     except Exception as e:
                                         print("".join([color.BOLD, color.RED, "ERROR IN SVD Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                                 if("Bin" in Histos_Type):
                                     try:
                                         if("Combined" not in Variable_Type):
-                                            Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                            Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method),                                                                   "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                         else:
-                                            Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
+                                            Bin_Unfolded["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))extra"])].Draw("same")
                                     except Exception as e:
                                         print("".join([color.BOLD, color.RED, "ERROR IN Bin-by-bin Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                                 if("RooUnfold_bayes" in Histos_Type):
                                     try:
                                         if("Combined" not in Variable_Type):
-                                            RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                            RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method),                                                                   "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                         else:
-                                            RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
+                                            RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='Combined_phi_t_Q2", "'" if(Smear != "smear") else "_smeared'" , "'-[NumBins=483, MinBin=-1.5, MaxBin=481.5]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bayes_Norm_extra"])].Draw("same")
                                     except Exception as e:
                                         print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (Bayesian) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
                                 if("RooUnfold_svd" in Histos_Type):
                                     try:
-                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
+                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_svd_Norm_extra"])].Draw("same")
                                     except Exception as e:
                                         print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (SVD) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                                         for ii in RooUnfolded_Histos:
@@ -4208,7 +4587,7 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
 
                                 if("RooUnfold_bbb" in Histos_Type):
                                     try:
-                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='2'-[Q2-xB-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin_2", "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
+                                        RooUnfolded_Histos["".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=", "''" if(Smear != "smear") else "'smear'", "), (Binning-Type='", str(Binning_Method).replace("_", "") if("y_bin" not in str(Binning_Method)) else "y_bin", "'-[Q2-xB-Bin=" if("y_bin" not in str(Binning_Method)) else "'-[Q2-y-Bin=", str(Q2_xB_Bin), ", z-PT-Bin=", str(z_pT_Bin), "]), (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'" if(Smear != "smear") else "_smeared'" , "-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))_bbb_Norm_extra"])].Draw("same")
                                     except Exception as e:
                                         print("".join([color.BOLD, color.RED, "ERROR IN RooUnfold (Bin-by-Bin) Method Histogram:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
@@ -4230,8 +4609,8 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
         print("".join(["\n", str(Canvas_name), ": ", str(Unfolded_Canvas_Test[Canvas_name])]))
         if("cd_upper" not in str(Canvas_name) and "cd_lower" not in str(Canvas_name)):
             Save_Name = "".join([str(Canvas_name).replace("Unfolded_Canvas_All_", "Unfolded_Histos_Q2_xB_Bin_"), str(File_Save_Format)])
-            Save_Name = Save_Name.replace("Var-D2=z_pT_Bin_2_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
-            Save_Name = Save_Name.replace("Var-D2=z_pT_Bin_2-[NumBins=52_MinBin=-1.5_MaxBin=50.5", "")
+            Save_Name = Save_Name.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "_smeared-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
+            Save_Name = Save_Name.replace("".join(["Var-D2=z_pT_Bin", str(Binning_Method), "-[NumBins=52_MinBin=-1.5_MaxBin=50.5"]), "")
             Save_Name = Save_Name.replace("_smeared-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
             Save_Name = Save_Name.replace("-[NumBins=483_MinBin=-1.5_MaxBin=481.5_", "")
             Save_Name = Save_Name.replace("_smeared-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
