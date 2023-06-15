@@ -6,9 +6,9 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
 - [ ] Unfolding Tests:
     - [ ] 1) Plot the fit parameters B, C as functions of z and pT
-        * Need to fix the plots
+        * Need to fix the plots (for multidimensional unfolding/Q2-y binning)
     - [ ] 2) Replace the experimental data with MC data to test if the unfolding procedures reproduce the generated data properly
-        * [ ] Tested for 1D
+        * [x] Tested for 1D
         * [ ] Tested for higher dimensions
     - [ ] 3) Calculate (1 + B*cos(phi) + C*cos(2*phi)) from theory and rewieght the response matrices to test modulations in generated phi_h
         * [ ] Test this with the test (2) above
@@ -18,14 +18,18 @@ This list will be updated as items are completed. Items here may not always rela
         * [x] Tested up to 2D (Finished [ ])
         * [x] Tested up to 3D (Finished [ ])
         * [ ] Tested up to 4D (Finished [ ])
-        * [ ] Tested up to 5D (Finished [ ])
-    - [ ] (2) New definitions for the Q2-xB bins (more square)
+        * [x] Tested up to 5D (Finished [ ])
+            * [ ] Modify the final outputs to convert the 'Q2_y_z_pT_4D_Bin' variable into the separate Q2-y and z-pT bins
+    - [ ] (2) New definitions for the z-pT bins of the Q2-y bins (try for a more consistent number of z-pT bins per Q2-y bin)
+        * Having fewer z-pT bins per Q2-y bin (with the same overall ranges) could help make the multidimensional unfolding easier to manage
+    - [x] (3) New definitions for the Q2-xB bins (more square)
         * [ ] Also define a new z-pT binning scheme based on these new Q2-xB bins
-    - [ ] (3) Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins)
+    - [ ] (4) Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins) - low priority due to new Q2-y binning
         * [x] Make generic code which makes it easier to switch between different binning schemes
-        * [ ] Test new code for compatibility with old code
-            * [ ] Remove old code after testing
-        * [ ] Rename binning schemes for more accurate/meaningful names
+        * [x] Test new code for compatibility with old code
+            * [x] Remove old code after testing
+        * [x] Rename binning schemes for more accurate/meaningful names
+        * [ ] Fix the memory/run-time issue
 - [ ] For Momentum Correction Code, do the following:
     - [ ] (1) MC needs its own momentum corrections 
         * Use ∆P = P_gen - P_rec instead of calculations
@@ -41,6 +45,14 @@ This list will be updated as items are completed. Items here may not always rela
 
 
 ## Detailed Commit Updates:
+
+
+### Update on 6-15-2023:
+* Running multiple versions of the multidimensional unfolding (testing up to 5D)
+* Starting to implement new smearing function
+* Testing new Missing Mass Cuts to the generated events
+* File name is now up to "Gen_Cuts_V1_1"
+
 
 ### Update on 6-2-2023:
 * Updated the code to use Q2-y bins and fixed many issues with the code

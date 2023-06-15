@@ -8,7 +8,6 @@ if(len(sys.argv) > 1):
 from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 
-import numpy
 import traceback
 from datetime import datetime
 
@@ -733,7 +732,7 @@ Common_Name = "Analysis_Note_Update_V6_All"
 Common_Name = "Multi_Dimension_Unfold_V3_All"
 Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
 
-Common_Name = "New_Binning_Schemes_V5_All"
+Common_Name = "New_Binning_Schemes_V7_New_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -907,7 +906,7 @@ os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 ##====================================================##
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual]:
-    for Q2_xB_Bin in range(0, 9 if("xB" in Binning_Option) else 14, 1):
+    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
         os.mkdir("".join([str(folder), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 ##====================================================##
@@ -926,20 +925,32 @@ for Entry in os.listdir():
         elif("Multi_Dim_Histo_" in str(Entry)):
             shutil.move(Entry, destination_mult)
         elif("Response_Matrix_" in str(Entry) and "_z_pT_Bin_" in str(Entry)):
-            for Q2_xB_Bin in range(0, 9 if("xB" in Binning_Option) else 14, 1):
+            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
                 if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)]) in str(Entry)):
                     if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        try:
+                            shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        except:
+                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
                     else:
-                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        try:
+                            shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        except:
+                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
 
         elif("Unfolded_Histos" in str(Entry) and "_z_pT_Bin_" not in str(Entry)):
-            for Q2_xB_Bin in range(0, 9 if("xB" in Binning_Option) else 14, 1):
+            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
                 if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)]) in str(Entry)):
                     if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
-                        shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        try:
+                            shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        except:
+                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
                     else:
-                        shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        try:
+                            shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                        except:
+                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
         else:
             # print(destination)
             shutil.move(Entry, destination)

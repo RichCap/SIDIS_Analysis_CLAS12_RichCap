@@ -5,6 +5,70 @@ This file will break down individual git updates into the different files that w
 See the README.md file for more general updates (especially those which pertain to things outside of the updates to the python code)
 
 
+# Notes Commited on 6-15-2023:
+
+## Extra_Name = "New_Binning_Schemes_V1_"
+* Added option to make 3D histograms with 3 unique variables (instead of just using the z-pT binning as the 3rd variable always)
+* Made a new binning scheme option of "Off" which allows you to run this code without the kinematic bin calculations (all Q2-xB and z-pT bins are automatically assigned to have the value of 1)
+    * Still need to work on aspects of the default code which are causing it to run very slowly -> believed to be related to the new method for calculating the kinematic bins
+* 'mdf' no longer runs the 'gen' option for histograms
+* Minor improvements to how the binning schemes' names are referenced within the code (mainly made notes to be more accepting of the alternative bin names - should not effect how the code runs)
+    * Did include more lines to skip the Q2-xB bins outside of the binning scheme in use (safety measure to help prevent possibly unnecessary histogram creation)
+        
+## Extra_Name = "New_Binning_Schemes_V2_"
+* Added new binning type (Q2-y bins)
+    * Only ran this scheme
+* New Q2 1D binning scheme (new number of bins and range)
+    
+## Extra_Name = "New_Binning_Schemes_V3_"
+* Only making the normal 2D histograms (removed the 3D histos)
+    * Also plotting W and Mx
+        
+## Extra_Name = "New_Binning_Schemes_V4_"
+* Added the z-pT binning for y_bin option
+* Added one additional Q2-y bin to the scheme (high Q2 but likely has very low event counts - may not be usable)
+* Removed all 1D histogram options other than phi_t
+* Added the 2D plot for W vs MM
+    
+## Extra_Name = "New_Binning_Schemes_V5_"
+* Fixed issues with the z-pT binning for y_bin option
+* Modified the default W and MM binning for better use in the response matrix histograms
+* Added MM and W to the 1D histogram options being run
+* Turned off smearing (not needed at this time)
+* Added the new Y_bin binning option but did not run yet
+    * This option is a variation of the y_bin option added in the prior versions of the code
+    * Contains more bins with the bin borders of each bin being shared as much as possible (result is that this binning scheme can easily be split into very distinct Q2 and y groups - 5 Q2 groups and 4 y groups)
+    
+## Extra_Name = "New_Binning_Schemes_V6_"
+* Switched to the new Q2-y binning but switched the names so that the Q2-y binning scheme used in the last version of this code is now referred to by "Y_bin" while the new binning scheme uses 'y_bin' (will make updating the other files easier)
+* Removed the MM and W to the 1D histogram options (no longer running)
+* Smearing is still turned off (not needed at this time)
+* Fixed the issue with the 'Multi_Dim' variables' code (was not using the generated information propperly)
+    
+
+## Extra_Name = "New_Binning_Schemes_V7_"
+* Added the z-pT bins for the new y-binning scheme
+* Smearing is still turned off (not needed at this time)
+* Fixed issues with the 'Multi_Dim' binning function (should work correctly now)
+* Added new 2D plots for W vs Q2/y and xB vs y (three new plots)
+    * Added later (ran a second time without renaming on 6-12-2023)
+        
+        
+## Extra_Name = "New_Binning_Schemes_V8_"
+* Added a 5D response matrix by defining a new 4D Bin variable based on the Q2-xB-z-pT bins
+    * The 4D variable has a total of 566 bins while the 5D Response Matrix only uses 12 bins for the phi_t variable to limit the memory consumption of creating a histogram with more than 12000 bins (with only 12 phi_t bins, the 5D response matrix should have about 6792 bins)
+    * Needed to be fixed after starting to run - the 'Multi_Dim' response matrices no longer use 3D histograms to slice with the z-pT bins
+* Smearing is still turned off (not needed at this time)
+    
+    
+## Extra_Name = "Gen_Cuts_V1_"
+* Added new Missing Mass Cut to the generated events (to both 'gdf' and 'gen' - i.e., all matched/unmatched generated events are cut)
+    * First test of the generated missing mass cut
+    * The Missing Mass Cut starts at 1.5 GeV (just like the normal cut to the reconstructed events)
+* Smearing function was modified with a new smearing factor (and slightly modified function)
+* Modified the 5D histogram to use 24 phi_t bins again instead of 12
+* Removed the 2D plots for W vs Q2/y and xB vs y (three of the 2D plots)
+
 
 
 # Notes Commited on 6-2-2023:
