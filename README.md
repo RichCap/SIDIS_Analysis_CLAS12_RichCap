@@ -47,11 +47,17 @@ This list will be updated as items are completed. Items here may not always rela
 ## Detailed Commit Updates:
 
 
+### Update on 6-20-2023:
+* External issues on work directory is putting a limit on the number of files that can be made and saved
+    * This update is mainly meant to prevent any important file from being lost
+    * All files that were modified were committed even if updates are minimal/unnoted
+* File name is now up to "Gen_Cuts_V2_"
+
 ### Update on 6-15-2023:
 * Running multiple versions of the multidimensional unfolding (testing up to 5D)
 * Starting to implement new smearing function
 * Testing new Missing Mass Cuts to the generated events
-* File name is now up to "Gen_Cuts_V1_1"
+* File name is now up to "Gen_Cuts_V1_"
 
 
 ### Update on 6-2-2023:

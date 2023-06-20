@@ -1,11 +1,27 @@
 # Update Notes by File
 The notes in this file contain information about individual file updates made with the python code called "makeROOT_epip_SIDIS_histos_new.py".
 These notes are made inside the python code whenever a new set of histograms are made (see where the 'Extra_Name' string is defined to see the most recent notes).
-This file will break down individual git updates into the different files that were made between commits, since mutliple files may sometimes be made before they are all commited.
+This file will break down individual git updates into the different files that were made between commits, since mutliple files may sometimes be made before they are all Committed.
 See the README.md file for more general updates (especially those which pertain to things outside of the updates to the python code)
 
 
-# Notes Commited on 6-15-2023:
+# Notes Committed on 6-20-2023:
+
+## Extra_Name = "Gen_Cuts_V1_"
+ * Added new Missing Mass Cut to the generated events (to both 'gdf' and 'gen' - i.e., all matched/unmatched generated events are cut)
+     * First test of the generated missing mass cut
+     * The Missing Mass Cut starts at 1.5 GeV (just like the normal cut to the reconstructed events)
+ * Smearing function was modified with a new smearing factor (and slightly modified function)
+ * Modified the 5D histogram to use 24 phi_t bins again instead of 12
+ * Removed the 2D plots for W vs Q2/y and xB vs y (three of the 2D plots)
+    
+    
+## Extra_Name = "Gen_Cuts_V2_"
+* Turned off Generated Missing Mass Cut
+* Otherwise is the same as "Gen_Cuts_V1_"
+
+
+# Notes Committed on 6-15-2023:
 
 ## Extra_Name = "New_Binning_Schemes_V1_"
 * Added option to make 3D histograms with 3 unique variables (instead of just using the z-pT binning as the 3rd variable always)
@@ -71,7 +87,7 @@ See the README.md file for more general updates (especially those which pertain 
 
 
 
-# Notes Commited on 6-2-2023:
+# Notes Committed on 6-2-2023:
 
 ## Extra_Name = "Analysis_Note_Update_VF_APS_"
 * Final version of histograms as used in the analysis note for the April APS meetings (released 2/22/2023)
@@ -248,7 +264,7 @@ See the README.md file for more general updates (especially those which pertain 
 
 
 
-# Notes Commited on 4-21-2023:
+# Notes Committed on 4-21-2023:
 
 ## Extra_Name = "Multi_Dimension_Unfold_V5_"
 * Just ran the SIDIS Histograms (no momentum correction histograms)

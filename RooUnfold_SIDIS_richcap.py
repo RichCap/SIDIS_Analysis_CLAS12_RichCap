@@ -2487,12 +2487,12 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             
         Output_Canvas = Canvas_Create(Name.replace("Multi_Dim_Var_Info", str(Method)), Num_Columns=Num_Columns_Canvas, Num_Rows=Num_Rows_Canvas, Size_X=Canvas_Size_X, Size_Y=Canvas_Size_Y, cd_Space=0)
         
-        bin_ii = 0 if(Common_Name not in ["New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All"]) else 1
+        bin_ii = 0 if(Common_Name not in ["New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"]) else 1
         # for NewDim_Bin in range(0, NewDim_Bin_Num + 1, 1):
         for NewDim_Bin in range(0, NewDim_Bin_Num - 1, 1):
-            # if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All"])):
+            # if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"])):
             #     bin_ii  += -1
-            if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All"])):
+            if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"])):
                 bin_ii  += -1
             
             Name_Out = str(Name.replace("Multi_Dim_Var_Info", "".join([str(Multi_Dim_Var), "_Bin_", str(NewDim_Bin)])))
@@ -2904,6 +2904,8 @@ Common_Name = "Multi_Dimension_Unfold_V3_All"
 Common_Name = "Analysis_Note_Update_VF_APS_All"
 
 Common_Name = "New_Binning_Schemes_V8_All"
+
+Common_Name = "Gen_Cuts_V1_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -3079,12 +3081,12 @@ for ii in mdf.GetListOfKeys():
     # Conditions_For_Unfolding.append("'phi_t" not in str(out_print_main))
     # Conditions_For_Unfolding.append("'Combined_Q2_xB_Bin_2_" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("'Combined_" in str(out_print_main))
-    Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
+#     Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t" not in str(out_print_main))
-#     Conditions_For_Unfolding.append("MM"     in str(out_print_main))
-#     Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
+    Conditions_For_Unfolding.append("MM"     in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
 
 
     
@@ -3150,6 +3152,7 @@ for ii in mdf.GetListOfKeys():
         
         ######################################################################################
         ##======##  Fixing potential lack of z-pT bins in Multi-Dim Response Matix  ##======##
+#         if(Common_Name in ["New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"]):
         if(Common_Name in ["New_Binning_Schemes_V8_All"]):
             if(("Var-D2='z_pT_Bin" not in str(out_print_main_rdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_rdf))):
                 out_print_main_rdf = out_print_main_rdf.replace("))", "".join(["), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
@@ -3370,42 +3373,42 @@ for ii in mdf.GetListOfKeys():
                         print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
                         print(type(MC_REC_1D))
                         
-                else:
-                    # Cut on Response Matrix (Gen)
-                    for xbin in range(0, Response_2D.GetXaxis().GetNbins() + 2, 1):
-                        if(Response_2D.GetXaxis().GetBinCenter(xbin) > 1.5):
-                            print("Done with MM Cuts...")
-                            break
-                        for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                            Response_2D.SetBinContent(xbin, ybin, 0)
+#                 else:
+#                     # Cut on Response Matrix (Gen)
+#                     for xbin in range(0, Response_2D.GetXaxis().GetNbins() + 2, 1):
+#                         if(Response_2D.GetXaxis().GetBinCenter(xbin) > 1.5):
+#                             print("Done with MM Cuts...")
+#                             break
+#                         for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+#                             Response_2D.SetBinContent(xbin, ybin, 0)
                             
-                    # for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                    #     Response_2D.SetBinContent(Response_2D.GetXaxis().FindBin(3.5) + 1, ybin, 0)
+#                     # for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+#                     #     Response_2D.SetBinContent(Response_2D.GetXaxis().FindBin(3.5) + 1, ybin, 0)
                         
-                    # Cut on gdf histogram
-                    for xbin in range(0, MC_GEN_1D.GetNbinsX() + 1, 1):
-                        if(MC_GEN_1D.GetBinCenter(xbin) > 1.5):
-                            print("Done with MM Cuts...")
-                            break
-                        else:
-                            MC_GEN_1D.SetBinContent(xbin, 0)
-                    # MC_GEN_1D.SetBinContent(MC_GEN_1D.FindBin(3.5) + 1, 0)
-                    # Cut on mdf histogram
-                    for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
-                        if(MC_REC_1D.GetBinCenter(xbin) > 1.5):
-                            print("Done with MM Cuts...")
-                            break
-                        else:
-                            MC_REC_1D.SetBinContent(xbin, 0)
-                    # MC_REC_1D.SetBinContent(MC_REC_1D.FindBin(3.5) + 1, 0)
-                    # Cut on rdf histogram
-                    for xbin in range(0, ExREAL_1D.GetNbinsX() + 1, 1):
-                        if(ExREAL_1D.GetBinCenter(xbin) > 1.5):
-                            print("Done with MM Cuts...")
-                            break
-                        else:
-                            ExREAL_1D.SetBinContent(xbin, 0)
-                    # ExREAL_1D.SetBinContent(ExREAL_1D.FindBin(3.5) + 1, 0)
+#                     # Cut on gdf histogram
+#                     for xbin in range(0, MC_GEN_1D.GetNbinsX() + 1, 1):
+#                         if(MC_GEN_1D.GetBinCenter(xbin) > 1.5):
+#                             print("Done with MM Cuts...")
+#                             break
+#                         else:
+#                             MC_GEN_1D.SetBinContent(xbin, 0)
+#                     # MC_GEN_1D.SetBinContent(MC_GEN_1D.FindBin(3.5) + 1, 0)
+#                     # Cut on mdf histogram
+#                     for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+#                         if(MC_REC_1D.GetBinCenter(xbin) > 1.5):
+#                             print("Done with MM Cuts...")
+#                             break
+#                         else:
+#                             MC_REC_1D.SetBinContent(xbin, 0)
+#                     # MC_REC_1D.SetBinContent(MC_REC_1D.FindBin(3.5) + 1, 0)
+#                     # Cut on rdf histogram
+#                     for xbin in range(0, ExREAL_1D.GetNbinsX() + 1, 1):
+#                         if(ExREAL_1D.GetBinCenter(xbin) > 1.5):
+#                             print("Done with MM Cuts...")
+#                             break
+#                         else:
+#                             ExREAL_1D.SetBinContent(xbin, 0)
+#                     # ExREAL_1D.SetBinContent(ExREAL_1D.FindBin(3.5) + 1, 0)
                     
                     
             ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))

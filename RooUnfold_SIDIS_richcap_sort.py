@@ -732,7 +732,9 @@ Common_Name = "Analysis_Note_Update_V6_All"
 Common_Name = "Multi_Dimension_Unfold_V3_All"
 Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
 
-Common_Name = "New_Binning_Schemes_V7_New_All"
+Common_Name = "New_Binning_Schemes_V8_All"
+
+Common_Name = "Gen_Cuts_V1_2_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -873,7 +875,8 @@ os.mkdir(destination)
 ##=====##   Category Folder Creation   ##=====##
 destination_main = "".join([str(destination), "/Unfolding_Images"])
 destination_pars = "".join([str(destination), "/Parameter_Images"])
-destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
+# destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
+destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
 os.mkdir(destination_main)
 os.mkdir(destination_pars)
 os.mkdir(destination_mult)

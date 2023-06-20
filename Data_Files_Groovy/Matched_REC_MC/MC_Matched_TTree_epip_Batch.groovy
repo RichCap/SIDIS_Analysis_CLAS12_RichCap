@@ -46,9 +46,10 @@ def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.${outname}.root")
 
 
 // def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I')
-def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I:SIDIS_GEN/I')
+// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I:SIDIS_GEN/I')
 
-
+// Added beamCharge to the Tree:
+def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I:SIDIS_GEN/I:beamCharge:beamCharge_gen')
 
 // If print_extra_info = 1, then extra information will be printed while running this program (do not do unless trying to test certain information - will run less efficiently)
 // Let print_extra_info = 0 to run normally
@@ -56,7 +57,6 @@ print_extra_info = 0
 
 def num_of_failed_ele = 0
 def num_of_failed_pip = 0
-
 
 def num_of_total_matched = 0
 
@@ -72,18 +72,16 @@ args.eachParallel{fname->
     println(fname)
     QADB qa = new QADB()
     
-
-    def reader = new HipoReader()
+    def reader  = new HipoReader()
     reader.open(fname)
-    def event = new Event()
+    def event   = new Event()
     def factory = reader.getSchemaFactory()
     
-    
-    def schemas = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Header', 'MC::Particle'].collect{factory.getSchema(it)}
-    def banks = schemas.collect{new Bank(it)}
+    def schemas   = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Header', 'MC::Particle'].collect{factory.getSchema(it)}
+    def banks     = schemas.collect{new Bank(it)}
     
     // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
-    def banks_gen = ['MC::Header', 'REC::Event', 'MC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
+    def banks_gen = ['MC::Header',  'REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
 
     
     //==============================================//
@@ -91,8 +89,6 @@ args.eachParallel{fname->
     //==============================================//
     while(reader.hasNext()) {
         reader.nextEvent(event)
-
-        
         
         //===================================================================================================//
         //==========//   Getting Current Number of Generated Events as of the given event loop   //==========//
@@ -124,12 +120,14 @@ args.eachParallel{fname->
 
             def (runb, evb, partb, ecb, ccb, trajb, scb, MChead, MCpart) = banks
             
-            def run = runb.getInt("run", 0)
-            def evn = runb.getInt("event", 0)
+            def run            = runb.getInt("run",   0)
+            def evn            = runb.getInt("event", 0)
             
-            def canele = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
-            def ele = canele.getLorentzVector()
+            def canele         = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
+            def ele            = canele.getLorentzVector()
             
+            def beamCharge     = evb.getFloat("beamCharge", 0)
+            def beamCharge_gen = evb_gen.getFloat("beamCharge", 0)
             
             //==================================================//
             //==========//   Electron (REC) Found   //==========//
@@ -137,13 +135,11 @@ args.eachParallel{fname->
             if(canele.iselectron()){
                 // A RECONSTRUCTED electron has been found
                 
-                
                 // These lists are to make sure that the same generated particles are not matched to multiple reconstructed particles
                 // Applies mainly to the pi+ pion as the same electron should be matched several times while searching for the pions
                 // The electron list is included in case the electron is matched to different particles within the same event (room for future improvement to remove unnecessary searching later)
                 def list_of_matched_particles_gen_pip = []
                 def list_of_matched_particles_gen_ele = []
-
 
                 //=====================================================//
                 //==========//   Start of Pi+ (REC) Loop   //==========//
@@ -151,7 +147,6 @@ args.eachParallel{fname->
                 for(int ipart = 1; ipart < partb.getRows(); ipart++){
                     
                     def canpip = PionCandidate.getPionCandidate(ipart, partb, trajb, isinb)
-                    
                     
                     //==================================================//
                     //==========//   Pi+ Pion (REC) Found   //==========//
@@ -162,16 +157,15 @@ args.eachParallel{fname->
 
                         def pip0 = canpip.getLorentzVector()
                         
-                        
                         //========================================================//
                         //==========// Reconstructed Info to be Saved //==========//
                         
                         // Cartesian Momentum Coordinates
-                        def ex = ele.px(), ey = ele.py(), ez = ele.pz()
+                        def ex   = ele.px(),    ey = ele.py(),    ez = ele.pz()
                         def pipx = pip0.px(), pipy = pip0.py(), pipz = pip0.pz()
                         
                         // Sectors (From Detector)
-                        def esec = canele.getPCALsector(), pipsec = canpip.getDCsector()
+                        def esec = canele.getPCALsector(),    pipsec = canpip.getDCsector()
                         
                         // Coordinate of the matched hit (cm) - for Valerii's Fiducial Cuts (done in python)
                         float Hx = ecb.getFloat("hx", 0)
@@ -180,31 +174,25 @@ args.eachParallel{fname->
                         //==========// Reconstructed Info to be Saved //==========//
                         //========================================================//
                         
-                        
                         // Spherical Momentum Coordinates
-                        def el = ele.p()
-                        def elth = (180/3.1415926)*ele.theta()
-                        def elPhi = (180/3.1415926)*ele.phi()
-                        def pip = pip0.p()
-                        def pipth = (180/3.1415926)*pip0.theta()
+                        def el     = ele.p()
+                        def elth   = (180/3.1415926)*ele.theta()
+                        def elPhi  = (180/3.1415926)*ele.phi()
+                        def pip    = pip0.p()
+                        def pipth  = (180/3.1415926)*pip0.theta()
                         def pipPhi = (180/3.1415926)*pip0.phi()
-                        
-                        
                         
                         
                         // After this line, a proper reconstructed ep->epi+X SIDIS event has been found. The following lines will aim to match these particles to their generated counterparts
                         if(print_extra_info == 1){
-                            
                             System.out.println("For event: " + evn);
                             System.out.println("Number of (gen) rows: " + MCpart.getRows());
-
                         }
                         
-                        
                         // Below are the main angular matching criteria for both particles
-                        def Phi_Ele_Criteria = 10;
+                        def Phi_Ele_Criteria   = 10;
                         def Theta_Ele_Criteria = 6;
-                        def Phi_Pip_Criteria = 10;
+                        def Phi_Pip_Criteria   = 10;
                         def Theta_Pip_Criteria = 6;
                         
                         
@@ -215,35 +203,35 @@ args.eachParallel{fname->
                         def Next_Best_pip_Match = 1000;
                         
                         def num_of_possible_ele_matches = 0
-                        def pid_matched_el = 0
+                        def pid_matched_el   = 0
                         def matched_el_x_gen = 0
                         def matched_el_y_gen = 0
                         def matched_el_z_gen = 0
                         def matched_el_E_gen = 0
                         
                         def num_of_possible_pip_matches = 0
-                        def pid_matched_pip = 0
+                        def pid_matched_pip   = 0
                         def matched_pip_x_gen = 0
                         def matched_pip_y_gen = 0
                         def matched_pip_z_gen = 0
                         def matched_pip_E_gen = 0
                         
                         
-                        def pid_other_matched_el = 0
+                        def pid_other_matched_el   = 0
                         def other_matched_el_x_gen = 0
                         def other_matched_el_y_gen = 0
                         def other_matched_el_z_gen = 0
                         def other_matched_el_E_gen = 0
                         
-                        def pid_other_matched_pip = 0
+                        def pid_other_matched_pip   = 0
                         def other_matched_pip_x_gen = 0
                         def other_matched_pip_y_gen = 0
                         def other_matched_pip_z_gen = 0
                         def other_matched_pip_E_gen = 0
                         
-                        def current_match_pip = []
+                        def current_match_pip     = []
                         def current_2nd_match_pip = []
-                        def current_match_ele = []
+                        def current_match_ele     = []
                         def current_2nd_match_ele = []
                         
                         
@@ -255,24 +243,20 @@ args.eachParallel{fname->
                         for(int ii_MCpart = 0; ii_MCpart < MCpart.getRows(); ii_MCpart++){
                             // This loop is to go through each particle in the event to find the generated match for the reconstucted particles above
                             
-                            def pid_unmatched = MCpart.getInt("pid", ii_MCpart)
-                            def unmatched_x_gen = MCpart.getFloat("px", ii_MCpart)
-                            def unmatched_y_gen = MCpart.getFloat("py", ii_MCpart)
-                            def unmatched_z_gen = MCpart.getFloat("pz", ii_MCpart)
+                            def pid_unmatched     = MCpart.getInt("pid", ii_MCpart)
+                            def unmatched_x_gen   = MCpart.getFloat("px", ii_MCpart)
+                            def unmatched_y_gen   = MCpart.getFloat("py", ii_MCpart)
+                            def unmatched_z_gen   = MCpart.getFloat("pz", ii_MCpart)
                             def unmatched_vec_gen = LorentzVector.withPID(pid_unmatched, unmatched_x_gen, unmatched_y_gen, unmatched_z_gen)
-                            
-                            
-                            
-                            
                             
                             
                             if(print_extra_info == 1){
                                 System.out.println("Particle in row " + ii_MCpart + " has PID= " + pid_unmatched);
                             }
                             
-                            def unmatched_p = unmatched_vec_gen.p()
-                            def unmatched_th = (180/3.1415926)*unmatched_vec_gen.theta()
-                            def unmatched_Phi = (180/3.1415926)*unmatched_vec_gen.phi()
+                            def unmatched_p          = unmatched_vec_gen.p()
+                            def unmatched_th         = (180/3.1415926)*unmatched_vec_gen.theta()
+                            def unmatched_Phi        = (180/3.1415926)*unmatched_vec_gen.phi()
                             def unmatched_charge_gen = (PDGDatabase.getParticleById(pid_unmatched)).charge()
                             
                             
@@ -283,15 +267,15 @@ args.eachParallel{fname->
                                 
                                 //===============// (Other) Matching Conditions for Electron //===============//
 
-                                def Delta_el_p = Math.abs(el - unmatched_p);
-                                def Delta_el_th = Math.abs(elth - unmatched_th);
+                                def Delta_el_p   = Math.abs(el - unmatched_p);
+                                def Delta_el_th  = Math.abs(elth - unmatched_th);
                                 def Delta_el_Phi = Math.abs(elPhi - unmatched_Phi);
                                 
                                 
                                 // These lines are to account for the phi-distribution's natural discontinuity (i.e., The maximum difference between phi angles is 180˚. Beyond that, the angles become smaller when measured in the opposite direction. Since phi is naturally measured from ±180˚, a measurement of -179˚ and +179˚ should only be 2˚ apart, not 358˚)
                                 if(Delta_el_Phi > 180){
                                     Delta_el_Phi += -360;
-                                    Delta_el_Phi = Math.abs(Delta_el_Phi);
+                                    Delta_el_Phi  = Math.abs(Delta_el_Phi);
                                 }
                                 
                                 // def Total_Quality_of_Match = Delta_el_th + Delta_el_Phi;
@@ -328,13 +312,13 @@ args.eachParallel{fname->
                                             // Replace next best match with the match that is currently about to be replaced
                                             Next_Best_ele_Match = Best_ele_Match;
 
-                                            pid_other_matched_el = pid_matched_el;
+                                            pid_other_matched_el   = pid_matched_el;
                                             other_matched_el_x_gen = matched_el_x_gen;
                                             other_matched_el_y_gen = matched_el_y_gen;
                                             other_matched_el_z_gen = matched_el_z_gen;
                                             other_matched_el_E_gen = matched_el_E_gen;
 
-                                            current_2nd_match_ele = current_match_ele
+                                            current_2nd_match_ele  = current_match_ele
 
                                         }
                                         //========================================//
@@ -353,11 +337,11 @@ args.eachParallel{fname->
                                             System.out.println("Particle that is not an electron is considered a better match than an identified electron."); 
                                         }
 
-                                        pid_matched_el = pid_unmatched;
-                                        matched_el_x_gen = unmatched_x_gen;
-                                        matched_el_y_gen = unmatched_y_gen;
-                                        matched_el_z_gen = unmatched_z_gen;
-                                        matched_el_E_gen = unmatched_vec_gen.e();
+                                        pid_matched_el    = pid_unmatched;
+                                        matched_el_x_gen  = unmatched_x_gen;
+                                        matched_el_y_gen  = unmatched_y_gen;
+                                        matched_el_z_gen  = unmatched_z_gen;
+                                        matched_el_E_gen  = unmatched_vec_gen.e();
                                         
                                         current_match_ele = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
                                         //  current_match_ele = ["row of match", "PID of match candidate", "Theta angle of match candidate", "Phi angle of match candidate"]
@@ -379,13 +363,13 @@ args.eachParallel{fname->
                                     // Always have a 'next best' result (must still have the correct charge)
                                     Next_Best_ele_Match = Total_Quality_of_Match;
                                     
-                                    pid_other_matched_el = pid_unmatched;
+                                    pid_other_matched_el   = pid_unmatched;
                                     other_matched_el_x_gen = unmatched_x_gen;
                                     other_matched_el_y_gen = unmatched_y_gen;
                                     other_matched_el_z_gen = unmatched_z_gen;
                                     other_matched_el_E_gen = unmatched_vec_gen.e();
                                     
-                                    current_2nd_match_ele = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                                    current_2nd_match_ele  = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
                                     
                                 }
 
@@ -417,15 +401,15 @@ args.eachParallel{fname->
                                     //===============// (Other) Matching Conditions for Pi+ Pion //===============//
 
                                     
-                                    def Delta_pip_p = Math.abs(pip - unmatched_p);
-                                    def Delta_pip_th = Math.abs(pipth - unmatched_th);
+                                    def Delta_pip_p   = Math.abs(pip - unmatched_p);
+                                    def Delta_pip_th  = Math.abs(pipth - unmatched_th);
                                     def Delta_pip_Phi = Math.abs(pipPhi - unmatched_Phi);
                                     
                                     
                                     // These lines are to account for the phi-distribution's natural discontinuity (i.e., The maximum difference between phi angles is 180˚. Beyond that, the angles become smaller when measured in the opposite direction. Since phi is naturally measured from ±180˚, a measurement of -179˚ and +179˚ should only be 2˚ apart, not 358˚)
                                     if(Delta_pip_Phi > 180){
                                         Delta_pip_Phi += -360;
-                                        Delta_pip_Phi = Math.abs(Delta_pip_Phi);
+                                        Delta_pip_Phi  = Math.abs(Delta_pip_Phi);
                                     }
 
                                     // def Total_Quality_of_Match = Delta_pip_th + Delta_pip_Phi;
@@ -457,7 +441,7 @@ args.eachParallel{fname->
                                                 // Replace next best match with the match that is currently about to be replaced
                                                 Next_Best_pip_Match = Best_pip_Match;
 
-                                                pid_other_matched_pip = pid_matched_pip;
+                                                pid_other_matched_pip   = pid_matched_pip;
                                                 other_matched_pip_x_gen = matched_pip_x_gen;
                                                 other_matched_pip_y_gen = matched_pip_y_gen;
                                                 other_matched_pip_z_gen = matched_pip_z_gen;
@@ -482,7 +466,7 @@ args.eachParallel{fname->
                                                 System.out.println("Particle that is not a pi+ pion is considered a better match than an identified pi+ pion."); 
                                             }
 
-                                            pid_matched_pip = pid_unmatched;
+                                            pid_matched_pip   = pid_unmatched;
                                             matched_pip_x_gen = unmatched_x_gen;
                                             matched_pip_y_gen = unmatched_y_gen;
                                             matched_pip_z_gen = unmatched_z_gen;
@@ -502,7 +486,7 @@ args.eachParallel{fname->
                                         // Always have a 'next best' result (must still have the correct charge)                                    
                                         Next_Best_pip_Match = Total_Quality_of_Match;
 
-                                        pid_other_matched_pip = pid_unmatched;
+                                        pid_other_matched_pip   = pid_unmatched;
                                         other_matched_pip_x_gen = unmatched_x_gen;
                                         other_matched_pip_y_gen = unmatched_y_gen;
                                         other_matched_pip_z_gen = unmatched_z_gen;

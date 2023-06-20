@@ -219,7 +219,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # * Removed the 2D plots for W vs Q2/y and xB vs y (three of the 2D plots)
     
     
-    # Extra_Name = "Gen_Cuts_V2_"
+    Extra_Name = "Gen_Cuts_V2_"
+    # Turned off Generated Missing Mass Cut
+    # Otherwise is the same as "Gen_Cuts_V1_"
+    
+    # Extra_Name = "Gen_Cuts_V3_"
     # # Applying the Missing Mass Cut to just the unmatched generated events (just 'gdf', not 'gen' - i.e., matched generated events are not cut unless the matching reconstructed event is, but the unmatched generated events are cut)
     #     # May need to find a way to add the matched generated events back to the unmatched events
     #     # The Missing Mass Cut starts at 1.5 GeV (just like the normal cut to the reconstructed events)
@@ -4942,8 +4946,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(Data_Type == "miss_idf_pip" and Titles_or_DF == 'DF'):
             DF_Out = DF_Out.Filter("(PID_el != 0 && PID_pip != 0) && PID_pip != 211")
             
-        if(Data_Type in ["gen", "mdf"]):
-            DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
+#         if(Data_Type in ["gen", "mdf"]):
+#             DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
 
         if(Data_Type not in ["gdf", "gen"] and "no_cut" != Cut_Choice):
 
@@ -4978,15 +4982,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 cutname = "".join([cutname, "Cuts"])
         else:
             # Generated Monte Carlo should not have cuts applied to it (until now...)
-            if(Data_Type in ["gdf", "gen"]):
-                cutname = "Missing Mass < 1.5 Cut"
-                if(Titles_or_DF == 'DF'):
-                    if(Data_Type in ["gdf"]):
-                        DF_Out = DF_Out.Filter("sqrt(MM2) > 1.5")
-                    if(Data_Type in ["gen"]):
-                        DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
-            else:
-                cutname = "No Cuts"
+#             if(Data_Type in ["gdf", "gen"]):
+#                 cutname = "Missing Mass < 1.5 Cut"
+#                 if(Titles_or_DF == 'DF'):
+#                     if(Data_Type in ["gdf"]):
+#                         DF_Out = DF_Out.Filter("sqrt(MM2) > 1.5")
+#                     if(Data_Type in ["gen"]):
+#                         DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
+#             else:
+            cutname = "No Cuts"
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
         ##################################################
