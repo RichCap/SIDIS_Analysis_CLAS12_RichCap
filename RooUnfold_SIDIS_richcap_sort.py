@@ -667,7 +667,7 @@ def Find_z_pT_Bin_Center(Q2_xB_Bin_Select, z_pT_Bin, variable_return="Default"):
             pT_Value_Max, pT_Value_Min = 0.7, 0.45
             
             
-    z_Value = (z_Value_Max - z_Value_Min)/2
+    z_Value  = (z_Value_Max  - z_Value_Min)/2
     pT_Value = (pT_Value_Max - pT_Value_Min)/2
             
             
@@ -734,18 +734,19 @@ Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
 
 Common_Name = "New_Binning_Schemes_V8_All"
 
-Common_Name = "Gen_Cuts_V1_2_All"
+Common_Name = "Gen_Cuts_V2_Sim_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
+if(False):
     REAL_File_Name = Common_Name
 else:
     REAL_File_Name = "Unfolding_Tests_V11_All"
+    REAL_File_Name = "Gen_Cuts_V1_All"
 ##################################
 ##   Real (Experimental) Data   ##
 ##################################
@@ -874,12 +875,22 @@ os.mkdir(destination)
 ##============================================##
 ##=====##   Category Folder Creation   ##=====##
 destination_main = "".join([str(destination), "/Unfolding_Images"])
-destination_pars = "".join([str(destination), "/Parameter_Images"])
+# destination_pars = "".join([str(destination), "/Parameter_Images"])
 # destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
 destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
 os.mkdir(destination_main)
-os.mkdir(destination_pars)
+# os.mkdir(destination_pars)
 os.mkdir(destination_mult)
+
+destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
+destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
+
+os.mkdir(destination_mult_Q2_phi_h)
+os.mkdir(destination_mult_Q2_y_Bin_phi_h)
+
+os.mkdir("".join([str(destination_mult_Q2_phi_h),       "/Response_Matrix"]))
+os.mkdir("".join([str(destination_mult_Q2_y_Bin_phi_h), "/Response_Matrix"]))
+
 ##=====##   Category Folder Creation   ##=====##
 ##============================================##
 
@@ -909,7 +920,7 @@ os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 ##====================================================##
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual]:
-    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
+    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
         os.mkdir("".join([str(folder), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 ##=====##   Q2-xB Unfolding Folders Creation   ##=====##
 ##====================================================##
@@ -923,37 +934,57 @@ for Entry in os.listdir():
         Entry = str(Entry).replace("Sim_Test_", "")
     if('.png' in str(Entry)):
         # print("\n"+str(Entry))
-        if("_Pars_" in str(Entry)):
-            shutil.move(Entry, destination_pars)
-        elif("Multi_Dim_Histo_" in str(Entry)):
-            shutil.move(Entry, destination_mult)
+        # if("_Pars_" in str(Entry)):
+        #     shutil.move(Entry, destination_pars)
+        if("Multi_Dim_Histo_" in str(Entry)):
+            try:
+                if("Response_Matrix_Normal_Multi_Dim_" in str(Entry)):
+                    if("Q2_phi_h" in str(Entry)):
+                        shutil.move(Entry, "".join([str(destination_mult_Q2_phi_h),       "/Response_Matrix"]))
+                    elif("Q2_y_Bin_phi_h" in str(Entry)):
+                        shutil.move(Entry, "".join([str(destination_mult_Q2_y_Bin_phi_h), "/Response_Matrix"]))
+                    else:
+                        shutil.move(Entry, destination_mult)
+                else:
+                    if("Q2_phi_h" in str(Entry)):
+                        shutil.move(Entry, destination_mult_Q2_phi_h)
+                    elif("Q2_y_Bin_phi_h" in str(Entry)):
+                        shutil.move(Entry, destination_mult_Q2_y_Bin_phi_h)
+                    else:
+                        shutil.move(Entry, destination_mult)
+            except:
+                print("".join([color.RED, "ERROR in 'Multi_Dim_Histo': \n", color.END, str(traceback.format_exc()), "\n"]))
+                try:
+                    shutil.move(Entry, destination_mult)
+                except:
+                    print("".join([color.RED, color.BOLD, "\n2nd ERROR in 'Multi_Dim_Histo': \n", color.END, str(traceback.format_exc()), "\n"]))
         elif("Response_Matrix_" in str(Entry) and "_z_pT_Bin_" in str(Entry)):
-            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
+            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
                 if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)]) in str(Entry)):
                     if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
                         try:
                             shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                         except:
-                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
+                            print("".join([color.RED, color.BOLD, "ERROR in Unsmeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
                     else:
                         try:
                             shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                         except:
-                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
+                            print("".join([color.RED, color.BOLD, "ERROR in Smeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
 
         elif("Unfolded_Histos" in str(Entry) and "_z_pT_Bin_" not in str(Entry)):
-            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 18, -1, -1):
+            for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
                 if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)]) in str(Entry)):
                     if(("Smear" not in str(Entry)) and ("smear" not in str(Entry))):
                         try:
                             shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                         except:
-                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
+                            print("".join([color.RED, color.BOLD, "ERROR in Unsmeared 'Unfolded_Histos': \n", color.END, str(traceback.format_exc()), "\n"]))
                     else:
                         try:
                             shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                         except:
-                            print("".join([color.RED, color.BOLD, "ERROR: \n", color.END, str(traceback.format_exc()), "\n"]))
+                            print("".join([color.RED, color.BOLD, "ERROR in Smeared 'Unfolded_Histos': \n", color.END, str(traceback.format_exc()), "\n"]))
         else:
             # print(destination)
             shutil.move(Entry, destination)

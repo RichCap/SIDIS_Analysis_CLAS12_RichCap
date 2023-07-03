@@ -19,11 +19,15 @@ if(len(sys.argv) > 1):
         arg_option_1     = arg_option_1.replace("_sim", "")
         arg_option_1     = arg_option_1.replace("simulation", "")
         arg_option_1     = arg_option_1.replace("sim", "")
-        Smearing_Options = str((arg_option_1).replace("_no_save", "")) if(str(arg_option_1) not in ["save", ""]) else "both"
+        Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
+        if(Smearing_Options == ""):
+            Smearing_Options = "both"
 else:
     Saving_Q = True
     
-# if(Sim_Test):
+if(Sim_Test):
+    print("\033[94m\nRunning Simulated Test\n\033[0m")
+    print("Smearing_Options =", Smearing_Options)
 #     print("\033[1m\033[91m\nWARNING: Sim_Test is not set up to run yet...\n\033[0m")
 
 
@@ -245,18 +249,18 @@ def Q2_xB_Border_Lines(Q2_xB_Bin_Select):
         
     # For Q2_xB Bin 1
     if(Q2_xB_Bin_Select == 1 or Q2_xB_Bin_Select < 1):
-        Draw_Lines.append([[0.126602, 2], [0.15, 2.28]])
-        Draw_Lines.append([[0.15, 2.28], [0.24, 3.625]])
-        Draw_Lines.append([[0.24, 3.625], [0.24, 2.75]])
-        Draw_Lines.append([[0.24, 2.75], [0.15, 2]])
-        # Draw_Lines.append([[0.15, 1.98], [0.15, 1.95]])
-        Draw_Lines.append([[0.15, 2], [0.126602, 2]])
+        Draw_Lines.append([[0.126602, 2], [0.15,     2.28]])
+        Draw_Lines.append([[0.15,  2.28], [0.24,     3.625]])
+        Draw_Lines.append([[0.24, 3.625], [0.24,     2.75]])
+        Draw_Lines.append([[0.24,  2.75], [0.15,     2]])
+        # Draw_Lines.append([[0.15, 1.98],[0.15,     1.95]])
+        Draw_Lines.append([[0.15,     2], [0.126602, 2]])
         
     # For Q2_xB Bin 2
     if(Q2_xB_Bin_Select == 2 or Q2_xB_Bin_Select < 1):
-        Draw_Lines.append([[0.15, 2], [0.24, 2.75]])
+        Draw_Lines.append([[0.15,    2], [0.24, 2.75]])
         Draw_Lines.append([[0.24, 2.75], [0.24, 2]])
-        Draw_Lines.append([[0.24, 2], [0.15, 2]])
+        Draw_Lines.append([[0.24,    2], [0.15, 2]])
         # Draw_Lines.append([[0.15, 1.95], [0.15, 1.98]])
         # Draw_Lines.append([[0.15, 1.98], [0.24, 2.75]])
         # Draw_Lines.append([[0.24, 2.75], [0.24, 1.95]])
@@ -264,10 +268,10 @@ def Q2_xB_Border_Lines(Q2_xB_Bin_Select):
 
     # For Q2_xB Bin 3
     if(Q2_xB_Bin_Select == 3 or Q2_xB_Bin_Select < 1):
-        Draw_Lines.append([[0.24, 2.75], [0.24, 3.625]])
+        Draw_Lines.append([[0.24,  2.75], [0.24, 3.625]])
         Draw_Lines.append([[0.24, 3.625], [0.34, 5.12]])
-        Draw_Lines.append([[0.34, 5.12], [0.34, 3.63]])
-        Draw_Lines.append([[0.34, 3.63], [0.24, 2.75]])
+        Draw_Lines.append([[0.34,  5.12], [0.34, 3.63]])
+        Draw_Lines.append([[0.34,  3.63], [0.24, 2.75]])
         
     # For Q2_xB Bin 4
     if(Q2_xB_Bin_Select == 4 or Q2_xB_Bin_Select < 1):
@@ -1126,7 +1130,7 @@ def Find_z_pT_Bin_Center(Q2_xB_Bin_Select, z_pT_Bin, variable_return="Default"):
 ##==========##==========##     Unfolding Fit Function     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ############################################################################################################################################################
 
-def Full_Calc_Fit(Histo):
+def Full_Calc_Fit(Histo, version="norm"):
     
     Histo_180_bin = Histo.FindBin(155)
     Histo_240_bin = Histo.FindBin(300)
@@ -1309,7 +1313,66 @@ def Full_Calc_Fit(Histo):
         A, B, C = "Error", "Error", "Error"
         
         
-    return [A, B, C]
+        
+    if(version != "norm"):
+        
+        Phi_1_bin = Histo.FindBin(52.5)
+        Phi_2_bin = Histo.FindBin(105)
+        Phi_3_bin = Histo.FindBin(157.5)
+        Phi_4_bin = Histo.FindBin(210)
+        Phi_5_bin = Histo.FindBin(262.5)
+        
+        Phi_1 = (3.1415926/180)*Histo.GetBinCenter(Phi_1_bin)
+        Phi_2 = (3.1415926/180)*Histo.GetBinCenter(Phi_2_bin)
+        Phi_3 = (3.1415926/180)*Histo.GetBinCenter(Phi_3_bin)
+        Phi_4 = (3.1415926/180)*Histo.GetBinCenter(Phi_4_bin)
+        Phi_5 = (3.1415926/180)*Histo.GetBinCenter(Phi_5_bin)
+        
+        n1 = Histo.GetBinContent(Phi_1_bin)
+        n2 = Histo.GetBinContent(Phi_2_bin)
+        n3 = Histo.GetBinContent(Phi_3_bin)
+        n4 = Histo.GetBinContent(Phi_4_bin)
+        n5 = Histo.GetBinContent(Phi_5_bin)
+        
+        a1 = ROOT.cos(Phi_1)    # Cos(phi)
+        b1 = ROOT.cos(2*Phi_1)  # Cos(2*phi)
+        c1 = ROOT.cos(3*Phi_1)  # Cos(3*phi)
+        d1 = ROOT.cos(4*Phi_1)  # Cos(4*phi)
+        
+        a2 = ROOT.cos(Phi_2)
+        b2 = ROOT.cos(2*Phi_2)
+        c2 = ROOT.cos(3*Phi_2)
+        d2 = ROOT.cos(4*Phi_2)
+
+        a3 = ROOT.cos(Phi_3)
+        b3 = ROOT.cos(2*Phi_3)
+        c3 = ROOT.cos(3*Phi_3)
+        d3 = ROOT.cos(4*Phi_3)
+
+        a4 = ROOT.cos(Phi_4)
+        b4 = ROOT.cos(2*Phi_4)
+        c4 = ROOT.cos(3*Phi_4)
+        d4 = ROOT.cos(4*Phi_4)
+
+        a5 = ROOT.cos(Phi_5)
+        b5 = ROOT.cos(2*Phi_5)
+        c5 = ROOT.cos(3*Phi_5)
+        d5 = ROOT.cos(4*Phi_5)
+        
+        A =  (n2*b1*c3*d4    - n2*b1*c3*d5    - n2*b1*d3*c4    + n2*b1*d3*c5    + n2*b1*c4*d5    - n2*b1*d4*c5    - n2*c1*b3*d4    + n2*c1*b3*d5    + n2*c1*d3*b4    - n2*c1*d3*b5    - n2*c1*b4*d5    + n2*c1*d4*b5    + n2*d1*b3*c4    - n2*d1*b3*c5    - n2*d1*c3*b4    + n2*d1*c3*b5    + n2*d1*b4*c5    - n2*d1*c4*b5    - n2*b3*c4*d5    + n2*b3*d4*c5    + n2*c3*b4*d5    - n2*c3*d4*b5    - n2*d3*b4*c5    + n2*d3*c4*b5    + n4*b1*c2*d3    - n4*b1*c2*d5    - n4*b1*d2*c3    + n4*b1*d2*c5    + n4*b1*c3*d5    - n4*b1*d3*c5    - n4*c1*b2*d3    + n4*c1*b2*d5    + n4*c1*d2*b3    - n4*c1*d2*b5    - n4*c1*b3*d5    + n4*c1*d3*b5    + n4*d1*b2*c3    - n4*d1*b2*c5    - n4*d1*c2*b3    + n4*d1*c2*b5    + n4*d1*b3*c5    - n4*d1*c3*b5    - n4*b2*c3*d5    + n4*b2*d3*c5    + n4*c2*b3*d5    - n4*c2*d3*b5    - n4*d2*b3*c5    + n4*d2*c3*b5    - b1*c2*d3*n5    - b1*c2*d4*n3    + b1*c2*d4*n5    + b1*c2*d5*n3    + b1*d2*c3*n5    + b1*d2*c4*n3    - b1*d2*c4*n5    - b1*d2*c5*n3    - b1*c3*d4*n5    + b1*d3*c4*n5    - b1*c4*d5*n3    + b1*d4*c5*n3    + c1*b2*d3*n5    + c1*b2*d4*n3    - c1*b2*d4*n5    - c1*b2*d5*n3    - c1*d2*b3*n5    - c1*d2*b4*n3    + c1*d2*b4*n5    + c1*d2*b5*n3    + c1*b3*d4*n5    - c1*d3*b4*n5    + c1*b4*d5*n3    - c1*d4*b5*n3    - d1*b2*c3*n5    - d1*b2*c4*n3    + d1*b2*c4*n5    + d1*b2*c5*n3    + d1*c2*b3*n5    + d1*c2*b4*n3    - d1*c2*b4*n5    - d1*c2*b5*n3    - d1*b3*c4*n5    + d1*c3*b4*n5    - d1*b4*c5*n3    + d1*c4*b5*n3    - b2*c3*d4*n1 + b2*c3*d4*n5 + b2*c3*d5*n1 + b2*d3*c4*n1 - b2*d3*c4*n5 - b2*d3*c5*n1 - b2*c4*d5*n1 + b2*c4*d5*n3 + b2*d4*c5*n1 - b2*d4*c5*n3 + c2*b3*d4*n1 - c2*b3*d4*n5 - c2*b3*d5*n1 - c2*d3*b4*n1 + c2*d3*b4*n5 + c2*d3*b5*n1 + c2*b4*d5*n1 - c2*b4*d5*n3 - c2*d4*b5*n1 + c2*d4*b5*n3 - d2*b3*c4*n1 + d2*b3*c4*n5 + d2*b3*c5*n1 + d2*c3*b4*n1 - d2*c3*b4*n5 - d2*c3*b5*n1 - d2*b4*c5*n1 + d2*b4*c5*n3 + d2*c4*b5*n1 - d2*c4*b5*n3 + b3*c4*d5*n1 - b3*d4*c5*n1 - c3*b4*d5*n1 + c3*d4*b5*n1 + d3*b4*c5*n1 - d3*c4*b5*n1)/(n2*a1*b3*c4*d5 - n2*a1*b3*d4*c5 - n2*a1*c3*b4*d5 + n2*a1*c3*d4*b5 + n2*a1*d3*b4*c5 - n2*a1*d3*c4*b5 - n2*b1*a3*c4*d5 + n2*b1*a3*d4*c5 + n2*b1*c3*a4*d5 - n2*b1*c3*d4*a5 - n2*b1*d3*a4*c5 + n2*b1*d3*c4*a5 + n2*c1*a3*b4*d5 - n2*c1*a3*d4*b5 - n2*c1*b3*a4*d5 + n2*c1*b3*d4*a5 + n2*c1*d3*a4*b5 - n2*c1*d3*b4*a5 - n2*d1*a3*b4*c5 + n2*d1*a3*c4*b5 + n2*d1*b3*a4*c5 - n2*d1*b3*c4*a5 - n2*d1*c3*a4*b5 + n2*d1*c3*b4*a5 + n4*a1*b2*c3*d5 - n4*a1*b2*d3*c5 - n4*a1*c2*b3*d5 + n4*a1*c2*d3*b5 + n4*a1*d2*b3*c5 - n4*a1*d2*c3*b5 - n4*b1*a2*c3*d5 + n4*b1*a2*d3*c5 + n4*b1*c2*a3*d5 - n4*b1*c2*d3*a5 - n4*b1*d2*a3*c5 + n4*b1*d2*c3*a5 + n4*c1*a2*b3*d5 - n4*c1*a2*d3*b5 - n4*c1*b2*a3*d5 + n4*c1*b2*d3*a5 + n4*c1*d2*a3*b5 - n4*c1*d2*b3*a5 - n4*d1*a2*b3*c5 + n4*d1*a2*c3*b5 + n4*d1*b2*a3*c5 - n4*d1*b2*c3*a5 - n4*d1*c2*a3*b5 + n4*d1*c2*b3*a5 - a1*b2*c3*d4*n5 + a1*b2*d3*c4*n5 - a1*b2*c4*d5*n3 + a1*b2*d4*c5*n3 + a1*c2*b3*d4*n5 - a1*c2*d3*b4*n5 + a1*c2*b4*d5*n3 - a1*c2*d4*b5*n3 - a1*d2*b3*c4*n5 + a1*d2*c3*b4*n5 - a1*d2*b4*c5*n3 + a1*d2*c4*b5*n3 + b1*a2*c3*d4*n5 - b1*a2*d3*c4*n5 + b1*a2*c4*d5*n3 - b1*a2*d4*c5*n3 - b1*c2*a3*d4*n5 + b1*c2*d3*a4*n5 - b1*c2*a4*d5*n3 + b1*c2*d4*a5*n3 + b1*d2*a3*c4*n5 - b1*d2*c3*a4*n5 + b1*d2*a4*c5*n3 - b1*d2*c4*a5*n3 - c1*a2*b3*d4*n5 + c1*a2*d3*b4*n5 - c1*a2*b4*d5*n3 + c1*a2*d4*b5*n3 + c1*b2*a3*d4*n5 - c1*b2*d3*a4*n5 + c1*b2*a4*d5*n3 - c1*b2*d4*a5*n3 - c1*d2*a3*b4*n5 + c1*d2*b3*a4*n5 - c1*d2*a4*b5*n3 + c1*d2*b4*a5*n3 + d1*a2*b3*c4*n5 - d1*a2*c3*b4*n5 + d1*a2*b4*c5*n3 - d1*a2*c4*b5*n3 - d1*b2*a3*c4*n5 + d1*b2*c3*a4*n5 - d1*b2*a4*c5*n3 + d1*b2*c4*a5*n3 + d1*c2*a3*b4*n5 - d1*c2*b3*a4*n5 + d1*c2*a4*b5*n3 - d1*c2*b4*a5*n3 - a2*b3*c4*d5*n1 + a2*b3*d4*c5*n1 + a2*c3*b4*d5*n1 - a2*c3*d4*b5*n1 - a2*d3*b4*c5*n1 + a2*d3*c4*b5*n1 + b2*a3*c4*d5*n1 - b2*a3*d4*c5*n1 - b2*c3*a4*d5*n1 + b2*c3*d4*a5*n1 + b2*d3*a4*c5*n1 - b2*d3*c4*a5*n1 - c2*a3*b4*d5*n1 + c2*a3*d4*b5*n1 + c2*b3*a4*d5*n1 - c2*b3*d4*a5*n1 - c2*d3*a4*b5*n1 + c2*d3*b4*a5*n1 + d2*a3*b4*c5*n1 - d2*a3*c4*b5*n1 - d2*b3*a4*c5*n1 + d2*b3*c4*a5*n1 + d2*c3*a4*b5*n1 - d2*c3*b4*a5*n1)
+        B = (-n2*a1*c3*d4    + n2*a1*c3*d5    + n2*a1*d3*c4    - n2*a1*d3*c5    - n2*a1*c4*d5    + n2*a1*d4*c5    + n2*c1*a3*d4    - n2*c1*a3*d5    - n2*c1*d3*a4    + n2*c1*d3*a5    + n2*c1*a4*d5    - n2*c1*d4*a5    - n2*d1*a3*c4    + n2*d1*a3*c5    + n2*d1*c3*a4    - n2*d1*c3*a5    - n2*d1*a4*c5    + n2*d1*c4*a5    + n2*a3*c4*d5    - n2*a3*d4*c5    - n2*c3*a4*d5    + n2*c3*d4*a5    + n2*d3*a4*c5    - n2*d3*c4*a5    - n4*a1*c2*d3    + n4*a1*c2*d5    + n4*a1*d2*c3    - n4*a1*d2*c5    - n4*a1*c3*d5    + n4*a1*d3*c5    + n4*c1*a2*d3    - n4*c1*a2*d5    - n4*c1*d2*a3    + n4*c1*d2*a5    + n4*c1*a3*d5    - n4*c1*d3*a5    - n4*d1*a2*c3    + n4*d1*a2*c5    + n4*d1*c2*a3    - n4*d1*c2*a5    - n4*d1*a3*c5    + n4*d1*c3*a5    + n4*a2*c3*d5    - n4*a2*d3*c5    - n4*c2*a3*d5    + n4*c2*d3*a5    + n4*d2*a3*c5    - n4*d2*c3*a5    + a1*c2*d3*n5    + a1*c2*d4*n3    - a1*c2*d4*n5    - a1*c2*d5*n3    - a1*d2*c3*n5    - a1*d2*c4*n3    + a1*d2*c4*n5    + a1*d2*c5*n3    + a1*c3*d4*n5    - a1*d3*c4*n5    + a1*c4*d5*n3    - a1*d4*c5*n3    - c1*a2*d3*n5    - c1*a2*d4*n3    + c1*a2*d4*n5    + c1*a2*d5*n3    + c1*d2*a3*n5    + c1*d2*a4*n3    - c1*d2*a4*n5    - c1*d2*a5*n3    - c1*a3*d4*n5    + c1*d3*a4*n5    - c1*a4*d5*n3    + c1*d4*a5*n3    + d1*a2*c3*n5    + d1*a2*c4*n3    - d1*a2*c4*n5    - d1*a2*c5*n3    - d1*c2*a3*n5    - d1*c2*a4*n3    + d1*c2*a4*n5    + d1*c2*a5*n3    + d1*a3*c4*n5    - d1*c3*a4*n5    + d1*a4*c5*n3    - d1*c4*a5*n3    + a2*c3*d4*n1 - a2*c3*d4*n5 - a2*c3*d5*n1 - a2*d3*c4*n1 + a2*d3*c4*n5 + a2*d3*c5*n1 + a2*c4*d5*n1 - a2*c4*d5*n3 - a2*d4*c5*n1 + a2*d4*c5*n3 - c2*a3*d4*n1 + c2*a3*d4*n5 + c2*a3*d5*n1 + c2*d3*a4*n1 - c2*d3*a4*n5 - c2*d3*a5*n1 - c2*a4*d5*n1 + c2*a4*d5*n3 + c2*d4*a5*n1 - c2*d4*a5*n3 + d2*a3*c4*n1 - d2*a3*c4*n5 - d2*a3*c5*n1 - d2*c3*a4*n1 + d2*c3*a4*n5 + d2*c3*a5*n1 + d2*a4*c5*n1 - d2*a4*c5*n3 - d2*c4*a5*n1 + d2*c4*a5*n3 - a3*c4*d5*n1 + a3*d4*c5*n1 + c3*a4*d5*n1 - c3*d4*a5*n1 - d3*a4*c5*n1 + d3*c4*a5*n1)/(n2*a1*b3*c4*d5 - n2*a1*b3*d4*c5 - n2*a1*c3*b4*d5 + n2*a1*c3*d4*b5 + n2*a1*d3*b4*c5 - n2*a1*d3*c4*b5 - n2*b1*a3*c4*d5 + n2*b1*a3*d4*c5 + n2*b1*c3*a4*d5 - n2*b1*c3*d4*a5 - n2*b1*d3*a4*c5 + n2*b1*d3*c4*a5 + n2*c1*a3*b4*d5 - n2*c1*a3*d4*b5 - n2*c1*b3*a4*d5 + n2*c1*b3*d4*a5 + n2*c1*d3*a4*b5 - n2*c1*d3*b4*a5 - n2*d1*a3*b4*c5 + n2*d1*a3*c4*b5 + n2*d1*b3*a4*c5 - n2*d1*b3*c4*a5 - n2*d1*c3*a4*b5 + n2*d1*c3*b4*a5 + n4*a1*b2*c3*d5 - n4*a1*b2*d3*c5 - n4*a1*c2*b3*d5 + n4*a1*c2*d3*b5 + n4*a1*d2*b3*c5 - n4*a1*d2*c3*b5 - n4*b1*a2*c3*d5 + n4*b1*a2*d3*c5 + n4*b1*c2*a3*d5 - n4*b1*c2*d3*a5 - n4*b1*d2*a3*c5 + n4*b1*d2*c3*a5 + n4*c1*a2*b3*d5 - n4*c1*a2*d3*b5 - n4*c1*b2*a3*d5 + n4*c1*b2*d3*a5 + n4*c1*d2*a3*b5 - n4*c1*d2*b3*a5 - n4*d1*a2*b3*c5 + n4*d1*a2*c3*b5 + n4*d1*b2*a3*c5 - n4*d1*b2*c3*a5 - n4*d1*c2*a3*b5 + n4*d1*c2*b3*a5 - a1*b2*c3*d4*n5 + a1*b2*d3*c4*n5 - a1*b2*c4*d5*n3 + a1*b2*d4*c5*n3 + a1*c2*b3*d4*n5 - a1*c2*d3*b4*n5 + a1*c2*b4*d5*n3 - a1*c2*d4*b5*n3 - a1*d2*b3*c4*n5 + a1*d2*c3*b4*n5 - a1*d2*b4*c5*n3 + a1*d2*c4*b5*n3 + b1*a2*c3*d4*n5 - b1*a2*d3*c4*n5 + b1*a2*c4*d5*n3 - b1*a2*d4*c5*n3 - b1*c2*a3*d4*n5 + b1*c2*d3*a4*n5 - b1*c2*a4*d5*n3 + b1*c2*d4*a5*n3 + b1*d2*a3*c4*n5 - b1*d2*c3*a4*n5 + b1*d2*a4*c5*n3 - b1*d2*c4*a5*n3 - c1*a2*b3*d4*n5 + c1*a2*d3*b4*n5 - c1*a2*b4*d5*n3 + c1*a2*d4*b5*n3 + c1*b2*a3*d4*n5 - c1*b2*d3*a4*n5 + c1*b2*a4*d5*n3 - c1*b2*d4*a5*n3 - c1*d2*a3*b4*n5 + c1*d2*b3*a4*n5 - c1*d2*a4*b5*n3 + c1*d2*b4*a5*n3 + d1*a2*b3*c4*n5 - d1*a2*c3*b4*n5 + d1*a2*b4*c5*n3 - d1*a2*c4*b5*n3 - d1*b2*a3*c4*n5 + d1*b2*c3*a4*n5 - d1*b2*a4*c5*n3 + d1*b2*c4*a5*n3 + d1*c2*a3*b4*n5 - d1*c2*b3*a4*n5 + d1*c2*a4*b5*n3 - d1*c2*b4*a5*n3 - a2*b3*c4*d5*n1 + a2*b3*d4*c5*n1 + a2*c3*b4*d5*n1 - a2*c3*d4*b5*n1 - a2*d3*b4*c5*n1 + a2*d3*c4*b5*n1 + b2*a3*c4*d5*n1 - b2*a3*d4*c5*n1 - b2*c3*a4*d5*n1 + b2*c3*d4*a5*n1 + b2*d3*a4*c5*n1 - b2*d3*c4*a5*n1 - c2*a3*b4*d5*n1 + c2*a3*d4*b5*n1 + c2*b3*a4*d5*n1 - c2*b3*d4*a5*n1 - c2*d3*a4*b5*n1 + c2*d3*b4*a5*n1 + d2*a3*b4*c5*n1 - d2*a3*c4*b5*n1 - d2*b3*a4*c5*n1 + d2*b3*c4*a5*n1 + d2*c3*a4*b5*n1 - d2*c3*b4*a5*n1)
+        C =  (n2*a1*b3*d4    - n2*a1*b3*d5    - n2*a1*d3*b4    + n2*a1*d3*b5    + n2*a1*b4*d5    - n2*a1*d4*b5    - n2*b1*a3*d4    + n2*b1*a3*d5    + n2*b1*d3*a4    - n2*b1*d3*a5    - n2*b1*a4*d5    + n2*b1*d4*a5    + n2*d1*a3*b4    - n2*d1*a3*b5    - n2*d1*b3*a4    + n2*d1*b3*a5    + n2*d1*a4*b5    - n2*d1*b4*a5    - n2*a3*b4*d5    + n2*a3*d4*b5    + n2*b3*a4*d5    - n2*b3*d4*a5    - n2*d3*a4*b5    + n2*d3*b4*a5    + n4*a1*b2*d3    - n4*a1*b2*d5    - n4*a1*d2*b3    + n4*a1*d2*b5    + n4*a1*b3*d5    - n4*a1*d3*b5    - n4*b1*a2*d3    + n4*b1*a2*d5    + n4*b1*d2*a3    - n4*b1*d2*a5    - n4*b1*a3*d5    + n4*b1*d3*a5    + n4*d1*a2*b3    - n4*d1*a2*b5    - n4*d1*b2*a3    + n4*d1*b2*a5    + n4*d1*a3*b5    - n4*d1*b3*a5    - n4*a2*b3*d5    + n4*a2*d3*b5    + n4*b2*a3*d5    - n4*b2*d3*a5    - n4*d2*a3*b5    + n4*d2*b3*a5    - a1*b2*d3*n5    - a1*b2*d4*n3    + a1*b2*d4*n5    + a1*b2*d5*n3    + a1*d2*b3*n5    + a1*d2*b4*n3    - a1*d2*b4*n5    - a1*d2*b5*n3    - a1*b3*d4*n5    + a1*d3*b4*n5    - a1*b4*d5*n3    + a1*d4*b5*n3    + b1*a2*d3*n5    + b1*a2*d4*n3    - b1*a2*d4*n5    - b1*a2*d5*n3    - b1*d2*a3*n5    - b1*d2*a4*n3    + b1*d2*a4*n5    + b1*d2*a5*n3    + b1*a3*d4*n5    - b1*d3*a4*n5    + b1*a4*d5*n3    - b1*d4*a5*n3    - d1*a2*b3*n5    - d1*a2*b4*n3    + d1*a2*b4*n5    + d1*a2*b5*n3    + d1*b2*a3*n5    + d1*b2*a4*n3    - d1*b2*a4*n5    - d1*b2*a5*n3    - d1*a3*b4*n5    + d1*b3*a4*n5    - d1*a4*b5*n3    + d1*b4*a5*n3    - a2*b3*d4*n1 + a2*b3*d4*n5 + a2*b3*d5*n1 + a2*d3*b4*n1 - a2*d3*b4*n5 - a2*d3*b5*n1 - a2*b4*d5*n1 + a2*b4*d5*n3 + a2*d4*b5*n1 - a2*d4*b5*n3 + b2*a3*d4*n1 - b2*a3*d4*n5 - b2*a3*d5*n1 - b2*d3*a4*n1 + b2*d3*a4*n5 + b2*d3*a5*n1 + b2*a4*d5*n1 - b2*a4*d5*n3 - b2*d4*a5*n1 + b2*d4*a5*n3 - d2*a3*b4*n1 + d2*a3*b4*n5 + d2*a3*b5*n1 + d2*b3*a4*n1 - d2*b3*a4*n5 - d2*b3*a5*n1 - d2*a4*b5*n1 + d2*a4*b5*n3 + d2*b4*a5*n1 - d2*b4*a5*n3 + a3*b4*d5*n1 - a3*d4*b5*n1 - b3*a4*d5*n1 + b3*d4*a5*n1 + d3*a4*b5*n1 - d3*b4*a5*n1)/(n2*a1*b3*c4*d5 - n2*a1*b3*d4*c5 - n2*a1*c3*b4*d5 + n2*a1*c3*d4*b5 + n2*a1*d3*b4*c5 - n2*a1*d3*c4*b5 - n2*b1*a3*c4*d5 + n2*b1*a3*d4*c5 + n2*b1*c3*a4*d5 - n2*b1*c3*d4*a5 - n2*b1*d3*a4*c5 + n2*b1*d3*c4*a5 + n2*c1*a3*b4*d5 - n2*c1*a3*d4*b5 - n2*c1*b3*a4*d5 + n2*c1*b3*d4*a5 + n2*c1*d3*a4*b5 - n2*c1*d3*b4*a5 - n2*d1*a3*b4*c5 + n2*d1*a3*c4*b5 + n2*d1*b3*a4*c5 - n2*d1*b3*c4*a5 - n2*d1*c3*a4*b5 + n2*d1*c3*b4*a5 + n4*a1*b2*c3*d5 - n4*a1*b2*d3*c5 - n4*a1*c2*b3*d5 + n4*a1*c2*d3*b5 + n4*a1*d2*b3*c5 - n4*a1*d2*c3*b5 - n4*b1*a2*c3*d5 + n4*b1*a2*d3*c5 + n4*b1*c2*a3*d5 - n4*b1*c2*d3*a5 - n4*b1*d2*a3*c5 + n4*b1*d2*c3*a5 + n4*c1*a2*b3*d5 - n4*c1*a2*d3*b5 - n4*c1*b2*a3*d5 + n4*c1*b2*d3*a5 + n4*c1*d2*a3*b5 - n4*c1*d2*b3*a5 - n4*d1*a2*b3*c5 + n4*d1*a2*c3*b5 + n4*d1*b2*a3*c5 - n4*d1*b2*c3*a5 - n4*d1*c2*a3*b5 + n4*d1*c2*b3*a5 - a1*b2*c3*d4*n5 + a1*b2*d3*c4*n5 - a1*b2*c4*d5*n3 + a1*b2*d4*c5*n3 + a1*c2*b3*d4*n5 - a1*c2*d3*b4*n5 + a1*c2*b4*d5*n3 - a1*c2*d4*b5*n3 - a1*d2*b3*c4*n5 + a1*d2*c3*b4*n5 - a1*d2*b4*c5*n3 + a1*d2*c4*b5*n3 + b1*a2*c3*d4*n5 - b1*a2*d3*c4*n5 + b1*a2*c4*d5*n3 - b1*a2*d4*c5*n3 - b1*c2*a3*d4*n5 + b1*c2*d3*a4*n5 - b1*c2*a4*d5*n3 + b1*c2*d4*a5*n3 + b1*d2*a3*c4*n5 - b1*d2*c3*a4*n5 + b1*d2*a4*c5*n3 - b1*d2*c4*a5*n3 - c1*a2*b3*d4*n5 + c1*a2*d3*b4*n5 - c1*a2*b4*d5*n3 + c1*a2*d4*b5*n3 + c1*b2*a3*d4*n5 - c1*b2*d3*a4*n5 + c1*b2*a4*d5*n3 - c1*b2*d4*a5*n3 - c1*d2*a3*b4*n5 + c1*d2*b3*a4*n5 - c1*d2*a4*b5*n3 + c1*d2*b4*a5*n3 + d1*a2*b3*c4*n5 - d1*a2*c3*b4*n5 + d1*a2*b4*c5*n3 - d1*a2*c4*b5*n3 - d1*b2*a3*c4*n5 + d1*b2*c3*a4*n5 - d1*b2*a4*c5*n3 + d1*b2*c4*a5*n3 + d1*c2*a3*b4*n5 - d1*c2*b3*a4*n5 + d1*c2*a4*b5*n3 - d1*c2*b4*a5*n3 - a2*b3*c4*d5*n1 + a2*b3*d4*c5*n1 + a2*c3*b4*d5*n1 - a2*c3*d4*b5*n1 - a2*d3*b4*c5*n1 + a2*d3*c4*b5*n1 + b2*a3*c4*d5*n1 - b2*a3*d4*c5*n1 - b2*c3*a4*d5*n1 + b2*c3*d4*a5*n1 + b2*d3*a4*c5*n1 - b2*d3*c4*a5*n1 - c2*a3*b4*d5*n1 + c2*a3*d4*b5*n1 + c2*b3*a4*d5*n1 - c2*b3*d4*a5*n1 - c2*d3*a4*b5*n1 + c2*d3*b4*a5*n1 + d2*a3*b4*c5*n1 - d2*a3*c4*b5*n1 - d2*b3*a4*c5*n1 + d2*b3*c4*a5*n1 + d2*c3*a4*b5*n1 - d2*c3*b4*a5*n1)
+        D = (-n2*a1*b3*c4    + n2*a1*b3*c5    + n2*a1*c3*b4    - n2*a1*c3*b5    - n2*a1*b4*c5    + n2*a1*c4*b5    + n2*b1*a3*c4    - n2*b1*a3*c5    - n2*b1*c3*a4    + n2*b1*c3*a5    + n2*b1*a4*c5    - n2*b1*c4*a5    - n2*c1*a3*b4    + n2*c1*a3*b5    + n2*c1*b3*a4    - n2*c1*b3*a5    - n2*c1*a4*b5    + n2*c1*b4*a5    + n2*a3*b4*c5    - n2*a3*c4*b5    - n2*b3*a4*c5    + n2*b3*c4*a5    + n2*c3*a4*b5    - n2*c3*b4*a5    - n4*a1*b2*c3    + n4*a1*b2*c5    + n4*a1*c2*b3    - n4*a1*c2*b5    - n4*a1*b3*c5    + n4*a1*c3*b5    + n4*b1*a2*c3    - n4*b1*a2*c5    - n4*b1*c2*a3    + n4*b1*c2*a5    + n4*b1*a3*c5    - n4*b1*c3*a5    - n4*c1*a2*b3    + n4*c1*a2*b5    + n4*c1*b2*a3    - n4*c1*b2*a5    - n4*c1*a3*b5    + n4*c1*b3*a5    + n4*a2*b3*c5    - n4*a2*c3*b5    - n4*b2*a3*c5    + n4*b2*c3*a5    + n4*c2*a3*b5    - n4*c2*b3*a5    + a1*b2*c3*n5    + a1*b2*c4*n3    - a1*b2*c4*n5    - a1*b2*c5*n3    - a1*c2*b3*n5    - a1*c2*b4*n3    + a1*c2*b4*n5    + a1*c2*b5*n3    + a1*b3*c4*n5    - a1*c3*b4*n5    + a1*b4*c5*n3    - a1*c4*b5*n3    - b1*a2*c3*n5    - b1*a2*c4*n3    + b1*a2*c4*n5    + b1*a2*c5*n3    + b1*c2*a3*n5    + b1*c2*a4*n3    - b1*c2*a4*n5    - b1*c2*a5*n3    - b1*a3*c4*n5    + b1*c3*a4*n5    - b1*a4*c5*n3    + b1*c4*a5*n3    + c1*a2*b3*n5    + c1*a2*b4*n3    - c1*a2*b4*n5    - c1*a2*b5*n3    - c1*b2*a3*n5    - c1*b2*a4*n3    + c1*b2*a4*n5    + c1*b2*a5*n3    + c1*a3*b4*n5    - c1*b3*a4*n5    + c1*a4*b5*n3    - c1*b4*a5*n3    + a2*b3*c4*n1 - a2*b3*c4*n5 - a2*b3*c5*n1 - a2*c3*b4*n1 + a2*c3*b4*n5 + a2*c3*b5*n1 + a2*b4*c5*n1 - a2*b4*c5*n3 - a2*c4*b5*n1 + a2*c4*b5*n3 - b2*a3*c4*n1 + b2*a3*c4*n5 + b2*a3*c5*n1 + b2*c3*a4*n1 - b2*c3*a4*n5 - b2*c3*a5*n1 - b2*a4*c5*n1 + b2*a4*c5*n3 + b2*c4*a5*n1 - b2*c4*a5*n3 + c2*a3*b4*n1 - c2*a3*b4*n5 - c2*a3*b5*n1 - c2*b3*a4*n1 + c2*b3*a4*n5 + c2*b3*a5*n1 + c2*a4*b5*n1 - c2*a4*b5*n3 - c2*b4*a5*n1 + c2*b4*a5*n3 - a3*b4*c5*n1 + a3*c4*b5*n1 + b3*a4*c5*n1 - b3*c4*a5*n1 - c3*a4*b5*n1 + c3*b4*a5*n1)/(n2*a1*b3*c4*d5 - n2*a1*b3*d4*c5 - n2*a1*c3*b4*d5 + n2*a1*c3*d4*b5 + n2*a1*d3*b4*c5 - n2*a1*d3*c4*b5 - n2*b1*a3*c4*d5 + n2*b1*a3*d4*c5 + n2*b1*c3*a4*d5 - n2*b1*c3*d4*a5 - n2*b1*d3*a4*c5 + n2*b1*d3*c4*a5 + n2*c1*a3*b4*d5 - n2*c1*a3*d4*b5 - n2*c1*b3*a4*d5 + n2*c1*b3*d4*a5 + n2*c1*d3*a4*b5 - n2*c1*d3*b4*a5 - n2*d1*a3*b4*c5 + n2*d1*a3*c4*b5 + n2*d1*b3*a4*c5 - n2*d1*b3*c4*a5 - n2*d1*c3*a4*b5 + n2*d1*c3*b4*a5 + n4*a1*b2*c3*d5 - n4*a1*b2*d3*c5 - n4*a1*c2*b3*d5 + n4*a1*c2*d3*b5 + n4*a1*d2*b3*c5 - n4*a1*d2*c3*b5 - n4*b1*a2*c3*d5 + n4*b1*a2*d3*c5 + n4*b1*c2*a3*d5 - n4*b1*c2*d3*a5 - n4*b1*d2*a3*c5 + n4*b1*d2*c3*a5 + n4*c1*a2*b3*d5 - n4*c1*a2*d3*b5 - n4*c1*b2*a3*d5 + n4*c1*b2*d3*a5 + n4*c1*d2*a3*b5 - n4*c1*d2*b3*a5 - n4*d1*a2*b3*c5 + n4*d1*a2*c3*b5 + n4*d1*b2*a3*c5 - n4*d1*b2*c3*a5 - n4*d1*c2*a3*b5 + n4*d1*c2*b3*a5 - a1*b2*c3*d4*n5 + a1*b2*d3*c4*n5 - a1*b2*c4*d5*n3 + a1*b2*d4*c5*n3 + a1*c2*b3*d4*n5 - a1*c2*d3*b4*n5 + a1*c2*b4*d5*n3 - a1*c2*d4*b5*n3 - a1*d2*b3*c4*n5 + a1*d2*c3*b4*n5 - a1*d2*b4*c5*n3 + a1*d2*c4*b5*n3 + b1*a2*c3*d4*n5 - b1*a2*d3*c4*n5 + b1*a2*c4*d5*n3 - b1*a2*d4*c5*n3 - b1*c2*a3*d4*n5 + b1*c2*d3*a4*n5 - b1*c2*a4*d5*n3 + b1*c2*d4*a5*n3 + b1*d2*a3*c4*n5 - b1*d2*c3*a4*n5 + b1*d2*a4*c5*n3 - b1*d2*c4*a5*n3 - c1*a2*b3*d4*n5 + c1*a2*d3*b4*n5 - c1*a2*b4*d5*n3 + c1*a2*d4*b5*n3 + c1*b2*a3*d4*n5 - c1*b2*d3*a4*n5 + c1*b2*a4*d5*n3 - c1*b2*d4*a5*n3 - c1*d2*a3*b4*n5 + c1*d2*b3*a4*n5 - c1*d2*a4*b5*n3 + c1*d2*b4*a5*n3 + d1*a2*b3*c4*n5 - d1*a2*c3*b4*n5 + d1*a2*b4*c5*n3 - d1*a2*c4*b5*n3 - d1*b2*a3*c4*n5 + d1*b2*c3*a4*n5 - d1*b2*a4*c5*n3 + d1*b2*c4*a5*n3 + d1*c2*a3*b4*n5 - d1*c2*b3*a4*n5 + d1*c2*a4*b5*n3 - d1*c2*b4*a5*n3 - a2*b3*c4*d5*n1 + a2*b3*d4*c5*n1 + a2*c3*b4*d5*n1 - a2*c3*d4*b5*n1 - a2*d3*b4*c5*n1 + a2*d3*c4*b5*n1 + b2*a3*c4*d5*n1 - b2*a3*d4*c5*n1 - b2*c3*a4*d5*n1 + b2*c3*d4*a5*n1 + b2*d3*a4*c5*n1 - b2*d3*c4*a5*n1 - c2*a3*b4*d5*n1 + c2*a3*d4*b5*n1 + c2*b3*a4*d5*n1 - c2*b3*d4*a5*n1 - c2*d3*a4*b5*n1 + c2*d3*b4*a5*n1 + d2*a3*b4*c5*n1 - d2*a3*c4*b5*n1 - d2*b3*a4*c5*n1 + d2*b3*c4*a5*n1 + d2*c3*a4*b5*n1 - d2*c3*b4*a5*n1)
+        F = (-n2*a1*b3*c4*d5 + n2*a1*b3*d4*c5 + n2*a1*c3*b4*d5 - n2*a1*c3*d4*b5 - n2*a1*d3*b4*c5 + n2*a1*d3*c4*b5 + n2*b1*a3*c4*d5 - n2*b1*a3*d4*c5 - n2*b1*c3*a4*d5 + n2*b1*c3*d4*a5 + n2*b1*d3*a4*c5 - n2*b1*d3*c4*a5 - n2*c1*a3*b4*d5 + n2*c1*a3*d4*b5 + n2*c1*b3*a4*d5 - n2*c1*b3*d4*a5 - n2*c1*d3*a4*b5 + n2*c1*d3*b4*a5 + n2*d1*a3*b4*c5 - n2*d1*a3*c4*b5 - n2*d1*b3*a4*c5 + n2*d1*b3*c4*a5 + n2*d1*c3*a4*b5 - n2*d1*c3*b4*a5 - n4*a1*b2*c3*d5 + n4*a1*b2*d3*c5 + n4*a1*c2*b3*d5 - n4*a1*c2*d3*b5 - n4*a1*d2*b3*c5 + n4*a1*d2*c3*b5 + n4*b1*a2*c3*d5 - n4*b1*a2*d3*c5 - n4*b1*c2*a3*d5 + n4*b1*c2*d3*a5 + n4*b1*d2*a3*c5 - n4*b1*d2*c3*a5 - n4*c1*a2*b3*d5 + n4*c1*a2*d3*b5 + n4*c1*b2*a3*d5 - n4*c1*b2*d3*a5 - n4*c1*d2*a3*b5 + n4*c1*d2*b3*a5 + n4*d1*a2*b3*c5 - n4*d1*a2*c3*b5 - n4*d1*b2*a3*c5 + n4*d1*b2*c3*a5 + n4*d1*c2*a3*b5 - n4*d1*c2*b3*a5 + a1*b2*c3*d4*n5 - a1*b2*d3*c4*n5 + a1*b2*c4*d5*n3 - a1*b2*d4*c5*n3 - a1*c2*b3*d4*n5 + a1*c2*d3*b4*n5 - a1*c2*b4*d5*n3 + a1*c2*d4*b5*n3 + a1*d2*b3*c4*n5 - a1*d2*c3*b4*n5 + a1*d2*b4*c5*n3 - a1*d2*c4*b5*n3 - b1*a2*c3*d4*n5 + b1*a2*d3*c4*n5 - b1*a2*c4*d5*n3 + b1*a2*d4*c5*n3 + b1*c2*a3*d4*n5 - b1*c2*d3*a4*n5 + b1*c2*a4*d5*n3 - b1*c2*d4*a5*n3 - b1*d2*a3*c4*n5 + b1*d2*c3*a4*n5 - b1*d2*a4*c5*n3 + b1*d2*c4*a5*n3 + c1*a2*b3*d4*n5 - c1*a2*d3*b4*n5 + c1*a2*b4*d5*n3 - c1*a2*d4*b5*n3 - c1*b2*a3*d4*n5 + c1*b2*d3*a4*n5 - c1*b2*a4*d5*n3 + c1*b2*d4*a5*n3 + c1*d2*a3*b4*n5 - c1*d2*b3*a4*n5 + c1*d2*a4*b5*n3 - c1*d2*b4*a5*n3 - d1*a2*b3*c4*n5 + d1*a2*c3*b4*n5 - d1*a2*b4*c5*n3 + d1*a2*c4*b5*n3 + d1*b2*a3*c4*n5 - d1*b2*c3*a4*n5 + d1*b2*a4*c5*n3 - d1*b2*c4*a5*n3 - d1*c2*a3*b4*n5 + d1*c2*b3*a4*n5 - d1*c2*a4*b5*n3 + d1*c2*b4*a5*n3 + a2*b3*c4*d5*n1 - a2*b3*d4*c5*n1 - a2*c3*b4*d5*n1 + a2*c3*d4*b5*n1 + a2*d3*b4*c5*n1 - a2*d3*c4*b5*n1 - b2*a3*c4*d5*n1 + b2*a3*d4*c5*n1 + b2*c3*a4*d5*n1 - b2*c3*d4*a5*n1 - b2*d3*a4*c5*n1 + b2*d3*c4*a5*n1 + c2*a3*b4*d5*n1 - c2*a3*d4*b5*n1 - c2*b3*a4*d5*n1 + c2*b3*d4*a5*n1 + c2*d3*a4*b5*n1 - c2*d3*b4*a5*n1 - d2*a3*b4*c5*n1 + d2*a3*c4*b5*n1 + d2*b3*a4*c5*n1 - d2*b3*c4*a5*n1 - d2*c3*a4*b5*n1 + d2*c3*b4*a5*n1)/(a1*b2*c3*d4 - a1*b2*c3*d5 - a1*b2*d3*c4 + a1*b2*d3*c5 + a1*b2*c4*d5 - a1*b2*d4*c5 - a1*c2*b3*d4 + a1*c2*b3*d5 + a1*c2*d3*b4 - a1*c2*d3*b5 - a1*c2*b4*d5 + a1*c2*d4*b5 + a1*d2*b3*c4 - a1*d2*b3*c5 - a1*d2*c3*b4 + a1*d2*c3*b5 + a1*d2*b4*c5 - a1*d2*c4*b5 - a1*b3*c4*d5 + a1*b3*d4*c5 + a1*c3*b4*d5 - a1*c3*d4*b5 - a1*d3*b4*c5 + a1*d3*c4*b5 - b1*a2*c3*d4 + b1*a2*c3*d5 + b1*a2*d3*c4 - b1*a2*d3*c5 - b1*a2*c4*d5 + b1*a2*d4*c5 + b1*c2*a3*d4 - b1*c2*a3*d5 - b1*c2*d3*a4 + b1*c2*d3*a5 + b1*c2*a4*d5 - b1*c2*d4*a5 - b1*d2*a3*c4 + b1*d2*a3*c5 + b1*d2*c3*a4 - b1*d2*c3*a5 - b1*d2*a4*c5 + b1*d2*c4*a5 + b1*a3*c4*d5 - b1*a3*d4*c5 - b1*c3*a4*d5 + b1*c3*d4*a5 + b1*d3*a4*c5 - b1*d3*c4*a5 + c1*a2*b3*d4 - c1*a2*b3*d5 - c1*a2*d3*b4 + c1*a2*d3*b5 + c1*a2*b4*d5 - c1*a2*d4*b5 - c1*b2*a3*d4 + c1*b2*a3*d5 + c1*b2*d3*a4 - c1*b2*d3*a5 - c1*b2*a4*d5 + c1*b2*d4*a5 + c1*d2*a3*b4 - c1*d2*a3*b5 - c1*d2*b3*a4 + c1*d2*b3*a5 + c1*d2*a4*b5 - c1*d2*b4*a5 - c1*a3*b4*d5 + c1*a3*d4*b5 + c1*b3*a4*d5 - c1*b3*d4*a5 - c1*d3*a4*b5 + c1*d3*b4*a5 - d1*a2*b3*c4 + d1*a2*b3*c5 + d1*a2*c3*b4 - d1*a2*c3*b5 - d1*a2*b4*c5 + d1*a2*c4*b5 + d1*b2*a3*c4 - d1*b2*a3*c5 - d1*b2*c3*a4 + d1*b2*c3*a5 + d1*b2*a4*c5 - d1*b2*c4*a5 - d1*c2*a3*b4 + d1*c2*a3*b5 + d1*c2*b3*a4 - d1*c2*b3*a5 - d1*c2*a4*b5 + d1*c2*b4*a5 + d1*a3*b4*c5 - d1*a3*c4*b5 - d1*b3*a4*c5 + d1*b3*c4*a5 + d1*c3*a4*b5 - d1*c3*b4*a5 + a2*b3*c4*d5 - a2*b3*d4*c5 - a2*c3*b4*d5 + a2*c3*d4*b5 + a2*d3*b4*c5 - a2*d3*c4*b5 - b2*a3*c4*d5 + b2*a3*d4*c5 + b2*c3*a4*d5 - b2*c3*d4*a5 - b2*d3*a4*c5 + b2*d3*c4*a5 + c2*a3*b4*d5 - c2*a3*d4*b5 - c2*b3*a4*d5 + c2*b3*d4*a5 + c2*d3*a4*b5 - c2*d3*b4*a5 - d2*a3*b4*c5 + d2*a3*c4*b5 + d2*b3*a4*c5 - d2*b3*c4*a5 - d2*c3*a4*b5 + d2*c3*b4*a5)
+        
+        print(A)
+        print(B)
+        print(C)
+        print(D)
+        print(F)
+        
+    else:        
+        return [A, B, C]
 
 ############################################################################################################################################################
 ##==========##==========##     Unfolding Fit Function     ##==========##==========##==========##==========##==========##==========##==========##==========##
@@ -1384,7 +1447,7 @@ def nelder_mead(func, x0, args=(), max_iter=1000, tol=1e-6):
 def Full_Calc_Fit(Histo):
     x_data, y_data = [], []
     try:
-        print("Histo.GetNbinsX() = ", Histo.GetNbinsX())
+        # print("Histo.GetNbinsX() =", Histo.GetNbinsX())
         for ii in range(0, Histo.GetNbinsX(), 1):
 #             x_data.append((3.1415926/180)*(Histo.GetBinCenter(ii)))
             x_data.append(Histo.GetBinCenter(ii))
@@ -1410,6 +1473,95 @@ def Full_Calc_Fit(Histo):
         A_opt, B_opt, C_opt = "Error", "Error", "Error"
         
     return [A_opt, B_opt, C_opt]
+
+
+
+extra_function_terms = False
+# extra_function_terms = True
+
+if(extra_function_terms):
+    # def func_fit(params, x, y):
+    #     A, B, C, D, E = params
+    #     y_pred = [A*(1 + B*(ROOT.cos(xi)) + C*(ROOT.cos(2*xi)) + D*(ROOT.cos(3*xi)) + E*(ROOT.cos(4*xi))) for xi in x]
+    #     return sum((y_pred[i] - y[i])**2 for i in range(len(x)))
+    def func_fit(params, x, y):
+        A, B, C, D = params
+        y_pred = [A*(1 + B*(ROOT.cos(xi)) + C*(ROOT.cos(2*xi)) + D*(ROOT.cos(3*xi))) for xi in x]
+        return sum((y_pred[i] - y[i])**2 for i in range(len(x)))
+
+    def nelder_mead(func, x0, args=(), max_iter=1000, tol=1e-6):
+        N = len(x0)
+        simplex = [x0]
+        for i in range(N):
+            point = list(x0)
+            point[i] = x0[i] + 1.0
+            simplex.append(point)
+
+        for _ in range(max_iter):
+            simplex.sort(key=lambda point: func(point, *args))
+            if abs(func(simplex[0], *args) - func(simplex[-1], *args)) < tol:
+                break
+            centroid = [sum(simplex[i][j] for i in range(N)) / N for j in range(N)]
+            reflected = [centroid[j] + (centroid[j] - simplex[-1][j]) for j in range(N)]
+            if func(simplex[0], *args) <= func(reflected, *args) < func(simplex[-2], *args):
+                simplex[-1] = reflected
+                continue
+            if func(reflected, *args) < func(simplex[0], *args):
+                expanded = [centroid[j] + 2.0 * (centroid[j] - simplex[-1][j]) for j in range(N)]
+                if func(expanded, *args) < func(reflected, *args):
+                    simplex[-1] = expanded
+                else:
+                    simplex[-1] = reflected
+                continue
+            contracted = [centroid[j] + 0.5 * (simplex[-1][j] - centroid[j]) for j in range(N)]
+            if func(contracted, *args) < func(simplex[-1], *args):
+                simplex[-1] = contracted
+                continue
+            for i in range(1, N+1):
+                simplex[i] = [simplex[0][j] + 0.5 * (simplex[i][j] - simplex[0][j]) for j in range(N)]
+
+        return simplex[0]
+
+    # def Full_Calc_Fit(Histo):
+    #     x_data, y_data = [], []
+    #     try:
+    #         # print("Histo.GetNbinsX() =", Histo.GetNbinsX())
+    #         for ii in range(0, Histo.GetNbinsX(), 1):
+    #             x_data.append(Histo.GetBinCenter(ii))
+    #             y_data.append(Histo.GetBinContent(ii))
+    #         # Perform optimization using the Nelder-Mead method
+    #         initial_guess = [1e6, 1, 1, 1, 1]  # Initial guess for A, B, C, D, E
+    #         optim_params = nelder_mead(partial(func_fit, x=x_data, y=y_data), initial_guess)
+    #         # Extract the optimized parameters
+    #         A_opt, B_opt, C_opt, D_opt, E_opt = optim_params
+    #         # print("A_opt =", A_opt)
+    #         # print("B_opt =", B_opt)
+    #         # print("C_opt =", C_opt)
+    #         # print("D_opt =", D_opt)
+    #         # print("E_opt =", E_opt)
+    #     except:
+    #         print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+    #         print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
+    #         A_opt, B_opt, C_opt, D_opt, E_opt = "Error", "Error", "Error", "Error", "Error"
+    #     return [A_opt, B_opt, C_opt, D_opt, E_opt]
+    
+    def Full_Calc_Fit(Histo):
+        x_data, y_data = [], []
+        try:
+            # print("Histo.GetNbinsX() =", Histo.GetNbinsX())
+            for ii in range(0, Histo.GetNbinsX(), 1):
+                x_data.append(Histo.GetBinCenter(ii))
+                y_data.append(Histo.GetBinContent(ii))
+            # Perform optimization using the Nelder-Mead method
+            initial_guess = [1e6, 1, 1, 1]  # Initial guess for A, B, C, D
+            optim_params = nelder_mead(partial(func_fit, x=x_data, y=y_data), initial_guess)
+            # Extract the optimized parameters
+            A_opt, B_opt, C_opt, D_opt = optim_params
+        except:
+            print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+            print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
+            A_opt, B_opt, C_opt, D_opt = "Error", "Error", "Error", "Error"
+        return [A_opt, B_opt, C_opt, D_opt]
 
 ###############################################################################################################################################################
 ##==========##==========##     Unfolding Fit Function V2     ##==========##==========##==========##==========##==========##==========##==========##==========##
@@ -1906,7 +2058,7 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
                 # z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
                 z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
                 
-        if("y" in str(Binning_Method) and False):
+        if("y" in str(Binning_Method) or False):
             MM_z_pT_borders = {}
             for MM in [0.94, 1.5, 2.5]:
                 # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
@@ -2406,12 +2558,15 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
         Method_Title = ""
         if(Method in ["rdf", "Experimental"]):
             Method_Title = "".join([" #color[", str(root_color.Blue), "]{(Experimental)}" if(not Sim_Test) else "]{(MC REC - Test)}"])
-            if(not Sim_Test):
-                Variable = Variable.replace("_smeared", "")
-                Smear = ""
+#             if(not Sim_Test):
+            Variable = Variable.replace("_smeared", "")
+            Smear = ""
             
         if(Method in ["mdf", "MC REC"]):
             Method_Title = "".join([" #color[", str(root_color.Red),   "]{(MC REC)}"])
+            # if((Sim_Test) and ("_smeared" not in str(Variable)) and (Smear in [""])):
+            #     Variable = "".join([str(Variable), "_smeared"])
+            #     Smear = "Smear"
         if(Method in ["gdf", "gen", "MC GEN"]):
             Method_Title = "".join([" #color[", str(root_color.Green), "]{(MC GEN", " - Matched" if(Method in ["gen"]) else "", ")}"])
             Variable = Variable.replace("_smeared", "")
@@ -2429,9 +2584,16 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             Title = "".join(["#splitline{", str(root_color.Bold), "{Multi-Dimensional Plot of", " (Smeared)" if("mear" in Smear) else "", " #phi_{h}", str(Method_Title), "}}{Multi_Dim_Var_Info}"])
             
             
+        if(not extra_function_terms):
+            fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
+            fit_function       = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
+        else:
+            fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}))"
+            fit_function       = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180)))"
             
-        fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
-        fit_function       = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
+            # fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}) + E Cos(4#phi_{h}))"
+            # fit_function       = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180)) + [E]*cos(4*x*(3.1415926/180)))"
+
         
         if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting in ["default", "Default"])):
             Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{Fitted with: ", str(fit_function_title), "}}"])
@@ -2553,15 +2715,30 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             
             if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting in ["default", "Default"])):
 #                 # if(Method in ["bayes", "bayesian", "Bayesian"]):
-                A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Output_Histos[Name_Out])
+                if(not extra_function_terms):
+                    A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Output_Histos[Name_Out])
+                else:
+                    # A_Unfold, B_Unfold, C_Unfold, D_Unfold, E_Unfold = Full_Calc_Fit(Output_Histos[Name_Out])
+                    A_Unfold, B_Unfold, C_Unfold, D_Unfold = Full_Calc_Fit(Output_Histos[Name_Out])
                 print(color.BOLD, color.GREEN, "\nNewDim_Bin =", NewDim_Bin, color.END)
-                print(color.BOLD, color.BLUE, "\nA_Unfold, B_Unfold, C_Unfold =", color.END, color.BOLD, ", ".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]), color.END)
-#                 print(color.BOLD, color.PURPLE, "\n\n", fit_function, "\n\n", color.END)
                 Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])] = ROOT.TF1("".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)]), str(fit_function), 0, 360)
+                if(not extra_function_terms):
+                    print(color.BOLD, color.BLUE, "A_Unfold, B_Unfold, C_Unfold =", color.END, color.BOLD, ", ".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]), color.END)
+    #                 print(color.BOLD, color.PURPLE, "\n\n", fit_function, "\n\n", color.END)
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(0, "Parameter A")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(1, "Parameter B")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(2, "Parameter C")
+                
+                else:
+                    # print(color.BOLD, color.BLUE, "A_Unfold, B_Unfold, C_Unfold, D_Unfold, E_Unfold =", color.END, color.BOLD, ", ".join([str(A_Unfold), str(B_Unfold), str(C_Unfold), str(D_Unfold), str(E_Unfold)]), color.END)
+                    print(color.BOLD, color.BLUE, "A_Unfold, B_Unfold, C_Unfold, D_Unfold =", color.END, color.BOLD, ", ".join([str(A_Unfold), str(B_Unfold), str(C_Unfold), str(D_Unfold)]), color.END)
 
-                Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(0, "Parameter A")
-                Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(1, "Parameter B")
-                Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(2, "Parameter C")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(0, "Parameter A")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(1, "Parameter B")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(2, "Parameter C")
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(3, "Parameter D")
+                    # Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParName(4, "Parameter E")
+
                 
                 Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetRange(0, 360)
                 Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetLineColor(2)
@@ -2581,7 +2758,17 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
                     Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(2, C_Unfold)
 #                     Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(2, C_Unfold - 0.05*abs(C_Unfold), C_Unfold + 0.05*abs(C_Unfold))
                     Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(2, C_Unfold - 5.5*abs(C_Unfold), C_Unfold + 5.5*abs(C_Unfold))
-                    
+        
+                    if(extra_function_terms):
+                        try:
+                            Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(3, D_Unfold)
+                            Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(3, D_Unfold - 5.5*abs(D_Unfold), D_Unfold + 5.5*abs(D_Unfold))
+                            
+                            # Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(4, E_Unfold)
+                            # Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(4, E_Unfold - 5.5*abs(E_Unfold), E_Unfold + 5.5*abs(E_Unfold))
+                        except:
+                            print("".join([color.RED, color.BOLD, "Unfolded_Fit_Function[...] ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+        
 #                 else:
 #                     print(color.RED, color.BOLD, "\nFIXING PARAMETERS FOR TESTING\n", color.END)
 #                     Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])] = ROOT.TF1("".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_")]), "[A]", 0, 360)
@@ -2606,6 +2793,16 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
                 # Cos(2*phi) Moment - C
                 Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(2, C_Unfold)
                 Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(2, C_Unfold - 0.5*abs(C_Unfold), C_Unfold + 0.5*abs(C_Unfold))
+                
+                if(extra_function_terms):
+                    D_Unfold = Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].GetParameter(3)
+                    # E_Unfold = Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].GetParameter(4)
+                    # Cos(3*phi) Moment - D
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(3, D_Unfold)
+                    Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(3, D_Unfold - 0.5*abs(D_Unfold), D_Unfold + 0.5*abs(D_Unfold))
+                    # # Cos(4*phi) Moment - E
+                    # Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParameter(4, E_Unfold)
+                    # Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])].SetParLimits(4, E_Unfold - 0.5*abs(E_Unfold), E_Unfold + 0.5*abs(E_Unfold))
             
                 # Re-Fitting the plots
                 Output_Histos[Name_Out].Fit(Unfolded_Fit_Function["".join(["Unfolded_Fit_Function_Method_", str(Method).replace(" ", "_"), "_", str(NewDim_Bin)])], "RB")
@@ -2623,6 +2820,12 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             
         Save_Name = "".join(["Multi_Dim_Histo_", str(Variable).replace("_smeared", ""), "_", str(Method) if(Method not in ["N/A"]) else "", "_smeared" if("mear" in Smear) else "", str(File_Save_Format)]).replace(" ", "_")
         Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
+        
+        Save_Name = str(Save_Name.replace("phi_t", "phi_h"))
+        
+        if(((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting in ["default", "Default"])) and (extra_function_terms and "phi_h" in str(Save_Name))):
+            Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
+        
         if("y" in Binning_Method):
             Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
         if(Sim_Test):
@@ -2739,6 +2942,12 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
                     Legends_ExREC[cd_ii].Draw("same")
                 Save_Name = "".join(["Multi_Dim_Histo_ExREC_", str(Variable_Combine), str(File_Save_Format)]).replace(" ", "_")
                 Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
+                Save_Name = str(Save_Name.replace("phi_t", "phi_h"))
+                
+                # if(extra_function_terms and "phi_h" in str(Save_Name)):
+                if(extra_function_terms):
+                    Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
+                
                 if("y" in Binning_Method):
                     Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
                 if(Sim_Test):
@@ -2795,6 +3004,12 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
                     
                 Save_Name = "".join(["Multi_Dim_Histo_TrueH_", str(Variable_Combine).replace("_smeared", ""), "" if("mear" not in Smear_Combine) else "_smeared", str(File_Save_Format)]).replace(" ", "_")
                 Save_Name = str((Save_Name.replace("-", "_")).replace("phi_t_", "phi_h_")).replace("__", "_")
+                Save_Name = str(Save_Name.replace("phi_t", "phi_h"))
+                
+                # if(extra_function_terms and "phi_h" in str(Save_Name)):
+                if(extra_function_terms):
+                    Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
+                
                 if("y" in Binning_Method):
                     Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
                 if(Sim_Test):
@@ -2882,7 +3097,7 @@ def FileLocation(FileName, Datatype):
 
     if(str(Datatype) == 'rdf'):
         file = "".join(["REAL_Data/SIDIS_epip_Data_REC_",         str(FileName), ".root"])
-    if((str(Datatype) == 'mdf') or (str(Datatype) == 'rdf' and Sim_Test)):
+    if((str(Datatype) == 'mdf') or ((str(Datatype) in ['rdf']) and Sim_Test)):
         file = "".join(["Matching_REC_MC/SIDIS_epip_MC_Matched_", str(FileName), ".root"])
     if(str(Datatype) == 'gdf'):
         file = "".join(["GEN_MC/SIDIS_epip_MC_GEN_",              str(FileName), ".root"])
@@ -2925,12 +3140,13 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
     MC_REC_File_Name = "Analysis_Note_Update_V6_All"
+    MC_REC_File_Name = "Gen_Cuts_V2_Fixed_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -2939,11 +3155,12 @@ else:
 ##   Generated Monte Carlo Data   ##
 ####################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
+if(False):
     MC_GEN_File_Name = Common_Name
 else:
     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
+    MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
@@ -3067,6 +3284,7 @@ for ii in mdf.GetListOfKeys():
     ##========================================================##
     
     Conditions_For_Unfolding = ["DataFrame_Type" in str(out_print_main)]
+    # The histograms for 'out_print_main' will be skipped if any item in the list 'Conditions_For_Unfolding' is 'False'
     
     ## Correct Histogram Type:
     Conditions_For_Unfolding.append("Response_Matrix_Normal"        in str(out_print_main))
@@ -3075,19 +3293,19 @@ for ii in mdf.GetListOfKeys():
     ## Correct Cuts:
     Conditions_For_Unfolding.append("no_cut"            not in str(out_print_main))
     Conditions_For_Unfolding.append("cut_Complete_EDIS" not in str(out_print_main))
+    
 
     ## Correct Variable(s):
     # Conditions_For_Unfolding.append("phi_t" in str(out_print_main))
     # Conditions_For_Unfolding.append("'phi_t" not in str(out_print_main))
     # Conditions_For_Unfolding.append("'Combined_Q2_xB_Bin_2_" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("'Combined_" in str(out_print_main))
-#     Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
+    Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t" not in str(out_print_main))
-    Conditions_For_Unfolding.append("MM"     in str(out_print_main))
+#     Conditions_For_Unfolding.append("MM"     in str(out_print_main))
     Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
-
 
     
     ## Correct Binning:
@@ -3095,9 +3313,11 @@ for ii in mdf.GetListOfKeys():
     # Conditions_For_Unfolding.append("Q2-xB-Bin=All" not in str(out_print_main))
     
     # Smearing Options:
-    if(Smearing_Options not in ["no_smear", "both"]):
+    # if((Smearing_Options not in ["no_smear", "both"]) or  (Sim_Test)):
+    if((Smearing_Options not in ["no_smear", "both"])):
         Conditions_For_Unfolding.append("(Smear-Type='')" not in str(out_print_main))
-    if(Smearing_Options not in ["smear",    "both"]):
+    # if((Smearing_Options not in ["smear",    "both"]) and (not Sim_Test)):
+    if((Smearing_Options not in ["smear",    "both"])):
         Conditions_For_Unfolding.append("(Smear-Type='')"     in str(out_print_main))
     
     ##========================================================##
@@ -3106,7 +3326,7 @@ for ii in mdf.GetListOfKeys():
     
     if(False in Conditions_For_Unfolding):
         # Conditions for unfolding were not met by 'out_print_main'
-        # print(Conditions_For_Unfolding)
+        # print("Conditions_For_Unfolding =", Conditions_For_Unfolding)
         count_failed += 1
         # print("".join([color.RED, str(out_print_main), color.END]))
         # print("".join(["Number Failed: ", str(count_failed)]))
@@ -3128,13 +3348,13 @@ for ii in mdf.GetListOfKeys():
 
         #############################################################################
         ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
-        if(not Sim_Test):
-            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
-        out_print_main_gdf = out_print_main_gdf.replace("_smeared",     "")
-        out_print_main_gdf = out_print_main_gdf.replace("smear_",       "")
-        out_print_main_gdf = out_print_main_gdf.replace("smear",        "")
+        # if(not Sim_Test):
+        out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+        out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
+        out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+        out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
+        out_print_main_gdf = out_print_main_gdf.replace("smear_",   "")
+        out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
         ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
         #############################################################################
 
@@ -3411,6 +3631,19 @@ for ii in mdf.GetListOfKeys():
 #                     # ExREAL_1D.SetBinContent(ExREAL_1D.FindBin(3.5) + 1, 0)
                     
                     
+            if(Sim_Test):
+                print(color.BOLD, "\n\nFor 'Sim_Test' of 'out_print_main' =", color.BLUE, str(out_print_main), color.END)
+                print(color.BOLD, "\t'out_print_main_rdf'    =", color.GREEN, str(out_print_main_rdf),    color.END)
+                print(color.BOLD, "\t'out_print_main_mdf_1D' =", color.GREEN, str(out_print_main_mdf_1D), color.END)
+                for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+                    MC_REC_1D_Content = MC_REC_1D.GetBinContent(xbin)
+                    ExREAL_1D_Content = ExREAL_1D.GetBinContent(xbin)
+                    if(0 not in [MC_REC_1D_Content, ExREAL_1D_Content, MC_REC_1D_Content - ExREAL_1D_Content]):
+                        print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(((MC_REC_1D_Content - ExREAL_1D_Content)/ExREAL_1D_Content)*100, 4)), "% of Unsmeared")
+                    else:
+                        print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(MC_REC_1D_Content - ExREAL_1D_Content, 4)))
+                print("\n\n")
+            
             ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("Cut: No Cuts", "")).replace("Cut:  No Cuts", ""))
@@ -3540,35 +3773,49 @@ for ii in mdf.GetListOfKeys():
                 
             # if(("'Combined_phi_t_Q2_xB"  in str(out_print_main)) or ("'Multi_Dim_Q2_xB_Bin" in str(out_print_main))):
             if("'Combined_phi_t_Q2_xB"  in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]),      Smear="", Out_Option="Save")
             # elif(("'Combined_phi_t_Q2_y" in str(out_print_main)) or ("'Multi_Dim_Q2_y_Bin_phi_t"  in str(out_print_main))):
             elif("'Combined_phi_t_Q2_y" in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]),       Smear="", Out_Option="Save")
             # elif(("'Combined_phi_t_Q2"   in str(out_print_main)) or ("'Multi_Dim_Q2_phi_t"    in str(out_print_main))):
             elif("'Combined_phi_t_Q2"   in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Combined_phi_t_Q2",                                             Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Combined_phi_t_Q2",                                             Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Combined_phi_t_Q2",                                             Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Combined_phi_t_Q2",                                             Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Combined_phi_t_Q2",                                             Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Combined_phi_t_Q2",                                             Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="Combined_phi_t_Q2",                                             Smear="", Out_Option="Save")
                 
             if("'Multi_Dim_Q2_xB_Bin"                in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), Smear="", Out_Option="Save")
             elif("'Multi_Dim_Q2_y_Bin_phi_t"         in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="Multi_Dim_Q2_y_Bin_phi_t",                                      Smear="", Out_Option="Save")
             elif("'Multi_Dim_Q2_phi_t"               in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="Multi_Dim_Q2_phi_t",                                            Smear="", Out_Option="Save")
             elif("'Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" in str(out_print_main)):
-                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
-                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear="" if(not Sim_Test) else "" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                # MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear=""                          if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
+                MultiD_Slice(Histo=ExREAL_1D, Title="norm", Name=out_print_main, Method="rdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear="", Out_Option="Save")
+                MultiD_Slice(Histo=MC_REC_1D, Title="norm", Name=out_print_main, Method="mdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear=""  if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Out_Option="Save")
                 MultiD_Slice(Histo=MC_GEN_1D, Title="norm", Name=out_print_main, Method="gdf", Variable="Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t",                              Smear="", Out_Option="Save")
 
                 
@@ -4075,21 +4322,35 @@ for ii in mdf.GetListOfKeys():
     ##=====##=====##   Drawing the Extra 2D Histos    ##=====##=====##
                 try:
                     if(Plot_Version == "Web"):
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=2, Var_D1="z_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "z",   Var_D2="pT_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pT",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="y_smeared"      if(Sim_Test and "smear" in str(out_print_main_mdf)) else "y",      Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="y_smeared"      if(Sim_Test and "smear" in str(out_print_main_mdf)) else "y",      Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=2, Var_D1="z_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "z",   Var_D2="pT_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pT",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="y_smeared"      if(Sim_Test and "smear" in str(out_print_main_mdf)) else "y",      Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="xB_smeared"     if(Sim_Test and "smear" in str(out_print_main_mdf)) else "xB",     Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "Q2",  Var_D2="y_smeared"      if(Sim_Test and "smear" in str(out_print_main_mdf)) else "y",      Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
 
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=1, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elth_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=2, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elPhi_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=3, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipth_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=4, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipPhi_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=1, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elth_smeared"   if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=2, Var_D1="el_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "el",  Var_D2="elPhi_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=3, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipth_smeared"  if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=4, Var_D1="pip_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipPhi_smeared" if(Sim_Test and "smear" in str(out_print_main_mdf)) else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("smear" not in str(out_print_main_mdf)) else "smear")
 
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=5, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elth_smeared"   if("smear" in str(out_print_main_mdf))              else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=6, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elPhi_smeared"  if("smear" in str(out_print_main_mdf))              else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=7, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipth_smeared"  if("smear" in str(out_print_main_mdf))              else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
-                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=8, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipPhi_smeared" if("smear" in str(out_print_main_mdf))              else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=5, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elth_smeared"   if("smear" in str(out_print_main_mdf))              else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=6, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",               Var_D2="elPhi_smeared"  if("smear" in str(out_print_main_mdf))              else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=7, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipth_smeared"  if("smear" in str(out_print_main_mdf))              else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+#                         Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=8, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip",              Var_D2="pipPhi_smeared" if("smear" in str(out_print_main_mdf))              else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q=""                          if("smear" not in str(out_print_main_mdf)) else "smear")
+
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_2, CD_Num=1, Var_D1="Q2",                                                            Var_D2="xB",                                                                  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=2, Var_D1="z",                                                             Var_D2="pT",                                                                  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_1, CD_Num=1, Var_D1="Q2",                                                            Var_D2="y",                                                                   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=1, Var_D1="el",                                                            Var_D2="elth",                                                                Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=2, Var_D1="el",                                                            Var_D2="elPhi",                                                               Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=3, Var_D1="pip",                                                           Var_D2="pipth",                                                               Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+                        Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=4, Var_D1="pip",                                                           Var_D2="pipPhi",                                                              Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
+
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=5, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",  Var_D2="elth_smeared"   if("smear" in str(out_print_main_mdf)) else "elth",   Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=6, Var_D1="el_smeared"  if("smear" in str(out_print_main_mdf)) else "el",  Var_D2="elPhi_smeared"  if("smear" in str(out_print_main_mdf)) else "elPhi",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=7, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipth_smeared"  if("smear" in str(out_print_main_mdf)) else "pipth",  Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
+                        Draw_2D_Histograms_Simple(DataFrame=mdf, Canvas_Input=Unfolded_Canvas_main_Row_3, CD_Num=8, Var_D1="pip_smeared" if("smear" in str(out_print_main_mdf)) else "pip", Var_D2="pipPhi_smeared" if("smear" in str(out_print_main_mdf)) else "pipPhi", Q2_xB_Bin=Q2_xB_Bin_Unfold, z_pT_Bin=z_pT_Bin_Unfold, Data_Type="mdf",                             Cut_Type="cut_Complete_SIDIS", Smear_Q="" if("smear" not in str(out_print_main_mdf)) else "smear")
                     
                 except:
                     print("".join([color.BOLD, color.RED, "ERROR IN CANVAS (2D Histograms):\n", color.END, str(traceback.format_exc())]))
@@ -4110,11 +4371,19 @@ for ii in mdf.GetListOfKeys():
                 if(("phi_t" in out_print_main_binned) and (("Combined_" not in out_print_main) and ("Multi_Dim" not in out_print_main))):
                     # fit_function_title = "A + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h})"
                     # fit_function = "[A] + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180))"
-                    fit_function_title = "A + B Cos(#phi_{h}) + C Cos(2#phi_{h})"
-                    fit_function = "[A] + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180))"
+                    if(not extra_function_terms):
+                        # fit_function_title = "A + B Cos(#phi_{h}) + C Cos(2#phi_{h})"
+                        # fit_function = "[A] + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180))"
 
-                    fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
-                    fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
+                        fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
+                        fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
+                        
+                    else:
+                        fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}))"
+                        fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180)))"
+                        
+                        # fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}) + E Cos(4#phi_{h}))"
+                        # fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180)) + [E]*cos(4*x*(3.1415926/180)))"
 
                     # Q2_xB_Bin_Title = "" if("Q2-xB-Bin=All" in str(out_print_main)) else "".join(["Q^{2}-x_{B} Bin: ", "1" if("Q2-xB-Bin=1" in str(out_print_main)) else "2" if("Q2-xB-Bin=2" in str(out_print_main)) else "3" if("Q2-xB-Bin=3" in str(out_print_main)) else "4" if("Q2-xB-Bin=4" in str(out_print_main)) else "5" if("Q2-xB-Bin=5" in str(out_print_main)) else "6" if("Q2-xB-Bin=6" in str(out_print_main)) else "7" if("Q2-xB-Bin=7" in str(out_print_main)) else "8" if("Q2-xB-Bin=8" in str(out_print_main)) else "9" if("Q2-xB-Bin=9" in str(out_print_main)) else "Error"])
                     Q2_xB_Bin_Title = "" if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: " if("y_bin" not in str(Binning_Method)) else "]{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"])
@@ -4145,6 +4414,10 @@ for ii in mdf.GetListOfKeys():
                     ExREAL_1D_Single_Title = ExREAL_1D_Single_Title.replace("#scale[1.35]{Range: 0 #rightarrow 360 - Size: 15.0 per bin}}}{}", "".join(["#scale[1.15]{", str(Q2_xB_Bin_Title), "}}"]))
                     ExREAL_1D_Single_Title = ExREAL_1D_Single_Title.replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", str(Q2_xB_Bin_Title))
                     
+                    if(("phi_" in str(out_print_main_binned)) and ("Multi_Dim" not in str(out_print_main_binned))):
+                        ExREAL_1D_Single_Title = "".join(["#splitline{#scale[1.35]{Pre-Unfolded Distributions #phi_{h}}}{#scale[1.35]{", str(Q2_xB_Bin_Title), "}}"])
+                    
+                    
                     ExREAL_1D_Single.SetTitle(ExREAL_1D_Single_Title)
                     # print(str(ExREAL_1D_Single.GetTitle()))
                     
@@ -4167,7 +4440,12 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
-                    A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
+                    # A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
+                    if(not extra_function_terms):
+                        A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
+                    else:
+                        # A_Unfold, B_Unfold, C_Unfold, D_Unfold, E_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
+                        A_Unfold, B_Unfold, C_Unfold, D_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
                     # # print("\n".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]))
                     # Unfolded_Fit_Function.SetParameter(0, A_Unfold)
                     # Unfolded_Fit_Function.SetParLimits(0, 0.85*A_Unfold if(A_Unfold > 0) else 1.25*A_Unfold, 1.25*A_Unfold if(A_Unfold > 0) else 0.85*A_Unfold)
@@ -4207,7 +4485,12 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
-                    A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
+#                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
+                    if(not extra_function_terms):
+                        A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
+                    else:
+                        # A_Unfold, B_Unfold, C_Unfold, D_Unfold, E_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
+                        A_Unfold, B_Unfold, C_Unfold, D_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
                     # # print("\n".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]))
                     # Unfolded_Fit_Function.SetParameter(0, A_Unfold)
                     # Unfolded_Fit_Function.SetParLimits(0, 0.85*A_Unfold if(A_Unfold > 0) else 1.25*A_Unfold, 1.25*A_Unfold if(A_Unfold > 0) else 0.85*A_Unfold)
@@ -4323,7 +4606,12 @@ for ii in mdf.GetListOfKeys():
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetXaxis().SetRangeUser(0, 360)
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].Draw("PL E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
-                    A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
+#                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
+                    if(not extra_function_terms):
+                        A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
+                    else:
+                        # A_Unfold, B_Unfold, C_Unfold, D_Unfold, E_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
+                        A_Unfold, B_Unfold, C_Unfold, D_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
                     # # print("\n".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]))
                     # Unfolded_Fit_Function.SetParameter(0, A_Unfold)
                     # Unfolded_Fit_Function.SetParLimits(0, 0.85*A_Unfold if(A_Unfold > 0) else 1.25*A_Unfold, 1.25*A_Unfold if(A_Unfold > 0) else 0.85*A_Unfold)
@@ -4378,6 +4666,7 @@ for Canvas_name in Unfolded_Canvas:
         Save_Name = "".join([str(Canvas_name).replace("Unfolded_Canvas_All_", "Unfolded_Histos_Q2_xB_Bin_"), str(File_Save_Format)])
         if("smear" in str(Canvas_name)):
             Save_Name = "".join([str(Canvas_name).replace("Unfolded_Canvas_All_", "Unfolded_Histos_Q2_xB_Bin_"), "_Smeared", str(File_Save_Format)])
+
         Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]), "")
         Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]), "")
         Save_Name = Save_Name.replace("".join([", (Var-D1='phi_t'-[NumBins=24, MinBin=0, MaxBin=360]), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=55, MinBin=-3.5, MaxBin=51.5]))"]), "")
@@ -4431,12 +4720,24 @@ for Canvas_name in Unfolded_Canvas:
         Save_Name = Save_Name.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
         
         Save_Name = Save_Name.replace("Q2_y_Bin_All_z_pT_Bin_All_1D_", "")
+        Save_Name = Save_Name.replace("Q2_y_Bin_All_z_pT_Bin_All_1D",  "")
         
         if((str(Save_Name).find("-[NumBins")) != -1):
             Save_Name = str(Save_Name).replace(str(Save_Name).replace(str(Save_Name)[:(str(Save_Name).find("-[NumBins"))], ""), "".join(["_Unfolded_Histos" if("_Unfolded_Histos" in Save_Name) else "", str(File_Save_Format)]))
         
         Save_Name = Save_Name.replace("Var-D1=", "")
         Save_Name = Save_Name.replace("__", "_")
+        
+        Save_Name = str(Save_Name.replace("phi_t", "phi_h"))
+            
+        Save_Name = Save_Name.replace("_phi_hSmeared", "_phi_h_Smeared")
+        
+        if(("smear" in str(Canvas_name)) and ("_Smeared" not in str(Save_Name))):
+            Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Smeared", str(File_Save_Format)]))
+        
+        # if(extra_function_terms and "phi_h" in str(Save_Name)):
+        if(extra_function_terms):
+            Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
         
         if("y" in Binning_Method):
             Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
@@ -4919,6 +5220,12 @@ if("y_bin" not in Binning_Method):
             Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=528_MinBin=-1.5_MaxBin=526.5_", "")
             Saving_Name_Pars = Saving_Name_Pars.replace("_smeared-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
             Saving_Name_Pars = Saving_Name_Pars.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
+            
+            Saving_Name_Pars = str(Saving_Name_Pars.replace("phi_t", "phi_h"))
+            
+            # if(extra_function_terms and "phi_h" in str(Save_Name)):
+            if(extra_function_terms):
+                Saving_Name_Pars = str(Saving_Name_Pars).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
 
             if("y" in Binning_Method):
                 Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
@@ -5133,9 +5440,11 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                         ####  Upper Left  ############################################################################################################################################################################################################################################################################################################################################################################################
                         
                         if("y_bin" not in Binning_Method):
-                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="xB_smeared" if(Sim_Test and "mear" in str(Smear)) else "xB", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                            # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="xB_smeared" if(Sim_Test and "mear" in str(Smear)) else "xB", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2", Var_D2="xB", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
                         else:
-                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="y_smeared"  if(Sim_Test and "mear" in str(Smear)) else "y",  Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                            # Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2_smeared" if(Sim_Test and "mear" in str(Smear)) else "Q2", Var_D2="y_smeared"  if(Sim_Test and "mear" in str(Smear)) else "y",  Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
+                            Draw_2D_Histograms_Simple(DataFrame=rdf, Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=1, Var_D1="Q2", Var_D2="y",  Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="")
                         # Draw_2D_Histograms_Simple(DataFrame=rdf,     Canvas_Input=Unfolded_Canvas_Test_cd_1_Upper, CD_Num=2, Var_D1="z_smeared"  if(Sim_Test and "mear" in str(Smear)) else "z",  Var_D2="pT_smeared" if(Sim_Test and "mear" in str(Smear)) else "pT", Q2_xB_Bin=Q2_xB_Bin, z_pT_Bin="All", Data_Type="rdf" if(not Sim_Test) else "mdf", Cut_Type="cut_Complete_SIDIS", Smear_Q="" if(not Sim_Test) else "" if("mear" not in str(Smear)) else "smear")
                         Draw_Canvas(Unfolded_Canvas_Test_cd_1_Upper, 2, 0.15)
                         for ii in Main_Final_Unfolding_Images:
@@ -5161,7 +5470,7 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
                                             z_pT_borders[pTline].SetLineWidth(4)
                                             z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
                                             
-                                if("y" in str(Binning_Method) and False):
+                                if("y" in str(Binning_Method) or False):
                                     MM_z_pT_borders = {}
                                     for MM in [0.94, 1.5, 2.5]:
                                         # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
@@ -5468,6 +5777,12 @@ if(count != 0 and Q2_xB_Bin_List != ['0']):
             Save_Name = Save_Name.replace("-[NumBins=228_MinBin=-1.5_MaxBin=226.5_", "")
             Save_Name = Save_Name.replace("Var-D1=", "")
             Save_Name = Save_Name.replace("__", "_")
+            
+            Save_Name = str(Save_Name.replace("phi_t", "phi_h"))
+            
+            # if(extra_function_terms and "phi_h" in str(Save_Name)):
+            if(extra_function_terms):
+                Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Extra_Parameters", str(File_Save_Format)]))
             
             if("y" in Binning_Method):
                 Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")

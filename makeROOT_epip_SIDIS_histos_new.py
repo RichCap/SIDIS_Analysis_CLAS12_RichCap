@@ -223,7 +223,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Turned off Generated Missing Mass Cut
     # Otherwise is the same as "Gen_Cuts_V1_"
     
-    # Extra_Name = "Gen_Cuts_V3_"
+    Extra_Name = "Gen_Cuts_V3_"
+    # Generated Cut is not turned on
+    # Added the Missing Mass unfolding histogram
+    # Modified the number of bins used to plot the 2D z vs pT histograms (did not change the binning scheme itself yet)
+    
+    # Extra_Name = "Gen_Cuts_V4_"
     # # Applying the Missing Mass Cut to just the unmatched generated events (just 'gdf', not 'gen' - i.e., matched generated events are not cut unless the matching reconstructed event is, but the unmatched generated events are cut)
     #     # May need to find a way to add the matched generated events back to the unmatched events
     #     # The Missing Mass Cut starts at 1.5 GeV (just like the normal cut to the reconstructed events)
@@ -5399,10 +5404,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     phi_t_Binning = ['phi_t',  0,     360,    24]
     # Bin size: 15 per bin
     
-    MM_Binning    = ['MM',     0,     3.5,   500]
-    # Bin size: 0.007 per bin
-    W_Binning     = ['W',      0,     6,     200]
-    # Bin size: 0.03 per bin
+#     MM_Binning    = ['MM',     0,     3.5,   500]
+#     # Bin size: 0.007 per bin
+#     W_Binning     = ['W',      0,     6,     200]
+#     # Bin size: 0.03 per bin
     
     # Binning_4D    = ['Bin_4D', -1.5,  303.5, 305]
     # Binning_4D_OG = ['Bin_4D_OG', -1.5, 353.5, 355]
@@ -5446,6 +5451,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     pT_Binning = ['pT', 0,     1.26,  60]
     # Bin size: 0.021 per bin
     
+    
+    # New (June 23 2023) 2D Binning
+    z_Binning  = ['z',  0.01, 0.92, 91]
+    # Bin size: 0.01 per bin
+    pT_Binning = ['pT', 0,    1.25, 125]
+    # Bin size: 0.01 per bin
+    
     # Q2_Binning_Old = ['Q2', 0.0, 12.5, 25]
     # # Bin size: 0.5 per bin
     # xB_Binning_Old = ['xB', -0.003,  0.997, 25]
@@ -5458,7 +5470,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     y_Binning  = ['y',      0,       1, 80]
     # Bin size: 0.0125 per bin
     
-    MM_Binning    = ['MM',  0,     3.5, 50]
+#     MM_Binning    = ['MM',  0,     3.5, 50]
+    MM_Binning    = ['MM',  0,     4.2, 60]
     # Bin size: 0.07 per bin
     W_Binning     = ['W', 0.9,     5.1, 14]
     # Bin size: 0.3 per bin
@@ -5485,6 +5498,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     List_of_Quantities_1D = [phi_t_Binning, Q2_y_Binning]
     
 #     List_of_Quantities_1D = [phi_t_Binning, MM_Binning, W_Binning]
+
+    List_of_Quantities_1D = [phi_t_Binning, MM_Binning]
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
