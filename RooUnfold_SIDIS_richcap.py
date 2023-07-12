@@ -580,6 +580,116 @@ def z_pT_Border_Lines(Q2_xB_Bin_Select):
     return output
 
 
+
+# For my new 2D binning (only 17 Q2-y bins)
+def z_pT_Border_Lines(Q2_y_Bin_Select):
+    # Defining Borders for z and pT Bins (based on 'Q2_y_Bin')
+
+    # For Q2-y Bin 1
+    if(Q2_y_Bin_Select == 1):
+        z_Borders  = [0.15, 0.20, 0.24, 0.29, 0.40, 0.73]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+
+    # For Q2-y Bin 2
+    if(Q2_y_Bin_Select == 2):
+        z_Borders  = [0.18, 0.23, 0.26, 0.31, 0.38, 0.50, 0.74]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+        
+    # For Q2-y Bin 3
+    if(Q2_y_Bin_Select == 3):
+        z_Borders  = [0.22, 0.28, 0.35, 0.45, 0.60, 0.78]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.75, 1.0]
+
+    # For Q2-y Bin 4
+    if(Q2_y_Bin_Select == 4):
+        z_Borders  = [0.26, 0.32, 0.37, 0.43, 0.50, 0.60, 0.71]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.50, 0.60, 0.80]
+
+    # For Q2-y Bin 5
+    if(Q2_y_Bin_Select == 5):
+        z_Borders  = [0.15, 0.19, 0.24, 0.29, 0.38, 0.50, 0.73]
+        pT_Borders = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0]
+
+    # For Q2-y Bin 6
+    if(Q2_y_Bin_Select == 6):
+        z_Borders  = [0.18, 0.23, 0.30, 0.39, 0.50, 0.78]
+        pT_Borders = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.0]
+        
+    # For Q2-y Bin 7
+    if(Q2_y_Bin_Select == 7):
+        z_Borders  = [0.21, 0.26, 0.30, 0.44, 0.55, 0.78]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.50, 0.65, 1.0]
+        
+    # For Q2-y Bin 8
+    if(Q2_y_Bin_Select in [8]):
+        z_Borders  = [0.26, 0.32, 0.36, 0.40, 0.45, 0.53, 0.72]
+        pT_Borders = [0.05, 0.20, 0.30, 0.40, 0.52, 0.75]
+        
+    # For Q2-y Bin 9
+    if(Q2_y_Bin_Select in [9]):
+        z_Borders  = [0.15, 0.20, 0.24, 0.30, 0.38, 0.48, 0.72]
+        pT_Borders = [0.05, 0.22, 0.30, 0.38, 0.46, 0.60, 0.95]
+        
+    # For Q2-y Bin 10
+    if(Q2_y_Bin_Select in [10]):
+        z_Borders  = [0.18, 0.23, 0.26, 0.32, 0.40, 0.50, 0.72]
+        pT_Borders = [0.05, 0.22, 0.32, 0.41, 0.51, 0.65, 1.00]
+        
+    # For Q2-y Bin 11
+    if(Q2_y_Bin_Select in [11]):
+        z_Borders  = [0.21, 0.26, 0.32, 0.40, 0.50, 0.70]
+        pT_Borders = [0.05, 0.20, 0.31, 0.40, 0.50, 0.64, 0.95]
+        
+    # For Q2-y Bin 12
+    if(Q2_y_Bin_Select in [12]):
+        z_Borders  = [0.26, 0.32, 0.40, 0.50, 0.70]
+        pT_Borders = [0.05, 0.22, 0.32, 0.41, 0.51, 0.67]
+        
+    # For Q2-y Bin 13
+    if(Q2_y_Bin_Select in [13]):
+        z_Borders  = [0.15, 0.20, 0.24, 0.30, 0.40, 0.72]
+        pT_Borders = [0.05, 0.23, 0.34, 0.43, 0.55, 0.90]
+
+    # For Q2-y Bin 14
+    if(Q2_y_Bin_Select in [14]):
+        z_Borders  = [0.18, 0.23, 0.27, 0.33, 0.44, 0.74]
+        pT_Borders = [0.05, 0.23, 0.34, 0.44, 0.55, 0.90]
+        
+    # For Q2-y Bin 15
+    if(Q2_y_Bin_Select in [15]):
+        z_Borders  = [0.21, 0.28, 0.35, 0.47, 0.72]
+        pT_Borders = [0.05, 0.23, 0.34, 0.45, 0.58, 0.90]
+        
+    # For Q2-y Bin 16
+    if(Q2_y_Bin_Select in [16]):
+        z_Borders  = [0.15, 0.20, 0.25, 0.32, 0.41, 0.71]
+        pT_Borders = [0.05, 0.24, 0.36, 0.55, 0.80]
+    
+    # For Q2-y Bin 17
+    if(Q2_y_Bin_Select in [17]):
+        z_Borders  = [0.18, 0.23, 0.30, 0.38, 0.48, 0.72]
+        pT_Borders = [0.05, 0.23, 0.36, 0.51, 0.85]
+        
+        
+    Num_z_Borders  = len(z_Borders)
+    Num_pT_Borders = len(pT_Borders)
+        
+        
+    # For Q2-y Bin 0 and -1
+    if(Q2_y_Bin_Select < 1):
+        z_Borders      = [0.15, 0.70]
+        Num_z_Borders  = 1
+        pT_Borders     = [0.05, 1.0]
+        Num_pT_Borders = 1
+        
+    if(Q2_y_Bin_Select == 0):
+        print("ERROR")
+
+                    # Info about z bins              # Info about pT bins         # Total number of z-pT bins
+    output = [['z', Num_z_Borders, z_Borders], ['pT', Num_pT_Borders, pT_Borders], (Num_z_Borders-1)*(Num_pT_Borders-1)]
+    
+    return output
+
 ##=========================================================================================##
 ##=========================================================================================##
 ##=========================================================================================##
@@ -2606,10 +2716,13 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
         Q2_y_Binning           = [-0.5,   18.5,    19,         1]
         
         Q2_y_z_pT_4D_Binning   = [-0.5,   566.5,   567,        1]
+        Q2_y_z_pT_4D_Binning   = [-0.5,   512.5,   513,        1]
+        Q2_y_z_pT_4D_Binning   = [-0.5,   506.5,   507,        1]
 
         phi_h_Binning          = [0,      360,     24,         15]
         if("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" in str(Variable)):
-            phi_h_Binning      = [0,      360,     12,         15]
+            phi_h_Binning      = [0,      360,     12,         30]
+            phi_h_Binning      = [0,      360,     10,         36]
 
         # Combined_phi_h_Q2_Bins = 480
 
@@ -2649,12 +2762,12 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Co
             
         Output_Canvas = Canvas_Create(Name.replace("Multi_Dim_Var_Info", str(Method)), Num_Columns=Num_Columns_Canvas, Num_Rows=Num_Rows_Canvas, Size_X=Canvas_Size_X, Size_Y=Canvas_Size_Y, cd_Space=0)
         
-        bin_ii = 0 if(Common_Name not in ["New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"]) else 1
+        bin_ii = 0 if(Common_Name not in ["New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All", "Gen_Cuts_V2_All", "Gen_Cuts_V3_All", "Gen_Cuts_V4_All", "Gen_Cuts_V5_All"]) else 1
         # for NewDim_Bin in range(0, NewDim_Bin_Num + 1, 1):
         for NewDim_Bin in range(0, NewDim_Bin_Num - 1, 1):
             # if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"])):
             #     bin_ii  += -1
-            if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"])):
+            if(NewDim_Bin != 0 and (Common_Name not in ["Multi_Dimension_Unfold_V3_All", "New_Binning_Schemes_V7_All", "New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All", "Gen_Cuts_V2_All", "Gen_Cuts_V3_All", "Gen_Cuts_V4_All", "Gen_Cuts_V5_All"])):
                 bin_ii  += -1
             
             Name_Out = str(Name.replace("Multi_Dim_Var_Info", "".join([str(Multi_Dim_Var), "_Bin_", str(NewDim_Bin)])))
@@ -2904,7 +3017,8 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
  
         phi_h_Binning          = [0,      360,     24,         15]
         if("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" in str(Variable)):
-            phi_h_Binning      = [0,      360,     12,         15]
+            phi_h_Binning      = [0,      360,     12,         30]
+            phi_h_Binning      = [0,      360,     10,         36]
 
         # Combined_phi_h_Q2_Bins = 480
 
@@ -3121,6 +3235,7 @@ Common_Name = "Analysis_Note_Update_VF_APS_All"
 Common_Name = "New_Binning_Schemes_V8_All"
 
 Common_Name = "Gen_Cuts_V1_All"
+Common_Name = "Gen_Cuts_V5_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -3140,8 +3255,8 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+# if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
@@ -3155,8 +3270,8 @@ else:
 ##   Generated Monte Carlo Data   ##
 ####################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
+# if(False):
     MC_GEN_File_Name = Common_Name
 else:
     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
@@ -3305,7 +3420,7 @@ for ii in mdf.GetListOfKeys():
 #     Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
 #     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t" not in str(out_print_main))
 #     Conditions_For_Unfolding.append("MM"     in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" in str(out_print_main))
 
     
     ## Correct Binning:
@@ -3453,6 +3568,8 @@ for ii in mdf.GetListOfKeys():
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin_Unfold in [6, 10]) else 25 if(Q2_xB_Bin_Unfold in [13]) else 1
             z_pT_Bin_Range = 0
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9]) else 30 if(Q2_xB_Bin_Unfold in [6, 10, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
+            
+            z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [2]) else 36 if(Q2_xB_Bin_Unfold in [4, 5, 9, 10]) else 35 if(Q2_xB_Bin_Unfold in [1, 3]) else 30 if(Q2_xB_Bin_Unfold in [6, 7, 8, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
         
         # if(Q2_xB_Bin_Unfold != 1):
         #     continue
@@ -3469,7 +3586,9 @@ for ii in mdf.GetListOfKeys():
                 # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
                 #     # print("Testing z_pT_Bin_Unfold...")
                 #     continue
-                if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+#                 if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+#                     continue
+                if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [28, 34, 35])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [28, 35, 41, 42])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [28, 35]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [13, 14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
                     continue
                 
             # if(z_pT_Bin_Unfold not in [0, 10]):
@@ -4116,7 +4235,7 @@ for ii in mdf.GetListOfKeys():
                     MC_GEN_1D.SetLineWidth(3  if(("'Combined_"  not in str(out_print_main)) and ("'Multi_Dim" not in str(out_print_main))) else 1)
                     MC_GEN_1D.SetLineStyle(1)
                     MC_GEN_1D.SetMarkerColor(root_color.Green)
-                    MC_GEN_1D.SetMarkerSize(1 if(("'Combined_" not in str(out_print_main))  and ("'Multi_Dim" not in str(out_print_main)))  else 0.5)
+                    MC_GEN_1D.SetMarkerSize(1 if(("'Combined_" not in str(out_print_main))  and ("'Multi_Dim" not in str(out_print_main))) else 0.5)
                     MC_GEN_1D.SetMarkerStyle(20)
                     MC_GEN_1D.GetYaxis().SetTitle("Normalized")
                 except:
