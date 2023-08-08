@@ -58,9 +58,16 @@ run_Mom_Cor_Code = "no"
 
 smear_factor = "0.75"
 
-SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold", "_Unfold"]
-Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",    "_cor"]
-Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",    "_0.8",   "_0.9", "_1.0", "_1.5", "_FX"]
+
+# Use_Weight corresponses to weighing the MC events to add modulations to the generated simulated data (used as a closure test)
+Use_Weight = False
+# Use_Weight = True
+
+
+SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
+Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
+Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight"]
+Smear_Factor_List = ["_0.5",   "_0.7",   "_0.75",    "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
 
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
@@ -79,12 +86,25 @@ for smear in Smear_Factor_List:
         smear_factor = str(smear).replace("_", "")
         datatype = str(datatype).replace(str(smear), "")
         break
+        
+for weight_Q in Using_Weight_List:
+    if(str(weight_Q) in str(datatype)):
+        Use_Weight = True
+        datatype = str(datatype).replace(str(weight_Q), "")
+        break
+        
+        
+if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
+    Use_Weight = False
+    # Do not use the simulated modulations on the momentum correction code or for the experimental data set
 
 del SIDIS_Unfold_List
 del Momentum_Cor_List
+del Using_Weight_List
 del sidis
 del mom_cor
 del smear
+del weight_Q
 
 
 if(output_type == "test"):
@@ -98,6 +118,18 @@ elif(output_type not in ["histo", "data", "tree"]):
         output_type = "histo"
 
 print("".join(["Output type will be: ", output_type]))
+
+
+# Option to turn on and off Momentum Corrections ('yes' will turn the corrections on)
+Mom_Correction_Q = "yes"
+Mom_Correction_Q = "no"
+
+if(datatype in ['gdf']):
+    Mom_Correction_Q = "no"
+
+# if(datatype not in ['rdf']):
+#     Mom_Correction_Q = "no"
+
 
 import ROOT 
 import math
@@ -117,19 +149,67 @@ import os
 #     # Print the memory usage in MB
 #     print("Current Memory usage: {:.6f} MB".format(mem_usage / (1024 * 1024)))
 
-
+    
 class color:
-    PURPLE    = '\033[95m'
     CYAN      = '\033[96m'
-    DARKCYAN  = '\033[36m'
+    PURPLE    = '\033[95m'
     BLUE      = '\033[94m'
-    GREEN     = '\033[92m'
     YELLOW    = '\033[93m'
+    GREEN     = '\033[92m'
     RED       = '\033[91m'
+    DARKCYAN  = '\033[36m'
     BOLD      = '\033[1m'
+    LIGHT     = '\033[2m'
+    ITALIC    = '\033[3m'
     UNDERLINE = '\033[4m'
+    BLINK     = '\033[5m'
     DELTA     = '\u0394' # symbol
     END       = '\033[0m'
+    
+    
+class color_bg:
+    BLACK   = '\033[40m'
+    RED     = '\033[41m'
+    GREEN   = '\033[42m'
+    YELLOW  = '\033[43m'
+    BLUE    = '\033[44m'
+    MAGENTA = '\033[45m'
+    CYAN    = '\033[46m'
+    WHITE   = '\033[47m'
+    RESET   = '\033[49m'
+    END     = '\033[0m'
+    
+    
+class root_color:
+    # Colors
+    White   = 0
+    Black   = 1
+    Red     = 2
+    Green   = 3
+    Blue    = 4
+    Yellow  = 5
+    Pink    = 6
+    Cyan    = 7
+    DGreen  = 8 # Dark Green
+    Purple  = 9
+    DGrey   = 13
+    Grey    = 15
+    LGrey   = 17
+    Brown   = 28
+    Gold    = 41
+    Rust    = 46
+    
+    # Fonts
+    Bold    = '#font[22]'
+    Italic  = '#font[12]'
+    
+    # Symbols
+    Delta   = '#Delta'
+    Phi     = '#phi'
+    π       = '#pi'
+    Degrees = '#circ'
+    
+    Line    = '#splitline'
 
 
 if(str(file_location) == 'all'):
@@ -454,9 +534,89 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             
 
+    Extra_Name = "Gen_Cuts_V7_"
+    # Was the same as "Gen_Cuts_V6_" when started running "SF_Testing_Mom_Cor_V1_" but updated later with new simulated phi_t modulations and MM_gen cuts
+    # Added the Missing_Mass_Cut_Gen variable which has a value of -1 if the generated missing mass is below 1.5 GeV. Otherwise, it has a value of 1
+        # This does not effect the experimental data histograms
+        # These cuts are not available on the mdf 1D phi_h unfolding response matrices as they lack the extra available dimension to make use of the variable
+            # Use the multidimensional unfolding plots instead
+    # Added Modulations to the Monte Carlo phi_h distributions (effects generated and reconstructed distributions when turned on)
+        # This closure test can be turned from the commandline by including "_mod" in the datatype input
+        # Modulations are made by weighing the events based on calculations done with the generated phi_h value (using the same function phi_h will be ultimately fitted with)
+            # Modulation parameters for this run are:
+                # Par_B = -0.050
+                # Par_C =  0.025
+        # Modulations are applied to all response matrix plots and the 2D histograms
+        # Modulations are not allowed as options when running code with the experimental data or for the momentum correction plots (no indication will be given in these cases, but for the other relevant cases, the code will print whether the closure test is being used)
+    # Using smear_factor = 0.75
+        
+            
+    if(run_Mom_Cor_Code == "yes"):
+        Extra_Name = "SF_Testing_Mom_Cor_V1_"
+        # Same as 'Gen_Cuts_V7_'/'Gen_Cuts_V6_' but running the momentum correction histograms instead
+            # The Particle Kinematics that are plotted in these histograms will be smeared along with the Missing Mass and ∆P/∆Theta variables
+        # Using smear_factor = 0.75
+            # The particle's angles are NOT being smeared
+        # MC Momentum Corrections are ON
+        # Added MM and Dp vs local phi plots
+        
+        if(smear_factor == "0.5"):
+            Extra_Name = "SF_Testing_Mom_Cor_V2_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 0.5
+        
+        if(smear_factor == "1.0"):
+            Extra_Name = "SF_Testing_Mom_Cor_V3_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 1.0
+            
+        if(smear_factor == "FX"):
+            Extra_Name = "SF_Testing_Mom_Cor_FX_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with FX's smearing function
+            
+        if(smear_factor == "0.7"):
+            Extra_Name = "SF_Testing_Mom_Cor_V4_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 0.7
+            
+        if(smear_factor == "1.5"):
+            Extra_Name = "SF_Testing_Mom_Cor_V5_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 1.5
+            
+        if(smear_factor == "0.9"):
+            Extra_Name = "SF_Testing_Mom_Cor_V6_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 0.9
+            
+        if(smear_factor == "0.8"):
+            Extra_Name = "SF_Testing_Mom_Cor_V7_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 0.8
+            
+        if(smear_factor == "1.2"):
+            Extra_Name = "SF_Testing_Mom_Cor_V8_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 1.2
+            
+        if(smear_factor == "2.0"):
+            Extra_Name = "SF_Testing_Mom_Cor_V9_"
+            # Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+            # Using smear_factor = 2.0
+            
+        if(datatype == "rdf"):
+            Extra_Name = "SF_Testing_Mom_Cor_"
+            # Same as "SF_Testing_Mom_Cor_V1" but the extra version number is not needed due to the fact that the data is never smeared
             
             
+        if(Mom_Correction_Q == "no"):
+            # Not using the Momentum Corrections
+            Extra_Name = "".join([Extra_Name, "No_Cor_"])
             
+    if(Use_Weight):
+        # Using the modulations of the Generated Monte Carlo
+        Extra_Name = "".join([Extra_Name, "Modulated_"])
+        
     
     if(datatype == 'rdf'):
         ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_",        str(Extra_Name), str(file_num), ".root"])
@@ -483,14 +643,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##                                                                                                                                                             ##
     ############################################################    Particle Momentum Correction Code    ############################################################
     
-    Mom_Correction_Q = "yes"
-#     Mom_Correction_Q = "no"
-
-    if(datatype in ['gdf']):
-        Mom_Correction_Q = "no"
-        
-    # if(datatype not in ['rdf']):
-    #     Mom_Correction_Q = "no"
         
     Correction_Code_Full_In = """
     auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
@@ -823,7 +975,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else "1" if(str(datatype) in ['rdf']) else "2", """) + 1;
             double pip_P = fpip*(sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
             return pip_P;"""]))
-            if((Mom_Correction_Q == "yes") and (str(datatype) not in ["gdf"])):
+            if((run_Mom_Cor_Code == "yes") and (str(datatype) not in ["gdf"])):
                 rdf = rdf.Define("el_no_cor",  """
                 double el_P_no_cor  = (sqrt(ex*ex + ey*ey + ez*ez));
                 return el_P_no_cor;""")
@@ -855,6 +1007,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             elPhi += 360;
         }
         return elPhi;""")
+        rdf = rdf.Define("elPhi_Local", """
+        auto           ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+        auto     Phi_Local = ele.Phi()*TMath::RadToDeg();
+        if(((esec == 4 || esec == 3) && Phi_Local < 0) || (esec > 4 && Phi_Local < 90)){Phi_Local += 360;}
+        auto   elPhi_Local = Phi_Local - (esec - 1)*60;
+        return elPhi_Local;""")
+        
         rdf = rdf.Define("pipPhi", """
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
         auto pipPhi = pip0.Phi()*TMath::RadToDeg();
@@ -862,6 +1021,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             pipPhi += 360;
         }
         return pipPhi;""")
+        rdf = rdf.Define("pipPhi_Local", """
+        auto          pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+        auto     Phi_Local = pip0.Phi()*TMath::RadToDeg();
+        if(((pipsec == 4 || pipsec == 3) && Phi_Local < 0) || (pipsec > 4 && Phi_Local < 90)){Phi_Local += 360;}
+        auto   pipPhi_Local = Phi_Local - (pipsec - 1)*60;
+        return pipPhi_Local;""")
+        
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("elPhi_gen", """
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -1647,7 +1813,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         };""" if(datatype not in ["rdf", "gdf"]) else ""
     
     
-    if((Mom_Correction_Q == "yes") and (str(datatype) not in ["rdf", "gdf"])):
+    if((run_Mom_Cor_Code == "yes") and (str(datatype) not in ["rdf", "gdf"])):
         rdf = rdf.Define("el_no_cor_smeared", "".join(["""
         """, str(smearing_function), """
             auto eleM  = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
@@ -2683,6 +2849,114 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##=================================##     End of Smearing Functions     ##=================================##
     ##---------------------------------##===================================##---------------------------------##
     ##=========================================================================================================##
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    if(Use_Weight):
+        print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+        ##==========================================================================================================##
+        ##------------------------------------##==============================##------------------------------------##
+        ##====================================##     Event Weighing Begin     ##====================================##
+        ##------------------------------------##==============================##------------------------------------##
+        ##==========================================================================================================##
+        rdf = rdf.Define('Event_Weight', "".join(["""
+        """, "".join([""" 
+        auto   Par_B_Test   = -0.050;
+        auto   Par_C_Test   =  0.025;""", """
+        auto   PHI_H        = phi_t*TMath::DegToRad();""" if(datatype in ["gdf"]) else """
+        auto   PHI_H        = phi_t_gen*TMath::DegToRad();""", """
+        auto   Event_Weight = 1 + Par_B_Test*TMath::Cos(PHI_H) + Par_C_Test*TMath::Cos(2*PHI_H);
+        """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
+        return Event_Weight;
+        """]))
+        # if(datatype in ["mdf", "pdf"]):
+        #     rdf = rdf.Define('Event_Weight_gen', """
+        #     auto   Par_B_Test_gen   = -0.050;
+        #     auto   Par_C_Test_gen   =  0.025;
+        #     auto   PHI_H_gen        = phi_t_gen*TMath::DegToRad();
+        #     auto   Event_Weight_gen = 1 + Par_B_Test_gen*TMath::Cos(PHI_H_gen) + Par_C_Test_gen*TMath::Cos(2*PHI_H_gen);
+        #     return Event_Weight_gen;
+        #     """)
+        #     rdf = rdf.Define('Event_Weight_smeared', """
+        #     auto   Par_B_Test_smeared   = -0.050;
+        #     auto   Par_C_Test_smeared   =  0.025;
+        #     auto   PHI_H_smeared        = smeared_vals[11]*TMath::DegToRad();
+        #     auto   Event_Weight_smeared = 1 + Par_B_Test_smeared*TMath::Cos(PHI_H_smeared) + Par_C_Test_smeared*TMath::Cos(2*PHI_H_smeared);
+        #     return Event_Weight_smeared;
+        #     """)
+        ##==========================================================================================================##
+        ##------------------------------------##==============================##------------------------------------##
+        ##====================================##      Event Weighing End      ##====================================##
+        ##------------------------------------##==============================##------------------------------------##
+        ##==========================================================================================================##
+    elif(datatype in ["mdf", "gdf", "pdf"]):
+        print(color.BOLD,                             "".join(["\nNOT running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ##==========================================================================================================##
+    ##------------------------------------##==============================##------------------------------------##
+    ##====================================##  Generated Missing Mass Cut  ##====================================##
+    ##------------------------------------##==============================##------------------------------------##
+    ##==========================================================================================================##
+    if(datatype in ["mdf", "pdf"]):
+        rdf = rdf.Define('Missing_Mass_Cut_Gen', """
+        auto Missing_Mass_Cut_Gen = 0;
+        if(MM_gen < 1.5){
+            Missing_Mass_Cut_Gen = -1;
+        }
+        else{
+            Missing_Mass_Cut_Gen =  1;
+        }
+        return Missing_Mass_Cut_Gen;
+        """)
+    if(datatype in ["gdf", "gen"]):
+        rdf = rdf.Define('Missing_Mass_Cut_Gen', """
+        auto Missing_Mass_Cut_Gen = 0;
+        if(MM < 1.5){
+            Missing_Mass_Cut_Gen = -1;
+        }
+        else{
+            Missing_Mass_Cut_Gen =  1;
+        }
+        return Missing_Mass_Cut_Gen;
+        """)
+    ##==========================================================================================================##
+    ##------------------------------------##==============================##------------------------------------##
+    ##====================================##  Gen Missing Mass Cut (End)  ##====================================##
+    ##------------------------------------##==============================##------------------------------------##
+    ##==========================================================================================================##
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     ##==========================================================================================================##
@@ -6113,6 +6387,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_3D = []
     
     
+    if(run_Mom_Cor_Code == "yes"):
+        List_of_Quantities_1D, List_of_Quantities_2D, List_of_Quantities_3D = [], [], []
+    
+    
     if(len(List_of_Quantities_1D) == 0):
         print("".join([color.RED,  color.BOLD, "\nNot running 1D histograms...",     color.END]))
     else:
@@ -6350,23 +6628,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                                 Mom_Cor_Histo_Name_Main = ((("".join(["((", "), (".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name])])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
 
-                                Mom_Cor_Histo_Name_MM_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension,         Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_MM_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension,         Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_MM_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension,         Histo_Var_D2=Histo_Var_Ele_Dimension)),       "))"])
+                                Mom_Cor_Histo_Name_MM_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_MM_Dimension,         Histo_Var_D2=Histo_Var_Pip_Dimension)),       "))"])
 
-                                Mom_Cor_Histo_Name_DP_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension,     Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_DP_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension,     Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
-
+                                Mom_Cor_Histo_Name_DP_Ele            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension,     Histo_Var_D2=Histo_Var_Ele_Dimension)),       "))"])
+                                Mom_Cor_Histo_Name_DP_Pip            = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension,     Histo_Var_D2=Histo_Var_Pip_Dimension)),       "))"])
+                                
                                 Mom_Cor_Histo_Name_DP_Ele_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Ele_Dimension,     Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DP_Pip_Theta      = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dp_Pip_Dimension,     Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
 
-                                Mom_Cor_Histo_Name_DTheta_Ele        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_DTheta_Pip        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_DTheta_Ele        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Dimension)),       "))"])
+                                Mom_Cor_Histo_Name_DTheta_Pip        = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Dimension)),       "))"])
 
                                 Mom_Cor_Histo_Name_DTheta_Ele_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
 
-                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension,  Histo_Var_D2=Histo_Var_Ele_Phi_Dimension, Histo_Var_D3=Histo_Var_Ele_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension,  Histo_Var_D2=Histo_Var_Pip_Phi_Dimension, Histo_Var_D3=Histo_Var_Pip_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_MM_DP_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['elPhi_Local',  -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,      Histo_Var_D3=Histo_Var_Dp_Ele_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_MM_DP_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['pipPhi_Local', -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,      Histo_Var_D3=Histo_Var_Dp_Pip_Dimension)), "))"])
+                                
+                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension,  Histo_Var_D2=Histo_Var_Ele_Phi_Dimension, Histo_Var_D3=Histo_Var_Ele_Dimension)),     "))"])
+                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension,  Histo_Var_D2=Histo_Var_Pip_Phi_Dimension, Histo_Var_D3=Histo_Var_Pip_Dimension)),     "))"])
                                 
                                 Mom_Cor_Histo_Name_MM_Ele            = Mom_Cor_Histo_Name_MM_Ele.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_MM_Pip            = Mom_Cor_Histo_Name_MM_Pip.replace("; ", "), ")
@@ -6380,6 +6661,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = Mom_Cor_Histo_Name_DTheta_Pip_Theta.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_Angle_Ele         = Mom_Cor_Histo_Name_Angle_Ele.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_Angle_Pip         = Mom_Cor_Histo_Name_Angle_Pip.replace("; ", "), ")
+                                Mom_Cor_Histo_Name_MM_DP_Ele         = Mom_Cor_Histo_Name_MM_DP_Ele.replace("; ", "), ")
+                                Mom_Cor_Histo_Name_MM_DP_Pip         = Mom_Cor_Histo_Name_MM_DP_Pip.replace("; ", "), ")
                                 
                             ###############################################################
                             ##==========##  Correction Histogram ID's (End)  ##==========##
@@ -6390,17 +6673,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##==========##    Correction Histogram Titles    ##==========##
                             ###############################################################
                                 
-                                Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics",            " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ",   "p_{el};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ",   "#theta_{el} Bins"])
-                                Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics",        " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
+                                Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics",                              " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",        "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
+                                Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics",                          " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
                                 
-                                Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics",                 " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ",   "p_{el};",      "(Smeared) " if("smear" in Histo_Smear) else " ",   "#DeltaP_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ",   "#theta_{el} Bins"])
-                                Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics",             " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
+                                Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics",                                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",        "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
+                                Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics",                               " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
                                 
-                                Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics",       " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ",   "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ",        "#DeltaP_{el}; El Sector"])
-                                Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics",   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+}; #pi^{+} Sector"])
+                                Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics",                         " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "El Sector"])
+                                Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics",                     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "#pi^{+} Sector"])
                                 
-                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics",     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ",   "#theta_{el};", "(Smeared) " if("smear" in Histo_Smear) else " ",   "#phi_{el};",    "(Smeared) " if("smear" in Histo_Smear) else " ",   "#p_{el}"])
-                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};",    "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
+                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics",                       " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{el}"])
+                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics",                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};",    "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
+                                
+                                Mom_Cor_Histos_Name_MM_DP_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (Electron Kinematics",     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                             "Local #phi_{el};",     "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};"])
+                                Mom_Cor_Histos_Name_MM_DP_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                             "Local #phi_{#pi+};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};"])
 
                             ###############################################################
                             ##==========## Correction Histogram Titles (End) ##==========##
@@ -6420,20 +6706,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##==========##==========##     Correction Histograms     ##==========##==========##
                             ##          ##          ##                               ##          ##          ##
                             ###################################################################################
-
-                                Histograms_All[Mom_Cor_Histo_Name_MM_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Ele,           str(Mom_Cor_Histos_Name_MM_Ele_Title),                                             100,  0, 10, 350,     0,  3.5,  10,    0,  40),         "el" if("smear" not in Histo_Smear) else         "el_smeared", "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                    "elth"  if("smear" not in Histo_Smear) else  "elth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_MM_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Pip,           str(Mom_Cor_Histos_Name_MM_Pip_Title),                                             100,  0,  8, 350,     0,  3.5,  10,    0,  40),        "pip" if("smear" not in Histo_Smear) else        "pip_smeared", "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                   "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele,           str(Mom_Cor_Histos_Name_Delta_Ele_Title),                                          100,  0, 10, 125, -0.75, 0.75,  10,    0,  40),  "el_no_cor" if("smear" not in Histo_Smear) else  "el_no_cor_smeared", "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",        "elth"  if("smear" not in Histo_Smear) else  "elth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip,           str(Mom_Cor_Histos_Name_Delta_Pip_Title),                                          100,  0,  8, 125, -0.75, 0.75,  10,    0,  40), "pip_no_cor" if("smear" not in Histo_Smear) else "pip_no_cor_smeared", "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele,       str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"),       100,  0, 10, 125, -0.75, 0.75,  10,    0,  40),         "el" if("smear" not in Histo_Smear) else         "el_smeared", "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",   "elth"  if("smear" not in Histo_Smear) else  "elth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip,       str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"),       100,  0,  8, 125, -0.75, 0.75,  10,    0,  40),        "pip" if("smear" not in Histo_Smear) else        "pip_smeared", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
+                            
+                                Histograms_All[Mom_Cor_Histo_Name_MM_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Ele,           str(Mom_Cor_Histos_Name_MM_Ele_Title),                                             100,  0, 10, 350,     0,  3.5,  10,     0,   40), "el"                 if("smear" not in Histo_Smear) else "el_smeared",         "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                   "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_MM_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_Pip,           str(Mom_Cor_Histos_Name_MM_Pip_Title),                                             100,  0,  8, 350,     0,  3.5,  10,     0,   40), "pip"                if("smear" not in Histo_Smear) else "pip_smeared",        "MM"                   if("smear" not in Histo_Smear) else "MM_smeared",                   "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele,           str(Mom_Cor_Histos_Name_Delta_Ele_Title),                                          100,  0, 10, 125, -0.75, 0.75,  10,     0,   40), "el_no_cor"          if("smear" not in Histo_Smear) else "el_no_cor_smeared",  "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",       "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip]            = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip,           str(Mom_Cor_Histos_Name_Delta_Pip_Title),                                          100,  0,  8, 125, -0.75, 0.75,  10,     0,   40), "pip_no_cor"         if("smear" not in Histo_Smear) else "pip_no_cor_smeared", "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele,       str(Mom_Cor_Histos_Name_Delta_Ele_Title).replace("#DeltaP", "#Delta#theta"),       100,  0, 10, 125, -0.75, 0.75,  10,     0,   40), "el"                 if("smear" not in Histo_Smear) else "el_smeared",         "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip]        = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip,       str(Mom_Cor_Histos_Name_Delta_Pip_Title).replace("#DeltaP", "#Delta#theta"),       100,  0,  8, 125, -0.75, 0.75,  10,     0,   40), "pip"                if("smear" not in Histo_Smear) else "pip_smeared",        "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
                                 
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta,     str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5),       "elth" if("smear" not in Histo_Smear) else       "elth_smeared", "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",         "esec")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta,     str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5),      "pipth" if("smear" not in Histo_Smear) else      "pipth_smeared", "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipsec")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5),       "elth" if("smear" not in Histo_Smear) else       "elth_smeared", "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",    "esec")
-                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8, -0.5, 7.5),      "pipth" if("smear" not in Histo_Smear) else      "pipth_smeared", "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipsec")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele,        str(Mom_Cor_Histos_Name_Angle_Ele_Title),                                          100,  0, 40, 360,     0,  360, 100,    0,  10),       "elth" if("smear" not in Histo_Smear) else       "elth_smeared", "elPhi"                if("smear" not in Histo_Smear) else "elPhi_smeared",                    "el" if("smear" not in Histo_Smear) else  "el_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip,        str(Mom_Cor_Histos_Name_Angle_Pip_Title),                                          100,  0, 40, 360,     0,  360, 100,    0,   8),      "pipth" if("smear" not in Histo_Smear) else      "pipth_smeared", "pipPhi"               if("smear" not in Histo_Smear) else "pipPhi_smeared",                  "pip" if("smear" not in Histo_Smear) else "pip_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta,     str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8,  -0.5,  7.5), "elth"               if("smear" not in Histo_Smear) else "elth_smeared",       "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared",       "esec")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta]      = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta,     str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title),                                    100,  0, 40, 125, -0.75, 0.75,   8,  -0.5,  7.5), "pipth"              if("smear" not in Histo_Smear) else "pipth_smeared",      "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared",      "pipsec")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Ele_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Ele_Theta, str(Mom_Cor_Histos_Name_Delta_Ele_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8,  -0.5,  7.5), "elth"               if("smear" not in Histo_Smear) else "elth_smeared",       "Delta_Theta_el_Cors"  if("smear" not in Histo_Smear) else "Delta_Theta_el_Cors_smeared",  "esec")
+                                Histograms_All[Mom_Cor_Histo_Name_DTheta_Pip_Theta]  = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DTheta_Pip_Theta, str(Mom_Cor_Histos_Name_Delta_Pip_Theta_Title).replace("#DeltaP", "#Delta#theta"), 100,  0, 40, 125, -0.75, 0.75,   8,  -0.5,  7.5), "pipth"              if("smear" not in Histo_Smear) else "pipth_smeared",      "Delta_Theta_pip_Cors" if("smear" not in Histo_Smear) else "Delta_Theta_pip_Cors_smeared", "pipsec")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Ele,        str(Mom_Cor_Histos_Name_Angle_Ele_Title),                                          100,  0, 40, 360,     0,  360, 100,     0,   10), "elth"               if("smear" not in Histo_Smear) else "elth_smeared",       "elPhi"                if("smear" not in Histo_Smear) else "elPhi_smeared",                "el"     if("smear" not in Histo_Smear) else  "el_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_Angle_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Angle_Pip,        str(Mom_Cor_Histos_Name_Angle_Pip_Title),                                          100,  0, 40, 360,     0,  360, 100,     0,    8), "pipth"              if("smear" not in Histo_Smear) else "pipth_smeared",      "pipPhi"               if("smear" not in Histo_Smear) else "pipPhi_smeared",               "pip"    if("smear" not in Histo_Smear) else "pip_smeared")
+
+                                Histograms_All[Mom_Cor_Histo_Name_MM_DP_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_DP_Ele,        str(Mom_Cor_Histos_Name_MM_DP_Ele_Title),                                          20, -40, 40, 350,     0,  3.5, 125, -0.75, 0.75), "elPhi_Local",  "MM" if("smear" not in Histo_Smear) else "MM_smeared",         "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_MM_DP_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_DP_Pip,        str(Mom_Cor_Histos_Name_MM_DP_Pip_Title),                                          20, -40, 40, 350,     0,  3.5, 125, -0.75, 0.75), "pipPhi_Local", "MM" if("smear" not in Histo_Smear) else "MM_smeared",         "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared")
+                                
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
@@ -6468,12 +6758,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     Histograms_All[Mom_Cor_Histo_Name_Angle_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_Angle_Pip].Write()
                                     
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_MM_DP_Ele)
+                                    Histograms_All[Mom_Cor_Histo_Name_MM_DP_Ele].Write()
+                                    Histograms_All[Mom_Cor_Histo_Name_MM_DP_Pip].Write()
+                                    
                                     del Histograms_All
                                     Histograms_All = {}
                                     # print("")
                                     
-                                Print_Progress(count_of_histograms, 12, 200 if(str(file_location) != 'time') else 50)
-                                count_of_histograms += 12
+                                Print_Progress(count_of_histograms, 14, 200 if(str(file_location) != 'time') else 50)
+                                count_of_histograms += 14
                                 del MCH_rdf
 
 ##################################################=========================================##########################################################################################################################################
@@ -6605,7 +6899,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_2D_Out  = Title_2D_Out.replace(") (", " - ")
                                         Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
-                                        Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
+                                        if(Use_Weight):
+                                            Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
+                                        else:
+                                            Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
 
                                         # print("(2D) Histo_Group = ", Histo_Group)
                                         # print("Drawing: ", Histo_Name)
@@ -6854,7 +7151,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         
                                         if((Histo_Data in ["mdf", "pdf", "gen"]) and (("Combined" in str(variable) or "Multi_Dim" in str(variable)) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             # Multidimensional unfolding should still exclude bin migration from other kinematic bins not included in the response matrix
-                                            Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
+                                            Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "",                                                                                                        str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
                                         if(("Combined" in str(variable) or "Multi_Dim" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " != 0", "".join([" && ", str((Q2_xB_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 0"]) if(Histo_Data in ["mdf", "pdf", "gen"]) else ""])
                                             
@@ -6862,53 +7159,173 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if(Histo_Data == "mdf"):
                                             Migration_Title_2 = "".join([str(Migration_Title_2), "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
                                             
-                                        
-                                        if(Histo_Data in ["mdf", "pdf"]):
-                                            if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
-                                            # if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
-                                            # if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
-                                                # Do not need to see the z-pT bins for these plots
-                                                Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
-                                                Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
-                                                Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
-                                                Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
-                                                # if("Multi_Dim_" in str(variable)):
-                                                #     print(color.BOLD, "\nstr(Histo_Name), str(Migration_Title_Simple), str(int(num_of_GEN_bins)), str(min_GEN_bin), str(Max_GEN_bin), str(int(num_of_REC_bins)), str(min_REC_bin), str(Max_REC_bin), str(Variable_Gen), str(Variable_Rec) =\n  ", color.GREEN, ", ".join([str(Histo_Name), str(Migration_Title_Simple), str(int(num_of_GEN_bins)), str(min_GEN_bin), str(Max_GEN_bin), str(int(num_of_REC_bins)), str(min_REC_bin), str(Max_REC_bin), str(Variable_Gen), str(Variable_Rec)]), color.END)
-                                                #     print(color.BLUE, "\nVar_List =", Var_List, color.END)
-                                                #     print("\n\nfor column_name in sdf.GetColumnNames():")
-                                                #     for column_name in sdf.GetColumnNames():
-                                                #         print("\t", str(column_name))
-                                                #     print("\n\n")
-                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                              str(Variable_Gen), str(Variable_Rec))
-                                            else:
-                                                Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                            if(Histo_Data == "mdf"):
-                                                if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable))):
-                                                # if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
+                                            
+                                            
+                                ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                #####====================#####     Making the Histos (START)    #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    #####================#####     Original Version of Histograms                     #####================#####=======================########################################################################################################################################################################################################################################################################################################################################################################################################
+                                        if(False):
+                                            # Running Original Version without the option of weighing the events/using generated Missing Mass Cuts
+                                            if(Histo_Data in ["mdf", "pdf"]):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                # if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
                                                 # if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
                                                     # Do not need to see the z-pT bins for these plots
-                                                    Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
-                                                    Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
-                                                    Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
-                                                    Migration_Title_Simple        = str(Migration_Title_2.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
-                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    # if("Multi_Dim_" in str(variable)):
+                                                    #     print(color.BOLD, "\nstr(Histo_Name), str(Migration_Title_Simple), str(int(num_of_GEN_bins)), str(min_GEN_bin), str(Max_GEN_bin), str(int(num_of_REC_bins)), str(min_REC_bin), str(Max_REC_bin), str(Variable_Gen), str(Variable_Rec) =\n  ", color.GREEN, ", ".join([str(Histo_Name), str(Migration_Title_Simple), str(int(num_of_GEN_bins)), str(min_GEN_bin), str(Max_GEN_bin), str(int(num_of_REC_bins)), str(min_REC_bin), str(Max_REC_bin), str(Variable_Gen), str(Variable_Rec)]), color.END)
+                                                    #     print(color.BLUE, "\nVar_List =", Var_List, color.END)
+                                                    #     print("\n\nfor column_name in sdf.GetColumnNames():")
+                                                    #     for column_name in sdf.GetColumnNames():
+                                                    #         print("\t", str(column_name))
+                                                    #     print("\n\n")
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                              str(Variable_Gen), str(Variable_Rec))
                                                 else:
-                                                    Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2),      int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                        else:
-                                            Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                            if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable))):
-                                            # if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
-                                            # if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
-                                                # Do not need to see the z-pT bins for these plots
-                                                Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
-                                                Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
-                                                Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
-                                                Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
-                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                if(Histo_Data == "mdf"):
+                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable))):
+                                                    # if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
+                                                    # if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
+                                                        # Do not need to see the z-pT bins for these plots
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
+                                                        Migration_Title_Simple        = str(Migration_Title_2.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                    else:
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_2),      int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                             else:
-                                                Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-
-                                        # print("Histo_Group = ", Histo_Group)
+                                                # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable))):
+                                                # if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin"]) or ("Multi_Dim_" in str(variable) and "z_pT_Bin" not in str(variable))):
+                                                # if(str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT"]):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                                                else:
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                    #####================#####     Original Version of Histograms                     #####================#####=======================########################################################################################################################################################################################################################################################################################################################################################################################################
+                                    #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    #####================#####     Generated Missing Mass Cut Version of Histograms   #####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                        # elif(("phi_" not in str(variable)) or (not Use_Weight)):
+                                        elif(not Use_Weight):
+                                            # Running with Generated Missing Mass Cuts but without weighing the events
+                                            #####         Matched Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                            if(Histo_Data in ["mdf", "pdf"]):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), "; Gen MM Cut"))
+                                                    # Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                              str(Variable_Gen), str(Variable_Rec))
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                              3, -1.5, 1.5), str(Variable_Gen), str(Variable_Rec),           "Missing_Mass_Cut_Gen")
+                                                else:
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]),               str(Variable_Gen), str(Variable_Rec),           str(Res_Binning_2D_z_pT[0]))
+                                                if(Histo_Data == "mdf"):
+                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                        # Do not need to see the z-pT bins for these plots
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                        Migration_Title_Simple        = str(Migration_Title_2.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), "; Gen MM Cut"))
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                                                                              3, -1.5, 1.5), str(Variable_Rec),                              "Missing_Mass_Cut_Gen")
+                                                    else:
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title_2),      int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen")
+                                            #####       Generated Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                            elif(Histo_Data in ["gdf", "gen"]):
+                                                # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen")
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                                                                              3, -1.5, 1.5), str(Variable_Rec),                              "Missing_Mass_Cut_Gen")
+                                                else:
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen")
+                                            #####           Experimental Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                            else:
+                                                # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                               str(Variable_Rec))
+                                                else:
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                    #####================#####     Generated Missing Mass Cut Version of Histograms   #####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    #####================#####    Generated Missing Mass Cut with Weighed Histograms  #####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                        else:
+                                            # Running Weighed Version of events with the generated Missing Mass Cuts
+                                                #######################################
+                                            #####         Matched Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                                #######################################
+                                            if(Histo_Data in ["mdf", "pdf"]):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), "; Gen MM Cut"))
+                                                    # Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                              str(Variable_Gen), str(Variable_Rec))
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title_Simple), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                              3, -1.5, 1.5), str(Variable_Gen), str(Variable_Rec),           "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                else:
+                                                    Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),    str(Migration_Title),        int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]),               str(Variable_Gen), str(Variable_Rec),           str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+                                                if(Histo_Data == "mdf"):
+                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                        # Do not need to see the z-pT bins for these plots
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                        Histo_Name_1D                 = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                        Migration_Title_Simple        = str(Migration_Title_2.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), "; Gen MM Cut"))
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                                                                              3, -1.5, 1.5), str(Variable_Rec),                              "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                    else:
+                                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title_2),      int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                #######################################
+                                            #####       Generated Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                                #######################################
+                                            elif(Histo_Data in ["gdf", "gen"]):
+                                                # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ", (Gen_MM_Cut)"))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                                                                                              3, -1.5, 1.5), str(Variable_Rec),                              "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                else:
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen",      "Event_Weight")
+                                                #######################################
+                                            #####           Experimental Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                                #######################################
+                                            else:
+                                                # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    # Do not need to see the z-pT bins for these plots
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
+                                                    Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=43, MinBin=-0.5, MaxBin=42.5])"]), ""))
+                                                    Migration_Title_Simple            = str(Migration_Title.replace("".join(["; ", variable_Title_name(z_pT_Bin_Filter_str)]), ""))
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_Simple), int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                               str(Variable_Rec))
+                                                else:
+                                                    Histograms_All[Histo_Name_1D]     = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                                    #####================#####    Generated Missing Mass Cut with Weighed Histograms  #####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                
+                                
                                         if(Histo_Data == "mdf"):
                                             if(str(file_location) != 'time'):
                                                 Histograms_All[Histo_Name].Write()
