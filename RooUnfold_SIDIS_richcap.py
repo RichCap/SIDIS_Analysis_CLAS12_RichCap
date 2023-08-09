@@ -3089,8 +3089,8 @@ def MultiD_Canvas_Combine(Histo_rdf="none", Histo_mdf="none", Histo_gdf="none", 
         Name_Combine = Name_Combine.replace("(Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), ", "(Multi-Dim Histo=Multi_Dim_Var_Info), ")
         Name_Combine = Name_Combine.replace("".join(["(Binning-Type='y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), "]), "")
         Name_Combine = Name_Combine.replace("Binning-Type='y_bin'-", "")
-        Name_Combine = Name_Combine.replace("".join(["(Binning-Type='", str(Binning_Method).replace("_", ""), "'-[Q2-xB-Bin=All, z-PT-Bin=All]), "]), "")
-        Name_Combine = Name_Combine.replace("".join(["Binning-Type='", str(Binning_Method).replace("_", ""), "'-"]), "")
+        Name_Combine = Name_Combine.replace("".join(["(Binning-Type='",     str(Binning_Method).replace("_", ""), "'-[Q2-xB-Bin=All, z-PT-Bin=All]), "]), "")
+        Name_Combine = Name_Combine.replace("".join(["Binning-Type='",      str(Binning_Method).replace("_", ""), "'-"]), "")
         Name_Combine = Name_Combine.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
         Name_Combine = Name_Combine.replace("".join([", (Var-D2='z_pT_Bin", str(Binning_Method), "_smeared'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), "")
 
@@ -4430,11 +4430,14 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         MC_REC_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "Multi-Dimensional Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
         MC_GEN_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "Multi-Dimensional Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
         
-    ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H PL E0 same")
+    # ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H PL E0 same")
+    ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H P E0 same")
     Legends_REC.AddEntry(ExREAL_1D_Norm, "#scale[2]{Experimental}", "lpE")
-    MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H PL E0 same")
+    # MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H PL E0 same")
+    MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H P E0 same")
     Legends_REC.AddEntry(MC_REC_1D_Norm, "#scale[2]{MC REC}", "lpE")
-    MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H PL E0 same")
+    # MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H PL E0 same")
+    MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H P E0 same")
     Legends_REC.AddEntry(MC_GEN_1D_Norm, "#scale[2]{MC GEN}", "lpE")
     
     Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
@@ -4473,7 +4476,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         UNFOLD_Bay.SetTitle(str(UNFOLD_Bay.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
         
     if(Multi_Dim_Option in ["Off"]):
-        UNFOLD_SVD_Norm =  UNFOLD_SVD.DrawNormalized("H PL E0 same")
+        # UNFOLD_SVD_Norm =  UNFOLD_SVD.DrawNormalized("H PL E0 same")
+        UNFOLD_SVD_Norm =  UNFOLD_SVD.DrawNormalized("H P E0 same")
         statbox_move(Histogram=UNFOLD_SVD_Norm, Canvas=Large_Bin_Canvas_Row_1.cd(4), Print_Method="off")
         for ii in range(0, UNFOLD_SVD.GetNbinsX() + 1, 1):
             if(UNFOLD_SVD_Norm.GetBinError(ii) > 0.01):
@@ -4482,7 +4486,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
                 UNFOLD_SVD_Norm.SetBinError(ii,   0)
         Legends_Unfolded.AddEntry(UNFOLD_SVD_Norm, "#scale[2]{SVD Unfolded}", "lpE")
 
-    UNFOLD_Bin_Norm =  UNFOLD_Bin.DrawNormalized("H PL E0 same")
+    # UNFOLD_Bin_Norm =  UNFOLD_Bin.DrawNormalized("H PL E0 same")
+    UNFOLD_Bin_Norm =  UNFOLD_Bin.DrawNormalized("H P E0 same")
     statbox_move(Histogram=UNFOLD_Bin_Norm, Canvas=Large_Bin_Canvas_Row_1.cd(4), Print_Method="off")
     for ii in range(0, UNFOLD_Bin_Norm.GetNbinsX() + 1, 1):
         if(UNFOLD_Bin_Norm.GetBinError(ii) > 0.01):
@@ -4491,7 +4496,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
             UNFOLD_Bin_Norm.SetBinError(ii,    0)
     Legends_Unfolded.AddEntry(UNFOLD_Bin_Norm, "#scale[2]{Bin-by-Bin}", "lpE")
 
-    UNFOLD_Bay_Norm =  UNFOLD_Bay.DrawNormalized("H PL E0 same")
+    # UNFOLD_Bay_Norm =  UNFOLD_Bay.DrawNormalized("H PL E0 same")
+    UNFOLD_Bay_Norm =  UNFOLD_Bay.DrawNormalized("H P E0 same")
     statbox_move(Histogram=UNFOLD_Bay_Norm, Canvas=Large_Bin_Canvas_Row_1.cd(4), Print_Method="off")
     for ii in range(0, UNFOLD_Bay_Norm.GetNbinsX() + 1, 1):
         if(UNFOLD_Bay_Norm.GetBinError(ii) > 0.01):
@@ -4830,9 +4836,12 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     ##=====##=====##   Drawing the Pre-Unfolded Histograms    ##=====##=====## ###################################################################
     # Draw_Canvas(canvas=Small_Bin_Canvas_Row_1, cd_num=1, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
     Draw_Canvas(Small_Bin_Canvas_Row_1, 1, 0.15)
-    ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H PL E0 same")
-    MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H PL E0 same")
-    MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H PL E0 same")
+    # ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H PL E0 same")
+    # MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H PL E0 same")
+    # MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H PL E0 same")
+    ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H P E0 same")
+    MC_REC_1D_Norm = MC_REC_1D.DrawNormalized("H P E0 same")
+    MC_GEN_1D_Norm = MC_GEN_1D.DrawNormalized("H P E0 same")
     try:
         statbox_move(Histogram=MC_GEN_1D_Norm, Canvas=Small_Bin_Canvas_Row_1.cd(1), Print_Method="off")
     except:
@@ -4858,7 +4867,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     ##=====##=====##     Drawing the Bayesian Histograms      ##=====##=====## ###################################################################
     Draw_Canvas(Small_Bin_Canvas_Row_2, 1, 0.15)
     if(DRAW_NORMALIZE):
-        UNFOLD_Bay_Norm = UNFOLD_Bay.DrawNormalized("H PL E0 same")
+        # UNFOLD_Bay_Norm = UNFOLD_Bay.DrawNormalized("H PL E0 same")
+        UNFOLD_Bay_Norm = UNFOLD_Bay.DrawNormalized("H P E0 same")
         UNFOLD_Bay_Norm.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_Bay_Norm.GetBinContent(UNFOLD_Bay_Norm.GetMaximumBin())))
         
         for ii in range(0, UNFOLD_Bay_Norm.GetNbinsX() + 1, 1):
@@ -4868,7 +4878,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
                 UNFOLD_Bay_Norm.SetBinError(ii,   0)
         # if(Multi_Dim_Option in ["Off", "Fitted", "Only"]):
         UNFOLD_Bay_Fitted = Fitting_Phi_Function(Histo_To_Fit=UNFOLD_Bay_Norm)
-        UNFOLD_Bay_Fitted[1].Draw("H PL E0 same")
+        # UNFOLD_Bay_Fitted[1].Draw("H PL E0 same")
+        UNFOLD_Bay_Fitted[1].Draw("H P E0 same")
         statbox_move(Histogram=UNFOLD_Bay_Fitted[0], Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
         # else:
         #     UNFOLD_Bay_Multi_Dim.DrawNormalized("H PL E0 same")
@@ -4877,7 +4888,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
         #     UNFOLD_Bay_Multi_Dim.GetYaxis().SetRangeUser(0, 1.2*maximum)
             
     else:
-        UNFOLD_Bay.Draw("H PL E0 same")
+        # UNFOLD_Bay.Draw("H PL E0 same")
+        UNFOLD_Bay.Draw("H P E0 same")
         UNFOLD_Bay.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_Bay.GetBinContent(UNFOLD_Bay.GetMaximumBin())))
         statbox_move(Histogram=UNFOLD_Bay, Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
         # if(Multi_Dim_Option in ["Off", "Fitted", "Only"]):
@@ -4897,7 +4909,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     if(Multi_Dim_Option in ["Off"]):
         Draw_Canvas(Small_Bin_Canvas_Row_1, 2, 0.15)
         if(DRAW_NORMALIZE):
-            UNFOLD_SVD_Norm = UNFOLD_SVD.DrawNormalized("H PL E0 same")
+            # UNFOLD_SVD_Norm = UNFOLD_SVD.DrawNormalized("H PL E0 same")
+            UNFOLD_SVD_Norm = UNFOLD_SVD.DrawNormalized("H P E0 same")
             UNFOLD_SVD_Norm.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_SVD_Norm.GetBinContent(UNFOLD_SVD_Norm.GetMaximumBin())))
             for ii in range(0, UNFOLD_SVD_Norm.GetNbinsX() + 1, 1):
                 if(UNFOLD_SVD_Norm.GetBinError(ii) > 0.01):
@@ -4905,10 +4918,12 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
                     UNFOLD_SVD_Norm.SetBinContent(ii, 0)
                     UNFOLD_SVD_Norm.SetBinError(ii,   0)
             UNFOLD_SVD_Fitted = Fitting_Phi_Function(Histo_To_Fit=UNFOLD_SVD_Norm)
-            UNFOLD_SVD_Fitted[1].Draw("H PL E0 same")
+            # UNFOLD_SVD_Fitted[1].Draw("H PL E0 same")
+            UNFOLD_SVD_Fitted[1].Draw("H P E0 same")
             statbox_move(Histogram=UNFOLD_SVD_Fitted[0], Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
         else:
-            UNFOLD_SVD.Draw("H PL E0 same")
+            # UNFOLD_SVD.Draw("H PL E0 same")
+            UNFOLD_SVD.Draw("H P E0 same")
             UNFOLD_SVD.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_SVD.GetBinContent(UNFOLD_SVD.GetMaximumBin())))
             statbox_move(Histogram=UNFOLD_SVD, Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
             # UNFOLD_SVD_Fitted = Fitting_Phi_Function(Histo_To_Fit=UNFOLD_SVD)
@@ -4921,7 +4936,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     ##=====##=====##    Drawing the Bin-by-Bin Histograms     ##=====##=====## ###################################################################
     Draw_Canvas(Small_Bin_Canvas_Row_2, 2, 0.15)
     if(DRAW_NORMALIZE):
-        UNFOLD_Bin_Norm = UNFOLD_Bin.DrawNormalized("H PL E0 same")
+        # UNFOLD_Bin_Norm = UNFOLD_Bin.DrawNormalized("H PL E0 same")
+        UNFOLD_Bin_Norm = UNFOLD_Bin.DrawNormalized("H P E0 same")
         UNFOLD_Bin_Norm.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_Bin_Norm.GetBinContent(UNFOLD_Bin_Norm.GetMaximumBin())))
         for ii in range(0, UNFOLD_Bin_Norm.GetNbinsX() + 1, 1):
             if(UNFOLD_Bin_Norm.GetBinError(ii) > 0.01):
@@ -4930,7 +4946,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
                 UNFOLD_Bin_Norm.SetBinError(ii,    0)
         # if(Multi_Dim_Option in ["Off", "Fitted", "Only"]):
         UNFOLD_Bin_Fitted = Fitting_Phi_Function(Histo_To_Fit=UNFOLD_Bin_Norm)
-        UNFOLD_Bin_Fitted[1].Draw("H PL E0 same")
+        # UNFOLD_Bin_Fitted[1].Draw("H PL E0 same")
+        UNFOLD_Bin_Fitted[1].Draw("H P E0 same")
         statbox_move(Histogram=UNFOLD_Bin_Fitted[0], Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
         # else:
         #     UNFOLD_Bin_Multi_Dim.DrawNormalized("H PL E0 same")
@@ -4938,7 +4955,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
         #     UNFOLD_Bin_Norm.GetYaxis().SetRangeUser(0,      1.2*maximum)
         #     UNFOLD_Bin_Multi_Dim.GetYaxis().SetRangeUser(0, 1.2*maximum)
     else:
-        UNFOLD_Bin.Draw("H PL E0 same")
+        # UNFOLD_Bin.Draw("H PL E0 same")
+        UNFOLD_Bin.Draw("H P E0 same")
         UNFOLD_Bin.GetYaxis().SetRangeUser(0, 1.2*(UNFOLD_Bin.GetBinContent(UNFOLD_Bin.GetMaximumBin())))
         statbox_move(Histogram=UNFOLD_Bin, Canvas=Small_Bin_Canvas, Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
         # if(Multi_Dim_Option in ["Off", "Fitted", "Only"]):
@@ -5041,8 +5059,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ####  Upper Left - i.e., 2D Histograms  ############################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
-    Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''")).replace("Data_Type", "rdf")).replace("(1D)", "(Normal_2D)")]
-    z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''")).replace("Data_Type", "rdf")).replace("(1D)", "(Normal_2D)")]
+    Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
+    z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
     Drawing_Histo_Set = {}
     ######################################################### ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ##===============##     3D Slices     ##===============## ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -5056,6 +5074,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
         Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
         if("mdf" in str(Q2_y_Histo_rdf_Initial.GetName())):
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "MC Reconstructed")
+        if("gdf" in str(Q2_y_Histo_rdf_Initial.GetName())):
+            Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "MC Generated")
         Drawing_Histo_Set[Q2_y_Name].SetTitle(Drawing_Histo_Title)
     else:
         Q2_y_Name = str(Q2_y_Histo_rdf_Initial.GetName())
@@ -5072,6 +5092,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
         Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
         if("mdf" in str(z_pT_Histo_rdf_Initial.GetName())):
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "MC Reconstructed")
+        if("gdf" in str(z_pT_Histo_rdf_Initial.GetName())):
+            Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "MC Generated")
         Drawing_Histo_Set[z_pT_Name].SetTitle(Drawing_Histo_Title)
     else:
         z_pT_Name = str(z_pT_Histo_rdf_Initial.GetName())
@@ -5162,8 +5184,14 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     
     Bin_Title_All_z_pT_Bins = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: All"]), "}}}"])
     
-    Draw_Canvas(All_z_pT_Canvas_cd_1_Lower, 1, 0.15)        
-    if("Response" in str(Method)):
+    Draw_Canvas(All_z_pT_Canvas_cd_1_Lower, 1, 0.15)
+    if(str(Multi_Dim_Option) not in ["Off"]):
+        Default_Response_Matrix_Name =   str(str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")).replace("Multi-Dim Histo", "Response_Matrix")
+        Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(z_pT_Bin_", str(Z_PT_Bin), ")"]), "(z_pT_Bin_All)")
+        if(("(Multi_Dim_Q2_y_Bin_phi_t)" in Default_Response_Matrix_Name) and (str(Q2_Y_Bin) not in ["All", "0"])):
+            Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(Q2_y_Bin_", str(Q2_Y_Bin), ")"]), "(Q2_y_Bin_All)")
+        Histogram_List_All[Default_Response_Matrix_Name].Draw("col")
+    elif("Response" in str(Method)):
         try:
             Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")].SetTitle(str(Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
             Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")].Draw("col")
@@ -5172,16 +5200,22 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     elif("Data"   in str(Method)):
         try:
             if(Multi_Dim_Option in ["Off"]):
-                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
-                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
-                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                # ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
+                # MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
+                # MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
+                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
+                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
             else:
                 Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_Q2_y_Bin_phi_t)")
                 # Currently built so that the integrated z-pT bin for multidimensional unfolding uses the combined Q2-y-phi variable (whereas the unfolding done for the individual z-pT bins will unfold the z-pT-phi variable instead)
                     # This note is to explain that the Multi-Dim version of this image will show 2 different types of multidimensional unfolding
-                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
-                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
-                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                # ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
+                # MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
+                # MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
+                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
+                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
             
             # ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Multi-Dimensional Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
             # MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Multi-Dimensional Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
@@ -5238,7 +5272,6 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             print("".join([color.BOLD, color.RED, "ERROR IN 1D (Input) Histograms:\n",        color.END, color.RED, str(traceback.format_exc()), color.END]))
     else:
         
-
         Default_Histo_Name_Any     = str(Default_Histo_Name)
         if(Multi_Dim_Option not in ["Off"]):
             Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_Q2_y_Bin_phi_t)")
@@ -5301,7 +5334,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
         
         try:
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].SetTitle(str(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
-            Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].Draw("H PL E0 same")
+            # Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].Draw("H PL E0 same")
+            Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].Draw("H P E0 same")
 
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
 
@@ -5358,9 +5392,13 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
 
         if("Data"       in str(Method)):
             try:
-                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
-                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
-                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                # ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H PL E0 same")
+                # MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
+                # MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
+                
+                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
+                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
+                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
                 
                 ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Multi-Dimensional Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
                 MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Multi-Dimensional Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
@@ -5479,7 +5517,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             
             try:
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle(str(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
-                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H PL E0 same")
+                # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H PL E0 same")
+                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H P E0 same")
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetXaxis().SetRangeUser(0, 360)
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetMaximumBin())))
                 
@@ -5593,17 +5632,17 @@ def FileLocation(FileName, Datatype):
 ################################################################################################################################################################
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
-Common_Name = "Unfolding_Tests_V13_All"
-Common_Name = "Analysis_Note_Update_V4_All"
-Common_Name = "Multi_Dimension_Unfold_V1_All"
-# Common_Name = "Multi_Dimension_Unfold_V2_All"
-Common_Name = "Multi_Dimension_Unfold_V3_All"
-Common_Name = "Analysis_Note_Update_VF_APS_All"
+# Common_Name = "Unfolding_Tests_V13_All"
+# Common_Name = "Analysis_Note_Update_V4_All"
+# Common_Name = "Multi_Dimension_Unfold_V1_All"
+# # Common_Name = "Multi_Dimension_Unfold_V2_All"
+# Common_Name = "Multi_Dimension_Unfold_V3_All"
+# Common_Name = "Analysis_Note_Update_VF_APS_All"
 
-Common_Name = "New_Binning_Schemes_V8_All"
+# Common_Name = "New_Binning_Schemes_V8_All"
 
-Common_Name = "Gen_Cuts_V1_All"
 Common_Name = "Gen_Cuts_V6_All"
+Common_Name = "Gen_Cuts_V7_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -5844,6 +5883,12 @@ for ii in mdf.GetListOfKeys():
         ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
         #############################################################################
 
+        
+        ############################################################################
+        ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
+        out_print_main_rdf = out_print_main_rdf.replace(", (Gen_MM_Cut)", "")
+        ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
+        ############################################################################
 
         #############################################################################
         ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
@@ -5853,7 +5898,6 @@ for ii in mdf.GetListOfKeys():
         out_print_main_gdf = out_print_main_gdf.replace("'Response_Matrix'",        "'Response_Matrix_1D'")
         ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
         #############################################################################
-        
         
         
         ##########################################################################################
@@ -5923,6 +5967,95 @@ for ii in mdf.GetListOfKeys():
         MC_GEN_1D_initial   = gdf.Get(out_print_main_gdf)
         Response_2D_initial = mdf.Get(out_print_main_mdf)
         
+        
+#         Use_Gen_MM_Cut = True
+        # Use_Gen_MM_Cut = False
+        
+        if(("Gen_MM_Cut" in str(out_print_main_rdf)) or ("Gen_MM_Cut" in str(out_print_main_mdf_1D)) or ("Gen_MM_Cut" in str(out_print_main_gdf))  or ("Gen_MM_Cut" in str(out_print_main_mdf))):
+            print(color.BLUE, color.BOLD, "\n\nINCLUDES Gen_MM_Cut\n\n", color.END)
+            print("out_print_main_rdf    =", out_print_main_rdf)
+            print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+            print("out_print_main_gdf    =", out_print_main_gdf)
+            print("out_print_main_mdf    =", out_print_main_mdf)
+            
+            # if(Use_Gen_MM_Cut):
+            if(abs(Response_2D_initial.GetZaxis().GetXmin()) == abs(Response_2D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                Response_2D_initial = Response_2D_initial.Project3D("xy")
+                Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" xy projection", ""))
+            else:
+                print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END)
+                print("Response_2D_initial = ", Response_2D_initial)
+                FAIL
+            if("3D" in str(type(MC_REC_1D_initial))):
+                if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("xy")
+                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" xy projection", ""))
+                else:
+                    print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END)
+                    print("MC_REC_1D_initial = ", Response_2D_initial)
+                    FAIL
+            else:
+                if(abs(MC_REC_1D_initial.GetYaxis().GetXmin()) == abs(MC_REC_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                    MC_REC_1D_initial = MC_REC_1D_initial.ProjectionX()
+                    print(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
+                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
+                else:
+                    print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END)
+                    print("MC_REC_1D_initial = ", Response_2D_initial)
+                    FAIL
+                    
+                    
+            if("3D" in str(type(MC_GEN_1D_initial))):
+                if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("xy")
+                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" xy projection", ""))
+                else:
+                    print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END)
+                    print("MC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                    FAIL
+            else:
+                if(abs(MC_GEN_1D_initial.GetYaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                    MC_GEN_1D_initial = MC_GEN_1D_initial.ProjectionX()
+                    print(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
+                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
+                else:
+                    print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END)
+                    print("MC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                    FAIL
+                    
+                    
+        elif(Common_Name in ["Gen_Cuts_V7_All"]):
+            if("3D" in str(type(ExREAL_1D_initial))):
+                print(color.BLUE, color.BOLD, "\n\n\n\nExREAL_1D_initial.GetZaxis().GetTitle() =", ExREAL_1D_initial.GetZaxis().GetTitle(), color.END)
+                print("out_print_main_rdf    =", out_print_main_rdf)
+                print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                print("out_print_main_gdf    =", out_print_main_gdf)
+                print("out_print_main_mdf    =", out_print_main_mdf)
+                if(abs(ExREAL_1D_initial.GetZaxis().GetXmin()) == abs(ExREAL_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                    ExREAL_1D_initial = ExREAL_1D_initial.Project3D("xy")
+                    ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace(" xy projection", ""))
+                print("ExREAL_1D_initial.GetTitle() =", ExREAL_1D_initial.GetTitle())
+            if("3D" in str(type(MC_REC_1D_initial))):
+                print(color.RED, color.BOLD, "\n\n\n\nMC_REC_1D_initial.GetZaxis().GetTitle() =", MC_REC_1D_initial.GetZaxis().GetTitle(), color.END)
+                print("out_print_main_rdf    =", out_print_main_rdf)
+                print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                print("out_print_main_gdf    =", out_print_main_gdf)
+                print("out_print_main_mdf    =", out_print_main_mdf)
+                if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("xy")
+                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" xy projection", ""))
+                print("MC_REC_1D_initial.GetTitle() =", MC_REC_1D_initial.GetTitle())
+            if("3D" in str(type(MC_GEN_1D_initial))):
+                print(color.GREEN, color.BOLD, "\n\n\n\nMC_GEN_1D_initial.GetZaxis().GetTitle() =", MC_GEN_1D_initial.GetZaxis().GetTitle(), color.END)
+                print("out_print_main_rdf    =", out_print_main_rdf)
+                print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                print("out_print_main_gdf    =", out_print_main_gdf)
+                print("out_print_main_mdf    =", out_print_main_mdf)
+                if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("xy")
+                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" xy projection", ""))
+                print("MC_GEN_1D_initial.GetTitle() =", MC_GEN_1D_initial.GetTitle())
+        
         # print("\n\n")
         # print("".join(["ExREAL_1D_initial[", str(ExREAL_1D_initial.GetName()), "]: \n\t\t", str(type(ExREAL_1D_initial)), "\n"]))
         # print("".join(["MC_REC_1D_initial[", str(out_print_main_mdf_1D), "]: \n\t\t", str(type(MC_REC_1D_initial)), "\n"]))
@@ -5936,7 +6069,7 @@ for ii in mdf.GetListOfKeys():
 ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###
 
 
-        z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
+        z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All"     in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
         
         if("y_bin" in Binning_Method):
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin_Unfold in [6, 10])       else 25 if(Q2_xB_Bin_Unfold in [13])     else 1
@@ -5945,7 +6078,8 @@ for ii in mdf.GetListOfKeys():
             
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [2])          else 36 if(Q2_xB_Bin_Unfold in [4, 5, 9, 10]) else 35 if(Q2_xB_Bin_Unfold in [1, 3])            else 30 if(Q2_xB_Bin_Unfold in [6, 7, 8, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
         
-
+        
+        
         for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
             if("y_bin" not in Binning_Method):
                 if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
@@ -6719,7 +6853,8 @@ for ii in mdf.GetListOfKeys():
                         # print(Bin_Unfolded[out_print_main_binned].GetTitle())
                     
                     # Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("H PL E0 same"))
-                    Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("PL E0 same"))
+                    # Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("PL E0 same"))
+                    Bin_Unfolded[(out_print_main_binned, "Norm")] = (Bin_Unfolded[out_print_main_binned].DrawNormalized("P E0 same"))
                     for ii in range(0, Bin_Unfolded[(out_print_main_binned, "Norm")].GetNbinsX() + 1, 1):
                         if(Bin_Unfolded[(out_print_main_binned, "Norm")].GetBinError(ii) > 0.01):
                             print("".join([color.RED, "\n(Bin-by-Bin Unfolded) Bin ", str(ii), " has a large error (after normalizing)...", color.END]))
@@ -6731,7 +6866,8 @@ for ii in mdf.GetListOfKeys():
                     
                     if(("'Combined_" not in str(out_print_main)) and ("'Multi_Dim" not in str(out_print_main))):
                         # RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])]   = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd"])].DrawNormalized("H PL E0 same"))
-                        RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])]   = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd"])].DrawNormalized("PL E0 same"))
+                        # RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])]   = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd"])].DrawNormalized("PL E0 same"))
+                        RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])]   = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd"])].DrawNormalized("P E0 same"))
                         for ii in range(0, RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])].GetNbinsX() + 1, 1):
                             if(RooUnfolded_Histos["".join([str(out_print_main_binned),  "_svd_Norm"])].GetBinError(ii) > 0.01):
                                 print("".join([color.RED, "\n(RooUnfold (SVD) Bin ", str(ii), " has a large error (after normalizing)...", color.END]))
@@ -6740,7 +6876,8 @@ for ii in mdf.GetListOfKeys():
                         Legends[(out_print_main_binned, "Unfolded")].AddEntry(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])], "#scale[2]{SVD (RooUnfold)}", "lpE")
                     
                     # RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])] = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])].DrawNormalized("H PL E0 same"))
-                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])] = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])].DrawNormalized("PL E0 same"))
+                    # RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])] = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])].DrawNormalized("PL E0 same"))
+                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])] = (RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes"])].DrawNormalized("P E0 same"))
                     for ii in range(0, RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])].GetNbinsX() + 1, 1):
                         if(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])].GetBinError(ii) > 0.01):
                             print("".join([color.RED, "\n(RooUnfold (Bayesian) Bin ", str(ii),  " has a large error (after normalizing)...", color.END]))
@@ -6796,37 +6933,47 @@ for ii in mdf.GetListOfKeys():
                     if("'phi_t'" in out_print_main or "'phi_t_smeared''" in out_print_main):
                         ExREAL_1D.GetXaxis().SetRangeUser(0, 360)
                         if(Plot_Version == "Web"):
-                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("H PL E0 same"))
+                            # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("H PL E0 same"))
+                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("H P E0 same"))
                         else:
-                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("PL E0 same"))
+                            # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("PL E0 same"))
+                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = (ExREAL_1D.DrawNormalized("P E0 same"))
                       # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = ExREAL_1D_Norm.Clone()
                         Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].SetTitle(str(Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
                         Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "ExREAL_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])].GetYaxis().SetRangeUser(0, Data_REC_Max)
                     else:
                         if(Plot_Version == "Web"):
-                            ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("H PL E0 same"))
+                            # ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("H PL E0 same"))
+                            ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("H P E0 same"))
                         else:
-                            ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("PL E0 same"))
+                            # ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("PL E0 same"))
+                            ExREAL_1D_Norm = (ExREAL_1D.DrawNormalized("P E0 same"))
                         ExREAL_1D_Norm.GetYaxis().SetRangeUser(0, Data_REC_Max)
                     Legends[(out_print_main_binned, "REC")].AddEntry(ExREAL_1D, "#scale[2]{Experimental}" if(Plot_Version == "Web") else "#scale[1]{Experimental}", "lpE")
                     if("phi_t" in out_print_main or "phi_t_smeared'" in out_print_main):
                         if(Plot_Version == "Web"):
-                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("H PL E0 same")
+                            # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("H PL E0 same")
+                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("H P E0 same")
                         else:
-                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("PL E0 same")
+                            # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("PL E0 same")
+                            Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_REC_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold), "_Smeared" if("_smeared" in str(out_print_main)) else ""])] = MC_REC_1D.DrawNormalized("P E0 same")
                     else:
                         if(Plot_Version == "Web"):
-                            MC_REC_1D.DrawNormalized("H PL E0 same")
+                            # MC_REC_1D.DrawNormalized("H PL E0 same")
+                            MC_REC_1D.DrawNormalized("H P E0 same")
                         else:
-                            MC_REC_1D.DrawNormalized("PL E0 same")
+                            # MC_REC_1D.DrawNormalized("PL E0 same")
+                            MC_REC_1D.DrawNormalized("P E0 same")
                     # MC_REC_1D_Norm = (MC_REC_1D.DrawNormalized("PL E1 same"))
                     Legends[(out_print_main_binned, "REC")].AddEntry(MC_REC_1D, "#scale[2]{MC REC}" if(Plot_Version == "Web") else "#scale[1]{MC REC}", "lpE")
                     
                     
                     MC_GEN_1D.GetXaxis().SetRangeUser(0, 360)
-                    Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    # Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    Save_Response_Matrix["".join(["MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("H P E0 same")
                     if("phi_t" in out_print_main or "phi_t_smeared'" in out_print_main):
-                        Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("PL E0 same")
+                        # Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("PL E0 same")
+                        Save_Response_Matrix["".join(["Multi Variable " if(("Combined" in out_print_main) or ("Multi_Dim" in out_print_main)) else "", "MC_GEN_1D Q2-xB Bin:", str(Q2_xB_Bin_Unfold), " z-pT Bin:", str(z_pT_Bin_Unfold)])] = MC_GEN_1D.DrawNormalized("P E0 same")
                     else:
                         MC_GEN_1D.DrawNormalized("PL E0 same")
                     Legends[(out_print_main_binned, "REC")].AddEntry(MC_GEN_1D, "#scale[2]{MC GEN}" if(Plot_Version == "Web") else "#scale[1]{MC GEN}", "lpE")
@@ -6943,9 +7090,12 @@ for ii in mdf.GetListOfKeys():
                     ExREAL_1D_Single.SetTitle(ExREAL_1D_Single_Title)
                     # print(str(ExREAL_1D_Single.GetTitle()))
                     
-                    ExREAL_1D_Single.DrawNormalized("H PL E0 same")
-                    MC_REC_1D.DrawNormalized("H PL E0 same")
-                    MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    # ExREAL_1D_Single.DrawNormalized("H PL E0 same")
+                    # MC_REC_1D.DrawNormalized("H PL E0 same")
+                    # MC_GEN_1D.DrawNormalized("H PL E0 same")
+                    ExREAL_1D_Single.DrawNormalized("H P E0 same")
+                    MC_REC_1D.DrawNormalized("H P E0 same")
+                    MC_GEN_1D.DrawNormalized("H P E0 same")
                     # MC_GEN_1D.DrawNormalized("PL E0 same")
                     Legends[(out_print_main_binned, "REC")].Draw("same")
                     
@@ -6960,7 +7110,8 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetXaxis().SetTitle(str(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm"])].GetXaxis().GetTitle()).replace("(REC)", ""))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
-                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].Draw("PL E1 same")
+                    # RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].Draw("PL E1 same")
+                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])].Draw("P E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
                     # A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_bayes_Norm_extra"])])
                     if(not extra_function_terms):
@@ -7005,7 +7156,8 @@ for ii in mdf.GetListOfKeys():
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetXaxis().SetTitle(str(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm"])].GetXaxis().GetTitle()).replace("(REC)", ""))
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
                     RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].GetXaxis().SetRangeUser(0, 360)
-                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].Draw("PL E1 same")
+                    # RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].Draw("PL E1 same")
+                    RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])].Draw("P E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
 #                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(RooUnfolded_Histos["".join([str(out_print_main_binned), "_svd_Norm_extra"])])
                     if(not extra_function_terms):
@@ -7126,7 +7278,8 @@ for ii in mdf.GetListOfKeys():
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetXaxis().SetTitle(str(Bin_Unfolded[(out_print_main_binned, "Norm")].GetXaxis().GetTitle()).replace("(REC)", ""))
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetYaxis().SetRangeUser(0, Unfolded_Max)
                     Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].GetXaxis().SetRangeUser(0, 360)
-                    Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].Draw("PL E1 same")
+                    # Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].Draw("PL E1 same")
+                    Bin_Unfolded["".join([str(out_print_main_binned), "extra"])].Draw("P E1 same")
                     Unfolded_Fit_Function = ROOT.TF1("Unfolded_Fit_Function", str(fit_function), 0, 360)
 #                     A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Bin_Unfolded["".join([str(out_print_main_binned), "extra"])])
                     if(not extra_function_terms):
@@ -7267,7 +7420,7 @@ for ii in gdf.GetListOfKeys():
 final_count = 0
 print("\n\n")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-    if("Par" in str(List_of_All_Histos_For_Unfolding_ii)):
+    if("Multi" in str(List_of_All_Histos_For_Unfolding_ii)):
         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
     final_count += 1
@@ -7293,7 +7446,7 @@ Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "SVD", "rdf", "mdf", 
 
 Pars_Canvas, Histo_Pars_VS_Z, Histo_Pars_VS_PT, Pars_Legends = {}, {}, {}, {}
 for BIN in Q2_xB_Bin_List:
-    BIN_NUM = int(BIN) if(str(BIN) not in ["0"]) else "All"
+    BIN_NUM = int(BIN)  if(str(BIN) not in ["0"]) else "All"
     z_pT_Bin_Range = 42 if(str(BIN_NUM) in ["2"]) else 36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
     for smear in Smearing_final_list:
         HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(phi_t)"])

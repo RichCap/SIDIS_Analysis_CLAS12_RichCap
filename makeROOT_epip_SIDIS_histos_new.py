@@ -67,7 +67,7 @@ Use_Weight = False
 SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
 Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
 Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight"]
-Smear_Factor_List = ["_0.5",   "_0.7",   "_0.75",    "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
+Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
 
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):

@@ -1,22 +1,18 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Matching_Gen_Cuts_V3_SIDIS_histo_6_23_2023
+#SBATCH --job-name=MC_Matching_SF_Testing_Mom_Cor_V9_No_Cor_SIDIS_histo_8_8_2023
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=5000
-#SBATCH --time=6:00:00
+#SBATCH --mem-per-cpu=1500
+#SBATCH --time=1:00:00
 #SBATCH --array=0-219
 
 
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*)
-# Above is for (mdf/pdf) #SBATCH --array=0-219
+# Above is for (mdf) #SBATCH --array=0-219
 
-# FILES=(/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*)
-# # Above is for (mdf/pdf) #SBATCH --array=0-219
-
-
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf_mom_2.0 ${FILES[$SLURM_ARRAY_TASK_ID]}
