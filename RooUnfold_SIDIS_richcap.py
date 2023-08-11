@@ -5,6 +5,7 @@ import sys
        
 Saving_Q = True
 Sim_Test = False
+Mod_Test = False
 Smearing_Options = "both"
 if(len(sys.argv) > 1):
     arg_option_1 = str(sys.argv[1])
@@ -15,10 +16,15 @@ if(len(sys.argv) > 1):
         print("".join(["\nOption Selected: ", str(arg_option_1), " (Still Saving...)" if("no_save" not in str(arg_option_1)) else " (NOT SAVING)"]))
         Saving_Q = True if("no_save" not in str(arg_option_1)) else False
         Sim_Test = True if("sim" in str(arg_option_1) or "simulation" in str(arg_option_1)) else False
+        Mod_Test = True if("mod" in str(arg_option_1) or "modulation" in str(arg_option_1)) else False        
         arg_option_1     = arg_option_1.replace("_simulation", "")
-        arg_option_1     = arg_option_1.replace("_sim", "")
-        arg_option_1     = arg_option_1.replace("simulation", "")
-        arg_option_1     = arg_option_1.replace("sim", "")
+        arg_option_1     = arg_option_1.replace("_sim",        "")
+        arg_option_1     = arg_option_1.replace("simulation",  "")
+        arg_option_1     = arg_option_1.replace("sim",         "")
+        arg_option_1     = arg_option_1.replace("_modulation", "")
+        arg_option_1     = arg_option_1.replace("_mod",        "")
+        arg_option_1     = arg_option_1.replace("modulation",  "")
+        arg_option_1     = arg_option_1.replace("mod",         "")
         Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
         if(Smearing_Options == ""):
             Smearing_Options = "both"
@@ -4179,29 +4185,124 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         ##==========##     Selecting Q2-xB Bin     ##==========##
         ##=====================================================##
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(elth_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",   "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    elth___Histo_rdf_2D = str(elth_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",   "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    elPhi__Histo_rdf_2D = str(elPhi_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    pipth__Histo_rdf_2D = str(pipth_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    pipPhi_Histo_rdf_2D = str(pipPhi_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=2, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(elPhi_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    elth___Histo_mdf_2D = str(elth_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",   "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    elPhi__Histo_mdf_2D = str(elPhi_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    pipth__Histo_mdf_2D = str(pipth_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
+    pipPhi_Histo_mdf_2D = str(pipPhi_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=3, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(pipth_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=1,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elth___Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=4, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(pipPhi_Histo_rdf_Initial.GetName()).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=2,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elPhi__Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=5, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(elth_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",   "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=3,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipth__Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=6, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(elPhi_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=4,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipPhi_Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=7, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(pipth_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All",  "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=5,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elth___Histo_mdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=8, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    Drawing_Histo_Set[str(pipPhi_Histo_mdf_Initial.GetName()).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D" if(Z_PT_Bin_Input in ["All", 0]) else str(Z_PT_Bin_Input)]))].Draw("colz")
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=6,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elPhi__Histo_mdf_2D)].Draw("colz")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=7,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipth__Histo_mdf_2D)].Draw("colz")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=8,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipPhi_Histo_mdf_2D)].Draw("colz")
+    
+    
+    ########################################################
+    ###==========###  Making 1D Histograms  ###==========###
+    ########################################################
+    
+    el_____Histo_rdf_1D = str(str(elth___Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elth)",    "(el)")
+    elth___Histo_rdf_1D = str(str(elth___Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elth)",    "(elth)")
+    elPhi__Histo_rdf_1D = str(str(elPhi__Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elPhi)",   "(elPhi)")
+    pip____Histo_rdf_1D = str(str(pipth__Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipth)",  "(pip)")
+    pipth__Histo_rdf_1D = str(str(pipth__Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipth)",  "(pipth)")
+    pipPhi_Histo_rdf_1D = str(str(pipPhi_Histo_rdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipPhi)", "(pipPhi)")
+    
+    el_____Histo_mdf_1D = str(str(elth___Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elth)",    "(el)")
+    elth___Histo_mdf_1D = str(str(elth___Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elth)",    "(elth)")
+    elPhi__Histo_mdf_1D = str(str(elPhi__Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(el)_(elPhi)",   "(elPhi)")
+    pip____Histo_mdf_1D = str(str(pipth__Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipth)",  "(pip)")
+    pipth__Histo_mdf_1D = str(str(pipth__Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipth)",  "(pipth)")
+    pipPhi_Histo_mdf_1D = str(str(pipPhi_Histo_mdf_2D).replace("Normal_2D", "Normal_1D")).replace("(pip)_(pipPhi)", "(pipPhi)")
+    
+    Drawing_Histo_Set[str(el_____Histo_rdf_1D)] = Drawing_Histo_Set[str(elth___Histo_rdf_2D)].ProjectionY()
+    Drawing_Histo_Set[str(elth___Histo_rdf_1D)] = Drawing_Histo_Set[str(elth___Histo_rdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(elPhi__Histo_rdf_1D)] = Drawing_Histo_Set[str(elPhi__Histo_rdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(pip____Histo_rdf_1D)] = Drawing_Histo_Set[str(pipth__Histo_rdf_2D)].ProjectionY()
+    Drawing_Histo_Set[str(pipth__Histo_rdf_1D)] = Drawing_Histo_Set[str(pipth__Histo_rdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(pipPhi_Histo_rdf_1D)] = Drawing_Histo_Set[str(pipPhi_Histo_rdf_2D)].ProjectionX()
+    
+    Drawing_Histo_Set[str(el_____Histo_mdf_1D)] = Drawing_Histo_Set[str(elth___Histo_mdf_2D)].ProjectionY()
+    Drawing_Histo_Set[str(elth___Histo_mdf_1D)] = Drawing_Histo_Set[str(elth___Histo_mdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(elPhi__Histo_mdf_1D)] = Drawing_Histo_Set[str(elPhi__Histo_mdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(pip____Histo_mdf_1D)] = Drawing_Histo_Set[str(pipth__Histo_mdf_2D)].ProjectionY()
+    Drawing_Histo_Set[str(pipth__Histo_mdf_1D)] = Drawing_Histo_Set[str(pipth__Histo_mdf_2D)].ProjectionX()
+    Drawing_Histo_Set[str(pipPhi_Histo_mdf_1D)] = Drawing_Histo_Set[str(pipPhi_Histo_mdf_2D)].ProjectionX()
+    
+    Kinematic_Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events" if(str(Q2_Y_Bin_Input) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin_Input), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(Z_PT_Bin_Input) if(str(Z_PT_Bin_Input) not in ["0"]) else "All"]), "}}}"])
+    
+    Drawing_Histo_Set[str(el_____Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{p_{El}}}}{",           str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(elth___Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#theta_{El}}}}{",      str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(elPhi__Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#phi_{El}}}}{",        str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pip____Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{p_{#pi^{+}}}}}{",      str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pipth__Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#theta_{#pi^{+}}}}}{", str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pipPhi_Histo_rdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#phi_{#pi^{+}}}}}{",   str(Kinematic_Bin_Title), "}"]))
+
+    for Histo_rdf_1D_Name in [el_____Histo_rdf_1D, elth___Histo_rdf_1D, elPhi__Histo_rdf_1D, pip____Histo_rdf_1D, pipth__Histo_rdf_1D, pipPhi_Histo_rdf_1D]:
+        Drawing_Histo_Set[str(Histo_rdf_1D_Name)].SetLineColor(root_color.Blue)
+        Drawing_Histo_Set[str(Histo_rdf_1D_Name)].SetMarkerColor(root_color.Blue)
+        Drawing_Histo_Set[str(Histo_rdf_1D_Name)].SetLineWidth(2)
+    
+    Drawing_Histo_Set[str(el_____Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{p_{El}}}}{",           str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(elth___Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#theta_{El}}}}{",      str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(elPhi__Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#phi_{El}}}}{",        str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pip____Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{p_{#pi^{+}}}}}{",      str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pipth__Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#theta_{#pi^{+}}}}}{", str(Kinematic_Bin_Title), "}"]))
+    Drawing_Histo_Set[str(pipPhi_Histo_mdf_1D)].SetTitle("".join(["#splitline{#scale[1.5]{#color[", str(root_color.Blue), "]{Data} to #color[", str(root_color.Red), "]{MC REC} Comparison of: ", root_color.Bold, "{#phi_{#pi^{+}}}}}{",   str(Kinematic_Bin_Title), "}"]))
+    
+    for Histo_mdf_1D_Name in [el_____Histo_mdf_1D, elth___Histo_mdf_1D, elPhi__Histo_mdf_1D, pip____Histo_mdf_1D, pipth__Histo_mdf_1D, pipPhi_Histo_mdf_1D]:
+        Drawing_Histo_Set[str(Histo_mdf_1D_Name)].SetLineColor(root_color.Red)
+        Drawing_Histo_Set[str(Histo_mdf_1D_Name)].SetMarkerColor(root_color.Red)
+        Drawing_Histo_Set[str(Histo_mdf_1D_Name)].SetLineWidth(2)
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=9,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(el_____Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(el_____Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=10, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elth___Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(elth___Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=11, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(elPhi__Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(elPhi__Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=13, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pip____Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(pip____Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=14, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipth__Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(pipth__Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=15, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    Drawing_Histo_Set[str(pipPhi_Histo_rdf_1D)].DrawNormalized("H P E0 same")
+    Drawing_Histo_Set[str(pipPhi_Histo_mdf_1D)].DrawNormalized("H P E0 same")
+    
     ##===============##     Drawing Histograms     ##===============##
     ##################################################################
     
@@ -4260,13 +4361,15 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     if((Multi_Dim_Option not in ["Off"]) and (str(Z_PT_Bin) not in ["All", "0"])):
         Default_Histo_Name = Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")
     
-    Large_Bin_Canvas       = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", "CANVAS"), Num_Columns=1, Num_Rows=3, Size_X=2400, Size_Y=2400, cd_Space=0)
+    # Large_Bin_Canvas       = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", "CANVAS"), Num_Columns=1, Num_Rows=3, Size_X=2400, Size_Y=2400, cd_Space=0)
+    Large_Bin_Canvas       = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", "CANVAS"), Num_Columns=1, Num_Rows=3, Size_X=2400, Size_Y=3300, cd_Space=0)
     Large_Bin_Canvas_Row_1 = Large_Bin_Canvas.cd(1)
     Large_Bin_Canvas_Row_2 = Large_Bin_Canvas.cd(2)
     Large_Bin_Canvas_Row_3 = Large_Bin_Canvas.cd(3)
     Large_Bin_Canvas_Row_1.Divide(4, 1, 0, 0)
     Large_Bin_Canvas_Row_2.Divide(4, 1, 0, 0)
-    Large_Bin_Canvas_Row_3.Divide(4, 2, 0, 0)
+    # Large_Bin_Canvas_Row_3.Divide(4, 2, 0, 0)
+    Large_Bin_Canvas_Row_3.Divide(4, 4, 0, 0)
     
     ExREAL_1D         = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''"))]
     MC_REC_1D         = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "mdf")))]
@@ -4558,7 +4661,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ##=====##=====##      Drawing the Extra 2D Histos         ##=====##=====## ###################################################################################################################################################################################################################################################################################################
     ########################################################################## ###################################################################################################################################################################################################################################################################################################
     ########################################################################## ################################################################
-
+    
     #########################################################################################################################
     ##==================================#################################################==================================##
     ##==========##==========##==========##    Done Drawing Histograms to Canvas Pads   ##==========##==========##==========##
@@ -5187,9 +5290,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     Draw_Canvas(All_z_pT_Canvas_cd_1_Lower, 1, 0.15)
     if(str(Multi_Dim_Option) not in ["Off"]):
         Default_Response_Matrix_Name =   str(str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")).replace("Multi-Dim Histo", "Response_Matrix")
-        Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(z_pT_Bin_", str(Z_PT_Bin), ")"]), "(z_pT_Bin_All)")
+        # Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(z_pT_Bin_", str(Z_PT_Bin), ")"]), "(z_pT_Bin_All)")
         if(("(Multi_Dim_Q2_y_Bin_phi_t)" in Default_Response_Matrix_Name) and (str(Q2_Y_Bin) not in ["All", "0"])):
             Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(Q2_y_Bin_", str(Q2_Y_Bin), ")"]), "(Q2_y_Bin_All)")
+        Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("(phi_t)", "(Multi_Dim_z_pT_Bin_y_bin_phi_t)")
+        print("\n\n\n\n\n\n\nDefault_Response_Matrix_Name =", Default_Response_Matrix_Name, "\n\n\n\n\n\n\n\n")
         Histogram_List_All[Default_Response_Matrix_Name].Draw("col")
     elif("Response" in str(Method)):
         try:
@@ -5687,6 +5792,12 @@ else:
 ##   Generated Monte Carlo Data   ##
 ####################################
 
+
+
+if(Mod_Test and ("Gen_Cuts_V7_All" in str(Common_Name))):
+    MC_REC_File_Name = "Gen_Cuts_V7_Modulated_All"
+    MC_GEN_File_Name = "Gen_Cuts_V7_Modulated_All"
+
 ################################################################################################################################################################
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
@@ -5980,16 +6091,16 @@ for ii in mdf.GetListOfKeys():
             
             # if(Use_Gen_MM_Cut):
             if(abs(Response_2D_initial.GetZaxis().GetXmin()) == abs(Response_2D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                Response_2D_initial = Response_2D_initial.Project3D("xy")
-                Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" xy projection", ""))
+                Response_2D_initial = Response_2D_initial.Project3D("yx")
+                Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" yx projection", ""))
             else:
                 print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END)
                 print("Response_2D_initial = ", Response_2D_initial)
                 FAIL
             if("3D" in str(type(MC_REC_1D_initial))):
                 if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("xy")
-                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" xy projection", ""))
+                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx")
+                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
                 else:
                     print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END)
                     print("MC_REC_1D_initial = ", Response_2D_initial)
@@ -6007,8 +6118,8 @@ for ii in mdf.GetListOfKeys():
                     
             if("3D" in str(type(MC_GEN_1D_initial))):
                 if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("xy")
-                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" xy projection", ""))
+                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx")
+                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
                 else:
                     print(color.RED, color.BOLD, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END)
                     print("MC_GEN_1D_initial = ", MC_GEN_1D_initial)
@@ -6032,8 +6143,8 @@ for ii in mdf.GetListOfKeys():
                 print("out_print_main_gdf    =", out_print_main_gdf)
                 print("out_print_main_mdf    =", out_print_main_mdf)
                 if(abs(ExREAL_1D_initial.GetZaxis().GetXmin()) == abs(ExREAL_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    ExREAL_1D_initial = ExREAL_1D_initial.Project3D("xy")
-                    ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace(" xy projection", ""))
+                    ExREAL_1D_initial = ExREAL_1D_initial.Project3D("yx")
+                    ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace(" yx projection", ""))
                 print("ExREAL_1D_initial.GetTitle() =", ExREAL_1D_initial.GetTitle())
             if("3D" in str(type(MC_REC_1D_initial))):
                 print(color.RED, color.BOLD, "\n\n\n\nMC_REC_1D_initial.GetZaxis().GetTitle() =", MC_REC_1D_initial.GetZaxis().GetTitle(), color.END)
@@ -6042,8 +6153,8 @@ for ii in mdf.GetListOfKeys():
                 print("out_print_main_gdf    =", out_print_main_gdf)
                 print("out_print_main_mdf    =", out_print_main_mdf)
                 if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("xy")
-                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" xy projection", ""))
+                    MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx")
+                    MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
                 print("MC_REC_1D_initial.GetTitle() =", MC_REC_1D_initial.GetTitle())
             if("3D" in str(type(MC_GEN_1D_initial))):
                 print(color.GREEN, color.BOLD, "\n\n\n\nMC_GEN_1D_initial.GetZaxis().GetTitle() =", MC_GEN_1D_initial.GetZaxis().GetTitle(), color.END)
@@ -6052,8 +6163,8 @@ for ii in mdf.GetListOfKeys():
                 print("out_print_main_gdf    =", out_print_main_gdf)
                 print("out_print_main_mdf    =", out_print_main_mdf)
                 if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("xy")
-                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" xy projection", ""))
+                    MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx")
+                    MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
                 print("MC_GEN_1D_initial.GetTitle() =", MC_GEN_1D_initial.GetTitle())
         
         # print("\n\n")
@@ -6077,7 +6188,6 @@ for ii in mdf.GetListOfKeys():
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9])         else 30 if(Q2_xB_Bin_Unfold in [6, 10, 11])   else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
             
             z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [2])          else 36 if(Q2_xB_Bin_Unfold in [4, 5, 9, 10]) else 35 if(Q2_xB_Bin_Unfold in [1, 3])            else 30 if(Q2_xB_Bin_Unfold in [6, 7, 8, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
-        
         
         
         for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
@@ -7420,7 +7530,7 @@ for ii in gdf.GetListOfKeys():
 final_count = 0
 print("\n\n")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-    if("Multi" in str(List_of_All_Histos_For_Unfolding_ii)):
+    if("Response_Matrix" in str(List_of_All_Histos_For_Unfolding_ii)):
         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
     final_count += 1
@@ -7495,7 +7605,7 @@ for BIN in Q2_xB_Bin_List:
             for Variable       in ["phi_t",     "Multi_Dim_z_pT_Bin_y_bin_phi_t"]:
                 for Parameter  in ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]:
                     for Method in ["Bin",       "Bayesian",  "SVD",        "gdf"]:
-                        if(("Multi_Dim" in str(Variable)) and (str(Method) in ["SVD"])):
+                        if((("Multi_Dim" in str(Variable)) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                             continue
                         LAST_Z_BIN,  LAST_PT_BIN  = "NA", "NA"
                         Z_BIN_COLOR, PT_BIN_COLOR = 1, 1

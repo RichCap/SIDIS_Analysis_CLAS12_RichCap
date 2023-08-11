@@ -735,7 +735,7 @@ Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
 Common_Name = "New_Binning_Schemes_V8_All"
 
 Common_Name = "Gen_Cuts_V2_Sim_All"
-Common_Name = "Gen_Cuts_V6_All"
+Common_Name = "Gen_Cuts_V7_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
