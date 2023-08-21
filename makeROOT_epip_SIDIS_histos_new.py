@@ -3,12 +3,9 @@
 # # This Code has been coverted such that 3D histograms are made instead of filtering Q2-xB/z-pT bins
 
 
-
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
-
-
 import sys
 from sys import argv
 # Let there be 4 arguements in argv when running this code
@@ -30,11 +27,11 @@ from sys import argv
 
 # NOTE: The 3rd arguement is not necessary if the option for "histo" is desired (i.e., code is backwards compatible and works with only 3 arguements if desired)
 
-# EXAMPLE: python makeROOT_epip_SIDIS_histos.py pdf All
+# EXAMPLE: python3 makeROOT_epip_SIDIS_histos.py mdf All
 
 # To see how many histograms will be made without processing any files, let the last arguement given be 'time'
 # i.e., run the command:
-# # python makeROOT_epip_SIDIS_histos_new.py df time
+# # python3 makeROOT_epip_SIDIS_histos_new.py df time
 # # # df above can be any of the data-type options given above
 
 try:
@@ -72,25 +69,25 @@ Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0",
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
         run_Mom_Cor_Code = "no"
-        datatype = str(datatype).replace(str(sidis), "")
+        datatype         = str(datatype).replace(str(sidis), "")
         break
         
 for mom_cor in Momentum_Cor_List:
     if(str(mom_cor) in str(datatype)):
         run_Mom_Cor_Code = "yes"
-        datatype = str(datatype).replace(str(mom_cor), "")
+        datatype         = str(datatype).replace(str(mom_cor), "")
         break
         
 for smear in Smear_Factor_List:
     if(str(smear) in str(datatype)):
-        smear_factor = str(smear).replace("_", "")
-        datatype = str(datatype).replace(str(smear), "")
+        smear_factor     = str(smear).replace("_", "")
+        datatype         = str(datatype).replace(str(smear), "")
         break
         
 for weight_Q in Using_Weight_List:
     if(str(weight_Q) in str(datatype)):
-        Use_Weight = True
-        datatype = str(datatype).replace(str(weight_Q), "")
+        Use_Weight       = True
+        datatype         = str(datatype).replace(str(weight_Q), "")
         break
         
         
@@ -110,10 +107,10 @@ del weight_Q
 if(output_type == "test"):
     output_all_histo_names_Q = "yes"
     print("Will be printing the histogram's IDs...")
-    file_location = "time"
-    output_type = "time"
-elif(output_type not in ["histo", "data", "tree"]):
-    file_location = output_type
+    file_location   = "time"
+    output_type     = "time"
+elif(output_type   not in ["histo", "data", "tree"]):
+    file_location   = output_type
     if(output_type not in ["test", "time"]):
         output_type = "histo"
 
@@ -121,7 +118,7 @@ print("".join(["Output type will be: ", output_type]))
 
 
 # Option to turn on and off Momentum Corrections ('yes' will turn the corrections on)
-Mom_Correction_Q = "yes"
+# Mom_Correction_Q = "yes"
 Mom_Correction_Q = "no"
 
 if(datatype in ['gdf']):
@@ -138,16 +135,6 @@ from datetime import datetime
 import copy
 import traceback
 import os
-# import psutil
-# def my_function():
-#     # Get the current process ID
-#     pid = os.getpid()
-#     # Create a Process object for the current process
-#     process = psutil.Process(pid)
-#     # Get the memory usage of the process in bytes
-#     mem_usage = process.memory_info().rss
-#     # Print the memory usage in MB
-#     print("Current Memory usage: {:.6f} MB".format(mem_usage / (1024 * 1024)))
 
     
 class color:
@@ -7344,10 +7331,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                             count_of_histograms += 1
                                             
-                                    # my_function()
                                     del sdf
-                                    # print("\nResponse Matrix Histograms:")
-                                    # my_function()
                                     
 
 
@@ -7364,7 +7348,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # File has been saved
         
         print("".join([color.BOLD, "\nTotal Number of Histograms Made: ", str(count_of_histograms), color.END]))
-#         my_function()
         
         # See beginning of code...
         if(output_all_histo_names_Q == "yes"):
