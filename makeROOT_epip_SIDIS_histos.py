@@ -1,34 +1,9 @@
-# This Code was last updated on 9-28-2022
-# # Note-to-self: Also always update this note at end of script
-
-
 # Most recent update notes:
-
-# # All Updates have been moved to the github page/README.md file
-
-    
-# # This Code has been coverted such that 3D histograms are made instead of filtering Q2-xB/z-pT bins
-
-
-
-
-
-
-
-# NOTE TO SELF: "Do not need 1D MC REC histograms (can make from the Response Matrix)"
-
-
-
-
-
+# # All Updates are located in the github page/README.md file
 
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
 ##=================================================================================================================================================================##
-
-
-
-
 from sys import argv
 # Let there be 4 arguements in argv when running this code
 # arguement 1: Name of this code (makeROOT_epip_SIDIS_histos.py)
@@ -53,7 +28,7 @@ from sys import argv
 
 # To see how many histograms will be made without processing any files, let the last arguement given be 'time'
 # i.e., run the command:
-# # python makeROOT_epip_SIDIS_histos.py df time
+# # python3 makeROOT_epip_SIDIS_histos.py df time
 # # # df above can be any of the data-type options given above
 
 try:
@@ -7358,5 +7333,3 @@ if(datatype == 'rdf' or datatype == 'mdf' or datatype == 'gdf' or datatype == 'p
     
 else:
     print("\nERROR: No valid datatype selected...\n")
-    
-# This Code was last updated on 9-28-2022

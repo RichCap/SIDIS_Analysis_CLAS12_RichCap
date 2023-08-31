@@ -94,7 +94,7 @@ datetime_object_full = datetime.now()
 # print(datetime_object)
 
 startMin_full = datetime_object_full.minute
-startHr_full = datetime_object_full.hour
+startHr_full  = datetime_object_full.hour
 
 if(datetime_object_full.minute <10):
     timeMin_full = "".join(["0", str(datetime_object_full.minute)])
@@ -736,8 +736,9 @@ Common_Name = "New_Binning_Schemes_V8_All"
 
 Common_Name = "Gen_Cuts_V2_Sim_All"
 Common_Name = "Gen_Cuts_V7_Modulated_All"
-# Common_Name = "Gen_Cuts_V7_All"
-Common_Name = "Gen_Cuts_V7_Sim_Modulated_All"
+Common_Name = "Gen_Cuts_V7_All"
+# Common_Name = "Gen_Cuts_V7_Sim_Modulated_All"
+Common_Name = "Gen_Cuts_V7_Closure_All"
 # Common_Name = "Gen_Cuts_V7_Sim_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
@@ -888,11 +889,11 @@ os.mkdir(destination_main)
 os.mkdir(destination_mult)
 os.mkdir(destination_Pars)
 
-destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
+# destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
 destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
 destination_mult_z_pT_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_z_pT_Bin_phi_h"])
 
-os.mkdir(destination_mult_Q2_phi_h)
+# os.mkdir(destination_mult_Q2_phi_h)
 os.mkdir(destination_mult_Q2_y_Bin_phi_h)
 os.mkdir(destination_mult_z_pT_Bin_phi_h)
 
@@ -905,7 +906,7 @@ destination_Par_A = "".join([str(destination_Pars), "/Fit_Par_A"])
 destination_Par_B = "".join([str(destination_Pars), "/Fit_Par_B"])
 destination_Par_C = "".join([str(destination_Pars), "/Fit_Par_C"])
 
-os.mkdir(destination_Par_A)
+# os.mkdir(destination_Par_A)
 os.mkdir(destination_Par_B)
 os.mkdir(destination_Par_C)
 
@@ -938,8 +939,10 @@ os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 
 ##=========================================================##
 ##=====##   Q2-xB/Q2-y Unfolding Folders Creation   ##=====##
-for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_A, destination_Par_B, destination_Par_C]:
-    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+# for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_A, destination_Par_B, destination_Par_C]:
+for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_B, destination_Par_C]:
+    # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
         if((Q2_xB_Bin != 0) or (str(folder) not in [str(destination_Par_A), str(destination_Par_B), str(destination_Par_C)])):
             os.mkdir("".join([str(folder), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 
@@ -960,18 +963,21 @@ for Entry in os.listdir():
             #     shutil.move(Entry, destination_pars)
             
             if("Fit_Par" in str(Entry)):
-                if("Fit_Par_A" in str(Entry)):
-                    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
-                        if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
-                            shutil.move(Entry, "".join([str(destination_Par_A), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
-                            break
+                # if("Fit_Par_A" in str(Entry)):
+                #     # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                #     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
+                #         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
+                #             shutil.move(Entry, "".join([str(destination_Par_A), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                #             break
                 if("Fit_Par_B" in str(Entry)):
-                    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                    # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
                             shutil.move(Entry, "".join([str(destination_Par_B), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
                             break
                 if("Fit_Par_C" in str(Entry)):
-                    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                    # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
                             shutil.move(Entry, "".join([str(destination_Par_C), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
                             break
@@ -989,9 +995,9 @@ for Entry in os.listdir():
                     #     else:
                     #         shutil.move(Entry, destination_mult)
                     # else:
-                    if("Q2_phi_h" in str(Entry)):
-                        shutil.move(Entry, destination_mult_Q2_phi_h)
-                    elif(("Q2_y_Bin_phi_h" in str(Entry)) or ("Q2_y_phi_h" in str(Entry))):
+                    # if("Q2_phi_h" in str(Entry)):
+                    #     shutil.move(Entry, destination_mult_Q2_phi_h)
+                    if(("Q2_y_Bin_phi_h"   in str(Entry)) or ("Q2_y_phi_h" in str(Entry))):
                         shutil.move(Entry, destination_mult_Q2_y_Bin_phi_h)
                     elif(("z_pT_Bin_phi_h" in str(Entry)) or ("z_pT_phi_h" in str(Entry)) or ("z_pT_Bin_y_bin_phi_h" in str(Entry)) or ("z_pT_y_bin_phi_h" in str(Entry))):
                         shutil.move(Entry, destination_mult_z_pT_Bin_phi_h)
@@ -1003,10 +1009,11 @@ for Entry in os.listdir():
                         shutil.move(Entry, destination_mult)
                     except:
                         print("".join([color.RED, color.BOLD, "\n2nd ERROR in 'Multi_Dim_Histo': \n", color.END, str(traceback.format_exc()), "\n"]))
-            elif(("Response_Matrix_" in str(Entry))    and ("_z_pT_Bin_"   in str(Entry))):
-                for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+            elif((("Response_Matrix_" in str(Entry)) or ("Kinematic_Comparison_" in str(Entry)))    and ("_z_pT_Bin_"   in str(Entry))):
+                # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)]) in str(Entry)):
-                        if(("Smear" not in str(Entry)) and ("smear"    not in str(Entry))):
+                        if(("Smear" not in str(Entry))                                              and ("smear"    not in str(Entry))):
                             try:
                                 shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                             except:
@@ -1018,7 +1025,8 @@ for Entry in os.listdir():
                                 print("".join([color.RED, color.BOLD, "ERROR in Smeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
 
             elif(("Unfolded_Histos"      in str(Entry)) and ("_z_pT_Bin_" not in str(Entry))):
-                for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                # for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, -1, -1):
+                for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin)])    in str(Entry)):
                         if(("Smear" not in str(Entry))  and ("smear"      not in str(Entry))):
                             try:
