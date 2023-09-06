@@ -5,6 +5,281 @@ This file will break down individual git updates into the different files that w
 See the README.md file for more general updates (especially those which pertain to things outside of the updates to the python code)
 
 
+# Notes Committed on 9-6-2023:
+
+# Extra_Name = "Gen_Cuts_V3_"
+* Generated Cut is not turned on
+* Added the Missing Mass unfolding histogram
+* Modified the number of bins used to plot the 2D z vs pT histograms (did not change the binning scheme itself yet)
+
+# Extra_Name = "Gen_Cuts_V3_Mom_Cor_"
+* Same as 'Gen_Cuts_V3_' but running the momentum correction histograms instead
+    * Starting to add the new z-pT bins but not fully updated yet
+* Using smear_factor = 0.8
+* Still using the same MC Momentum Corrections from Unsmeared distribution
+
+# Extra_Name = "Gen_Cuts_V3_Mom_Cor_V2_"
+* Same as 'Gen_Cuts_V3_' but running the momentum correction histograms instead
+    * Added the new z-pT bins but not fully tested yet
+* Using smear_factor = 0.75
+
+
+# Extra_Name = "Gen_Cuts_V3_Mom_Cor_V3_"
+* Same as 'Gen_Cuts_V3_' but running the momentum correction histograms instead
+* Using smear_factor = 0.5
+
+
+# Extra_Name = "Gen_Cuts_V3_Mom_Cor_V4_"
+* Same as 'Gen_Cuts_V3_' but running the momentum correction histograms instead
+* Using smear_factor = 1.0
+
+# Extra_Name = "Gen_Cuts_V3_Mom_Cor_FX_"
+* Same as 'Gen_Cuts_V3_' but running the momentum correction histograms instead
+    * Using FX's smearing function
+
+
+# Extra_Name = "Gen_Cuts_V4_"
+* Running with new z-pT bins for the Q2-y-z-pT scheme
+    * Using fewer bins in some, but not all, cases
+    * Data distribution in each bin should be improved (i.e., more evenly distributed)
+* Using fewer phi_h bins for the 5D Response Matrix
+    * Current number of bins are as follows:
+        * 512 Q2-y-z-pT bins
+        * 10 phi_h bins per Q2-y-z-pT bin (36 degrees per bin)
+        * TOTAL: 5120 bins
+* Using smear_factor = 0.75
+* No Generated Missing Mass Cuts at this time
+* Turned off MC Momentum Corrections
+
+
+# Extra_Name = "Gen_Cuts_V4_Mom_Cor_V1_"
+* Same as 'Gen_Cuts_V4_' but running the momentum correction histograms instead
+* Using smear_factor = 0.75
+* No Generated Missing Mass Cuts at this time
+* Turned off MC Momentum Corrections
+
+# Extra_Name = "Gen_Cuts_V4_Mom_Cor_V2_"
+* Same as 'Gen_Cuts_V4_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.5
+
+# Extra_Name = "Gen_Cuts_V4_Mom_Cor_V3_"
+* Same as 'Gen_Cuts_V4_Mom_Cor_V2_' but with a new smear_factor
+* Using smear_factor = 1.0
+
+# Extra_Name = "Gen_Cuts_V4_Mom_Cor_FX_"
+* Same as 'Gen_Cuts_V4_Mom_Cor_V3_' but with FX's smearing function
+
+
+
+# Extra_Name = "Gen_Cuts_V5_"
+* Same as 'Gen_Cuts_V4_' except the MC Momentum Corrections are turn back on and a few errors in the Kinematic binning definitions
+    * The momentum corrections, upon review, did not need to be turned off/updated (turning the corrections off was done because I forgot that I previously updated them from an inferior version)
+    * One binning error was caused by a single missing bin that would throw off the binning scheme used to define the 4D bin variable (it only went up to 512 bins when it should have been 513)
+    * Another binning error was with the Q2-y bin number 11 which had a few mistakenly defined z-pT bins (the number of bins was off and some improvements to how they were distributed were possible)
+    * NEW number of Q2-y-z-pT bins is 506 (due to the correction of Q2-y bin 11)
+        * Using fewer phi_h bins for the 5D Response Matrix
+            * Current number of bins are as follows:
+                * 506 Q2-y-z-pT bins
+                * 10 phi_h bins per Q2-y-z-pT bin (36 degrees per bin)
+                * TOTAL: 5060 bins
+* Using smear_factor = 0.75
+
+
+# Extra_Name = "Gen_Cuts_V5_Mom_Cor_V1_"
+* Same as 'Gen_Cuts_V5_' but running the momentum correction histograms instead and ONLY SMEARING THE PARTICLE'S MOMENTUMS
+    * The particle's angles are not being smeared
+* Using smear_factor = 0.75
+* No Generated Missing Mass Cuts at this time
+* MC Momentum Corrections are ON
+
+# Extra_Name = "Gen_Cuts_V5_Mom_Cor_V2_"
+* Same as 'Gen_Cuts_V5_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.5
+
+# Extra_Name = "Gen_Cuts_V5_Mom_Cor_V3_"
+* Same as 'Gen_Cuts_V5_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.0
+
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_"
+* Same as 'Gen_Cuts_V5_' except the MC Momentum Corrections are turn back off due to issues recognized in their development
+    * Plotting Dp vs p_corrected causes issues in creating the iterative corrections which exists in this code while not existing in the prior Momentum Correction Development code that this procedure is based on
+* Using smear_factor = 0.75
+    * The particle's angles are NOT being smeared
+* MC Momentum Corrections are OFF
+
+
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_V1_"
+* Same as 'Gen_Cuts_V5_No_Cor_' but running the momentum correction histograms instead
+    * The Particle Kinematics that are plotted in these histograms will be smeared along with the Missing Mass and ∆P/∆Theta variables
+* Using smear_factor = 0.75
+    * The particle's angles are NOT being smeared
+* MC Momentum Corrections are OFF
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_V2_"
+* Same as 'Gen_Cuts_V5_No_Cor_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.5
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_V3_"
+* Same as 'Gen_Cuts_V5_No_Cor_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.0
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_FX_"
+* Same as 'Gen_Cuts_V5_No_Cor_Mom_Cor_V1_' but with FX's smearing function
+
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_V4_"
+* Same as 'Gen_Cuts_V5_No_Cor_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.7
+
+# Extra_Name = "Gen_Cuts_V5_No_Cor_Mom_Cor_V5_"
+* Same as 'Gen_Cuts_V5_No_Cor_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.5
+
+
+# Extra_Name = "Gen_Cuts_V6_"
+* The MC Momentum Corrections are turn back ON after testing their new versions
+    * Only 1 iteration of the correction per particle
+* Using smear_factor = 0.75
+    * The particle's angles are NOT being smeared
+* Not making the 5D-Unfolding Histograms
+    * Instead, making new 3D-Unfolding Histograms which unfold z+pT+phi_h together for each Q2-y Bin
+* Made some other minor changes (not present in "Gen_Cuts_V6_Mom_Cor_V*" - but should not affect the results)
+
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V1_"
+* Same as 'Gen_Cuts_V6_' but running the momentum correction histograms instead
+    * The Particle Kinematics that are plotted in these histograms will be smeared along with the Missing Mass and ∆P/∆Theta variables
+* Using smear_factor = 0.75
+    * The particle's angles are NOT being smeared
+* MC Momentum Corrections are ON
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V2_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.5
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V3_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.0
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_FX_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with FX's smearing function
+
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V4_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.7
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V5_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.5
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V6_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.9
+
+# Extra_Name = "Gen_Cuts_V6_Mom_Cor_V7_"
+* Same as 'Gen_Cuts_V6_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.8
+
+
+
+# Extra_Name = "Gen_Cuts_V7_"
+* Was the same as "Gen_Cuts_V6_" when started running "SF_Testing_Mom_Cor_V1_" but updated later with new simulated phi_t modulations and MM_gen cuts
+* Added the Missing_Mass_Cut_Gen variable which has a value of -1 if the generated missing mass is below 1.5 GeV. Otherwise, it has a value of 1
+    * This does not effect the experimental data histograms
+    * These cuts are not available on the mdf 1D phi_h unfolding response matrices as they lack the extra available dimension to make use of the variable
+        * Use the multidimensional unfolding plots instead
+* Added Modulations to the Monte Carlo phi_h distributions (effects generated and reconstructed distributions when turned on)
+    * This closure test can be turned from the commandline by including "_mod" in the datatype input
+    * Modulations are made by weighing the events based on calculations done with the generated phi_h value (using the same function phi_h will be ultimately fitted with)
+        * Modulation parameters for this run are:
+            * Par_B = -0.050
+            * Par_C =  0.025
+    * Modulations are applied to all response matrix plots and the 2D histograms
+    * Modulations are not allowed as options when running code with the experimental data or for the momentum correction plots (no indication will be given in these cases, but for the other relevant cases, the code will print whether the closure test is being used)
+* Using smear_factor = 0.75
+
+
+
+# Extra_Name = "SF_Testing_Mom_Cor_V1_"
+* Same as 'Gen_Cuts_V7_'/'Gen_Cuts_V6_' but running the momentum correction histograms instead
+    * The Particle Kinematics that are plotted in these histograms will be smeared along with the Missing Mass and ∆P/∆Theta variables
+* Using smear_factor = 0.75
+    * The particle's angles are NOT being smeared
+* MC Momentum Corrections are ON
+* Added MM and Dp vs local phi plots
+
+# Extra_Name = "SF_Testing_Mom_Cor_V2_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.5
+
+# Extra_Name = "SF_Testing_Mom_Cor_V3_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.0
+
+# Extra_Name = "SF_Testing_Mom_Cor_FX_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with FX's smearing function
+
+# Extra_Name = "SF_Testing_Mom_Cor_V4_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.7
+
+# Extra_Name = "SF_Testing_Mom_Cor_V5_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.5
+
+# Extra_Name = "SF_Testing_Mom_Cor_V6_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.9
+
+# Extra_Name = "SF_Testing_Mom_Cor_V7_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 0.8
+
+# Extra_Name = "SF_Testing_Mom_Cor_V8_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 1.2
+
+# Extra_Name = "SF_Testing_Mom_Cor_V9_"
+* Same as 'SF_Testing_Mom_Cor_V1_' but with a new smear_factor
+* Using smear_factor = 2.0
+
+
+# Extra_Name = "Gen_Cuts_V8_"
+* Increased the modulations to the Monte Carlo phi_h distributions (increased Par_B by a factor of 10)
+    * See 'Gen_Cuts_V7_' for first update
+        * Modulation parameters for this run are:
+            * Par_B = -0.500
+            * Par_C =  0.025
+    * Modulations are applied to all response matrix plots and the 2D histograms
+    * Modulations are NOT allowed as options when running code with the experimental data or for the momentum correction plots
+* Tried to fix the 'Missing_Mass_Cut_Gen' variable (see See 'Gen_Cuts_V7_' for first update)
+    * Now split the 'Gen_MM_Cut' into separate histograms from improved usage
+        * A potential error occurred with a difference in the number of events in the 1D simulated unfolding closure tests and the 3D simulated unfolding closure tests
+            * Possible cause may have been the lack of the 'Missing_Mass_Cut_Gen' variable in the 1D response matrices
+        * The histograms which included 'Missing_Mass_Cut_Gen' in 'Gen_Cuts_V7_' are now split into two separate sets of histograms - one having the 'Missing_Mass_Cut_Gen' variable on an extra axis to be projected later and one that is the same as prior versions of the histogram (i.e., does not include 'Gen_MM_Cut')
+        * The 1D Response matrices which did not include 'Missing_Mass_Cut_Gen' in the last update are now split into 3 histograms:
+            * The 1st one is the same as before (i.e., no reference to 'Missing_Mass_Cut_Gen')
+            * The 2nd one includes just the events that would be EXCLUDED by the Generated Missing Mass Cut (i.e., Missing_Mass_Cut_Gen < 0)
+                * Histogram name includes "Gen_Cut_MM" to pick it out from the other histograms
+            * The 3rd one applies the Generated Missing Mass Cut as to only keep the events which survive the cut (i.e., Missing_Mass_Cut_Gen > 0)
+                * Histogram name includes "Gen_MM_Cut" to pick it out from the other histograms
+                * This name is identical to the part of the names of the other histograms which include 'Missing_Mass_Cut_Gen' as a plotted variable
+* Removed the Missing Mass 1D histograms and the 2D MM vs W histograms to reduce the number of histograms being created
+    * These histograms were not in regular use at this time
+* Added new Multi_Dim histograms for the purpose of checking the phi_t distribution's dependence on the particles' lab angles
+    * Wanted to study possible correlations between these angles and the additional modulations noticed in the phi_t distributions
+    * Added elth, pipth, elPhi, and pipPhi
+* Attempted to fix parts of the histogram titles
+    * Note: Do not use functions like SetTitle() in this code as they cause it to run much slower (not optimal for testing - likely would require the same amount of time to test as it would take to fully run the code to produce the root files)
+* Slightly modified how the response matrix histograms are saved to be slightly more compact (given that the additional histograms would make it even more difficult to save each one properly)
+* Using smear_factor = 0.75
+* Momentum Corrections are applied
+
+
+
 # Notes Committed on 6-20-2023:
 
 ## Extra_Name = "Gen_Cuts_V1_"

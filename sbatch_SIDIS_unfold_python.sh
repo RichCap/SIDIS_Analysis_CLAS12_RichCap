@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_python_SIDIS_Gen_Cuts_V7_histo_8_30_2023_Closure_Test
+#SBATCH --job-name=RooUnfold_python_SIDIS_Gen_Cuts_V6_histo_9_5_2023_Sim_Test
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
@@ -15,4 +15,4 @@
 source /group/clas12/packages/setup.csh
 source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build/setup.sh
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py save_closure $SLURM_ARRAY_TASK_ID
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py save_sim $SLURM_ARRAY_TASK_ID

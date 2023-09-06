@@ -111,6 +111,8 @@ if(len(sys.argv) > 1):
         Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
         if(Smearing_Options == ""):
             Smearing_Options = "both"
+        if(("no_smear" in [str(Smearing_Options)]) or ("no_smear" in str(arg_option_1))):
+            Smearing_Options = "no_smear"
 else:
     Saving_Q = True
     
@@ -134,7 +136,7 @@ if(not Fit_Test):
     
     
 if(str(Smearing_Options) not in ["both"]):
-    print(color.BLUE, color.BOLD, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in [""]) else Smearing_Options.replace("_s", "S"), color.END, "\n")
+    print(color.BLUE, color.BOLD, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else Smearing_Options.replace("_s", "S"), color.END, "\n")
 
 File_Save_Format = ".png"
 # File_Save_Format = ".root"
@@ -2018,12 +2020,94 @@ def Get_Max_Y_Histo_1D(Histo_List, Norm_Q="Default"):
 
 
 
+# #####################################################################################################################################################
+# ##==========##==========##     Missing Mass Lines for z-pT Histograms      ##==========##==========##==========##==========##==========##==========##
+# #####################################################################################################################################################
+# def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1):
+#     Q2_val = 4.00
+#     y_val  = 0.55
+#     if(str(Q2_y_Bin) in ["1",  "2",  "3",  "4"]):
+#         Q2_val = 2.2115
+#     if(str(Q2_y_Bin) in ["5",  "6",  "7",  "8"]):
+#         Q2_val = 2.7050
+#     if(str(Q2_y_Bin) in ["9",  "10", "11", "12"]):
+#         Q2_val = 3.4805
+#     if(str(Q2_y_Bin) in ["13", "14"]):
+#         Q2_val = 4.6790
+#     if(str(Q2_y_Bin) in ["15"]):
+#         Q2_val = 4.9610
+#     if(str(Q2_y_Bin) in ["16"]):
+#         Q2_val = 7.6400
+#     if(str(Q2_y_Bin) in ["17"]):
+#         Q2_val = 6.6530
+#     if(str(Q2_y_Bin) in ["1", "5", "9",  "13", "16"]):
+#         y_val  = 0.7
+#     if(str(Q2_y_Bin) in ["2", "6", "10", "14", "17"]):
+#         y_val  = 0.6
+#     if(str(Q2_y_Bin) in ["3", "7", "11", "15"]):
+#         y_val  = 0.5
+#     if(str(Q2_y_Bin) in ["4", "8"]):
+#         y_val  = 0.4
+#     if(str(Q2_y_Bin) in ["12"]):
+#         y_val  = 0.375
+#     Ebeam = 10.6041
+#     mpro  = 0.938272
+#     mpip  = 0.13957
+#     if(z_val not in ["pT"]):
+#         Term1  = "".join([str((mpro*mpro - Q2_val + mpro*y_val*Ebeam) + (mpip*mpip)), " - ", str(2*y_val*Ebeam), "*(", str(mpro), " - ", str(y_val*Ebeam), "*z)"])
+#         Term2  = ((y_val*Ebeam)*(y_val*Ebeam)) + Q2_val
+#         Term3  = "".join([str(mpip*mpip), " - ", str(y_val*Ebeam), "*z"])
+#         pT_2   = "".join(["(((", str(MM_val*MM_val), " - ", str(Term1), ")(", str(MM_val*MM_val), " - ", str(Term1), "))/(", str(4*Term2), ")) - ", str(Term3)])
+#         pT_val = "".join(["sqrt(", str(pT_2), ")"])
+#         if(type(z_val) is not str):
+#             Term1 = (mpro*mpro - Q2_val + mpro*y_val*Ebeam) + (mpip*mpip) - (2*y_val*Ebeam*(mpro - z_val*y_val*Ebeam))
+#             Term2 = ((y_val*Ebeam)*(y_val*Ebeam)) + Q2_val
+#             Term3 = (mpip*mpip) - (z_val*y_val*Ebeam)
+#             pT_2  = (((MM_val*MM_val - Term1)*(MM_val*MM_val - Term1))/(4*Term2)) - Term3
+#             # pT_val = ((mpro*mpro + mpip*mpip - Q2_val - MM_val*MM_val)/(2*y_val*Ebeam)) + mpro*(z_val + 1)
+#             pT_val = pT_2
+#             if(pT_2 > 0):
+#                 pT_val = ROOT.sqrt(pT_2)
+#             else:
+#                 print(color.Error, "\nERROR IN CALCULATING pT\n", color.END, color.BOLD, "pT^2 =", pT_2, "should be greater than 0.", color.END)
+#                 print("Calculation Error occurred with the inputs of:", color.BOLD, "\n\tz_val    =", z_val, "\n\tMM_val   =", MM_val, "\n\tQ2_y_Bin =", Q2_y_Bin, color.END)
+#                 print(color.Error, "Will use the absolute value of pT for this calculation...\n\n", color.END)
+#                 pT_val = ROOT.sqrt(abs(pT_2))
+#         return pT_val
+#     else:
+#         y_val_Ebeam = y_val*Ebeam
+#         Term1 = (mpro*mpro - Q2_val + mpro*y_val_Ebeam) + (mpip*mpip) - 2*mpro*y_val_Ebeam
+#         Term2 = y_val_Ebeam*y_val_Ebeam + Q2_val
+#         Term3 = "".join([str(mpip*mpip), " + pT*pT"])
+#         Term4 = MM_val*MM_val - Term1
+#         TermA = -4*y_val_Ebeam*y_val_Ebeam*y_val_Ebeam*y_val_Ebeam
+#         TermB = (4*Term4 - Term2)*y_val_Ebeam
+#         TermC = "".join(["(", str(Term2), ")*(", str(Term3), ") - (", str(Term4*Term4), ")"])
+#         z_function = "".join(["((", str(-TermB), ") - sqrt((", str(TermB*TermB), ") - ((", str(4*TermA), ")*(", str(TermC), "))))/(", str(2*TermA), ")"])
+#         return z_function
+# #####################################################################################################################################################
+# ##==========##==========##     Missing Mass Lines for z-pT Histograms      ##==========##==========##==========##==========##==========##==========##
+# #####################################################################################################################################################
+
+
+
+
+
+
+
+
 #####################################################################################################################################################
 ##==========##==========##     Missing Mass Lines for z-pT Histograms      ##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################
 
 
-def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1):
+def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT"):
+    # If z_val="pT", then this function will return 2 equations to plot z as a function of pT (use when pT is on the x-axis)
+        # Any other input will plot pT as a function of z
+        # These options will only return 1 equation
+    # If either z_val or pT_Input are inputted as numbers (i.e., anything other than a string), then this function will return a single calculation based on the input
+        # If z_val != "pT", then not input of pT_Input will change the output of this code
+        # If z_val and pT_Input are strings, then the output of this function will be the equation(s) for drawing the MM cut line
     Q2_val = 4.00
     y_val  = 0.55
     if(str(Q2_y_Bin) in ["1",  "2",  "3",  "4"]):
@@ -2052,14 +2136,56 @@ def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1):
     if(str(Q2_y_Bin) in ["12"]):
         y_val  = 0.375
     
-    Ebeam = 10.6041
-    mpro  = 0.938272
-    mpip  = 0.13957
+    Ebeam   = 10.6041
+    mpro    = 0.938272
+    mpip    = 0.13957
+    v_Term  = round(y_val*Ebeam,                                                                   5)
+    W2_Term = round(mpro*mpro - Q2_val + 2*mpro*v_Term,                                            5)
     
-    pT_val = ((mpro*mpro + mpip*mpip - Q2_val - MM_val*MM_val)/(2*y_val*Ebeam)) + mpro*(z_val + 1)
+    pT_val  = pT_Input
     
-    return pT_val
-
+    if(z_val not in ["pT"]):
+        B_Term      = round(2*ROOT.sqrt(Q2_val + v_Term*v_Term),                                   5)
+        if(type(z_val) is not str):
+            A_Term  = round(W2_Term - MM_val*MM_val + mpip*mpip - 2*(mpro + v_Term)*v_Term*z_val,  5)
+            C_Term  = round((v_Term*v_Term)*(z_val*z_val) - mpip*mpip,                             5)
+            pT_2    = round(C_Term - ((A_Term*A_Term)/(B_Term*B_Term)),                            5)
+            if(pT_2 > 0):
+                pT_val = round(ROOT.sqrt(pT_2),                                                    5)
+            else:
+                print(color.Error, "\nERROR IN CALCULATING pT\n", color.END, color.BOLD, "pT^2 =", pT_2, "should be greater than 0.", color.END)
+                print("Calculation Error occurred with the inputs of:", color.BOLD, "\n\tz_val    =", z_val, "\n\tMM_val   =", MM_val, "\n\tQ2_y_Bin =", Q2_y_Bin, color.END)
+                # print(color.Error, "Will use the absolute value of pT for this calculation...\n\n", color.END)
+                # pT_val = round(ROOT.sqrt(abs(pT_2)),                                               5)
+                pT_val = round(ROOT.sqrt(pT_2),                                                    5)
+        else:
+            A_Term  = "".join([str(W2_Term - MM_val*MM_val + mpip*mpip), " - ", str(2*(mpro + v_Term)*v_Term), "*x"])
+            A2_Term = "".join(["(", str(A_Term), ")*(", str(A_Term), ")"])
+            C_Term  = "".join([str(v_Term*v_Term), "*(x*x) - ", str(mpip*mpip)])
+            pT_2    = "".join([str(C_Term), " - ((", str(A2_Term), ")/(", str(B_Term*B_Term), "))"])
+            pT_val  = "".join(["sqrt(", str(pT_2), ")"])
+        return pT_val
+    else:
+        A_Term      = round(mpro*mpro + mpip*mpip - Q2_val - MM_val*MM_val + 2*v_Term*mpro,        5)
+        B_Term      = round(-2*(mpro*v_Term + v_Term*v_Term),                                      5)
+        C_Term      = round(2*ROOT.sqrt(Q2_val + v_Term*v_Term),                                   5)
+        D_Term      = "".join(["(", str(round(mpip*mpip, 5)), ") + (x*x)"])
+        
+        Term_A      = round(((B_Term*B_Term)/(C_Term*C_Term)) - (v_Term*v_Term),                   5)
+        Term_B      = round((2*A_Term*B_Term)/(C_Term*C_Term),                                     5)
+        Term_C      = "".join([str(round((A_Term*A_Term)/(C_Term*C_Term), 5)), " + ", str(D_Term)])
+        if(type(pT_Input) is not str):
+            D_Term  = round(mpip*mpip + pT_val*pT_val,                                             5)
+            Term_C  = round((A_Term*A_Term)/(C_Term*C_Term) + D_Term,                              5)
+            
+        z_function_p     = "".join(["((", str(-Term_B), ") + sqrt((", str(Term_B*Term_B), ") - ((", str(4*Term_A), ")*(", str(Term_C), "))))/(", str(2*Term_A), ")"])
+        z_function_m     = "".join(["((", str(-Term_B), ") - sqrt((", str(Term_B*Term_B), ") - ((", str(4*Term_A), ")*(", str(Term_C), "))))/(", str(2*Term_A), ")"])
+        if(type(pT_Input) is not str):
+            z_function_p = round((-Term_B + ROOT.sqrt((Term_B*Term_B) - (4*Term_A*Term_C)))/(2*Term_A),  5)
+            z_function_m = round((-Term_B - ROOT.sqrt((Term_B*Term_B) - (4*Term_A*Term_C)))/(2*Term_A),  5)
+        
+        return [z_function_p, z_function_m]
+        
 
 #####################################################################################################################################################
 ##==========##==========##     Missing Mass Lines for z-pT Histograms      ##==========##==========##==========##==========##==========##==========##
@@ -2282,16 +2408,45 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
                 # z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
                 z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
                 
-        if("y" in str(Binning_Method) and False):
+        # if("y" in str(Binning_Method) and False):
+        if("y" in str(Binning_Method)):
             MM_z_pT_borders = {}
-            for MM in [0.94, 1.5, 2.5]:
-                # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
-                # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
-                MM_z_pT_borders[MM] = ROOT.TLine()
-                MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
-                MM_z_pT_borders[MM].SetLineWidth(2)
-                MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.8)
-                
+            # Create a TLegend
+            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+            MM_z_pT_legend.SetNColumns(2)
+            # for MM in [0.94, 1.5, 2.5]:
+            # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+            for MM in [0.93956, 1.232, 1.5, 2.0]:
+                # # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
+                # # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
+                # MM_z_pT_borders[MM] = ROOT.TLine()
+                # MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94]) else 8 if(MM in [1.5]) else 46)
+                # MM_z_pT_borders[MM].SetLineWidth(2)
+                # MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.8)
+                # pT_function         = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT")
+                # MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), pT_function, 0.1, 0.8)
+                # MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
+                # MM_z_pT_borders[MM].SetLineWidth(2)
+                # if(round(MM*MM, 2) not in [1.5]):
+                #     MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
+                # MM_z_pT_borders[MM].Draw("same")
+                # Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
+                # MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
+                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT")
+                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, 0.8 if(str(Q2_xB_Bin) in ["12"]) else 1.0 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.2)
+                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, 0.8 if(str(Q2_xB_Bin) in ["12"]) else 1.0 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.2)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
+                if(MM not in [1.5]):
+                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+            MM_z_pT_legend.Draw("same")
 
 ######################################################################################################################################################
 ##==========##==========##    Simple Function for Drawing 2D Histograms     ##==========##==========##==========##==========##==========##==========##
@@ -4179,15 +4334,36 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
                 z_pT_borders[pTline].SetLineWidth(2)
                 # z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
                 z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
-        if("y" in str(Binning_Method) and False):
+        # if("y" in str(Binning_Method) and False):
+        #     MM_z_pT_borders = {}
+        #     for MM in [0.94, 1.5, 2.5]:
+        #         # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin_Input), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input))
+        #         # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin_Input), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input))
+        #         MM_z_pT_borders[MM] = ROOT.TLine()
+        #         MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
+        #         MM_z_pT_borders[MM].SetLineWidth(2)
+        #         MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.8)
+        if("y" in str(Binning_Method)):
             MM_z_pT_borders = {}
-            for MM in [0.94, 1.5, 2.5]:
-                # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin_Input), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input))
-                # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin_Input), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input))
-                MM_z_pT_borders[MM] = ROOT.TLine()
-                MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
-                MM_z_pT_borders[MM].SetLineWidth(2)
-                MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.8)
+            # Create a TLegend
+            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+            MM_z_pT_legend.SetNColumns(2)
+            for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT")
+                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, 0.8 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.0 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.2)
+                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, 0.8 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.0 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.2)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
+                if(round(MM*MM, 2) not in [1.5]):
+                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+            MM_z_pT_legend.Draw("same")
     
     
     Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
@@ -5999,15 +6175,31 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
                     z_pT_borders[pTline].SetLineColor(1)
                     z_pT_borders[pTline].SetLineWidth(4)
                     z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
-        if("y" in str(Binning_Method) and False):
+        # if("y" in str(Binning_Method) and False):
+        #     MM_z_pT_borders = {}
+        #     for MM in [0.94, 1.5, 2.5]:
+        #         # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
+        #         # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
+        #         MM_z_pT_borders[MM] = ROOT.TLine()
+        #         MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
+        #         MM_z_pT_borders[MM].SetLineWidth(2)
+        #         MM_z_pT_borders[MM].DrawLine(0.1, MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
+        if("y" in str(Binning_Method)):
             MM_z_pT_borders = {}
-            for MM in [0.94, 1.5, 2.5]:
-                # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
-                # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_Y_Bin), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
-                MM_z_pT_borders[MM] = ROOT.TLine()
-                MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
+            # Create a TLegend
+            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+            MM_z_pT_legend.SetNColumns(2)
+            for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+                pT_function         = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+                MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, 0.1, 0.8)
+                MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
                 MM_z_pT_borders[MM].SetLineWidth(2)
-                MM_z_pT_borders[MM].DrawLine(0.1, MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
+                if(round(MM*MM, 2) not in [1.5]):
+                    MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
+                MM_z_pT_borders[MM].Draw("same")
+                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
+            MM_z_pT_legend.Draw("same")
     else:
         if(str(Q2_Y_Bin) not in ["All", "0"]):
             z_pT_borders = {}
@@ -6025,13 +6217,34 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
                     z_pT_borders[pTline].SetLineColor(1)
                     z_pT_borders[pTline].SetLineWidth(2)
                     z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
-            if("y" in str(Binning_Method) and False):
+            # if("y" in str(Binning_Method) and False):
+            #     MM_z_pT_borders = {}
+            #     for MM in [0.94, 1.5, 2.5]:
+            #         MM_z_pT_borders[MM] = ROOT.TLine()
+            #         MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
+            #         MM_z_pT_borders[MM].SetLineWidth(2)
+            #         MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8)
+            if("y" in str(Binning_Method)):
                 MM_z_pT_borders = {}
-                for MM in [0.94, 1.5, 2.5]:
-                    MM_z_pT_borders[MM] = ROOT.TLine()
-                    MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
-                    MM_z_pT_borders[MM].SetLineWidth(2)
-                    MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8)
+                # Create a TLegend
+                MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+                MM_z_pT_legend.SetNColumns(2)
+                for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+                    z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+                    MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, 0.8 if(str(Q2_Y_Bin) in ["12"]) else 1.0 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.2)
+                    MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, 0.8 if(str(Q2_Y_Bin) in ["12"]) else 1.0 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.2)
+                    MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
+                    MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
+                    MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
+                    MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
+                    if(round(MM*MM, 2) not in [1.5]):
+                        MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                        MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                    MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+                    MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+                    Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
+                    MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+                MM_z_pT_legend.Draw("same")
     ##===============##     Drawing z-pT Histogram     ##===============## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     
@@ -6802,7 +7015,7 @@ def FileLocation(FileName, Datatype):
 # Common_Name = "New_Binning_Schemes_V8_All"
 
 Common_Name = "Gen_Cuts_V6_All"
-Common_Name = "Gen_Cuts_V7_All"
+# Common_Name = "Gen_Cuts_V7_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -7897,6 +8110,8 @@ if(tdf not in ["N/A"]):
 # Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "SVD"]
 # Method_Type_List = ["Unfold"]
 # Method_Type_List = ["Data", "Unfold"]
+# Method_Type_List = ["Data"]
+# Method_Type_List = ["Bin"]
 
 # All phi_t related plots (including multidimensional plots) are controlled by variable = 'phi_t'
 # Variable_List = ["phi_t", "MM"]
@@ -7929,6 +8144,7 @@ for variable in Variable_List:
                             except Exception as e:
                                 print("".join([color.BOLD, color.RED, "ERROR IN z_pT_Images_Together():\n",   color.END, color.RED, str(traceback.format_exc()), color.END]))
                                 
+#                 continue # This is to skip everything that isn't the z_pT_Images_Together() images
                 for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
                     if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
                         continue

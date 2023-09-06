@@ -5,31 +5,19 @@ Analysis code for multidimensional SIDIS Analysis of CLAS12 data
 ## To-do List (General)
 This list will be updated as items are completed. Items here may not always relate to the code in the Github repository.
 - [ ] Unfolding Tests:
-    - [ ] 1) Plot the fit parameters B, C as functions of z and pT
-        * Need to fix the plots (for multidimensional unfolding/Q2-y binning)
-    - [ ] 2) Replace the experimental data with MC data to test if the unfolding procedures reproduce the generated data properly
-        * [x] Tested for 1D
-        * [ ] Tested for higher dimensions
-    - [ ] 3) Calculate (1 + B*cos(phi) + C*cos(2*phi)) from theory and rewieght the response matrices to test modulations in generated phi_h
-        * [ ] Test this with the test (2) above
+    - [x] 1) Plot the fit parameters B, C as functions of z and pT
+    - [x] 2) Replace the experimental data with MC data to test if the unfolding procedures reproduce the generated data properly
+    - [x] 3) Calculate (1 + B*cos(phi) + C*cos(2*phi)) from theory and rewieght the response matrices to test modulations in generated phi_h
+        * [x] Test this with the test (2) above
     - [ ] 4) Calculate Luminosity to start implementing proper normalization procedures during unfolding
 - [ ] Test new binning schemes:
     - [ ] (1) Multidimensional bins (testing combining bins into a single variable for unfolding)
-        * [x] Tested up to 2D (Finished [ ])
+        * [x] Tested up to 2D (Finished [x])
         * [x] Tested up to 3D (Finished [ ])
-        * [ ] Tested up to 4D (Finished [ ])
         * [x] Tested up to 5D (Finished [ ])
             * [ ] Modify the final outputs to convert the 'Q2_y_z_pT_4D_Bin' variable into the separate Q2-y and z-pT bins
-    - [ ] (2) New definitions for the z-pT bins of the Q2-y bins (try for a more consistent number of z-pT bins per Q2-y bin)
-        * Having fewer z-pT bins per Q2-y bin (with the same overall ranges) could help make the multidimensional unfolding easier to manage
-    - [x] (3) New definitions for the Q2-xB bins (more square)
-        * [ ] Also define a new z-pT binning scheme based on these new Q2-xB bins
-    - [ ] (4) Use Marshall's version of my binning code to streamline the bin definitions (his is a more compact/refined version of my bins) - low priority due to new Q2-y binning
-        * [x] Make generic code which makes it easier to switch between different binning schemes
-        * [x] Test new code for compatibility with old code
-            * [x] Remove old code after testing
-        * [x] Rename binning schemes for more accurate/meaningful names
-        * [ ] Fix the memory/run-time issue
+    - [x] (2) New definitions for the Q2-xB bins (more square)
+        * [x] Also define a new z-pT binning scheme based on these new Q2-xB bins
 - [ ] For Momentum Correction Code, do the following:
     - [ ] (1) MC needs its own momentum corrections 
         * Use ∆P = P_gen - P_rec instead of calculations
@@ -39,12 +27,26 @@ This list will be updated as items are completed. Items here may not always rela
 
 
 
-
 ---
 
 
 
 ## Detailed Commit Updates:
+
+### Update on 9-6-2023:
+* Some updates were not listed in these notes (see code and individual commits for more details)
+    * Updated File_Name_Updates.md with the File name updates (still in makeROOT_epip_SIDIS_histos_new.py as well)
+* Updated some of the "To-do" items above (not adding new items at this time)
+* Deleting some old root files from the repository which are no longer in use
+* File name "Gen_Cuts_V7_" had issues with the new 'Gen_MM_Cut' variable that was added (caused issues with the multidimensional closure tests)
+    * The multidimensional histograms for the "Gen_Cuts_V7_" files cannnot be trusted
+    * This was the same update that the MC Modulations were added
+* Added new txt files which are made to record the kinematic comparisons when RooUnfold_SIDIS_richcap.py is made
+    * RooUnfold_SIDIS_richcap_sort.py does not (currently) sort these files
+    * Code written to help read these files is being tested in Analysis_Notebook_SIDIS_richcap.ipynb
+* File name is now up to "Gen_Cuts_V8_"
+    * Code has not yet finished testing this version of the files
+
 
 
 ### Update on 6-20-2023:

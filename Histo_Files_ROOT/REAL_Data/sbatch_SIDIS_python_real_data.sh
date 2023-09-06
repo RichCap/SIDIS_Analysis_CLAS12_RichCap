@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=REAL_Data_SF_Testing_Mom_Cor_No_Cor_SIDIS_histo_8_8_2023
+#SBATCH --job-name=REAL_Data_Gen_Cuts_V8_SIDIS_histo_9_1_2023
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=1500
+#SBATCH --mem-per-cpu=2500
 #SBATCH --time=6:00:00
 #SBATCH --array=0-173
 
@@ -15,4 +15,4 @@
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*)
 # Above is for (rdf) #SBATCH --array=0-173
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py rdf_mom ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py rdf_sidis ${FILES[$SLURM_ARRAY_TASK_ID]}
