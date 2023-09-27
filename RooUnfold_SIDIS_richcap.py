@@ -1358,185 +1358,200 @@ def Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find, z_pT_Bin_Find="All"):
 
 def Full_Calc_Fit(Histo, version="norm"):
     
-    Histo_180_bin = Histo.FindBin(155)
-    Histo_240_bin = Histo.FindBin(300)
-    Histo_max_bin = Histo.GetMaximumBin()
-    if(Histo_max_bin == Histo_180_bin or Histo_max_bin == Histo_240_bin):
-        # print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Same bin used in fits", color.END]))
-        Histo_max_bin = Histo.FindBin(100)
-    Histo_180_bin_y = Histo.GetBinContent(Histo_180_bin)
-    Histo_240_bin_y = Histo.GetBinContent(Histo_240_bin)
-    Histo_max_bin_y = Histo.GetBinContent(Histo_max_bin)
-    Histo_180_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_180_bin)
-    Histo_240_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_240_bin)
-    Histo_max_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
-    Histo_180_bin_Cos_phi   = ROOT.cos(Histo_180_bin_x)
-    Histo_240_bin_Cos_phi   = ROOT.cos(Histo_240_bin_x)
-    Histo_max_bin_Cos_phi   = ROOT.cos(Histo_max_bin_x)
-    Histo_180_bin_Cos_2_phi = ROOT.cos(2*Histo_180_bin_x)
-    Histo_240_bin_Cos_2_phi = ROOT.cos(2*Histo_240_bin_x)
-    Histo_max_bin_Cos_2_phi = ROOT.cos(2*Histo_max_bin_x)
-    numerator   = (Histo_180_bin_y*Histo_240_bin_Cos_phi*Histo_max_bin_Cos_2_phi) - (Histo_180_bin_Cos_phi*Histo_240_bin_y*Histo_max_bin_Cos_2_phi) - (Histo_180_bin_y*Histo_240_bin_Cos_2_phi*Histo_max_bin_Cos_phi) + (Histo_180_bin_Cos_2_phi*Histo_240_bin_y*Histo_max_bin_Cos_phi) + (Histo_180_bin_Cos_phi*Histo_240_bin_Cos_2_phi*Histo_max_bin_y) - (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi*Histo_max_bin_y)
-    denominator = (Histo_180_bin_Cos_phi*Histo_240_bin_Cos_2_phi)                 - (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi)                 - (Histo_180_bin_Cos_phi*Histo_max_bin_Cos_2_phi)                 + (Histo_240_bin_Cos_phi*Histo_max_bin_Cos_2_phi)                 + (Histo_180_bin_Cos_2_phi*Histo_max_bin_Cos_phi)                 - (Histo_240_bin_Cos_2_phi*Histo_max_bin_Cos_phi)
-    try:
-        A = numerator/denominator
-        # A = 0.025
-        B = -0.2*A
-        C = -0.1*A
-        # C = ((Histo_240_bin_x - A) + (Histo_180_bin_x - A)*(Histo_240_bin_Cos_phi/Histo_180_bin_Cos_phi))/((Histo_240_bin_Cos_2_phi + (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi)/Histo_180_bin_Cos_phi))
-        # B = (Histo_max_bin - A - C*Histo_max_bin_Cos_2_phi)/(Histo_max_bin_Cos_phi)
-    except:
-        print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
-        A, B, C = "Error", "Error", "Error"
+    # Helping the closure tests with known values of B and C
+    if(Closure_Test):
+        B, C = -0.500, 0.025
+        Histo_max_bin     = Histo.GetMaximumBin()
+        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+        A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
+    elif(Sim_Test):
+        B, C = 0, 0
+        Histo_max_bin     = Histo.GetMaximumBin()
+        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+        A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
         
-    try:
-#         Phi_low_bin = Histo.FindBin(52.5)
-#         Phi_mid_bin = Histo.FindBin(157.5)
-#         Phi_max_bin = Histo.FindBin(262.5)
-        
-        Phi_low_bin = Histo.FindBin(157.5)
-        Phi_mid_bin = Histo.FindBin(202.5)
-        
-        Phi_low_bin = Histo.FindBin(155)
-        Phi_mid_bin = Histo.FindBin(300)
-        
-        # Phi_max_bin = Histo.FindBin(262.5)
-        Phi_max_bin = Histo.GetMaximumBin()
+    else:
+        Histo_180_bin = Histo.FindBin(155)
+        Histo_240_bin = Histo.FindBin(300)
+        Histo_max_bin = Histo.GetMaximumBin()
+        if(Histo_max_bin == Histo_180_bin or Histo_max_bin == Histo_240_bin):
+            # print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Same bin used in fits", color.END]))
+            Histo_max_bin = Histo.FindBin(100)
+        Histo_180_bin_y = Histo.GetBinContent(Histo_180_bin)
+        Histo_240_bin_y = Histo.GetBinContent(Histo_240_bin)
+        Histo_max_bin_y = Histo.GetBinContent(Histo_max_bin)
+        Histo_180_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_180_bin)
+        Histo_240_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_240_bin)
+        Histo_max_bin_x = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+        Histo_180_bin_Cos_phi   = ROOT.cos(Histo_180_bin_x)
+        Histo_240_bin_Cos_phi   = ROOT.cos(Histo_240_bin_x)
+        Histo_max_bin_Cos_phi   = ROOT.cos(Histo_max_bin_x)
+        Histo_180_bin_Cos_2_phi = ROOT.cos(2*Histo_180_bin_x)
+        Histo_240_bin_Cos_2_phi = ROOT.cos(2*Histo_240_bin_x)
+        Histo_max_bin_Cos_2_phi = ROOT.cos(2*Histo_max_bin_x)
+        numerator   = (Histo_180_bin_y*Histo_240_bin_Cos_phi*Histo_max_bin_Cos_2_phi) - (Histo_180_bin_Cos_phi*Histo_240_bin_y*Histo_max_bin_Cos_2_phi) - (Histo_180_bin_y*Histo_240_bin_Cos_2_phi*Histo_max_bin_Cos_phi) + (Histo_180_bin_Cos_2_phi*Histo_240_bin_y*Histo_max_bin_Cos_phi) + (Histo_180_bin_Cos_phi*Histo_240_bin_Cos_2_phi*Histo_max_bin_y) - (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi*Histo_max_bin_y)
+        denominator = (Histo_180_bin_Cos_phi*Histo_240_bin_Cos_2_phi)                 - (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi)                 - (Histo_180_bin_Cos_phi*Histo_max_bin_Cos_2_phi)                 + (Histo_240_bin_Cos_phi*Histo_max_bin_Cos_2_phi)                 + (Histo_180_bin_Cos_2_phi*Histo_max_bin_Cos_phi)                 - (Histo_240_bin_Cos_2_phi*Histo_max_bin_Cos_phi)
+        try:
+            A = numerator/denominator
+            # A = 0.025
+            B = -0.2*A
+            C = -0.1*A
+            # C = ((Histo_240_bin_x - A) + (Histo_180_bin_x - A)*(Histo_240_bin_Cos_phi/Histo_180_bin_Cos_phi))/((Histo_240_bin_Cos_2_phi + (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi)/Histo_180_bin_Cos_phi))
+            # B = (Histo_max_bin - A - C*Histo_max_bin_Cos_2_phi)/(Histo_max_bin_Cos_phi)
+        except:
+            print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+            A, B, C = "Error", "Error", "Error"
 
-        if(Phi_max_bin in [Phi_low_bin, Phi_mid_bin, Phi_low_bin - 1, Phi_mid_bin - 1, Phi_low_bin - 2, Phi_mid_bin - 2, Phi_low_bin + 1, Phi_mid_bin + 1, Phi_low_bin + 2, Phi_mid_bin + 2]):
-            print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Same bin used in fits", color.END]))
-            # Phi_max_bin = Histo.FindBin(187.5)
-            Phi_max_bin = Histo.FindBin(262.5)
-        
-        Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
-        Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
-        Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
-        
-        n2 = Histo.GetBinContent(Phi_max_bin)
-        a2 = ROOT.cos(Phi_max)                # Cos_phi_max
-        b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
+        try:
+    #         Phi_low_bin = Histo.FindBin(52.5)
+    #         Phi_mid_bin = Histo.FindBin(157.5)
+    #         Phi_max_bin = Histo.FindBin(262.5)
 
-        if(0 not in [ROOT.cos(Phi_max), ROOT.cos(2*Phi_max)]):
+            Phi_low_bin = Histo.FindBin(157.5)
+            Phi_mid_bin = Histo.FindBin(202.5)
+
+            Phi_low_bin = Histo.FindBin(155)
+            Phi_mid_bin = Histo.FindBin(300)
+
+            # Phi_max_bin = Histo.FindBin(262.5)
+            Phi_max_bin = Histo.GetMaximumBin()
+
+            if(Phi_max_bin in [Phi_low_bin, Phi_mid_bin, Phi_low_bin - 1, Phi_mid_bin - 1, Phi_low_bin - 2, Phi_mid_bin - 2, Phi_low_bin + 1, Phi_mid_bin + 1, Phi_low_bin + 2, Phi_mid_bin + 2]):
+                print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Same bin used in fits", color.END]))
+                # Phi_max_bin = Histo.FindBin(187.5)
+                Phi_max_bin = Histo.FindBin(262.5)
+
+            Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
+            Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
+            Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
+
             n2 = Histo.GetBinContent(Phi_max_bin)
-            a2 = ROOT.cos(Phi_max)            # Cos_phi_max
-            b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
-        elif(Phi_max_bin != Histo.FindBin(187.5)):
-            print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Phi_max gives divide by 0 error", color.END]))
-            Phi_max_bin = Histo.FindBin(187.5)
-            Phi_max     = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
-            n2 = Histo.GetBinContent(Phi_max_bin)
-            a2 = ROOT.cos(Phi_max)            # Cos_phi_max
-            b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
-            
-        if(0 in [ROOT.cos(Phi_max), ROOT.cos(2*Phi_max)]):
-            print(color.RED, color.BOLD, "POTENTIAL RISK OF DIVIDE BY 0 ERROR FOR Phi_max_bin =", Phi_max_bin, color.END)
-            Phi_max_bin = Histo.FindBin(100 if(Phi_max_bin != Histo.FindBin(100)) else 247.5)
-            Phi_max     = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
-            n2 = Histo.GetBinContent(Phi_max_bin)
-            a2 = ROOT.cos(Phi_max)            # Cos_phi_max
-            b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
-        
-        n0 = Histo.GetBinContent(Phi_low_bin)
-        n1 = Histo.GetBinContent(Phi_mid_bin)
+            a2 = ROOT.cos(Phi_max)                # Cos_phi_max
+            b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
 
-        a0 = ROOT.cos(Phi_low)                # Cos_phi_low
-        a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
+            if(0 not in [ROOT.cos(Phi_max), ROOT.cos(2*Phi_max)]):
+                n2 = Histo.GetBinContent(Phi_max_bin)
+                a2 = ROOT.cos(Phi_max)            # Cos_phi_max
+                b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
+            elif(Phi_max_bin != Histo.FindBin(187.5)):
+                print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Phi_max gives divide by 0 error", color.END]))
+                Phi_max_bin = Histo.FindBin(187.5)
+                Phi_max     = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
+                n2 = Histo.GetBinContent(Phi_max_bin)
+                a2 = ROOT.cos(Phi_max)            # Cos_phi_max
+                b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
 
-        b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
-        b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
+            if(0 in [ROOT.cos(Phi_max), ROOT.cos(2*Phi_max)]):
+                print(color.RED, color.BOLD, "POTENTIAL RISK OF DIVIDE BY 0 ERROR FOR Phi_max_bin =", Phi_max_bin, color.END)
+                Phi_max_bin = Histo.FindBin(100 if(Phi_max_bin != Histo.FindBin(100)) else 247.5)
+                Phi_max     = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
+                n2 = Histo.GetBinContent(Phi_max_bin)
+                a2 = ROOT.cos(Phi_max)            # Cos_phi_max
+                b2 = ROOT.cos(2*Phi_max)          # Cos_2_phi_max
 
-        numerator_A   = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n1) - n0*(a1*b2 - a2*b1)
-        denominator_A = a0*(b2    - b1)    + b0*(a1    - a2)    -     a1*b2 + a2*b1
-        
-        numerator_B   = b0*(n1    -    n2) + b1*(n2    - n0)    + b2*(n0    - n1)
-        denominator_B = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n0) + n0*(a2*b1 - a1*b2)
-        
-        numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
-        denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
-        
-        if(denominator_A != 0):
-            A = numerator_A/denominator_A
-        else:
-            print(color.RED, "\nError A - Divide by 0\n", color.END)
-            A = n2/(1 + (numerator_B/denominator_B)*a2 + (numerator_C/denominator_C)*b2)
-            
-        if(denominator_B != 0):
-            B = numerator_B/denominator_B
-        else:
-            print(color.RED, "\nError B - Divide by 0\n", color.END)
-            print("a2 =", a2)
-            print("A  =", A)
-            print("denominator_C =", denominator_C)
-            B = (1/a2)*((n2/A) - (numerator_C/denominator_C)*b2 - 1)
-            
-        if(denominator_C != 0):
-            C = numerator_C/denominator_C
-        else:
-            print(color.RED, "\nError C - Divide by 0\n", color.END)
-            C = (1/b2)*((n2/A) - B*a2 - 1)
-            
-#         # Above is the 1st Version of the calculation
-#         # Below is the additional versions of the calculation which use different points to solve for parameters B and C using the same value of A
-#         Phi_low_bin = Histo.FindBin(52.5)
-#         Phi_mid_bin = Histo.FindBin(157.5)
-#         Phi_max_bin = Histo.FindBin(262.5)
-#         Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
-#         Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
-#         Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
-#         n2 = Histo.GetBinContent(Phi_max_bin)
-#         a2 = ROOT.cos(Phi_max)                # Cos_phi_max
-#         b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
-#         n0 = Histo.GetBinContent(Phi_low_bin)
-#         n1 = Histo.GetBinContent(Phi_mid_bin)
-#         a0 = ROOT.cos(Phi_low)                # Cos_phi_low
-#         a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
-#         b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
-#         b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
-#         numerator_B   = b0*(n1    -    n2) + b1*(n2    - n0)    + b2*(n0    - n1)
-#         denominator_B = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n0) + n0*(a2*b1 - a1*b2)
-#         numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
-#         denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
-#         if(denominator_B != 0):
-#             B = numerator_B/denominator_B
-#         else:
-#             print(color.RED, "\nError B - V2 - Divide by 0\n", color.END)
-#             B = (1/a2)*((n2/A) - (numerator_C/denominator_C)*b2 - 1)
-#         if(denominator_C != 0):
-#             C = numerator_C/denominator_C
-#         else:
-#             print(color.RED, "\nError C - V2 - Divide by 0\n", color.END)
-#             C = (1/b2)*((n2/A) - B*a2 - 1)
-#         # Above is the 2nd Version of the calculation (for new parameter B)
-#         # Below is the additional versions of the calculation which use different points to solve for parameter C using the same value of A and B
-#         Phi_low_bin = Histo.FindBin(157.5)
-#         Phi_mid_bin = Histo.FindBin(202.5)        
-#         Phi_max_bin = Histo.FindBin(262.5)
-#         Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
-#         Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
-#         Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
-#         n2 = Histo.GetBinContent(Phi_max_bin)
-#         a2 = ROOT.cos(Phi_max)                # Cos_phi_max
-#         b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
-#         n0 = Histo.GetBinContent(Phi_low_bin)
-#         n1 = Histo.GetBinContent(Phi_mid_bin)
-#         a0 = ROOT.cos(Phi_low)                # Cos_phi_low
-#         a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
-#         b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
-#         b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
-#         numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
-#         denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
-#         if(denominator_C != 0):
-#             C = numerator_C/denominator_C
-#         else:
-#             print(color.RED, "\nError C - V3 - Divide by 0\n", color.END)
-#             C = (1/b2)*((n2/A) - B*a2 - 1)
-        
-    except:
-        print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
-        
-        print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
-        
-        A, B, C = "Error", "Error", "Error"
+            n0 = Histo.GetBinContent(Phi_low_bin)
+            n1 = Histo.GetBinContent(Phi_mid_bin)
+
+            a0 = ROOT.cos(Phi_low)                # Cos_phi_low
+            a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
+
+            b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
+            b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
+
+            numerator_A   = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n1) - n0*(a1*b2 - a2*b1)
+            denominator_A = a0*(b2    - b1)    + b0*(a1    - a2)    -     a1*b2 + a2*b1
+
+            numerator_B   = b0*(n1    -    n2) + b1*(n2    - n0)    + b2*(n0    - n1)
+            denominator_B = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n0) + n0*(a2*b1 - a1*b2)
+
+            numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
+            denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
+
+            if(denominator_A != 0):
+                A = numerator_A/denominator_A
+            else:
+                print(color.RED, "\nError A - Divide by 0\n", color.END)
+                A = n2/(1 + (numerator_B/denominator_B)*a2 + (numerator_C/denominator_C)*b2)
+
+            if(denominator_B != 0):
+                B = numerator_B/denominator_B
+            else:
+                print(color.RED, "\nError B - Divide by 0\n", color.END)
+                print("a2 =", a2)
+                print("A  =", A)
+                print("denominator_C =", denominator_C)
+                B = (1/a2)*((n2/A) - (numerator_C/denominator_C)*b2 - 1)
+
+            if(denominator_C != 0):
+                C = numerator_C/denominator_C
+            else:
+                print(color.RED, "\nError C - Divide by 0\n", color.END)
+                C = (1/b2)*((n2/A) - B*a2 - 1)
+
+    #         # Above is the 1st Version of the calculation
+    #         # Below is the additional versions of the calculation which use different points to solve for parameters B and C using the same value of A
+    #         Phi_low_bin = Histo.FindBin(52.5)
+    #         Phi_mid_bin = Histo.FindBin(157.5)
+    #         Phi_max_bin = Histo.FindBin(262.5)
+    #         Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
+    #         Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
+    #         Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
+    #         n2 = Histo.GetBinContent(Phi_max_bin)
+    #         a2 = ROOT.cos(Phi_max)                # Cos_phi_max
+    #         b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
+    #         n0 = Histo.GetBinContent(Phi_low_bin)
+    #         n1 = Histo.GetBinContent(Phi_mid_bin)
+    #         a0 = ROOT.cos(Phi_low)                # Cos_phi_low
+    #         a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
+    #         b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
+    #         b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
+    #         numerator_B   = b0*(n1    -    n2) + b1*(n2    - n0)    + b2*(n0    - n1)
+    #         denominator_B = a0*(b2*n1 - b1*n2) + b0*(a1*n2 - a2*n0) + n0*(a2*b1 - a1*b2)
+    #         numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
+    #         denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
+    #         if(denominator_B != 0):
+    #             B = numerator_B/denominator_B
+    #         else:
+    #             print(color.RED, "\nError B - V2 - Divide by 0\n", color.END)
+    #             B = (1/a2)*((n2/A) - (numerator_C/denominator_C)*b2 - 1)
+    #         if(denominator_C != 0):
+    #             C = numerator_C/denominator_C
+    #         else:
+    #             print(color.RED, "\nError C - V2 - Divide by 0\n", color.END)
+    #             C = (1/b2)*((n2/A) - B*a2 - 1)
+    #         # Above is the 2nd Version of the calculation (for new parameter B)
+    #         # Below is the additional versions of the calculation which use different points to solve for parameter C using the same value of A and B
+    #         Phi_low_bin = Histo.FindBin(157.5)
+    #         Phi_mid_bin = Histo.FindBin(202.5)        
+    #         Phi_max_bin = Histo.FindBin(262.5)
+    #         Phi_low = (3.1415926/180)*Histo.GetBinCenter(Phi_low_bin)
+    #         Phi_mid = (3.1415926/180)*Histo.GetBinCenter(Phi_mid_bin)
+    #         Phi_max = (3.1415926/180)*Histo.GetBinCenter(Phi_max_bin)
+    #         n2 = Histo.GetBinContent(Phi_max_bin)
+    #         a2 = ROOT.cos(Phi_max)                # Cos_phi_max
+    #         b2 = ROOT.cos(2*Phi_max)              # Cos_2_phi_max
+    #         n0 = Histo.GetBinContent(Phi_low_bin)
+    #         n1 = Histo.GetBinContent(Phi_mid_bin)
+    #         a0 = ROOT.cos(Phi_low)                # Cos_phi_low
+    #         a1 = ROOT.cos(Phi_mid)                # Cos_phi_mid
+    #         b0 = ROOT.cos(2*Phi_low)              # Cos_2_phi_low
+    #         b1 = ROOT.cos(2*Phi_mid)              # Cos_2_phi_mid
+    #         numerator_C   = a0*(n1    -    n2) + a1*(n2    - n0)    + a2*(n0    - n1)
+    #         denominator_C = a0*(b1*n2 - b2*n1) + b0*(a2*n1 - a1*n2) + n0*(a1*b2 - a2*b1)
+    #         if(denominator_C != 0):
+    #             C = numerator_C/denominator_C
+    #         else:
+    #             print(color.RED, "\nError C - V3 - Divide by 0\n", color.END)
+    #             C = (1/b2)*((n2/A) - B*a2 - 1)
+
+        except:
+            print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+
+            print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
+
+            A, B, C = "Error", "Error", "Error"
         
         
         
@@ -1671,32 +1686,46 @@ def nelder_mead(func, x0, args=(), max_iter=1000, tol=1e-6):
     return simplex[0]
 
 def Full_Calc_Fit(Histo):
-    x_data, y_data = [], []
-    try:
-        # print("Histo.GetNbinsX() =", Histo.GetNbinsX())
-        for ii in range(0, Histo.GetNbinsX(), 1):
-#             x_data.append((3.1415926/180)*(Histo.GetBinCenter(ii)))
-            x_data.append(Histo.GetBinCenter(ii))
-            y_data.append(Histo.GetBinContent(ii))
-            
-#         # Perform curve fitting
-#         popt, pcov = curve_fit(func_fit, x_data, y_data)
-#         # Extract the optimized parameters
-#         A_opt, B_opt, C_opt = popt
+    # Helping the closure tests with known values of B and C
+    if(Closure_Test):
+        B_opt, C_opt = -0.500, 0.025
+        Histo_max_bin     = Histo.GetMaximumBin()
+        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+        A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
+    elif(Sim_Test):
+        B_opt, C_opt = 0, 0
+        Histo_max_bin     = Histo.GetMaximumBin()
+        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+        A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
+    else:
+        x_data, y_data = [], []
+        try:
+            # print("Histo.GetNbinsX() =", Histo.GetNbinsX())
+            for ii in range(0, Histo.GetNbinsX(), 1):
+    #             x_data.append((3.1415926/180)*(Histo.GetBinCenter(ii)))
+                x_data.append(Histo.GetBinCenter(ii))
+                y_data.append(Histo.GetBinContent(ii))
 
-        # Perform optimization using the Nelder-Mead method
-        initial_guess = [1e6, 1, 1]  # Initial guess for A, B, C
-        optim_params = nelder_mead(partial(func_fit, x=x_data, y=y_data), initial_guess)
+    #         # Perform curve fitting
+    #         popt, pcov = curve_fit(func_fit, x_data, y_data)
+    #         # Extract the optimized parameters
+    #         A_opt, B_opt, C_opt = popt
 
-        # Extract the optimized parameters
-        A_opt, B_opt, C_opt = optim_params
-        
-    except:
-        print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
-        
-        print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
-        
-        A_opt, B_opt, C_opt = "Error", "Error", "Error"
+            # Perform optimization using the Nelder-Mead method
+            initial_guess = [1e6, 1, 1]  # Initial guess for A, B, C
+            optim_params = nelder_mead(partial(func_fit, x=x_data, y=y_data), initial_guess)
+
+            # Extract the optimized parameters
+            A_opt, B_opt, C_opt = optim_params
+
+        except:
+            print("".join([color.RED, color.BOLD, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+
+            print(color.RED, color.BOLD, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
+
+            A_opt, B_opt, C_opt = "Error", "Error", "Error"
         
     return [A_opt, B_opt, C_opt]
 
@@ -2110,54 +2139,80 @@ def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT"):
         # If z_val and pT_Input are strings, then the output of this function will be the equation(s) for drawing the MM cut line
     Q2_val = 4.00
     y_val  = 0.55
-    if(str(Q2_y_Bin) in ["1",  "2",  "3",  "4"]):
-        Q2_val = 2.2115
-    if(str(Q2_y_Bin) in ["5",  "6",  "7",  "8"]):
-        Q2_val = 2.7050
-    if(str(Q2_y_Bin) in ["9",  "10", "11", "12"]):
-        Q2_val = 3.4805
-    if(str(Q2_y_Bin) in ["13", "14"]):
-        Q2_val = 4.6790
-    if(str(Q2_y_Bin) in ["15"]):
-        Q2_val = 4.9610
-    if(str(Q2_y_Bin) in ["16"]):
-        Q2_val = 7.6400
-    if(str(Q2_y_Bin) in ["17"]):
-        Q2_val = 6.6530
-        
-    if(str(Q2_y_Bin) in ["1", "5", "9",  "13", "16"]):
-        y_val  = 0.7
-    if(str(Q2_y_Bin) in ["2", "6", "10", "14", "17"]):
-        y_val  = 0.6
-    if(str(Q2_y_Bin) in ["3", "7", "11", "15"]):
-        y_val  = 0.5
-    if(str(Q2_y_Bin) in ["4", "8"]):
-        y_val  = 0.4
+    if(str(Q2_y_Bin) in ["1"]):
+        Q2_val = 2.204
+        y_val  = 0.6999
+    if(str(Q2_y_Bin) in ["2"]):
+        Q2_val = 2.206
+        y_val  = 0.6003
+    if(str(Q2_y_Bin) in ["3"]):
+        Q2_val = 2.207
+        y_val  = 0.5014
+    if(str(Q2_y_Bin) in ["4"]):
+        Q2_val = 2.206
+        y_val  = 0.3883
+    if(str(Q2_y_Bin) in ["5"]):
+        Q2_val = 2.689
+        y_val  = 0.6997
+    if(str(Q2_y_Bin) in ["6"]):
+        Q2_val = 2.689
+        y_val  = 0.6001
+    if(str(Q2_y_Bin) in ["7"]):
+        Q2_val = 2.689
+        y_val  = 0.5014
+    if(str(Q2_y_Bin) in ["8"]):
+        Q2_val = 2.681
+        y_val  = 0.3921
+    if(str(Q2_y_Bin) in ["9"]):
+        Q2_val = 3.431
+        y_val  = 0.6996
+    if(str(Q2_y_Bin) in ["10"]):
+        Q2_val = 3.426
+        y_val  = 0.6004
+    if(str(Q2_y_Bin) in ["11"]):
+        Q2_val = 3.416
+        y_val  = 0.5022
     if(str(Q2_y_Bin) in ["12"]):
-        y_val  = 0.375
+        Q2_val = 3.391
+        y_val  = 0.408
+    if(str(Q2_y_Bin) in ["13"]):
+        Q2_val = 4.582
+        y_val  = 0.7003
+    if(str(Q2_y_Bin) in ["14"]):
+        Q2_val = 4.564
+        y_val  = 0.6015
+    if(str(Q2_y_Bin) in ["15"]):
+        Q2_val = 4.663
+        y_val  = 0.5049
+    if(str(Q2_y_Bin) in ["16"]):
+        Q2_val = 6.54
+        y_val  = 0.7011
+    if(str(Q2_y_Bin) in ["17"]):
+        Q2_val = 6.221
+        y_val  = 0.6045
     
     Ebeam   = 10.6041
     mpro    = 0.938272
     mpip    = 0.13957
-    v_Term  = round(y_val*Ebeam,                                                                   5)
-    W2_Term = round(mpro*mpro - Q2_val + 2*mpro*v_Term,                                            5)
+    v_Term  = y_val*Ebeam
+    W2_Term = mpro*mpro - Q2_val + 2*mpro*v_Term
     
     pT_val  = pT_Input
     
     if(z_val not in ["pT"]):
-        B_Term      = round(2*ROOT.sqrt(Q2_val + v_Term*v_Term),                                   5)
+        B_Term      = 2*ROOT.sqrt(Q2_val + v_Term*v_Term)
         if(type(z_val) is not str):
-            A_Term  = round(W2_Term - MM_val*MM_val + mpip*mpip - 2*(mpro + v_Term)*v_Term*z_val,  5)
-            C_Term  = round((v_Term*v_Term)*(z_val*z_val) - mpip*mpip,                             5)
-            pT_2    = round(C_Term - ((A_Term*A_Term)/(B_Term*B_Term)),                            5)
+            A_Term  = W2_Term - MM_val*MM_val + mpip*mpip - 2*(mpro + v_Term)*v_Term*z_val
+            C_Term  = (v_Term*v_Term)*(z_val*z_val) - mpip*mpip
+            pT_2    = C_Term - ((A_Term*A_Term)/(B_Term*B_Term))
             if(pT_2 > 0):
-                pT_val = round(ROOT.sqrt(pT_2),                                                    5)
+                pT_val = ROOT.sqrt(pT_2)
             else:
-                print(color.Error, "\nERROR IN CALCULATING pT\n", color.END, color.BOLD, "pT^2 =", pT_2, "should be greater than 0.", color.END)
-                print("Calculation Error occurred with the inputs of:", color.BOLD, "\n\tz_val    =", z_val, "\n\tMM_val   =", MM_val, "\n\tQ2_y_Bin =", Q2_y_Bin, color.END)
+                print(color.Error, "\nERROR IN CALCULATING pT\n", color.END, color.BOLD,        "pT^2 =", pT_2, "should be greater than 0.", color.END)
+                print("Calculation Error occurred with the inputs of:",     color.BOLD, "\n\tz_val    =", z_val, "\n\tMM_val   =", MM_val, "\n\tQ2_y_Bin =", Q2_y_Bin, color.END)
                 # print(color.Error, "Will use the absolute value of pT for this calculation...\n\n", color.END)
-                # pT_val = round(ROOT.sqrt(abs(pT_2)),                                               5)
-                pT_val = round(ROOT.sqrt(pT_2),                                                    5)
+                # pT_val = ROOT.sqrt(abs(pT_2))
+                pT_val = ROOT.sqrt(pT_2)
         else:
             A_Term  = "".join([str(W2_Term - MM_val*MM_val + mpip*mpip), " - ", str(2*(mpro + v_Term)*v_Term), "*x"])
             A2_Term = "".join(["(", str(A_Term), ")*(", str(A_Term), ")"])
@@ -2166,17 +2221,17 @@ def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT"):
             pT_val  = "".join(["sqrt(", str(pT_2), ")"])
         return pT_val
     else:
-        A_Term      = round(mpro*mpro + mpip*mpip - Q2_val - MM_val*MM_val + 2*v_Term*mpro,        5)
-        B_Term      = round(-2*(mpro*v_Term + v_Term*v_Term),                                      5)
-        C_Term      = round(2*ROOT.sqrt(Q2_val + v_Term*v_Term),                                   5)
-        D_Term      = "".join(["(", str(round(mpip*mpip, 5)), ") + (x*x)"])
+        A_Term      = mpro*mpro + mpip*mpip - Q2_val - MM_val*MM_val + 2*v_Term*mpro
+        B_Term      = -2*(mpro*v_Term + v_Term*v_Term)
+        C_Term      = 2*ROOT.sqrt(Q2_val + v_Term*v_Term)
+        D_Term      = "".join(["(", str(mpip*mpip), ") + (x*x)"])
         
-        Term_A      = round(((B_Term*B_Term)/(C_Term*C_Term)) - (v_Term*v_Term),                   5)
-        Term_B      = round((2*A_Term*B_Term)/(C_Term*C_Term),                                     5)
-        Term_C      = "".join([str(round((A_Term*A_Term)/(C_Term*C_Term), 5)), " + ", str(D_Term)])
+        Term_A      = ((B_Term*B_Term)/(C_Term*C_Term)) - (v_Term*v_Term)
+        Term_B      = (2*A_Term*B_Term)/(C_Term*C_Term)
+        Term_C      = "".join([str((A_Term*A_Term)/(C_Term*C_Term)), " + ", str(D_Term)])
         if(type(pT_Input) is not str):
-            D_Term  = round(mpip*mpip + pT_val*pT_val,                                             5)
-            Term_C  = round((A_Term*A_Term)/(C_Term*C_Term) + D_Term,                              5)
+            D_Term  = mpip*mpip + pT_val*pT_val
+            Term_C  = (A_Term*A_Term)/(C_Term*C_Term) + D_Term
             
         z_function_p     = "".join(["((", str(-Term_B), ") + sqrt((", str(Term_B*Term_B), ") - ((", str(4*Term_A), ")*(", str(Term_C), "))))/(", str(2*Term_A), ")"])
         z_function_m     = "".join(["((", str(-Term_B), ") - sqrt((", str(Term_B*Term_B), ") - ((", str(4*Term_A), ")*(", str(Term_C), "))))/(", str(2*Term_A), ")"])
@@ -2408,8 +2463,10 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
                 # z_pT_borders[pTline].DrawLine(Max_z, pTline, Min_z, pTline)
                 z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
                 
+    if(("Var-D1='z" in str(Find_Name)) and ("Var-D2='pT" in str(Find_Name))):
         # if("y" in str(Binning_Method) and False):
         if("y" in str(Binning_Method)):
+            Drawing_Histo_Set.GetYaxis().SetRangeUser(0, 1.2)
             MM_z_pT_borders = {}
             # Create a TLegend
             MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
@@ -2417,31 +2474,27 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
             # for MM in [0.94, 1.5, 2.5]:
             # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
             for MM in [0.93956, 1.232, 1.5, 2.0]:
-                # # print("".join(["MM_z_pT_Draw(z_val=0.1, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
-                # # print("".join(["MM_z_pT_Draw(z_val=0.8, MM_val=", str(MM), ", Q2_y_Bin=", str(Q2_xB_Bin), ") ="]), MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin))
-                # MM_z_pT_borders[MM] = ROOT.TLine()
-                # MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94]) else 8 if(MM in [1.5]) else 46)
-                # MM_z_pT_borders[MM].SetLineWidth(2)
-                # MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_xB_Bin), 0.8)
-                # pT_function         = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT")
-                # MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), pT_function, 0.1, 0.8)
-                # MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                # MM_z_pT_borders[MM].SetLineWidth(2)
-                # if(round(MM*MM, 2) not in [1.5]):
-                #     MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
-                # MM_z_pT_borders[MM].Draw("same")
-                # Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
-                # MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
                 z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT")
-                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, 0.8 if(str(Q2_xB_Bin) in ["12"]) else 1.0 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.2)
-                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, 0.8 if(str(Q2_xB_Bin) in ["12"]) else 1.0 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.2)
+                pT_Max = 0.95 if(str(Q2_xB_Bin) in ["12"]) else 1.05 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.50
+                while(pT_Max > 0):
+                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input=pT_Max)
+                    rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
+                    if(("nan" not in str(z_values[1])) or (rounding_condition)):
+                        break
+                    pT_Max += -0.000005
+                    pT_Max = round(pT_Max, 7)
+                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, pT_Max)
+                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, pT_Max)
                 MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
                 MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
                 if(MM not in [1.5]):
                     MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
                     MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(4)
+                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(4)
+                else:
+                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(2)
+                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(2)
                 MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
                 MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
                 Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
@@ -3470,6 +3523,21 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default"):
 
         Fitting_Function.SetRange(0, 360)
         Fitting_Function.SetLineColor(2)
+        if(Method in ["rdf", "Experimental"]):
+            Fitting_Function.SetLineColor(root_color.Blue)
+        if(Method in ["mdf", "MC REC"]):
+            Fitting_Function.SetLineColor(root_color.Red)
+        if(Method in ["gdf", "gen", "MC GEN"]):
+            Fitting_Function.SetLineColor(root_color.Green)
+        if(Method in ["tdf", "true"]):
+            Fitting_Function.SetLineColor(root_color.Cyan)
+        if(Method in ["bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
+            Fitting_Function.SetLineColor(root_color.Brown)
+        if(Method in ["bayes", "bayesian", "Bayesian"]):
+            Fitting_Function.SetLineColor(root_color.Teal)
+        if(Method in ["SVD"]):
+            Fitting_Function.SetLineColor(root_color.Pink)
+
         
         try:
             if("Error" not in [A_Unfold, B_Unfold, C_Unfold] or False):
@@ -4343,27 +4411,38 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         #         MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
         #         MM_z_pT_borders[MM].SetLineWidth(2)
         #         MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input), 0.8)
-        if("y" in str(Binning_Method)):
-            MM_z_pT_borders = {}
-            # Create a TLegend
-            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
-            MM_z_pT_legend.SetNColumns(2)
-            for MM in [1.22474, 0.77545, 0.93956, 1.232]:
-                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT")
-                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, 0.8 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.0 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.2)
-                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, 0.8 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.0 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.2)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
-                if(round(MM*MM, 2) not in [1.5]):
-                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
-                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
-                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
-                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
-                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
-            MM_z_pT_legend.Draw("same")
+    if("y" in str(Binning_Method)):
+        Drawing_Histo_Set[str(z_pT__Histo_rdf_2D)].GetYaxis().SetRangeUser(0, 1.2)
+        MM_z_pT_borders = {}
+        # Create a TLegend
+        MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+        MM_z_pT_legend.SetNColumns(2)
+        # for MM in [0.94, 1.5, 2.5]:
+        # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+        for MM in [0.93956, 1.232, 1.5, 2.0]:
+            z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT")
+            pT_Max = 0.95 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.05 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.50
+            while(pT_Max > 0):
+                z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input=pT_Max)
+                rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
+                if(("nan" not in str(z_values[1])) or (rounding_condition)):
+                    break
+                pT_Max += -0.000005
+                pT_Max = round(pT_Max, 7)
+            MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, pT_Max)
+            MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, pT_Max)
+            MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+            MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+            MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
+            MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
+            if(MM not in [1.5]):
+                MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+            MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+            MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+            Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+            MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+        MM_z_pT_legend.Draw("same")
     
     
     Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
@@ -6027,10 +6106,10 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
 ##==========##==========## Function for Creating the Images for All z-pT Bins Together  ##==========##==========##==========##==========##==========##==========##
 ##################################################################################################################################################################
 
-def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z"):
+def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z", Cut_Option="Cut"):
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
-    All_z_pT_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("1D", "".join(["CANVAS_", str(Plot_Orientation)]) if(Multi_Dim_Option in ["Off"]) else "".join(["CANVAS_", str(Plot_Orientation), "_", str(Multi_Dim_Option)])), Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
+    All_z_pT_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("1D", "".join(["".join(["CANVAS_", str(Plot_Orientation)]) if(Multi_Dim_Option in ["Off"]) else "".join(["CANVAS_", str(Plot_Orientation), "_", str(Multi_Dim_Option)]), "_UnCut" if(Cut_Option not in ["Cut"]) else ""])), Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
     All_z_pT_Canvas.SetFillColor(root_color.LGrey)
     # All_z_pT_Canvas.Draw()
 
@@ -6070,8 +6149,15 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     ####  Upper Left - i.e., 2D Histograms  ############################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     # Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
     # z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
-    Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
-    z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
+    Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option not in ["Cut"])):
+        Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
+        z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
+        Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                          "(Normal_2D)_(rdf)_(no_cut)_(SMEAR")
+        z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                          "(Normal_2D)_(rdf)_(no_cut)_(SMEAR")
+    Q2_y_Histo_rdf_Initial = Histogram_List_All[Q2_y_Histo_rdf_Initial_Name]
+    z_pT_Histo_rdf_Initial = Histogram_List_All[z_pT_Histo_rdf_Initial_Name]
     Drawing_Histo_Set = {}
     ######################################################### ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ##===============##     3D Slices     ##===============## ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -6158,6 +6244,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     Draw_Canvas(All_z_pT_Canvas_cd_1_Upper, 2, 0.15)
     Drawing_Histo_Set[z_pT_Name].Draw("colz")
     palette_move(canvas=All_z_pT_Canvas_cd_1_Upper.cd(2), histo=Drawing_Histo_Set[z_pT_Name], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
+    # ROOT.gStyle.SetOptStat(1111)
     if(Plot_Orientation in ["pT_z"]):
         if(str(Q2_Y_Bin) not in ["0", "All"]):
             z_pT_borders = {}
@@ -6185,19 +6272,36 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
         #         MM_z_pT_borders[MM].SetLineWidth(2)
         #         MM_z_pT_borders[MM].DrawLine(0.1, MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin))
         if("y" in str(Binning_Method)):
+            Drawing_Histo_Set[z_pT_Name].GetXaxis().SetRangeUser(0, 1.2)
             MM_z_pT_borders = {}
             # Create a TLegend
-            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
-            MM_z_pT_legend.SetNColumns(2)
-            for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+            MM_z_pT_legend = ROOT.TLegend(0.8, 0.1, 0.95, 0.4)  # (x1, y1, x2, y2)
+            MM_z_pT_legend.SetNColumns(1)
+            # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+            for MM in [0.93956, 1.232, 1.5, 2.0]:
                 pT_function         = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
-                MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, 0.1, 0.8)
-                MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                MM_z_pT_borders[MM].SetLineWidth(2)
-                if(round(MM*MM, 2) not in [1.5]):
+                z_values_step   = 0.001
+                num_decimals    = 3
+                z_values, z_min = 0, 0
+                z_max           = 0.62 if(MM not in [2.0]) else 0.17 if(str(Q2_Y_Bin) in ["12"]) else 0.34
+                z_min_set_Q     = False
+                while(z_values < 1.2):
+                    if(("nan" not in str(eval(str(pT_function.replace("x", str(z_values))).replace("sqrt", "ROOT.sqrt")))) and (not z_min_set_Q)):
+                        z_min       = z_values
+                        z_values    = z_max
+                        z_min_set_Q = True
+                    if(("nan"     in str(eval(str(pT_function.replace("x", str(z_values))).replace("sqrt", "ROOT.sqrt")))) and (z_min_set_Q)):
+                        z_max       = round(z_values - z_values_step, num_decimals)
+                        break
+                    z_values += z_values_step
+                    z_values  = round(z_values, num_decimals)
+                MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, z_min, z_max)
+                MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                MM_z_pT_borders[MM].SetLineWidth(3)
+                if(MM not in [1.5]):
                     MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
                 MM_z_pT_borders[MM].Draw("same")
-                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
+                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
                 MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
             MM_z_pT_legend.Draw("same")
     else:
@@ -6224,27 +6328,36 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             #         MM_z_pT_borders[MM].SetLineColor(6 if(MM == 0.94) else 8 if(MM == 1.5) else 46)
             #         MM_z_pT_borders[MM].SetLineWidth(2)
             #         MM_z_pT_borders[MM].DrawLine(MM_z_pT_Draw(z_val=0.1, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.1, MM_z_pT_Draw(z_val=0.8, MM_val=MM, Q2_y_Bin=Q2_Y_Bin), 0.8)
-            if("y" in str(Binning_Method)):
-                MM_z_pT_borders = {}
-                # Create a TLegend
-                MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
-                MM_z_pT_legend.SetNColumns(2)
-                for MM in [1.22474, 0.77545, 0.93956, 1.232]:
-                    z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
-                    MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, 0.8 if(str(Q2_Y_Bin) in ["12"]) else 1.0 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.2)
-                    MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, 0.8 if(str(Q2_Y_Bin) in ["12"]) else 1.0 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.1 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.2)
-                    MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                    MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545]) else 8 if(MM in [1.5, 0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(round(MM*MM, 2) in [1.5]) else 28)
-                    MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(2)
-                    MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(2)
-                    if(round(MM*MM, 2) not in [1.5]):
-                        MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
-                        MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
-                    MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
-                    MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
-                    Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(round(MM*MM, 2) not in [1.5]) else "MM^{2} = 1.5 GeV^{2} (Cut)"
-                    MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
-                MM_z_pT_legend.Draw("same")
+        if("y" in str(Binning_Method)):
+            Drawing_Histo_Set[z_pT_Name].GetYaxis().SetRangeUser(0, 1.2)
+            MM_z_pT_borders = {}
+            # Create a TLegend
+            MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
+            MM_z_pT_legend.SetNColumns(2)
+            for MM in [0.93956, 1.232, 1.5, 2.0]:
+                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+                pT_Max = 0.95 if(str(Q2_Y_Bin) in ["12"]) else 1.05 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.50
+                while(pT_Max > 0):
+                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input=pT_Max)
+                    rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
+                    if(("nan" not in str(z_values[1])) or (rounding_condition)):
+                        break
+                    pT_Max += -0.000005
+                    pT_Max = round(pT_Max, 7)
+                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, pT_Max)
+                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, pT_Max)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
+                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
+                if(MM not in [1.5]):
+                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+            MM_z_pT_legend.Draw("same")
     ##===============##     Drawing z-pT Histogram     ##===============## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     
@@ -6927,6 +7040,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h", "z_pT_phi_h")
     Save_Name = Save_Name.replace("_.png",                ".png")
     Save_Name = Save_Name.replace("__",                   "_")
+    if(Cut_Option not in ["Cut"]):
+        Save_Name = Save_Name.replace(".png",             "_UnCut.png")
     if(Saving_Q):
         All_z_pT_Canvas.SaveAs(Save_Name)
     print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
@@ -7016,6 +7131,7 @@ def FileLocation(FileName, Datatype):
 
 Common_Name = "Gen_Cuts_V6_All"
 # Common_Name = "Gen_Cuts_V7_All"
+Common_Name = "Gen_Cuts_V8_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -7269,6 +7385,11 @@ for ii in mdf.GetListOfKeys():
     Conditions_For_Unfolding.append("no_cut"                    not in str(out_print_main))
     Conditions_For_Unfolding.append("cut_Complete_EDIS"         not in str(out_print_main))
     
+    ## Generated Missing Mass Cuts (not ready yet)
+    if(Common_Name not in ["Gen_Cuts_V7_All"]):
+        Conditions_For_Unfolding.append("Gen_MM_Cut"            not in str(out_print_main))
+        Conditions_For_Unfolding.append("Gen_Cut_MM"            not in str(out_print_main))
+    
 
     ## Correct Variable(s):
 #     # Conditions_For_Unfolding.append("phi_t" in str(out_print_main))
@@ -7277,11 +7398,17 @@ for ii in mdf.GetListOfKeys():
 # #     Conditions_For_Unfolding.append("'Combined_" in str(out_print_main))
     Conditions_For_Unfolding.append("phi_t"          in str(out_print_main))
 # #     Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
-# #     Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
+#     Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
 #     Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"               not in str(out_print_main))
     Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
-
+    
+    # Not Tested Yet...
+    Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
+    
     
     ## Correct Binning:
     # Conditions_For_Unfolding.append("Q2-xB-Bin=1" in str(out_print_main))
@@ -7301,8 +7428,8 @@ for ii in mdf.GetListOfKeys():
     
     if(False in Conditions_For_Unfolding):
         # Conditions for unfolding were not met by 'out_print_main'
-        # print("Conditions_For_Unfolding =", Conditions_For_Unfolding)
         count_failed += 1
+        # print("Conditions_For_Unfolding =", Conditions_For_Unfolding)
         # print("".join([color.RED, str(out_print_main), color.END]))
         # print("".join(["Number Failed: ", str(count_failed)]))
         continue
@@ -7429,9 +7556,12 @@ for ii in mdf.GetListOfKeys():
             print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D_initial.GetName())
         
         # Use_Gen_MM_Cut = True
-        # Use_Gen_MM_Cut = False
+        Use_Gen_MM_Cut = False
         
         if(("Gen_MM_Cut" in str(out_print_main_rdf)) or ("Gen_MM_Cut" in str(out_print_main_mdf_1D)) or ("Gen_MM_Cut" in str(out_print_main_gdf))  or ("Gen_MM_Cut" in str(out_print_main_mdf))):
+            if((not Use_Gen_MM_Cut) and (Common_Name not in ["Gen_Cuts_V7_All"])):
+                print(color.Error, "\nERROR: NOT TRYING TO RUN Gen_MM_Cut\n", color.END)
+                continue
             print(color.BLUE, color.BOLD, "INCLUDES Gen_MM_Cut", color.END)
             # print("out_print_main_rdf    =", out_print_main_rdf)
             # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
@@ -7964,7 +8094,8 @@ for ii in mdf.GetListOfKeys():
 
 
 
-print("".join(["Total: ", str(count)]))
+print("".join(["Total: ",      str(count)]))
+# print("".join(["Num Failed: ", str(count_failed)]))
 
 
 
@@ -8010,9 +8141,12 @@ for ii in rdf.GetListOfKeys():
     out_print_main = str(ii.GetName())
     if("Normal_2D" in out_print_main):
         # print("out_print_main =", out_print_main)
-        out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str = out_print_str.replace("_smeared", "")
-        out_print_str = out_print_str.replace("'smear'",  "Smear")
+        # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+        out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+        out_print_str     = out_print_str.replace("_smeared",              "")
+        out_print_str     = out_print_str.replace("'smear'",               "Smear")
         SEARCH = []
         for BIN in BIN_SEARCH:
             SEARCH.append(str(BIN) in str(out_print_str))
@@ -8027,9 +8161,12 @@ for ii in mdf.GetListOfKeys():
     out_print_main = str(ii.GetName())
     if("Normal_2D" in out_print_main):
         # print("out_print_main =", out_print_main)
-        out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str = out_print_str.replace("_smeared", "")
-        out_print_str = out_print_str.replace("'smear'",  "Smear")
+        # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+        out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+        out_print_str     = out_print_str.replace("_smeared",              "")
+        out_print_str     = out_print_str.replace("'smear'",               "Smear")
         SEARCH = []
         for BIN in BIN_SEARCH:
             SEARCH.append(str(BIN) in str(out_print_str))
@@ -8043,9 +8180,12 @@ for ii in gdf.GetListOfKeys():
     out_print_main = str(ii.GetName())
     if("Normal_2D" in out_print_main):
         # print("out_print_main =", out_print_main)
-        out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str = out_print_str.replace("_smeared", "")
-        out_print_str = out_print_str.replace("'smear'",  "Smear")
+        # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+        out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+        out_print_str     = out_print_str.replace("_smeared",              "")
+        out_print_str     = out_print_str.replace("'smear'",               "Smear")
         SEARCH = []
         for BIN in BIN_SEARCH:
             SEARCH.append(str(BIN) in str(out_print_str))
@@ -8060,9 +8200,12 @@ if(tdf not in ["N/A"]):
     for ii in tdf.GetListOfKeys():
         out_print_main = str(ii.GetName())
         if("Normal_2D" in out_print_main):
-            out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-            out_print_str = out_print_str.replace("_smeared", "")
-            out_print_str = out_print_str.replace("'smear'",  "Smear")
+            # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+            out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+            out_print_str = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+            out_print_str = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+            out_print_str = out_print_str.replace("_smeared",              "")
+            out_print_str = out_print_str.replace("'smear'",               "Smear")
             SEARCH = []
             for BIN in BIN_SEARCH:
                 SEARCH.append(str(BIN) in str(out_print_str))
@@ -8080,6 +8223,8 @@ if(tdf not in ["N/A"]):
 final_count = 0
 print("\n\nCounting Total Number of collected histograms...")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
+#     if("Normal_2D" in str(List_of_All_Histos_For_Unfolding_ii)):
+#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("tdf" not in str(List_of_All_Histos_For_Unfolding_ii)) and ("Fit" not in str(List_of_All_Histos_For_Unfolding_ii))):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
@@ -8101,7 +8246,7 @@ elif(Smearing_Options in ["both"]):
     
     
 # Method_Type_List = ["Data", "Response", "Bin", "RooUnfold_bayes", "RooUnfold_svd", "rdf", "mdf", "gdf"]
-Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "SVD", "rdf", "mdf", "gdf", "Unfold"]
+Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "SVD", "Unfold", "rdf", "mdf", "gdf"]
 if(tdf not in ["N/A"]):
     Method_Type_List.append("tdf")
     
@@ -8137,14 +8282,18 @@ for variable in Variable_List:
                         #     continue
                         if((method in ["gdf", "tdf"]) and ("Smear" in str(smear))):
                             continue
-                        for Orientation in ["pT_z", "z_pT"]:
-                            try:
-                                z_pT_Images_Together(Histogram_List_All=List_of_All_Histos_For_Unfolding,     Default_Histo_Name=HISTO_NAME, Method=method,    Q2_Y_Bin=BIN_NUM,                                     Multi_Dim_Option=Multi_Dim, Plot_Orientation=Orientation)
-                                to_be_saved_count += 1
-                            except Exception as e:
-                                print("".join([color.BOLD, color.RED, "ERROR IN z_pT_Images_Together():\n",   color.END, color.RED, str(traceback.format_exc()), color.END]))
+                        for Cut in ["Cut", "UnCut"]:
+                            if((Cut in ["UnCut"]) and (method not in ["rdf", "mdf", "Data"])):
+                                # There is (currently) no point in running any other method with both the cut and uncut versions of this plot (this option only affects the 2D histograms and not the unfolded histograms - gdf and tdf are also already uncut by default)
+                                continue
+                            for Orientation in ["pT_z", "z_pT"]:
+                                try:
+                                    z_pT_Images_Together(Histogram_List_All=List_of_All_Histos_For_Unfolding,     Default_Histo_Name=HISTO_NAME, Method=method,    Q2_Y_Bin=BIN_NUM,                                     Multi_Dim_Option=Multi_Dim, Plot_Orientation=Orientation, Cut_Option=Cut)
+                                    to_be_saved_count += 1
+                                except Exception as e:
+                                    print("".join([color.BOLD, color.RED, "ERROR IN z_pT_Images_Together():\n",   color.END, color.RED, str(traceback.format_exc()), color.END]))
                                 
-#                 continue # This is to skip everything that isn't the z_pT_Images_Together() images
+                continue # This is to skip everything that isn't the z_pT_Images_Together() images
                 for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
                     if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
                         continue

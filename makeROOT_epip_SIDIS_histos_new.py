@@ -633,7 +633,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Slightly modified how the response matrix histograms are saved to be slightly more compact (given that the additional histograms would make it even more difficult to save each one properly)
     # Using smear_factor = 0.75
     # Momentum Corrections are applied
-            
+    # Extending the 2D z vs pT plot ranges (not changing bin size)
+        # Should be a visual change only - though the even number of bins should help slightly when rebinning during the kinematic comparisons (will avoid error messages)
+    # Had to run twice due to a typo that deleted some important histograms
+        
+        
+        
     if(Use_Weight):
         # Using the modulations of the Generated Monte Carlo
         Extra_Name = "".join([Extra_Name, "Modulated_"])
@@ -6316,17 +6321,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # pT_Binning = ['pT', 0,     1.26,  60]
     # # Bin size: 0.021 per bin
     
-    # June 23 2023 2D Binning
-    z_Binning  = ['z',  0.01, 0.92, 91]
-    # Bin size: 0.01 per bin
-    pT_Binning = ['pT', 0,    1.25, 125]
-    # Bin size: 0.01 per bin
+    # # June 23 2023 2D Binning
+    # z_Binning  = ['z',  0.01, 0.92, 91]
+    # # Bin size: 0.01 per bin
+    # pT_Binning = ['pT', 0,    1.25, 125]
+    # # Bin size: 0.01 per bin
     
-#     # New (September 6 2023) 2D Binning
-#     z_Binning  = ['z',  0, 1.20, 120]
-#     # Bin size: 0.01 per bin
-#     pT_Binning = ['pT', 0, 1.50, 150]
-#     # Bin size: 0.01 per bin
+    # New (September 6 2023) 2D Binning
+    z_Binning  = ['z',  0, 1.20, 120]
+    # Bin size: 0.01 per bin
+    pT_Binning = ['pT', 0, 1.50, 150]
+    # Bin size: 0.01 per bin
     
     # Q2_Binning_Old = ['Q2', 0.0, 12.5, 25]
     # # Bin size: 0.5 per bin
@@ -6339,6 +6344,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Bin size: 0.141  per bin
     y_Binning  = ['y',      0,       1, 80]
     # Bin size: 0.0125 per bin
+    xB_Binning = ['xB', 0.09,  0.826, 50]
+    # Bin size: 0.01472 per bin
     
 #     MM_Binning    = ['MM',  0,     3.5, 50]
     MM_Binning    = ['MM',  0,     4.2, 60]
@@ -7280,8 +7287,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                     
                                                     # Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),  str(Migration_Title_Simple),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                   str(Variable_Gen), str(Variable_Rec))
                                                     
-                                                    Histograms_All[Histo_Name_No_Cut] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),  str(Migration_Title_No_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                    str(Variable_Gen), str(Variable_Rec))
-                                                    Histograms_All[Histo_Name_MM_Cut] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),  str(Migration_Title_MM_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  3, -1.5, 1.5),                                                                     str(Variable_Gen), str(Variable_Rec),                              "Missing_Mass_Cut_Gen")
+                                                    Histograms_All[Histo_Name_No_Cut] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_No_Cut),  str(Migration_Title_No_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                    str(Variable_Gen), str(Variable_Rec))
+                                                    Histograms_All[Histo_Name_MM_Cut] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_MM_Cut),  str(Migration_Title_MM_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  3, -1.5, 1.5),                                                                     str(Variable_Gen), str(Variable_Rec),                              "Missing_Mass_Cut_Gen")
                                                     
                                                 else:
                                                     if((", (Gen_MM_Cut)" not in str(Histo_Name)) and (", (Gen_Cut_MM)" not in str(Histo_Name))):
@@ -7419,8 +7426,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                     
                                                     # Histograms_All[Histo_Name]        = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),  str(Migration_Title_Simple),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                   str(Variable_Gen), str(Variable_Rec))
                                                     
-                                                    Histograms_All[Histo_Name_No_Cut] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name),  str(Migration_Title_No_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                    str(Variable_Gen), str(Variable_Rec),                                                      "Event_Weight")
-                                                    Histograms_All[Histo_Name_MM_Cut] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name),  str(Migration_Title_MM_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  3, -1.5, 1.5),                                                                     str(Variable_Gen), str(Variable_Rec),                              "Missing_Mass_Cut_Gen", "Event_Weight")
+                                                    Histograms_All[Histo_Name_No_Cut] = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_No_Cut),  str(Migration_Title_No_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin),                                                                                    str(Variable_Gen), str(Variable_Rec),                                                      "Event_Weight")
+                                                    Histograms_All[Histo_Name_MM_Cut] = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_MM_Cut),  str(Migration_Title_MM_Cut),                                                                                                                                       int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  3, -1.5, 1.5),                                                                     str(Variable_Gen), str(Variable_Rec),                              "Missing_Mass_Cut_Gen", "Event_Weight")
                                                     
                                                 else:
                                                     if((", (Gen_MM_Cut)" not in str(Histo_Name)) and (", (Gen_Cut_MM)" not in str(Histo_Name))):

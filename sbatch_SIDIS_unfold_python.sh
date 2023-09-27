@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_python_SIDIS_Gen_Cuts_V6_histo_9_5_2023_Sim_Test
+#SBATCH --job-name=RooUnfold_python_SIDIS_Gen_Cuts_V8_histo_9_8_2023_Simulated
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%j-%N.out
@@ -8,7 +8,7 @@
 #SBATCH --partition=production
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=2000
-#SBATCH --time=0:30:00
+#SBATCH --time=0:40:00
 #SBATCH --array=0-17
 
 

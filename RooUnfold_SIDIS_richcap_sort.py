@@ -736,10 +736,10 @@ Common_Name = "New_Binning_Schemes_V8_All"
 
 Common_Name = "Gen_Cuts_V2_Sim_All"
 Common_Name = "Gen_Cuts_V7_Modulated_All"
-Common_Name = "Gen_Cuts_V7_All"
+Common_Name = "Gen_Cuts_V8_All"
 # Common_Name = "Gen_Cuts_V7_Sim_Modulated_All"
-Common_Name = "Gen_Cuts_V7_Closure_All"
-Common_Name = "Gen_Cuts_V6_Sim_All"
+Common_Name = "Gen_Cuts_V8_Closure_All"
+Common_Name = "Gen_Cuts_V8_Sim_All"
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################
@@ -884,10 +884,13 @@ destination_main = "".join([str(destination), "/Unfolding_Images"])
 # destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
 destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
 destination_Pars = "".join([str(destination), "/Fit_Pars"])
+destination_txt  = "".join([str(destination), "/Text_Files"])
+
 os.mkdir(destination_main)
 # os.mkdir(destination_pars)
 os.mkdir(destination_mult)
 os.mkdir(destination_Pars)
+os.mkdir(destination_txt)
 
 # destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
 destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
@@ -957,6 +960,8 @@ for Entry in os.listdir():
         if("Sim_Test_" in str(Entry)):
             os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
             Entry = str(Entry).replace("Sim_Test_", "")
+        if('.txt'      in str(Entry)):
+            shutil.move(Entry, destination_txt)
         if('.png'      in str(Entry)):
             # print("\n"+str(Entry))
             # if("_Pars_" in str(Entry)):
