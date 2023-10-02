@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=REAL_Data_Gen_Cuts_V8_SIDIS_histo_9_6_2023_Version_2
+#SBATCH --job-name=REAL_Data_9_27_2023_Run1_New_Bin_Tests_V1_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
-#SBATCH --output=/farm_out/%u/%x-%j-%N.out
-#SBATCH --error=/farm_out/%u/%x-%j-%N.err
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=2500
+#SBATCH --mem-per-cpu=1500
 #SBATCH --time=6:00:00
 #SBATCH --array=0-173
 

@@ -2836,7 +2836,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 
                         
             except:
-                print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
+                print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...",    color.END]))
                 print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, str(traceback.format_exc()), color.END]))
                 
         else:
@@ -3661,7 +3661,8 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
             #     print("Name =", Name, "\n\n")
             #     return "Error"
 
-        if(Variable not in ["Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t", "Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t_smeared", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t_smeared", "Multi_Dim_Q2_phi_t", "Multi_Dim_Q2_phi_t_smeared", "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t_smeared"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t_smeared"]), "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t_smeared", "Combined_phi_t_Q2", "Combined_phi_t_Q2_smeared", "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method), "_smeared"]), "Combined_phi_t_Q2_y_Bin", "".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]), "".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method), "_smeared"])]):
+        # if(Variable not in ["Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t", "Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t_smeared", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t_smeared", "Multi_Dim_Q2_phi_t", "Multi_Dim_Q2_phi_t_smeared", "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t_smeared"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t_smeared"]), "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t_smeared", "Combined_phi_t_Q2", "Combined_phi_t_Q2_smeared", "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method), "_smeared"]), "Combined_phi_t_Q2_y_Bin", "".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]), "".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method), "_smeared"])]):
+        if(str(Variable).replace("_smeared", "") not in ["Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_phi_t", "Multi_Dim_Q2_phi_t_smeared", "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t"]), "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t", "Combined_phi_t_Q2", "".join(["Combined_phi_t_Q2_xB_Bin", str(Binning_Method)]), "Combined_phi_t_Q2_y_Bin", "".join(["Combined_phi_t_Q2_y_Bin", str(Binning_Method)]), "Multi_Dim_elth_phi_t", "Multi_Dim_pipth_phi_t", "Multi_Dim_elPhi_phi_t", "Multi_Dim_pipPhi_phi_t"]):
             print(color.RED, "ERROR in MultiD_Slice_New(): Not set up for other variables (yet)", color.END)
             print("Variable =", Variable, "\n\n")
             return "Error"
@@ -3744,7 +3745,9 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
         # Q2_y_z_pT_4D_Binning   = [-0.5,   566.5,   567,        1]
         # Q2_y_z_pT_4D_Binning   = [-0.5,   512.5,   513,        1]
         Q2_y_z_pT_4D_Binning   = [-0.5,   506.5,   507,        1]
-
+        
+        particle_Th__Binning   = [5,  35, 30,  1]
+        particle_Phi_Binning   = [0, 360, 24, 15]
         
         ###==============================================###
         ###========###  Setting Phi Binning   ###========###
@@ -3803,6 +3806,36 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
             Num_Columns_Canvas, Num_Rows_Canvas = 4, 5
         ###===============================================###
         ###========###   Setting Q2 Binning    ###========###
+        ###===============================================###
+        
+        
+        ###===============================================###
+        ###========###  Setting Theta Binning  ###========###
+        ###===============================================###
+        if(str(Variable).replace("_smeared", "") in ["Multi_Dim_elth_phi_t", "Multi_Dim_pipth_phi_t"]):
+            NewDim_Bin_Min  = particle_Th__Binning[0]
+            NewDim_Bin_Max  = particle_Th__Binning[1]
+            NewDim_Bin_Num  = particle_Th__Binning[2]
+            NewDim_Bin_Size = particle_Th__Binning[3]
+            Multi_Dim_Var   = "elth" if(str(Variable).replace("_smeared", "") in ["Multi_Dim_elth_phi_t"]) else "pipth"
+            Num_Columns_Canvas, Num_Rows_Canvas = 6, 6
+        ###===============================================###
+        ###========###  Setting Theta Binning  ###========###
+        ###===============================================###
+        
+        
+        ###===============================================###
+        ###========###   Setting Phi Binning   ###========###
+        ###===============================================###
+        if(str(Variable).replace("_smeared", "") in ["Multi_Dim_elPhi_phi_t", "Multi_Dim_pipPhi_phi_t"]):
+            NewDim_Bin_Min  = particle_Phi_Binning[0]
+            NewDim_Bin_Max  = particle_Phi_Binning[1]
+            NewDim_Bin_Num  = particle_Phi_Binning[2]
+            NewDim_Bin_Size = particle_Phi_Binning[3]
+            Multi_Dim_Var   = "elPhi" if(str(Variable).replace("_smeared", "") in ["Multi_Dim_elPhi_phi_t"]) else "pipPhi"
+            Num_Columns_Canvas, Num_Rows_Canvas = 5, 5
+        ###===============================================###
+        ###========###   Setting Phi Binning   ###========###
         ###===============================================###
             
         Canvas_Size_X = 2400
@@ -7403,11 +7436,12 @@ for ii in mdf.GetListOfKeys():
     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"               not in str(out_print_main))
     Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
     
-    # Not Tested Yet...
-    Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
+    # # Not Tested Yet...
+    # Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
+    # Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
+    # Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
+    # Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
+    Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
     
     
     ## Correct Binning:
