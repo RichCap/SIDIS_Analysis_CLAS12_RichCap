@@ -1283,54 +1283,104 @@ def Find_z_pT_Bin_Center(Q2_xB_Bin_Select, z_pT_Bin, variable_return="Default"):
 #####################################################################################################################################################################
 ##==========##==========##     Function for Finding Kinematic Binning Info     ##==========##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################################
-def Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find, z_pT_Bin_Find="All"):
-    
-    ####################======================================####################
-    #####==========#####   Finding the Q2-y Bin Information   #####==========#####
-    ####################======================================####################
-    Borders_Q2_y = Q2_y_Border_Lines(Q2_y_Bin_Find)
-    Q2_bin_max   = Borders_Q2_y[0][1][1]
-    Q2_bin_min   = Borders_Q2_y[0][0][1]
-    y_bin_max    = Borders_Q2_y[1][1][0]
-    y_bin_min    = Borders_Q2_y[1][0][0]
-    Q2_Center    = (Q2_bin_max + Q2_bin_min)/2
-    y_Center     = (y_bin_max  + y_bin_min)/2
-    ####################======================================####################
-    #####==========#####    Found the Q2-y Bin Information    #####==========#####
-    ####################======================================####################
-    
-    ####################======================================####################
-    #####==========#####   Finding the z-pT Bin Information   #####==========#####
-    ####################======================================####################
-    Borders_z_pT   = z_pT_Border_Lines(Q2_y_Bin_Find)
-    z_length       = Borders_z_pT[0][1] - 1
-    pT_length      = Borders_z_pT[1][1] - 1
-    if(str(z_pT_Bin_Find) not in ["All", "0"]):
-        # This finds the dimensions of a particular z-pT bin for a given Q2-y bin
-        z_bin      = ((z_pT_Bin_Find - 1) // pT_length) + 1
-        z_bin      = (z_length + 1) - z_bin
-        pT_bin     = ((z_pT_Bin_Find - 1) %  pT_length) + 1
-        z_bin_max  = Borders_z_pT[0][2][z_bin]
-        z_bin_min  = Borders_z_pT[0][2][z_bin  - 1]
-        pT_bin_max = Borders_z_pT[1][2][pT_bin]
-        pT_bin_min = Borders_z_pT[1][2][pT_bin - 1]
+def Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find, z_pT_Bin_Find="All", List_Of_Histos_For_Stats_Search="Use_Center", Smearing_Q="''", DataType="bbb"):
+    if(str(List_Of_Histos_For_Stats_Search) in ["Use_Center"]):
+        ####################======================================####################
+        #####==========#####   Finding the Q2-y Bin Information   #####==========#####
+        ####################======================================####################
+        Borders_Q2_y = Q2_y_Border_Lines(Q2_y_Bin_Find)
+        Q2_bin_max   = Borders_Q2_y[0][1][1]
+        Q2_bin_min   = Borders_Q2_y[0][0][1]
+        y_bin_max    = Borders_Q2_y[1][1][0]
+        y_bin_min    = Borders_Q2_y[1][0][0]
+        Q2_Center    = (Q2_bin_max + Q2_bin_min)/2
+        y_Center     = (y_bin_max  + y_bin_min)/2
+        ####################======================================####################
+        #####==========#####    Found the Q2-y Bin Information    #####==========#####
+        ####################======================================####################
+
+        ####################======================================####################
+        #####==========#####   Finding the z-pT Bin Information   #####==========#####
+        ####################======================================####################
+        Borders_z_pT   = z_pT_Border_Lines(Q2_y_Bin_Find)
+        z_length       = Borders_z_pT[0][1] - 1
+        pT_length      = Borders_z_pT[1][1] - 1
+        if(str(z_pT_Bin_Find) not in ["All", "0"]):
+            # This finds the dimensions of a particular z-pT bin for a given Q2-y bin
+            z_bin      = ((z_pT_Bin_Find - 1) // pT_length) + 1
+            z_bin      = (z_length + 1) - z_bin
+            pT_bin     = ((z_pT_Bin_Find - 1) %  pT_length) + 1
+            z_bin_max  = Borders_z_pT[0][2][z_bin]
+            z_bin_min  = Borders_z_pT[0][2][z_bin  - 1]
+            pT_bin_max = Borders_z_pT[1][2][pT_bin]
+            pT_bin_min = Borders_z_pT[1][2][pT_bin - 1]
+        else:
+            # This gives the overall dimensions of the combined z-pT binning scheme for a given Q2-y bin (i.e., if all z-pT binned events are to be included)
+            z_bin_max  = Borders_z_pT[0][2][len(Borders_z_pT[0][2]) - 1]
+            z_bin_min  = Borders_z_pT[0][2][0]
+            pT_bin_max = Borders_z_pT[1][2][len(Borders_z_pT[1][2]) - 1]
+            pT_bin_min = Borders_z_pT[1][2][0]
+        z_Center       = (z_bin_max  + z_bin_min)/2
+        pT_Center      = (pT_bin_max + pT_bin_min)/2
+        ####################======================================####################
+        #####==========#####    Found the z-pT Bin Information    #####==========#####
+        ####################======================================####################
+
+        # Return order goes as [[Q2_bin_info, y_bin_info], [z_bin_info, pT_bin_info]]
+            # Order of bin_info goes as: bin_info = [min_bin, center_bin, max_bin]
+        return [[[Q2_bin_min, Q2_Center, Q2_bin_max], [y_bin_min, y_Center, y_bin_max]], [[z_bin_min, z_Center, z_bin_max], [pT_bin_min, pT_Center, pT_bin_max]]]
     else:
-        # This gives the overall dimensions of the combined z-pT binning scheme for a given Q2-y bin (i.e., if all z-pT binned events are to be included)
-        z_bin_max  = Borders_z_pT[0][2][len(Borders_z_pT[0][2]) - 1]
-        z_bin_min  = Borders_z_pT[0][2][0]
-        pT_bin_max = Borders_z_pT[1][2][len(Borders_z_pT[1][2]) - 1]
-        pT_bin_min = Borders_z_pT[1][2][0]
-    z_Center       = (z_bin_max  + z_bin_min)/2
-    pT_Center      = (pT_bin_max + pT_bin_min)/2
-    ####################======================================####################
-    #####==========#####    Found the z-pT Bin Information    #####==========#####
-    ####################======================================####################
-    
-    # Return order goes as [[Q2_bin_info, y_bin_info], [z_bin_info, pT_bin_info]]
-        # Order of bin_info goes as: bin_info = [min_bin, center_bin, max_bin]
-    return [[[Q2_bin_min, Q2_Center, Q2_bin_max], [y_bin_min, y_Center, y_bin_max]], [[z_bin_min, z_Center, z_bin_max], [pT_bin_min, pT_Center, pT_bin_max]]]
+        Histo_Search_Name_Q2_y = "".join(["(Normal_2D)_(", str(DataType), ")_(SMEAR=", "''" if(str(Smearing_Q) in [""]) else str(Smearing_Q), ")_(Q2_y_Bin_", str(Q2_y_Bin_Find), ")_(z_pT_Bin_All)_(Q2)_(y)"])
+        Histo_Search_Name_z_pT = "".join(["(Normal_2D)_(", str(DataType), ")_(SMEAR=", "''" if(str(Smearing_Q) in [""]) else str(Smearing_Q), ")_(Q2_y_Bin_", str(Q2_y_Bin_Find), ")_(z_pT_Bin_All)_(z)_(pT)"])
+        
+        Histo_Search_Q2_y      = List_Of_Histos_For_Stats_Search[str(Histo_Search_Name_Q2_y)]
+        Histo_Search_z_pT      = List_Of_Histos_For_Stats_Search[str(Histo_Search_Name_z_pT)]
+        
+        # Find the z-pT bin corresponding to the provided value
+        z_pT_bin_0 = Histo_Search_Q2_y.GetXaxis().FindBin(z_pT_Bin_Find if(str(z_pT_Bin_Find) not in ["All", "0"]) else 0)
+        z_pT_bin_1 = Histo_Search_Q2_y.GetXaxis().FindBin(z_pT_Bin_Find if(str(z_pT_Bin_Find) not in ["All", "0"]) else Histo_Search_Q2_y.GetNbinsX())
+        if(str(z_pT_Bin_Find) not in ["All", "0"]):
+            Histo_Search_Q2_y.GetXaxis().SetRange(z_pT_bin_0, z_pT_bin_1)
+            Histo_Search_z_pT.GetXaxis().SetRange(z_pT_bin_0, z_pT_bin_1)
 
 
+        Histo_Search_Q2_y_2D = Histo_Search_Q2_y.Project3D("yz").Clone(str(Histo_Search_Name_Q2_y).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", str(z_pT_Bin_Find)])))
+        Histo_Search_z_pT_2D = Histo_Search_z_pT.Project3D("yz").Clone(str(Histo_Search_Name_z_pT).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", str(z_pT_Bin_Find)])))
+        
+        # Compute mean values and their errors for the (new) x and y axis
+        pT_Center  = Histo_Search_z_pT_2D.GetMean(1)
+        pT_Error   = Histo_Search_z_pT_2D.GetMeanError(1)
+        z_Center   = Histo_Search_z_pT_2D.GetMean(2)
+        z_Error    = Histo_Search_z_pT_2D.GetMeanError(2)
+        z_bin_min  = z_Center  - z_Error
+        z_bin_max  = z_Center  + z_Error
+        pT_bin_min = pT_Center - pT_Error
+        pT_bin_max = pT_Center + pT_Error
+        if(str(z_pT_Bin_Find) not in ["All", "0"]):
+            #####==========#####   Finding the Standard Q2-y Bin Information   #####==========#####
+            Borders_Q2_y = Q2_y_Border_Lines(Q2_y_Bin_Find)
+            Q2_bin_max   = Borders_Q2_y[0][1][1]
+            Q2_bin_min   = Borders_Q2_y[0][0][1]
+            y_bin_max    = Borders_Q2_y[1][1][0]
+            y_bin_min    = Borders_Q2_y[1][0][0]
+            Q2_Center    = (Q2_bin_max + Q2_bin_min)/2
+            y_Center     = (y_bin_max  + y_bin_min)/2
+            #####==========#####    Found the Standard Q2-y Bin Information    #####==========#####
+        else:
+            # Not using for individual z-pT bins for more consistent values of Q2 and y (don't want them to change when plotting the fit parameters vs z/pT - may change my mind about this in the future maybe)
+            y_Center   = Histo_Search_Q2_y.GetMean(1)
+            y_Error    = Histo_Search_Q2_y.GetMeanError(1)
+            Q2_Center  = Histo_Search_Q2_y.GetMean(2)
+            Q2_Error   = Histo_Search_Q2_y.GetMeanError(2)
+            Q2_bin_min = Q2_Center - Q2_Error
+            Q2_bin_max = Q2_Center + Q2_Error
+            y_bin_min  = y_Center  - y_Error
+            y_bin_max  = y_Center  + y_Error
+            
+        # Return order goes as [[Q2_bin_info, y_bin_info], [z_bin_info, pT_bin_info]]
+            # Order of bin_info goes as: bin_info = [min_bin, center_bin, max_bin]
+        return [[[Q2_bin_min, Q2_Center, Q2_bin_max], [y_bin_min, y_Center, y_bin_max]], [[z_bin_min, z_Center, z_bin_max], [pT_bin_min, pT_Center, pT_bin_max]]]
+        
 #####################################################################################################################################################################
 ##==========##==========##     Function for Finding Kinematic Binning Info     ##==========##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################################
@@ -2130,7 +2180,7 @@ def Get_Max_Y_Histo_1D(Histo_List, Norm_Q="Default"):
 #####################################################################################################################################################
 
 
-def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT"):
+def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT", Q2_y_value_pick="Center"):
     # If z_val="pT", then this function will return 2 equations to plot z as a function of pT (use when pT is on the x-axis)
         # Any other input will plot pT as a function of z
         # These options will only return 1 equation
@@ -2190,6 +2240,19 @@ def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT"):
     if(str(Q2_y_Bin) in ["17"]):
         Q2_val = 6.221
         y_val  = 0.6045
+        
+    if(Q2_y_value_pick not in ["Center"]):
+        Borders_Q2_y = Q2_y_Border_Lines(Q2_y_Bin)
+        Q2_bin_max   = Borders_Q2_y[0][1][1]
+        Q2_bin_min   = Borders_Q2_y[0][0][1]
+        y_bin_max    = Borders_Q2_y[1][1][0]
+        y_bin_min    = Borders_Q2_y[1][0][0]
+        if(Q2_y_value_pick in ["Minimum"]):
+            Q2_val   = Q2_bin_min
+            y_val    = y_bin_max
+        if(Q2_y_value_pick in ["Maximum"]):
+            Q2_val   = Q2_bin_max
+            y_val    = y_bin_min
     
     Ebeam   = 10.6041
     mpro    = 0.938272
@@ -2473,32 +2536,50 @@ def Draw_2D_Histograms_Simple(DataFrame, Canvas_Input, CD_Num=1, Var_D1="Q2", Va
             MM_z_pT_legend.SetNColumns(2)
             # for MM in [0.94, 1.5, 2.5]:
             # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
-            for MM in [0.93956, 1.232, 1.5, 2.0]:
-                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT")
+            # for MM in [0.93956, 1.232, 1.5, 2.0]:
+            MM = 1.5
+            for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center"]:
+                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
                 pT_Max = 0.95 if(str(Q2_xB_Bin) in ["12"]) else 1.05 if(str(Q2_xB_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_xB_Bin) in ["4", "11", "16"]) else 1.50
                 while(pT_Max > 0):
-                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input=pT_Max)
+                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_xB_Bin, pT_Input=pT_Max, Q2_y_value_pick=str(Q2_y_value_pick_ii))
                     rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
                     if(("nan" not in str(z_values[1])) or (rounding_condition)):
                         break
                     pT_Max += -0.000005
                     pT_Max = round(pT_Max, 7)
-                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, pT_Max)
-                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, pT_Max)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                if(MM not in [1.5]):
-                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
-                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
-                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(4)
-                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(4)
+                # MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, pT_Max)
+                # MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, pT_Max)
+                # MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                # MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+                # if(MM not in [1.5]):
+                #     MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+                #     MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+                #     MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(4)
+                #     MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(4)
+                # else:
+                #     MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(2)
+                #     MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(2)
+                # MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+                # MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+                # Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+                # MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["P_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_p, 0, pT_Max)
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["M_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_xB_Bin)]), z_function_m, 0, pT_Max)
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+                if(Q2_y_value_pick_ii not in ["Center"]):
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
                 else:
-                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineWidth(2)
-                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineWidth(2)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
-                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
-                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
-                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].Draw("same")
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].Draw("same")
+                Legend_Title_Name = "".join([str(Q2_y_value_pick_ii), " MM Cut"])
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])], str(Legend_Title_Name), "l")
             MM_z_pT_legend.Draw("same")
 
 ######################################################################################################################################################
@@ -4450,31 +4531,59 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         # Create a TLegend
         MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
         MM_z_pT_legend.SetNColumns(2)
-        # for MM in [0.94, 1.5, 2.5]:
-        # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
-        for MM in [0.93956, 1.232, 1.5, 2.0]:
-            z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT")
+        # # for MM in [0.94, 1.5, 2.5]:
+        # # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+        # for MM in [0.93956, 1.232, 1.5, 2.0]:
+        #     z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT")
+        #     pT_Max = 0.95 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.05 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.50
+        #     while(pT_Max > 0):
+        #         z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input=pT_Max)
+        #         rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
+        #         if(("nan" not in str(z_values[1])) or (rounding_condition)):
+        #             break
+        #         pT_Max += -0.000005
+        #         pT_Max = round(pT_Max, 7)
+        #     MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, pT_Max)
+        #     MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, pT_Max)
+        #     MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+        #     MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+        #     MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
+        #     MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
+        #     if(MM not in [1.5]):
+        #         MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+        #         MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+        #     MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+        #     MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+        #     Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+        #     MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+        # MM_z_pT_legend.Draw("same")
+        MM = 1.5
+        for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center"]:
+            z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
             pT_Max = 0.95 if(str(Q2_Y_Bin_Input) in ["12"]) else 1.05 if(str(Q2_Y_Bin_Input) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin_Input) in ["4", "11", "16"]) else 1.50
             while(pT_Max > 0):
-                z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input=pT_Max)
+                z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin_Input, pT_Input=pT_Max, Q2_y_value_pick=str(Q2_y_value_pick_ii))
                 rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
                 if(("nan" not in str(z_values[1])) or (rounding_condition)):
                     break
                 pT_Max += -0.000005
                 pT_Max = round(pT_Max, 7)
-            MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, pT_Max)
-            MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, pT_Max)
-            MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-            MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-            MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
-            MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
-            if(MM not in [1.5]):
-                MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
-                MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
-            MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
-            MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
-            Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
-            MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+            MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["P_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_p, 0, pT_Max)
+            MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["M_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_Y_Bin_Input)]), z_function_m, 0, pT_Max)
+            MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+            MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+            if(Q2_y_value_pick_ii not in ["Center"]):
+                MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)  # Dashed line
+                MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)
+                MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
+                MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
+            else:
+                MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+                MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+            MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].Draw("same")
+            MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].Draw("same")
+            Legend_Title_Name = "".join([str(Q2_y_value_pick_ii), " MM Cut"])
+            MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])], str(Legend_Title_Name), "l")
         MM_z_pT_legend.Draw("same")
     
     
@@ -6182,8 +6291,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     ####  Upper Left - i.e., 2D Histograms  ############################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     # Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
     # z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
-    Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
-    z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
     if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option not in ["Cut"])):
         Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
         z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
@@ -6211,6 +6320,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Generated",    "True")
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Gen",          "True")
             Drawing_Histo_Title = Drawing_Histo_Title.replace("GEN",          "True")
+        if("Unfold" in str(Method)):
+            Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "Acceptance Corrected")
         Drawing_Histo_Set[Q2_y_Name].SetTitle(Drawing_Histo_Title)
     else:
         Q2_y_Name = str(Q2_y_Histo_rdf_Initial.GetName())
@@ -6234,6 +6345,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Generated",    "True")
             Drawing_Histo_Title = Drawing_Histo_Title.replace("Gen",          "True")
             Drawing_Histo_Title = Drawing_Histo_Title.replace("GEN",          "True")
+        if("Unfold" in str(Method)):
+            Drawing_Histo_Title = Drawing_Histo_Title.replace("Experimental", "Acceptance Corrected")
         Drawing_Histo_Set[z_pT_Name].SetTitle(Drawing_Histo_Title)
     else:
         z_pT_Name = str(z_pT_Histo_rdf_Initial.GetName())
@@ -6310,13 +6423,40 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             # Create a TLegend
             MM_z_pT_legend = ROOT.TLegend(0.8, 0.1, 0.95, 0.4)  # (x1, y1, x2, y2)
             MM_z_pT_legend.SetNColumns(1)
-            # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
-            for MM in [0.93956, 1.232, 1.5, 2.0]:
-                pT_function         = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+            # # for MM in [1.22474, 0.77545, 0.93956, 1.232]:
+            # for MM in [0.93956, 1.232, 1.5, 2.0]:
+            #     pT_function         = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+            #     z_values_step   = 0.001
+            #     num_decimals    = 3
+            #     z_values, z_min = 0, 0
+            #     z_max           = 0.62 if(MM not in [2.0]) else 0.17 if(str(Q2_Y_Bin) in ["12"]) else 0.34
+            #     z_min_set_Q     = False
+            #     while(z_values < 1.2):
+            #         if(("nan" not in str(eval(str(pT_function.replace("x", str(z_values))).replace("sqrt", "ROOT.sqrt")))) and (not z_min_set_Q)):
+            #             z_min       = z_values
+            #             z_values    = z_max
+            #             z_min_set_Q = True
+            #         if(("nan"     in str(eval(str(pT_function.replace("x", str(z_values))).replace("sqrt", "ROOT.sqrt")))) and (z_min_set_Q)):
+            #             z_max       = round(z_values - z_values_step, num_decimals)
+            #             break
+            #         z_values += z_values_step
+            #         z_values  = round(z_values, num_decimals)
+            #     MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, z_min, z_max)
+            #     MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+            #     MM_z_pT_borders[MM].SetLineWidth(3)
+            #     if(MM not in [1.5]):
+            #         MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
+            #     MM_z_pT_borders[MM].Draw("same")
+            #     Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+            #     MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
+            # MM_z_pT_legend.Draw("same")
+            MM = 1.5
+            for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center"]:
+                pT_function         = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
                 z_values_step   = 0.001
                 num_decimals    = 3
                 z_values, z_min = 0, 0
-                z_max           = 0.62 if(MM not in [2.0]) else 0.17 if(str(Q2_Y_Bin) in ["12"]) else 0.34
+                z_max           = 0.3 if(Q2_y_value_pick_ii in ["Maximum"]) else 0.6 if(MM not in [2.0]) else 0.17 if(str(Q2_Y_Bin) in ["12"]) else 0.34
                 z_min_set_Q     = False
                 while(z_values < 1.2):
                     if(("nan" not in str(eval(str(pT_function.replace("x", str(z_values))).replace("sqrt", "ROOT.sqrt")))) and (not z_min_set_Q)):
@@ -6328,15 +6468,19 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
                         break
                     z_values += z_values_step
                     z_values  = round(z_values, num_decimals)
-                MM_z_pT_borders[MM] = ROOT.TF1("".join(["MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, z_min, z_max)
-                MM_z_pT_borders[MM].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                MM_z_pT_borders[MM].SetLineWidth(3)
-                if(MM not in [1.5]):
-                    MM_z_pT_borders[MM].SetLineStyle(2)  # Dashed line
-                MM_z_pT_borders[MM].Draw("same")
-                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
-                MM_z_pT_legend.AddEntry(MM_z_pT_borders[MM], str(Legend_Title_Name), "l")
+                MM_z_pT_borders[str(Q2_y_value_pick_ii)] = ROOT.TF1("".join(["MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_Y_Bin)]), pT_function, z_min, z_max)
+                MM_z_pT_borders[str(Q2_y_value_pick_ii)].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+                if(Q2_y_value_pick_ii not in ["Center"]):
+                    MM_z_pT_borders[str(Q2_y_value_pick_ii)].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders[str(Q2_y_value_pick_ii)].SetLineWidth(4)
+                else:
+                    MM_z_pT_borders[str(Q2_y_value_pick_ii)].SetLineWidth(2)
+                    MM_z_pT_borders[str(Q2_y_value_pick_ii)].SetLineWidth(2)
+                MM_z_pT_borders[str(Q2_y_value_pick_ii)].Draw("same")
+                Legend_Title_Name = "".join([str(Q2_y_value_pick_ii), " MM Cut"])
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders[str(Q2_y_value_pick_ii)], str(Legend_Title_Name), "l")
             MM_z_pT_legend.Draw("same")
+            
     else:
         if(str(Q2_Y_Bin) not in ["All", "0"]):
             z_pT_borders = {}
@@ -6367,29 +6511,58 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             # Create a TLegend
             MM_z_pT_legend = ROOT.TLegend(0.5, 0.1, 0.9, 0.2)  # (x1, y1, x2, y2)
             MM_z_pT_legend.SetNColumns(2)
-            for MM in [0.93956, 1.232, 1.5, 2.0]:
-                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+            # for MM in [0.93956, 1.232, 1.5, 2.0]:
+            #     z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT")
+            #     pT_Max = 0.95 if(str(Q2_Y_Bin) in ["12"]) else 1.05 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.50
+            #     while(pT_Max > 0):
+            #         z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input=pT_Max)
+            #         rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
+            #         if(("nan" not in str(z_values[1])) or (rounding_condition)):
+            #             break
+            #         pT_Max += -0.000005
+            #         pT_Max = round(pT_Max, 7)
+            #     MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, pT_Max)
+            #     MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, pT_Max)
+            #     MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+            #     MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
+            #     MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
+            #     MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
+            #     if(MM not in [1.5]):
+            #         MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
+            #         MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
+            #     MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
+            #     MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
+            #     Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
+            #     MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+            # MM_z_pT_legend.Draw("same")
+
+            MM = 1.5
+            for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center"]:
+                z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
                 pT_Max = 0.95 if(str(Q2_Y_Bin) in ["12"]) else 1.05 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.50
                 while(pT_Max > 0):
-                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input=pT_Max)
+                    z_values = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input=pT_Max, Q2_y_value_pick=str(Q2_y_value_pick_ii))
                     rounding_condition = (round(z_values[0] - z_values[1], 2) == 0)
                     if(("nan" not in str(z_values[1])) or (rounding_condition)):
                         break
                     pT_Max += -0.000005
                     pT_Max = round(pT_Max, 7)
-                MM_z_pT_borders["".join(["P_",     str(MM)])] = ROOT.TF1("".join(["P_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, pT_Max)
-                MM_z_pT_borders["".join(["M_",     str(MM)])] = ROOT.TF1("".join(["M_MM_Line_", str(MM), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, pT_Max)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineColor(6 if(MM in [0.94, 0.77545, 2.0]) else 8 if(MM in [0.93956]) else 46 if(MM in [2.5, 1.232]) else 12 if(MM in [1.5]) else 28)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].SetLineWidth(3)
-                MM_z_pT_borders["".join(["M_",     str(MM)])].SetLineWidth(3)
-                if(MM not in [1.5]):
-                    MM_z_pT_borders["".join(["P_", str(MM)])].SetLineStyle(2)  # Dashed line
-                    MM_z_pT_borders["".join(["M_", str(MM)])].SetLineStyle(2)
-                MM_z_pT_borders["".join(["P_",     str(MM)])].Draw("same")
-                MM_z_pT_borders["".join(["M_",     str(MM)])].Draw("same")
-                Legend_Title_Name = "".join(["MM = ", "#rho-mass " if(MM in [0.77545]) else "Neutron-mass " if(MM in [0.93956]) else "#Delta-mass " if(MM in [1.232]) else "", "(", str(MM), " GeV)"]) if(MM in [0.77545, 0.93956, 1.232]) else "".join(["MM = ", str(MM), " GeV ", "(Cut)" if(MM in [1.5]) else ""])
-                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(MM)])], str(Legend_Title_Name), "l")
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["P_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_p, 0, pT_Max)
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])] = ROOT.TF1("".join(["M_MM_Line_", str(Q2_y_value_pick_ii), "_Q2_y_Bin_", str(Q2_Y_Bin)]), z_function_m, 0, pT_Max)
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].SetLineColor(12 if(Q2_y_value_pick_ii in ["Center"]) else 8 if(Q2_y_value_pick_ii in ["Maximum"]) else 46 if(Q2_y_value_pick_ii in ["Minimum"]) else 28)
+                if(Q2_y_value_pick_ii not in ["Center"]):
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)  # Dashed line
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineStyle(2)
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(4)
+                else:
+                    MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+                    MM_z_pT_borders["".join(["M_", str(Q2_y_value_pick_ii)])].SetLineWidth(2)
+                MM_z_pT_borders["".join(["P_",     str(Q2_y_value_pick_ii)])].Draw("same")
+                MM_z_pT_borders["".join(["M_",     str(Q2_y_value_pick_ii)])].Draw("same")
+                Legend_Title_Name = "".join([str(Q2_y_value_pick_ii), " MM Cut"])
+                MM_z_pT_legend.AddEntry(MM_z_pT_borders["".join(["P_", str(Q2_y_value_pick_ii)])], str(Legend_Title_Name), "l")
             MM_z_pT_legend.Draw("same")
     ##===============##     Drawing z-pT Histogram     ##===============## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -7436,12 +7609,12 @@ for ii in mdf.GetListOfKeys():
     Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"               not in str(out_print_main))
     Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
     
-    # # Not Tested Yet...
-    # Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
-    # Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
-    # Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
-    # Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
-    Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
+    # Not Tested Yet...
+    Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
+    Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
+    # Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
     
     
     ## Correct Binning:
@@ -8250,9 +8423,65 @@ if(tdf not in ["N/A"]):
             
 
 
+# Bin-by-Bin Acceptance Corrections for 2D Histograms
+for ii in mdf.GetListOfKeys():
+    out_print_main = str(ii.GetName())
+    if("Normal_2D" in out_print_main):
+        mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+        mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)", "")
+        mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+        mdf_print_str     = mdf_print_str.replace("_smeared",              "")
+        mdf_print_str     = mdf_print_str.replace("'smear'",               "Smear")
+        rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
+        gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
+        gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+        SEARCH = []
+        for BIN in BIN_SEARCH:
+            SEARCH.append(str(BIN) in str(mdf_print_str))
+            if(str(BIN) in str(mdf_print_str)):
+                break
+        if(True in SEARCH):
+            Histo_MDF = List_of_All_Histos_For_Unfolding[mdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[mdf_print_str].GetName()), "_Clone"]))
+            Histo_RDF = List_of_All_Histos_For_Unfolding[rdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[rdf_print_str].GetName()), "_Clone"]))
+            Histo_GDF = List_of_All_Histos_For_Unfolding[gdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[gdf_print_str].GetName()), "_Clone"]))
 
-
-
+            Histo_BBB        = Histo_RDF.Clone(str(mdf_print_str).replace("mdf", "bbb"))
+            Histo_Acceptance = Histo_MDF.Clone(str(mdf_print_str).replace("mdf", "Acceptance"))
+            Histo_Acceptance.Sumw2()
+            
+            if((Histo_MDF.GetNbinsX() != Histo_GDF.GetNbinsX()) or (Histo_MDF.GetNbinsY() != Histo_GDF.GetNbinsY()) or (Histo_MDF.GetNbinsZ() != Histo_GDF.GetNbinsZ())):
+                print(color.RED, "Histograms have different binning!", color.END)
+                print("\nHisto_MDF =",             str(mdf_print_str))
+                print("\tHisto_MDF (type) =",      str(type(Histo_MDF)))
+                print("\tHisto_MDF (Title - X) =", str(Histo_MDF.GetXaxis().GetTitle()))
+                print("\tHisto_MDF (Bin - X) =",   str(Histo_MDF.GetNbinsX()))
+                print("\tHisto_MDF (Title - Y) =", str(Histo_MDF.GetYaxis().GetTitle()))
+                print("\tHisto_MDF (Bin - Y) =",   str(Histo_MDF.GetNbinsY()))
+                print("\tHisto_MDF (Title - Z) =", str(Histo_MDF.GetZaxis().GetTitle()))
+                print("\tHisto_MDF (Bin - Z) =",   str(Histo_MDF.GetNbinsZ()))
+                
+                print("\nHisto_RDF =",             str(rdf_print_str))
+                print("\tHisto_RDF (type) =",      str(type(Histo_RDF)))
+                print("\tHisto_RDF (Title - X) =", str(Histo_RDF.GetXaxis().GetTitle()))
+                print("\tHisto_RDF (Bin - X) =",   str(Histo_RDF.GetNbinsX()))
+                print("\tHisto_RDF (Title - Y) =", str(Histo_RDF.GetYaxis().GetTitle()))
+                print("\tHisto_RDF (Bin - Y) =",   str(Histo_RDF.GetNbinsY()))
+                print("\tHisto_RDF (Title - Z) =", str(Histo_RDF.GetZaxis().GetTitle()))
+                print("\tHisto_RDF (Bin - Z) =",   str(Histo_RDF.GetNbinsZ()))
+                
+                print("\nHisto_GDF =",             str(gdf_print_str))
+                print("\tHisto_GDF (type) =",      str(type(Histo_GDF)))
+                print("\tHisto_GDF (Title - X) =", str(Histo_GDF.GetXaxis().GetTitle()))
+                print("\tHisto_GDF (Bin - X) =",   str(Histo_GDF.GetNbinsX()))
+                print("\tHisto_GDF (Title - Y) =", str(Histo_GDF.GetYaxis().GetTitle()))
+                print("\tHisto_GDF (Bin - Y) =",   str(Histo_GDF.GetNbinsY()))
+                print("\tHisto_GDF (Title - Z) =", str(Histo_GDF.GetZaxis().GetTitle()))
+                print("\tHisto_GDF (Bin - Z) =",   str(Histo_GDF.GetNbinsZ()))
+                
+            Histo_Acceptance.Divide(Histo_GDF)
+            Histo_BBB.Divide(Histo_Acceptance)
+            Histo_BBB.SetName(str(mdf_print_str).replace("mdf", "bbb"))
+            List_of_All_Histos_For_Unfolding[mdf_print_str.replace("mdf", "bbb")] = Histo_BBB
 
 final_count = 0
 print("\n\nCounting Total Number of collected histograms...")
@@ -8327,7 +8556,7 @@ for variable in Variable_List:
                                 except Exception as e:
                                     print("".join([color.BOLD, color.RED, "ERROR IN z_pT_Images_Together():\n",   color.END, color.RED, str(traceback.format_exc()), color.END]))
                                 
-                continue # This is to skip everything that isn't the z_pT_Images_Together() images
+                # continue # This is to skip everything that isn't the z_pT_Images_Together() images
                 for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
                     if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
                         continue
@@ -8394,13 +8623,23 @@ for variable in Variable_List:
                                     continue
                                 PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
 
-                                Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
-                                PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
+                                
+                                Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][1], 3)
+                                PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][1], 3)
+                                # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
+                                # PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
                                 Z_BIN         = str(Z_BIN_VALUE)
                                 PT_BIN        = str(PT_BIN_VALUE)
+                                
+                                Z_BIN_VALUE_Title   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
+                                PT_BIN_VALUE_Title  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
+                                Z_BIN         = str(Z_BIN_VALUE_Title)
+                                PT_BIN        = str(PT_BIN_VALUE_Title)
 
-                                Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
-                                PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
+                                Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][0])/2, 3)
+                                PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][0])/2, 3)
+                                # Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
+                                # PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
 
                                 # PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
                                 # PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])

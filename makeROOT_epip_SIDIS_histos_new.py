@@ -650,8 +650,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # The plots will include extended ranges for better coverage of the generated distributions and more refined binning
             # The y, z, and pT bins all have a width now of 0.01/bin while Q2 now has a bin width of 0.05/bin
     # Added new cut for inverting the MM cut (to see where events removed by this cut are comming from)
-            
-        
+    
+    
+    Extra_Name = "New_Bin_Tests_V2_"
+    # Ran on 10/3/2023
+    # This file uses the original Q2-y binning scheme ('y_bin')
+        # Testing of the newer scheme still ongoing
+        # Still not smearing
+    # No response matrices will be run
+    # Only making 2D Histograms
+        # Including new histograms for the lab phi angles vs phi_t
+        # Not making any 3D or 1D histograms
+    # New Cuts have been introduced (just cutting on generated missing mass)
+        # Adding '_Gen' to the cut name makes the normal SIDIS missing mass cut on the generated events
+        # Adding '_Exgen' to the cut name inverts the normal SIDIS missing mass cut on the generated events (i.e., sqrt(MM2_gen) < 1.5)
+    
+    Extra_Name = "New_Bin_Tests_V3_"
+    # Ran on 10/4/2023
+    # This file is mostly the same as "New_Bin_Tests_V2_" but returned to using the new Q2-y bins (for testing 'Y_bins')
+        # Still not smearing
+        # Added the generated missing mass cuts on MM_gen < 1.5
+            # Is in addition to the inverted versions of these cuts that were run in "New_Bin_Tests_V2_"
+    # Fixed minor issue with Q2_y_Bin = -3 (migration only)
+        # Cut was not applied propperly
         
     if(Use_Weight):
         # Using the modulations of the Generated Monte Carlo
@@ -3743,101 +3764,101 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Q2_xB_Bin_Def = "".join(["""
             int Q2_Y_Bin_New = 0;
             // Q2-y Bins 1-4:
-            if(""",     str(Q2_For_Binning), " > 2.00 && ", str(Q2_For_Binning), """ < 2.40){
+            if(""",     str(Q2_For_Binning), " > 2.0 && ", str(Q2_For_Binning), """ < 2.4){
                 // Bin 1
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 1;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 2
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 2;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 3
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 3;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 4
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 4;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 5-8:
-            if(""",     str(Q2_For_Binning), " > 2.40 && ", str(Q2_For_Binning), """ < 2.95){
+            if(""",     str(Q2_For_Binning), " > 2.4 && ", str(Q2_For_Binning), """ < 2.9){
                 // Bin 5
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 5;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 6
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 6;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 7
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 7;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 8
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 8;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 9-12:
-            if(""",     str(Q2_For_Binning), " > 2.95 && ", str(Q2_For_Binning), """ < 3.95){
+            if(""",     str(Q2_For_Binning), " > 2.9 && ", str(Q2_For_Binning), """ < 3.7){
                 // Bin 9
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 9;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 10
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 10;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 11
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 11;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 12
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 12;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 13-15:
-            if(""",     str(Q2_For_Binning), " > 3.95 && ", str(Q2_For_Binning), """ < 5.50){
+            if(""",     str(Q2_For_Binning), " > 3.7 && ", str(Q2_For_Binning), """ < 5.3){
                 // Bin 13
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 13;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 14
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 14;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 15
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 15;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 16-17:
-            if(""",     str(Q2_For_Binning), " > 5.50 && ", str(Q2_For_Binning), """ < 7.90){
+            if(""",     str(Q2_For_Binning), " > 5.3 && ", str(Q2_For_Binning), """ < 7.9){
                 // Bin 16
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 16;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 17
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 17;
                     return Q2_Y_Bin_New;
                 }
@@ -3848,132 +3869,132 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             //=====//================//=====//======================================================//
 
             // Q2-y Bins 18-23:
-            if(""",     str(Q2_For_Binning), " > 0.00 && ", str(Q2_For_Binning), """ < 2.00){
+            if(""",     str(Q2_For_Binning), " > 0.0 && ", str(Q2_For_Binning), """ < 2.0){
                 // Bin 18
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 18;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 19
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 19;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 20
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 20;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 21
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 21;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 22
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 22;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 23
-                if(""", str(y_For_Binning),  " > 0.10 && ", str(y_For_Binning),  """ < 0.35){
+                if(""", str(y_For_Binning),  " > 0.1 && ", str(y_For_Binning), """ < 0.35){
                     Q2_Y_Bin_New = 23;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 24-25:
-            if(""",     str(Q2_For_Binning), " > 2.00 && ", str(Q2_For_Binning), """ < 2.40){
+            if(""",     str(Q2_For_Binning), " > 2.0 && ", str(Q2_For_Binning), """ < 2.4){
                 // Bin 24
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 24;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 25
-                if(""", str(y_For_Binning),  " > 0.10 && ", str(y_For_Binning),  """ < 0.35){
+                if(""", str(y_For_Binning),  " > 0.1 && ", str(y_For_Binning), """ < 0.35){
                     Q2_Y_Bin_New = 25;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 26-27:
-            if(""",     str(Q2_For_Binning), " > 2.40 && ", str(Q2_For_Binning), """ < 2.95){
+            if(""",     str(Q2_For_Binning), " > 2.4 && ", str(Q2_For_Binning), """ < 2.9){
                 // Bin 26
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 26;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 27
-                if(""", str(y_For_Binning),  " > 0.10 && ", str(y_For_Binning),  """ < 0.35){
+                if(""", str(y_For_Binning),  " > 0.1 && ", str(y_For_Binning), """ < 0.35){
                     Q2_Y_Bin_New = 27;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 28-29:
-            if(""",     str(Q2_For_Binning), " > 2.95 && ", str(Q2_For_Binning), """ < 3.95){
+            if(""",     str(Q2_For_Binning), " > 2.9 && ", str(Q2_For_Binning), """ < 3.7){
                 // Bin 28
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 28;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 29
-                if(""", str(y_For_Binning),  " > 0.10 && ", str(y_For_Binning),  """ < 0.35){
+                if(""", str(y_For_Binning),  " > 0.1 && ", str(y_For_Binning), """ < 0.35){
                     Q2_Y_Bin_New = 29;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 30-32:
-            if(""",     str(Q2_For_Binning), " > 3.95 && ", str(Q2_For_Binning), """ < 5.50){
+            if(""",     str(Q2_For_Binning), " > 3.7 && ", str(Q2_For_Binning), """ < 5.3){
                 // Bin 30
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 30;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 31
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 31;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 32
-                if(""", str(y_For_Binning),  " > 0.10 && ", str(y_For_Binning),  """ < 0.35){
+                if(""", str(y_For_Binning),  " > 0.1 && ", str(y_For_Binning), """ < 0.35){
                     Q2_Y_Bin_New = 32;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 33-35:
-            if(""",     str(Q2_For_Binning), " > 5.50 && ", str(Q2_For_Binning), """ < 7.90){
+            if(""",     str(Q2_For_Binning), " > 5.3 && ", str(Q2_For_Binning), """ < 7.9){
                 // Bin 33
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 33;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 34
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 34;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 35
-                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning),  """ < 0.45){
+                if(""", str(y_For_Binning),  " > 0.35 && ", str(y_For_Binning), """ < 0.45){
                     Q2_Y_Bin_New = 35;
                     return Q2_Y_Bin_New;
                 }
             }
             // Q2-y Bins 36-39:
-            if(""",     str(Q2_For_Binning), " > 7.90 && ", str(Q2_For_Binning), """ < 14.0){
+            if(""",     str(Q2_For_Binning), " > 7.9 && ", str(Q2_For_Binning), """ < 14.0){
                 // Bin 36
-                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning),  """ < 0.99){
+                if(""", str(y_For_Binning),  " > 0.75 && ", str(y_For_Binning), """ < 0.99){
                     Q2_Y_Bin_New = 36;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 37
-                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning),  """ < 0.75){
+                if(""", str(y_For_Binning),  " > 0.65 && ", str(y_For_Binning), """ < 0.75){
                     Q2_Y_Bin_New = 37;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 38
-                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning),  """ < 0.65){
+                if(""", str(y_For_Binning),  " > 0.55 && ", str(y_For_Binning), """ < 0.65){
                     Q2_Y_Bin_New = 38;
                     return Q2_Y_Bin_New;
                 }
                 // Bin 39
-                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning),  """ < 0.55){
+                if(""", str(y_For_Binning),  " > 0.45 && ", str(y_For_Binning), """ < 0.55){
                     Q2_Y_Bin_New = 39;
                     return Q2_Y_Bin_New;
                 }
@@ -5855,13 +5876,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##----------## Skipping Bad Requests ##----------##
         ##===============================================##
         # No smearing frames which are not the Monte Carlo Reconstructed
-        if((Data_Type not in ["mdf", "pdf", "udf"] and ("miss_idf" not in Data_Type)) and "smear" in Smearing_Q):
+        if(((Data_Type not in ["mdf", "pdf", "udf"]) and ("miss_idf" not in Data_Type)) and ("smear" in Smearing_Q)):
             return "continue"
         # No Cuts for Monte Carlo Generated events
-        if((Data_Type in ["gdf", "gen"]) and "no_cut" not in Cut_Choice):
+        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen"])):
             return "continue"
         # No PID cuts except for matched MC events
-        if((Data_Type not in ["pdf", "gen"]) and "PID" in Cut_Choice):
+        if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
             return "continue"
         ##===============================================##
         ##----------## Skipping Bad Requests ##----------##
@@ -5976,46 +5997,66 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         if(Data_Type in ["gen", "mdf"]):
 #             DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
 
-        if(Data_Type not in ["gdf", "gen"] and "no_cut" != Cut_Choice):
 
-            if("Complete" in Cut_Choice):
-                cutname = "Complete Set of "
-                
-                if("smear" in Smearing_Q and Data_Type != "rdf"):
+        if((Cut_Choice in ["cut_Gen"])         and (Data_Type not in ["rdf"])):
+            cutname         = "Generated MM Cut"
+            if(Titles_or_DF == 'DF'):
+                if(Data_Type in ["gdf"]):
+                    DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                else:
+                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.5")       
+        elif((Cut_Choice in ["cut_Exgen"])     and (Data_Type not in ["rdf"])):
+            cutname         = "Generated MM Cut (Exclusive Events)"
+            if(Titles_or_DF == 'DF'):
+                if(Data_Type in ["gdf"]):
+                    DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                else:
+                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
+        elif((Data_Type not in ["gdf", "gen"]) and ("no_cut" != Cut_Choice)):
+            if("Complete"   in Cut_Choice):
+                cutname     = "Complete Set of "
+                if(("smear" in Smearing_Q)     and (Data_Type != "rdf")):
                     cutname = "".join([cutname, "(Smeared) "])
-                    
                 if(Titles_or_DF == 'DF'):
-                    if("smear" in Smearing_Q and Data_Type != "rdf"):
+                    if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
                         #        DF_Out.Filter("              y < 0.75 &&               xF > 0 &&               W > 2 &&              Q2 > 2 &&              pip > 1.25 &&              pip < 5 && 5 < elth             &&             elth < 35 && 5 < pipth            &&            pipth < 35")
-                        DF_Out = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-                        DF_Out = filter_Valerii(DF_Out, Cut_Choice)
+                        DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
+                        DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                     else:
-                        DF_Out = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-                        DF_Out = filter_Valerii(DF_Out, Cut_Choice)
-                        
-                if("EDIS" in Cut_Choice):
+                        DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
+                        DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
+                if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
-                        DF_Out = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
-
-                if("SIDIS" in Cut_Choice):
+                        DF_Out      = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
+                if("SIDIS"  in Cut_Choice):
                     cutname = "".join([cutname, "SIDIS "])
                     if(Titles_or_DF == 'DF'):
-                        if("smear" in Smearing_Q and Data_Type != "rdf"):
-                            #       DF_Out.Filter("sqrt(MM2) > 1.5")
-                            DF_Out = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
+                        if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
+                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
                         else:
-                            DF_Out = DF_Out.Filter("sqrt(MM2) > 1.5")
-                            
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
                 if("MM" in Cut_Choice):
-                    cutname = "".join([cutname, "SIDIS "])
+                    cutname = "".join([cutname, "(Inverted MM) "])
                     if(Titles_or_DF == 'DF'):
-                        if("smear" in Smearing_Q and Data_Type != "rdf"):
-                            #       DF_Out.Filter("sqrt(MM2) > 1.5")
-                            DF_Out = DF_Out.Filter("sqrt(smeared_vals[1]) < 1.5")
+                        if("smear" in Smearing_Q   and Data_Type != "rdf"):
+                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) < 1.5")
                         else:
-                            DF_Out = DF_Out.Filter("sqrt(MM2) < 1.5")
-                            
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                if(("Gen" in Cut_Choice)           and (Data_Type not in ["rdf"])):
+                    cutname = "".join([cutname, "(Gen MM) "])
+                    if(Titles_or_DF == 'DF'):
+                        if(Data_Type in ["gdf"]):
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                        else:
+                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
+                if(("Exgen" in Cut_Choice)         and (Data_Type not in ["rdf"])):
+                    cutname = "".join([cutname, "(Exclusive Gen MM) "])
+                    if(Titles_or_DF == 'DF'):
+                        if(Data_Type in ["gdf"]):
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                        else:
+                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
                 cutname = "".join([cutname, "Cuts"])
         else:
             # Generated Monte Carlo should not have cuts applied to it (until now...)
@@ -6120,6 +6161,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Cut_Name = "SIDIS Cuts"
         if("MM" in Cut_Type):
             Cut_Name = "Cuts with Inverted MM Cut"
+        if("Gen" in Cut_Type):
+            Cut_Name = "Cuts with Generated MM Cut"
+        if("Exgen" in Cut_Type):
+            Cut_Name = "Cuts with Inverted Generated MM Cut"
         if("Complete" in Cut_Type):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
         return Cut_Name
@@ -6210,10 +6255,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     cut_list = ['no_cut']
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
-        cut_list.append('cut_Complete_MM')
+        # cut_list.append('cut_Complete_MM')
         if(run_Mom_Cor_Code == "yes"):
             cut_list.append('cut_Complete_EDIS')
-    
+    if(datatype not in ["rdf"]):
+        if(datatype not in ["gdf"]):
+            # cut_list.append('cut_Complete_MM_Gen')
+            cut_list.append('cut_Complete_SIDIS_Gen')
+            cut_list.append('cut_Complete_SIDIS_Exgen')
+        cut_list.append('cut_Gen')
+        cut_list.append('cut_Exgen')
     print("".join([color.BLUE, color.BOLD, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
@@ -6593,7 +6644,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
-    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
     
     
     List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
@@ -6601,13 +6652,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
     
     # # # 1D histograms are turned off with this option
-    # List_of_Quantities_1D = []
+    List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []
     
     # # # 3D histograms are turned off with this option
-    # List_of_Quantities_3D = []
+    List_of_Quantities_3D = []
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -6695,7 +6746,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##     Cut Loop    ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
             for Histo_Cut in cut_list:
 
-                if(Histo_Data == "gdf" and Histo_Cut != "no_cut"):
+                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen"]):
                     # Do not cut data from the MC GEN files
                     continue
 
@@ -7123,7 +7174,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_2D_Axis = "".join(["z-P_{T} Bin", " (Smeared)" if("smear" in Histo_Smear) else "", "; ", str(variable_Title_name(Vars_2D[0][0])), "; ", str(variable_Title_name(Vars_2D[1][0]))])
                                         Title_2D_Out  = "".join(["#splitline{#splitline{", str(Title_2D_L1), "}{", str(Title_2D_L2), "}}{", str(Title_2D_L3), "};", str(Title_2D_Axis)])
                                         Title_2D_Out  = Title_2D_Out.replace(") (", " - ")
-                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
                                         if(Use_Weight):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
@@ -7189,7 +7240,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_3D_Axis = "".join([str(variable_Title_name(Vars_3D[2][0])), "; ", str(variable_Title_name(Vars_3D[0][0])), "; ", str(variable_Title_name(Vars_3D[1][0]))])
                                         Title_3D_Out  = "".join(["#splitline{#splitline{", str(Title_3D_L1), "}{", str(Title_3D_L2), "}}{", str(Title_3D_L3), "};", str(Title_3D_Axis)])
                                         Title_3D_Out  = Title_3D_Out.replace(") (", " - ")
-                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
                                         Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_3D_Out), Vars_3D[2][3], Vars_3D[2][1], Vars_3D[2][2], Vars_3D[0][3], Vars_3D[0][1], Vars_3D[0][2], Vars_3D[1][3], Vars_3D[1][1], Vars_3D[1][2]), str(Vars_3D[2][0]), str(Vars_3D[0][0]), str(Vars_3D[1][0]))
 
