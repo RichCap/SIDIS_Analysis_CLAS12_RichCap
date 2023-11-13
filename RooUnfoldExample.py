@@ -549,27 +549,364 @@ MAJOR ERROR: sum_of_gen (""", str(sum_of_gen), """) is greater than gen_val_TRUE
 
 
 
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
-##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+
+
+
+
+
+
+
+
+
+
+# def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Default"):
+    
+# ##############################################################################################################
+# #####=========================#####========================================#####=========================#####
+# #####=====#####=====#####=====#####   Unfolding Method: "SVD" (Original)   #####=====#####=====#####=====#####
+# #####=========================#####========================================#####=========================#####
+# ##############################################################################################################
+#     if(Method in ["SVD"]):
+#         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.BLUE, "SVD", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))
+#         Name_Main = Response_2D.GetName()
+#         if((str(Name_Main).find("-[NumBins")) != -1):
+#             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
+#         else:
+#             Name_Main_Print = str(Name_Main)
+#         print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")]))
+        
+#         nBins_CVM = ExREAL_1D.GetNbinsX()
+#         bin_Width = ExREAL_1D.GetBinWidth(1)
+#         MinBinCVM = ExREAL_1D.GetBinCenter(0)
+#         MaxBinCVM = ExREAL_1D.GetBinCenter(nBins_CVM)
+        
+#         MinBinCVM += 0.5*bin_Width
+#         MaxBinCVM += 0.5*bin_Width
+
+#         ExREAL_1D.GetXaxis().SetRange(0,   nBins_CVM)     # Experimental/real data (rdf)
+#         MC_REC_1D.GetXaxis().SetRange(0,   nBins_CVM)     # MC Reconstructed data (mdf)
+#         MC_GEN_1D.GetXaxis().SetRange(0,   nBins_CVM)     # MC Generated data (gdf)
+#         Response_2D.GetXaxis().SetRange(0, nBins_CVM)     # Response Matrix (X axis --> GEN)
+#         Response_2D.GetYaxis().SetRange(0, nBins_CVM)     # Response Matrix (Y axis --> REC)
+                        
+#         Covariance_Matrix = ROOT.TH2D("".join(["statcov_", str(Name_Main)]), "".join(["Covariance Matrix for: ", str(Name_Main)]), nBins_CVM, MinBinCVM, MaxBinCVM, nBins_CVM, MinBinCVM, MaxBinCVM)
+        
+#         #######################################################################################
+#         ##==========##==========##   Filling the Covariance Matrix   ##==========##==========##
+#         #######################################################################################
+#         for CVM_Bin in range(0, nBins_CVM, 1):
+#             Covariance_Matrix.SetBinContent(CVM_Bin, CVM_Bin, ExREAL_1D.GetBinError(CVM_Bin)*ExREAL_1D.GetBinError(CVM_Bin))
+#         ######################################################################################
+#         ##==========##==========##   Filled the Covariance Matrix   ##==========##==========##
+#         ######################################################################################
+             
+#         ########################################################
+#         ##=====##  Unfolding Regularization Parameter  ##=====##
+#         ########################################################
+#         Reg_Par = 13
+#         ########################################################
+#         ##=====##  Unfolding Regularization Parameter  ##=====##
+#         ########################################################
+        
+#         if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D.GetNbinsX() == Response_2D.GetNbinsY()):
+#             try:
+#                 Unfold_Obj = ROOT.TSVDUnfold(ExREAL_1D, Covariance_Matrix, MC_REC_1D, MC_GEN_1D, Response_2D)
+#                 Unfold_Obj.SetNormalize(False)
+
+#                 Unfolded_Histo = Unfold_Obj.Unfold(Reg_Par)
+
+#                 Unfolded_Histo.SetLineColor(root_color.Pink)
+#                 Unfolded_Histo.SetMarkerColor(root_color.Pink)
+#                 Unfolded_Histo.SetMarkerSize(3)
+#                 Unfolded_Histo.SetLineWidth(2)
+                
+#                 Unfolded_Determinate = Unfold_Obj.GetD()
+#                 # Unfolded_Single_Value = Unfold_Obj[Unfolding_Canvas_Name].GetSV()
+
+#                 unfolding_toys = 100
+
+#                 Unfolded_Covariance_Matrix = Unfold_Obj.GetUnfoldCovMatrix(Covariance_Matrix, unfolding_toys)
+
+#                 Error_Matrix = Unfold_Obj.GetAdetCovMatrix(100)
+
+#                 Unfolded_Covariance_Matrix.Add(Error_Matrix)
+
+#                 Regularized_CV_Matrix = Unfold_Obj.GetXtau()
+
+#                 Regularized_CV_Matrix.Add(Error_Matrix)
+
+#                 # Inverse_CV_Matrix = Unfold_Obj.GetXinv()
+
+#                 for ii in range(1, Unfolded_Histo.GetNbinsX() + 1, 1):
+#                     Unfolded_Histo.SetBinError(ii, ROOT.sqrt(Regularized_CV_Matrix.GetBinContent(ii, ii)))
+                
+#                 Unfolded_Histo.SetTitle(((str(Unfolded_Histo.GetTitle()).replace("Experimental", "SVD Unfolded")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+#                 Unfolded_Histo.GetXaxis().SetTitle(str(Unfolded_Histo.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
+                
+#                 List_Of_Outputs = [Unfolded_Histo, Unfold_Obj, Unfolded_Determinate, Unfolded_Covariance_Matrix, Regularized_CV_Matrix]    
+                
+#                 print("".join([color.BOLD, color.CYAN, "Finished ", color.BLUE, "SVD", color.END, color.BOLD, color.CYAN, " Unfolding Procedure.\n", color.END]))
+#                 return List_Of_Outputs
+
+#             except:
+#                 print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (SVD)...", color.END]))
+#                 print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+                
+#         else:
+#             print("unequal bins...")
+#             print("".join(["nBins_CVM               = ", str(nBins_CVM)]))
+#             print("".join(["MC_REC_1D.GetNbinsX()   = ", str(MC_REC_1D.GetNbinsX())]))
+#             print("".join(["MC_GEN_1D.GetNbinsX()   = ", str(MC_GEN_1D.GetNbinsX())]))
+#             print("".join(["Response_2D.GetNbinsX() = ", str(Response_2D.GetNbinsX())]))
+#             print("".join(["Response_2D.GetNbinsY() = ", str(Response_2D.GetNbinsY())]))
+#             return "ERROR"
+# ####################################################################################################################
+# #####=========================#####==============================================#####=========================#####
+# #####=====#####=====#####=====#####     End of Method: "SVD" (Original)          #####=====#####=====#####=====#####
+# #####=========================#####==============================================#####=========================#####
+# ####################################################################################################################
+
+# #############################################################################################################################################################################
+# #############################################################################################################################################################################
+
+# ############################################################################################################
+# #####=========================#####======================================#####=========================#####
+# #####=====#####=====#####=====#####    Unfolding Method: "Bin-by-Bin"    #####=====#####=====#####=====#####
+# #####=========================#####======================================#####=========================#####
+# ############################################################################################################
+#     elif(Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
+#         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.PURPLE, "Bin-by-Bin", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))
+#         if((str(MC_REC_1D.GetName()).find("-[NumBins")) != -1):
+#             Name_Print = str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName())[:(str(MC_REC_1D.GetName()).find("-[NumBins"))], ""), "))")
+#         else:
+#             Name_Print = str(MC_REC_1D.GetName())
+#         print("".join([color.BOLD, "\tAcceptance Correction of Histogram:\n\t", color.END, str(Name_Print).replace("(Data-Type='mdf'), ", "")]))
+#         try:
+#             Bin_Acceptance = MC_REC_1D.Clone()
+#             Bin_Acceptance.Sumw2()
+#             Bin_Acceptance.Divide(MC_GEN_1D)
+#             Bin_Acceptance.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental Distribution of", "Bin-by-Bin Acceptance for")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+#             # Bin_Acceptance.GetYaxis().SetTitle("#frac{Number of REC Events}{Number of GEN Events}")
+#             Bin_Acceptance.GetYaxis().SetTitle("Acceptance")
+#             Bin_Acceptance.GetXaxis().SetTitle(str(Bin_Acceptance.GetXaxis().GetTitle()).replace("(REC)", ""))
+            
+#             Bin_Unfolded = ExREAL_1D.Clone()
+#             Bin_Unfolded.Divide(Bin_Acceptance)
+#             Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Unfolded")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+#             Bin_Unfolded.Sumw2()
+            
+#             cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
+            
+#             # for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
+#             #     if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
+#             #         print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...", color.END]))
+#             #         Bin_Unfolded.SetBinContent(ii, 0)
+            
+#             print("".join([color.BOLD, color.CYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END, color.BOLD, color.CYAN, " Unfolding Procedure.", color.END]))
+#             return [Bin_Unfolded, Bin_Acceptance]
+#         except:
+#             print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (Bin-by-Bin)...", color.END]))
+#             print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+#             return "ERROR"
+# ############################################################################################################
+# #####=========================#####======================================#####=========================#####
+# #####=====#####=====#####=====#####     End of Method:  "Bin-by-Bin"     #####=====#####=====#####=====#####
+# #####=========================#####======================================#####=========================#####
+# ############################################################################################################
+
+# #############################################################################################################################################################################
+# #############################################################################################################################################################################
+
+# ##############################################################################################################
+# #####=========================#####========================================#####=========================#####
+# #####=====#####=====#####=====#####    Unfolding Method(s): "RooUnfold"    #####=====#####=====#####=====#####
+# #####=========================#####========================================#####=========================#####
+# ##############################################################################################################
+#     elif(("RooUnfold" in str(Method)) or (str(Method) in ["Default"])):
+#         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END, color.BOLD, color.CYAN, " Unfolding Procedure...", color.END]))        
+#         Name_Main = Response_2D.GetName()
+#         if((str(Name_Main).find("-[NumBins")) != -1):
+#             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
+#         else:
+#             Name_Main_Print = str(Name_Main)
+#         print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")]))
+        
+#         nBins_CVM = ExREAL_1D.GetNbinsX()
+#         bin_Width = ExREAL_1D.GetBinWidth(1)
+#         MinBinCVM = ExREAL_1D.GetBinCenter(0)
+#         MaxBinCVM = ExREAL_1D.GetBinCenter(nBins_CVM)
+        
+#         MinBinCVM += 0.5*bin_Width
+#         MaxBinCVM += 0.5*bin_Width
+        
+#         ExREAL_1D.GetXaxis().SetRange(0,   nBins_CVM)     # Experimental/real data (rdf)
+#         MC_REC_1D.GetXaxis().SetRange(0,   nBins_CVM)     # MC Reconstructed data (mdf)
+#         MC_GEN_1D.GetXaxis().SetRange(0,   nBins_CVM)     # MC Generated data (gdf)
+#         Response_2D.GetXaxis().SetRange(0, nBins_CVM)     # Response Matrix (X axis --> GEN)
+#         Response_2D.GetYaxis().SetRange(0, nBins_CVM)     # Response Matrix (Y axis --> REC)
+        
+#         if(True):
+#             Response_2D_Input_Title = "".join([str(Response_2D.GetTitle()), ";", str(Response_2D.GetYaxis().GetTitle()), ";", str(Response_2D.GetXaxis().GetTitle())])
+#             Response_2D_Input       = ROOT.TH2D("".join([str(Response_2D.GetName()), "_Flipped"]), str(Response_2D_Input_Title), Response_2D.GetNbinsY(), MinBinCVM, MaxBinCVM, Response_2D.GetNbinsX(), MinBinCVM, MaxBinCVM)
+#             # Use the following code if the input Response Matrix plots the generated events on the x-axis
+#             # # The RooUnfold library takes Response Matrices which plot the true/generated events on the y-axis and the measured/reconstructed events on the x-axis
+#             ##==============##============================================##==============##
+#             ##==============##=====##     Flipping Response_2D     ##=====##==============##
+#             ##=========##   Generated Bins       ##=====##
+#             for gen_bin in range(0, nBins_CVM + 1, 1):
+#                 ##=====##   Reconstructed Bins   ##=====##
+#                 for rec_bin in range(0, nBins_CVM + 1, 1):
+#                     Res_Value = Response_2D.GetBinContent(gen_bin,    rec_bin)
+#                     Res_Error = Response_2D.GetBinError(gen_bin,      rec_bin)
+#                     Response_2D_Input.SetBinContent(rec_bin, gen_bin, Res_Value)
+#                     Response_2D_Input.SetBinError(rec_bin,   gen_bin, Res_Error)
+#             ##==============##=====##     Flipped Response_2D      ##=====##==============##
+#             ##==============##============================================##==============##
+#             Response_2D_Input.Sumw2()
+#         else:
+#             Response_2D_Input_Title = "".join([str(Response_2D.GetTitle()), ";", str(Response_2D.GetXaxis().GetTitle()), ";", str(Response_2D.GetYaxis().GetTitle())])
+#             Response_2D_Input       = Response_2D
+
+        
+#         if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D_Input.GetNbinsX() == Response_2D_Input.GetNbinsY()):
+#             try:
+#                 # Response_RooUnfold = ROOT.RooUnfoldResponse(nBins_CVM, MinBinCVM, MaxBinCVM)
+#                 Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_1D, MC_GEN_1D, Response_2D_Input, "".join([str(Response_2D.GetName()), "_RooUnfoldResponse_Object"]), Response_2D_Input_Title)
+
+# ##==============##=======================================================##==============##
+# ##==============##=====##      Applying the RooUnfold Method      ##=====##==============##
+# ##==============##=======================================================##==============##
+#                 Unfold_Title = "ERROR"
+#                 if("svd" in str(Method)):
+#                     Unfold_Title = "RooUnfold (SVD)"
+#                     print("".join(["\t", color.CYAN, "Using ", color.BOLD, color.GREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+
+#                     ##################################################
+#                     ##=====##  SVD Regularization Parameter  ##=====##
+#                     ##################################################
+#                     Reg_Par = 13
+#                     ##################################################
+#                     ##=====##  SVD Regularization Parameter  ##=====##
+#                     ##################################################
+
+#                     Unfolding_Histo = ROOT.RooUnfoldSvd(Response_RooUnfold, ExREAL_1D, Reg_Par, 100)
+
+#                 elif("bbb" in str(Method)):
+#                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
+#                     print("".join(["\t", color.CYAN, "Using ", color.BOLD, color.GREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+
+#                     Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
+
+#                 elif("inv" in str(Method)):
+#                     Unfold_Title = "RooUnfold Inversion (without regulation)"
+#                     print("".join(["\t", color.CYAN, "Using ", color.BOLD, color.GREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+
+#                     Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
+
+#                 else:
+#                     Unfold_Title = "RooUnfold (Bayesian)"
+#                     if(str(Method) not in ["RooUnfold", "RooUnfold_bayes", "Default"]):
+#                         print("".join(["\t", color.RED, "Method '",                 color.BOLD,              str(Method),       color.END, color.RED,  "' is unknown/undefined...", color.END]))
+#                         print("".join(["\t", color.RED, "Defaulting to using the ", color.BOLD, color.GREEN, str(Unfold_Title), color.END, color.RED,  " method to unfold...",      color.END]))
+#                     else:
+#                         print("".join(["\t", color.CYAN, "Using ",                  color.BOLD, color.GREEN, str(Unfold_Title), color.END, color.CYAN, " method to unfold...",      color.END]))
+                        
+#                     #########################################
+#                     ##=====##  Bayesian Iterations  ##=====##
+#                     #########################################
+#                     bayes_iterations = 10 if(("Multi_Dim" not in str(Name_Main)) or ("Multi_Dim_z_pT_Bin" in str(Name_Main))) else 4
+#                     #########################################
+#                     ##=====##  Bayesian Iterations  ##=====##
+#                     #########################################
+
+#                     Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
+
+
+# ##==============##==============================================================##==============##
+# ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
+# ##==============##==============================================================##==============##
+
+#                 Unfolded_Histo = Unfolding_Histo.Hunfold()
+
+#                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+#                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
+
+#                 print("".join([color.BOLD, color.CYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END, color.BOLD, color.CYAN, " Unfolding Procedure.\n", color.END]))
+#                 return [Unfolded_Histo, Response_RooUnfold]
+
+                        
+#             except:
+#                 print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
+#                 print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, str(traceback.format_exc()), color.END]))
+                
+#         else:
+#             print("".join([color.RED, "Unequal Bins...", color.END]))
+#             print("".join(["nBins_CVM = ", str(nBins_CVM)]))
+#             print("".join(["MC_REC_1D.GetNbinsX() = ",   str(MC_REC_1D.GetNbinsX())]))
+#             print("".join(["MC_GEN_1D.GetNbinsX() = ",   str(MC_GEN_1D.GetNbinsX())]))
+#             print("".join(["Response_2D.GetNbinsX() = ", str(Response_2D.GetNbinsX())]))
+#             print("".join(["Response_2D.GetNbinsY() = ", str(Response_2D.GetNbinsY())]))
+#             return "ERROR"
+    
+
+#     else:
+#         print("".join(["Procedure for Method '", str(Method), "' has not yet been defined..."]))
+#         return "ERROR"
+    
+#     print("".join([color.RED, color.BOLD, "\nERROR: DID NOT RETURN A HISTOGRAM YET...\n", color.END]))
+#     return "ERROR"
+
+
+
+
+    
+    
+    
+    
+    
+    
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
+# ##=======================================================================================================================================================================================================##
 
 
 
@@ -707,26 +1044,27 @@ def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="De
             Bin_Acceptance.Sumw2()
             Bin_Acceptance.Divide(MC_GEN_1D)
             Bin_Acceptance.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental Distribution of", "Bin-by-Bin Acceptance for")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+            Bin_Acceptance.SetTitle(str(Bin_Acceptance.GetTitle()).replace("Experimental", "Acceptance"))
             # Bin_Acceptance.GetYaxis().SetTitle("#frac{Number of REC Events}{Number of GEN Events}")
             Bin_Acceptance.GetYaxis().SetTitle("Acceptance")
             Bin_Acceptance.GetXaxis().SetTitle(str(Bin_Acceptance.GetXaxis().GetTitle()).replace("(REC)", ""))
             
             Bin_Unfolded = ExREAL_1D.Clone()
             Bin_Unfolded.Divide(Bin_Acceptance)
-            Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Unfolded")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+            Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Corrected")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             Bin_Unfolded.Sumw2()
             
             cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
             
             # for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
             #     if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
-            #         print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...", color.END]))
+            #         print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance... (cut_criteria = ", str(cut_criteria), ")", color.END]))
             #         Bin_Unfolded.SetBinContent(ii, 0)
             
             print("".join([color.BOLD, color.CYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END, color.BOLD, color.CYAN, " Unfolding Procedure.", color.END]))
             return [Bin_Unfolded, Bin_Acceptance]
         except:
-            print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (Bin-by-Bin)...", color.END]))
+            print("".join([color.BOLD, color.RED, "\nFAILED TO CORRECT A HISTOGRAM (Bin-by-Bin)...", color.END]))
             print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
             return "ERROR"
 ############################################################################################################
@@ -835,7 +1173,7 @@ def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="De
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
-                    bayes_iterations = 10 if(("Multi_Dim" not in str(Name_Main)) or ("Multi_Dim_z_pT_Bin" in str(Name_Main))) else 4
+                    bayes_iterations = 20 if(("Multi_Dim" not in str(Name_Main)) or ("Multi_Dim_z_pT_Bin" in str(Name_Main))) else 4
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -848,7 +1186,11 @@ def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="De
 ##==============##==============================================================##==============##
 
                 Unfolded_Histo = Unfolding_Histo.Hunfold()
-
+    
+                for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+                    if(MC_REC_1D.GetBinContent(bin_rec) == 0):
+                        Unfolded_Histo.SetBinContent(bin_rec, 0)
+                        
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
@@ -857,7 +1199,7 @@ def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="De
 
                         
             except:
-                print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
+                print("".join([color.BOLD, color.RED, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...",    color.END]))
                 print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, str(traceback.format_exc()), color.END]))
                 
         else:
@@ -967,7 +1309,7 @@ def Unfold_Function_New(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="De
         
 def Weight_Calc(phi_t):
     Par_B_Test   = -0.50;
-    Par_C_Test   =  0.25;
+    Par_C_Test   =  0.025;
     PHI_H        = phi_t*ROOT.TMath.DegToRad();
     Event_Weight = 1 + Par_B_Test*ROOT.TMath.Cos(PHI_H) + Par_C_Test*ROOT.TMath.Cos(2*PHI_H);
     return Event_Weight;
@@ -1253,11 +1595,12 @@ Unfold_RooUnfold_SVD.Draw("hist same E0")
 Unfold_Bin.Draw("hist same E0")
 
 
-Unfold_Legend = ROOT.TLegend(0.65, 0.25, 0.95, 0.55)
-Unfold_Legend.SetNColumns(2)
+# Unfold_Legend = ROOT.TLegend(0.65, 0.25, 0.95, 0.55)
+Unfold_Legend = ROOT.TLegend(0.75, 0.45, 0.9, 0.75)
+Unfold_Legend.SetNColumns(1)
 Unfold_Legend.SetBorderSize(0)
-Unfold_Legend.SetFillColor(0)
-Unfold_Legend.SetFillStyle(2)
+Unfold_Legend.SetFillColor(ROOT.kWhite)
+Unfold_Legend.SetFillStyle(1)
 
 Unfold_Legend.AddEntry(hMeas,                "hMeas", "l")
 Unfold_Legend.AddEntry(hTrue,                "hTrue", "l")

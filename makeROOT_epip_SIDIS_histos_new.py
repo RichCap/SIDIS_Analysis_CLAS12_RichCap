@@ -674,6 +674,35 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Fixed minor issue with Q2_y_Bin = -3 (migration only)
         # Cut was not applied propperly
         
+        
+    Extra_Name = "New_Bin_Tests_V4_"
+    # Ran on 10/11/2023
+    # This file uses the original Q2-y binning scheme ('y_bin')
+        # Still not smearing
+    # This file is mainly used to study the additional phi_t modulations
+        # More 2D Histograms of variables vs phi_t have been made including:
+            # Electron/Pi+ Sectors (esec/pipsec)
+            # Polar angles Theta of both particles
+            # Momentum of both particles
+
+            
+            
+    Extra_Name = "MultiDim_Bin_Test_V1_"
+    # Ran on 11/1/2023-11/2/2023
+    # This file uses the original Q2-y binning scheme ('y_bin')
+        # Still not smearing
+    # This file is mainly used to study the Multi-Dimensional phi_t histograms to ensure the 1st z-pT bin is constructed correctly for 3D unfolding
+        # Turned Response Matrices back on
+        # Turned off options from Extra_Name = "New_Bin_Tests_V4_"
+        # Added cut on the generated events in z-pT bin 1 (applied to all Q2-y bins)
+            # Cut is (basically) rdf = rdf.Filter("z_pT_bin_gen != 1")
+                # See line 5991 (as of this note)
+                # Cut may be inverted in a later test (ignore this note if this test idea proves to be unnecessary)
+                # This cut should remove a single column from the flattened 3D response matrix
+        # Removed all extra (generated missing mass) cuts used in prior tests (don't need them for this test)
+        # Turned off all 2D histograms
+
+        
     if(Use_Weight):
         # Using the modulations of the Generated Monte Carlo
         Extra_Name = "".join([Extra_Name, "Modulated_"])
@@ -5957,6 +5986,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 DF_Out = DF.Filter(Filter_Name)
             else:
                 DF_Out = DF
+            
+            if(Data_Type in ["mdf", "pdf"]):
+                DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 1"]))
+            if(Data_Type in ["gdf"]):
+                DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""),     " != 1"]))
         else:
             particle_sector = ""
             if(Sec_type != '' and Sec_num != -1):
@@ -6258,13 +6292,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # cut_list.append('cut_Complete_MM')
         if(run_Mom_Cor_Code == "yes"):
             cut_list.append('cut_Complete_EDIS')
-    if(datatype not in ["rdf"]):
-        if(datatype not in ["gdf"]):
-            # cut_list.append('cut_Complete_MM_Gen')
-            cut_list.append('cut_Complete_SIDIS_Gen')
-            cut_list.append('cut_Complete_SIDIS_Exgen')
-        cut_list.append('cut_Gen')
-        cut_list.append('cut_Exgen')
+    # if(datatype not in ["rdf"]):
+    #     if(datatype not in ["gdf"]):
+    #         # cut_list.append('cut_Complete_MM_Gen')
+    #         cut_list.append('cut_Complete_SIDIS_Gen')
+    #         cut_list.append('cut_Complete_SIDIS_Exgen')
+    #     cut_list.append('cut_Gen')
+    #     cut_list.append('cut_Exgen')
     print("".join([color.BLUE, color.BOLD, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
@@ -6301,7 +6335,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     binning_option_list = ["Off"]
 #     binning_option_list = ["Off", "y_bin"]
     binning_option_list = ["y_bin"]
-    binning_option_list = ["Y_bin"]
+#     binning_option_list = ["Y_bin"]
 
     # The options ''    or 'Stefan' uses the original binning scheme used by Stefan (may be outdated now based on the option selected)
     # The options '2'   or 'OG'     uses the modified binning schemes developed for this analysis (instead of the binning used by Stefan)
@@ -6615,9 +6649,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     List_of_Quantities_1D = [phi_t_Binning, MM_Binning, W_Binning]
 
     List_of_Quantities_1D = [phi_t_Binning, MM_Binning]
-    List_of_Quantities_1D = [phi_t_Binning]
     
     List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
+    
+    List_of_Quantities_1D = [phi_t_Binning]
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -6642,20 +6677,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [Q2_Binning, W_Binning], [W_Binning, y_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    
+    
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
-    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
+    
+    # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
     
     
     List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
-    
     List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
     
     # # # 1D histograms are turned off with this option
-    List_of_Quantities_1D = []
+    # List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
-    # List_of_Quantities_2D = []
+    List_of_Quantities_2D = []
     
     # # # 3D histograms are turned off with this option
     List_of_Quantities_3D = []
@@ -7306,8 +7344,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 # if(Binning in ["5", "Y_bin", "Y_Bin"]):
                                 #     Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, Q2_Y_Binning]]
                                 
-                                # REMOVING ALL ABOVE ADDITIONS (remove this line later)
-                                Res_Var_Add = []
+                                # # REMOVING ALL ABOVE ADDITIONS (remove this line later)
+                                # Res_Var_Add = []
                                 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
                                 if(Res_Var_Add != []):
