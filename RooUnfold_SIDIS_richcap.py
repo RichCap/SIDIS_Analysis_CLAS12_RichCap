@@ -143,6 +143,9 @@ File_Save_Format = ".png"
 # File_Save_Format = ".pdf"
 
 
+if((File_Save_Format != ".png") and Saving_Q):
+    print(color.GREEN, color.BOLD, "\nSave Option was not set to output .png files. Save format is:", "".join([color.END, color.BOLD, color.UNDERLINE, str(File_Save_Format), color.END, "\n"]))
+
 
 # Binning_Method = "_2"
 Binning_Method = "_y_bin"
@@ -2815,7 +2818,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
                     if(Bin_Acceptance.GetBinContent(ii) != 0):
                         print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...\n\t(cut_criteria = ", str(cut_criteria), ")\n\t(Bin_Content  = ", str(Bin_Acceptance.GetBinContent(ii)), ")", color.END]))
-                    Bin_Unfolded.SetBinError(ii,   Bin_Unfolded.GetBinContent(ii) + Bin_Unfolded.GetBinError(ii))
+                    # Bin_Unfolded.SetBinError(ii,   Bin_Unfolded.GetBinContent(ii) + Bin_Unfolded.GetBinError(ii))
+                    Bin_Unfolded.SetBinError(ii,   0)
                     Bin_Unfolded.SetBinContent(ii, 0)
             
             print("".join([color.BOLD, color.CYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END, color.BOLD, color.CYAN, " Unfolding Procedure.", color.END]))
@@ -2946,7 +2950,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
     
                 for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
                     if(MC_REC_1D.GetBinContent(bin_rec) == 0):
-                        Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
+                        # Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
+                        Unfolded_Histo.SetBinError(bin_rec,          0)
                         Unfolded_Histo.SetBinContent(bin_rec,        0)
                         
                 Bin_Acceptance = MC_REC_1D.Clone()
@@ -2954,7 +2959,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Bin_Acceptance.Divide(MC_GEN_1D)
                 for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
                     if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
-                        Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
+                        # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
+                        Unfolded_Histo.SetBinError(bin_acceptance,   0)
                         Unfolded_Histo.SetBinContent(bin_acceptance, 0)
                         
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
@@ -3812,6 +3818,10 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                     # Cos(phi) Moment - B
                                     Fitting_Function.SetParameter(1, -0.35)
                                     Fitting_Function.SetParLimits(1, -0.35     - 0.5,        -0.35 + 0.5)
+                                if(str(z_pT_Bin_Special) in ["13"]):
+                                    # Cos(phi) Moment - B
+                                    Fitting_Function.SetParameter(1, -0.027)
+                                    Fitting_Function.SetParLimits(1, -0.09, 0)
                                 if(str(z_pT_Bin_Special) in ["20"]):
                                     # Cos(phi) Moment - B
                                     Fitting_Function.SetParameter(1, -0.04262)
@@ -4249,7 +4259,7 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
                     Multi_Dim_cut_err = Histo_Cut.GetBinError(bin_jj)
                     if((Multi_Dim_cut_num == 0) or (Multi_Dim_cut_num <= Multi_Dim_cut_err)):
                         Multi_Dim_phi_num = 0
-                        Multi_Dim_phi_err = Histo.GetBinContent(bin_jj) + Histo.GetBinError(bin_jj)
+                        Multi_Dim_phi_err = 0 # Histo.GetBinContent(bin_jj) + Histo.GetBinError(bin_jj)
                     else:
                         Multi_Dim_phi_num = Histo.GetBinContent(bin_jj)
                         Multi_Dim_phi_err = Histo.GetBinError(bin_jj)
@@ -4352,13 +4362,15 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
             Save_Name = "".join(["Sim_Test_", Save_Name])
             
             
-        Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",       "Q2_y_phi_h")
-        Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h", "z_pT_phi_h")
-        Save_Name = Save_Name.replace("_.png",                ".png")
-        Save_Name = Save_Name.replace("__",                   "_")
+        Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                      "Q2_y_phi_h")
+        Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h",                "z_pT_phi_h")
+        Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]), str(File_Save_Format))
+        Save_Name = Save_Name.replace("__",                                  "_")
         # if((Saving_Q) and (Out_Option in ["Save", "save", "Canvas", "canvas", "complete", "Complete"])):
         # if(Saving_Q and ("Acceptance" not in Method)):
         if(Saving_Q and ("Acceptance" not in Method) and (Out_Option in ["Save", "save"])):
+            if("root" in str(File_Save_Format)):
+                Output_Canvas.SetName(Save_Name.replace(".root", ""))
             Output_Canvas.SaveAs(Save_Name)
         # print("".join(["Saved: " if(Saving_Q and ("Acceptance" not in Method)) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
         # print("".join(["Saved: " if(Saving_Q and ("Acceptance" not in Method) and (Out_Option in ["Save", "save", "Canvas", "canvas"])) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
@@ -4741,7 +4753,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     
     ##################################################################
     ##===============##     Drawing Histograms     ##===============##
-    Draw_Canvas(canvas=Canvas_Input_1, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_1, cd_num=1, left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_1, cd_num=1, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(Q2_y__Histo_rdf_2D)].Draw("colz")
     Drawing_Histo_Set[str(Q2_y__Histo_rdf_2D)].SetTitle((Drawing_Histo_Set[str(Q2_y__Histo_rdf_2D)].GetTitle()).replace("Q^{2}-x_{B} Bin: All" if("y_bin" not in str(Binning_Method)) else "Q^{2}-y Bin: All", str(Bin_Title)))
     Q2_y_borders, Q2_y_borders_New = {}, {}
@@ -4756,7 +4769,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         Q2_y_borders[(line_num)].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
         line_num += 1
     
-    Draw_Canvas(canvas=Canvas_Input_1, cd_num=2, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_1, cd_num=2, left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_1, cd_num=2, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(z_pT__Histo_rdf_2D)].Draw("colz")
     if(str(Q2_Y_Bin_Input) not in ["All", "0"]):
         z_pT_borders = {}
@@ -4851,7 +4865,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         MM_z_pT_legend.Draw("same")
     
     
-    Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].Draw("colz")
     Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].SetTitle((Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].GetTitle()).replace("Q^{2}-x_{B} Bin: All" if("y_bin" not in str(Binning_Method)) else "Q^{2}-y Bin: All", str(Bin_Title)))
     Q2_xB_borders, line_num = {}, 0
@@ -4923,28 +4938,36 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     Drawing_Histo_Set[str(pipth__Histo_mdf_2D)].GetXaxis().SetRangeUser(3, 37)
 
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=1,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=1,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=1,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(elth___Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=2,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=2,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=2,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(elPhi__Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=3,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=3,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=3,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(pipth__Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=4,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=4,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=4,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(pipPhi_Histo_rdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=5,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=5,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=5,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(elth___Histo_mdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=6,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=6,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=6,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(elPhi__Histo_mdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=7,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=7,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=7,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(pipth__Histo_mdf_2D)].Draw("colz")
     
-    Draw_Canvas(canvas=Canvas_Input_3, cd_num=8,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=8,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_3, cd_num=8,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(pipPhi_Histo_mdf_2D)].Draw("colz")
     
     
@@ -5057,7 +5080,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         Drawing_Histo_Set[Name_1D].Rebin(2)
     
         
-    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=1,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=1,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=1,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Q2_____Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(Q2_____Histo_rdf_1D)].DrawNormalized("H P E0 same")
     Q2_____Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(Q2_____Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5067,7 +5091,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     Q2_____Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(Q2_____Histo_min_1D_Normalized, Q2_____Histo_max_1D_Normalized)
     Q2_____Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(Q2_____Histo_min_1D_Normalized, Q2_____Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=2,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=2,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=2,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     y______Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(y______Histo_rdf_1D)].DrawNormalized("H P E0 same")
     y______Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(y______Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5077,7 +5102,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     y______Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(y______Histo_min_1D_Normalized, y______Histo_max_1D_Normalized)
     y______Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(y______Histo_min_1D_Normalized, y______Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=3,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=3,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=3,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     z______Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(z______Histo_rdf_1D)].DrawNormalized("H P E0 same")
     z______Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(z______Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5087,7 +5113,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     z______Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(z______Histo_min_1D_Normalized, z______Histo_max_1D_Normalized)
     z______Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(z______Histo_min_1D_Normalized, z______Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=4,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=4,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=4,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     pT_____Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(pT_____Histo_rdf_1D)].DrawNormalized("H P E0 same")
     pT_____Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(pT_____Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5097,7 +5124,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     pT_____Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(pT_____Histo_min_1D_Normalized, pT_____Histo_max_1D_Normalized)
     pT_____Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(pT_____Histo_min_1D_Normalized, pT_____Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=5,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=5,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_1, cd_num=5,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     xB_____Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(xB_____Histo_rdf_1D)].DrawNormalized("H P E0 same")
     xB_____Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(xB_____Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5108,8 +5136,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     xB_____Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(xB_____Histo_min_1D_Normalized, xB_____Histo_max_1D_Normalized)
     
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=9,  left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=1,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=1,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     el_____Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(el_____Histo_rdf_1D)].DrawNormalized("H P E0 same")
     el_____Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(el_____Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5119,8 +5147,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     el_____Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(el_____Histo_min_1D_Normalized, el_____Histo_max_1D_Normalized)
     el_____Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(el_____Histo_min_1D_Normalized, el_____Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=2, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=10, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=2,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=2,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     elth___Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(elth___Histo_rdf_1D)].DrawNormalized("H P E0 same")
     elth___Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(elth___Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5130,8 +5158,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     elth___Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(elth___Histo_min_1D_Normalized, elth___Histo_max_1D_Normalized)
     elth___Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(elth___Histo_min_1D_Normalized, elth___Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=3, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=11, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=3,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_2, cd_num=3,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     elPhi__Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(elPhi__Histo_rdf_1D)].DrawNormalized("H P E0 same")
     elPhi__Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(elPhi__Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5142,8 +5170,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     elPhi__Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(elPhi__Histo_min_1D_Normalized, elPhi__Histo_max_1D_Normalized)
     
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=1, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=13, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=1,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=1,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     pip____Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(pip____Histo_rdf_1D)].DrawNormalized("H P E0 same")
     pip____Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(pip____Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5153,8 +5181,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     pip____Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(pip____Histo_min_1D_Normalized, pip____Histo_max_1D_Normalized)
     pip____Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(pip____Histo_min_1D_Normalized, pip____Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=2, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=14, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=2,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=2,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     pipth__Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(pipth__Histo_rdf_1D)].DrawNormalized("H P E0 same")
     pipth__Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(pipth__Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5164,8 +5192,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     pipth__Histo_rdf_1D_Normalized.GetYaxis().SetRangeUser(pipth__Histo_min_1D_Normalized, pipth__Histo_max_1D_Normalized)
     pipth__Histo_mdf_1D_Normalized.GetYaxis().SetRangeUser(pipth__Histo_min_1D_Normalized, pipth__Histo_max_1D_Normalized)
     
-    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=3, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
-    # Draw_Canvas(canvas=Canvas_Input_3, cd_num=15, left_add=0.075, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=3,  left_add=0.075, right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Canvas_Input_4_Row_3, cd_num=3,  left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     pipPhi_Histo_rdf_1D_Normalized = Drawing_Histo_Set[str(pipPhi_Histo_rdf_1D)].DrawNormalized("H P E0 same")
     pipPhi_Histo_mdf_1D_Normalized = Drawing_Histo_Set[str(pipPhi_Histo_mdf_1D)].DrawNormalized("H P E0 same")
     
@@ -5547,7 +5575,7 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
             # Save_Name = str(Save_Name.replace("(", "")).replace(")", "")
             # Save_Name = str(Save_Name.replace("__", "_"))
 
-            Save_Name     = "".join(["Kinematic_Comparison_Q2_y_Bin_", str(Q2_Y_Bin_Input) if(str(Q2_Y_Bin_Input) not in ["0"]) else "All", "_z_pT_Bin_", str(Z_PT_Bin_Input) if(str(Z_PT_Bin_Input) not in ["0"]) else "All", "_Smeared.png" if("Smear" in Default_Histo_Name_Input) else ".png"])    
+            Save_Name     = "".join(["Kinematic_Comparison_Q2_y_Bin_", str(Q2_Y_Bin_Input) if(str(Q2_Y_Bin_Input) not in ["0"]) else "All", "_z_pT_Bin_", str(Z_PT_Bin_Input) if(str(Z_PT_Bin_Input) not in ["0"]) else "All", "".join(["_Smeared", str(File_Save_Format)]) if("Smear" in Default_Histo_Name_Input) else str(File_Save_Format)])    
             if(Name_Uses_MultiDim):
                 Save_Name = "".join(["Multi_Unfold_", str(Save_Name)])
             if(Sim_Test):
@@ -5557,6 +5585,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
                 Save_Name = Save_Name.replace("_Q2_y_Bin_", "_Q2_xB_Bin_")
             Save_Name = Save_Name.replace("__", "_")
             if(Saving_Q):
+                if("root" in str(File_Save_Format)):
+                    Large_Bin_Canvas_Compare.SetName(Save_Name.replace(".root", ""))
                 Large_Bin_Canvas_Compare.SaveAs(Save_Name)
             print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
 
@@ -5780,7 +5810,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ##==========##==========##     Row 1 - CD 3     ##==========##==========## ################################################################
     ########################################################################## ################################################################
     ##=====##=====##   Drawing the Pre-Unfolded Histograms    ##=====##=====## ################################################################
-    Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=3, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=3, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=3, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     if("phi_t" in str(Default_Histo_Name)):
         ExREAL_1D.GetXaxis().SetRangeUser(0, 360)
         MC_REC_1D.GetXaxis().SetRangeUser(0, 360)
@@ -5817,7 +5848,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ##==========##==========##     Row 1 - CD 4     ##==========##==========## ################################################################
     ########################################################################## ################################################################
     ##=====##=====##     Drawing the Unfolded Histograms      ##=====##=====## ################################################################
-    Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=4, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=4, left_add=0.075, right_add=0.075, up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Large_Bin_Canvas_Row_1, cd_num=4, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     if("phi_t" in str(Default_Histo_Name)):
         UNFOLD_Bin.GetXaxis().SetRangeUser(0, 360)
         UNFOLD_Bay.GetXaxis().SetRangeUser(0, 360)
@@ -5899,6 +5931,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     
     if(Multi_Dim_Option in ["Off"]):
         # UNFOLD_SVD.DrawNormalized("H PL E0 same")
+        UNFOLD_SVD.GetYaxis().SetTitle("Count")
         UNFOLD_SVD.Draw("H P E0 same")
         statbox_move(Histogram=UNFOLD_SVD, Canvas=Large_Bin_Canvas_Row_1.cd(4), Print_Method="off")
         # for ii in range(0, UNFOLD_SVD.GetNbinsX() + 1, 1):
@@ -5910,6 +5943,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
 
     # UNFOLD_Bin.DrawNormalized("H PL E0 same")
     # UNFOLD_Bin.DrawNormalized("H P E0 same")
+    UNFOLD_Bin.GetYaxis().SetTitle("Count")
     UNFOLD_Bin.Draw("H P E0 same")
     statbox_move(Histogram=UNFOLD_Bin, Canvas=Large_Bin_Canvas_Row_1.cd(4), Print_Method="off")
     # for ii in range(0, UNFOLD_Bin.GetNbinsX() + 1, 1):
@@ -5961,7 +5995,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ########################################################################## ################################################################
     ##=====##=====##       Drawing the Response Matrix        ##=====##=====## ################################################################
     Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
-    Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=3, left_add=0.1, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=3, left_add=0.1,   right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=3, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     ROOT.gPad.SetLogz(1)
     Response_2D.Draw("colz")
     if(Multi_Dim_Option in ["Off"]):
@@ -5985,7 +6020,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ##==========##==========##     Row 2 - CD 4     ##==========##==========## ################################################################
     ########################################################################## ################################################################
     ##=====##=====##      Drawing the Bin Acceptance          ##=====##=====## ################################################################
-    Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=4, left_add=0.15, right_add=0.05, up_add=0.1, down_add=0.1)
+    # Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=4, left_add=0.15,  right_add=0.05,  up_add=0.1, down_add=0.1)
+    Draw_Canvas(canvas=Large_Bin_Canvas_Row_2, cd_num=4, left_add=0.2,   right_add=0.075, up_add=0.1, down_add=0.1)
     UNFOLD_Acceptance.SetTitle(str(UNFOLD_Acceptance.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
     # if(str(Bin_Title) not in str(UNFOLD_Acceptance.GetTitle())):
     #     UNFOLD_Acceptance.SetTitle("".join(["#splitline{", str(UNFOLD_Acceptance.GetTitle()), "}{",  str(Bin_Title), "}"]))
@@ -5994,6 +6030,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     if("Reconstructed (MC) Distribution of" in str(UNFOLD_Acceptance.GetTitle())):
         UNFOLD_Acceptance.SetTitle(str(UNFOLD_Acceptance.GetTitle()).replace("Reconstructed (MC) Distribution of", "Bin-by-Bin Acceptance for"))
     UNFOLD_Acceptance.GetXaxis().SetRangeUser(0, 360)
+    UNFOLD_Acceptance.GetYaxis().SetTitle("Acceptance")
     UNFOLD_Acceptance.Draw("same E1 H")
     ##=====##=====##      Drawing the Bin Acceptance          ##=====##=====## ################################################################
     ########################################################################## ################################################################
@@ -6017,14 +6054,14 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     #####==========#####        Saving Canvas        #####==========##### ################################################################
     ##################################################################### ################################################################
     if("phi_t)" in Default_Histo_Name):
-        Save_Name = "".join(["Response_Matrix_Normal_Q2_y_Bin_", str(Q2_Y_Bin), "_z_pT_Bin_", str(Z_PT_Bin), "_Smeared.png" if("Smear" in Default_Histo_Name) else ".png"])    
+        Save_Name = "".join(["Response_Matrix_Normal_Q2_y_Bin_", str(Q2_Y_Bin), "_z_pT_Bin_", str(Z_PT_Bin), "".join(["_Smeared", str(File_Save_Format)]) if("Smear" in Default_Histo_Name) else str(File_Save_Format)])    
     else:
-        Save_Name = str("".join([str(Default_Histo_Name), ".png"]).replace("(", "")).replace(")", "")
+        Save_Name = str("".join([str(Default_Histo_Name), str(File_Save_Format)]).replace("(", "")).replace(")", "")
         Save_Name = Save_Name.replace("_Data_Type_SMEAR=''",        "")
         if("_Data_Type_SMEAR=Smear" in str(Save_Name)):
             Save_Name = Save_Name.replace("_Data_Type_SMEAR=Smear", "")
-            Save_Name = Save_Name.replace(".png", "_Smeared.png")
-            Save_Name = Save_Name.replace("_Smeared_Smeared.png", "_Smeared.png")
+            Save_Name = Save_Name.replace(str(File_Save_Format), "".join(["_Smeared", str(File_Save_Format)]))
+            Save_Name = Save_Name.replace("".join(["_Smeared_Smeared", str(File_Save_Format)]), "".join(["_Smeared", str(File_Save_Format)]))
     Save_Name = str(Save_Name.replace("Multi_Dim_Histo_Multi_Dim",  "Multi_Dim_Histo"))
     if("y" in Binning_Method):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
@@ -6033,11 +6070,13 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_", Save_Name])
         
-    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",       "Q2_y_phi_h")
-    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h", "z_pT_phi_h")
-    Save_Name = Save_Name.replace("_.png",                ".png")
-    Save_Name = Save_Name.replace("__",                   "_")
+    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                    "Q2_y_phi_h")
+    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h",              "z_pT_phi_h")
+    Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]), str(File_Save_Format))
+    Save_Name = Save_Name.replace("__",                                "_")
     if(Saving_Q):
+        if("root" in str(File_Save_Format)):
+            Large_Bin_Canvas.SetName(Save_Name.replace(".root", ""))
         Large_Bin_Canvas.SaveAs(Save_Name)
     print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
     ##################################################################### ################################################################
@@ -6477,9 +6516,9 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################ ################################################################ #####################
     ##################################################################### ################################################################ ################################################################ ################################################################ #####################
     if("phi_t)" in Default_Histo_Name):
-        Save_Name = "".join(["Response_Matrix_Normal_Q2_xB_Bin_", str(Q2_Y_Bin) if(str(Q2_Y_Bin) not in ["0"]) else "All", "_z_pT_Bin_", str(Z_PT_Bin) if(str(Z_PT_Bin) not in ["0"]) else "All", "_Unfolded_Histos_Smeared.png" if("Smear" in Default_Histo_Name) else "_Unfolded_Histos.png"])    
+        Save_Name = "".join(["Response_Matrix_Normal_Q2_xB_Bin_", str(Q2_Y_Bin) if(str(Q2_Y_Bin) not in ["0"]) else "All", "_z_pT_Bin_", str(Z_PT_Bin) if(str(Z_PT_Bin) not in ["0"]) else "All", "".join(["_Unfolded_Histos_Smeared", str(File_Save_Format)]) if("Smear" in Default_Histo_Name) else "".join(["_Unfolded_Histos", str(File_Save_Format)])])    
     else:
-        Save_Name = str("".join([str(Default_Histo_Name), "_Unfolded_Histos.png"]).replace("(", "")).replace(")", "")
+        Save_Name = str("".join([str(Default_Histo_Name), "_Unfolded_Histos", str(File_Save_Format)]).replace("(", "")).replace(")", "")
     Save_Name = str(Save_Name.replace("Multi_Dim_Histo_Multi_Dim", "Multi_Dim_Histo"))
     if("y" in Binning_Method):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
@@ -6488,11 +6527,13 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
         
-    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",       "Q2_y_phi_h")
-    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h", "z_pT_phi_h")
-    Save_Name = Save_Name.replace("_.png",                ".png")
-    Save_Name = Save_Name.replace("__",                   "_")
+    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                      "Q2_y_phi_h")
+    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h",                "z_pT_phi_h")
+    Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]), str(File_Save_Format))
+    Save_Name = Save_Name.replace("__",                                  "_")
     if(Saving_Q):
+        if("root" in str(File_Save_Format)):
+            Small_Bin_Canvas.SetName(Save_Name.replace(".root", ""))
         Small_Bin_Canvas.SaveAs(Save_Name)
     print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
     ##################################################################### ################################################################ ################################################################ ################################################################ #####################
@@ -7548,13 +7589,15 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
         
-    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",       "Q2_y_phi_h")
-    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h", "z_pT_phi_h")
-    Save_Name = Save_Name.replace("_.png",                ".png")
-    Save_Name = Save_Name.replace("__",                   "_")
+    Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                      "Q2_y_phi_h")
+    Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h",                "z_pT_phi_h")
+    Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]), str(File_Save_Format))
+    Save_Name = Save_Name.replace("__",                                  "_")
     if(Cut_Option not in ["Cut"]):
-        Save_Name = Save_Name.replace(".png",             "_UnCut.png")
+        Save_Name = Save_Name.replace(str(File_Save_Format),             "".join(["_UnCut", str(File_Save_Format)]))
     if(Saving_Q):
+        if("root" in str(File_Save_Format)):
+            All_z_pT_Canvas.SetName(Save_Name.replace(".root", ""))
         All_z_pT_Canvas.SaveAs(Save_Name)
     print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name), color.END]))
     ##################################################################### ################################################################ ################################################################ ################################################################ #####################
@@ -7905,7 +7948,7 @@ for ii in mdf.GetListOfKeys():
 
     ## Correct Variable(s):
     Conditions_For_Unfolding.append("phi_t"           in str(out_print_main))
-    #Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
+    # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
     # Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
     # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
     # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
@@ -8944,9 +8987,9 @@ for variable in Variable_List:
                                 Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT] = ROOT.TMultiGraph(PAR_HISTO_MASTER_NAME_VS_PT, "".join(["#splitline{", str(MASTER_TITLE), "}{#scale[1.05]{Showing all z bins vs P_{T}}};", "(Smeared) " if(str(smear) in ["Smear"]) else "", "P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
 
                             if(str(PAR_HISTO_MASTER_NAME_VS_Z)  not in Pars_Legends):
-                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z]      = ROOT.TLegend(0.7, 0.1, 0.9, 0.3)
+                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z]      = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
                             if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Pars_Legends):
-                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.7, 0.1, 0.9, 0.3)
+                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
 
                             for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
                                 if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
@@ -8979,6 +9022,7 @@ for variable in Variable_List:
                                 PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
                                 PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
                                 
+                                
                                 if(("0.27" in str(PT_BIN)) and (("Bay" in str(Method)) or ("Bin" in str(Method)))):
                                     # print("\nSKIPPING PT_BIN = 0.27\n")
                                     continue
@@ -8996,48 +9040,101 @@ for variable in Variable_List:
                                 if((PT_BIN != LAST_PT_BIN) and (Z_BIN == LAST_Z_BIN)):
                                     LAST_PT_BIN       = PT_BIN
                                     PT_BIN_COLOR     += 1
-                                    if(PT_BIN_COLOR in [5, 8]):
+                                    if(PT_BIN_COLOR in [3, 5, 7]):
                                         PT_BIN_COLOR += 1
                                     if(PT_BIN_COLOR in [9]):
                                         PT_BIN_COLOR  = 28
                                     if(PT_BIN_COLOR in [29]):
                                         PT_BIN_COLOR  = 30
+                                    if(PT_BIN_COLOR in [31]):
+                                        PT_BIN_COLOR  = 42
+                                    if(PT_BIN_COLOR in [43]):
+                                        PT_BIN_COLOR  = 46
+                                    if(PT_BIN_COLOR in [47]):
+                                        PT_BIN_COLOR  = 12
                                 if((Z_BIN  != LAST_Z_BIN)):
                                     LAST_Z_BIN        = Z_BIN
                                     LAST_PT_BIN       = PT_BIN
                                     Z_BIN_COLOR      += 1
-                                    if(Z_BIN_COLOR in [5, 8]):
+                                    if(Z_BIN_COLOR in [3, 5, 7]):
                                         Z_BIN_COLOR  += 1
                                     if(Z_BIN_COLOR in [9]):
                                         Z_BIN_COLOR   = 28
                                     if(Z_BIN_COLOR in [29]):
                                         Z_BIN_COLOR   = 30
+                                    if(Z_BIN_COLOR in [31]):
+                                        Z_BIN_COLOR   = 42
+                                    if(Z_BIN_COLOR in [43]):
+                                        Z_BIN_COLOR   = 46
+                                    if(Z_BIN_COLOR in [47]):
+                                        Z_BIN_COLOR   = 12
                                     PT_BIN_COLOR      = 2
-
-                                if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(2)
-                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(1)
                                     
+                                    
+                                Borders_z_pT   = z_pT_Border_Lines(BIN_NUM)
+                                z_length       = Borders_z_pT[0][1] - 1
+                                pT_length      = Borders_z_pT[1][1] - 1
+                                if(str(z_pT_Bin) not in ["All", "0"]):
+                                    # This finds the dimensions of a particular z-pT bin for a given Q2-y bin
+                                    z_bin      = ((z_pT_Bin - 1) // pT_length) + 1
+                                    z_bin      = (z_length + 1) - z_bin
+                                    pT_bin     = ((z_pT_Bin - 1) %  pT_length) + 1
+                                    z_bin_max  = Borders_z_pT[0][2][z_bin]
+                                    z_bin_min  = Borders_z_pT[0][2][z_bin  - 1]
+                                    pT_bin_max = Borders_z_pT[1][2][pT_bin]
+                                    pT_bin_min = Borders_z_pT[1][2][pT_bin - 1]
+                                    if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
+                                        # Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z for #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin with ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}}}; #scale[1.25]{z}; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
+                                        
+                                        Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
+                                        # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
+                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin: ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}"]), "lep")
+                                        
+                                    if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
+                                        # Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} for #color[", str(Z_BIN_COLOR),  "]{z Bin with ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}}}; #scale[1.25]{P_{T} [GeV]}; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
 
-                                    Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
-                                    Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
+                                        Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
+                                        # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
+                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin: ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}"]), "lep")
+                                    
+                                else:
+                                    print(color.Error, "\n\nERROR: Using center of bin in title/legends...\n\n", color.END)
+                                    if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
+                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
+                                        
+                                        Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
+                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
+                                    if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
+                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
 
-                                if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(2)
-                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(1)
-
-                                    Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
-                                    Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
+                                        Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
+                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
 
                                 Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPoint(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN(),              Z_BIN_VALUE,  PARAMETER_TO_ADD)
                                 Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPointError(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN()     - 1, Z_BIN_WIDTH,  PAR_ERROR_TO_ADD)
@@ -9053,16 +9150,21 @@ for ii in Histo_Pars_VS_Z:
     if(type(Histo_Pars_VS_Z[ii]) is type(ROOT.TMultiGraph())):
         Pars_Canvas[ii] = ROOT.TCanvas(str(ii), str(ii), 1200, 1100)
         # Pars_Canvas[ii].Draw()
+        Histo_Pars_VS_Z[ii].SetTitle(str(Histo_Pars_VS_Z[ii].GetTitle()).replace("Showing all P_{T} bins vs z", ""))
         Histo_Pars_VS_Z[ii].Draw("APL same")
         ROOT.gPad.Modified()
         if((("Bayesian" in str(ii)) or ("(Bin)" in str(ii))) and ("Multi_Dim" in str(ii))):
             if("Par_B" in str(ii)):
-                Histo_Pars_VS_Z[ii].SetMinimum(-0.6  if("Q2_y_Bin_17" not in str(ii)) else -0.4 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMinimum()) if(Histo_Pars_VS_Z[ii].GetMinimum() < 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMinimum()))
-                Histo_Pars_VS_Z[ii].SetMaximum( 0.1  if("Q2_y_Bin_17" not in str(ii)) else  0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMaximum()) if(Histo_Pars_VS_Z[ii].GetMaximum() > 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMaximum()))
+                # Histo_Pars_VS_Z[ii].SetMinimum(-0.65 if("Q2_y_Bin_17" not in str(ii)) else -0.4 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMinimum()) if(Histo_Pars_VS_Z[ii].GetMinimum() < 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMinimum()))
+                # Histo_Pars_VS_Z[ii].SetMaximum( 0.1  if("Q2_y_Bin_17" not in str(ii)) else  0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMaximum()) if(Histo_Pars_VS_Z[ii].GetMaximum() > 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMaximum()))
+                Histo_Pars_VS_Z[ii].SetMinimum(-0.85)
+                Histo_Pars_VS_Z[ii].SetMaximum( 0.15)
                 # print(color.GREEN, "\nAdjusting (B):\n", str(ii), "\n", color.END)
             elif("Par_C" in str(ii)):
-                Histo_Pars_VS_Z[ii].SetMinimum(-0.16 if("Q2_y_Bin_17" not in str(ii)) else -0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMinimum()) if(Histo_Pars_VS_Z[ii].GetMinimum() < 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMinimum()))
-                Histo_Pars_VS_Z[ii].SetMaximum( 0.16 if("Q2_y_Bin_17" not in str(ii)) else  0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMaximum()) if(Histo_Pars_VS_Z[ii].GetMaximum() > 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMaximum()))
+                # Histo_Pars_VS_Z[ii].SetMinimum(-0.16 if("Q2_y_Bin_17" not in str(ii)) else -0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMinimum()) if(Histo_Pars_VS_Z[ii].GetMinimum() < 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMinimum()))
+                # Histo_Pars_VS_Z[ii].SetMaximum( 0.16 if("Q2_y_Bin_17" not in str(ii)) else  0.1 if("Q2_y_Bin_5" not in str(ii)) else 1.8*(Histo_Pars_VS_Z[ii].GetMaximum()) if(Histo_Pars_VS_Z[ii].GetMaximum() > 0) else 0.2*(Histo_Pars_VS_Z[ii].GetMaximum()))
+                Histo_Pars_VS_Z[ii].SetMinimum(-0.2)
+                Histo_Pars_VS_Z[ii].SetMaximum( 0.2)
                 # print(color.GREEN, "\nAdjusting (C):\n", str(ii), "\n", color.END)
             # else:
             #     print(color.RED, "NOT adjusting:\n", str(ii), color.END)
@@ -9089,6 +9191,8 @@ for CanvasPar_Name in Pars_Canvas:
 
         Save_Name_Pars = "".join([str(Save_Name_Pars), File_Save_Format])
         if(Saving_Q):
+            if("root" in str(File_Save_Format)):
+                Pars_Canvas[CanvasPar_Name].SetName(Save_Name_Pars.replace(".root", ""))
             Pars_Canvas[CanvasPar_Name].SaveAs(Save_Name_Pars)
         print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Save_Name_Pars), color.END]))
         to_be_saved_count += 1

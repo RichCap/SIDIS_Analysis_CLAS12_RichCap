@@ -701,6 +701,41 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # This cut should remove a single column from the flattened 3D response matrix
         # Removed all extra (generated missing mass) cuts used in prior tests (don't need them for this test)
         # Turned off all 2D histograms
+        
+        
+    Extra_Name = "Sec_Cut_Test_V1_"
+    # Ran on 11/21/2023
+    # This file uses the original Q2-y binning scheme ('y_bin')
+        # Still not smearing
+        # Running with momentum corrections
+    # Added a new alert to notify the user of the complete set of Response Matricies that are to be made when the code is run
+        # Also added an optimizations condition which turns off the Response Matrix code automatically if List_of_Quantities_1D = [] (i.e., if the 1D histogram option is turned off)
+        # See 'Alert_of_Response_Matricies'
+    # This file is mainly used to study the additional phi_t modulations
+        # Made as an extention of Extra_Name = "New_Bin_Tests_V4_"
+            # Removed the cut added in Extra_Name = "MultiDim_Bin_Test_V1_" (was on line 5991 in the last note)
+                # This cut is now on line 6025 as of this note, and can be found by searching for the following line of code:
+                    # DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 1"]))
+        # Added new set of cuts which cut on the electron sectors (to test the relationship between different sectors)
+            # Investigation aims to see if the behavior of the modulations with respect to the pion sector changes when restricting the electron to specific sectors
+            # Cuts on the electron sector are applied to both the generated AND reconstructed tracks simultaneously
+            # Two versions of this cut are run alongside the typical analysis cuts used in this code:
+                # 1) Cut 'eS1a' excludes events where the electron was detected in sector 1 of the detector (keeps all other events where the electron was detected in any other sector)
+                # 2) Cut 'eS1o' requires all electrons to have been detected in sector 1 (opposite cut as 'eS1a')
+                # These cuts can be added to any existing cut to be applied in addition to them
+                    # Started to remove some other outdated code that was meant to perform this same type of cut
+                # Cut Naming convension is: 
+                    # 1st letter corresponds to the particle being cut (i.e.,'e' -> electron)
+                    # 2nd letter is 'S' to signify that it is a Sector cut
+                    # 3rd character/1st number corresponse to which sector is to be cut (i.e., '1' -> cut on sector 1)
+                    # Last letter is either 'a' for 'all sectors' (just excludes the sector given in the cut's name) or 'o' for 'only' (removes all sectors not given in the cut's name)
+                    # # Naming convension is not (currently) modular, so adding additional cuts of this nature will require them to be manually added
+        # Set of 2D Histograms of variables vs phi_t in this file include:
+            # Electron/Pi+ Sectors (esec/pipsec)
+            # Lab Azimuthal angles (Phi) of both particles
+            # Polar angles (Theta) of both particles
+            # Momentum of both particles
+        # Not running any 1D or 3D histogram options
 
         
     if(Use_Weight):
@@ -1183,53 +1218,53 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #             pipsec_a = 6;
 #         }
 #         return pipsec_a;""")
-#         if(datatype in ["mdf", "pdf"]):
-#             rdf = rdf.Define("esec_gen","""
-#             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-#             auto ele_phi = (180/3.1415926)*ele.Phi();
-#             int esec_gen = 0;
-#             if(ele_phi >= -30 && ele_phi < 30){
-#                 esec_gen = 1;
-#             }
-#             if(ele_phi >= 30 && ele_phi < 90){
-#                 esec_gen = 2;
-#             }
-#             if(ele_phi >= 90 && ele_phi < 150){
-#                 esec_gen = 3;
-#             }
-#             if(ele_phi >= 150 || ele_phi < -150){
-#                 esec_gen = 4;
-#             }
-#             if(ele_phi >= -90 && ele_phi < -30){
-#                 esec_gen = 5;
-#             }
-#             if(ele_phi >= -150 && ele_phi < -90){
-#                 esec_gen = 6;
-#             }
-#             return esec_gen;""")
-#             rdf = rdf.Define("pipsec_gen","""
-#             auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-#             auto pip_phi = (180/3.1415926)*pip0.Phi();
-#             int pipsec_gen = 0;
-#             if(pip_phi >= -45 && pip_phi < 15){
-#                 pipsec_gen = 1;
-#             }
-#             if(pip_phi >= 15 && pip_phi < 75){
-#                 pipsec_gen = 2;
-#             }
-#             if(pip_phi >= 75 && pip_phi < 135){
-#                 pipsec_gen = 3;
-#             }
-#             if(pip_phi >= 135 || pip_phi < -165){
-#                 pipsec_gen = 4;
-#             }
-#             if(pip_phi >= -105 && pip_phi < -45){
-#                 pipsec_gen = 5;
-#             }
-#             if(pip_phi >= -165 && pip_phi < -105){
-#                 pipsec_gen = 6;
-#             }
-#             return pipsec_gen;""")
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("esec_gen","""
+            auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+            auto ele_phi = (180/3.1415926)*ele.Phi();
+            int esec_gen = 0;
+            if(ele_phi >= -30 && ele_phi < 30){
+                esec_gen = 1;
+            }
+            if(ele_phi >= 30 && ele_phi < 90){
+                esec_gen = 2;
+            }
+            if(ele_phi >= 90 && ele_phi < 150){
+                esec_gen = 3;
+            }
+            if(ele_phi >= 150 || ele_phi < -150){
+                esec_gen = 4;
+            }
+            if(ele_phi >= -90 && ele_phi < -30){
+                esec_gen = 5;
+            }
+            if(ele_phi >= -150 && ele_phi < -90){
+                esec_gen = 6;
+            }
+            return esec_gen;""")
+            rdf = rdf.Define("pipsec_gen","""
+            auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+            auto pip_phi = (180/3.1415926)*pip0.Phi();
+            int pipsec_gen = 0;
+            if(pip_phi >= -45 && pip_phi < 15){
+                pipsec_gen = 1;
+            }
+            if(pip_phi >= 15 && pip_phi < 75){
+                pipsec_gen = 2;
+            }
+            if(pip_phi >= 75 && pip_phi < 135){
+                pipsec_gen = 3;
+            }
+            if(pip_phi >= 135 || pip_phi < -165){
+                pipsec_gen = 4;
+            }
+            if(pip_phi >= -105 && pip_phi < -45){
+                pipsec_gen = 5;
+            }
+            if(pip_phi >= -165 && pip_phi < -105){
+                pipsec_gen = 6;
+            }
+            return pipsec_gen;""")
 
 
         #####################     Other Values     #####################
@@ -5908,7 +5943,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(((Data_Type not in ["mdf", "pdf", "udf"]) and ("miss_idf" not in Data_Type)) and ("smear" in Smearing_Q)):
             return "continue"
         # No Cuts for Monte Carlo Generated events
-        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen"])):
+        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o"])):
             return "continue"
         # No PID cuts except for matched MC events
         if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
@@ -5987,10 +6022,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             else:
                 DF_Out = DF
             
-            if(Data_Type in ["mdf", "pdf"]):
-                DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 1"]))
-            if(Data_Type in ["gdf"]):
-                DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""),     " != 1"]))
+            # if(Data_Type in ["mdf", "pdf"]):
+            #     DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 1"]))
+            # if(Data_Type in ["gdf"]):
+            #     DF_Out = DF_Out.Filter("".join([str(str(z_pT_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""),     " != 1"]))
         else:
             particle_sector = ""
             if(Sec_type != '' and Sec_num != -1):
@@ -6046,7 +6081,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
                 else:
                     DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
-        elif((Data_Type not in ["gdf", "gen"]) and ("no_cut" != Cut_Choice)):
+        elif((Data_Type not in ["gdf", "gen"]) and ("no_cut" not in str(Cut_Choice))):
             if("Complete"   in Cut_Choice):
                 cutname     = "Complete Set of "
                 if(("smear" in Smearing_Q)     and (Data_Type != "rdf")):
@@ -6103,6 +6138,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #                         DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
 #             else:
             cutname = "No Cuts"
+    
+        if("eS1a" in Cut_Choice):
+            cutname = "".join([cutname, " (Excluding Sector 1 Electrons)"])
+            if(Titles_or_DF == 'DF'):
+                DF_Out  = DF_Out.Filter("esec == 1")
+                if(Data_Type in ["mdf", "pdf", "gen"]):
+                    DF_Out  = DF_Out.Filter("esec_gen == 1")
+        if("eS1o" in Cut_Choice):
+            cutname = "".join([cutname, " (Sector 1 Electrons Only)"])
+            if(Titles_or_DF == 'DF'):
+                DF_Out  = DF_Out.Filter("esec != 1")
+                if(Data_Type in ["mdf", "pdf", "gen"]):
+                    DF_Out  = DF_Out.Filter("esec_gen != 1")
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
         ##################################################
@@ -6187,20 +6235,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     def Cut_Choice_Title(Cut_Type="no_cut"):
         Cut_Name = "Undefined Cut (ERROR)"
-        if(Cut_Type == "no_cut"):
+        if("no_cut"   in str(Cut_Type)):
             Cut_Name = "No Cuts"
-        if("EDIS" in Cut_Type):
+        if("EDIS"     in str(Cut_Type)):
             Cut_Name = "Exclusive Cuts"
-        if("SIDIS" in Cut_Type):
+        if("SIDIS"    in str(Cut_Type)):
             Cut_Name = "SIDIS Cuts"
-        if("MM" in Cut_Type):
+        if("MM"       in str(Cut_Type)):
             Cut_Name = "Cuts with Inverted MM Cut"
-        if("Gen" in Cut_Type):
+        if("Gen"      in str(Cut_Type)):
             Cut_Name = "Cuts with Generated MM Cut"
-        if("Exgen" in Cut_Type):
+        if("Exgen"    in str(Cut_Type)):
             Cut_Name = "Cuts with Inverted Generated MM Cut"
-        if("Complete" in Cut_Type):
+        if("Complete" in str(Cut_Type)):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
+        if("eS1a"     in str(Cut_Type)):
+            Cut_Name = "".join([str(Cut_Name), " (Excluding Sector 1 Electrons)"])
+        if("eS1o"     in str(Cut_Type)):
+            Cut_Name = "".join([str(Cut_Name), " (Sector 1 Electrons Only)"])
         return Cut_Name
 
 ##########################################################################################################################################################################################
@@ -6253,10 +6305,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 
     if(run_Mom_Cor_Code == "yes"):
-        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
+        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction/Smearing Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
         print("".join([color.RED, "NOT Running Default SIDIS Histograms", color.END]))
     else:
-        print("".join([color.RED, "\nNOT Running Momentum Correction Histograms", color.END]))
+        print("".join([color.RED, "\nNOT Running Momentum Correction/Smearing Histograms", color.END]))
         print("".join([color.BLUE, color.BOLD, "Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms)", color.END]))
 
     
@@ -6287,8 +6339,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
+    cut_list.append('no_cut_eS1a')
+    cut_list.append('no_cut_eS1o')
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
+        cut_list.append('cut_Complete_SIDIS_eS1a')
+        cut_list.append('cut_Complete_SIDIS_eS1o')
         # cut_list.append('cut_Complete_MM')
         if(run_Mom_Cor_Code == "yes"):
             cut_list.append('cut_Complete_EDIS')
@@ -6436,26 +6492,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #####################     Bin Choices     #####################
     ###############################################################
     
-    
-    ##################################################################
-    #####################     Sector Choices     #####################
-    
-    # Types_Of_Sectors = ['', 'esec', 'pipsec', 'esec_a', 'pipsec_a']
-    # Types_Of_Sectors = ['', 'esec_a', 'pipsec_a']
-    # Types_Of_Sectors = ['', 'esec', 'pipsec']
-    Types_Of_Sectors = ['']
-
-    # Types_Of_Sectors = '' --> No Sector Filter
-
-    # Sector_Numbers = [-1, 1, 2, 3, 4, 5, 6]
-    Sector_Numbers = [-1]
-
-    # Sector_Numbers = -1 or Types_Of_Sectors = '' --> All Sectors
-    # Sector_Numbers = 0 --> No Sectors (should have no events but if it does, those events exist as errors in the sector definitions)
-    
-    
-    #####################     Sector Choices     #####################
-    ##################################################################
+    # This code is outdated (can remove later)
+    # ##################################################################
+    # #####################     Sector Choices     #####################
+    # # Types_Of_Sectors = ['', 'esec', 'pipsec', 'esec_a', 'pipsec_a']
+    # # Types_Of_Sectors = ['', 'esec_a', 'pipsec_a']
+    # # Types_Of_Sectors = ['', 'esec', 'pipsec']
+    # Types_Of_Sectors = ['']
+    # # Types_Of_Sectors = '' --> No Sector Filter
+    # # Sector_Numbers = [-1, 1, 2, 3, 4, 5, 6]
+    # Sector_Numbers = [-1]
+    # # Sector_Numbers = -1 or Types_Of_Sectors = '' --> All Sectors
+    # # Sector_Numbers = 0 --> No Sectors (should have no events but if it does, those events exist as errors in the sector definitions)
+    # #####################     Sector Choices     #####################
+    # ##################################################################
     
         
     
@@ -6683,17 +6733,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
-    # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
     
     
     List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
     
     # # # 1D histograms are turned off with this option
-    # List_of_Quantities_1D = []
+    List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
-    List_of_Quantities_2D = []
+    # List_of_Quantities_2D = []
     
     # # # 3D histograms are turned off with this option
     List_of_Quantities_3D = []
@@ -6702,6 +6752,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(run_Mom_Cor_Code == "yes"):
         List_of_Quantities_1D, List_of_Quantities_2D, List_of_Quantities_3D = [], [], []
     
+    Alert_of_Response_Matricies = True
     
     if(len(List_of_Quantities_1D) == 0):
         print("".join([color.RED,  color.BOLD, "\nNot running 1D histograms...",     color.END]))
@@ -6784,7 +6835,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##     Cut Loop    ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
             for Histo_Cut in cut_list:
 
-                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen"]):
+                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o"]):
                     # Do not cut data from the MC GEN files
                     continue
 
@@ -6875,6 +6926,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         if(Binning in ["2", "OG", "Off", "off", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]):
                             histo_options = ["Normal", "Response_Matrix_Normal"]
                         else:
+                            histo_options = ["Normal"]
+                            
+                        if(len(List_of_Quantities_1D) == 0):
+                            if(Alert_of_Response_Matricies):
+                                print(color.BOLD, color.BLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
+                                Alert_of_Response_Matricies = False
                             histo_options = ["Normal"]
             
                         # # # All options off (will still allow the Momentum Correction plots to run)
@@ -7346,6 +7403,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 
                                 # # REMOVING ALL ABOVE ADDITIONS (remove this line later)
                                 # Res_Var_Add = []
+                                
+                                if(Alert_of_Response_Matricies):
+                                    if(len(List_of_Quantities_1D) == 0):
+                                        print(color.BOLD, color.BLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
+                                        Res_Var_Add = []
+                                    elif(len(Res_Var_Add) == 0):
+                                        print(color.BOLD, color.BLUE, "\nOnly running the base 1D options in the Response Matrix Code for Unfolding (i.e., Res_Var_Add is empty)...\n", color.END)
+                                    else:
+                                        print(color.BOLD, color.GREEN, "\nAdding the following Response Matrix options (for Multidimensional unfolding):", color.END, "\n\tRes_Var_Add =", str(Res_Var_Add), "\n")
+                                    Alert_of_Response_Matricies = False
                                 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
                                 if(Res_Var_Add != []):
