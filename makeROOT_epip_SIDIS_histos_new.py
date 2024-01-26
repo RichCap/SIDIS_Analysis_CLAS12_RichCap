@@ -63,7 +63,7 @@ Use_Weight = False
 
 SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
 Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
-Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight"]
+Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight", "_Q4"]
 Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
 
 for sidis in SIDIS_Unfold_List:
@@ -87,12 +87,17 @@ for smear in Smear_Factor_List:
 for weight_Q in Using_Weight_List:
     if(str(weight_Q) in str(datatype)):
         Use_Weight       = True
+        if("_Q4"     in str(datatype)):
+            Q4_Weight    = True
+        else:
+            Q4_Weight    = False
         datatype         = str(datatype).replace(str(weight_Q), "")
         break
         
         
 if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
     Use_Weight = False
+    Q4_Weight  = False
     # Do not use the simulated modulations on the momentum correction code or for the experimental data set
 
 del SIDIS_Unfold_List
@@ -703,7 +708,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Turned off all 2D histograms
         
         
-    Extra_Name = "Sec_Cut_Test_V1_"
+    Extra_Name = "Sec_Cut_Test_V2_"
     # Ran on 11/21/2023
     # This file uses the original Q2-y binning scheme ('y_bin')
         # Still not smearing
@@ -736,11 +741,47 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Polar angles (Theta) of both particles
             # Momentum of both particles
         # Not running any 1D or 3D histogram options
+    ## ERROR NOTED ON 12/5/2023: Definitions of 'eS1a' and 'eS1o' were switched (cuts do not match their definitions above - corrected after the code was run)
 
+    
+    Extra_Name = "Sec_Cut_Test_V2_"
+    # Ran on ...
+    # This file uses the original Q2-y binning scheme ('y_bin')
+        # Smearing option is still turned off (reset after running Extra_Name = "New_Smearing_V1_" - see below)
+        # Running with momentum corrections
+        # Reduced the bin options to just run the plots for all Q2-y bins and for Q2-y bin 3 (done to reduce the number of plots to be made due to the greater number of cuts being applied)
+    # Added ability to weigh events based on the (generated) Q^4 value (for testing the extra modulations) - See below for when it is used
+    # Still making the set of histograms used in "Sec_Cut_Test_V1_" to test the dependence of other variables with the extra modulations in phi_t
+        # Error in how sectors are handled has caused these histograms to be skipped when plotting the sector vs the SMEARED phi_t angle (error only affects the smeared plots)
+    # Added the ability to make other electron sector cuts like those that where introduced in "Sec_Cut_Test_V1_" (i.e., 'eS2o'-'eS6o' and 'eS2a'-'eS6a')
+        # Running with all 'eS1o'-'eS6o' cuts (restricting to a specific electron sector)
+    # Added new 3D histogram which shows the hit positions Hx and Hy as functions of the electron phi angle
+        # These values are used in Valerii's cuts
+        # The purpose of this plot is to help describe the fiducial cuts needed to help account for the edge effects in the electron detector sectors
+    # Set of 2D Histograms of variables vs phi_t in this file have been reduced to only include:
+        # Electron/Pi+ Sectors (esec/pipsec)
+        # Lab Azimuthal angles (Phi) of both particles
+    # Not running any Response Matrix histogram options
+    
+    if(run_Mom_Cor_Code == "yes"):
+        Extra_Name = "New_Smearing_V1_"
+        # Ran on 12/12/2023
+        # Updated with Extra_Name = "Sec_Cut_Test_V2_" (all the same notes therefore apply)
+            # Turned off any cut not related to the Momentum Correction/Smearing code
+        # Added new form of the smearing plots to begin developing the smearing corrections as described in Valerii's procedure
+        # Added plots to see the impact of the smearing correction within each kinematic bin (hard-coded to use the current Q2-y binning scheme 'y_bin')
+        
+        if(smear_factor != "0.75"):
+            Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V1_"])
+            # Same as "New_Smearing_V1_" but with any value of smear_factor not being equal to the default value of 0.75
         
     if(Use_Weight):
-        # Using the modulations of the Generated Monte Carlo
-        Extra_Name = "".join([Extra_Name, "Modulated_"])
+        if(not Q4_Weight):
+            # Using the modulations of the Generated Monte Carlo
+            Extra_Name = "".join([Extra_Name, "Modulated_"])
+        else:
+            # Using the Q4 wieghts
+            Extra_Name = "".join([Extra_Name, "Q4_Wieght_"])
         
     
     if(datatype == 'rdf'):
@@ -2876,10 +2917,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##==================================================##
         
     def smear_frame_compatible(Data_Frame, Variable, Smearing_Q):
+        if(Data_Frame == "continue"):
+            return Data_Frame
         if("smear" not in Smearing_Q or (datatype not in ["mdf", "pdf"]) or (str(Variable) in Data_Frame.GetColumnNames())):
             # Variable should already be defined/cannot smear real/generated data
             # if(str(Variable) in Data_Frame.GetColumnNames()):
             #     print("".join(["Already defined: ", str(Variable)]))
+            return Data_Frame
+        elif(Variable in ["esec", "esec_smeared", "pipsec", "pipsec_smeared", "Hx", "Hx_smeared", "Hy", "Hy_smeared"]):
+            print(color.Error, "\nCannot smear particle sector\n", color.END)
+            Data_Frame = "continue"
             return Data_Frame
         else:
             done_Q = 'no'
@@ -2984,42 +3031,62 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     if(Use_Weight):
-        print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
-        ##==========================================================================================================##
-        ##------------------------------------##==============================##------------------------------------##
-        ##====================================##     Event Weighing Begin     ##====================================##
-        ##------------------------------------##==============================##------------------------------------##
-        ##==========================================================================================================##
-        rdf = rdf.Define('Event_Weight', "".join(["""
-        """, "".join([""" 
-        auto   Par_B_Test   = -0.500;
-        auto   Par_C_Test   =  0.025;""", """
-        auto   PHI_H        = phi_t*TMath::DegToRad();""" if(datatype in ["gdf"]) else """
-        auto   PHI_H        = phi_t_gen*TMath::DegToRad();""", """
-        auto   Event_Weight = 1 + Par_B_Test*TMath::Cos(PHI_H) + Par_C_Test*TMath::Cos(2*PHI_H);
-        """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
-        return Event_Weight;
-        """]))
-        # if(datatype in ["mdf", "pdf"]):
-        #     rdf = rdf.Define('Event_Weight_gen', """
-        #     auto   Par_B_Test_gen   = -0.050;
-        #     auto   Par_C_Test_gen   =  0.025;
-        #     auto   PHI_H_gen        = phi_t_gen*TMath::DegToRad();
-        #     auto   Event_Weight_gen = 1 + Par_B_Test_gen*TMath::Cos(PHI_H_gen) + Par_C_Test_gen*TMath::Cos(2*PHI_H_gen);
-        #     return Event_Weight_gen;
-        #     """)
-        #     rdf = rdf.Define('Event_Weight_smeared', """
-        #     auto   Par_B_Test_smeared   = -0.050;
-        #     auto   Par_C_Test_smeared   =  0.025;
-        #     auto   PHI_H_smeared        = smeared_vals[11]*TMath::DegToRad();
-        #     auto   Event_Weight_smeared = 1 + Par_B_Test_smeared*TMath::Cos(PHI_H_smeared) + Par_C_Test_smeared*TMath::Cos(2*PHI_H_smeared);
-        #     return Event_Weight_smeared;
-        #     """)
-        ##==========================================================================================================##
-        ##------------------------------------##==============================##------------------------------------##
-        ##====================================##      Event Weighing End      ##====================================##
-        ##------------------------------------##==============================##------------------------------------##
-        ##==========================================================================================================##
+        if(not Q4_Weight):
+            print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+            ##==========================================================================================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##====================================##     Event Weighing Begin     ##====================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##==========================================================================================================##
+            rdf = rdf.Define('Event_Weight', "".join(["""
+            """, "".join([""" 
+            auto   Par_B_Test   = -0.500;
+            auto   Par_C_Test   =  0.025;""", """
+            auto   PHI_H        = phi_t*TMath::DegToRad();""" if(datatype in ["gdf"]) else """
+            auto   PHI_H        = phi_t_gen*TMath::DegToRad();""", """
+            auto   Event_Weight = 1 + Par_B_Test*TMath::Cos(PHI_H) + Par_C_Test*TMath::Cos(2*PHI_H);
+            """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
+            return Event_Weight;
+            """]))
+            # if(datatype in ["mdf", "pdf"]):
+            #     rdf = rdf.Define('Event_Weight_gen', """
+            #     auto   Par_B_Test_gen   = -0.050;
+            #     auto   Par_C_Test_gen   =  0.025;
+            #     auto   PHI_H_gen        = phi_t_gen*TMath::DegToRad();
+            #     auto   Event_Weight_gen = 1 + Par_B_Test_gen*TMath::Cos(PHI_H_gen) + Par_C_Test_gen*TMath::Cos(2*PHI_H_gen);
+            #     return Event_Weight_gen;
+            #     """)
+            #     rdf = rdf.Define('Event_Weight_smeared', """
+            #     auto   Par_B_Test_smeared   = -0.050;
+            #     auto   Par_C_Test_smeared   =  0.025;
+            #     auto   PHI_H_smeared        = smeared_vals[11]*TMath::DegToRad();
+            #     auto   Event_Weight_smeared = 1 + Par_B_Test_smeared*TMath::Cos(PHI_H_smeared) + Par_C_Test_smeared*TMath::Cos(2*PHI_H_smeared);
+            #     return Event_Weight_smeared;
+            #     """)
+            ##==========================================================================================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##====================================##      Event Weighing End      ##====================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##==========================================================================================================##
+        else:
+            print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Q4 Weight' for weighing the Monte Carlo distributions...", color.END, "\n\n"]))
+            ##==========================================================================================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##====================================##     Event Weighing Begin     ##====================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##==========================================================================================================##
+            rdf = rdf.Define('Event_Weight', "".join(["".join(["""
+            auto   Q4           = Q2*Q2;""" if(datatype in ["gdf"]) else """
+            auto   Q4           = Q2_gen*Q2_gen;""", """
+            auto   Event_Weight = Q4;
+            """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
+            return Event_Weight;
+            """]))
+            ##==========================================================================================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##====================================##      Event Weighing End      ##====================================##
+            ##------------------------------------##==============================##------------------------------------##
+            ##==========================================================================================================##
     elif(datatype in ["mdf", "gdf", "pdf"]):
         print(color.BOLD,                             "".join(["\nNOT running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
     
@@ -3423,6 +3490,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             """, "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
             return Delta_Theta_pip_Cors_smeared;"""]))
+    
+    
+    
+    ########################################################################################
+    ####================================================================================####
+    ##==========##==========##         ∆P/P Smear Factors         ##==========##==========##
+    ####================================================================================####
+    ########################################################################################
+    
+    rdf = rdf.Define("DP_el_SF",  "Delta_Pel_Cors/el")
+    rdf = rdf.Define("DP_pip_SF", "Delta_Ppip_Cors/pip")
+    if(datatype not in ["rdf", "gdf"]):
+        rdf = rdf.Define("DP_el_SF_smeared",  "Delta_Pel_Cors_smeared/smeared_vals[15]")
+        rdf = rdf.Define("DP_pip_SF_smeared", "Delta_Ppip_Cors_smeared/smeared_vals[19]")
+        
+        rdf = rdf.Define("Dele_SF", "abs(el  - smeared_vals[15])/el")
+        rdf = rdf.Define("Dpip_SF", "abs(pip - smeared_vals[19])/pip")
 
         
     print("Kinematic Variables have been calculated.")
@@ -5631,6 +5715,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         # print("var_name[ii] =", var_name[ii])
                 if(str(var_name[ii]) not in list(DF_Final.GetColumnNames()) and ((var_type in ["_smeared"]) or (Smearing_Q != ""))):
                     DF_Final = smear_frame_compatible(DF_Final, str(var_name[ii]), Smearing_Q)
+                    if(DF_Final == "continue"):
+                        return DF_Final
                     # print(color.BLUE, "\nvar_name[ii] =", var_name[ii], color.END)
                     # print("\nfor column_name in DF_Final.GetColumnNames():")
                     # for column_name in DF_Final.GetColumnNames():
@@ -5764,6 +5850,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         output = 'error'    
 
+        if(variable in ['Hx', 'Hy']):
+            output = str(variable)       
         if(variable == 'el_E'):
             output = 'E_{el}'
         if(variable == 'pip_E'):
@@ -5943,7 +6031,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(((Data_Type not in ["mdf", "pdf", "udf"]) and ("miss_idf" not in Data_Type)) and ("smear" in Smearing_Q)):
             return "continue"
         # No Cuts for Monte Carlo Generated events
-        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o"])):
+        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o"])):
             return "continue"
         # No PID cuts except for matched MC events
         if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
@@ -6138,19 +6226,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #                         DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
 #             else:
             cutname = "No Cuts"
-    
-        if("eS1a" in Cut_Choice):
-            cutname = "".join([cutname, " (Excluding Sector 1 Electrons)"])
-            if(Titles_or_DF == 'DF'):
-                DF_Out  = DF_Out.Filter("esec == 1")
-                if(Data_Type in ["mdf", "pdf", "gen"]):
-                    DF_Out  = DF_Out.Filter("esec_gen == 1")
-        if("eS1o" in Cut_Choice):
-            cutname = "".join([cutname, " (Sector 1 Electrons Only)"])
-            if(Titles_or_DF == 'DF'):
-                DF_Out  = DF_Out.Filter("esec != 1")
-                if(Data_Type in ["mdf", "pdf", "gen"]):
-                    DF_Out  = DF_Out.Filter("esec_gen != 1")
+        for sec in range(1, 7, 1):
+            if("eS" not in Cut_Choice):
+                break
+            if("".join(["eS", str(sec), "a"]) in Cut_Choice):
+                cutname = "".join([cutname, " (Excluding Sector ", str(sec), " Electrons)"])
+                if(Titles_or_DF == 'DF'):
+                    DF_Out  = DF_Out.Filter("".join(["esec != ", str(sec)]))
+                    if(Data_Type in ["mdf", "pdf", "gen"]):
+                        DF_Out  = DF_Out.Filter("".join(["esec_gen != ", str(sec)]))
+                break
+            if("".join(["eS", str(sec), "o"]) in Cut_Choice):
+                cutname = "".join([cutname, " (Sector ", str(sec), " Electrons Only)"])
+                if(Titles_or_DF == 'DF'):
+                    DF_Out  = DF_Out.Filter("".join(["esec == ", str(sec)]))
+                    if(Data_Type in ["mdf", "pdf", "gen"]):
+                        DF_Out  = DF_Out.Filter("".join(["esec_gen == ", str(sec)]))
+                break
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
         ##################################################
@@ -6249,10 +6341,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Cut_Name = "Cuts with Inverted Generated MM Cut"
         if("Complete" in str(Cut_Type)):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
-        if("eS1a"     in str(Cut_Type)):
-            Cut_Name = "".join([str(Cut_Name), " (Excluding Sector 1 Electrons)"])
-        if("eS1o"     in str(Cut_Type)):
-            Cut_Name = "".join([str(Cut_Name), " (Sector 1 Electrons Only)"])
+        if("eS" in str(Cut_Type)):
+            for sec in range(1, 7, 1):
+                if("".join(["eS", str(sec), "a"]) in str(Cut_Type)):
+                    Cut_Name = "".join([str(Cut_Name), " (Excluding Sector ", str(sec), " Electrons)"])
+                if("".join(["eS", str(sec), "o"]) in str(Cut_Type)):
+                    Cut_Name = "".join([str(Cut_Name), " (Sector ", str(sec), " Electrons Only)"])
+            
         return Cut_Name
 
 ##########################################################################################################################################################################################
@@ -6339,13 +6434,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
-    cut_list.append('no_cut_eS1a')
+    # cut_list.append('no_cut_eS1a')
     cut_list.append('no_cut_eS1o')
+    cut_list.append('no_cut_eS2o')
+    cut_list.append('no_cut_eS3o')
+    cut_list.append('no_cut_eS4o')
+    cut_list.append('no_cut_eS5o')
+    cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
-        cut_list.append('cut_Complete_SIDIS_eS1a')
+        # cut_list.append('cut_Complete_SIDIS_eS1a')
         cut_list.append('cut_Complete_SIDIS_eS1o')
-        # cut_list.append('cut_Complete_MM')
+        cut_list.append('cut_Complete_SIDIS_eS2o')
+        cut_list.append('cut_Complete_SIDIS_eS3o')
+        cut_list.append('cut_Complete_SIDIS_eS4o')
+        cut_list.append('cut_Complete_SIDIS_eS5o')
+        cut_list.append('cut_Complete_SIDIS_eS6o')
+        # # cut_list.append('cut_Complete_MM')
         if(run_Mom_Cor_Code == "yes"):
             cut_list.append('cut_Complete_EDIS')
     # if(datatype not in ["rdf"]):
@@ -6420,10 +6525,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     if("4" in binning_option_list or "y_bin"  in binning_option_list or "y_Bin" in binning_option_list):
         List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        List_of_Q2_xB_Bins_to_include = [-1, 3]
         
     if(run_Mom_Cor_Code == "yes"):
-        # binning_option_list = ["2"]
-        binning_option_list = ["Off"]
+        # # binning_option_list = ["2"]
+        # binning_option_list = ["Off"]
+        binning_option_list = ["y_bin"]
         List_of_Q2_xB_Bins_to_include = [-1]
 
         
@@ -6683,6 +6790,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # New as of 9/27/2023
     Q2_Y_Binning = ['Q2_Y_Bin', -0.5,  40.5, 41]
     # There are 17 Main Bins + 22 Migration bins (Total = 39)
+    
+    
+    Hx_Binning = ['Hx', -400, 400, 800]
+    Hy_Binning = ['Hy', -400, 400, 800]
 
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
@@ -6735,9 +6846,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
     
+    List_of_Quantities_2D = [[El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+    
     
     List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
+    
+    List_of_Quantities_3D = [[Hx_Binning, Hy_Binning, El_Phi_Binning]]
     
     # # # 1D histograms are turned off with this option
     List_of_Quantities_1D = []
@@ -6746,7 +6861,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D = []
     
     # # # 3D histograms are turned off with this option
-    List_of_Quantities_3D = []
+    # List_of_Quantities_3D = []
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -6835,7 +6950,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##     Cut Loop    ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
             for Histo_Cut in cut_list:
 
-                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o"]):
+                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o"]):
                     # Do not cut data from the MC GEN files
                     continue
 
@@ -6990,6 +7105,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Histo_Var_Pip_Theta_Dimension   = ['pipth',                    0, 40,   100]
                                 Histo_Var_Ele_Phi_Dimension     = ['elPhi',                    0, 360,  360]
                                 Histo_Var_Pip_Phi_Dimension     = ['pipPhi',                   0, 360,  360]
+                                
+                                Histo_Var_DP_Ele_SF_Dimension   = ['DP_el_SF',                -5, 5,    500]
+                                Histo_Var_DP_Pip_SF_Dimension   = ['DP_pip_SF',               -5, 5,    500]
+                                
+                                if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                    Histo_Var_Dele_SF_Dimension = ['Dele_SF',                  0, 2,    200]
+                                    Histo_Var_Dpip_SF_Dimension = ['Dpip_SF',                  0, 2,    200]
+                                
 
                             ###############################################################
                             ##==========##     Correction Histogram ID's     ##==========##
@@ -7012,26 +7135,47 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Mom_Cor_Histo_Name_DTheta_Ele_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Ele_Dimension, Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DTheta_Pip_Dimension, Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
 
-                                Mom_Cor_Histo_Name_MM_DP_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['elPhi_Local',  -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,      Histo_Var_D3=Histo_Var_Dp_Ele_Dimension)), "))"])
-                                Mom_Cor_Histo_Name_MM_DP_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['pipPhi_Local', -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,      Histo_Var_D3=Histo_Var_Dp_Pip_Dimension)), "))"])
+                                Mom_Cor_Histo_Name_MM_DP_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['elPhi_Local',  -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,        Histo_Var_D3=Histo_Var_Dp_Ele_Dimension)),           "))"])
+                                Mom_Cor_Histo_Name_MM_DP_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=['pipPhi_Local', -40, 40, 20],  Histo_Var_D2=Histo_Var_MM_Dimension,        Histo_Var_D3=Histo_Var_Dp_Pip_Dimension)),           "))"])
                                 
-                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension,  Histo_Var_D2=Histo_Var_Ele_Phi_Dimension, Histo_Var_D3=Histo_Var_Ele_Dimension)),     "))"])
-                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension,  Histo_Var_D2=Histo_Var_Pip_Phi_Dimension, Histo_Var_D3=Histo_Var_Pip_Dimension)),     "))"])
+                                Mom_Cor_Histo_Name_Angle_Ele         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Ele_Theta_Dimension,  Histo_Var_D2=Histo_Var_Ele_Phi_Dimension,   Histo_Var_D3=Histo_Var_Ele_Dimension)),              "))"])
+                                Mom_Cor_Histo_Name_Angle_Pip         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Pip_Theta_Dimension,  Histo_Var_D2=Histo_Var_Pip_Phi_Dimension,   Histo_Var_D3=Histo_Var_Pip_Dimension)),              "))"])
                                 
-                                Mom_Cor_Histo_Name_MM_Ele            = Mom_Cor_Histo_Name_MM_Ele.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_MM_Pip            = Mom_Cor_Histo_Name_MM_Pip.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DP_Ele            = Mom_Cor_Histo_Name_DP_Ele.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DP_Pip            = Mom_Cor_Histo_Name_DP_Pip.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DP_Ele_Theta      = Mom_Cor_Histo_Name_DP_Ele_Theta.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DP_Pip_Theta      = Mom_Cor_Histo_Name_DP_Pip_Theta.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DTheta_Ele        = Mom_Cor_Histo_Name_DTheta_Ele.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_DTheta_Pip        = Mom_Cor_Histo_Name_DTheta_Pip.replace("; ", "), ")
+                                Mom_Cor_Histo_Name_DP_Ele_Theta_SF   = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Ele_SF_Dimension,  Histo_Var_D2=Histo_Var_Ele_Dimension,       Histo_Var_D3=Histo_Var_Ele_Theta_Dimension)),        "))"])
+                                Mom_Cor_Histo_Name_DP_Pip_Theta_SF   = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Pip_SF_Dimension,  Histo_Var_D2=Histo_Var_Pip_Dimension,       Histo_Var_D3=Histo_Var_Pip_Theta_Dimension)),        "))"])
+                                # Mom_Cor_Histo_Name_DP_Ele_SF         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Ele_SF_Dimension,  Histo_Var_D2=Histo_Var_Ele_Dimension)),       "))"])
+                                # Mom_Cor_Histo_Name_DP_Pip_SF         = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Pip_SF_Dimension,  Histo_Var_D2=Histo_Var_Pip_Dimension)),       "))"])
+                                # Mom_Cor_Histo_Name_DP_Ele_Phi_SF     = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Ele_SF_Dimension,  Histo_Var_D2=['elPhi_Local',  -40, 40, 20])), "))"])
+                                # Mom_Cor_Histo_Name_DP_Pip_Phi_SF     = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Pip_SF_Dimension,  Histo_Var_D2=['pipPhi_Local', -40, 40, 20])), "))"])
+                                # Mom_Cor_Histo_Name_DP_Ele_Theta_SF   = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Ele_SF_Dimension,  Histo_Var_D2=Histo_Var_Ele_Theta_Dimension)), "))"])
+                                # Mom_Cor_Histo_Name_DP_Pip_Theta_SF   = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_DP_Pip_SF_Dimension,  Histo_Var_D2=Histo_Var_Pip_Theta_Dimension)), "))"])
+                                
+                                Mom_Cor_Histo_Name_MM_Ele            = Mom_Cor_Histo_Name_MM_Ele.replace("; ",           "), ")
+                                Mom_Cor_Histo_Name_MM_Pip            = Mom_Cor_Histo_Name_MM_Pip.replace("; ",           "), ")
+                                Mom_Cor_Histo_Name_DP_Ele            = Mom_Cor_Histo_Name_DP_Ele.replace("; ",           "), ")
+                                Mom_Cor_Histo_Name_DP_Pip            = Mom_Cor_Histo_Name_DP_Pip.replace("; ",           "), ")
+                                Mom_Cor_Histo_Name_DP_Ele_Theta      = Mom_Cor_Histo_Name_DP_Ele_Theta.replace("; ",     "), ")
+                                Mom_Cor_Histo_Name_DP_Pip_Theta      = Mom_Cor_Histo_Name_DP_Pip_Theta.replace("; ",     "), ")
+                                Mom_Cor_Histo_Name_DTheta_Ele        = Mom_Cor_Histo_Name_DTheta_Ele.replace("; ",       "), ")
+                                Mom_Cor_Histo_Name_DTheta_Pip        = Mom_Cor_Histo_Name_DTheta_Pip.replace("; ",       "), ")
                                 Mom_Cor_Histo_Name_DTheta_Ele_Theta  = Mom_Cor_Histo_Name_DTheta_Ele_Theta.replace("; ", "), ")
                                 Mom_Cor_Histo_Name_DTheta_Pip_Theta  = Mom_Cor_Histo_Name_DTheta_Pip_Theta.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_Angle_Ele         = Mom_Cor_Histo_Name_Angle_Ele.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_Angle_Pip         = Mom_Cor_Histo_Name_Angle_Pip.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_MM_DP_Ele         = Mom_Cor_Histo_Name_MM_DP_Ele.replace("; ", "), ")
-                                Mom_Cor_Histo_Name_MM_DP_Pip         = Mom_Cor_Histo_Name_MM_DP_Pip.replace("; ", "), ")
+                                Mom_Cor_Histo_Name_Angle_Ele         = Mom_Cor_Histo_Name_Angle_Ele.replace("; ",        "), ")
+                                Mom_Cor_Histo_Name_Angle_Pip         = Mom_Cor_Histo_Name_Angle_Pip.replace("; ",        "), ")
+                                Mom_Cor_Histo_Name_MM_DP_Ele         = Mom_Cor_Histo_Name_MM_DP_Ele.replace("; ",        "), ")
+                                Mom_Cor_Histo_Name_MM_DP_Pip         = Mom_Cor_Histo_Name_MM_DP_Pip.replace("; ",        "), ")
+                                # Mom_Cor_Histo_Name_DP_Ele_SF         = Mom_Cor_Histo_Name_DP_Ele_SF.replace("; ",        "), ")
+                                # Mom_Cor_Histo_Name_DP_Pip_SF         = Mom_Cor_Histo_Name_DP_Pip_SF.replace("; ",        "), ")
+                                Mom_Cor_Histo_Name_DP_Ele_Theta_SF   = Mom_Cor_Histo_Name_DP_Ele_Theta_SF.replace("; ",  "), ")
+                                Mom_Cor_Histo_Name_DP_Pip_Theta_SF   = Mom_Cor_Histo_Name_DP_Pip_Theta_SF.replace("; ",  "), ")
+                                # Mom_Cor_Histo_Name_DP_Ele_Phi_SF     = Mom_Cor_Histo_Name_DP_Ele_Phi_SF.replace("; ",    "), ")
+                                # Mom_Cor_Histo_Name_DP_Pip_Phi_SF     = Mom_Cor_Histo_Name_DP_Pip_Phi_SF.replace("; ",    "), ")
+                                
+                                if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                    Mom_Cor_Histo_Name_Dele_SF       = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dele_SF_Dimension,    Histo_Var_D2=['Q2_y_Bin', -0.5,  18.5, 19], Histo_Var_D3=['z_pT_Bin_y_bin',  -0.5, 42.5,  43])), "))"])
+                                    Mom_Cor_Histo_Name_Dpip_SF       = ''.join([Mom_Cor_Histo_Name_Main, "), (", str(Dimension_Name_Function(Histo_Var_D1=Histo_Var_Dpip_SF_Dimension,    Histo_Var_D2=['Q2_y_Bin', -0.5,  18.5, 19], Histo_Var_D3=['z_pT_Bin_y_bin',  -0.5, 42.5,  43])), "))"])
+                                    Mom_Cor_Histo_Name_Dele_SF       = Mom_Cor_Histo_Name_Dele_SF.replace("; ",          "), ")
+                                    Mom_Cor_Histo_Name_Dpip_SF       = Mom_Cor_Histo_Name_Dpip_SF.replace("; ",          "), ")
                                 
                             ###############################################################
                             ##==========##  Correction Histogram ID's (End)  ##==========##
@@ -7042,20 +7186,31 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             ##==========##    Correction Histogram Titles    ##==========##
                             ###############################################################
                                 
-                                Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics",                              " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",        "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
-                                Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics",                          " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
+                                Mom_Cor_Histos_Name_MM_Ele_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (Electron Kinematics",                              " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",                          "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
+                                Mom_Cor_Histos_Name_MM_Pip_Title           = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass Histogram (#pi^{+} Pion Kinematics",                          " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",                        "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
                                 
-                                Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics",                                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",        "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
-                                Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics",                               " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
+                                Mom_Cor_Histos_Name_Delta_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (Electron Kinematics",                                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",                          "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el} Bins"])
+                                Mom_Cor_Histos_Name_Delta_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram (#pi^{+} Pion Kinematics",                               " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",                        "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+} Bins"])
                                 
-                                Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics",                         " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "El Sector"])
-                                Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics",                     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "#pi^{+} Sector"])
+                                Mom_Cor_Histos_Name_Delta_Ele_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (Electron Kinematics",                         " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",                     "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};",   "El Sector"])
+                                Mom_Cor_Histos_Name_Delta_Pip_Theta_Title  = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#DeltaP Histogram vs #theta (#pi^{+} Pion Kinematics",                     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};",                   "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};", "#pi^{+} Sector"])
                                 
-                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics",                       " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{el}"])
-                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics",                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};",    "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
+                                Mom_Cor_Histos_Name_Angle_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (Electron Kinematics",                       " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el};",                     "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el};",      "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{el}"])
+                                Mom_Cor_Histos_Name_Angle_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#theta vs #phi vs p Histogram (#pi^{+} Pion Kinematics",                   " - Corrected" if(Mom_Correction_Q == "yes") else "", ");", "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+};",                   "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+};",    "(Smeared) " if("smear" in Histo_Smear) else " ", "#p_{#pi+}"])
                                 
-                                Mom_Cor_Histos_Name_MM_DP_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (Electron Kinematics",     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                             "Local #phi_{el};",     "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};"])
-                                Mom_Cor_Histos_Name_MM_DP_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                             "Local #phi_{#pi+};",   "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};"])
+                                Mom_Cor_Histos_Name_MM_DP_Ele_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (Electron Kinematics",     " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                                   "Local #phi_{el};",                 "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{el};"])
+                                Mom_Cor_Histos_Name_MM_DP_Pip_Title        = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "Missing Mass vs #DeltaP vs Local #phi Histogram (#pi^{+} Pion Kinematics", " - Corrected" if(Mom_Correction_Q == "yes") else "", ");",                                                   "Local #phi_{#pi+};",               "(Smeared) " if("smear" in Histo_Smear) else " ", "MM_{e#pi+(X)};",  "(Smeared) " if("smear" in Histo_Smear) else " ", "#DeltaP_{#pi+};"])
+                                
+                                # Mom_Cor_Histo_Name_DP_Ele_SF_Title         = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs P_{Electron}",                                        " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{el}}{P_{el}};",     "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el}"])
+                                # Mom_Cor_Histo_Name_DP_Pip_SF_Title         = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs P_{#pi^{+} Pion}",                                    " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{#pi+}}{P_{#pi+}};", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+}"])
+                                Mom_Cor_Histo_Name_DP_Ele_Theta_SF_Title   = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs P_{Electron} vs #theta_{Electron}",                   " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{el}}{P_{el}};",     "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{el};",         "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{el}"])
+                                Mom_Cor_Histo_Name_DP_Pip_Theta_SF_Title   = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs P_{#pi^{+} Pion} vs #theta_{#pi^{+} Pion}",           " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{#pi+}}{P_{#pi+}};", "(Smeared) " if("smear" in Histo_Smear) else " ", "p_{#pi+};",       "(Smeared) " if("smear" in Histo_Smear) else " ", "#theta_{#pi+}"])
+                                # Mom_Cor_Histo_Name_DP_Ele_Phi_SF_Title     = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs Local #phi_{Electron}",                               " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{el}}{P_{el}};",     "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{el}"])
+                                # Mom_Cor_Histo_Name_DP_Pip_Phi_SF_Title     = "".join(["(Smeared) " if("smear" in str(Histo_Smear)) else "", "#frac{#DeltaP}{P} vs Local #phi_{#pi^{+} Pion}",                           " (Corrected)" if(Mom_Correction_Q == "yes") else "",  ";", "(Smeared) " if("smear" in Histo_Smear) else " ", "#frac{#DeltaP_{#pi+}}{P_{#pi+}};", "(Smeared) " if("smear" in Histo_Smear) else " ", "#phi_{#pi+}"])
+                                
+                                if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                    Mom_Cor_Histo_Name_Dele_SF_Title       = "".join(["#frac{P_{Smeared} - P}{P} (Electron",     " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #frac{P_{Smeared} - P}{P}; Q^{2}-y Bin; z-P_{T} Bin"])
+                                    Mom_Cor_Histo_Name_Dpip_SF_Title       = "".join(["#frac{P_{Smeared} - P}{P} (#pi^{+} Pion", " - Corrected" if(Mom_Correction_Q == "yes") else "", "); #frac{P_{Smeared} - P}{P}; Q^{2}-y Bin; z-P_{T} Bin"])
 
                             ###############################################################
                             ##==========## Correction Histogram Titles (End) ##==========##
@@ -7093,6 +7248,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Histograms_All[Mom_Cor_Histo_Name_MM_DP_Ele]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_DP_Ele,        str(Mom_Cor_Histos_Name_MM_DP_Ele_Title),                                          20, -40, 40, 350,     0,  3.5, 125, -0.75, 0.75), "elPhi_Local",  "MM" if("smear" not in Histo_Smear) else "MM_smeared",         "Delta_Pel_Cors"       if("smear" not in Histo_Smear) else "Delta_Pel_Cors_smeared")
                                 Histograms_All[Mom_Cor_Histo_Name_MM_DP_Pip]         = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_MM_DP_Pip,        str(Mom_Cor_Histos_Name_MM_DP_Pip_Title),                                          20, -40, 40, 350,     0,  3.5, 125, -0.75, 0.75), "pipPhi_Local", "MM" if("smear" not in Histo_Smear) else "MM_smeared",         "Delta_Ppip_Cors"      if("smear" not in Histo_Smear) else "Delta_Ppip_Cors_smeared")
                                 
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Ele_Theta_SF_Title),                                     500, -5,  5, 100,     0,   10, 100,     0,   40), "DP_el_SF"           if("smear" not in Histo_Smear) else "DP_el_SF_smeared",   "el"                   if("smear" not in Histo_Smear) else "el_smeared",                   "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Pip_Theta_SF_Title),                                     500, -5,  5, 100,     0,    8, 100,     0,   40), "DP_pip_SF"          if("smear" not in Histo_Smear) else "DP_pip_SF_smeared",  "pip"                  if("smear" not in Histo_Smear) else "pip_smeared",                  "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
+                                
+                                if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                    Histograms_All[Mom_Cor_Histo_Name_Dele_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dele_SF,          str(Mom_Cor_Histo_Name_Dele_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dele_SF", "Q2_y_Bin", "z_pT_Bin_y_bin")
+                                    Histograms_All[Mom_Cor_Histo_Name_Dpip_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dpip_SF,          str(Mom_Cor_Histo_Name_Dpip_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dpip_SF", "Q2_y_Bin", "z_pT_Bin_y_bin")
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
@@ -7131,12 +7292,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     Histograms_All[Mom_Cor_Histo_Name_MM_DP_Ele].Write()
                                     Histograms_All[Mom_Cor_Histo_Name_MM_DP_Pip].Write()
                                     
+                                    # print("Drawing: ", Mom_Cor_Histo_Name_DP_Ele_Theta_SF)
+                                    Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta_SF].Write()
+                                    Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta_SF].Write()
+                                    
+                                    if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                        Histograms_All[Mom_Cor_Histo_Name_Dele_SF].Write()
+                                        Histograms_All[Mom_Cor_Histo_Name_Dpip_SF].Write()
+                                    
                                     del Histograms_All
                                     Histograms_All = {}
                                     # print("")
                                     
-                                Print_Progress(count_of_histograms, 14, 200 if(str(file_location) != 'time') else 50)
-                                count_of_histograms += 14
+                                Print_Progress(count_of_histograms,    16, 200 if(str(file_location) != 'time') else 50)
+                                count_of_histograms     += 16
+                                if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
+                                    Print_Progress(count_of_histograms, 2, 200 if(str(file_location) != 'time') else 50)
+                                    count_of_histograms += 2
                                 del MCH_rdf
 
 ##################################################=========================================##########################################################################################################################################

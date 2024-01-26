@@ -15,11 +15,14 @@ cd "${DIR_WITH_SCRIPTS}/Matching_REC_MC/"
 pwd
 # cat ${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_SIDIS_python_matching_MC.sh
 sbatch ${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_SIDIS_python_matching_MC.sh
+
+# echo "Skipping gdf files..."
 echo "Submitting for gdf file in:"
 cd "${DIR_WITH_SCRIPTS}/GEN_MC/"
 pwd
 # cat ${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_SIDIS_python_gen_MC.sh
 sbatch ${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_SIDIS_python_gen_MC.sh
+
 echo "Submitting for rdf file in:"
 cd "${DIR_WITH_SCRIPTS}/REAL_Data/"
 pwd

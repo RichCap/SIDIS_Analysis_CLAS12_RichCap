@@ -113,6 +113,8 @@ if(len(sys.argv) > 1):
             Smearing_Options = "both"
         if(("no_smear" in [str(Smearing_Options)]) or ("no_smear" in str(arg_option_1))):
             Smearing_Options = "no_smear"
+        if(Smearing_Options in ["_smear", "Smear", "_Smear"]):
+            Smearing_Options = "smear"
 else:
     Saving_Q = True
     
@@ -135,8 +137,8 @@ if(not Fit_Test):
     print("".join([color.BLUE, color.BOLD, color_bg.RED, """\n\n    Not Fitting Plots    \n""", color.END, "\n\n"]))
     
     
-if(str(Smearing_Options) not in ["both"]):
-    print(color.BLUE, color.BOLD, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else Smearing_Options.replace("_s", "S"), color.END, "\n")
+# if(str(Smearing_Options) not in ["both"]):
+print(color.BLUE, color.BOLD, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
 File_Save_Format = ".png"
 # File_Save_Format = ".root"
@@ -3615,6 +3617,8 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
             if(pattern == Smear_Type):
                 histo_group = "".join(["SMEAR=", pattern if(pattern != "") else "''"])
         Name_Output = "".join([Name_Output, "_(" if(str(Name_Output) != "") else "(", str(histo_group), ")"])
+        # if(("rdf" in str(Name_Output)) or ("gdf" in str(Name_Output))):
+        #     Name_Output = Name_Output.replace("Smear", "''")
         
     if((Variable in ["Find", "FindAll", "FindOnly"]) and (")_(" not in str(Name_Output))):
         Name_Output = Name_Output.replace("(", "")
@@ -3645,9 +3649,10 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
             fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)) + [D]*cos(3*x*(3.1415926/180)))"
             
         Fitting_Function = ROOT.TF1("".join(["Fitting_Function", str(Method).replace(" ", "_")]), str(fit_function), 0, 360)
-        Fitting_Function.SetParName(0, "Parameter A")
-        Fitting_Function.SetParName(1, "Parameter B")
-        Fitting_Function.SetParName(2, "Parameter C")
+        # Fitting_Function.SetParName(0, "Parameter A")
+        # Fitting_Function.SetParName(1, "Parameter B")
+        # Fitting_Function.SetParName(2, "Parameter C")
+        
         # if(not extra_function_terms):
         #     print(color.BOLD, color.BLUE, "A_Unfold, B_Unfold, C_Unfold =", color.END, color.BOLD, ", ".join([str(A_Unfold), str(B_Unfold), str(C_Unfold)]), color.END)
         # else:
@@ -3968,8 +3973,15 @@ def MultiD_Slice_New(Histo, Title="Default", Name="none", Method="N/A", Variable
                                  # The second one is considered to be the 'rdf' (or 'mdf') histogram used to tell when the edge bins should be cut (i.e., when the bin content of Histo_Cut = 0 --> Not good for acceptance).
     else:
         Histo_Cut = False
+            
     Unfolded_Fit_Function, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}
-    if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
+    if(str(Method) not in ["rdf", "gdf"]):
+        if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
+            print(color.BLUE, "\nRunning MultiD_Slice_New(...)\n", color.END)
+        else:
+            print(color.RED, color.BOLD, "\n\nWrong Smearing option for MultiD_Slice_New(...)\n\n", color.END)
+            return "Error"
+    elif(Smear in [""]):
         print(color.BLUE, "\nRunning MultiD_Slice_New(...)\n", color.END)
     else:
         print(color.RED, color.BOLD, "\n\nWrong Smearing option for MultiD_Slice_New(...)\n\n", color.END)
@@ -4520,10 +4532,10 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         Histo_Name_General = Histogram_Name_Def(out_print=Out_Print_Main, Histo_General="1D", Data_Type="METHOD", Cut_Type="Skip", Smear_Type=Smear_Input, Q2_y_Bin=Q2_Y_Bin, z_pT_Bin=Z_PT_Bin, Bin_Extra="Default", Variable=Variable_Input)
         ################################################################### ########################################################################################################################################################################################################################################################################################################################
         ###==========###         Normal/1D Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
-        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "rdf"))]                                   = ExREAL_1D
+        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "rdf")).replace("Smear", "''")]            = ExREAL_1D
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "mdf"))]                                   = MC_REC_1D
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "mdf")).replace("1D", "Response_Matrix")]  = Response_2D
-        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "gdf"))]                                   = MC_GEN_1D
+        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "gdf")).replace("Smear", "''")]            = MC_GEN_1D
 
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin"))]                                   = Bin_Unfolded
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Acceptance"))]                            = Bin_Acceptance
@@ -4568,6 +4580,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                         except:
                             print("".join([color.BOLD, color.RED, "ERROR IN ADDING TO Histogram_List_All (while looping within an item in histos_list):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
                             print("histos_list =", histos_list)
+                            # print("histos_list_loop =", histos_list_loop)
                 except:
                     print("".join([color.BOLD,         color.RED, "ERROR IN ADDING TO Histogram_List_All (while looping through items in histos_list):\n",  color.END, color.RED, str(traceback.format_exc()), color.END]))
         ###==========###         Multi_Dim Histos          ###==========### #######################################################################################################################################################################################################################################################################################################################
@@ -4575,20 +4588,20 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         ###==========###         Other Histo Fits          ###==========### #######################################################################################################################################################################################################################################################################################################################
         elif("phi" in Variable_Input):
             if(Fit_Test and Allow_Fitting):
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Function")] = Unfolded_GEN_Fit_Function
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_A")]    = GEN_Fit_Par_A
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_B")]    = GEN_Fit_Par_B
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_C")]    = GEN_Fit_Par_C
+                Histogram_List_All[str(str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Function")).replace("Smear", "''")] = Unfolded_GEN_Fit_Function
+                Histogram_List_All[str(str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_A")).replace("Smear", "''")]    = GEN_Fit_Par_A
+                Histogram_List_All[str(str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_B")).replace("Smear", "''")]    = GEN_Fit_Par_B
+                Histogram_List_All[str(str(Histo_Name_General.replace("METHOD", "gdf")).replace("1D",      "Fit_Par_C")).replace("Smear", "''")]    = GEN_Fit_Par_C
 
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bin")).replace("1D",      "Fit_Function")] = Unfolded_Bin_Fit_Function
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bin")).replace("1D",      "Fit_Par_A")]    = Bin_Fit_Par_A
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bin")).replace("1D",      "Fit_Par_B")]    = Bin_Fit_Par_B
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bin")).replace("1D",      "Fit_Par_C")]    = Bin_Fit_Par_C
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin")).replace("1D",      "Fit_Function")]                         = Unfolded_Bin_Fit_Function
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin")).replace("1D",      "Fit_Par_A")]                            = Bin_Fit_Par_A
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin")).replace("1D",      "Fit_Par_B")]                            = Bin_Fit_Par_B
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin")).replace("1D",      "Fit_Par_C")]                            = Bin_Fit_Par_C
 
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bayesian")).replace("1D", "Fit_Function")] = Unfolded_Bay_Fit_Function
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bayesian")).replace("1D", "Fit_Par_A")]    = Bay_Fit_Par_A
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bayesian")).replace("1D", "Fit_Par_B")]    = Bay_Fit_Par_B
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Bayesian")).replace("1D", "Fit_Par_C")]    = Bay_Fit_Par_C
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian")).replace("1D", "Fit_Function")]                         = Unfolded_Bay_Fit_Function
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian")).replace("1D", "Fit_Par_A")]                            = Bay_Fit_Par_A
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian")).replace("1D", "Fit_Par_B")]                            = Bay_Fit_Par_B
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian")).replace("1D", "Fit_Par_C")]                            = Bay_Fit_Par_C
         ###==========###         Other Histo Fits          ###==========### #######################################################################################################################################################################################################################################################################################################################
         ################################################################### #######################################################################################################################################################################################################################################################################################################################
         ##################################################################################
@@ -6281,7 +6294,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
             ExTRUE_1D.GetYaxis().SetTitle("")
     #####==========#####    Unfold Bin Histogram     #####==========##### ################################################################ ################################################################ ################################################################
     UNFOLD_Bin.SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(root_color.Brown), "]{Bin-By-Bin} Distribution of #phi_{h}}}{",         root_color.Bold, "{", str(fit_function_title), "}}}{", str(Bin_Title), "}"]))
-    UNFOLD_Bin.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
+    UNFOLD_Bin.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
     UNFOLD_Bin.SetLineColor(root_color.Brown)
     UNFOLD_Bin.SetLineWidth(2)
     UNFOLD_Bin.SetLineStyle(1)
@@ -6301,7 +6314,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     #     UNFOLD_Bin_Multi_Dim.SetMarkerStyle(21)
     #####==========#####   Unfold Bayes Histogram    #####==========##### ################################################################ ################################################################ ################################################################
     UNFOLD_Bay.SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(root_color.Teal),  "]{RooUnfold Bayesian} Distribution of #phi_{h}}}{", root_color.Bold, "{", str(fit_function_title), "}}}{", str(Bin_Title), "}"]))
-    UNFOLD_Bay.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
+    UNFOLD_Bay.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
     UNFOLD_Bay.SetLineColor(root_color.Teal)
     UNFOLD_Bay.SetLineWidth(2)
     UNFOLD_Bay.SetLineStyle(1)
@@ -6322,7 +6335,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     #####==========#####    Unfold SVD Histogram     #####==========##### ################################################################ ################################################################ ################################################################
     if(Multi_Dim_Option in ["Off"]):
         UNFOLD_SVD.SetTitle("".join(["#splitline{#splitline{", root_color.Bold, "{Fitted #color[", str(root_color.Pink),  "]{SVD Unfolded} Distribution of #phi_{h}}}{",       root_color.Bold, "{", str(fit_function_title), "}}}{", str(Bin_Title), "}"]))
-        UNFOLD_SVD.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
+        UNFOLD_SVD.GetXaxis().SetTitle("".join(["#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)"]))
         UNFOLD_SVD.SetMarkerColor(root_color.Pink)
         UNFOLD_SVD.SetLineWidth(2)
         UNFOLD_SVD.SetLineStyle(1)
@@ -7933,36 +7946,58 @@ for ii in mdf.GetListOfKeys():
     # The histograms for 'out_print_main' will be skipped if any item in the list 'Conditions_For_Unfolding' is 'False'
     
     ## Correct Histogram Type:
-    Conditions_For_Unfolding.append("Response_Matrix_Normal"        in str(out_print_main))
-    Conditions_For_Unfolding.append("Response_Matrix_Normal_1D" not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"Response_Matrix_Normal" in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Response_Matrix_Normal"    in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"Response_Matrix_Normal_1D" not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Response_Matrix_Normal_1D"    not in str(out_print_main))
     
     ## Correct Cuts:
-    Conditions_For_Unfolding.append("no_cut"                    not in str(out_print_main))
-    Conditions_For_Unfolding.append("cut_Complete_EDIS"         not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"no_cut"             not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"cut_Complete_EDIS"  not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
     
     ## Generated Missing Mass Cuts (not ready yet)
     if(Common_Name not in ["Gen_Cuts_V7_All"]):
-        Conditions_For_Unfolding.append("Gen_MM_Cut"            not in str(out_print_main))
-        Conditions_For_Unfolding.append("Gen_Cut_MM"            not in str(out_print_main))
+        Conditions_For_Unfolding.append('''"Gen_MM_Cut"     not in str(out_print_main)''')
+        Conditions_For_Unfolding.append("Gen_MM_Cut"        not in str(out_print_main))
+        Conditions_For_Unfolding.append('''"Gen_Cut_MM"     not in str(out_print_main)''')
+        Conditions_For_Unfolding.append("Gen_Cut_MM"        not in str(out_print_main))
     
 
     ## Correct Variable(s):
-    Conditions_For_Unfolding.append("phi_t"           in str(out_print_main))
+    Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
+    Conditions_For_Unfolding.append("phi_t"    in str(out_print_main))
     # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
     # Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))
     # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main))
     # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
-#     if(Closure_Test):
-#         Conditions_For_Unfolding.append("'Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main))
-    Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
-    Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"               not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main))
+    # if(Closure_Test):
+    #     Conditions_For_Unfolding.append("'Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''("Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected''')
+    Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_y_bin_phi_t"         in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
+    
+    Conditions_For_Unfolding.append('''"Multi_Dim_Q2_phi_t"               not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"                  not in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t"    not in str(out_print_main))
     
     # Not Tested Yet...
-    Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"             not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"            not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"            not in str(out_print_main))
-    Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"           not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"Multi_Dim_elth_phi_t"  not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"     not in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"Multi_Dim_pipth_phi_t" not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"    not in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"Multi_Dim_elPhi_phi_t" not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"    not in str(out_print_main))
+    
+    Conditions_For_Unfolding.append('''"Multi_Dim_pipPhi_phi_t not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"   not in str(out_print_main))
     # Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
     
     
@@ -7973,10 +8008,23 @@ for ii in mdf.GetListOfKeys():
     # Smearing Options:
     # if((Smearing_Options not in ["no_smear", "both"]) or  (Sim_Test)):
     if((Smearing_Options not in ["no_smear", "both"])):
-        Conditions_For_Unfolding.append("(Smear-Type='')" not in str(out_print_main))
+        Conditions_For_Unfolding.append('''"(Smear-Type='')" not in str(out_print_main)''')
+        Conditions_For_Unfolding.append("(Smear-Type='')"    not in str(out_print_main))
     # if((Smearing_Options not in ["smear",    "both"]) and (not Sim_Test)):
     if((Smearing_Options not in ["smear",    "both"])):
-        Conditions_For_Unfolding.append("(Smear-Type='')"     in str(out_print_main))
+        Conditions_For_Unfolding.append('''"(Smear-Type='')"     in str(out_print_main)''')
+        Conditions_For_Unfolding.append("(Smear-Type='')"        in str(out_print_main))
+        
+    
+    # if(False not in Conditions_For_Unfolding):
+    #     print("\nout_print_main =\n  ", out_print_main, "\n")
+    #     print("Conditions_For_Unfolding:")
+    #     for ii in Conditions_For_Unfolding:
+    #         if(type(ii) is str):
+    #             print("".join([str(ii), ":"]))
+    #         else:
+    #             print("".join(["\t", color.GREEN if(ii) else color.Error, str(ii), color.END]))
+    #     stop
     
     ##========================================================##
     ##=====##    Conditions for Histogram Selection    ##=====##
@@ -8839,6 +8887,8 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Multi_Dim" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    if("_(rdf)_(SMEAR=" in str(List_of_All_Histos_For_Unfolding_ii)):
+        print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("tdf" not in str(List_of_All_Histos_For_Unfolding_ii)) and ("Fit" not in str(List_of_All_Histos_For_Unfolding_ii))):
