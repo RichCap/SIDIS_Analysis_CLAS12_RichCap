@@ -814,8 +814,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Added new form of the smearing plots to begin developing the smearing corrections as described in Valerii's procedure
         # Added plots to see the impact of the smearing correction within each kinematic bin (hard-coded to use the current Q2-y binning scheme 'y_bin')
         
+        
+        Extra_Name = "New_Smearing_V2_"
+        # Ran on 2/5/2024
+        # Updated with Extra_Name = "New_Smearing_V1_" (all the same notes therefore apply)
+            # Turned off any cut not related to the Momentum Correction/Smearing code
+        # Updated the ∆P/P plots to improve the binning ranges/sizes
+        
         if(smear_factor != "0.75"):
-            Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V1_"])
+            Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V2_"])
             # Same as "New_Smearing_V1_" but with any value of smear_factor not being equal to the default value of 0.75
         
     if(Use_Weight):
