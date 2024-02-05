@@ -16,6 +16,12 @@ from sys import argv
     # 2) mdf --> MC REC Data (Event matching is available)
     # 3) gdf --> MC GEN Data
     # 4) pdf --> Only Matched MC Events (REC events must be matched to their GEN counterparts if this option is selected)
+    # Can add the contents of the following lists (SIDIS_Unfold_List, Momentum_Cor_List, Using_Weight_List, Smear_Factor_List, Pass_Version_List - see below) to control how the code is run.
+        # 'SIDIS_Unfold_List' options will ensure the histograms used with unfolding are run
+        # 'Momentum_Cor_List' options will ensure the options for (exclusive) momentum corrections/smearing are run
+        # 'Using_Weight_List' options will run a variety of MC closure tests (including weighing histogram events)
+        # 'Smear_Factor_List' options control which smear factor/function is used when smearing the MC (use when testing different options - default option is set within the code if not included in this arguement)
+        # 'Pass_Version_List' options control which pass version of the data/MC is used when running the code (currently defaults to Pass 1)
 # arguement 3: output type
     # Options: 
     # 1) histo --> root file contains the histograms made by this code
@@ -56,15 +62,18 @@ run_Mom_Cor_Code = "no"
 smear_factor = "0.75"
 
 
+Use_Pass_2 = False
+
+
 # Use_Weight corresponses to weighing the MC events to add modulations to the generated simulated data (used as a closure test)
 Use_Weight = False
 # Use_Weight = True
-
 
 SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
 Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
 Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight", "_Q4"]
 Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
+Pass_Version_List = ["_P2",    "_Pass2", "_P1",      "_Pass1"]
 
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
@@ -100,13 +109,24 @@ if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
     Q4_Weight  = False
     # Do not use the simulated modulations on the momentum correction code or for the experimental data set
 
+for pass_ver in Pass_Version_List:
+    if(str(pass_ver) in str(datatype)):
+        if("2" in str(pass_ver)):
+            Use_Pass_2 = True
+        else:
+            Use_Pass_2 = False
+        datatype   = str(datatype).replace(str(pass_ver), "")
+        break
+    
 del SIDIS_Unfold_List
 del Momentum_Cor_List
 del Using_Weight_List
+del Pass_Version_List
 del sidis
 del mom_cor
 del smear
 del weight_Q
+del pass_ver
 
 
 if(output_type == "test"):
@@ -215,14 +235,17 @@ if(str(file_location) == 'time'):
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num = str(file_location)
     if(datatype == "rdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00", "")).replace(".hipo.root", "")     
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",              "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                              "")).replace(".hipo.root", "")     
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                       "")).replace(".hipo.root", "")
     if(datatype in ["mdf", "pdf"]):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                 "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_",       "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",              "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                              "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_",                                    "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -235,29 +258,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype == 'rdf'):
         if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
-            files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00*")
+            files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"                  if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00"          if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00",            str(file_num), "*"])
             
     if(datatype in ['mdf', 'pdf']):
         if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_*")
+            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"          if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_"  if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
-            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_*")
+            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_",      str(file_num), "*"])
             
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
@@ -774,6 +797,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Current version calculates the multidimensional bin number in a more simplistic way (does not account for migration bins)
         # New binning scheme includes more migration bins (i.e., bins which are not meant to be analyzed but will provide details about events migrating into the main kinematic bins from outside the meaningful kinematic ranges)
     # Removed all non-standard options for histograms/cuts that are not required by the unfolding code
+    if(Use_Pass_2):
+        Extra_Name = "".join(["Pass_2_", str(Extra_Name)])
+        # Ran with "New_Bin_Tests_V5_" on 1/29/2024
+            # Added the option to run with Pass 2 Data
+            
+        print(f"\n\n\t{color.BOLD}{color.BLUE}Using Pass 2 Version of Data/MC Files{color.END}")
+    
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -8645,8 +8675,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Histo_Var_Ele_Phi_Dimension     = ['elPhi',                    0, 360,  360]
                                 Histo_Var_Pip_Phi_Dimension     = ['pipPhi',                   0, 360,  360]
                                 
-                                Histo_Var_DP_Ele_SF_Dimension   = ['DP_el_SF',                -5, 5,    500]
-                                Histo_Var_DP_Pip_SF_Dimension   = ['DP_pip_SF',               -5, 5,    500]
+                                # Histo_Var_DP_Ele_SF_Dimension   = ['DP_el_SF',                -5, 5,    500]
+                                # Histo_Var_DP_Pip_SF_Dimension   = ['DP_pip_SF',               -5, 5,    500]
+                                
+                                Histo_Var_DP_Ele_SF_Dimension   = ['DP_el_SF',              -0.8, 0.2, 1000]
+                                Histo_Var_DP_Pip_SF_Dimension   = ['DP_pip_SF',             -0.8, 0.2, 1000]
                                 
                                 if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
                                     Histo_Var_Dele_SF_Dimension = ['Dele_SF',                  0, 2,    200]
