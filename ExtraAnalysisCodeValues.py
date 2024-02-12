@@ -2213,7 +2213,7 @@ auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_
 
 
 
-
+# Up-to-date as of: 2/12/2024
 def smearing_function_SF(smear_factor=0.75):
     smearing_function = "".join(["""
         //=======================================================================//
@@ -2228,10 +2228,12 @@ def smearing_function_SF(smear_factor=0.75):
             
             double Smear_SF_Theta = 0;
             if(ivec == 0){ // Electron
-                Smear_SF_Theta = (-2.0472e-05)*Th_rec*Th_rec + (8.7962e-04)*Th_rec + (-5.8595e-03);
+                // Smear_SF_Theta = (-2.0472e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (8.7962e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8595e-03);
+                Smear_SF_Theta    = (-3.1431e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0284e-03)*(TMath::RadToDeg()*Th_rec) + (-4.0027e-03);
             }
             if(ivec == 1){ // Pi+ Pion
-                Smear_SF_Theta = (-2.4939e-06)*Th_rec*Th_rec + (5.8277e-04)*Th_rec + (-5.8521e-03);
+                // Smear_SF_Theta = (-2.4939e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.8277e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8521e-03);
+                Smear_SF_Theta    = (-1.6434e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.1530e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4158e-03);
             }
             
             // Calculate resolutions

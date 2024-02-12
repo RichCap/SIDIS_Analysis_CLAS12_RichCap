@@ -830,6 +830,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Actually implementing the new bin ranges for the ∆P/P plots as was intended in the last version of this code
             # Using the same number of bins as I was originally (i.e., 500), but the new ranges are from -0.8 to 0.2 (instead of -5 to 5 with the same number of bins)
         # The smearing function in use is the same one developed with the Extra_Name = "New_Smearing_V2_" version of the code (is replicable with the available version of Extra_Name = "New_Smearing_V2_")
+        # NOTE MADE ON 2/6/2024: Bin resizing was not implemented correctly: used a range of ∆P/P of -0.8 to 0.2 with 4000 bins
+        
+        Extra_Name = "New_Smearing_V4_"
+        # Ran on 2/6/2024
+        # Same update as Extra_Name = "New_Smearing_V3_" however the binning was corrected (see 'NOTE MADE ON 2/6/2024')
         
         if(smear_factor != "0.75"):
             Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V2_"])
