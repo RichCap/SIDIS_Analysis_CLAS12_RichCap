@@ -2255,3 +2255,47 @@ def smearing_function_SF(smear_factor=0.75):
         };"""])
     
     return smearing_function
+
+
+
+
+
+
+
+
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+# Conditions for (Monte Carlo) Background Events
+# # Convension Used in this list:
+    # # (*) If ANY of the statements given in 'List_of_Cuts' are true, the event will be considered 'background'
+        # # To remove everything but the background events from a rdf dataframe, use the following line:
+          # # # WITH_background_rdf = rdf.Filter(Background_Cuts_MC)
+          # # # (This will keep any event which passes at least one of the background conditions given)
+    # # (*) To remove the background events from a rdf dataframe, use the following line:
+        # # # NO_background_rdf = rdf.Filter(f"!({Background_Cuts_MC})")
+        # # # (This will keep only those events which fail every condition given)
+Background_Cuts_MC = ""
+List_of_Cuts = ["MM_gen < 1.5"]
+for cuts in List_of_Cuts:
+    if(Background_Cuts_MC in [""]):
+        Background_Cuts_MC = cuts
+    else:
+        Background_Cuts_MC = "".join([str(Background_Cuts_MC), " || ", str(cuts)])
+    
+del cuts
+del List_of_Cuts
+
+
+
