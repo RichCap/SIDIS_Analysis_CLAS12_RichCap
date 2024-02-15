@@ -2214,8 +2214,52 @@ auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_
 
 
 # Up-to-date as of: 2/12/2024
-def smearing_function_SF(smear_factor=0.75):
-    smearing_function = "".join(["""
+def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
+    if(Use_Pass_2_Function):
+        smearing_function = "".join(["""
+        //=======================================================================//
+        //=================// Sigma Smearing Factor (Pass 2) //=================//
+        //=======================================================================//
+        auto smear_func = [&](TLorentzVector V4, int ivec){
+            // // True generated values (i.e., values of the unsmeared TLorentzVector)
+            // double M_rec   = V4.M();
+            // double P_rec   = V4.P();
+            // double Th_rec  = V4.Theta();
+            // double Phi_rec = V4.Phi();
+            // 
+            // double Smear_SF_Theta = 0;
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta       = (-3.1431e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0284e-03)*(TMath::RadToDeg()*Th_rec) + (-4.0027e-03);
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta       = (-1.6434e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.1530e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4158e-03);
+            // }
+            // // Calculate resolutions
+            // double smear_factor = """, str(smear_factor), """;
+            // double P_new_rec    = P_rec   +   (P_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            // double Th_new_rec   = Th_rec  +  (Th_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            // double Phi_new_rec  = Phi_rec + (Phi_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            // Th_new_rec  = Th_rec;
+            // Phi_new_rec = Phi_rec;
+            
+            // double Extra_Smear_SF_Theta = 0;
+            // if(ivec == 1){ // Pi+ Pion
+            //     Extra_Smear_SF_Theta = (2.2747e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (3.0985e-04)*(TMath::RadToDeg()*Th_rec) + (-5.1206e-03);
+            //     P_new_rec      = P_new_rec   +   (P_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            //     // Th_new_rec  = Th_new_rec  +  (Th_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            //     // Phi_new_rec = Phi_new_rec + (Phi_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            // }
+            
+            // Making the smeared TLorentzVector:
+            TLorentzVector V4_smear(V4.X(), V4.Y(), V4.Z(), V4.E());
+            // V4_smear.SetE(TMath::Sqrt(P_new_rec*P_new_rec + M_rec*M_rec));
+            // V4_smear.SetRho(   P_new_rec);
+            // V4_smear.SetTheta(Th_new_rec);
+            // V4_smear.SetPhi( Phi_new_rec);
+            return V4_smear;
+        };"""])
+    else:
+        smearing_function = "".join(["""
         //=======================================================================//
         //=================//      Sigma Smearing Factor      //=================//
         //=======================================================================//
@@ -2228,12 +2272,12 @@ def smearing_function_SF(smear_factor=0.75):
             
             double Smear_SF_Theta = 0;
             if(ivec == 0){ // Electron
-                // Smear_SF_Theta = (-2.0472e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (8.7962e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8595e-03);
-                Smear_SF_Theta    = (-3.1431e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0284e-03)*(TMath::RadToDeg()*Th_rec) + (-4.0027e-03);
+                // Smear_SF_Theta    = (-2.0472e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (8.7962e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8595e-03);
+                Smear_SF_Theta       = (-3.1431e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0284e-03)*(TMath::RadToDeg()*Th_rec) + (-4.0027e-03);
             }
             if(ivec == 1){ // Pi+ Pion
-                // Smear_SF_Theta = (-2.4939e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.8277e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8521e-03);
-                Smear_SF_Theta    = (-1.6434e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.1530e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4158e-03);
+                // Smear_SF_Theta    = (-2.4939e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.8277e-04)*(TMath::RadToDeg()*Th_rec) + (-5.8521e-03);
+                Smear_SF_Theta       = (-1.6434e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.1530e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4158e-03);
             }
             
             // Calculate resolutions
@@ -2243,6 +2287,22 @@ def smearing_function_SF(smear_factor=0.75):
             double Phi_new_rec  = Phi_rec + (Phi_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
             Th_new_rec  = Th_rec;
             Phi_new_rec = Phi_rec;
+            
+            
+            
+            double Extra_Smear_SF_Theta = 0;
+            if(ivec == 1){ // Pi+ Pion
+                Extra_Smear_SF_Theta = (2.2747e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (3.0985e-04)*(TMath::RadToDeg()*Th_rec) + (-5.1206e-03);
+                P_new_rec      = P_new_rec   +   (P_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+                // Th_new_rec  = Th_new_rec  +  (Th_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+                // Phi_new_rec = Phi_new_rec + (Phi_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            }
+            if(ivec == 0){ // Electron
+                Extra_Smear_SF_Theta = (-2.1655e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (7.6626e-04)*(TMath::RadToDeg()*Th_rec) + (-3.8613e-03);
+                P_new_rec      = P_new_rec   +   (P_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+                // Th_new_rec  = Th_new_rec  +  (Th_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+                // Phi_new_rec = Phi_new_rec + (Phi_new_rec)*Extra_Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
+            }
             
 
             // Making the smeared TLorentzVector:

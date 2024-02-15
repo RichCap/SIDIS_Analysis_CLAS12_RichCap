@@ -142,6 +142,8 @@ elif(output_type   not in ["histo", "data", "tree"]):
 print("".join(["Output type will be: ", output_type]))
 
 
+from MyCommonAnalysisFunction_richcap import color, color_bg, root_color
+
 # Option to turn on and off Momentum Corrections ('yes' will turn the corrections on)
 Mom_Correction_Q = "yes"
 # Mom_Correction_Q = "no"
@@ -153,7 +155,9 @@ if(datatype in ['gdf']):
 #     Mom_Correction_Q = "no"
 
 if(Use_Pass_2):
-    print("\n\033[1mCan not run Momentum Corrections with Pass 2 Data (yet)...\n\033[0m")
+    print(f"\n{color.BOLD}{color.BLUE}Running the code with Pass 2 Data\n{color.END}")
+    
+    print(f"\n{color.BOLD}Cannot run Momentum Corrections with Pass 2 Data (yet)...\n{color.END}")
     Mom_Correction_Q = "no"
 
 
@@ -166,69 +170,7 @@ import traceback
 import os
 
 from ExtraAnalysisCodeValues import *
-    
-class color:
-    CYAN      = '\033[96m'
-    PURPLE    = '\033[95m'
-    BLUE      = '\033[94m'
-    YELLOW    = '\033[93m'
-    GREEN     = '\033[92m'
-    RED       = '\033[91m'
-    DARKCYAN  = '\033[36m'
-    BOLD      = '\033[1m'
-    LIGHT     = '\033[2m'
-    ITALIC    = '\033[3m'
-    UNDERLINE = '\033[4m'
-    BLINK     = '\033[5m'
-    DELTA     = '\u0394' # symbol
-    END       = '\033[0m'
-    ERROR     = '\033[91m\033[1m' # Combines RED and BOLD
-    Error     = '\033[91m\033[1m' # Same as ERROR
-    
-    
-class color_bg:
-    BLACK   = '\033[40m'
-    RED     = '\033[41m'
-    GREEN   = '\033[42m'
-    YELLOW  = '\033[43m'
-    BLUE    = '\033[44m'
-    MAGENTA = '\033[45m'
-    CYAN    = '\033[46m'
-    WHITE   = '\033[47m'
-    RESET   = '\033[49m'
-    END     = '\033[0m'
-    
-    
-class root_color:
-    # Colors
-    White   = 0
-    Black   = 1
-    Red     = 2
-    Green   = 3
-    Blue    = 4
-    Yellow  = 5
-    Pink    = 6
-    Cyan    = 7
-    DGreen  = 8 # Dark Green
-    Purple  = 9
-    DGrey   = 13
-    Grey    = 15
-    LGrey   = 17
-    Brown   = 28
-    Gold    = 41
-    Rust    = 46
-    
-    # Fonts
-    Bold    = '#font[22]'
-    Italic  = '#font[12]'
-    
-    # Symbols
-    Delta   = '#Delta'
-    Phi     = '#phi'
-    π       = '#pi'
-    Degrees = '#circ'
-    
-    Line    = '#splitline'
+
 
 
 if(str(file_location) == 'all'):
@@ -246,11 +188,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype in ["mdf", "pdf"]):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                 "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_",       "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",       "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",              "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                              "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_",                                    "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                    "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -272,20 +214,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype in ['mdf', 'pdf']):
         if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_*")
-            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"          if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_*"
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
+            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"          if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_"  if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-claspyth_", str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_"  if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
             # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_*")
-            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_*"
+            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
+            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-claspyth_",      str(file_num), "*"])
+            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",      str(file_num), "*"])
             
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
@@ -804,6 +746,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Removed all non-standard options for histograms/cuts that are not required by the unfolding code
     
     
+    Extra_Name = "New_Bin_Tests_V6_"
+    # Ran on 2/14/2024
+    # Running with the same binning scheme used in "New_Bin_Tests_V5_"
+    # Added new background histogram which (currently) removes all matched generated events with a (generated) Missing Mass < 1.5
+        # Also added cut on gdf file for MM > 1.5 (requirement --> is made by default to be included in the "no_cut" option)
+    # Added the 3D Unfolding Bin variable to the 1D histogram list for initial test run
+    # Running with the smearing function created with Extra_Name = "New_Smearing_V7_"
+    
+    
     if(run_Mom_Cor_Code == "yes"):
         Extra_Name = "New_Smearing_V1_"
         # Ran on 12/12/2023
@@ -842,6 +793,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # New Smearing Function Test (also needed to convert from radians to degrees for the equations)
         # Working on some other background/binning code with the other run option (i.e., not "mom")
             # Should not effect this version of the code
+            
+            
+        Extra_Name = "New_Smearing_V6_"
+        # Ran on 2/13/2024
+        # New Smearing Function Test
+            # Added an 'iterative' smearing function to the pion 
+            # This is a test of whether iterative smearing is possible
+            
+            
+        Extra_Name = "New_Smearing_V7_"
+        # Ran on 2/14/2024
+        # New Smearing Function Test
+            # Added an 'iterative' smearing function to the electron (on top of the iterative smearing function tested in 'New_Smearing_V6_') 
+            # Still trying to test if this is a viable method of smearing (last results were not conclusive)
         
         if(smear_factor != "0.75"):
             Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V2_"])
@@ -859,7 +824,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(Use_Pass_2):
         # Option added with "New_Bin_Tests_V5_" on 1/29/2024
         Extra_Name = "".join(["Pass_2_", str(Extra_Name)])
-        # Not run yet (as of 2/6/2024)
+        # Ran with "New_Smearing_V7_" on 2/14/2024
+            # Ran to test smearing code (smearing function returns unsmeared 4-vector since no smearing function has been run yet)
+            # Includes no momentum corrections
             
         print(f"\n\n\t{color.BOLD}{color.BLUE}Using Pass 2 Version of Data/MC Files{color.END}")
         
@@ -1175,6 +1142,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define('y',   'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
         rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
         # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
+        
+        if(datatype in ["gdf"]):
+            print(f"{color.BOLD}{color.GREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
+            rdf = rdf.Filter("MM > 1.5")
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen","""
@@ -1527,7 +1498,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             V4_smear.SetPhi( Phi_new_rec);
             return V4_smear;
         };"""]) 
-    smearing_function = smearing_function_SF(smear_factor) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
+    smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
         //===========================================================================//
         //=================//     Smearing Function (From FX)     //=================//
         //===========================================================================//
@@ -4684,8 +4655,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         output = 'error'    
 
+        if("MultiDim_z_pT_Bin_Y_bin_phi_t" in variable):
+            output = "New 3D Bin Def (z+P_{T}+#phi_{h})"
         if(variable in ['Hx', 'Hy']):
-            output = str(variable)       
+            output = str(variable)
         if(variable == 'el_E'):
             output = 'E_{el}'
         if(variable == 'pip_E'):
@@ -5415,19 +5388,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("Q2_Y_Bin",                                            str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Y_bin")))
         rdf = rdf.Define("All_MultiDim_Y_bin",                                  str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Y_bin")))
         rdf = rdf.Define("z_pT_Bin_Y_bin",                                      "All_MultiDim_Y_bin[0]")
-        # rdf = rdf.Define("Multi_Dim_z_pT_Bin_Y_bin_phi_t",                      "All_MultiDim_Y_bin[1]")
-        # rdf = rdf.Define("Multi_Dim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t",             "All_MultiDim_Y_bin[2]")
+        rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",                       "All_MultiDim_Y_bin[1]")
+        # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t",              "All_MultiDim_Y_bin[2]")
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("Q2_Y_Bin_gen",                                    str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Y_bin")))
             rdf = rdf.Define("All_MultiDim_Y_bin_gen",                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Y_bin")))
             rdf = rdf.Define("z_pT_Bin_Y_bin_gen",                              "All_MultiDim_Y_bin_gen[0]")
-            # rdf = rdf.Define("Multi_Dim_z_pT_Bin_Y_bin_phi_t_gen",              "All_MultiDim_Y_bin_gen[1]")
-            # rdf = rdf.Define("Multi_Dim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_gen",     "All_MultiDim_Y_bin_gen[2]")
+            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen",               "All_MultiDim_Y_bin_gen[1]")
+            # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_gen",      "All_MultiDim_Y_bin_gen[2]")
             rdf = rdf.Define("Q2_Y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Y_bin")))
             rdf = rdf.Define("All_MultiDim_Y_bin_smeared",                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Y_bin")))
             rdf = rdf.Define("z_pT_Bin_Y_bin_smeared",                          "All_MultiDim_Y_bin_smeared[0]")
-            # rdf = rdf.Define("Multi_Dim_z_pT_Bin_Y_bin_phi_t_smeared",          "All_MultiDim_Y_bin_smeared[1]")
-            # rdf = rdf.Define("Multi_Dim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared", "All_MultiDim_Y_bin_smeared[2]")
+            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "All_MultiDim_Y_bin_smeared[1]")
+            # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
             
             
     
@@ -5634,6 +5607,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # There are 17 Main Bins + 22 Migration bins (Total = 39)
     
     
+    # New as of 2/14/2024
+    z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 1561.5, 1562]
+    # There are a maximum of 65 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 65*24=1560 (+2 for standard overflow)
+        # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
+    
+    
     Hx_Binning = ['Hx', -400, 400, 800]
     Hy_Binning = ['Hy', -400, 400, 800]
 
@@ -5656,6 +5635,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     
     List_of_Quantities_1D = [phi_t_Binning]
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -5749,11 +5731,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if("smear" in ii):
                 smearing_options_list.remove(ii)
                 
-    if(Use_Pass_2):
-        print(f"\n{color.BOLD}Cannot use momentum smearing for Pass 2 Data (yet)\n{color.END}")
-        for ii in smearing_options_list:
-            if("smear" in ii):
-                smearing_options_list.remove(ii)
+    if(Use_Pass_2 and ("smear" in smearing_options_list)):
+        print(f"\n{color.BOLD}Using Pass 2 momentum smearing function\n{color.END}")
+        # for ii in smearing_options_list:
+        #     if("smear" in ii):
+        #         smearing_options_list.remove(ii)
                 
     if(("ivec" in smearing_function) and ("smear" in smearing_options_list)):
         print("".join([color.BLUE, color.BOLD, "\nRunning ", f"New Smearing Funtion (SF = {smear_factor})" if("Sigma Smearing Factor" in smearing_function) else "Modified Smearing Funtion" if("Simple Smearing Factor" not in smearing_function) else "".join(["Simple Smearing Factor (", str(smear_factor), ")"]), color.END]))
