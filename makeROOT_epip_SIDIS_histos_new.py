@@ -755,6 +755,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Running with the smearing function created with Extra_Name = "New_Smearing_V7_"
     
     
+    Extra_Name = "CrossCheck_V1_"
+    # Ran on 2/18/2024
+    # Ran with original binning scheme ('y_bin')
+    # Preforming cross-check with Timothy's plots (checking for Pass 1 and Pass 2)
+    # Using same updates as mentioned in Extra_Name = "New_Bin_Tests_V6_"
+    
+    Extra_Name = "CrossCheck_V2_"
+    # Ran on 2/19/2024
+    # Made a mistake on the last version that prevented me from running any other Q2-y bin aside from bin 0 and 3
+        # Fixed it to rerun with this version
+    # Did not change anything else
+    
+    
     if(run_Mom_Cor_Code == "yes"):
         Extra_Name = "New_Smearing_V1_"
         # Ran on 12/12/2023
@@ -5332,7 +5345,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     if("4" in binning_option_list or "y_bin"  in binning_option_list or "y_Bin" in binning_option_list):
         List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-        List_of_Q2_xB_Bins_to_include = [-1, 3]
+#         List_of_Q2_xB_Bins_to_include = [-1, 3]
         
     if(run_Mom_Cor_Code == "yes"):
         # # binning_option_list = ["2"]
@@ -5612,6 +5625,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # There are a maximum of 65 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 65*24=1560 (+2 for standard overflow)
         # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
     
+    # New as of 2/21/2024
+    Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 12268 + 1.5, 12268 + 2]
+    # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 12268 +2 for standard overflow on the plots)
+        # This value is only an option if "Y_bin" in binning_option_list
+    
     
     Hx_Binning = ['Hx', -400, 400, 800]
     Hy_Binning = ['Hy', -400, 400, 800]
@@ -5666,6 +5684,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [phi_t_Binning, pT_Binning]]
+    
     
     # # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
     # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
@@ -5683,7 +5703,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
-    # List_of_Quantities_2D = []
+    List_of_Quantities_2D = []
     
     # # 3D histograms are turned off with this option
     List_of_Quantities_3D = []
@@ -6371,7 +6391,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##################################################=========================================##########################################################################################################################################
 ##======##======##======##======##======##======##     Response Matrix (Both Types)        ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 ##################################################=========================================##########################################################################################################################################
-                            if(Histo_Group in ["Response_Matrix", "Response_Matrix_Normal", "Background_Response_Matrix"]):
+#                             if(Histo_Group in ["Response_Matrix", "Response_Matrix_Normal", "Background_Response_Matrix"]):
+                            if(Histo_Group in ["Background_Response_Matrix"]):
+
                                 if((Histo_Group in ["Background_Response_Matrix"]) and (Histo_Data not in ['mdf'])):
                                     # Do not make Background Reponse Matrices for data sets other than the matched Monte Carlo (mdf)
                                     continue
@@ -7069,7 +7091,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 
-                                
+                                        print(f"Histo_Group = {Histo_Group}\nHistograms_All = {Histograms_All}")
                                         for Histo_To_Save in [Histo_Name_No_Cut, Histo_Name_MM_Cut, Histo_Name__No_Cut, Histo_Name_Cutting, Histo_Name__MM_Cut, Histo_Name_1D_MM_Cut, Histo_Name_1D_No_Cut]:
                                             if(Histo_To_Save not in ["N/A"]):
                                                 if(Histo_To_Save in Histograms_All):
