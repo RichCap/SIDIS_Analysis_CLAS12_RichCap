@@ -1135,3 +1135,269 @@ def Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find, z_pT_Bin_Find="All", List_Of_Histos_
 #####################################################################################################################################################################
 ##==========##==========##     Function for Finding Kinematic Binning Info     ##==========##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################################
+
+
+
+
+
+
+
+
+######################################################################################################################################################
+##==========##==========##     Canvas Functions     ##==========##==========##==========##==========##==========##==========##==========##==========##
+######################################################################################################################################################
+def Canvas_Create(Name, Num_Columns=1, Num_Rows=1, Size_X=600, Size_Y=800, cd_Space=0):
+    canvas_test = ROOT.TCanvas(str(Name), str(Name), Size_X, Size_Y)
+    canvas_test.Divide(Num_Columns, Num_Rows, cd_Space, cd_Space)
+    canvas_test.SetGrid()
+    ROOT.gStyle.SetAxisColor(16, 'xy')
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptFit(1)
+    return canvas_test
+
+
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def Draw_Canvas(canvas, cd_num, left_add=0.05, right_add=0.05, up_add=0.1, down_add=0.1):
+    canvas.cd(cd_num)
+    try:
+        canvas.cd(cd_num).SetLeftMargin(left_add)
+        canvas.cd(cd_num).SetRightMargin(right_add)
+        canvas.cd(cd_num).SetTopMargin(up_add)
+        canvas.cd(cd_num).SetBottomMargin(down_add)
+    # except:
+    #     print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+    except Exception as e:
+        print("".join([color.RED, color.BOLD, "Draw_Canvas(...) ERROR: ", color.LIGHT, str(e), color.END]))
+        print("".join(["canvas: ", str(canvas.GetName()), "\ncd_num: ", str(cd_num)]))
+
+
+def palette_move(canvas, histo, x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1):
+    canvas.Modified()
+    canvas.Update()
+    palette_test = 0
+    while(palette_test < 4 and palette_test != -1):
+        try:
+            palette_histo = histo.GetListOfFunctions().FindObject("palette")
+
+            palette_histo.SetX1NDC(x_left)
+            palette_histo.SetX2NDC(x_right)
+            palette_histo.SetY1NDC(y_down)
+            palette_histo.SetY2NDC(y_up)
+
+            canvas.Modified()
+            canvas.Update()
+            palette_test = -1
+        except:
+            palette_test += 1
+    if(palette_test > 0):
+            print("\nFailed to move palette...")
+            
+            
+def configure_stat_box(hist, show_entries=True, canvas=False):
+    ## Configure the stat box for a given histogram.
+    ## Parameters:
+    ##     - hist: The histogram to configure the stat box for.
+    ##     - show_entries: A boolean flag to show or hide the number of entries.
+    ## Assuming the default stat box is desired to be shown
+    if(show_entries):
+        hist.SetStats(1)  # Show the stat box
+        # This sets what is shown in the stat box; "i" for entries
+        ROOT.gStyle.SetOptStat("i")
+        # If there's a need to adjust the position for this specific histogram, it can be done via the histogram's TPaveStats
+        stats = hist.GetListOfFunctions().FindObject("stats")
+        if(stats):
+            stats.SetX1NDC(0.7)  # New X start position
+            stats.SetX2NDC(0.9)  # New X end position
+            stats.SetY1NDC(0.7)  # New Y start position
+            stats.SetY2NDC(0.9)  # New Y end position
+        else:
+            print(f"{color.Error}Error in configure_stat_box...{color.END}\n\tstats = {stats}")
+    # else:
+    #     hist.SetStats(0)  # Hide the stat box
+    if(canvas):
+        canvas.Modified()
+        canvas.Update()
+            
+            
+def get_chisquare(hist):
+    func_iter = hist.GetListOfFunctions().MakeIterator()
+    fit_function = func_iter.Next()
+    while(fit_function and not isinstance(fit_function, ROOT.TF1)):
+        fit_function = func_iter.Next()
+    if(fit_function):
+        return fit_function.GetChisquare()
+    else:
+        return None
+
+
+def get_fit_parameters_B_and_C(hist):
+    func_iter = hist.GetListOfFunctions().MakeIterator()
+    fit_function = func_iter.Next()
+    while(fit_function and (not isinstance(fit_function, ROOT.TF1))):
+        fit_function = func_iter.Next()
+    if(fit_function):
+        paramB = fit_function.GetParameter(1)
+        paramC = fit_function.GetParameter(2)
+        paramB_error = fit_function.GetParError(1)
+        paramC_error = fit_function.GetParError(2)
+        return paramB, paramB_error, paramC, paramC_error
+    else:
+        return None, None, None, None
+
+
+    
+            
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def statbox_move(Histogram, Canvas, Default_Stat_Obj="", Y1_add=0.05, Y2_add=0.25, X1_add=0.05, X2_add=0.35, Print_Method="norm"):
+    finding, search = 0, 0
+    while(finding == 0 and search < 5):
+        if(Default_Stat_Obj == ""):
+            Default_Stat_Obj = Histogram.GetListOfFunctions().FindObject("stats")
+
+        if("TPaveStats" not in str(type(Default_Stat_Obj))):
+            try:
+                Default_Stat_Obj = Histogram.GetListOfFunctions().FindObject("stats")# Default_Stat_Obj.FindObject("stats")
+            except Exception as e:
+                print("".join([color.RED, "statbox_move(...) ERROR:", str(e), "\nTRACEBACK:\n", color.END, str(traceback.format_exc())]))
+        try:
+            if(Print_Method == "norm"):
+                Default_Stat_Obj.SetY1NDC(Y1_add)
+                Default_Stat_Obj.SetY2NDC(Y2_add)
+                Default_Stat_Obj.SetX1NDC(X1_add)
+                Default_Stat_Obj.SetX2NDC(X2_add)
+            if(Print_Method in ["off", "Off"]):
+                Default_Stat_Obj.SetY1NDC(0)
+                Default_Stat_Obj.SetY2NDC(0)
+                Default_Stat_Obj.SetX1NDC(0)
+                Default_Stat_Obj.SetX2NDC(0)
+            Default_Stat_Obj.Draw("same")
+            Canvas.Modified()
+            Canvas.Update()
+            finding += 1
+        except:
+            Canvas.Modified()
+            Canvas.Update()
+            finding = 0
+            search += 1
+    # if(search > 4):
+    #     print("Failed search")
+
+        
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def print_rounded_str(number, rounding=0):
+    try:
+        if(rounding != 0 and abs(number) >= 0.001):
+            output = round(number, rounding)
+            output = "".join(["{:.", str(rounding), "}"]).format(number)
+            # print("round")
+        elif(rounding != 0):
+            output = "".join(["{:.", str(rounding-1), "e}"]).format(number)
+            # print("science")
+        else:
+            # print("other")
+            output = number
+        return output
+    except Exception as e:
+        print("".join([color.BOLD, color.RED, "print_rounded_str(...) ERROR: number = ", str(output), " is not accepted", " --> failed to round input..." if(rounding != 0) else "", "\nERROR Output Is: \n", str(e), color.END]))
+        print("".join([color.RED, "TRACEBACK:\n", color.END, str(traceback.format_exc())]))
+        return number
+    
+    
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def Error_Propagation(Type_of_Prop, Error1, Error2=0, Number1=0, Number2=0, Result=False):
+    Error = False
+    try:
+        if("ave" in Type_of_Prop or "Ave" in Type_of_Prop or "average" in Type_of_Prop or "Average" in Type_of_Prop):
+            # Average of given numbers
+            if(type(Error1) is list):
+                for x in Error1:
+                    Error += (x - np.average(Error1))**2
+                Error /= (len(Error1) - 1)
+                Error *= 1/2
+            else:
+                ave = (Error1 + Error2)/2
+                Error = ((Error1 - ave)**2 + (Error2 - ave)**2)**0.5
+                
+        if("add" in Type_of_Prop or "Add" in Type_of_Prop or "subtract" in Type_of_Prop or "Subtract" in Type_of_Prop or "sub" in Type_of_Prop or "Sub" in Type_of_Prop):
+            # Addition or Subtraction
+            Error = ((Error1)**2 + (Error2)**2)**0.5
+            
+        if("mult" in Type_of_Prop or "Mult" in Type_of_Prop or "multiply" in Type_of_Prop or "Multiply" in Type_of_Prop):
+            # Multiplication
+            if(not Result):
+                Error = (Number1*Number2)*((Error1/Number1)**2 + (Error2/Number2)**2)**0.5
+            else:
+                Error = Result*((Error1/Number1)**2 + (Error2/Number2)**2)**0.5
+            
+        if("div" in Type_of_Prop or "Div" in Type_of_Prop or "divide" in Type_of_Prop or "Divide" in Type_of_Prop):
+            # Division
+            if(not Result):
+                Error = (Number1/Number2)*((Error1/Number1)**2 + (Error2/Number2)**2)**0.5
+            else:
+                Error = Result*((Error1/Number1)**2 + (Error2/Number2)**2)**0.5
+        
+        if(not Error):
+            print("ERROR: error not calculated... (See option selection for 'Type_of_Prop')")
+        else:
+            return Error
+    except Exception as e:
+        print("".join([color.RED, "Error taking Error Propagation with inputs:\n", color.END, "Type_of_Prop = ", str(Type_of_Prop), ", Error1 = ", str(Error1), ", Error2 = ", str(Error2), ", Number1 = ", str(Number1), ", Number2 = ", str(Number2), "".join([", Result = ", str(Result)]) if(not Result) else ""]))
+        print("Error is: \n\t" + str(e))
+        print("".join([color.RED, "TRACEBACK:\n", color.END, str(traceback.format_exc())]))
+        
+        
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def Get_Max_Y_Histo_1D(Histo_List, Norm_Q="Default"):
+    try:
+        if(type(Histo_List) is not list):
+            Histo_List = [Histo_List]
+        Max_Y = 0
+        for Histo in Histo_List:
+            if(type(Histo) is not bool and type(Histo) is not str):
+                # print("".join([color.BOLD, color.BLUE, "\n'", str(Histo.GetName()), "' Maximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), " Total = ", str(Histo.Integral()), color.END]))
+                if(Histo.Integral() != 0 and Histo.GetBinContent(Histo.GetMaximumBin()) != 0):
+                    Test_Y = (Histo.GetBinContent(Histo.GetMaximumBin())) if((Norm_Q not in ["Normalized", "Norm"]) or (Norm_Q == "Default")) else ((Histo.GetBinContent(Histo.GetMaximumBin()))/(Histo.Integral()))
+                else:
+                    Test_Y = 0
+                    print("".join([color.BOLD, color.RED, "\n EMPTY HISTOGRAM: '", str(Histo.GetName()), "'\n\tMaximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), "\n\tTotal = ", str(Histo.Integral()), color.END]))
+                    print(Histo_List)
+                    print(Histo)
+                    for Histo2 in Histo_List:
+                        print("".join(["".join([color.BOLD, color.BLUE]) if(Histo2 == Histo) else "\n", str(Histo2), color.END if(Histo2 == Histo) else "\n"]))
+                if(Test_Y > Max_Y):
+                    Max_Y = Test_Y   
+        return Max_Y
+    except:
+        print("".join([color.BOLD, color.RED, "\nERROR IN GETTING THE MAX Y OF THE 1D HISTOGRAMS...", color.END]))
+        print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, str(traceback.format_exc())]))
+        print(Histo_List)
+        return "ERROR"
+    
+    
+######################################################################################################################################################
+##==========##==========##     Canvas Functions     ##==========##==========##==========##==========##==========##==========##==========##==========##
+######################################################################################################################################################
+
+
+
+
