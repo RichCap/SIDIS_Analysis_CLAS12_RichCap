@@ -72,7 +72,7 @@ Use_Weight = False
 SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
 Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
 Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight", "_Q4"]
-Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_2.0", "_FX"]
+Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",    "_Pass2", "_P1",      "_Pass1"]
 
 for sidis in SIDIS_Unfold_List:
@@ -779,6 +779,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Ran on 2/22/2024
     # Running with new Q2-y Bins (bin option = "Y_bins")
         # First complete run with the refined binning
+        
+    Extra_Name = "New_Q2_Y_Bins_V2_"
+    # Ran on 2/25/2024
+    # Running with new Q2-y Bins (bin option = "Y_bins")
+    # Trying to improve memory consumption
+        # Running without smearing
+        # Running without GEN_MM_CUT plots
+        # Running without 'MultiDim_z_pT_Bin_Y_bin_phi_t' (single def of 3D unfolding bins)
+        # Removed z-pT overflow bins
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -834,9 +843,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Added an 'iterative' smearing function to the electron (on top of the iterative smearing function tested in 'New_Smearing_V6_') 
             # Still trying to test if this is a viable method of smearing (last results were not conclusive)
         
+        
+        Extra_Name = "New_Smearing_V8_"
+        # Ran on 2/25/2024
+        # New Smearing Function Test
+            # Added another iterative smearing function to the pion (on top of the iterative smearing function tested in 'New_Smearing_V7_') 
+            # Modified prior functions to ensure that the smear_factor is always applied as 0.75 since that is what they were developed with (newer iterations can use different values of smear_factor without issue)
+            # Final test before it might be better to use ∆P = P_gen - P_rec instead of P_calc - P_rec for the MC ∆P (still using the calculated version)
+            
         if(smear_factor != "0.75"):
-            Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V2_"])
-            # Same as "New_Smearing_V1_" but with any value of smear_factor not being equal to the default value of 0.75
+            Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V8_"])
+            # Same as "New_Smearing_V8_" but with any value of smear_factor not being equal to the default value of 0.75
         
     if(Use_Weight):
         if(not Q4_Weight):
@@ -4064,10 +4081,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     int MultiDim5D_Bin_val = 0;
     if(""", Q2_xB_Bin_event_name, """ != 0){
         z_pT_Bin_event_val = Find_z_pT_Bin(""",       str(Q2_xB_Bin_event_name), """, z_event_val, pT_event_val);
-        if(Phi_h_Bin_Values[""",                      str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][0] == 1){Phih_Bin_event_val = 1;}
-        else{Phih_Bin_event_val = Find_phi_h_Bin(""", str(Q2_xB_Bin_event_name), """, z_pT_Bin_event_val, """, "smeared_vals[11]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "phi_t", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """);}
-        MultiDim3D_Bin_val = Phi_h_Bin_Values[""",    str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][1] + Phih_Bin_event_val;
-        MultiDim5D_Bin_val = Phi_h_Bin_Values[""",    str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][2] + Phih_Bin_event_val;
+        if(z_pT_Bin_event_val == 0){
+            MultiDim3D_Bin_val = 0;
+            MultiDim5D_Bin_val = 0;
+        }
+        else{
+            if(Phi_h_Bin_Values[""",                      str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][0] == 1){Phih_Bin_event_val = 1;}
+            else{Phih_Bin_event_val = Find_phi_h_Bin(""", str(Q2_xB_Bin_event_name), """, z_pT_Bin_event_val, """, "smeared_vals[11]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "phi_t", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """);}
+            MultiDim3D_Bin_val = Phi_h_Bin_Values[""",    str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][1] + Phih_Bin_event_val;
+            MultiDim5D_Bin_val = Phi_h_Bin_Values[""",    str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][2] + Phih_Bin_event_val;
+        }
     }
     else{
         z_pT_Bin_event_val = 0;
@@ -5666,9 +5689,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     
     List_of_Quantities_1D = [phi_t_Binning]
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    # if("Y_bin" in binning_option_list):
+    #     print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+    #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -5752,7 +5775,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     smearing_options_list = ["", "smear"]
     # smearing_options_list = ["smear"]
-    # smearing_options_list = [""]
+    smearing_options_list = [""]
     
     if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
         # When running the momentum correction/smearing code, the smearing options list should include "smear"
@@ -6425,6 +6448,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 42.5,  43]
                                 if(Binning in ["5", "Y_bin", "Y_Bin"]):
                                     Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 65.5,  66]
+                                    Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 37.5,  38]
+                                    
                                     
                                 phi_t_Binning_New = copy.deepcopy(phi_t_Binning)
                                 if("smear" in Histo_Smear):
@@ -6980,7 +7005,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                         
-                                        for Histo_To_Save in [Histo_Name_No_Cut, Histo_Name_MM_Cut, Histo_Name__No_Cut, Histo_Name_Cutting, Histo_Name__MM_Cut, Histo_Name_1D_MM_Cut, Histo_Name_1D_No_Cut]:
+                                        # for Histo_To_Save in [Histo_Name_No_Cut, Histo_Name_MM_Cut, Histo_Name__No_Cut, Histo_Name_Cutting, Histo_Name__MM_Cut, Histo_Name_1D_MM_Cut, Histo_Name_1D_No_Cut]:
+                                        for Histo_To_Save in [Histo_Name_No_Cut, Histo_Name__No_Cut, Histo_Name_1D_No_Cut]:
                                             if(Histo_To_Save not in ["N/A"]):
                                                 if(Histo_To_Save in Histograms_All):
                                                     if(str(file_location) not in ['time']):
