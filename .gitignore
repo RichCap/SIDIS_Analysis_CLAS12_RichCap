@@ -1,4 +1,9 @@
 *.hipo.root
+__pycache__/
+New_RooUnfold/RooUnfold_Old/
+Folder_for_running_code/
+untitled*
+Test_RooUnfoldExample.py
 *.ipynb_checkpoints/
 *0.root
 *1.root

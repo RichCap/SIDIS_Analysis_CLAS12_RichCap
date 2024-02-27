@@ -194,7 +194,7 @@ except ImportError:
     # try:
     #     ROOT.gSystem.Load("libRooUnfold.so")
     # except:
-    #     print("".join([color.RED, color.BOLD, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
         
         
 print("\n\n")
@@ -1050,7 +1050,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Bin_Unfolded = ExREAL_1D.Clone()
             Bin_Unfolded.Divide(Bin_Acceptance)
             Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Corrected")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
-            Bin_Unfolded.Sumw2()
+            # Bin_Unfolded.Sumw2()
             
             cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
             cut_criteria = 0.02
@@ -1125,7 +1125,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Response_2D_Input.SetBinError(rec_bin,   gen_bin, Res_Error)
             ##==============##=====##     Flipped Response_2D      ##=====##==============##
             ##==============##============================================##==============##
-            Response_2D_Input.Sumw2()
+            # Response_2D_Input.Sumw2()
         else:
             Response_2D_Input_Title = "".join([str(Response_2D.GetTitle()), ";", str(Response_2D.GetXaxis().GetTitle()), ";", str(Response_2D.GetYaxis().GetTitle())])
             Response_2D_Input       = Response_2D
@@ -1838,6 +1838,7 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
         
         if("Y_bin" in str(Binning_Method)):
             z_pT_Binning       = [-1.5,   50.5,    52,         1]
+            z_pT_Binning       = [-0.5,   37.5,    38,         1]
         
         # Q2_y_z_pT_4D_Binning   = [-0.5,   566.5,   567,        1]
         # Q2_y_z_pT_4D_Binning   = [-0.5,   512.5,   513,        1]
@@ -4291,7 +4292,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
 ##==========##==========## Function for Creating the Images for All z-pT Bins Together  ##==========##==========##==========##==========##==========##==========##
 ##################################################################################################################################################################
 
-def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z", Cut_Option="Cut"):
+def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z", Cut_Option="Cut", Stats_Text_Output=False):
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
     All_z_pT_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("1D", "".join(["".join(["CANVAS_", str(Plot_Orientation)]) if(Multi_Dim_Option in ["Off"]) else "".join(["CANVAS_", str(Plot_Orientation), "_", str(Multi_Dim_Option)]), "_UnCut" if(Cut_Option not in ["Cut"]) else ""])), Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
@@ -4839,6 +4840,23 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             # Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].Draw("H PL E0 same")
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].Draw("H P E0 same")
             
+            # if((Stats_Text_Output) and (Method not in ["Acceptance"]) and (Plot_Orientation not in ["pT_z"])):
+            #     Method_Name      = "Bin-by-Bin Correction" if(Method in ["Bin", "bbb"]) else "Experimental Data" if(Method in ["rdf"]) else "Bayesian Unfolding" if(Method in ["bayes", "bay", "Bayesian"]) else "SVD Unfolding" if(Method in ["SVD"]) else "Monte Carlo" if(Method in ["mdf", "gdf", "tdf", "gen"]) else "Error"
+            #     if("Monte Carlo" in Method_Name):
+            #         Method_Name  = "".join([Method_Name, " (", "Generated" if(Method in ["gdf"]) else "Reconstructed" if(Method in ["mdf"]) else "True" if(Method in ["tdf"]) else "Matched Generated" if(Method in ["gen"]) else "Error", ")"])
+            #     Smear_Name       = "Smearing" if((Method not in ["rdf", "gdf", "tdf", "gen"]) and ("Smear" in Default_Histo_Name)) else "Not smeared"
+            #     Variable_Name    = "phi_t" if(Multi_Dim_Option in ["Off"]) else "Multi_Dim_Q2_y_Bin_phi_t"
+            #     histo_name    = f"(Stats)_({Method_Name})_({Smear_Name})_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_All)_({Variable_Name})"
+            #     total_stats   = Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetEntries()
+            #     bin_info_list = [["Bin #", "Center"]]
+            #     f"{color.BOLD}{color.UNDERLINE}Bin #\t\tContent\t\tError{color.END}\n"
+            #     for bin in range(1, hist.GetNbinsX() + 1):  # Loop over each bin
+            #         content = hist.GetBinContent(bin)
+            #         error = hist.GetBinError(bin)
+            #         info_str += f"{bin}\t\t{content}\t\t{error}\n"
+            #     Stats_Text_Output[]
+                
+            
             configure_stat_box(hist=Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))], show_entries=True, canvas=All_z_pT_Canvas_cd_1_Lower.cd(1))
 
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
@@ -4854,7 +4872,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
                         print("\nTHE SELECTED HISTOGRAM WAS NOT FITTED\n")
 
         except Exception as e:
-            print("".join([color.BOLD, color.RED, "ERROR IN METHOD = '", str(Method), "':\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            print("".join([color.Error, "ERROR IN METHOD = '", str(Method), "':\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
     ####  Lower Left - i.e., Integrated z-pT Bin  ######################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -4870,9 +4888,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
         # # i.e.,      = [Total_Number_of_Bins, Migration_Bin_1, Migration_Bin_2][1] - 1 where (Migration_Bin_1 - 1) is the last non-migration bin (without removing from the main grid)
     for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
         
-        if("Y_bin" not in Binning_Method):
-            if(((Q2_Y_Bin in [1]) and (z_pT_Bin in [28, 34, 35])) or ((Q2_Y_Bin in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or (Q2_Y_Bin in [3] and z_pT_Bin in [28, 35]) or (Q2_Y_Bin in [4] and z_pT_Bin in [6, 36]) or (Q2_Y_Bin in [5] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [6] and z_pT_Bin in [30]) or (Q2_Y_Bin in [7] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [9] and z_pT_Bin in [36]) or (Q2_Y_Bin in [10] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [11] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [13, 14] and z_pT_Bin in [25]) or (Q2_Y_Bin in [15, 16, 17] and z_pT_Bin in [20])):
-                continue
+        # if("Y_bin" not in Binning_Method):
+        #     if(((Q2_Y_Bin in [1]) and (z_pT_Bin in [28, 34, 35])) or ((Q2_Y_Bin in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or (Q2_Y_Bin in [3] and z_pT_Bin in [28, 35]) or (Q2_Y_Bin in [4] and z_pT_Bin in [6, 36]) or (Q2_Y_Bin in [5] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [6] and z_pT_Bin in [30]) or (Q2_Y_Bin in [7] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [9] and z_pT_Bin in [36]) or (Q2_Y_Bin in [10] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [11] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [13, 14] and z_pT_Bin in [25]) or (Q2_Y_Bin in [15, 16, 17] and z_pT_Bin in [20])):
+        #         continue
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+            continue
         
         Bin_Title_z_pT_Bin              = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(str(z_pT_Bin) not in ["0"]) else "All"]), "}}}"])
         Default_Histo_Name_z_pT_Bin     = str(Default_Histo_Name.replace("z_pT_Bin_All",     "".join(["z_pT_Bin_", str(z_pT_Bin)])))
@@ -4885,10 +4905,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             Default_Histo_Name_z_pT_Bin = str(Default_Histo_Name_z_pT_Bin.replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear"))
         
         
-        if("Y_bin" in Binning_Method):
-            cd_number_of_z_pT_all_together = FindCanvas_cd_Kinematic_Bins(Bin_Name="", Q2_y_Bin_Input=Q2_Y_Bin, z_pT_Bin_Input=z_pT_Bin)
-        else:
-            cd_number_of_z_pT_all_together = z_pT_Bin
+        cd_number_of_z_pT_all_together = z_pT_Bin
+        # if("Y_bin" in Binning_Method):
+        #     cd_number_of_z_pT_all_together = FindCanvas_cd_Kinematic_Bins(Bin_Name="", Q2_y_Bin_Input=Q2_Y_Bin, z_pT_Bin_Input=z_pT_Bin)
+        # else:
+        #     cd_number_of_z_pT_all_together = z_pT_Bin
         
             
         if(Plot_Orientation in ["z_pT"]):
@@ -5331,6 +5352,7 @@ Common_Name = "Gen_Cuts_V8_All"
 # Common_Name = "New_Bin_Tests_V5_All"
 
 # Common_Name = "CrossCheck_V2_All"
+Common_Name = "Pass_2_CrossCheck_V2_All"
 
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
@@ -5351,14 +5373,15 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
     MC_REC_File_Name = "Analysis_Note_Update_V6_All"
     MC_REC_File_Name = "Gen_Cuts_V2_Fixed_All"
     MC_REC_File_Name = "CrossCheck_V3_All"
+    MC_REC_File_Name = "Pass_2_CrossCheck_V3_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -5951,15 +5974,17 @@ for ii in mdf.GetListOfKeys():
             if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                 if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
                     continue
-            elif("Y_bin" not in Binning_Method):
-                # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
-                #     # print("Testing z_pT_Bin_Unfold...")
-                #     continue
-                #
-                # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
-                #     continue
-                if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [28, 34, 35])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [28, 35, 41, 42])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [28, 35]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [13, 14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
-                    continue
+            elif(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method)):
+                continue
+            # elif("Y_bin" not in Binning_Method):
+            #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
+            #     #     # print("Testing z_pT_Bin_Unfold...")
+            #     #     continue
+            #     #
+            #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+            #     #     continue
+            #     if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [28, 34, 35])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [28, 35, 41, 42])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [28, 35]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [13, 14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+            #         continue
                 
             # # For Selecting specific z-pT Bins
             # if(z_pT_Bin_Unfold not in [0, 10]):
@@ -6389,31 +6414,6 @@ print("".join(["Total: ",      str(count)]))
 
 
 
-
-
-def skip_condition_y_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_y_bin"):
-    if("Y_bin" not in BINNING_METHOD):
-        skip_condition_y_bins_return = (Q2_Y_BIN in [1]) and (Z_PT_BIN in [28, 34, 35])
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [2])          and (Z_PT_BIN in [28, 35, 41, 42])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [3])          and (Z_PT_BIN in [28, 35])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [4])          and (Z_PT_BIN in [6,  36])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [5])          and (Z_PT_BIN in [30, 36])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [6])          and (Z_PT_BIN in [30])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [7])          and (Z_PT_BIN in [24, 30])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [9])          and (Z_PT_BIN in [36])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [10])         and (Z_PT_BIN in [30, 36])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [11])         and (Z_PT_BIN in [24, 30])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [13, 14])     and (Z_PT_BIN in [25])))
-        skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [15, 16, 17]) and (Z_PT_BIN in [20])))
-        return skip_condition_y_bins_return
-    else:
-        return False
-
-
-
-
-
-
 BIN_SEARCH = []
 for BIN in Q2_xB_Bin_List:
     BIN_SEARCH.append("".join(["Q2_y_Bin_", str(BIN) if(str(BIN) not in ['0', 0]) else "All", ")"]))
@@ -6563,6 +6563,8 @@ print("\n\nCounting Total Number of collected histograms...")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
     final_count += 1
 #     print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+#     if("phi_h" in List_of_All_Histos_For_Unfolding_ii and isinstance(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], ROOT.TH1D)):
+#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Chi_Squared" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Normal_2D" in str(List_of_All_Histos_For_Unfolding_ii)):
@@ -6665,9 +6667,11 @@ for variable in Variable_List:
                                 
                 # continue # This is to skip everything that isn't the z_pT_Images_Together() images
                 for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
-                    if("Y_bin" not in Binning_Method):
-                        if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
-                            continue
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                        continue
+                    # if("Y_bin" not in Binning_Method):
+                    #     if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
+                    #         continue
                     # if((Multi_Dim not in ["Off"])  and ((BIN_NUM in ["All"]) or (z_pT_Bin in [0]))):
                     #     continue
                     # if((Multi_Dim in ["Only"]) and ((BIN_NUM     in ["All"]) or (z_pT_Bin in [0]))):
@@ -6734,7 +6738,7 @@ for variable in Variable_List:
                                 Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
 
                             for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                                if(skip_condition_y_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                                if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
                                     continue
                                 PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
 
@@ -6982,12 +6986,12 @@ Output_txt_Name = str(Output_txt_Name.replace(" ", "_")).replace("__", "_")
 
 if(Fit_Test):
     Output_txt_Par_Name = f"Parameters_{Output_txt_Name}"
-    Text_Par_Outputs    = "Note to Reader: Print the text in this file as a string in Python for the best formatting..."
+    Text_Par_Outputs    = "Note to Reader: Print the text in this file as a string in Python for the best formatting...\n"
     for BIN in Q2_xB_Bin_List:
         BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
         z_pT_Bin_Range = 42       if(str(BIN_NUM) in ["2"]) else  36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
         for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-            if(skip_condition_y_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
                 continue
             for smear in Smearing_final_list:
                 if(smear not in ["''"]):
@@ -7058,9 +7062,91 @@ if(Fit_Test):
         print("".join(["\n", "Saved: " if(Saving_Q) else "Would be Saving: ", color.BOLD, color.BLUE, str(Output_txt_Par_Name), color.END, "\n"]))
     else:
         print(color.Error, "Still failed to get a new name for the .txt file...", color.END)
+        
+        
+        
+def Extract_phi_h_Histograms_Info(hist_dict=List_of_All_Histos_For_Unfolding, save_to_file=Saving_Q, filename=f"Statistics_{Output_txt_Name}"):
+    # Extract information from a dictionary of ROOT objects, focusing on the TH1D phi_h histograms
+    # Parameters:
+    #     - hist_dict: dictionary with string keys and ROOT TH1D histogram objects as values.
+    #     - save_to_file: boolean flag to save the extracted information to a text file.
+    #     - filename: name of the file to save the extracted information.
+    info_str = ""  # Initialize the string to store information.
+    for hist_name, hist in hist_dict.items():
+        # Check if the object name contains 'phi_t' and is indeed a TH1D histogram
+        if(("phi_t" in hist_name) and (isinstance(hist, ROOT.TH1D)) and (not (("(1D)" in hist_name) and ("Multi" in hist_name)))):
+            if(any(Method   in hist_name for Method in ["(Bin)", "(bbb)"])):
+                Method_Name = "Bin-by-Bin Correction"
+            elif(any(Method in hist_name for Method in ["(rdf)"])):
+                Method_Name = "Experimental Data"
+            elif(any(Method in hist_name for Method in ["(bayes)", "(bay)", "(Bayesian)"])):
+                Method_Name = "Bayesian Unfolding"
+            elif(any(Method in hist_name for Method in ["(SVD)"])):
+                Method_Name = "SVD Unfolding"
+            elif(any(Method in hist_name for Method in ["(mdf)", "(gdf)", "(tdf)", "(gen)"])):
+                Method_Name  = "".join(["Monte Carlo (", "Generated" if("(gdf)" in hist_name) else "Reconstructed" if("(mdf)" in hist_name) else "True" if("(tdf)" in hist_name) else "Matched Generated" if("(gen)" in hist_name) else "Error", ")"])
+            elif(any(Method in hist_name for Method in ["(Acceptance)"])):
+                Method_Name  = "Acceptance"
+            else:
+                Method_Name  = f"{color.Error}Error{color.END}"
+
+            # Smear_Name       = "Smearing" if((not any(Method in hist_name for Method in ["rdf", "gdf", "tdf", "gen"])) and ("Smear" in hist_name)) else "Not smeared"
+            # Smear_Name       = "Not Smeared" if("SMEAR=''" in hist_name) else "Smeared"
+            for Method in ["Bin", "bbb", "rdf", "bayes", "bay", "Bayesian", "SVD", "mdf", "gdf", "tdf", "gen", "Acceptance"]:
+                hist_name = hist_name.replace(f"_({Method})_", f"_({Method_Name})_")
+            hist_name     = hist_name.replace("_(SMEAR='')_", "_(Not Smeared)_")
+            hist_name     = hist_name.replace("_(SMEAR=Smear)_", "_(Smeared)_")
+            total_stats   = sum(hist.GetBinContent(bin) for bin in range(1, hist.GetNbinsX() + 1)) # hist.GetEntries()
+            # info_str += f"\n========================================================================================================================\n{color.BOLD}Histogram Name: \n\t{color.END}{hist_name}\nhist.GetName() = {hist.GetName()}\n"
+            info_str += f"\n========================================================================================================================\n{color.BOLD}Histogram Name: \n\t{color.END}{color.BLUE}{hist_name}{color.END}\n"
+            info_str += f"\n\t{color.UNDERLINE}Total Statistics{color.END}: {total_stats}\n\n"
+            # info_str += f"{color.BOLD}{color.UNDERLINE}Bin #\t\tRange\t\t\tContent\t\t\tError\t\t{color.END}\n"
+            info_str += f"{color.BOLD}{color.UNDERLINE}"
+            info_str += "\t{:<8}|\t{:<20}|\t{:<20}|\t{:<20}|\t".format("Bin #", "Bin Range (˚)", "Content", "Error")
+            info_str += f"{color.END}\n"
+            for bin in range(1, hist.GetNbinsX() + 1):  # Loop over each bin
+                # center  = round(hist.GetBinCenter(bin),  2)
+                bin_lower_edge = hist.GetBinLowEdge(bin)
+                bin_upper_edge = bin_lower_edge + hist.GetBinWidth(bin)
+                bin_range = f"{round(bin_lower_edge, 2)}-{round(bin_upper_edge, 2)}"
+                # bin_range = f"{int(bin_lower_edge)}-{int(bin_upper_edge)}"
+                content   = round(hist.GetBinContent(bin), 6)
+                error     = round(hist.GetBinError(bin),   6)
+                try:
+                    info_str += "\t{:<8}|\t{:<20}|\t{:<20.5f}|\t{:<20.5f}|\t\n".format(bin, bin_range, content, error)
+                except:
+                    info_str += f"{bin}\t{bin_range}\t{content}\t{error}\n"
+                # info_str += f"{bin}\t\t{bin_range}\t\t\t{content}\t\t\t{error}\n"
+            info_str += f"{color.UNDERLINE}\t                                                                                   \t{color.END}\n\n========================================================================================================================"  # Add a newline for separation between histograms
+    info_str         += "\n========================================================================================================================\n\n"
+    if(save_to_file):
+        with open(filename, "w") as file:
+            file.write(info_str)
+    print("".join(["\n", "Saved: " if(save_to_file) else "Would be Saving: ", color.BOLD, color.BLUE, str(filename), color.END, "\n"]))
+    # print(f"Content of {filename} -> \n{info_str}")
+
+try:
+    if(True):
+        Extract_phi_h_Histograms_Info(hist_dict=List_of_All_Histos_For_Unfolding, save_to_file=Saving_Q, filename=f"Statistics_{Output_txt_Name}")
+    else:
+        print(f"{color.RED}\nNOT RUNNING Extract_phi_h_Histograms_Info()...\n{color.END}")
+except:
+    print(f"{color.Error}Failed...{color.END}\nTraceback:\n{traceback.format_exc()}")
     
 
-    
+# info_str += "{:<8}{:<15}{:<15}{:<15}{:<15}\n".format("Bin #", "Bin Center", "Content", "Error", "Bin Edges")
+
+# for bin in range(1, hist.GetNbinsX() + 1):
+#     content = hist.GetBinContent(bin)
+#     error = hist.GetBinError(bin)
+#     bin_low_edge = hist.GetBinLowEdge(bin)
+#     bin_upper_edge = bin_low_edge + hist.GetBinWidth(bin)
+#     # Assuming you want to print the bin center as well, which is (low_edge + upper_edge) / 2
+#     bin_center = (bin_low_edge + bin_upper_edge) / 2
+#     info_str += "{:<8}{:<15.5f}{:<15.5f}{:<15.5f}{:<15.5f}-{:<15.5f}\n".format(
+#         bin, bin_center, content, error, bin_low_edge, bin_upper_edge
+#     )
+
     
 
 

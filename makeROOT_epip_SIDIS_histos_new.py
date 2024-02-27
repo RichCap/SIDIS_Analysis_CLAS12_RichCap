@@ -854,6 +854,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(smear_factor != "0.75"):
             Extra_Name = "".join(["New_Smearing_", str(smear_factor).replace(".", ""), "_V8_"])
             # Same as "New_Smearing_V8_" but with any value of smear_factor not being equal to the default value of 0.75
+            
+            
+        Extra_Name = "Smearing_Limit_V1_"
+        # Ran on 2/26/2024
+        # Running New Smearing Functions which put a limit of 'Smear_SF_Theta'
+            # If Smear_SF_Theta < 0, then that means that the MC is OVERSMEARED (resolution of data is finer than MC)
+                # Cannot fix this issue with the current smearing function
+            # The new limit sets Smear_SF_Theta = 0 if it shows signs of being oversmeared
+        # Added New Pass 2 smearing (without momentum correction)
+
+        if(smear_factor != "0.75"):
+            Extra_Name = "".join(["Smearing_Limit_", str(smear_factor).replace(".", ""), "_V1_"])
+            # Same as "Smearing_Limit_V1_" but with any value of smear_factor not being equal to the default value of 0.75
+            # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
         
     if(Use_Weight):
         if(not Q4_Weight):
@@ -905,7 +919,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Correction_Code_Full_In = """ See ExtraAnalysisCodeValues.py for details
     
     if(Mom_Correction_Q != "yes"):
-        print("".join([color.BOLD, color.RED,  "\n\tNot running with Momentum Corrections\n", color.END]))
+        print("".join([color.Error,            "\n\tNot running with Momentum Corrections\n", color.END]))
     else:
         print("".join([color.BOLD, color.BLUE, "\n\tRunning with Momentum Corrections\n",     color.END]))
         
@@ -988,7 +1002,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 double pip_P_no_cor = (sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
                 return pip_P_no_cor;""")  
         except:
-            print(color.BOLD, color.RED, "\n\nMomentum Corrections Failed...\n\n", color.END)
+            print(color.Error, "\n\nMomentum Corrections Failed...\n\n", color.END)
             rdf = rdf.Define("el",  "sqrt(ex*ex + ey*ey + ez*ez)")
             rdf = rdf.Define("pip", "sqrt(pipx*pipx + pipy*pipy + pipz*pipz)")
         if(datatype in ["mdf", "pdf"]):
@@ -4534,7 +4548,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(DF == "continue"):
             return "continue"
         if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
-            print("".join([color.BOLD, color.RED, "ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
+            print("".join([color.Error, "ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
             if(return_option == "DF"):
                 return DF
             else:
@@ -4620,12 +4634,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 try:
                     DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
                 except:
-                    print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
             elif(return_option == "DF_Res"):
                 try:
                     DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
                 except:
-                    print("".join([color.BOLD, color.RED, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
             else:
                 return [str(Multi_Dim_Bin_Title[var_type]), -1.5, (math.prod(var_bins)) + 1.5, (math.prod(var_bins)) + 3]
         return DF_Final
@@ -5229,10 +5243,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #     if(Histo_Var_D2 != "None" and Histo_Var_D3 == "None" and ("smear" in str(Histo_Var_D1[0]) and "smear" in str(Histo_Var_D2[0]))):
             #         Dimensions_Output = Dimensions_Output.replace("_smeared", "")
             # except:
-            #     print("".join([color.BOLD, color.RED, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            #     print("".join([color.Error, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
             
         except:
-            print("".join([color.BOLD, color.RED, "ERROR IN DIMENSIONS:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            print("".join([color.Error, "ERROR IN DIMENSIONS:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
 
         return Dimensions_Output
 
@@ -5656,10 +5670,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # There are 17 Main Bins + 22 Migration bins (Total = 39)
     
     
-    # New as of 2/14/2024
+    # # New as of 2/14/2024
+    # z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 1561.5, 1562]
+    # # There are a maximum of 65 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 65*24=1560 (+2 for standard overflow)
+    #     # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
+    
+    # New as of 2/26/2024
     z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 1561.5, 1562]
-    # There are a maximum of 65 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 65*24=1560 (+2 for standard overflow)
-        # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
+    # There are a maximum of 36 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 36*24=866 (+2 for standard overflow)
+        # Does not include the z-pT overflow bins
+        # This value might be capable of further optimization and is only an option if "Y_bin" in binning_option_list
+    
     
     # New as of 2/21/2024
     Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 12268 + 1.5, 12268 + 2]
@@ -5689,9 +5710,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     
     List_of_Quantities_1D = [phi_t_Binning]
-    # if("Y_bin" in binning_option_list):
-    #     print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-    #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -5751,7 +5772,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Alert_of_Response_Matricies = True
     
     if(len(List_of_Quantities_1D) == 0):
-        print("".join([color.RED,  color.BOLD, "\nNot running 1D histograms...",     color.END]))
+        print("".join([color.Error,            "\nNot running 1D histograms...",     color.END]))
     else:
         print("".join([color.BLUE, color.BOLD, "\n1D Histograms Selected Include: ", color.END]))
         for histo_1D in List_of_Quantities_1D:
@@ -5759,7 +5780,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     if(len(List_of_Quantities_2D) == 0):
-        print("".join([color.RED,  color.BOLD, "\nNot running 2D histograms...",     color.END]))
+        print("".join([color.Error,            "\nNot running 2D histograms...",     color.END]))
     else:
         print("".join([color.BLUE, color.BOLD, "\n2D Histograms Selected Include: ", color.END]))
         for histo_2D in List_of_Quantities_2D:
@@ -5767,7 +5788,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             
     if(len(List_of_Quantities_3D) == 0):
-        print("".join([color.RED,  color.BOLD, "\nNot running 3D histograms...",     color.END]))
+        print("".join([color.Error,            "\nNot running 3D histograms...",     color.END]))
     else:
         print("".join([color.BLUE, color.BOLD, "\n3D Histograms Selected Include: ", color.END]))
         for histo_3D in List_of_Quantities_3D:
