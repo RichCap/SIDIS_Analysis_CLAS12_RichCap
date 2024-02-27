@@ -868,6 +868,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Extra_Name = "".join(["Smearing_Limit_", str(smear_factor).replace(".", ""), "_V1_"])
             # Same as "Smearing_Limit_V1_" but with any value of smear_factor not being equal to the default value of 0.75
             # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
+            
+            
+        Extra_Name = "Smearing_Limit_V2_"
+        # Ran on 2/27/2024
+        # Same smearing function as Extra_Name = "Smearing_Limit_V1_" but now ∆P(MC) = P_Gen - P_Rec instead of ∆P = P_Calc - P_Rec
+            # Last update somehow made the oversmearing problem worse? - Don't know why at the time of taking this note
+
+        if(smear_factor != "0.75"):
+            Extra_Name = "".join(["Smearing_Limit_", str(smear_factor).replace(".", ""), "_V2_"])
+            # Same as "Smearing_Limit_V2_" but with any value of smear_factor not being equal to the default value of 0.75
+            # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
         
     if(Use_Weight):
         if(not Q4_Weight):
@@ -2640,7 +2651,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto pel_Calculated = (termA + termC)/termB;
 
         auto Delta_Pel_Cors = pel_Calculated - eleC.P();
-        """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Pel_Cors = el_gen - eleC.P();", """
+        """,  "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Pel_Cors = el_gen - eleC.P();", """
         return Delta_Pel_Cors;"""]))
 
 
@@ -2681,7 +2692,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         }
 
         auto Delta_Ppip_Cors = pip_Calculate - pipC.P();
-        """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Ppip_Cors = pip_gen - pipC.P();", """
+        """,  "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Ppip_Cors = pip_gen - pipC.P();", """
         return Delta_Ppip_Cors;"""]))
     
 
@@ -2719,7 +2730,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         auto Delta_Theta_el_Cors = (180/3.1415926)*(Theta_el_Calculated - eleC.Theta());
         
-        """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_el_Cors = (180/3.1415926)*(elth_gen - eleC.Theta());", """
+        """,  "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Theta_el_Cors = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
         return Delta_Theta_el_Cors;"""]))
 
@@ -2752,7 +2763,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         auto Delta_Theta_pip_Cors = (180/3.1415926)*(Theta_pip_Calculated - pipC.Theta());
         
-        """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_pip_Cors = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
+        """,  "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Theta_pip_Cors = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
         return Delta_Theta_pip_Cors;"""]))
 
@@ -2800,8 +2811,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             auto pel_Calculated = (termA + termC)/termB;
 
-            auto Delta_Pel_Cors_smeared = pel_Calculated - eleC.P();
-            // auto Delta_Pel_Cors_smeared = el_gen - eleC.P();
+            // auto Delta_Pel_Cors_smeared = pel_Calculated - eleC.P();
+            auto Delta_Pel_Cors_smeared = el_gen - eleC.P();
 
             return Delta_Pel_Cors_smeared;"""]))
 
@@ -2852,8 +2863,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 pip_Calculate = pip_CalculateP;
             }
 
-            auto Delta_Ppip_Cors_smeared = pip_Calculate - pipC.P();
-            // Delta_Ppip_Cors_smeared = pip_gen - pipC.P();
+            // auto Delta_Ppip_Cors_smeared = pip_Calculate - pipC.P();
+            auto Delta_Ppip_Cors_smeared = pip_gen - pipC.P();
 
             return Delta_Ppip_Cors_smeared;"""]))
     
@@ -2899,7 +2910,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             auto Delta_Theta_el_Cors_smeared = (180/3.1415926)*(Theta_el_Calculated_smeared - eleC.Theta());
             
-            """, "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_el_Cors_smeared = (180/3.1415926)*(elth_gen - eleC.Theta());", """
+            """, "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Theta_el_Cors_smeared = (180/3.1415926)*(elth_gen - eleC.Theta());", """
 
             return Delta_Theta_el_Cors_smeared;"""]))
 
@@ -2939,7 +2950,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             auto Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(Theta_pip_Calculated_smeared - pipC.Theta());
             
-            """, "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
+            """, "" if(str(datatype) not in ["mdf", "pdf"] and True) else "Delta_Theta_pip_Cors_smeared = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
             return Delta_Theta_pip_Cors_smeared;"""]))
     
@@ -5676,7 +5687,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #     # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
     
     # New as of 2/26/2024
-    z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 1561.5, 1562]
+    z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 865.5, 866]
     # There are a maximum of 36 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 36*24=866 (+2 for standard overflow)
         # Does not include the z-pT overflow bins
         # This value might be capable of further optimization and is only an option if "Y_bin" in binning_option_list

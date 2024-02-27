@@ -1,7 +1,7 @@
 import ROOT
 
 Binning_Method = "_Y_bin"
-Binning_Method = "_y_bin"
+# Binning_Method = "_y_bin"
 # Binning_Method = "_2"
 
 
@@ -768,7 +768,7 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1):
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1):
+def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False):
 
     Total_Number_of_Bins, Migration_Bin_1, Migration_Bin_2 = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Num_In)
 
@@ -780,6 +780,12 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1):
             break
         line_size =  3 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
         y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
+        if(Set_Max_Y):
+            if(Set_Max_Y < y_max):
+                y_max = Set_Max_Y
+        if(Set_Max_X):
+            if(Set_Max_X < x_max):
+                x_max = Set_Max_X
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])] = ROOT.TLine()
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])].SetLineColor(bin_color)
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])].SetLineWidth(line_size)

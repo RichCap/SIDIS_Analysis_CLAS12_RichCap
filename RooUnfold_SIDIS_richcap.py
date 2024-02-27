@@ -5351,8 +5351,10 @@ Common_Name = "Gen_Cuts_V8_All"
 
 # Common_Name = "New_Bin_Tests_V5_All"
 
-# Common_Name = "CrossCheck_V2_All"
-Common_Name = "Pass_2_CrossCheck_V2_All"
+Common_Name = "CrossCheck_V2_All"
+# Common_Name = "Pass_2_CrossCheck_V2_All"
+
+Common_Name = "New_Q2_Y_Bins_V2_All"
 
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
@@ -5373,15 +5375,15 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+# if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
     MC_REC_File_Name = "Analysis_Note_Update_V6_All"
     MC_REC_File_Name = "Gen_Cuts_V2_Fixed_All"
     MC_REC_File_Name = "CrossCheck_V3_All"
-    MC_REC_File_Name = "Pass_2_CrossCheck_V3_All"
+#     MC_REC_File_Name = "Pass_2_CrossCheck_V3_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -6500,63 +6502,67 @@ if(tdf not in ["N/A"]):
 
 # Bin-by-Bin Acceptance Corrections for 2D Histograms
 for ii in mdf.GetListOfKeys():
-    out_print_main = str(ii.GetName())
-    if("Normal_2D" in out_print_main):
-        mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)", "")
-        mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
-        mdf_print_str     = mdf_print_str.replace("_smeared",              "")
-        mdf_print_str     = mdf_print_str.replace("'smear'",               "Smear")
-        rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
-        gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
-        gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
-        SEARCH = []
-        for BIN in BIN_SEARCH:
-            SEARCH.append(str(BIN) in str(mdf_print_str))
-            if(str(BIN) in str(mdf_print_str)):
-                break
-        if(True in SEARCH):
-            Histo_MDF = List_of_All_Histos_For_Unfolding[mdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[mdf_print_str].GetName()), "_Clone"]))
-            Histo_RDF = List_of_All_Histos_For_Unfolding[rdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[rdf_print_str].GetName()), "_Clone"]))
-            Histo_GDF = List_of_All_Histos_For_Unfolding[gdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[gdf_print_str].GetName()), "_Clone"]))
+    try:
+        out_print_main = str(ii.GetName())
+        if("Normal_2D" in out_print_main):
+            mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+            mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)", "")
+            mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+            mdf_print_str     = mdf_print_str.replace("_smeared",              "")
+            mdf_print_str     = mdf_print_str.replace("'smear'",               "Smear")
+            rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
+            gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
+            gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+            SEARCH = []
+            for BIN in BIN_SEARCH:
+                SEARCH.append(str(BIN) in str(mdf_print_str))
+                if(str(BIN) in str(mdf_print_str)):
+                    break
+            if(True in SEARCH):
+                Histo_MDF = List_of_All_Histos_For_Unfolding[mdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[mdf_print_str].GetName()), "_Clone"]))
+                Histo_RDF = List_of_All_Histos_For_Unfolding[rdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[rdf_print_str].GetName()), "_Clone"]))
+                Histo_GDF = List_of_All_Histos_For_Unfolding[gdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[gdf_print_str].GetName()), "_Clone"]))
 
-            Histo_BBB        = Histo_RDF.Clone(str(mdf_print_str).replace("mdf", "bbb"))
-            Histo_Acceptance = Histo_MDF.Clone(str(mdf_print_str).replace("mdf", "Acceptance"))
-            Histo_Acceptance.Sumw2()
-            
-            if((Histo_MDF.GetNbinsX() != Histo_GDF.GetNbinsX()) or (Histo_MDF.GetNbinsY() != Histo_GDF.GetNbinsY()) or (Histo_MDF.GetNbinsZ() != Histo_GDF.GetNbinsZ())):
-                print(color.RED, "Histograms have different binning!", color.END)
-                print("\nHisto_MDF =",             str(mdf_print_str))
-                print("\tHisto_MDF (type) =",      str(type(Histo_MDF)))
-                print("\tHisto_MDF (Title - X) =", str(Histo_MDF.GetXaxis().GetTitle()))
-                print("\tHisto_MDF (Bin - X) =",   str(Histo_MDF.GetNbinsX()))
-                print("\tHisto_MDF (Title - Y) =", str(Histo_MDF.GetYaxis().GetTitle()))
-                print("\tHisto_MDF (Bin - Y) =",   str(Histo_MDF.GetNbinsY()))
-                print("\tHisto_MDF (Title - Z) =", str(Histo_MDF.GetZaxis().GetTitle()))
-                print("\tHisto_MDF (Bin - Z) =",   str(Histo_MDF.GetNbinsZ()))
-                
-                print("\nHisto_RDF =",             str(rdf_print_str))
-                print("\tHisto_RDF (type) =",      str(type(Histo_RDF)))
-                print("\tHisto_RDF (Title - X) =", str(Histo_RDF.GetXaxis().GetTitle()))
-                print("\tHisto_RDF (Bin - X) =",   str(Histo_RDF.GetNbinsX()))
-                print("\tHisto_RDF (Title - Y) =", str(Histo_RDF.GetYaxis().GetTitle()))
-                print("\tHisto_RDF (Bin - Y) =",   str(Histo_RDF.GetNbinsY()))
-                print("\tHisto_RDF (Title - Z) =", str(Histo_RDF.GetZaxis().GetTitle()))
-                print("\tHisto_RDF (Bin - Z) =",   str(Histo_RDF.GetNbinsZ()))
-                
-                print("\nHisto_GDF =",             str(gdf_print_str))
-                print("\tHisto_GDF (type) =",      str(type(Histo_GDF)))
-                print("\tHisto_GDF (Title - X) =", str(Histo_GDF.GetXaxis().GetTitle()))
-                print("\tHisto_GDF (Bin - X) =",   str(Histo_GDF.GetNbinsX()))
-                print("\tHisto_GDF (Title - Y) =", str(Histo_GDF.GetYaxis().GetTitle()))
-                print("\tHisto_GDF (Bin - Y) =",   str(Histo_GDF.GetNbinsY()))
-                print("\tHisto_GDF (Title - Z) =", str(Histo_GDF.GetZaxis().GetTitle()))
-                print("\tHisto_GDF (Bin - Z) =",   str(Histo_GDF.GetNbinsZ()))
-                
-            Histo_Acceptance.Divide(Histo_GDF)
-            Histo_BBB.Divide(Histo_Acceptance)
-            Histo_BBB.SetName(str(mdf_print_str).replace("mdf", "bbb"))
-            List_of_All_Histos_For_Unfolding[mdf_print_str.replace("mdf", "bbb")] = Histo_BBB
+                Histo_BBB        = Histo_RDF.Clone(str(mdf_print_str).replace("mdf", "bbb"))
+                Histo_Acceptance = Histo_MDF.Clone(str(mdf_print_str).replace("mdf", "Acceptance"))
+                Histo_Acceptance.Sumw2()
+
+                if((Histo_MDF.GetNbinsX() != Histo_GDF.GetNbinsX()) or (Histo_MDF.GetNbinsY() != Histo_GDF.GetNbinsY()) or (Histo_MDF.GetNbinsZ() != Histo_GDF.GetNbinsZ())):
+                    print(color.RED, "Histograms have different binning!", color.END)
+                    print("\nHisto_MDF =",             str(mdf_print_str))
+                    print("\tHisto_MDF (type) =",      str(type(Histo_MDF)))
+                    print("\tHisto_MDF (Title - X) =", str(Histo_MDF.GetXaxis().GetTitle()))
+                    print("\tHisto_MDF (Bin - X) =",   str(Histo_MDF.GetNbinsX()))
+                    print("\tHisto_MDF (Title - Y) =", str(Histo_MDF.GetYaxis().GetTitle()))
+                    print("\tHisto_MDF (Bin - Y) =",   str(Histo_MDF.GetNbinsY()))
+                    print("\tHisto_MDF (Title - Z) =", str(Histo_MDF.GetZaxis().GetTitle()))
+                    print("\tHisto_MDF (Bin - Z) =",   str(Histo_MDF.GetNbinsZ()))
+
+                    print("\nHisto_RDF =",             str(rdf_print_str))
+                    print("\tHisto_RDF (type) =",      str(type(Histo_RDF)))
+                    print("\tHisto_RDF (Title - X) =", str(Histo_RDF.GetXaxis().GetTitle()))
+                    print("\tHisto_RDF (Bin - X) =",   str(Histo_RDF.GetNbinsX()))
+                    print("\tHisto_RDF (Title - Y) =", str(Histo_RDF.GetYaxis().GetTitle()))
+                    print("\tHisto_RDF (Bin - Y) =",   str(Histo_RDF.GetNbinsY()))
+                    print("\tHisto_RDF (Title - Z) =", str(Histo_RDF.GetZaxis().GetTitle()))
+                    print("\tHisto_RDF (Bin - Z) =",   str(Histo_RDF.GetNbinsZ()))
+
+                    print("\nHisto_GDF =",             str(gdf_print_str))
+                    print("\tHisto_GDF (type) =",      str(type(Histo_GDF)))
+                    print("\tHisto_GDF (Title - X) =", str(Histo_GDF.GetXaxis().GetTitle()))
+                    print("\tHisto_GDF (Bin - X) =",   str(Histo_GDF.GetNbinsX()))
+                    print("\tHisto_GDF (Title - Y) =", str(Histo_GDF.GetYaxis().GetTitle()))
+                    print("\tHisto_GDF (Bin - Y) =",   str(Histo_GDF.GetNbinsY()))
+                    print("\tHisto_GDF (Title - Z) =", str(Histo_GDF.GetZaxis().GetTitle()))
+                    print("\tHisto_GDF (Bin - Z) =",   str(Histo_GDF.GetNbinsZ()))
+
+                Histo_Acceptance.Divide(Histo_GDF)
+                Histo_BBB.Divide(Histo_Acceptance)
+                Histo_BBB.SetName(str(mdf_print_str).replace("mdf", "bbb"))
+                List_of_All_Histos_For_Unfolding[mdf_print_str.replace("mdf", "bbb")] = Histo_BBB
+    except:
+        print(f"{color.Error}ERROR! See:{color.END}{color.BOLD}\n\tBin-by-Bin Acceptance Corrections for 2D Histograms{color.END}")
+        print(f"Traceback:\n{traceback.format_exc()}")
 
 final_count = 0
 print("\n\nCounting Total Number of collected histograms...")
