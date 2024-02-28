@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 from MyCommonAnalysisFunction_richcap import color, color_bg
-print("".join([color.BOLD, "\nStarting RG-A SIDIS Analysis (File Sorting)\n", color.END]))
+print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis (File Sorting)\n{color.END}")
 
 import traceback
 from datetime import datetime
 
 import shutil
 import os
+
+import argparse
+import sys
 
 # getting current date
 datetime_object_full = datetime.now()
@@ -22,7 +25,7 @@ else:
     timeMin_full = str(datetime_object_full.minute)
 
     
-Date_Day = "".join(["\nStarted running on ", color.BOLD, str(datetime_object_full.month), "-", str(datetime_object_full.day), "-", str(datetime_object_full.year), color.END, " at "])
+Date_Day = "".join(["Started running on ", color.BOLD, str(datetime_object_full.month), "-", str(datetime_object_full.day), "-", str(datetime_object_full.year), color.END, " at "])
 # printing current time
 if(datetime_object_full.hour > 12 and datetime_object_full.hour < 24):
     print("".join([Date_Day, color.BOLD, str((datetime_object_full.hour)-12), ":", timeMin_full, " p.m.", color.END]))
@@ -32,7 +35,7 @@ if(datetime_object_full.hour == 12):
     print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour), ":", timeMin_full, " p.m.", color.END]))
 if(datetime_object_full.hour == 0 or datetime_object_full.hour == 24):
     print("".join([Date_Day, color.BOLD, "12:", str(timeMin_full), " a.m.", color.END]))        
-print("\n\n\n")
+print("")
 
 
 
@@ -61,58 +64,28 @@ Common_Name = "Pass_2_CrossCheck_V3_All"
 
 Common_Name = "CrossCheck_V3_All"
 
-# Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
-##################################
-##   Real (Experimental) Data   ##
-##################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-# if(False):
-    REAL_File_Name = Common_Name
-else:
-    REAL_File_Name = "Unfolding_Tests_V11_All"
-    REAL_File_Name = "Gen_Cuts_V1_All"
-##################################
-##   Real (Experimental) Data   ##
-##################################
+Common_Name = "Q2_Y_Bins_V2_All"
+Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
 
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
-    MC_REC_File_Name = Common_Name
-else:
-    MC_REC_File_Name = "Unfolding_Tests_V11_All"
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
+# Set up the argument parser
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('Common_Name', type=str, help='A common name to be used in the script')
 
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-# if(False):
-    MC_GEN_File_Name = Common_Name
-else:
-    MC_GEN_File_Name = "Unfolding_Tests_V11_All"
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
+# Parse the arguments
+args = parser.parse_args()
+
+# Assign the argument value to the Common_Name variable
+Common_Name = args.Common_Name
+print(f"The provided common name is: {Common_Name}")
+
+
 
 ################################################################################################################################################################
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
 
 
-
-print("".join([color.BOLD, color.BLUE, "Starting final folder creation/image sorting...", color.END]))
-
-
-
-Binning_Option = "Q2_xB_Bin"
+# Binning_Option = "Q2_xB_Bin"
 Binning_Option = "Q2_y_Bin"
 
 
@@ -124,21 +97,29 @@ Binning_Option = "Q2_y_Bin"
 #############################################################################
 #############################################################################
 
-if(not (Common_Name == REAL_File_Name == MC_REC_File_Name == MC_GEN_File_Name)):
-    print("".join([color.BOLD, color.RED, "WARNING: A commom file name was NOT used between each of the different data sets.\n", color.END]))
 Date_of_Save = "".join([str(datetime_object_full.month), "_", str(datetime_object_full.day), "_", str(datetime_object_full.year)])
 
 
 ##========================================##
 ##=====##   Main Folder Creation   ##=====##
 destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
-version = 1
+version = 2
 while(str(destination).replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/", "") in os.listdir()):
+    print(f"{color.BOLD}Error: {color.END}{color.RED}{destination}{color.END}{color.BOLD} already exists...{color.END}\n\tChecking for new version ({version - 1})")
     destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_V", str(version), "_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
     version += 1
-    if(version > 10):
-        print("".join([color.BOLD, color.RED, "\nWARNING: Many folders are being saved from the same date. This loop is automatically closed after 10 versions for the same folder.\n\n\tPlease overide this decision manually if this many folders are desired...\n\n", color.END]))
+    if(version > 11):
+        print("".join([color.Error, "\nWARNING: Many folders are being saved from the same date. This loop is automatically closed after 10 versions for the same folder.\n\n\tPlease overide this decision manually if this many folders are desired...\n\n", color.END]))
         fail
+
+print(f"\nWill create a new directory called:\n\t{color.BOLD}{color.BLUE}{destination}{color.END}")
+user_approval = input("\nDo you approve to continue? (yes/no): ").lower()
+if(user_approval not in ['yes', 'y', 'Yes', 'Y']):
+    print(f"{color.Error}User did not approve. Exiting the script.{color.END}\n\n")
+    sys.exit()  # Exit the script if the user does not approve
+
+print(f"User approved.\n\n{color.BOLD}{color.BLUE}Starting final folder creation/image sorting...{color.END}\n")
+        
 
 os.mkdir(destination)
 ##=====##   Main Folder Creation   ##=====##
