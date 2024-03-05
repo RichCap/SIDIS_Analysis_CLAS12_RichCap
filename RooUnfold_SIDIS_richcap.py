@@ -1189,8 +1189,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
                     bayes_iterations = (10 if(not Closure_Test) else 10) if(("Multi_Dim" not in str(Name_Main)) or ("Multi_Dim_z_pT_Bin" in str(Name_Main))) else 4
-                    if(Pass_Version not in [""]):
-                        bayes_iterations += 2
+                    if(Pass_Version not in ["", "Pass 1"]):
+                        bayes_iterations += 3
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -1876,6 +1876,9 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
         
         if((Method in ["gdf", "gen", "MC GEN", "tdf", "true", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting_Input in ["default", "Default"]) and Fit_Test):
             Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{Fitted with: ", str(fit_function_title), "}}"])
+            
+        if((Pass_Version not in [""]) and (Pass_Version not in str(Title))):
+            Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{", str(Pass_Version), "}}"])
             
         ########################################################################
         #####==========#####    Setting Histogram Title     #####==========#####
@@ -4388,7 +4391,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
             All_z_pT_Canvas_cd_2.Divide(number_of_cols, number_of_rows, 0.0001, 0.0001)
         else:
-            number_of_cols, number_of_rows = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+            number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
             All_z_pT_Canvas_cd_2.Divide(1, number_of_cols, 0.0001, 0.0001)
             for ii in range(1, number_of_cols + 1, 1):
                 All_z_pT_Canvas_cd_2_cols = All_z_pT_Canvas_cd_2.cd(ii)
@@ -4919,7 +4922,10 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
 
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetRangeUser(0, 360)
-            Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetMaximumBin())))
+            if(Method not in ["Acceptance"]):
+                Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetMaximumBin())))
+            else:
+                Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.2)
             
             if(Fit_Test):
                 if(Method not in ["rdf", "mdf"]):
@@ -5263,7 +5269,10 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
                 # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H PL E0 same")
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H P E0 same")
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetXaxis().SetRangeUser(0, 360)
-                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetMaximumBin())))
+                if(Method not in ["Acceptance"]):
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetMaximumBin())))
+                else:
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.6)
                 
                 if(Fit_Test):
                     if(Method not in ["rdf", "mdf"]):
@@ -5412,9 +5421,9 @@ Common_Name = "Gen_Cuts_V8_All"
 # # Common_Name = "Pass_2_CrossCheck_V2_All"
 
 Common_Name = "New_Q2_Y_Bins_V2_All"
-Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
+# Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
 
-Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else ""
+Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
         Standard_Histogram_Title_Addition = f"{Pass_Version} - {Standard_Histogram_Title_Addition}"
@@ -6072,8 +6081,8 @@ for ii in mdf.GetListOfKeys():
                         Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     else:
                         Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                    # if(Pass_Version not in [""]):
-                    #     Response_2D_Title_New = "".join(["#splitline{", str(Response_2D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                    if((Pass_Version not in [""]) and (Pass_Version not in Response_2D_Title_New)):
+                        Response_2D_Title_New = "".join(["#splitline{", str(Response_2D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                     Response_2D.SetTitle(Response_2D_Title_New)
                     # print(str(Response_2D.GetTitle()))
                 except:
@@ -6095,8 +6104,8 @@ for ii in mdf.GetListOfKeys():
                         ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     else:
                         ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                    # if(Pass_Version not in [""]):
-                    #     ExREAL_1D_Title_New          = "".join(["#splitline{", str(ExREAL_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                    if((Pass_Version not in [""]) and (Pass_Version not in ExREAL_1D_Title_New)):
+                        ExREAL_1D_Title_New          = "".join(["#splitline{", str(ExREAL_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                     ExREAL_1D.SetTitle(ExREAL_1D_Title_New)
                 except:
                     print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExREAL_1D):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
@@ -6112,8 +6121,8 @@ for ii in mdf.GetListOfKeys():
                         MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     else:
                         MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                    # if(Pass_Version not in [""]):
-                    #     MC_REC_1D_Title_New          = "".join(["#splitline{", str(MC_REC_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                    if((Pass_Version not in [""]) and (Pass_Version not in MC_REC_1D_Title_New)):
+                        MC_REC_1D_Title_New          = "".join(["#splitline{", str(MC_REC_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                     MC_REC_1D.SetTitle(MC_REC_1D_Title_New)
                 except:
                     print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_REC_1D):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
@@ -6131,8 +6140,8 @@ for ii in mdf.GetListOfKeys():
                             MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
                         else:
                             MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
-                        # if(Pass_Version not in [""]):
-                        #     MC_BGS_1D_Title_New          = "".join(["#splitline{", str(MC_BGS_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                        if((Pass_Version not in [""]) and (Pass_Version not in MC_BGS_1D_Title_New)):
+                            MC_BGS_1D_Title_New          = "".join(["#splitline{", str(MC_BGS_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                         MC_BGS_1D.SetTitle(MC_BGS_1D_Title_New)
                     except:
                         print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_BGS_1D):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
@@ -6151,8 +6160,8 @@ for ii in mdf.GetListOfKeys():
                         MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                     else:
                         MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                    # if(Pass_Version not in [""]):
-                    #     MC_GEN_1D_Title_New          = "".join(["#splitline{", str(MC_GEN_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                    if((Pass_Version not in [""]) and (Pass_Version not in MC_GEN_1D_Title_New)):
+                        MC_GEN_1D_Title_New          = "".join(["#splitline{", str(MC_GEN_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                     MC_GEN_1D.SetTitle(MC_GEN_1D_Title_New)
                 except:
                     print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_GEN_1D):\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
@@ -6169,8 +6178,8 @@ for ii in mdf.GetListOfKeys():
                             ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
                         else:
                             ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        # if(Pass_Version not in [""]):
-                        #     ExTRUE_1D_Title_New          = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                        if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
+                            ExTRUE_1D_Title_New          = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                         ExTRUE_1D_Title_New        = str(str(ExTRUE_1D_Title_New.replace("Generated",                  "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
                         ExTRUE_1D_Title_X_Axis_New = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
                         ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
@@ -6181,8 +6190,8 @@ for ii in mdf.GetListOfKeys():
                     # print("\nExTRUE_1D already is a 1D Histogram...")
                     ExTRUE_1D = ExTRUE_1D_initial
                     ExTRUE_1D_Title_New            = str(str(str(ExTRUE_1D.GetTitle()).replace("Generated",            "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
-                    # if(Pass_Version not in [""]):
-                    #     ExTRUE_1D_Title_New        = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                    if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
+                        ExTRUE_1D_Title_New        = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                     ExTRUE_1D_Title_X_Axis_New     = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
                     ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
                     ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
