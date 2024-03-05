@@ -768,7 +768,7 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1):
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False):
+def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT"):
 
     Total_Number_of_Bins, Migration_Bin_1, Migration_Bin_2 = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Num_In)
 
@@ -778,7 +778,7 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
         bin_color = 41 if(z_pT in Migration_Bin_2) else root_color.Black if(z_pT < (Migration_Bin_1 + 1)) else root_color.Red
         if(bin_color == root_color.Red):
             break
-        line_size =  3 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
+        line_size =  1 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
         y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
         if(Set_Max_Y):
             if(Set_Max_Y < y_max):
@@ -786,6 +786,8 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
         if(Set_Max_X):
             if(Set_Max_X < x_max):
                 x_max = Set_Max_X
+        if(Plot_Orientation_Input in ["pT_z"]):
+            x_max, x_min, y_max, y_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])] = ROOT.TLine()
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])].SetLineColor(bin_color)
         z_pT_Bins_Borders["".join(["Line_1_of_z_pT_Bin_", str(z_pT)])].SetLineWidth(line_size)
@@ -809,7 +811,49 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
 ##=========================================================================================##
 ##=========================================================================================##
 
+def Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=1):
+    if((str(Q2_Y_Bin_Input) in ["All", "all", "0", "-1", "-2", "-3"])):
+        columns, rows = 1, 1
+    if(str(Q2_Y_Bin_Input) == "1"):
+        columns, rows = 7, 5
+    if(str(Q2_Y_Bin_Input) == "2"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "3"):
+        columns, rows = 6, 5
+    if(str(Q2_Y_Bin_Input) == "4"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "5"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "6"):
+        columns, rows = 6, 5
+    if(str(Q2_Y_Bin_Input) == "7"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "8"):
+        columns, rows = 5, 7
+    if(str(Q2_Y_Bin_Input) == "9"):
+        columns, rows = 7, 5
+    if(str(Q2_Y_Bin_Input) == "10"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "11"):
+        columns, rows = 5, 5
+    if(str(Q2_Y_Bin_Input) == "12"):
+        columns, rows = 5, 5
+    if(str(Q2_Y_Bin_Input) == "13"):
+        columns, rows = 5, 6
+    if(str(Q2_Y_Bin_Input) == "14"):
+        columns, rows = 6, 6
+    if(str(Q2_Y_Bin_Input) == "15"):
+        columns, rows = 5, 5
+    if(str(Q2_Y_Bin_Input) == "16"):
+        columns, rows = 6, 5
+    if(str(Q2_Y_Bin_Input) == "17"):
+        columns, rows = 6, 5
+    return [rows, columns]
+    # For normal orientation, row -> z values while columns -> pT values
 
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
 
 
 

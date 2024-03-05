@@ -879,6 +879,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Extra_Name = "".join(["Smearing_Limit_", str(smear_factor).replace(".", ""), "_V2_"])
             # Same as "Smearing_Limit_V2_" but with any value of smear_factor not being equal to the default value of 0.75
             # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
+            
+            
+        Extra_Name = "Smearing_Limit_V3_"
+        # Ran on 2/28/2024
+        # New smearing function based on using ∆P(MC) = P_Gen - P_Rec instead of ∆P = P_Calc - P_Rec
+            # Using this to get the resolution of the MC lends itself more to easier smearing corrections which should not have to be iterative
+                # i.e., these corrections should be easier to get working and will keep each particle's correction independent of the other particle's kinematics
+
+        if(smear_factor != "0.75"):
+            Extra_Name = "".join(["Smearing_Limit_", str(smear_factor).replace(".", ""), "_V3_"])
+            # Same as "Smearing_Limit_V3_" but with any value of smear_factor not being equal to the default value of 0.75
+            # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
         
     if(Use_Weight):
         if(not Q4_Weight):
@@ -971,7 +983,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return pip0_E;"""]))
             
         except:
-            print("\nMomentum Corrections Failed...\n")
+            print(f"{color.Error}\nMomentum Corrections Failed...\n{color.END}")
             rdf = rdf.Define("el_E", """
             auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
             auto ele_E = ele.E();

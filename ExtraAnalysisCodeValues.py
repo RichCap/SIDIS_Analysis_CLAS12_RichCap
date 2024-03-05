@@ -997,7 +997,7 @@ auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_
 
 
 
-# Up-to-date as of: 2/12/2024
+# Up-to-date as of: 2/28/2024
 def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
     if(Use_Pass_2_Function):
         smearing_function = "".join(["""
@@ -1049,12 +1049,20 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
             double Phi_rec = V4.Phi();
             
             double Smear_SF_Theta = 0;
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (-1.2992e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (3.0979e-04)*(TMath::RadToDeg()*Th_rec) + (2.2603e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (-1.6372e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.0984e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4164e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
             if(ivec == 0){ // Electron
-                Smear_SF_Theta = (-1.2992e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (3.0979e-04)*(TMath::RadToDeg()*Th_rec) + (2.2603e-03);
+                Smear_SF_Theta = (-3.2898e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0264e-03)*(TMath::RadToDeg()*Th_rec) + (-2.3797e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             if(ivec == 1){ // Pi+ Pion
-                Smear_SF_Theta = (-1.6372e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.0984e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4164e-03);
+                Smear_SF_Theta = (1.3188e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.3662e-04)*(TMath::RadToDeg()*Th_rec) + (9.5990e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             
