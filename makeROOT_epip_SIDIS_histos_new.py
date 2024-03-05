@@ -788,6 +788,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Running without GEN_MM_CUT plots
         # Running without 'MultiDim_z_pT_Bin_Y_bin_phi_t' (single def of 3D unfolding bins)
         # Removed z-pT overflow bins
+        
+        
+    Extra_Name = "New_Q2_Y_Bins_V3_"
+    # Ran on 3/5/2024
+    # Running with new Q2-y Bins (bin option = "Y_bins")
+    # Plots/Options added/removed:
+        # (Still) running WITHOUT smearing
+        # Running with Sector Cuts ('no_cut_eS1o'/'cut_Complete_SIDIS_eS1o')
+        # Running with Electron/Pi+ Sectors (esec/pipsec) vs phi_t Plots
+        # Removed 2D plots of pT vs phi_t
+        # Not running the 1D MultiDim_z_pT_Bin_Y_bin_phi_t Plots (using regular 3D unfolding methods only)
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -5328,7 +5339,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     cut_list = ['no_cut']
     # cut_list.append('no_cut_eS1a')
-    # cut_list.append('no_cut_eS1o')
+    cut_list.append('no_cut_eS1o')
     # cut_list.append('no_cut_eS2o')
     # cut_list.append('no_cut_eS3o')
     # cut_list.append('no_cut_eS4o')
@@ -5337,7 +5348,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
         # cut_list.append('cut_Complete_SIDIS_eS1a')
-        # cut_list.append('cut_Complete_SIDIS_eS1o')
+        cut_list.append('cut_Complete_SIDIS_eS1o')
         # cut_list.append('cut_Complete_SIDIS_eS2o')
         # cut_list.append('cut_Complete_SIDIS_eS3o')
         # cut_list.append('cut_Complete_SIDIS_eS4o')
@@ -5733,9 +5744,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     
     List_of_Quantities_1D = [phi_t_Binning]
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    # if("Y_bin" in binning_option_list):
+    #     print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+    #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -5772,6 +5783,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     # List_of_Quantities_2D = [[El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
     
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
     
     List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
