@@ -4916,8 +4916,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
             #         info_str += f"{bin}\t\t{content}\t\t{error}\n"
             #     Stats_Text_Output[]
                 
-            
-            configure_stat_box(hist=Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))], show_entries=True, canvas=All_z_pT_Canvas_cd_1_Lower.cd(1))
+            show_entries_condition = Method not in ["Acceptance"]
+            configure_stat_box(hist=Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))], show_entries=show_entries_condition, canvas=All_z_pT_Canvas_cd_1_Lower.cd(1))
 
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
 
@@ -5421,7 +5421,7 @@ Common_Name = "Gen_Cuts_V8_All"
 # # Common_Name = "Pass_2_CrossCheck_V2_All"
 
 Common_Name = "New_Q2_Y_Bins_V2_All"
-# Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
+Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
