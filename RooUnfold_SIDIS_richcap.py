@@ -4,6 +4,9 @@ import sys
 
 print("Starting...\n")
 
+from datetime import datetime
+datetime_object_full = datetime.now() # Getting Current Date
+
 from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 import math
@@ -15,8 +18,6 @@ from Convert_MultiDim_Kinematic_Bins  import *
 # ROOT.gROOT.SetBatch(1)
 
 import traceback
-from datetime import datetime
-
 import shutil
 import os
 
@@ -157,8 +158,8 @@ if(len(sys.argv) > 2):
 print("".join([color.BOLD, "\nStarting RG-A SIDIS Analysis\n", color.END]))
 
 
-# Getting Current Date
-datetime_object_full = datetime.now()
+# # Getting Current Date
+# datetime_object_full = datetime.now()
 
 startMin_full = datetime_object_full.minute
 startHr_full  = datetime_object_full.hour
@@ -2474,9 +2475,12 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     z_pT_Histo_rdf_Initial   = Histogram_List_All_Input[str(z_pT__Histo_rdf_Initial_Name)]
     Q2_xB_Histo_rdf_Initial  = Histogram_List_All_Input[str(Q2_xB_Histo_rdf_Initial_Name)]
     
-    Q2_y__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(Q2)_(y)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
-    z_pT__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(z)_(pT)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
-    Q2_xB_Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),      "(Q2)_(xB)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    # Q2_y__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(Q2)_(y)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    # z_pT__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(z)_(pT)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    # Q2_xB_Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),      "(Q2)_(xB)")).replace("Smear", "''")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    Q2_y__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(Q2)_(y)")).replace("Smear", "Smear")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    z_pT__Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(z)_(pT)")).replace("Smear", "Smear")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
+    Q2_xB_Histo_mdf_Initial_Name  = str(str(str(Default_Histo_Name_Input.replace(str(Variable),      "(Q2)_(xB)")).replace("Smear", "Smear")).replace("Data_Type", "mdf")).replace("(1D)", "(Normal_2D)")
     Q2_y_Histo_mdf_Initial   = Histogram_List_All_Input[str(Q2_y__Histo_mdf_Initial_Name)]
     z_pT_Histo_mdf_Initial   = Histogram_List_All_Input[str(z_pT__Histo_mdf_Initial_Name)]
     Q2_xB_Histo_mdf_Initial  = Histogram_List_All_Input[str(Q2_xB_Histo_mdf_Initial_Name)]
@@ -2702,10 +2706,10 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     
     
     # Setting the range for P_el
-    Drawing_Histo_Set[str(elth___Histo_rdf_2D)].GetYaxis().SetRangeUser(2.2, 8)
-    Drawing_Histo_Set[str(elPhi__Histo_rdf_2D)].GetYaxis().SetRangeUser(2.2, 8)
-    Drawing_Histo_Set[str(elth___Histo_mdf_2D)].GetYaxis().SetRangeUser(2.2, 8)
-    Drawing_Histo_Set[str(elPhi__Histo_mdf_2D)].GetYaxis().SetRangeUser(2.2, 8)
+    Drawing_Histo_Set[str(elth___Histo_rdf_2D)].GetYaxis().SetRangeUser(2.08, 8)
+    Drawing_Histo_Set[str(elPhi__Histo_rdf_2D)].GetYaxis().SetRangeUser(2.08, 8)
+    Drawing_Histo_Set[str(elth___Histo_mdf_2D)].GetYaxis().SetRangeUser(2.08, 8)
+    Drawing_Histo_Set[str(elPhi__Histo_mdf_2D)].GetYaxis().SetRangeUser(2.08, 8)
     
     # Setting the range for Theta_el
     Drawing_Histo_Set[str(elth___Histo_rdf_2D)].GetXaxis().SetRangeUser(3, 37)
@@ -2861,6 +2865,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     
     for Name_1D in [Q2_____Histo_rdf_1D, Q2_____Histo_mdf_1D, y______Histo_rdf_1D, y______Histo_mdf_1D, z______Histo_rdf_1D, z______Histo_mdf_1D, pT_____Histo_rdf_1D, pT_____Histo_mdf_1D, xB_____Histo_rdf_1D, xB_____Histo_mdf_1D, el_____Histo_rdf_1D, el_____Histo_mdf_1D, elth___Histo_rdf_1D, elth___Histo_mdf_1D, pip____Histo_rdf_1D, pip____Histo_mdf_1D, pipth__Histo_rdf_1D, pipth__Histo_mdf_1D]:
         # Rebinning all comparisons except the lab phi angles
+        if(Drawing_Histo_Set[Name_1D].GetNbinsX()%2 == 1):
+            print(f"{color.ERROR}Drawing_Histo_Set[{Name_1D}] has an odd number of bins...{color.END}")
         Drawing_Histo_Set[Name_1D].Rebin(2)
     
         
@@ -4406,8 +4412,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, Method="rdf", Q
     ####  Upper Left - i.e., 2D Histograms  ############################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     # Q2_y_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
     # z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
-    Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
-    z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(Q2)_(y)")).replace("Smear", "''" if(((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) and (str(Method) not in ["mdf", "pdf", "bbb", "Unfold"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
+    z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if(((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) and (str(Method) not in ["mdf", "pdf", "bbb", "Unfold"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")
     if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option not in ["Cut"])):
         Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
         z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", str(Method), ")_(no_cut)_(SMEAR"]))
@@ -5421,7 +5427,7 @@ Common_Name = "Gen_Cuts_V8_All"
 # # Common_Name = "Pass_2_CrossCheck_V2_All"
 
 Common_Name = "New_Q2_Y_Bins_V2_All"
-# Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
+Common_Name = "Pass_2_New_Q2_Y_Bins_V3_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -5450,8 +5456,8 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
@@ -5459,6 +5465,7 @@ else:
     MC_REC_File_Name = "Gen_Cuts_V2_Fixed_All"
     MC_REC_File_Name = "CrossCheck_V3_All"
 #     MC_REC_File_Name = "Pass_2_CrossCheck_V3_All"
+    MC_REC_File_Name = "Pass_2_New_Q2_Y_Bins_V3_Smeared_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -5668,18 +5675,24 @@ for ii in mdf.GetListOfKeys():
     Conditions_For_Unfolding.append("Response_Matrix_Normal_1D"    not in str(out_print_main))
     
     ## Correct Cuts:
-    Conditions_For_Unfolding.append('''"no_cut"             not in str(out_print_main)''')
-    Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"no_cut"                not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("no_cut"                   not in str(out_print_main))
     
-    Conditions_For_Unfolding.append('''"cut_Complete_EDIS"  not in str(out_print_main)''')
-    Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"cut_Complete_EDIS"     not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("cut_Complete_EDIS"        not in str(out_print_main))
+    
+    # Do not include the electron sector cuts here
+    Conditions_For_Unfolding.append('''"cut_Complete_SIDIS_eS" not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
+    Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
+    Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
     
     ## Generated Missing Mass Cuts (not ready yet)
     if(Common_Name not in ["Gen_Cuts_V7_All"]):
-        Conditions_For_Unfolding.append('''"Gen_MM_Cut"     not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Gen_MM_Cut"        not in str(out_print_main))
-        Conditions_For_Unfolding.append('''"Gen_Cut_MM"     not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Gen_Cut_MM"        not in str(out_print_main))
+        Conditions_For_Unfolding.append('''"Gen_MM_Cut"        not in str(out_print_main)''')
+        Conditions_For_Unfolding.append("Gen_MM_Cut"           not in str(out_print_main))
+        Conditions_For_Unfolding.append('''"Gen_Cut_MM"        not in str(out_print_main)''')
+        Conditions_For_Unfolding.append("Gen_Cut_MM"           not in str(out_print_main))
     
 
     ## Correct Variable(s):
@@ -6593,7 +6606,7 @@ if(tdf not in ["N/A"]):
 for ii in mdf.GetListOfKeys():
     try:
         out_print_main = str(ii.GetName())
-        if("Normal_2D" in out_print_main):
+        if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut"]))):
             mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
             mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)", "")
             mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
