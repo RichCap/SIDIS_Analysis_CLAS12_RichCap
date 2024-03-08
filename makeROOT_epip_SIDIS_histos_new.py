@@ -799,7 +799,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Running with Electron/Pi+ Sectors (esec/pipsec) vs phi_t Plots
         # Removed 2D plots of pT vs phi_t
         # Not running the 1D MultiDim_z_pT_Bin_Y_bin_phi_t Plots (using regular 3D unfolding methods only)
-    
+        
+        
+    if(datatype not in ["rdf", "gdf"]):
+        Extra_Name = "New_Q2_Y_Bins_V3_Smeared_"
+        # Ran on 3/7/2024
+        # Same as Extra_Name = "New_Q2_Y_Bins_V3_" but the Monte Carlo is always smeared
+            # For unsmeared plots, see the above version
+            # Smearing is done with the simple smearing factor (used before ∆P/P)
+            # Running same info for Pass 1 and Pass 2
     
     if(run_Mom_Cor_Code == "yes"):
         Extra_Name = "New_Smearing_V1_"
@@ -903,6 +911,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Same as "Smearing_Limit_V3_" but with any value of smear_factor not being equal to the default value of 0.75
             # This default may be changed soon (smear_factor > 1 may work better with the new form of the smearing functions)
         
+        
+        
+        Extra_Name = "Smear_Test_V1_"
+        # Ran on 3/8/2024
+        # Testing simple smearing factor SF (instead of smearing functions based on ∆P/P vs Theta)
+            # Testing with Pass 2
+            # Goes with the Extra_Name = "New_Q2_Y_Bins_V3_Smeared_" for the SIDIS plots and the Extra_Name = "New_Smearing_V4_" files for Pass 1 and the Extra_Name = "New_Smearing_V7_" files for Pass 2
+        if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Extra_Name)):
+            Extra_Name = Extra_Name.replace("_V", "".join([str(smear_factor).replace(".", ""), "_V"]))
+            # Same as the last version of Extra_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
+            
     if(Use_Weight):
         if(not Q4_Weight):
             # Using the modulations of the Generated Monte Carlo
@@ -1589,7 +1608,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             V4_smear.SetPhi( Phi_new_rec);
             return V4_smear;
         };"""]) 
-    smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
+#     smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
+    smearing_function = smearing_function if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
         //===========================================================================//
         //=================//     Smearing Function (From FX)     //=================//
         //===========================================================================//
@@ -5830,8 +5850,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             print("".join(["\t(*) ", str(histo_3D)]))
     
     smearing_options_list = ["", "smear"]
-    # smearing_options_list = ["smear"]
-    smearing_options_list = [""]
+    smearing_options_list = ["smear"]
+#     smearing_options_list = [""]
     
     if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
         # When running the momentum correction/smearing code, the smearing options list should include "smear"
@@ -5839,9 +5859,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     if(datatype in ["rdf", "gdf"]):
         # Do not smear data or generated MC
-        for ii in smearing_options_list:
-            if("smear" in ii):
-                smearing_options_list.remove(ii)
+        smearing_options_list = [""]
+        # for ii in smearing_options_list:
+        #     if("smear" in ii):
+        #         smearing_options_list.remove(ii)
                 
     if(Use_Pass_2 and ("smear" in smearing_options_list)):
         print(f"\n{color.BOLD}Using Pass 2 momentum smearing function\n{color.END}")
