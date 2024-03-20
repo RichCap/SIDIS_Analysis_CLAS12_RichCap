@@ -5465,7 +5465,7 @@ else:
     MC_REC_File_Name = "Gen_Cuts_V2_Fixed_All"
     MC_REC_File_Name = "CrossCheck_V3_All"
 #     MC_REC_File_Name = "Pass_2_CrossCheck_V3_All"
-    MC_REC_File_Name = "Pass_2_New_Q2_Y_Bins_V3_Smeared_All"
+    MC_REC_File_Name = "Pass_2_New_Q2_Y_Bins_V3_Smeared_V2_All"
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -6954,10 +6954,13 @@ for variable in Variable_List:
                                         Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
                                         Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
                                         
+                                        # # TEMPORARY PASS 2 EXCLUSION
+                                        #     # REMOVE THE if() STATEMENT ONLY
+                                        # if(not (str(round(pT_bin_min, 3)) in ["0.05"])):
                                         Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
                                         # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
                                         Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin: ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}"]), "lep")
-                                        
+
                                     if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
                                         Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
                                         # Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))

@@ -808,6 +808,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # For unsmeared plots, see the above version
             # Smearing is done with the simple smearing factor (used before ∆P/P)
             # Running same info for Pass 1 and Pass 2
+            
+        Extra_Name = "New_Q2_Y_Bins_V3_Smeared_V2_"
+        # Ran on 3/9/2024
+        # Same as Extra_Name = "New_Q2_Y_Bins_V3_Smeared_" but using a smearing factor of 1.75 instead of 0.75
     
     if(run_Mom_Cor_Code == "yes"):
         Extra_Name = "New_Smearing_V1_"
@@ -918,8 +922,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Testing simple smearing factor SF (instead of smearing functions based on ∆P/P vs Theta)
             # Testing with Pass 2
             # Goes with the Extra_Name = "New_Q2_Y_Bins_V3_Smeared_" for the SIDIS plots and the Extra_Name = "New_Smearing_V4_" files for Pass 1 and the Extra_Name = "New_Smearing_V7_" files for Pass 2
+            
+            
+        Extra_Name = "Smear_Test_V2_"
+        # Ran on 3/19/2024
+        # Testing smearing function where the SF is treated as error propagation (is based on ∆P/P vs Theta plots)
+            # Testing with Pass 1 and Pass 2
+            # Goes with the Extra_Name = "New_Q2_Y_Bins_V3_Smeared_" for the SIDIS plots and the Extra_Name = "New_Smearing_V4_" files for Pass 1 and the Extra_Name = "New_Smearing_V7_" files for Pass 2
+            # Otherwise is the same as "Smear_Test_V1_"
         if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Extra_Name)):
-            Extra_Name = Extra_Name.replace("_V", "".join([str(smear_factor).replace(".", ""), "_V"]))
+            Extra_Name = Extra_Name.replace("_V", "".join(["_", str(smear_factor).replace(".", ""), "_V"]))
             # Same as the last version of Extra_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
             
     if(Use_Weight):
@@ -1608,8 +1620,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             V4_smear.SetPhi( Phi_new_rec);
             return V4_smear;
         };"""]) 
-#     smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
-    smearing_function = smearing_function if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
+    # smearing_function = smearing_function if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
+    smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
         //===========================================================================//
         //=================//     Smearing Function (From FX)     //=================//
         //===========================================================================//
@@ -5853,7 +5865,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     smearing_options_list = ["smear"]
 #     smearing_options_list = [""]
     
-    if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
+    # if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
+    if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"])):
         # When running the momentum correction/smearing code, the smearing options list should include "smear"
         smearing_options_list = ["", "smear"]
         
@@ -6007,12 +6020,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         # histo_options = ["Response_Matrix_Normal"]
             
                         if(Binning in ["2", "OG", "Off", "off", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]):
-                            histo_options = ["Normal", "Response_Matrix_Normal", "Background_Response_Matrix"]
+                            # histo_options = ["Normal", "Response_Matrix_Normal", "Background_Response_Matrix"]
+                            histo_options = ["Normal", "Normal_Background", "Response_Matrix_Normal", "Background_Response_Matrix"]
                         else:
-                            histo_options = ["Normal", "Background_Response_Matrix"]
+                            histo_options = ["Normal", "Normal_Background", "Background_Response_Matrix"]
                             
+                        # Cannot create 'Background' plots for experimental data (using the same definition of 'Background' used here)
                         if((Histo_Data in ["rdf"]) and ("Background_Response_Matrix" in histo_options)):
                             histo_options.remove("Background_Response_Matrix")
+                        if((Histo_Data in ["rdf"]) and ("Normal_Background"          in histo_options)):
+                            histo_options.remove("Normal_Background")
                             
                         if(len(List_of_Quantities_1D) == 0):
                             if(Alert_of_Response_Matricies):
@@ -6293,7 +6310,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##################################################=========================================##########################################################################################################################################
 ##======##======##======##======##======##======##     Normal (1D/2D/3D) Histograms        ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 ##################################################=========================================##########################################################################################################################################
-                            if(Histo_Group in ["Normal", "Has_Matched", "Bin_Purity", "Delta_Matched"]):
+                            if(Histo_Group in ["Normal", "Normal_Background", "Has_Matched", "Bin_Purity", "Delta_Matched"]):
 
                                 Histo_Binning      = [Binning, "All", "All"]
                                 Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
@@ -6413,14 +6430,34 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:" if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "'-[Q2-y-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
-                                        Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
-                                        Title_2D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_2D[0][0])).replace(" (Smeared)", ""), " vs. ", str(variable_Title_name(Vars_2D[1][0]))])
-                                        Title_2D_L2   = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
-                                        Title_2D_L3   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
-                                        Title_2D_Axis = "".join(["z-P_{T} Bin", " (Smeared)" if("smear" in Histo_Smear) else "", "; ", str(variable_Title_name(Vars_2D[0][0])), "; ", str(variable_Title_name(Vars_2D[1][0]))])
-                                        Title_2D_Out  = "".join(["#splitline{#splitline{", str(Title_2D_L1), "}{", str(Title_2D_L2), "}}{", str(Title_2D_L3), "};", str(Title_2D_Axis)])
-                                        Title_2D_Out  = Title_2D_Out.replace(") (", " - ")
-                                        Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        Histo_Name      = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                        Title_2D_L1     = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_2D[0][0])).replace(" (Smeared)", ""), " vs. ", str(variable_Title_name(Vars_2D[1][0]))])
+                                        Title_2D_L2     = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
+                                        Title_2D_L3     = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
+                                        if(Histo_Group  in ["Normal_Background"]):
+                                            Title_2D_L3 = "".join(["#splitline{Background Plot}{", str(Title_2D_L3), "}"])
+                                        Title_2D_Axis   = "".join(["z-P_{T} Bin", " (Smeared)" if("smear" in Histo_Smear) else "", "; ", str(variable_Title_name(Vars_2D[0][0])), "; ", str(variable_Title_name(Vars_2D[1][0]))])
+                                        Title_2D_Out    = "".join(["#splitline{#splitline{", str(Title_2D_L1), "}{", str(Title_2D_L2), "}}{", str(Title_2D_L3), "};", str(Title_2D_Axis)])
+                                        Title_2D_Out    = Title_2D_Out.replace(") (", " - ")
+                                        Bin_Filter      = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        
+                                        if(Histo_Group  in ["Normal_Background"]):
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && ({Background_Cuts_MC})"
+                                            else:
+                                                Bin_Filter = f"({Background_Cuts_MC})"
+                                        elif(Histo_Data in ["mdf", "pdf", "gen"]):
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})"
+                                            else:
+                                                Bin_Filter = f"!({Background_Cuts_MC})"
+                                        elif(Histo_Data in ["gdf"]):
+                                            filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && !({filter_gdf_background})"
+                                            else:
+                                                Bin_Filter = f"!({filter_gdf_background})"
+                                            del filter_gdf_background
                                         
                                         if(Use_Weight):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
@@ -6483,10 +6520,31 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_3D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_3D[0][0])).replace(" (Smeared)", ""), " vs ", str(variable_Title_name(Vars_3D[1][0])).replace(" (Smeared)", ""), " vs ", str(variable_Title_name(Vars_3D[2][0]))])
                                         Title_3D_L2   = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
                                         Title_3D_L3   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
+                                        if(Histo_Group  in ["Normal_Background"]):
+                                            Title_2D_L3 = "".join(["#splitline{Background Plot}{", str(Title_2D_L3), "}"])
                                         Title_3D_Axis = "".join([str(variable_Title_name(Vars_3D[2][0])), "; ", str(variable_Title_name(Vars_3D[0][0])), "; ", str(variable_Title_name(Vars_3D[1][0]))])
                                         Title_3D_Out  = "".join(["#splitline{#splitline{", str(Title_3D_L1), "}{", str(Title_3D_L2), "}}{", str(Title_3D_L3), "};", str(Title_3D_Axis)])
                                         Title_3D_Out  = Title_3D_Out.replace(") (", " - ")
                                         Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
+                                        
+                                        if(Histo_Group  in ["Normal_Background"]):
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && ({Background_Cuts_MC})"
+                                            else:
+                                                Bin_Filter = f"({Background_Cuts_MC})"
+                                        elif(Histo_Data in ["mdf", "pdf", "gen"]):
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})"
+                                            else:
+                                                Bin_Filter = f"!({Background_Cuts_MC})"
+                                        elif(Histo_Data in ["gdf"]):
+                                            filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
+                                            if(Bin_Filter not in [""]):
+                                                Bin_Filter = f"({Bin_Filter}) && !({filter_gdf_background})"
+                                            else:
+                                                Bin_Filter = f"!({filter_gdf_background})"
+                                            del filter_gdf_background
+                                        
                                         
                                         Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_3D_Out), Vars_3D[2][3], Vars_3D[2][1], Vars_3D[2][2], Vars_3D[0][3], Vars_3D[0][1], Vars_3D[0][2], Vars_3D[1][3], Vars_3D[1][1], Vars_3D[1][2]), str(Vars_3D[2][0]), str(Vars_3D[0][0]), str(Vars_3D[1][0]))
 

@@ -997,7 +997,7 @@ auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_
 
 
 
-# Up-to-date as of: 2/28/2024
+# Up-to-date as of: 3/19/2024
 def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
     if(Use_Pass_2_Function):
         smearing_function = "".join(["""
@@ -1012,14 +1012,24 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
             double Phi_rec = V4.Phi();
             
             double Smear_SF_Theta = 0;
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (2.9693e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-1.3409e-03)*(TMath::RadToDeg()*Th_rec) + (0.01712);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (2.4652e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-3.0371e-04)*(TMath::RadToDeg()*Th_rec) + (4.3560e-04);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
             if(ivec == 0){ // Electron
-                Smear_SF_Theta = (2.9693e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-1.3409e-03)*(TMath::RadToDeg()*Th_rec) + (0.01712);
+                Smear_SF_Theta = (-5.4842e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.1920e-03)*(TMath::RadToDeg()*Th_rec) + (-8.6631e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             if(ivec == 1){ // Pi+ Pion
-                Smear_SF_Theta = (2.4652e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-3.0371e-04)*(TMath::RadToDeg()*Th_rec) + (4.3560e-04);
+                Smear_SF_Theta = (4.0905e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.0371e-04)*(TMath::RadToDeg()*Th_rec) + (0.01161);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
+            
+            
             // Calculate resolutions
             double smear_factor = """, str(smear_factor), """;
             double P_new_rec    = P_rec   +   (P_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
@@ -1057,14 +1067,24 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
             //     Smear_SF_Theta = (-1.6372e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.0984e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4164e-03);
             //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             // }
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (-3.2898e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0264e-03)*(TMath::RadToDeg()*Th_rec) + (-2.3797e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (1.3188e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.3662e-04)*(TMath::RadToDeg()*Th_rec) + (9.5990e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            
             if(ivec == 0){ // Electron
-                Smear_SF_Theta = (-3.2898e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0264e-03)*(TMath::RadToDeg()*Th_rec) + (-2.3797e-03);
+                Smear_SF_Theta = (-3.5461e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.6259e-03)*(TMath::RadToDeg()*Th_rec) + (-5.0735e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             if(ivec == 1){ // Pi+ Pion
-                Smear_SF_Theta = (1.3188e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.3662e-04)*(TMath::RadToDeg()*Th_rec) + (9.5990e-03);
+                Smear_SF_Theta = (-1.0458e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.4779e-04)*(TMath::RadToDeg()*Th_rec) + (0.01136);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
+            
             
             // Calculate resolutions
             double smear_factor = """, str(smear_factor), """;
