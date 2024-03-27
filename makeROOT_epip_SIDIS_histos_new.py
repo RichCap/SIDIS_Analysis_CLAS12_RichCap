@@ -69,8 +69,13 @@ Use_Pass_2 = False
 Use_Weight = False
 # Use_Weight = True
 
+# Option to turn on and off Momentum Corrections ('yes' will turn the corrections on)
+Mom_Correction_Q = "yes"
+# Mom_Correction_Q = "no"
+
 SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
-Momentum_Cor_List = ["_Mom",   "_mom",   "_Cor",     "_cor"]
+Momentum_Cor_List = ["_Mom",   "_mom"]
+Use__Mom_Cor_List = ["_UnCor", "_Uncor"]
 Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight", "_Q4"]
 Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",    "_Pass2", "_P1",      "_Pass1"]
@@ -85,6 +90,13 @@ for mom_cor in Momentum_Cor_List:
     if(str(mom_cor) in str(datatype)):
         run_Mom_Cor_Code = "yes"
         datatype         = str(datatype).replace(str(mom_cor), "")
+        break
+        
+for use_cor in Use__Mom_Cor_List:
+    if(str(use_cor) in str(datatype)):
+        Mom_Correction_Q = "no"
+        # Default option is to use the momentum corrections whenever possible (unless some other option is automatically selected below due to availability or applicability of the correction)
+        datatype         = str(datatype).replace(str(use_cor), "")
         break
         
 for smear in Smear_Factor_List:
@@ -120,6 +132,7 @@ for pass_ver in Pass_Version_List:
     
 del SIDIS_Unfold_List
 del Momentum_Cor_List
+del Use__Mom_Cor_List
 del Using_Weight_List
 del Pass_Version_List
 del sidis
@@ -144,9 +157,6 @@ print("".join(["Output type will be: ", output_type]))
 
 from MyCommonAnalysisFunction_richcap import color, color_bg, root_color
 
-# Option to turn on and off Momentum Corrections ('yes' will turn the corrections on)
-Mom_Correction_Q = "yes"
-# Mom_Correction_Q = "no"
 
 if(datatype in ['gdf']):
     Mom_Correction_Q = "no"
@@ -156,9 +166,9 @@ if(datatype in ['gdf']):
 
 if(Use_Pass_2):
     print(f"\n{color.BOLD}{color.BLUE}Running the code with Pass 2 Data\n{color.END}")
-    
-    print(f"\n{color.BOLD}Cannot run Momentum Corrections with Pass 2 Data (yet)...\n{color.END}")
-    Mom_Correction_Q = "no"
+    if(("rdf" not in str(datatype)) and (Mom_Correction_Q not in ["no"])):
+        print(f"\n{color.BOLD}No Pass 2 Momentum Corrections are available (yet) for the Monte Carlo Simulations...\n{color.END}")
+        Mom_Correction_Q = "no"
 
 
 import ROOT 
@@ -192,7 +202,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",              "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                              "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                    "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                     "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -800,7 +810,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Removed 2D plots of pT vs phi_t
         # Not running the 1D MultiDim_z_pT_Bin_Y_bin_phi_t Plots (using regular 3D unfolding methods only)
         
-        
     if(datatype not in ["rdf", "gdf"]):
         Extra_Name = "New_Q2_Y_Bins_V3_Smeared_"
         # Ran on 3/7/2024
@@ -812,6 +821,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Extra_Name = "New_Q2_Y_Bins_V3_Smeared_V2_"
         # Ran on 3/9/2024
         # Same as Extra_Name = "New_Q2_Y_Bins_V3_Smeared_" but using a smearing factor of 1.75 instead of 0.75
+        
+        
+    Extra_Name = "New_Q2_Y_Bins_V4_"
+    # Ran on 3/26/2024
+    # Running with new Q2-y Bins (bin option = "Y_bins")
+    # Plots/Options added/removed:
+        # Running WITH smearing (Same as developed with Extra_Name = "Smear_Test_V2_")
+        # Running with Sector Cuts ('no_cut_eS1o'/'cut_Complete_SIDIS_eS1o')
+        # Running with Electron/Pi+ Sectors (esec/pipsec) vs phi_t Plots
+        # Not running the 1D MultiDim_z_pT_Bin_Y_bin_phi_t Plots (using regular 3D unfolding methods only)
+        # Doubled the binning for the electron/pion kinematic plots (i.e., lab p, theta, and phi plots)
+        # Added optional Momentum Corrections from the input commands (default is to still run with the momentum corrections, but now they will not need to be manually turned on/off to run with appropriate data sets)
+            # Pass 2 (Data) Momentum Corrections are now available
+            
+    if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
+        Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
+        # Not applying momentum corrections (despite them being available)
+    
     
     if(run_Mom_Cor_Code == "yes"):
         Extra_Name = "New_Smearing_V1_"
@@ -937,6 +964,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Same smearing function as Extra_Name = "Smear_Test_V2_" but using ∆P = P_Calc - P_Rec again instead of ∆P(MC) = P_Gen - P_Rec
         # Also new plots to show the particle angles vs momentum per sector (4 new plots in total)
             # Reran for the Experimental data plots as well
+            
+            
+        Extra_Name = "Smear_Test_V4_"
+        # Ran on 3/26/2024
+        # Same smearing function as Extra_Name = "Smear_Test_V3_" and still using ∆P = P_Calc - P_Rec again instead of ∆P(MC) = P_Gen - P_Rec
+        # Added new type of cut which restricts the events into a defined kinematic bin (applied on top of the other standard/existing cuts)
+            # Changed the standard binning option to the new "Y_bin" option instead of the old "y_bin" bins
+        # Option has been added to run with the Pass 2 (Data) Momentum Corrections
+
+        if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
+            Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
+            # Not applying momentum corrections (despite them being available)
+            
         if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Extra_Name)):
             Extra_Name = Extra_Name.replace("_V", "".join(["_", str(smear_factor).replace(".", ""), "_V"]))
             # Same as the last version of Extra_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
@@ -5886,8 +5926,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             print("".join(["\t(*) ", str(histo_3D)]))
     
     smearing_options_list = ["", "smear"]
-    smearing_options_list = ["smear"]
-#     smearing_options_list = [""]
+    # smearing_options_list = ["smear"]
+    # smearing_options_list = [""]
     
     # if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
     if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"])):
@@ -6292,8 +6332,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Pip_Theta_SF_Title),              Pip_SF_Num, Pip_SF_Min, Pip_SF_Max, 100,     0,    8, 100,     0,   40), "DP_pip_SF"          if("smear" not in Histo_Smear) else "DP_pip_SF_smeared",  "pip"                  if("smear" not in Histo_Smear) else "pip_smeared",                  "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
                                 
                                 if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
-                                    Histograms_All[Mom_Cor_Histo_Name_Dele_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dele_SF,          str(Mom_Cor_Histo_Name_Dele_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dele_SF", "Q2_y_Bin", "z_pT_Bin_y_bin")
-                                    Histograms_All[Mom_Cor_Histo_Name_Dpip_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dpip_SF,          str(Mom_Cor_Histo_Name_Dpip_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dpip_SF", "Q2_y_Bin", "z_pT_Bin_y_bin")
+                                    Histograms_All[Mom_Cor_Histo_Name_Dele_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dele_SF,          str(Mom_Cor_Histo_Name_Dele_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dele_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
+                                    Histograms_All[Mom_Cor_Histo_Name_Dpip_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dpip_SF,          str(Mom_Cor_Histo_Name_Dpip_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dpip_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##
@@ -6510,6 +6550,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             else:
                                                 Bin_Filter = f"!({filter_gdf_background})"
                                             del filter_gdf_background
+                                        if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
+                                            Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
                                         
                                         if(Use_Weight):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
