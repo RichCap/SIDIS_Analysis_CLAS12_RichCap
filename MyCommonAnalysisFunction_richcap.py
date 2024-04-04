@@ -672,7 +672,7 @@ Bin_Definition_Array = {'Q2-y=1, z-pT=1': [0.71, 0.4, 0.22, 0.05], 'Q2-y=1, z-pT
 ##=========================================================================================##
 
 def Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=1):
-    Total_Number_of_Bins, Migration_Bin_1, Migration_Bin_2 = 1, 1, 2
+    Total_Number_of_Bins, Migration_Bin_1, Migration_Bin_2 = 1, 1, list(range(1, 55))
     if(str(Q2_y_Bin_Num_In) in ['1']):
         Migration_Bin_2 = [21, 27, 28, 33, 34, 35]
         Migration_Bin_1 = 35

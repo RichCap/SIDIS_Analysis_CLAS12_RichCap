@@ -65,6 +65,10 @@ smear_factor = "0.75"
 Use_Pass_2 = False
 
 
+# Run Reconstructed MC with Smearing Function (Run_With_Smear is automatically set to False if the datatype inputs include "rdf" or "gdf")
+Run_With_Smear = True
+
+
 # Use_Weight corresponses to weighing the MC events to add modulations to the generated simulated data (used as a closure test)
 Use_Weight = False
 # Use_Weight = True
@@ -73,12 +77,13 @@ Use_Weight = False
 Mom_Correction_Q = "yes"
 # Mom_Correction_Q = "no"
 
-SIDIS_Unfold_List = ["_SIDIS", "_sidis", "_unfold",  "_Unfold"]
-Momentum_Cor_List = ["_Mom",   "_mom"]
-Use__Mom_Cor_List = ["_UnCor", "_Uncor"]
-Using_Weight_List = ["_mod",   "_close", "_closure", "_weighed", "_use_weight", "_Q4"]
-Smear_Factor_List = ["_0.5",   "_0.75",  "_0.7",     "_0.8",     "_0.9", "_1.0", "_1.2", "_1.5", "_1.75", "_2.0", "_FX"]
-Pass_Version_List = ["_P2",    "_Pass2", "_P1",      "_Pass1"]
+SIDIS_Unfold_List = ["_SIDIS",  "_sidis", "_unfold",   "_Unfold"]
+Momentum_Cor_List = ["_Mom",    "_mom"]
+Use__Mom_Cor_List = ["_UnCor",  "_Uncor", "mdf",       "gdf"]
+Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight", "_Q4"]
+Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
+Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0", "_1.2", "_1.5", "_1.75", "_2.0", "_FX"]
+Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1"]
 
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
@@ -96,9 +101,25 @@ for use_cor in Use__Mom_Cor_List:
     if(str(use_cor) in str(datatype)):
         Mom_Correction_Q = "no"
         # Default option is to use the momentum corrections whenever possible (unless some other option is automatically selected below due to availability or applicability of the correction)
-        datatype         = str(datatype).replace(str(use_cor), "")
+            # Only applies to experimental data (as of 3-29-2024)
+        if("_" in str(use_cor)):
+            datatype     = str(datatype).replace(str(use_cor), "")
         break
-        
+
+
+for smearQ in Smear_Option_List:
+    if(str(smearQ) in str(datatype)):
+        if("_" in str(smearQ)):
+            datatype     = str(datatype).replace(str(smearQ), "")
+        if(run_Mom_Cor_Code == "no"):
+            Run_With_Smear   = False
+            if("mdf" in str(datatype)):
+                print("\033[91m\033[1m\nNot Smearing\n\033[0m")
+        else:
+            if("mdf" in str(datatype)):
+                print("\033[91m\033[1m\nIgnoring Option to not smear...\n\033[0m")
+        break
+    
 for smear in Smear_Factor_List:
     if(str(smear) in str(datatype)):
         smear_factor     = str(smear).replace("_", "")
@@ -129,14 +150,18 @@ for pass_ver in Pass_Version_List:
             Use_Pass_2 = False
         datatype   = str(datatype).replace(str(pass_ver), "")
         break
-    
+
 del SIDIS_Unfold_List
 del Momentum_Cor_List
 del Use__Mom_Cor_List
 del Using_Weight_List
+del Smear_Option_List
+del Smear_Factor_List
 del Pass_Version_List
 del sidis
 del mom_cor
+del use_cor
+del smearQ
 del smear
 del weight_Q
 del pass_ver
@@ -152,7 +177,8 @@ elif(output_type   not in ["histo", "data", "tree"]):
     if(output_type not in ["test", "time"]):
         output_type = "histo"
 
-print("".join(["Output type will be: ", output_type]))
+print("".join(["The Output type will be: ", output_type]))
+print("".join(["The Data type will be:   ", datatype]))
 
 
 from MyCommonAnalysisFunction_richcap import color, color_bg, root_color
@@ -824,16 +850,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         
     Extra_Name = "New_Q2_Y_Bins_V4_"
-    # Ran on 3/26/2024
+    # Ran on 3/26/2024 and 4/2/2024
     # Running with new Q2-y Bins (bin option = "Y_bins")
     # Plots/Options added/removed:
-        # Running WITH smearing (Same as developed with Extra_Name = "Smear_Test_V2_")
+        # Running WITH smearing (Same as developed with Extra_Name = "Smear_Test_V10_")
+            # Originally ran with smearing function developed with Extra_Name = "Smear_Test_V2_", but reran later with the updated version
         # Running with Sector Cuts ('no_cut_eS1o'/'cut_Complete_SIDIS_eS1o')
         # Running with Electron/Pi+ Sectors (esec/pipsec) vs phi_t Plots
         # Not running the 1D MultiDim_z_pT_Bin_Y_bin_phi_t Plots (using regular 3D unfolding methods only)
         # Doubled the binning for the electron/pion kinematic plots (i.e., lab p, theta, and phi plots)
         # Added optional Momentum Corrections from the input commands (default is to still run with the momentum corrections, but now they will not need to be manually turned on/off to run with appropriate data sets)
             # Pass 2 (Data) Momentum Corrections are now available
+    # Had to rerun at a later date due to memory issues
+        # It seems like the issue may have involved the fact that too many plots were being made all at once
+        # Attempted Solution: Will run the smeared momentum separately from the unsmeared plots 
+            # Only effects the reconstructed monte carlo options, but those were the only files that truly failed
+            # MC generated plots had issues, but seemed to be able to successfully finish running
+            # Will also try increasing the requested memory slightly
+        
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -972,6 +1006,52 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Added new type of cut which restricts the events into a defined kinematic bin (applied on top of the other standard/existing cuts)
             # Changed the standard binning option to the new "Y_bin" option instead of the old "y_bin" bins
         # Option has been added to run with the Pass 2 (Data) Momentum Corrections
+        
+        
+        Extra_Name = "Smear_Test_V5_"
+        # Ran on 3/29/2024
+        # New smearing function for the Electron based on ∆P = P_Calc - P_Rec instead of ∆P(MC) = P_Gen - P_Rec
+            # No Pion Smearing (yet)
+        # Removed all cuts except the Exclusive cuts (for faster run time)
+        
+        Extra_Name = "Smear_Test_V6_"
+        # Ran on 3/29/2024
+        # New smearing function for the Pion based on ∆P = P_Calc - P_Rec instead of ∆P(MC) = P_Gen - P_Rec
+            # No Electron Smearing (yet)
+            # Need to smear the pion first or else the electron smearing function will over-smear it
+        # Removed Smearing function used in Extra_Name = "Smear_Test_V5_"
+        
+        Extra_Name = "Smear_Test_V7_"
+        # Ran on 4/1/2024
+        # New smearing function for the Electron based on ∆P = P_Calc - P_Rec instead of ∆P(MC) = P_Gen - P_Rec
+            # Got the new smearing function after smearing the pion (from Extra_Name = "Smear_Test_V6_")
+                # Needed to smear the pion first or else the electron smearing function would over-smear it
+                
+        Extra_Name = "Smear_Test_V8_"
+        # Ran on 4/1/2024
+        # Returning to the smearing function for the Pion from Extra_Name = "Smear_Test_V6_" and turned off the electron smearing
+            # Only using the pion smearing for the same reasons previously mentioned
+            # Major change: Smearing function now does P_smear = P_rec + Gaus(0, SF(Theta)) instead of P_smear = P_rec + SF(Theta)*Gaus(0, 1)
+                # SF(Theta) in this note represents a few different parameters contributing to the width
+                # SF(Theta) will still be 0 instead of being a negative number
+                
+        Extra_Name = "Smear_Test_V9_"
+        # Ran on 4/2/2024
+        # Created new smearing function for the Electron based on ∆P = P_Calc - P_Rec
+            # Got the new smearing function after smearing the pion (from Extra_Name = "Smear_Test_V8_")
+        # Returned to using addtitional cuts beyond just the exclusivity cuts
+        
+        
+        Extra_Name = "Smear_Test_V10_"
+        # Ran on 4/2/2024
+        # Reduced electron smearing by 50%
+            # The electron smearing function from Extra_Name = "Smear_Test_V9_" caused the pion to be over smeared (reduced it to try and counter this effect)
+            
+        Extra_Name = "Smear_Test_V11_"
+        # Ran on 4/2/2024
+        # Reduced electron smearing by 75% (from Extra_Name = "Smear_Test_V9_")
+            # The electron smearing function from Extra_Name = "Smear_Test_10_" was reduced by too great of a factor (basically became negligible)
+
 
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
             Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -1001,13 +1081,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     
     if(datatype == 'rdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_Data_REC_",        str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name     = "".join(["SIDIS_epip_Data_REC_",                      str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'mdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_",      str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_Matched_",                    str(Extra_Name), str(file_num), ".root"])
+        if((not Run_With_Smear) and (run_Mom_Cor_Code != "yes")):
+            ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_",      "Unsmeared_", str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'gdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_GEN_",          str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_GEN_",                        str(Extra_Name), str(file_num), ".root"])
     if(datatype == 'pdf'):
-        ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", str(Extra_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_Only_Matched_",               str(Extra_Name), str(file_num), ".root"])
+        if((not Run_With_Smear) and (run_Mom_Cor_Code != "yes")):
+            ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", "Unsmeared_", str(Extra_Name), str(file_num), ".root"])
         
     if(output_type in ["data", "test"]):
         ROOT_File_Output_Name = "".join(["DataFrame_", str(ROOT_File_Output_Name)])
@@ -1055,6 +1139,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("pipy", "py")
     if("pipz" not in rdf.GetColumnNames()):
         rdf = rdf.Define("pipz", "pz")
+        
+    if((Mom_Correction_Q in ["yes"]) and (str(datatype) in ["rdf"]) and Use_Pass_2):
+        print(f"{color.BOLD}{color.BLUE}\nApplying Pass 2 (Forward Detector) Energy Loss Corrections to the Pi+ Pion\n{color.END}")
+        for pion_mom in ["pipx", "pipy", "pipz"]:
+            rdf = rdf.Redefine(str(pion_mom), f"""
+                    double pip_mom =       sqrt(pipx*pipx + pipy*pipy + pipz*pipz);
+                    double pip__th = atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*(180/3.1415926);
+                    {Pion_Energy_Loss_Cor_Function}
+                    auto p_pip_loss = eloss_pip_In_Forward(pip_mom, pip__th);
+                    auto f_pip_loss = ((pip_mom + p_pip_loss)/pip_mom);
+                    return f_pip_loss*{pion_mom};
+                """)
+        
     
     if('calc' not in files_used_for_data_frame):
         #####################     Energy     #####################
@@ -1751,7 +1848,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##---------------------------------##=========================================##---------------------------------##
     ##===============================================================================================================##
     
-    if(datatype in ["mdf", "pdf"]):
+    if((datatype in ["mdf", "pdf"]) and Run_With_Smear):
         rdf = rdf.Define("smeared_vals", "".join(["""
         """, str(smearing_function),       """
         """, str(Correction_Code_Full_In), """
@@ -2877,7 +2974,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####=======================================================================================####
     ###############################################################################################
 
-    if(datatype not in ["rdf", "gdf"]):
+    if((datatype not in ["rdf", "gdf"]) and Run_With_Smear):
 
         rdf = rdf.Define("Delta_Pel_Cors_smeared", "".join([str(smearing_function), """
 """, str(Correction_Code_Full_In), """
@@ -3066,7 +3163,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     rdf = rdf.Define("DP_el_SF",  "Delta_Pel_Cors/el")
     rdf = rdf.Define("DP_pip_SF", "Delta_Ppip_Cors/pip")
-    if(datatype not in ["rdf", "gdf"]):
+    if((datatype not in ["rdf", "gdf"]) and Run_With_Smear):
         rdf = rdf.Define("DP_el_SF_smeared",  "Delta_Pel_Cors_smeared/smeared_vals[15]")
         rdf = rdf.Define("DP_pip_SF_smeared", "Delta_Ppip_Cors_smeared/smeared_vals[19]")
         
@@ -5432,27 +5529,30 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
-    # cut_list.append('no_cut_eS1a')
-    cut_list.append('no_cut_eS1o')
-    # cut_list.append('no_cut_eS2o')
-    # cut_list.append('no_cut_eS3o')
-    # cut_list.append('no_cut_eS4o')
-    # cut_list.append('no_cut_eS5o')
-    # cut_list.append('no_cut_eS6o')
+    if(run_Mom_Cor_Code != "yes"):
+        # cut_list.append('no_cut_eS1a')
+        cut_list.append('no_cut_eS1o')
+        # cut_list.append('no_cut_eS2o')
+        # cut_list.append('no_cut_eS3o')
+        # cut_list.append('no_cut_eS4o')
+        # cut_list.append('no_cut_eS5o')
+        # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
-        # cut_list.append('cut_Complete_SIDIS_eS1a')
-        cut_list.append('cut_Complete_SIDIS_eS1o')
-        # cut_list.append('cut_Complete_SIDIS_eS2o')
-        # cut_list.append('cut_Complete_SIDIS_eS3o')
-        # cut_list.append('cut_Complete_SIDIS_eS4o')
-        # cut_list.append('cut_Complete_SIDIS_eS5o')
-        # cut_list.append('cut_Complete_SIDIS_eS6o')
-        # # cut_list.append('cut_Complete_MM')
         if(run_Mom_Cor_Code == "yes"):
+            # cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
-            cut_list.append('cut_Complete_EDIS_Binned')
-            cut_list.append('cut_Complete_SIDIS_Binned')
+            # cut_list.append('cut_Complete_EDIS_Binned')
+            # cut_list.append('cut_Complete_SIDIS_Binned')
+        else:
+            # cut_list.append('cut_Complete_SIDIS_eS1a')
+            cut_list.append('cut_Complete_SIDIS_eS1o')
+            # cut_list.append('cut_Complete_SIDIS_eS2o')
+            # cut_list.append('cut_Complete_SIDIS_eS3o')
+            # cut_list.append('cut_Complete_SIDIS_eS4o')
+            # cut_list.append('cut_Complete_SIDIS_eS5o')
+            # cut_list.append('cut_Complete_SIDIS_eS6o')
+            # # cut_list.append('cut_Complete_MM')
     # if(datatype not in ["rdf"]):
     #     if(datatype not in ["gdf"]):
     #         # cut_list.append('cut_Complete_MM_Gen')
@@ -5539,61 +5639,66 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("")
     if(("Off" in binning_option_list or "off" in binning_option_list)  and ("Q2_xB_Bin_Off" not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_off"   not in list(rdf.GetColumnNames()))):
         print("Binning Scheme --> 'Off'")
-        rdf = rdf.Define("Q2_xB_Bin_Off",                                       str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Off")))
-        rdf = rdf.Define("z_pT_Bin_Off",                                        str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Off")))
+        rdf = rdf.Define("Q2_xB_Bin_Off",                                           str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Off")))
+        rdf = rdf.Define("z_pT_Bin_Off",                                            str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Off")))
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("Q2_xB_Bin_Off_gen",                               str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Off")))
-            rdf = rdf.Define("Q2_xB_Bin_Off_smeared",                           str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Off")))
-            rdf = rdf.Define("z_pT_Bin_Off_gen",                                str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Off")))
-            rdf = rdf.Define("z_pT_Bin_Off_smeared",                            str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Off")))
+            rdf = rdf.Define("Q2_xB_Bin_Off_gen",                                   str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Off")))
+            rdf = rdf.Define("z_pT_Bin_Off_gen",                                    str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Off")))
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_xB_Bin_Off_smeared",                           str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Off")))
+                rdf = rdf.Define("z_pT_Bin_Off_smeared",                            str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Off")))
     if(("2" in binning_option_list or "OG" in binning_option_list)     and ("Q2_xB_Bin_2"   not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_OG"     not in list(rdf.GetColumnNames()))):
         print("Modified Binning Scheme --> '2'")
-        rdf = rdf.Define("Q2_xB_Bin_2",                                         str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="2")))
-        rdf = rdf.Define("z_pT_Bin_2",                                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="2")))
+        rdf = rdf.Define("Q2_xB_Bin_2",                                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="2")))
+        rdf = rdf.Define("z_pT_Bin_2",                                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="2")))
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("Q2_xB_Bin_2_gen",                                 str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="2")))
-            rdf = rdf.Define("Q2_xB_Bin_2_smeared",                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="2")))
-            rdf = rdf.Define("z_pT_Bin_2_gen",                                  str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="2")))
-            rdf = rdf.Define("z_pT_Bin_2_smeared",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="2")))
+            rdf = rdf.Define("Q2_xB_Bin_2_gen",                                     str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="2")))
+            rdf = rdf.Define("z_pT_Bin_2_gen",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="2")))
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_xB_Bin_2_smeared",                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="2")))
+                rdf = rdf.Define("z_pT_Bin_2_smeared",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="2")))
     if(("3" in binning_option_list or "Square" in binning_option_list) and ("Q2_xB_Bin_3"   not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_Square" not in list(rdf.GetColumnNames()))):
         print("New (rectangular) Binning Scheme --> '3'")
-        rdf = rdf.Define("Q2_xB_Bin_3",                                         str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="3")))
-        rdf = rdf.Define("z_pT_Bin_3",                                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="3")))
+        rdf = rdf.Define("Q2_xB_Bin_3",                                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="3")))
+        rdf = rdf.Define("z_pT_Bin_3",                                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="3")))
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("Q2_xB_Bin_3_gen",                                 str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="3")))
-            rdf = rdf.Define("Q2_xB_Bin_3_smeared",                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3")))
-            rdf = rdf.Define("z_pT_Bin_3_gen",                                  str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="3")))
-            rdf = rdf.Define("z_pT_Bin_3_smeared",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="3")))
+            rdf = rdf.Define("Q2_xB_Bin_3_gen",                                     str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="3")))
+            rdf = rdf.Define("z_pT_Bin_3_gen",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="3")))
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_xB_Bin_3_smeared",                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3")))
+                rdf = rdf.Define("z_pT_Bin_3_smeared",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="3")))
     if(("4" in binning_option_list or "y_bin"  in binning_option_list or "y_Bin" in binning_option_list) and ("Q2_y_Bin" not in list(rdf.GetColumnNames()))):
         print("Q2-y Binning Scheme (main) --> 'y_bin'")
-        rdf = rdf.Define("Q2_y_Bin",                                            str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="y_bin")))
-        rdf = rdf.Define("z_pT_Bin_y_bin",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="y_bin")))
-        rdf = rdf.Define("Q2_y_z_pT_4D_Bin",                                    str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="")))
+        rdf = rdf.Define("Q2_y_Bin",                                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="y_bin")))
+        rdf = rdf.Define("z_pT_Bin_y_bin",                                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="y_bin")))
+        rdf = rdf.Define("Q2_y_z_pT_4D_Bin",                                        str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="")))
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("Q2_y_Bin_gen",                                    str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="y_bin")))
-            rdf = rdf.Define("Q2_y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="y_bin")))
-            rdf = rdf.Define("z_pT_Bin_y_bin_gen",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="y_bin")))
-            rdf = rdf.Define("z_pT_Bin_y_bin_smeared",                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="y_bin")))
-            rdf = rdf.Define("Q2_y_z_pT_4D_Bin_gen",                            str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="gen")))
-            rdf = rdf.Define("Q2_y_z_pT_4D_Bin_smeared",                        str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="smear")))
+            rdf = rdf.Define("Q2_y_Bin_gen",                                        str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="y_bin")))
+            rdf = rdf.Define("z_pT_Bin_y_bin_gen",                                  str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="y_bin")))
+            rdf = rdf.Define("Q2_y_z_pT_4D_Bin_gen",                                str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="gen")))
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="y_bin")))
+                rdf = rdf.Define("z_pT_Bin_y_bin_smeared",                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="y_bin")))
+                rdf = rdf.Define("Q2_y_z_pT_4D_Bin_smeared",                        str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="smear")))
     if(("5" in binning_option_list or "Y_bin"  in binning_option_list or "Y_Bin" in binning_option_list) and ("Q2_Y_Bin" not in list(rdf.GetColumnNames()))):
         print("New Q2-y Binning Scheme (Testing) --> 'Y_bin'")
-        rdf = rdf.Define("Q2_Y_Bin",                                            str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Y_bin")))
-        rdf = rdf.Define("All_MultiDim_Y_bin",                                  str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Y_bin")))
-        rdf = rdf.Define("z_pT_Bin_Y_bin",                                      "All_MultiDim_Y_bin[0]")
-        rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",                       "All_MultiDim_Y_bin[1]")
-        # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t",              "All_MultiDim_Y_bin[2]")
+        rdf = rdf.Define("Q2_Y_Bin",                                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Y_bin")))
+        rdf = rdf.Define("All_MultiDim_Y_bin",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Y_bin")))
+        rdf = rdf.Define("z_pT_Bin_Y_bin",                                          "All_MultiDim_Y_bin[0]")
+        rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",                           "All_MultiDim_Y_bin[1]")
+        # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t",                  "All_MultiDim_Y_bin[2]")
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("Q2_Y_Bin_gen",                                    str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Y_bin")))
-            rdf = rdf.Define("All_MultiDim_Y_bin_gen",                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Y_bin")))
-            rdf = rdf.Define("z_pT_Bin_Y_bin_gen",                              "All_MultiDim_Y_bin_gen[0]")
-            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen",               "All_MultiDim_Y_bin_gen[1]")
-            # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_gen",      "All_MultiDim_Y_bin_gen[2]")
-            rdf = rdf.Define("Q2_Y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Y_bin")))
-            rdf = rdf.Define("All_MultiDim_Y_bin_smeared",                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Y_bin")))
-            rdf = rdf.Define("z_pT_Bin_Y_bin_smeared",                          "All_MultiDim_Y_bin_smeared[0]")
-            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "All_MultiDim_Y_bin_smeared[1]")
-            # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
+            rdf = rdf.Define("Q2_Y_Bin_gen",                                        str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Y_bin")))
+            rdf = rdf.Define("All_MultiDim_Y_bin_gen",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Y_bin")))
+            rdf = rdf.Define("z_pT_Bin_Y_bin_gen",                                  "All_MultiDim_Y_bin_gen[0]")
+            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen",                   "All_MultiDim_Y_bin_gen[1]")
+            # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_gen",          "All_MultiDim_Y_bin_gen[2]")
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_Y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Y_bin")))
+                rdf = rdf.Define("All_MultiDim_Y_bin_smeared",                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Y_bin")))
+                rdf = rdf.Define("z_pT_Bin_Y_bin_smeared",                          "All_MultiDim_Y_bin_smeared[0]")
+                rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "All_MultiDim_Y_bin_smeared[1]")
+                # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
             
             
     
@@ -5925,21 +6030,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         for histo_3D in List_of_Quantities_3D:
             print("".join(["\t(*) ", str(histo_3D)]))
     
-    smearing_options_list = ["", "smear"]
-    # smearing_options_list = ["smear"]
+    
+    # smearing_options_list = ["", "smear"]
+    smearing_options_list = ["smear"]
     # smearing_options_list = [""]
     
-    # if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"]) and ("smear" not in smearing_options_list)):
+    
     if((run_Mom_Cor_Code not in ["no"]) and (datatype in ["mdf"])):
         # When running the momentum correction/smearing code, the smearing options list should include "smear"
         smearing_options_list = ["", "smear"]
         
-    if(datatype in ["rdf", "gdf"]):
+    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
         # Do not smear data or generated MC
         smearing_options_list = [""]
-        # for ii in smearing_options_list:
-        #     if("smear" in ii):
-        #         smearing_options_list.remove(ii)
                 
     if(Use_Pass_2 and ("smear" in smearing_options_list)):
         print(f"\n{color.BOLD}Using Pass 2 momentum smearing function\n{color.END}")
@@ -6328,12 +6431,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 
                                 Ele_SF_Min, Ele_SF_Max, Ele_SF_Num                   = Histo_Var_DP_Ele_SF_Dimension[1], Histo_Var_DP_Ele_SF_Dimension[2], Histo_Var_DP_Ele_SF_Dimension[3]
                                 Pip_SF_Min, Pip_SF_Max, Pip_SF_Num                   = Histo_Var_DP_Pip_SF_Dimension[1], Histo_Var_DP_Pip_SF_Dimension[2], Histo_Var_DP_Pip_SF_Dimension[3]
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Ele_Theta_SF_Title),              Ele_SF_Num, Ele_SF_Min, Ele_SF_Max, 100,     0,   10, 100,     0,   40), "DP_el_SF"           if("smear" not in Histo_Smear) else "DP_el_SF_smeared",   "el"                   if("smear" not in Histo_Smear) else "el_smeared",                   "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
-                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Pip_Theta_SF_Title),              Pip_SF_Num, Pip_SF_Min, Pip_SF_Max, 100,     0,    8, 100,     0,   40), "DP_pip_SF"          if("smear" not in Histo_Smear) else "DP_pip_SF_smeared",  "pip"                  if("smear" not in Histo_Smear) else "pip_smeared",                  "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Ele_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Ele_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Ele_Theta_SF_Title),               Ele_SF_Num, Ele_SF_Min, Ele_SF_Max, 100,     0,   10, 100,     0,   40), "DP_el_SF"           if("smear" not in Histo_Smear) else "DP_el_SF_smeared",   "el"                   if("smear" not in Histo_Smear) else "el_smeared",                   "elth"   if("smear" not in Histo_Smear) else  "elth_smeared")
+                                Histograms_All[Mom_Cor_Histo_Name_DP_Pip_Theta_SF]   = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_DP_Pip_Theta_SF,  str(Mom_Cor_Histo_Name_DP_Pip_Theta_SF_Title),               Pip_SF_Num, Pip_SF_Min, Pip_SF_Max, 100,     0,    8, 100,     0,   40), "DP_pip_SF"          if("smear" not in Histo_Smear) else "DP_pip_SF_smeared",  "pip"                  if("smear" not in Histo_Smear) else "pip_smeared",                  "pipth"  if("smear" not in Histo_Smear) else "pipth_smeared")
                                 
                                 if(("smear" in str(Histo_Smear)) and (Histo_Data in ["mdf"])):
-                                    Histograms_All[Mom_Cor_Histo_Name_Dele_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dele_SF,          str(Mom_Cor_Histo_Name_Dele_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dele_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
-                                    Histograms_All[Mom_Cor_Histo_Name_Dpip_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dpip_SF,          str(Mom_Cor_Histo_Name_Dpip_SF),                                                   200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dpip_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
+                                    Histograms_All[Mom_Cor_Histo_Name_Dele_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dele_SF,          str(Mom_Cor_Histo_Name_Dele_SF),                                                    200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dele_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
+                                    Histograms_All[Mom_Cor_Histo_Name_Dpip_SF]       = MCH_rdf.Histo3D((Mom_Cor_Histo_Name_Dpip_SF,          str(Mom_Cor_Histo_Name_Dpip_SF),                                                    200,  0,  2,  19,  -0.5, 18.5,  43,  -0.5, 42.5), "Dpip_SF", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
 
                             ###################################################################################
                             ##          ##          ##                               ##          ##          ##

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_RooUnfold_New_Q2_Y_Bins_V3_Smeared_V2_3_9_2024_Run1
+#SBATCH --job-name=P2_RooUnfold_Unsmeared_New_Q2_Y_Bins_V4_4_3_2024_Run1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -16,4 +16,4 @@
 # source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build/setup.sh
 # Main array: SBATCH --array=0-17
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py smear $SLURM_ARRAY_TASK_ID
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py no_smear $SLURM_ARRAY_TASK_ID
