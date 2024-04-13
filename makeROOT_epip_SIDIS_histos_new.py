@@ -867,6 +867,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Only effects the reconstructed monte carlo options, but those were the only files that truly failed
             # MC generated plots had issues, but seemed to be able to successfully finish running
             # Will also try increasing the requested memory slightly
+            
+            
+    Extra_Name = "New_Q2_Y_Bins_V5_"
+    # Ran on 4/12/2024
+    # Running with new Q2-y Bins (bin option = "Y_bins")
+    # Reconstructed Monte Carlo Files are split to separate the smeared plots and the unsmeared plots (code was too inefficient to run these options together)
+        # Ran smearing tested with Extra_Name = "New_Smear_V5_"
+    # All Pion Energy Loss and Momentum Corrections are included the Pass 2 Experimental Data plots
+    # Ran with same options used with Extra_Name = "New_Q2_Y_Bins_V4_"
+    
         
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -1048,9 +1058,49 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # The electron smearing function from Extra_Name = "Smear_Test_V9_" caused the pion to be over smeared (reduced it to try and counter this effect)
             
         Extra_Name = "Smear_Test_V11_"
-        # Ran on 4/2/2024
+        # Ran on 4/2/2024 and 4/4/2024
         # Reduced electron smearing by 75% (from Extra_Name = "Smear_Test_V9_")
             # The electron smearing function from Extra_Name = "Smear_Test_10_" was reduced by too great of a factor (basically became negligible)
+        # Added the Pion Energy Loss Correction to the Pass 2 Experimental Data plots on 4/4/2024
+        
+        
+        Extra_Name = "New_Smear_V1_"
+        # Ran on 4/12/2024
+        # Reworking the Pion Smearing with a slightly updated fitting procedure (same type of smearing with improved fitting methods to obtain the ∆sigma factor)
+            # Smearing should take from the ∆P/P plots but the quality of the smearing is better left to checking the Missing Mass Plots and/or the normal ∆P plots, as the ∆P/P smeared plots seem to exaggerate over-smearing effects
+                # The ∆P/P plots do not seem to be ideally oriented towards making repeated iterative smearing corrections, but are able to obtain good smearing functions when the criteria is given by matching just ∆P or MM (likely do to the compound effects smearing ∆P and P when trying to plot ∆P/P)
+        # Removed SIDIS Cuts (Not needed for testing)
+        # All Pion Energy Loss and Momentum Corrections are included the Pass 2 Experimental Data plots (as of 4/4/2024)
+            # Use with Extra_Name = "Smear_Test_V11_" (for Experimental Data)
+            
+        Extra_Name = "New_Smear_V2_"
+        # Ran on 4/12/2024
+        # New Electron Smearing (Based on Extra_Name = "New_Smear_V1_")
+            # Not reducing the smear factor of the electron relative to the pion smearing as was done with previous versions (may cause the appearence of oversmearing in the ∆P/P plots as noted above)
+        # Still not including the SIDIS Cuts (Not needed for testing)
+        # All Pion Energy Loss and Momentum Corrections are included the Pass 2 Experimental Data plots (as of 4/4/2024)
+            # Use with Extra_Name = "Smear_Test_V11_" (for Experimental Data)
+            
+            
+        Extra_Name = "New_Smear_V3_"
+        # Ran on 4/12/2024
+        # New Electron Smearing (Based on Extra_Name = "New_Smear_V2_")
+            # Reduced Electron Smearing by 25% (did not see the desired improvements, so reverted attempting to fix with less extreme electron smearing)
+        # Still not including the SIDIS Cuts (Not needed for testing)
+        # All Pion Energy Loss and Momentum Corrections are included the Pass 2 Experimental Data plots (as of 4/4/2024)
+            # Use with Extra_Name = "Smear_Test_V11_" (for Experimental Data)
+            
+            
+        Extra_Name = "New_Smear_V4_"
+        # Ran on 4/12/2024
+        # New Electron Smearing (Based on Extra_Name = "New_Smear_V2_")
+            # Same as Extra_Name = "New_Smear_V3_" but testing other reducing factors (Currently reducing electron smearing by 35%)
+            
+        Extra_Name = "New_Smear_V5_"
+        # Ran on 4/12/2024
+        # Refined the Pion Smearing (Based on Extra_Name = "New_Smear_V4_")
+            # Added extra layer of pion smearing on top of the existing smearing functions
+            # Electron Smearing is still the same as Extra_Name = "New_Smear_V4_" (i.e., currently reducing electron smearing by 35%)
 
 
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -5540,8 +5590,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         cut_list.append('cut_Complete_SIDIS')
         if(run_Mom_Cor_Code == "yes"):
-            # cut_list = ['cut_Complete_EDIS']
-            cut_list.append('cut_Complete_EDIS')
+            cut_list = ['cut_Complete_EDIS']
+            # cut_list.append('cut_Complete_EDIS')
             # cut_list.append('cut_Complete_EDIS_Binned')
             # cut_list.append('cut_Complete_SIDIS_Binned')
         else:
