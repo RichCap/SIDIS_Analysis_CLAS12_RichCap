@@ -191,7 +191,7 @@ if(datatype in ['gdf']):
 #     Mom_Correction_Q = "no"
 
 if(Use_Pass_2):
-    print(f"\n{color.BOLD}{color.BLUE}Running the code with Pass 2 Data\n{color.END}")
+    print(f"\n{color.BBLUE}Running the code with Pass 2 Data\n{color.END}")
     if(("rdf" not in str(datatype)) and (Mom_Correction_Q not in ["no"])):
         print(f"\n{color.BOLD}No Pass 2 Momentum Corrections are available (yet) for the Monte Carlo Simulations...\n{color.END}")
         Mom_Correction_Q = "no"
@@ -877,7 +877,60 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # All Pion Energy Loss and Momentum Corrections are included the Pass 2 Experimental Data plots
     # Ran with same options used with Extra_Name = "New_Q2_Y_Bins_V4_"
     
+    
+    Extra_Name = "Correction_Effects_V1_"
+    # Ran on 4/17/2024
+    # Running with new Q2-y Bins (bin option = "Y_bins")
+    # Running with Pass 2 Corrections and Smearing
+        # Energy Loss corrections may be different now due to potential error of running them iteratively instead of pre-determining the correction factor
+            # The factor was calculated 3 times (for pipx, pipy, and then pipz) so the factor could have changed with each recalculation
+            # As of 4/17/2024, this correction will be implemented simultaneously for each component
+    # This version is meant to run only with the rdf and mdf datatypes and is therefor not useful for performing unfolding
+        # This version is just meant to evaluate the effects that the momentum/energy loss corrections and smearing have on the relevant kinematic variables in this analysis
+        # Comparisons are as follows:
+            # For rdf: Created plots which shows the correction factors (fe/fpip) used with the momentum corrections (pion's correction factor also includes the energy loss factor if using Pass 2 corrections)
+            # For mdf: Created plots which shows the difference between several important smeared variables and unsmeared variables (difference = unsmeared - smeared)
+            # No new variable titles have been set for these plots (must do manually later)
+    # Slightly modified smear_frame_compatible() function to be less likely to return an error (should not have caused issues previous, but could have under the correct conditions)
+    # Removed all sector related cuts/plots
         
+        
+        
+    Extra_Name = "Correction_Effects_V2_"
+    # Ran on 4/18/2024
+    # Same as Extra_Name = "Correction_Effects_V1_" but changed some of the plot ranges and made some fixes to the code to be able to produce the full set of the desired plots
+        # Some plots were being skipped due to the code only making response matrices for the phi_h variable (was repurposing those plots for the correction comparisons)
+    # Removed the "no_cut" option as it is not needed for now and required too many additional histograms to be made
+    # Also removed the -3 Q2-y bin since it did not serve any useful purpose
+    
+    Extra_Name = "Correction_Effects_V3_"
+    # Ran on 4/21/2024
+    # Same as Extra_Name = "Correction_Effects_V2_" but added new smeared effects plots to show % difference instead of the absolute difference
+    
+    
+    Extra_Name = "Correction_Effects_V4_"
+    # Ran on 4/23/2024
+    # Removed all 2D plots except the Q2 vs y and z vs pT plots (replaced with 2D plots of the comparison plots from prior "Correction_Effects" versions versus the variable being compared)
+    # Removed all 'Background' plots and absolute difference plots (only using % difference that was added in 'Correction_Effects_V3_')
+    # Added the Missing Mass variable comparison
+    # Adjusted the % dif plots' ranges (made range much smaller)
+        # Also changed the scale so the full range would be from 0 to 100 instead of 0 to 1 (current ranges are smaller than this range - is either 0 to 5 or 0 to 20 depending on the variable)
+    # Changed some uses of the 'color' class (does not effect how the code runs at all but might be slightly more efficient)
+    
+    Extra_Name = "Correction_Effects_V5_"
+    # Ran on 4/24/2024
+    # Added the absolute difference plots back to the run options but removed the percent dif plots from the phi_h variable option
+        # Absolute difference in the rdf plots for phi_h are called Delta_phi_h
+    # Fixed likely issue with the percent dif plots for the smeared effects (the variable was likely defining itself as an integer so all calulations were being rounded to zero)
+        # The issue seems to have resolved itself when looking at the calculated values/test file opened with root, so if it continues, it is likely the other python script that is at fault
+    # Changed the percent dif plots to go from ±100% instead of from 0 to 100
+    
+    
+    Extra_Name = "Correction_Effects_V6_"
+    # Ran on 5/3/2024
+    # Updated the smearing functions to be in line with "New_Smear_V9_" (see below)
+    # Removed the Missing Mass plots from mdf smeared options
+    # Added option for 5D Unfolding plots but not running those yet (will run in next update separately from the correction effect plots)
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -1101,7 +1154,43 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Refined the Pion Smearing (Based on Extra_Name = "New_Smear_V4_")
             # Added extra layer of pion smearing on top of the existing smearing functions
             # Electron Smearing is still the same as Extra_Name = "New_Smear_V4_" (i.e., currently reducing electron smearing by 35%)
+        # Ran again on 4/17/2024 for the rdf datatype as there was a potential issue with the application of the Energy Loss Corrections
+            # May create a need to rerun the smearing correction derivation
+            
+            
+        Extra_Name = "New_Smear_V6_"
+        # Ran on 4/29/2024
+        # Added an extra criteria for the electron smearing function aimed at limiting the over-smearing seen in the ∆P/P plots for the pion
+            # The criteria prevents the electron from being smeared if the pion polar angle is less than 15 degrees
+            # The pion refinement added in "New_Smear_V5_" is also turned off in this region (since it was developed with the electron smearing in mind)
+            
+        Extra_Name = "New_Smear_V7_"
+        # Ran on 5/2/2024
+        # Changed extra criteria for the electron smearing function from "New_Smear_V6_"
+            # The criteria prevents the electron from being smeared if the pion polar angle is less than 12.5 degrees or if the pion momentum is greater than 4.5 GeV
+            # Increased the electron smearing by reducing the electron smearing factor by 5% instead of by 35% (functions remain the same)
+            # The pion refinement added in "New_Smear_V5_" is also turned completely off
+            
+        Extra_Name = "New_Smear_V8_"
+        # Ran on 5/2/2024
+        # Changed extra criteria for the electron smearing function from "New_Smear_V7_"
+            # Criteria now does not completely turn off the electron smearing in the specified region
+                # Now smearing is simply reduced by an additional 95% on top of the 5% reduction applied by default
+            # Added additional condition for a less severe reduction in the electron smearing (pipth < 20)
+                # Reduction is 35% smaller than what Smear_SF_Theta would be otherwise
+            # Goal is to better balance the electron and pion smearing and to improve the missing mass distribution comparisons
+            # Otherwise is the same as "New_Smear_V7_"
 
+        Extra_Name = "New_Smear_V9_"
+        # Ran on 5/2/2024
+        # Changed the extra criteria for and impact of the electron smearing function from "New_Smear_V8_"
+            # Criteria for the lesser reduction now includes the momentum criteria from prior version while the more extreme reduction now just is applied for pipth < 12.5 degrees
+            # Larger reduction now is (effectively) 90.5% reduced in comparison to what the pion would be smeared (based on the fitted functions)
+                # In "New_Smear_V8_", the reduction was 95.25%
+            # The less severe reduction is now 32.55% reduced in total (includes the default reduction applied to all electrons)
+                # In "New_Smear_V8_", the reduction was 38.25%
+            # Goal is to better balance the electron and pion smearing and to improve the missing mass distribution comparisons
+            # Otherwise is the same as "New_Smear_V7_"
 
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
             Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -1127,7 +1216,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Ran to test smearing code (smearing function returns unsmeared 4-vector since no smearing function has been run yet)
             # Includes no momentum corrections
             
-        print(f"\n\n\t{color.BOLD}{color.BLUE}Using Pass 2 Version of Data/MC Files{color.END}")
+        print(f"\n\n\t{color.BBLUE}Using Pass 2 Version of Data/MC Files{color.END}")
         
     
     if(datatype == 'rdf'):
@@ -1165,9 +1254,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Correction_Code_Full_In = """ See ExtraAnalysisCodeValues.py for details
     
     if(Mom_Correction_Q != "yes"):
-        print("".join([color.Error,            "\n\tNot running with Momentum Corrections\n", color.END]))
+        print("".join([color.Error, "\n\tNot running with Momentum Corrections\n", color.END]))
     else:
-        print("".join([color.BOLD, color.BLUE, "\n\tRunning with Momentum Corrections\n",     color.END]))
+        print("".join([color.BBLUE, "\n\tRunning with Momentum Corrections\n",     color.END]))
         
         
     ###################################################################################################################################################################
@@ -1191,56 +1280,51 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("pipz", "pz")
         
     if((Mom_Correction_Q in ["yes"]) and (str(datatype) in ["rdf"]) and Use_Pass_2):
-        print(f"{color.BOLD}{color.BLUE}\nApplying Pass 2 (Forward Detector) Energy Loss Corrections to the Pi+ Pion\n{color.END}")
+        print(f"{color.BBLUE}\nApplying Pass 2 (Forward Detector) Energy Loss Corrections to the Pi+ Pion\n{color.END}")
+        rdf = rdf.Define("Energy_Loss_Cor_Factor", f"""
+            double pip_mom                  =       sqrt(pipx*pipx + pipy*pipy + pipz*pipz);
+            double pip__th                  = atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*(180/3.1415926);
+            {Pion_Energy_Loss_Cor_Function}
+            auto p_pip_loss                 = eloss_pip_In_Forward(pip_mom, pip__th);
+            auto pip_Energy_Loss_Cor_Factor = ((pip_mom + p_pip_loss)/pip_mom);
+            return pip_Energy_Loss_Cor_Factor;
+        """)
         for pion_mom in ["pipx", "pipy", "pipz"]:
-            rdf = rdf.Redefine(str(pion_mom), f"""
-                    double pip_mom =       sqrt(pipx*pipx + pipy*pipy + pipz*pipz);
-                    double pip__th = atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*(180/3.1415926);
-                    {Pion_Energy_Loss_Cor_Function}
-                    auto p_pip_loss = eloss_pip_In_Forward(pip_mom, pip__th);
-                    auto f_pip_loss = ((pip_mom + p_pip_loss)/pip_mom);
-                    return f_pip_loss*{pion_mom};
-                """)
+            rdf = rdf.Redefine(str(pion_mom), f"Energy_Loss_Cor_Factor*{pion_mom}")
         
     
     if('calc' not in files_used_for_data_frame):
         #####################     Energy     #####################
-        try:
-            rdf = rdf.Define("el_E", "".join([str(Correction_Code_Full_In), """
-            auto fe    = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
-            auto ele   = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
-            auto ele_E = ele.E();
-            return ele_E;"""]))
-
-            rdf = rdf.Define("pip_E", "".join([str(Correction_Code_Full_In), """
-            auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
-            auto pip0   = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
-            auto pip0_E = pip0.E();
-            return pip0_E;"""]))
-            
-        except:
-            print(f"{color.Error}\nMomentum Corrections Failed...\n{color.END}")
-            rdf = rdf.Define("el_E", """
-            auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-            auto ele_E = ele.E();
-            return ele_E;""")
-            rdf = rdf.Define("pip_E", """
-            auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-            auto pip0_E = pip0.E();
-            return pip0_E;""")
-
-        
-        if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("el_E_gen", """
-            auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-            auto ele_E_gen = ele.E();
-            return ele_E_gen;""")
-
-            rdf = rdf.Define("pip_E_gen", """
-            auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-            auto pip0_E_gen = pip0.E();
-            return pip0_E_gen;""")
-            
+        # try:
+        #     rdf = rdf.Define("el_E", "".join([str(Correction_Code_Full_In), """
+        #     auto fe    = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+        #     auto ele   = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        #     auto ele_E = ele.E();
+        #     return ele_E;"""]))
+        #     rdf = rdf.Define("pip_E", "".join([str(Correction_Code_Full_In), """
+        #     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+        #     auto pip0   = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+        #     auto pip0_E = pip0.E();
+        #     return pip0_E;"""]))
+        # except:
+        #     print(f"{color.Error}\nMomentum Corrections Failed...\n{color.END}")
+        #     rdf = rdf.Define("el_E", """
+        #     auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+        #     auto ele_E = ele.E();
+        #     return ele_E;""")
+        #     rdf = rdf.Define("pip_E", """
+        #     auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
+        #     auto pip0_E = pip0.E();
+        #     return pip0_E;""")
+        # if(datatype in ["mdf", "pdf"]):
+        #     rdf = rdf.Define("el_E_gen", """
+        #     auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        #     auto ele_E_gen = ele.E();
+        #     return ele_E_gen;""")
+        #     rdf = rdf.Define("pip_E_gen", """
+        #     auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        #     auto pip0_E_gen = pip0.E();
+        #     return pip0_E_gen;""")
         
         #####################     Momentum     #####################
 
@@ -1253,13 +1337,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
             double pip_P = fpip*(sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
             return pip_P;"""]))
-            if((run_Mom_Cor_Code == "yes") and (str(datatype) not in ["gdf"])):
+            if((run_Mom_Cor_Code == "yes")   and (str(datatype) not in ["gdf"])):
                 rdf = rdf.Define("el_no_cor",  """
                 double el_P_no_cor  = (sqrt(ex*ex + ey*ey + ez*ez));
                 return el_P_no_cor;""")
                 rdf = rdf.Define("pip_no_cor", """
                 double pip_P_no_cor = (sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
-                return pip_P_no_cor;""")  
+                return pip_P_no_cor;""")
+            if((Mom_Correction_Q in ["yes"]) and (str(datatype)     in ["rdf"])):
+                rdf = rdf.Define("Complete_Correction_Factor_Ele", "".join([str(Correction_Code_Full_In), """
+                auto Correction_Factor_Ele = dppC(ex,     ey,   ez,   esec, 0, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+                return Correction_Factor_Ele;"""]))
+                rdf = rdf.Define("Complete_Correction_Factor_Pip", "".join([str(Correction_Code_Full_In), """
+                auto Correction_Factor_Pip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+                """,  "Correction_Factor_Pip = Correction_Factor_Pip*Energy_Loss_Cor_Factor;" if(Use_Pass_2) else "", """
+                return Correction_Factor_Pip;"""]))
         except:
             print(color.Error, "\n\nMomentum Corrections Failed...\n\n", color.END)
             rdf = rdf.Define("el",  "sqrt(ex*ex + ey*ey + ez*ez)")
@@ -1270,8 +1362,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         #####################     Theta Angle     #####################
 
-        rdf = rdf.Define("elth",  "atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
-        rdf = rdf.Define("pipth", "atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
+        rdf = rdf.Define("elth",          "atan2(sqrt(ex*ex + ey*ey), ez)*TMath::RadToDeg()")
+        rdf = rdf.Define("pipth",         "atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*TMath::RadToDeg()")
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("elth_gen",  "atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
             rdf = rdf.Define("pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
@@ -1324,53 +1416,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
         #####################     Sectors (angle definitions)     #####################
-
-#         rdf = rdf.Define("esec_a", """
-#         auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
-#         auto ele_phi = (180/3.1415926)*ele.Phi();
-#         int esec_a = 0;
-#         if(ele_phi >= -30 && ele_phi < 30){
-#             esec_a = 1;
-#         }
-#         if(ele_phi >= 30 && ele_phi < 90){
-#             esec_a = 2;
-#         }
-#         if(ele_phi >= 90 && ele_phi < 150){
-#             esec_a = 3;
-#         }
-#         if(ele_phi >= 150 || ele_phi < -150){
-#             esec_a = 4;
-#         }
-#         if(ele_phi >= -90 && ele_phi < -30){
-#             esec_a = 5;
-#         }
-#         if(ele_phi >= -150 && ele_phi < -90){
-#             esec_a = 6;
-#         }
-#         return esec_a;""")
-#         rdf = rdf.Define("pipsec_a", """
-#         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz, 0.13957);
-#         auto pip_phi = (180/3.1415926)*pip0.Phi();
-#         int pipsec_a = 0;
-#         if(pip_phi >= -45 && pip_phi < 15){
-#             pipsec_a = 1;
-#         }
-#         if(pip_phi >= 15 && pip_phi < 75){
-#             pipsec_a = 2;
-#         }
-#         if(pip_phi >= 75 && pip_phi < 135){
-#             pipsec_a = 3;
-#         }
-#         if(pip_phi >= 135 || pip_phi < -165){
-#             pipsec_a = 4;
-#         }
-#         if(pip_phi >= -105 && pip_phi < -45){
-#             pipsec_a = 5;
-#         }
-#         if(pip_phi >= -165 && pip_phi < -105){
-#             pipsec_a = 6;
-#         }
-#         return pipsec_a;""")
+        
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("esec_gen","""
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -1460,7 +1506,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
         if(datatype in ["gdf"]):
-            print(f"{color.BOLD}{color.GREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
+            print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
             rdf = rdf.Filter("MM > 1.5")
         
         if(datatype in ["mdf", "pdf"]):
@@ -1639,6 +1685,43 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # rdf = rdf.Define('eleX_CM','vals2[12]') # CM scattered electron x-momentum
     # rdf = rdf.Define('eleY_CM','vals2[13]') # CM scattered electron y-momentum
     # rdf = rdf.Define('eleZ_CM','vals2[14]') # CM scattered electron z-momentum
+    
+    if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"])):
+        rdf = rdf.Define("Uncorrected_phi_t_Info", "".join([str(Correction_Code_Full_In), """
+        auto fpip   = (dppC(pipx, pipy, pipz, pipsec, 1, """, "1" if(not Use_Pass_2) else "3", """) + 1)/(Complete_Correction_Factor_Pip);
+        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto eleM   = ROOT::Math::PxPyPzMVector(ex, ey, ez,     0);
+        auto pip0M  = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+        auto lv_qMM = beamM - eleM;
+        TLorentzVector beam(0,  0, 10.6041, beamM.E());
+        TLorentzVector ele(ex, ey, ez,      eleM.E());
+        TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
+        TLorentzVector lv_q = beam - ele;
+        ///////////////     Angles for Rotation     ///////////////
+        double Theta_q = lv_q.Theta();
+        double Phi_el  = ele.Phi();
+        """, str(Rotation_Matrix), """
+        ///////////////     Rotating to CM Frame     ///////////////
+        auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
+        double phi_h_uncorrected = pip0_Clone.Phi()*TMath::RadToDeg();
+        if(phi_h_uncorrected < 0){phi_h_uncorrected += 360;}
+        double Delta_phi_h   = phi_t - phi_h_uncorrected;
+        double Percent_Phi_h = 0;
+        if(Delta_phi_h == 0){Percent_Phi_h = 0;}
+        else{
+            if(phi_h_uncorrected == 0){Percent_Phi_h = 1;}
+            else{Percent_Phi_h = Delta_phi_h/phi_h_uncorrected;}
+        }
+        Percent_Phi_h = Percent_Phi_h*100;
+        std::vector<double> Uncorrected_Phi_h_Info = {phi_h_uncorrected, Delta_phi_h, Percent_Phi_h};
+
+        return Uncorrected_Phi_h_Info;"""]))
+        
+        
+        # rdf = rdf.Define('phi_t_uncorrected', 'Uncorrected_phi_t_Info[0]')
+        rdf = rdf.Define('Delta_phi_t',       'Uncorrected_phi_t_Info[1]')
+        rdf = rdf.Define('Percent_phi_t',     'Uncorrected_phi_t_Info[2]')
+    
     
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
@@ -1875,7 +1958,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector ele_NO_SMEAR(ex, ey, ez, eleM.E());
             //=================//     Smearing PxPyPzMVector's     //=================//
-            TLorentzVector ele_no_cor_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
+            TLorentzVector ele_no_cor_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
             //=================//     Vectors have been Smeared     //=================//
             auto el_no_cor_smeared  = ele_no_cor_smeared.P();
             return el_no_cor_smeared;
@@ -1886,7 +1969,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
             TLorentzVector pip0_NO_SMEAR(pipx, pipy, pipz, pip0M.E());
             //=================//     Smearing PxPyPzMVector's     //=================//
-            TLorentzVector pip0_no_cor_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+            TLorentzVector pip0_no_cor_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
             //=================//     Vectors have been Smeared     //=================//
             auto pip_no_cor_smeared = pip0_no_cor_smeared.P();
             return pip_no_cor_smeared;
@@ -1922,9 +2005,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         //========================================================================//
         //=================//     Smearing PxPyPzMVector's     //=================//
         //========================================================================//
-
-        TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-        TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+        
+        TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+        TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
 
         //=========================================================================//
         //=================//     Vectors have been Smeared     //=================//
@@ -2631,7 +2714,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     def smear_frame_compatible(Data_Frame, Variable, Smearing_Q):
         if(Data_Frame == "continue"):
             return Data_Frame
-        if("smear" not in Smearing_Q or (datatype not in ["mdf", "pdf"]) or (str(Variable) in Data_Frame.GetColumnNames())):
+        if(("smear" not in Smearing_Q) or (datatype not in ["mdf", "pdf"]) or ((str(Variable) in Data_Frame.GetColumnNames()) and ("mear" in str(Variable))) or ("".join([str(Variable), "_smeared"]) in Data_Frame.GetColumnNames())):
             # Variable should already be defined/cannot smear real/generated data
             # if(str(Variable) in Data_Frame.GetColumnNames()):
             #     print("".join(["Already defined: ", str(Variable)]))
@@ -2728,6 +2811,47 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # Failed to get a new definition
                 return Data_Frame
             
+            
+    def Smear_Compare_Variable(DataFrame, Variable_Input):
+        if(DataFrame == "continue"):
+            return DataFrame
+        Variable_Smear = f"{Variable_Input}_smeared"
+        DataFrame_with_Smear     = smear_frame_compatible(Data_Frame=DataFrame, Variable=Variable_Input, Smearing_Q="smear")
+        if(DataFrame_with_Smear == "continue"):
+            return "continue"
+        try:
+            DataFrame_with_Smear = DataFrame_with_Smear.Define(f"Smeared_Effect_on_{Variable_Input}",         f"{Variable_Input} - {Variable_Smear}")
+            DataFrame_with_Smear = DataFrame_with_Smear.Define(f"Smeared_Effect_on_{Variable_Input}_gen",     f"{Variable_Input} - {Variable_Smear}")
+            # The 'gen' variable is defined only to make these variables more compatible with the response matrix plots (has no real meaning as of 4-17-2024)
+            # Smeared_Percent_of_VARIABLE = "".join([f"""
+            # double Smear_Percent_{Variable_Input} = 0;
+            # if(Smeared_Effect_on_{Variable_Input} == 0)""", "{", f"Smear_Percent_{Variable_Input} = 0;", """}
+            # else{""", f"""
+            #     if({Variable_Input} == 0)""", "{", f"Smear_Percent_{Variable_Input} = 1;", """}
+            #     else{""", f"Smear_Percent_{Variable_Input} = abs((Smeared_Effect_on_{Variable_Input})/({Variable_Input}));", """}
+            # }""", f"""
+            # Smear_Percent_{Variable_Input} = Smear_Percent_{Variable_Input}*100;
+            # // cout<<endl<<"Calculating Smeared_Percent_of_{Variable_Input}:"<<endl<<"   "<<endl<<"   Smeared_Effect_on_{Variable_Input} = "<<Smeared_Effect_on_{Variable_Input}<<endl<<"   {Variable_Input} = "<<{Variable_Input}<<endl<<"   Smeared_Percent_of_{Variable_Input} = "<<Smear_Percent_{Variable_Input}<<endl;
+            # return Smear_Percent_{Variable_Input};"""])
+            Smeared_Percent_of_VARIABLE = "".join([f"""
+            double Smear_Percent_{Variable_Input} = 0;
+            if(Smeared_Effect_on_{Variable_Input} == 0)""", "{", f"Smear_Percent_{Variable_Input} = 0;", """}
+            else{""", f"""
+                if({Variable_Input} == 0)""", "{", f"Smear_Percent_{Variable_Input} = 1;", """}
+                else{""", f"Smear_Percent_{Variable_Input} = (Smeared_Effect_on_{Variable_Input})/({Variable_Input});", """}
+            }""", f"""
+            Smear_Percent_{Variable_Input} = Smear_Percent_{Variable_Input}*100;
+            // cout<<endl<<"Calculating Smeared_Percent_of_{Variable_Input}:"<<endl<<"   "<<endl<<"   Smeared_Effect_on_{Variable_Input} = "<<Smeared_Effect_on_{Variable_Input}<<endl<<"   {Variable_Input} = "<<{Variable_Input}<<endl<<"   Smeared_Percent_of_{Variable_Input} = "<<Smear_Percent_{Variable_Input}<<endl;
+            return Smear_Percent_{Variable_Input};"""])
+            # print(Smeared_Percent_of_VARIABLE)
+            DataFrame_with_Smear = DataFrame_with_Smear.Define(f"Smeared_Percent_of_{Variable_Input}",     Smeared_Percent_of_VARIABLE)
+            DataFrame_with_Smear = DataFrame_with_Smear.Define(f"Smeared_Percent_of_{Variable_Input}_gen", Smeared_Percent_of_VARIABLE)
+            del Smeared_Percent_of_VARIABLE
+        except:
+            print(f"{color.Error}Error in Smear_Compare_Variable(DataFrame, {Variable_Input}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+            return "continue"
+        return DataFrame_with_Smear
+            
     ##=========================================================================================================##
     ##---------------------------------##===================================##---------------------------------##
     ##=================================##     End of Smearing Functions     ##=================================##
@@ -2744,7 +2868,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     if(Use_Weight):
         if(not Q4_Weight):
-            print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+            print(color.BGREEN, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
             ##==========================================================================================================##
             ##------------------------------------##==============================##------------------------------------##
             ##====================================##     Event Weighing Begin     ##====================================##
@@ -2781,7 +2905,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
         else:
-            print(color.GREEN, color.BOLD, "".join(["\n", color_bg.BLUE, "Running 'Q4 Weight' for weighing the Monte Carlo distributions...", color.END, "\n\n"]))
+            print(color.BGREEN, "".join(["\n", color_bg.BLUE, "Running 'Q4 Weight' for weighing the Monte Carlo distributions...", color.END, "\n\n"]))
             ##==========================================================================================================##
             ##------------------------------------##==============================##------------------------------------##
             ##====================================##     Event Weighing Begin     ##====================================##
@@ -2810,38 +2934,38 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     
-    ##==========================================================================================================##
-    ##------------------------------------##==============================##------------------------------------##
-    ##====================================##  Generated Missing Mass Cut  ##====================================##
-    ##------------------------------------##==============================##------------------------------------##
-    ##==========================================================================================================##
-    if(datatype in ["mdf", "pdf"]):
-        rdf = rdf.Define('Missing_Mass_Cut_Gen', """
-        auto Missing_Mass_Cut_Gen = 0;
-        if(MM_gen < 1.5){
-            Missing_Mass_Cut_Gen = -1;
-        }
-        else{
-            Missing_Mass_Cut_Gen =  1;
-        }
-        return Missing_Mass_Cut_Gen;
-        """)
-    if(datatype in ["gdf", "gen"]):
-        rdf = rdf.Define('Missing_Mass_Cut_Gen', """
-        auto Missing_Mass_Cut_Gen = 0;
-        if(MM < 1.5){
-            Missing_Mass_Cut_Gen = -1;
-        }
-        else{
-            Missing_Mass_Cut_Gen =  1;
-        }
-        return Missing_Mass_Cut_Gen;
-        """)
-    ##==========================================================================================================##
-    ##------------------------------------##==============================##------------------------------------##
-    ##====================================##  Gen Missing Mass Cut (End)  ##====================================##
-    ##------------------------------------##==============================##------------------------------------##
-    ##==========================================================================================================##
+    # ##==========================================================================================================##
+    # ##------------------------------------##==============================##------------------------------------##
+    # ##====================================##  Generated Missing Mass Cut  ##====================================##
+    # ##------------------------------------##==============================##------------------------------------##
+    # ##==========================================================================================================##
+    # if(datatype in ["mdf", "pdf"]):
+    #     rdf = rdf.Define('Missing_Mass_Cut_Gen', """
+    #     auto Missing_Mass_Cut_Gen = 0;
+    #     if(MM_gen < 1.5){
+    #         Missing_Mass_Cut_Gen = -1;
+    #     }
+    #     else{
+    #         Missing_Mass_Cut_Gen =  1;
+    #     }
+    #     return Missing_Mass_Cut_Gen;
+    #     """)
+    # if(datatype in ["gdf", "gen"]):
+    #     rdf = rdf.Define('Missing_Mass_Cut_Gen', """
+    #     auto Missing_Mass_Cut_Gen = 0;
+    #     if(MM < 1.5){
+    #         Missing_Mass_Cut_Gen = -1;
+    #     }
+    #     else{
+    #         Missing_Mass_Cut_Gen =  1;
+    #     }
+    #     return Missing_Mass_Cut_Gen;
+    #     """)
+    # ##==========================================================================================================##
+    # ##------------------------------------##==============================##------------------------------------##
+    # ##====================================##  Gen Missing Mass Cut (End)  ##====================================##
+    # ##------------------------------------##==============================##------------------------------------##
+    # ##==========================================================================================================##
     
     
     
@@ -3036,9 +3160,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,     eleM.E());
             TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
-
-            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+            
+            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -3077,9 +3201,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,     eleM.E());
             TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
             
-            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
-            
+            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
+
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
             
@@ -3131,9 +3255,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
-
-            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+            
+            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -3171,9 +3295,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             TLorentzVector ele(ex, ey, ez, eleM.E());
             TLorentzVector pip0(pipx, pipy, pipz, pip0M.E());
-
-            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+            
+            TLorentzVector ele_smeared  = smear_func(ele""",  (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+            TLorentzVector pip0_smeared = smear_func(pip0""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
 
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
@@ -3303,13 +3427,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         TLorentzVector eleS(ex, ey, ez, ele.E());
         TLorentzVector pipS(pipx, pipy, pipz, pip0.E());
         
-        TLorentzVector ele_smeared = smear_func(eleS""", (");" if("ivec" not in str(smearing_function)) else ", 0);"), """
-        TLorentzVector pip_smeared = smear_func(pipS""", (");" if("ivec" not in str(smearing_function)) else ", 1);"), """
+        TLorentzVector ele_smeared = smear_func(eleS""", (");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"), """
+        TLorentzVector pip_smeared = smear_func(pipS""", (");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"), """
         
         ele  = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), 0);
         pip0 = ROOT::Math::PxPyPzMVector(pip_smeared.X(), pip_smeared.Y(), pip_smeared.Z(), 0.13957);
         
-        """]) if(("smear" in Smear_Q) and (datatype not in ["rdf"])) else "", """
+        """]) if(("smear" in Smear_Q) and (datatype not in ["rdf", "gdf"])) else "", """
 
         auto MM_Vector = beam + targ - ele - pip0;
 
@@ -4808,7 +4932,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(DF == "continue"):
             return "continue"
         if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
-            print("".join([color.Error, "ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n", color.END, color.RED, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
+            print("".join([color.Error, "ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n", color.END_R, "Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'", color.END]))
             if(return_option == "DF"):
                 return DF
             else:
@@ -4894,12 +5018,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 try:
                     DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
                 except:
-                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END_R, str(traceback.format_exc()), color.END, "\n\n"]))
             elif(return_option == "DF_Res"):
                 try:
                     DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
                 except:
-                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+                    print("".join([color.Error, "\nERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n", color.END_R, str(traceback.format_exc()), color.END, "\n\n"]))
             else:
                 return [str(Multi_Dim_Bin_Title[var_type]), -1.5, (math.prod(var_bins)) + 1.5, (math.prod(var_bins)) + 3]
         return DF_Final
@@ -4975,9 +5099,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if("_gen" in variable):
             bank_named = 'yes'
             variable = variable.replace("_gen",     "")
+            
+        Extra_Variable_Title     = ""
+        if("Smeared_Effect_on_" in variable):
+            Extra_Variable_Title = "Smeared Effect on "
+            variable = variable.replace("Smeared_Effect_on_", "")
+        if("Smeared_Percent_of_" in variable):
+            Extra_Variable_Title = "Smeared (Percent) Effect on "
+            variable = variable.replace("Smeared_Percent_of_", "")
         
-        output = 'error'    
+        output = 'error'
 
+        if("MultiDim_Q2_y_z_pT_phi_h"      in variable):
+            output = "5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})"
         if("MultiDim_z_pT_Bin_Y_bin_phi_t" in variable):
             output = "New 3D Bin Def (z+P_{T}+#phi_{h})"
         if(variable in ['Hx', 'Hy']):
@@ -5116,6 +5250,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = "#Delta_{Smeared}#theta_{#pi^{+}}"
         if(variable == 'Delta_Smear_Pip_Phi'):
             output = "#Delta_{Smeared}#phi_{#pi^{+}}"
+        if(variable == 'Complete_Correction_Factor_Ele'):
+            output = "Correction Factor for the Electron Momentum"
+        if(variable == 'Complete_Correction_Factor_Pip'):
+            output = "Correction Factor for the #pi^{+} Momentum"
+        if(variable == 'Percent_phi_t'):
+            output = "Percent Dif of #phi_{h} from Mom Cors"
+        if(variable == 'Delta_phi_t'):
+            output = "#Delta#phi_{h} from Mom Cors"
+
         if("Bin_4D" in variable):
             output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
         if("Bin_5D" in variable):
@@ -5130,8 +5273,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
         if(bank_named == 'yes'):
             output = "".join([output, " (Generated)"])
+            
+        if(Extra_Variable_Title not in [""]):
+            output = "".join([str(Extra_Variable_Title), str(output)])
         
-        if(output == 'error'):
+        if('error' in str(output)):
             print("".join(["A variable name was not recognized.\nPlease assign a new name for variable = ", str(variable)]))
             output = str(variable)
 
@@ -5165,6 +5311,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return "continue"
         # No PID cuts except for matched MC events
         if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
+            return "continue"
+        if((Titles_or_DF in ["DF"]) and (DF in ["continue"])):
+            print(f"{color.Error}\nDataFrame given to DF_Filter_Function_Full() is '{DF}'\n{color.END}")
             return "continue"
         ##===============================================##
         ##----------## Skipping Bad Requests ##----------##
@@ -5307,6 +5456,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if(Titles_or_DF == 'DF'):
                     if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
                         #        DF_Out.Filter("              y < 0.75 &&               xF > 0 &&               W > 2 &&              Q2 > 2 &&              pip > 1.25 &&              pip < 5 && 5 < elth             &&             elth < 35 && 5 < pipth            &&            pipth < 35")
+                        if("str" in str(type(DF_Out))):
+                            print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                     else:
@@ -5518,10 +5669,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #     if(Histo_Var_D2 != "None" and Histo_Var_D3 == "None" and ("smear" in str(Histo_Var_D1[0]) and "smear" in str(Histo_Var_D2[0]))):
             #         Dimensions_Output = Dimensions_Output.replace("_smeared", "")
             # except:
-            #     print("".join([color.Error, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            #     print("".join([color.Error, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END_R, str(traceback.format_exc()), color.END]))
             
         except:
-            print("".join([color.Error, "ERROR IN DIMENSIONS:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+            print("".join([color.Error, "ERROR IN DIMENSIONS:\n", color.END_R, str(traceback.format_exc()), color.END]))
 
         return Dimensions_Output
 
@@ -5545,11 +5696,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 
     if(run_Mom_Cor_Code == "yes"):
-        print("".join([color.BLUE, color.BOLD, "\nRunning Histograms from Momentum Correction/Smearing Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
-        print("".join([color.RED, "NOT Running Default SIDIS Histograms", color.END]))
+        print("".join([color.BBLUE, "\nRunning Histograms from Momentum Correction/Smearing Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
+        print("".join([color.RED,   "NOT Running Default SIDIS Histograms", color.END]))
     else:
-        print("".join([color.RED, "\nNOT Running Momentum Correction/Smearing Histograms", color.END]))
-        print("".join([color.BLUE, color.BOLD, "Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms)", color.END]))
+        print("".join([color.RED,   "\nNOT Running Momentum Correction/Smearing Histograms", color.END]))
+        print("".join([color.BBLUE, "Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms)", color.END]))
 
     
     # # Cut Naming Conventions:
@@ -5579,30 +5730,32 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
-    if(run_Mom_Cor_Code != "yes"):
-        # cut_list.append('no_cut_eS1a')
-        cut_list.append('no_cut_eS1o')
-        # cut_list.append('no_cut_eS2o')
-        # cut_list.append('no_cut_eS3o')
-        # cut_list.append('no_cut_eS4o')
-        # cut_list.append('no_cut_eS5o')
-        # cut_list.append('no_cut_eS6o')
+#     if(run_Mom_Cor_Code != "yes"):
+#         # cut_list.append('no_cut_eS1a')
+#         cut_list.append('no_cut_eS1o')
+#         # cut_list.append('no_cut_eS2o')
+#         # cut_list.append('no_cut_eS3o')
+#         # cut_list.append('no_cut_eS4o')
+#         # cut_list.append('no_cut_eS5o')
+#         # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
-        cut_list.append('cut_Complete_SIDIS')
+        cut_list = ['cut_Complete_SIDIS']
+        # cut_list.append('cut_Complete_SIDIS')
         if(run_Mom_Cor_Code == "yes"):
-            cut_list = ['cut_Complete_EDIS']
-            # cut_list.append('cut_Complete_EDIS')
+#             cut_list = ['cut_Complete_EDIS']
+            cut_list.append('cut_Complete_EDIS')
             # cut_list.append('cut_Complete_EDIS_Binned')
             # cut_list.append('cut_Complete_SIDIS_Binned')
-        else:
-            # cut_list.append('cut_Complete_SIDIS_eS1a')
-            cut_list.append('cut_Complete_SIDIS_eS1o')
-            # cut_list.append('cut_Complete_SIDIS_eS2o')
-            # cut_list.append('cut_Complete_SIDIS_eS3o')
-            # cut_list.append('cut_Complete_SIDIS_eS4o')
-            # cut_list.append('cut_Complete_SIDIS_eS5o')
-            # cut_list.append('cut_Complete_SIDIS_eS6o')
-            # # cut_list.append('cut_Complete_MM')
+#         else:
+#             # cut_list.append('cut_Complete_SIDIS_eS1a')
+#             cut_list.append('cut_Complete_SIDIS_eS1o')
+#             # cut_list.append('cut_Complete_SIDIS_eS2o')
+#             # cut_list.append('cut_Complete_SIDIS_eS3o')
+#             # cut_list.append('cut_Complete_SIDIS_eS4o')
+#             # cut_list.append('cut_Complete_SIDIS_eS5o')
+#             # cut_list.append('cut_Complete_SIDIS_eS6o')
+#             # # cut_list.append('cut_Complete_MM')
+#             # cut_list.append('cut_Complete_EDIS')
     # if(datatype not in ["rdf"]):
     #     if(datatype not in ["gdf"]):
     #         # cut_list.append('cut_Complete_MM_Gen')
@@ -5610,7 +5763,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #         cut_list.append('cut_Complete_SIDIS_Exgen')
     #     cut_list.append('cut_Gen')
     #     cut_list.append('cut_Exgen')
-    print("".join([color.BLUE, color.BOLD, "\nCuts in use: ", color.END]))
+    print("".join([color.BBLUE, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
         
@@ -5669,6 +5822,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if("5" in binning_option_list or "Y_bin"  in binning_option_list or "Y_Bin" in binning_option_list):
         # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] # Old version (removed as of 9/27/2023)
         List_of_Q2_xB_Bins_to_include = [-3, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        List_of_Q2_xB_Bins_to_include =     [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
     
     if("3" in binning_option_list or "Square" in binning_option_list):
         List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -5683,10 +5837,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         binning_option_list = ["Y_bin"]
         List_of_Q2_xB_Bins_to_include = [-1]
 
-        
     # List_of_Q2_xB_Bins_to_include = [-1, 1]
+    
+    # Conditions to make the 5D unfolding plots
+    Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
+    Use_5D_Response_Matrix = False
+    
+    if(Use_5D_Response_Matrix):
+        print(f"{color.BGREEN}\n\n{color.UNDERLINE}Will be making the plots needed for 5D Unfolding{color.END}\n\n")
+    else:
+        print(f"{color.BOLD}\n\nWill {color.RED}NOT{color.END_B} be making the plots needed for 5D Unfolding\n\n{color.END}")
         
-    print("")
+        
     if(("Off" in binning_option_list or "off" in binning_option_list)  and ("Q2_xB_Bin_Off" not in list(rdf.GetColumnNames())) and ("Q2_xB_Bin_off"   not in list(rdf.GetColumnNames()))):
         print("Binning Scheme --> 'Off'")
         rdf = rdf.Define("Q2_xB_Bin_Off",                                           str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Off")))
@@ -5736,27 +5898,33 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("All_MultiDim_Y_bin",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Y_bin")))
         rdf = rdf.Define("z_pT_Bin_Y_bin",                                          "All_MultiDim_Y_bin[0]")
         rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",                           "All_MultiDim_Y_bin[1]")
+        if(Use_5D_Response_Matrix):
+            rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h",                            "All_MultiDim_Y_bin[2]")
         # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t",                  "All_MultiDim_Y_bin[2]")
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("Q2_Y_Bin_gen",                                        str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Y_bin")))
             rdf = rdf.Define("All_MultiDim_Y_bin_gen",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Y_bin")))
             rdf = rdf.Define("z_pT_Bin_Y_bin_gen",                                  "All_MultiDim_Y_bin_gen[0]")
             rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen",                   "All_MultiDim_Y_bin_gen[1]")
+            if(Use_5D_Response_Matrix):
+                rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h_gen",                    "All_MultiDim_Y_bin_gen[2]")
             # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_gen",          "All_MultiDim_Y_bin_gen[2]")
             if(Run_With_Smear):
                 rdf = rdf.Define("Q2_Y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Y_bin")))
                 rdf = rdf.Define("All_MultiDim_Y_bin_smeared",                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Y_bin")))
                 rdf = rdf.Define("z_pT_Bin_Y_bin_smeared",                          "All_MultiDim_Y_bin_smeared[0]")
                 rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "All_MultiDim_Y_bin_smeared[1]")
+                if(Use_5D_Response_Matrix):
+                    rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h_smeared",            "All_MultiDim_Y_bin_smeared[2]")
                 # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
             
             
     
-    print("".join([color.BLUE, color.BOLD, "\nBinning Scheme(s) in use: ", color.END]))
+    print("".join([color.BBLUE, "\nBinning Scheme(s) in use: ", color.END]))
     for binning in binning_option_list:
         print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
         
-    print("".join([color.BLUE, color.BOLD, "\n(Possible) Q2-xB/Q2-y bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
+    print("".join([color.BBLUE, "\n(Possible) Q2-xB/Q2-y bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
     
 
     #####################     Bin Choices     #####################
@@ -5996,8 +6164,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     List_of_Quantities_1D = [phi_t_Binning]
     # if("Y_bin" in binning_option_list):
-    #     print(f"{color.BOLD}{color.BLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+    #     print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
     #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    
+        
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
@@ -6042,6 +6212,38 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     List_of_Quantities_3D = [[Hx_Binning, Hy_Binning, El_Phi_Binning]]
     
+    
+    
+    
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, y_Binning],  [z_Binning, pT_Binning]]
+    if((Mom_Correction_Q in ["yes"]) and (str(datatype)     in ["rdf"])):
+        List_of_Quantities_1D = []
+        List_of_Quantities_1D.append(["Complete_Correction_Factor_Ele",  0.9, 1.1, 400])
+        List_of_Quantities_1D.append(["Complete_Correction_Factor_Pip",  0.9, 1.1, 400])
+        # List_of_Quantities_1D.append(["Percent_phi_t",                   -20, 20,  500])
+        List_of_Quantities_1D.append(["Delta_phi_t",                     -10, 10,  500])
+        List_of_Quantities_2D.append([["Complete_Correction_Factor_Ele", 0.9, 1.1, 400], El_Binning])
+        List_of_Quantities_2D.append([["Complete_Correction_Factor_Pip", 0.9, 1.1, 400], Pip_Binning])
+        # List_of_Quantities_2D.append([["Percent_phi_t",                  -20, 20,  500], phi_t_Binning])
+        List_of_Quantities_2D.append([["Delta_phi_t",                    -10, 10,  500], phi_t_Binning])
+        
+        
+    if((datatype in ["mdf"]) and (run_Mom_Cor_Code in ["no"])):
+        List_of_Quantities_1D = []
+        # for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning, MM_Binning]:
+        for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning]:
+            # This loop is used only in case I want to use specific binning for the comparison variable based on the binning/ranges used for these variables
+            rdf = Smear_Compare_Variable(DataFrame=rdf, Variable_Input=str(variable_compare[0]))
+            boundries = 2.5 if(variable_compare == phi_t_Binning) else 0.5
+            List_of_Quantities_1D.append([f"Smeared_Effect_on_{str(variable_compare[0])}",       -boundries, boundries, 500])
+            if(variable_compare != phi_t_Binning):
+                List_of_Quantities_1D.append([f"Smeared_Percent_of_{str(variable_compare[0])}",   -5, 5, 500])
+                List_of_Quantities_2D.append([[f"Smeared_Percent_of_{str(variable_compare[0])}",  -5, 5, 500],                variable_compare])
+            else:
+                List_of_Quantities_2D.append([[f"Smeared_Effect_on_{str(variable_compare[0])}",  -boundries, boundries, 500], variable_compare])
+            
+    
     # # # 1D histograms are turned off with this option
     # List_of_Quantities_1D = []
 
@@ -6058,25 +6260,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Alert_of_Response_Matricies = True
     
     if(len(List_of_Quantities_1D) == 0):
-        print("".join([color.Error,            "\nNot running 1D histograms...",     color.END]))
+        print("".join([color.Error, "\nNot running 1D histograms...",     color.END]))
     else:
-        print("".join([color.BLUE, color.BOLD, "\n1D Histograms Selected Include: ", color.END]))
+        print("".join([color.BBLUE, "\n1D Histograms Selected Include: ", color.END]))
         for histo_1D in List_of_Quantities_1D:
             print("".join(["\t(*) ", str(histo_1D).replace(",", ",\t")]))
     
     
     if(len(List_of_Quantities_2D) == 0):
-        print("".join([color.Error,            "\nNot running 2D histograms...",     color.END]))
+        print("".join([color.Error, "\nNot running 2D histograms...",     color.END]))
     else:
-        print("".join([color.BLUE, color.BOLD, "\n2D Histograms Selected Include: ", color.END]))
+        print("".join([color.BBLUE, "\n2D Histograms Selected Include: ", color.END]))
         for histo_2D in List_of_Quantities_2D:
             print("".join(["\t(*) ", str(histo_2D).replace(",", ",\t")]))
             
             
     if(len(List_of_Quantities_3D) == 0):
-        print("".join([color.Error,            "\nNot running 3D histograms...",     color.END]))
+        print("".join([color.Error, "\nNot running 3D histograms...",     color.END]))
     else:
-        print("".join([color.BLUE, color.BOLD, "\n3D Histograms Selected Include: ", color.END]))
+        print("".join([color.BBLUE, "\n3D Histograms Selected Include: ", color.END]))
         for histo_3D in List_of_Quantities_3D:
             print("".join(["\t(*) ", str(histo_3D)]))
     
@@ -6100,12 +6302,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         #     if("smear" in ii):
         #         smearing_options_list.remove(ii)
                 
-    if(("ivec" in smearing_function) and ("smear" in smearing_options_list)):
-        print("".join([color.BLUE, color.BOLD, "\nRunning ", f"New Smearing Funtion (SF = {smear_factor})" if("Sigma Smearing Factor" in smearing_function) else "Modified Smearing Funtion" if("Simple Smearing Factor" not in smearing_function) else "".join(["Simple Smearing Factor (", str(smear_factor), ")"]), color.END]))
-    elif("smear" in smearing_options_list):
-        print("".join([color.BLUE, color.BOLD, "\nRunning FX's Smearing Funtion", color.END]))
+    if(("stop_over_smear" in smearing_function) and ("smear" in smearing_options_list)):
+        print(f"{color.BGREEN}\nRunning New Smearing Funtion with extra criteria (SF = {smear_factor}){color.END}")
+    elif(("ivec"          in smearing_function) and ("smear" in smearing_options_list)):
+        print("".join([color.BBLUE, "\nRunning ", f"New Smearing Funtion (SF = {smear_factor})" if("Sigma Smearing Factor" in smearing_function) else "Modified Smearing Funtion" if("Simple Smearing Factor" not in smearing_function) else "".join(["Simple Smearing Factor (", str(smear_factor), ")"]), color.END]))
+    elif("smear"          in smearing_options_list):
+        print("".join([color.BBLUE, "\nRunning FX's Smearing Funtion", color.END]))
     else:
-        print("".join([color.RED, "\nNot Smearing...", color.END]))
+        print("".join([color.RED,   "\nNot Smearing...", color.END]))
     
     
     def Print_Progress(Total, Increase, Rate):
@@ -6133,7 +6337,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(output_type in ["histo", "time"]):
         Histograms_All = {}
         count_of_histograms = 0
-        print("".join([color.BOLD, color.BLUE, "\n\nMaking Histograms...\n", color.END]))
+        print("".join([color.BBLUE, "\n\nMaking Histograms...\n", color.END]))
 
 ######################################################################
 ##=====##=====##=====##    Top of Main Loop    ##=====##=====##=====##
@@ -6199,8 +6403,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                             Variable_Loop_2D = copy.deepcopy(List_of_Quantities_2D)
                             for list2 in Variable_Loop_2D:
-                                list2[0][0] = "".join([str(list2[0][0]), "_smeared" if("_smeared" not in str(list2[0][0])) else ""])
-                                list2[1][0] = "".join([str(list2[1][0]), "_smeared" if("_smeared" not in str(list2[1][0])) else ""])
+                                # list2[0][0] = "".join([str(list2[0][0]), "_smeared" if("_smeared" not in str(list2[0][0])) else ""])
+                                # list2[1][0] = "".join([str(list2[1][0]), "_smeared" if("_smeared" not in str(list2[1][0])) else ""])
+                                list2[0][0] = "".join([str(list2[0][0]), "_smeared" if("mear" not in str(list2[0][0])) else ""])
+                                list2[1][0] = "".join([str(list2[1][0]), "_smeared" if("mear" not in str(list2[1][0])) else ""])
                                 
                             Variable_Loop_3D = copy.deepcopy(List_of_Quantities_3D)
                             for list3 in Variable_Loop_3D:
@@ -6239,8 +6445,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         if(Binning in ["2", "OG", "Off", "off", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]):
                             # histo_options = ["Normal", "Response_Matrix_Normal", "Background_Response_Matrix"]
                             histo_options = ["Normal", "Normal_Background", "Response_Matrix_Normal", "Background_Response_Matrix"]
+                            histo_options = ["Normal", "Response_Matrix_Normal"]
                         else:
                             histo_options = ["Normal", "Normal_Background", "Background_Response_Matrix"]
+                            histo_options = ["Normal"]
+                            
                             
                         # Cannot create 'Background' plots for experimental data (using the same definition of 'Background' used here)
                         if((Histo_Data in ["rdf"]) and ("Background_Response_Matrix" in histo_options)):
@@ -6250,9 +6459,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             
                         if(len(List_of_Quantities_1D) == 0):
                             if(Alert_of_Response_Matricies):
-                                print(color.BOLD, color.BLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
+                                print(color.BBLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
                                 Alert_of_Response_Matricies = False
                             histo_options = ["Normal"]
+                            
+                        if(Use_5D_Response_Matrix):
+                            histo_options.append("5D_Response_Matrix")
+                            if(not (Histo_Data in ["rdf", "gdf"])):
+                                histo_options.append("Background_5D_Response_Matrix")
             
                         # # # All options off (will still allow the Momentum Correction plots to run)
                         # histo_options = []
@@ -6810,7 +7024,115 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
 
 ##################################################=========================================##########################################################################################################################################
-##======##======##======##======##======##======##     Response Matrix (Both Types)        ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
+##======##======##======##======##======##======##     Response Matrix (5D)         ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
+##################################################=========================================##########################################################################################################################################
+                            if(Histo_Group in ["5D_Response_Matrix", "Background_5D_Response_Matrix"]):
+                                if((Histo_Group in ["Background_5D_Response_Matrix"]) and (Histo_Data not in ['mdf'])):
+                                    # Do not make Background Reponse Matrices for data sets other than the matched Monte Carlo (mdf)
+                                    continue
+                                if("EDIS" in Histo_Cut):
+                                    # Do not need exclusive cuts for the response matrices
+                                    continue
+                                # print(f"{color.BGREEN}\n\nMAKING 5D RESPONSE MATRIX\n\n{color.END}")
+                                
+                                variable = Q2_y_z_pT_phi_h_5D_Binning[0]
+                                if(("smear" in Histo_Smear) and ("mear" not in variable)):
+                                    variable = "".join([variable, "_smeared"])
+
+                                Min_range, Max_range, Num_of_Bins = Q2_y_z_pT_phi_h_5D_Binning[1], Q2_y_z_pT_phi_h_5D_Binning[2], Q2_y_z_pT_phi_h_5D_Binning[3]
+                                Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Q2_y_z_pT_phi_h_5D_Binning, Histo_Var_D2="None")
+
+                                # Applying Main Cuts
+                                sdf = DF_Filter_Function_Full(DF=rdf, Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning)
+                                if(sdf == "continue"):
+                                    continue
+                                if(Histo_Data not in ["rdf", "gdf"]):
+                                    sdf = sdf.Filter("PID_el != 0 && PID_pip != 0")
+                                    
+                                Histo_Binning_Name = "".join(["Binning-Type:'", str(Binning) if(str(Binning) != "") else "Stefan", "'-[Q2-y-Bin:All, z-PT-Bin:All]"])
+
+                                Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_RM_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                Histo_Name_1D = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_1D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_RM_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+
+                                Migration_Title_L1     = "".join(["#scale[1.5]{Response Matrix of ",            str(variable_Title_name(variable)), "}"]) if(Histo_Data in ["mdf", "pdf"]) else "".join(["#scale[1.5]{", "Experimental" if(Histo_Data == "rdf") else "Generated" if(Histo_Data != "mdf") else "Reconstructed (MC)", " Distribution of ", str(variable_Title_name(variable)), "}"])
+                                if("Background" in Histo_Group):
+                                    Migration_Title_L1 = "".join(["#scale[1.5]{Background Response Matrix of ", str(variable_Title_name(variable)), "}"]) if(Histo_Data in ["mdf", "pdf"]) else "".join(["#scale[1.5]{", "Experimental" if(Histo_Data == "rdf") else "Generated" if(Histo_Data != "mdf") else "Reconstructed (MC)", " Distribution of ", str(variable_Title_name(variable)), "}"])
+                                Migration_Title_L2     = "".join(["#scale[1.15]{Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut)), "}"])
+                                Migration_Title_L3     = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), "}"])
+                                Migration_Title_L4     = "All Q^{2}-y-z-P_{T} Bins"
+
+                                Migration_Title              = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
+                                if(Histo_Data in ["mdf", "pdf"]):
+                                    Migration_Title_L1_2     = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ",              str(variable_Title_name(variable)), "}"])
+                                    if("Background" in Histo_Group):
+                                        Migration_Title_L1_2 = "".join(["#scale[1.5]{(Background) Reconstructed (MC) Distribution of ", str(variable_Title_name(variable)), "}"])
+                                    Migration_Title_2        = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                                                                            " REC Bins"])
+                                else:
+                                    Migration_Title          = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                         " REC"  if("g" not in Histo_Data) else " GEN",         " Bins"])
+
+                                Variable_Gen = str("".join([str(variable).replace("_smeared", ""), "_gen"]))
+                                Variable_Rec = str(variable)
+
+                                Background_Filter = "esec != -2"
+                                if("Background" in Histo_Group):
+                                    if(Background_Filter  not in ["", "esec != -2"]):
+                                        Background_Filter = f"({Background_Filter}) && ({Background_Cuts_MC})"
+                                    else:
+                                        Background_Filter = f"({Background_Cuts_MC})"
+                                elif(Histo_Data in ["mdf", "pdf", "gen"]):
+                                    if(Background_Filter  not in ["", "esec != -2"]):
+                                        Background_Filter = f"({Background_Filter}) && !({Background_Cuts_MC})"
+                                    else:
+                                        Background_Filter = f"!({Background_Cuts_MC})"
+                                elif(Histo_Data in ["gdf"]):
+                                    filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
+                                    if(Background_Filter  not in ["", "esec != -2"]):
+                                        Background_Filter = f"({Background_Filter}) && !({filter_gdf_background})"
+                                    else:
+                                        Background_Filter = f"!({filter_gdf_background})"
+                                    del filter_gdf_background
+                        ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                        #####====================#####     Making the Histos (START)    #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                        ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                if(not Use_Weight):
+                                    # Running without weighing the events
+                                    #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    if(Histo_Data in ["mdf", "pdf"]):
+                                        Histograms_All[Histo_Name]    = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Gen), str(Variable_Rec))
+                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec))
+                                    #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    else:
+                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec))
+                            #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                            #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                else:
+                                    # Running Weighed Version of events
+                                    #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    if(Histo_Data in ["mdf", "pdf"]):
+                                        Histograms_All[Histo_Name]    = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
+                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec), "Event_Weight")
+                                    #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
+                                    else:
+                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec), "Event_Weight")
+                        ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                        #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                        ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
+                                for Histo_To_Save in [Histo_Name, Histo_Name_1D]:
+                                    if(Histo_To_Save not in ["N/A"]):
+                                        if(Histo_To_Save in Histograms_All):
+                                            if(str(file_location) not in ['time']):
+                                                Histograms_All[Histo_To_Save].Write()
+                                            Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                            count_of_histograms += 1
+                                        else:
+                                            print(color.Error, "\nERROR WHILE SAVING HISTOGRAM:\n", color.END_B, "Histograms_All[", Histo_To_Save, "] was not found\n", color.END)
+                                if(output_all_histo_names_Q not in ["yes"]):
+                                    del Histograms_All
+                                    Histograms_All = {}
+                                del sdf
+                                
+##################################################=========================================##########################################################################################################################################
+##======##======##======##======##======##======##     Response Matrix (1D and 3D)         ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
 ##################################################=========================================##########################################################################################################################################
                             if(Histo_Group in ["Response_Matrix", "Response_Matrix_Normal", "Background_Response_Matrix"]):
                                 if((Histo_Group in ["Background_Response_Matrix"]) and (Histo_Data not in ['mdf'])):
@@ -6865,17 +7187,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, Q2_Y_Binning]]
                                     Res_Var_Add = [[[phi_t_Binning_New[0], 0, 360, 24], Res_Binning_2D_z_pT]]
                                 
-                                # # REMOVING ALL ABOVE ADDITIONS (remove this line later)
-                                # Res_Var_Add = []
+                                # REMOVING ALL ABOVE ADDITIONS (remove this line later)
+                                Res_Var_Add = []
                                 
                                 if(Alert_of_Response_Matricies):
                                     if(len(List_of_Quantities_1D) == 0):
-                                        print(color.BOLD, color.BLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
+                                        print(color.BBLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
                                         Res_Var_Add = []
                                     elif(len(Res_Var_Add) == 0):
-                                        print(color.BOLD, color.BLUE, "\nOnly running the base 1D options in the Response Matrix Code for Unfolding (i.e., Res_Var_Add is empty)...\n", color.END)
+                                        print(color.BBLUE, "\nOnly running the base 1D options in the Response Matrix Code for Unfolding (i.e., Res_Var_Add is empty)...\n", color.END)
                                     else:
-                                        print(color.BOLD, color.GREEN, "\nAdding the following Response Matrix options (for Multidimensional unfolding):", color.END, "\n\tRes_Var_Add =", str(Res_Var_Add), "\n")
+                                        print(color.BGREEN, "\nAdding the following Response Matrix options (for Multidimensional unfolding):", color.END, "\n\tRes_Var_Add =", str(Res_Var_Add), "\n")
                                     Alert_of_Response_Matricies = False
                                 
                                 Res_Var_List = copy.deepcopy(List_of_Quantities_1D)
@@ -6896,7 +7218,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Var_List = Multi_Dim_Bin_Def(DF=rdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
 
                                     variable = Var_List[0]
-                                    if(("smear" in Histo_Smear) and ("smear" not in variable)):
+                                    if(("smear" in Histo_Smear) and ("mear" not in variable)):
                                         variable = "".join([variable, "_smeared"])
 
                                     Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
@@ -6944,13 +7266,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # Making a response matrix with cuts on the Q2-xB/Q2-y bins is unnecessary for the kinematic binned response matrices
                                             continue
                                             
-                                        if((Q2_xB_Bin_Num > 0) and (str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "y"])):
-                                            # Making a response matrix with cuts on the Q2-xB bins is unnecessary for these response matrices (just using as examples for analysis note)
-                                            continue
-
-                                        if((Q2_xB_Bin_Num > 0) and "phi_t" not in str(variable)):
-                                            # No need to use the kinematic binning for response matrices that do not include the phi_t variable
-                                            continue
+                                        # # Removed on 4/18/2024 to help with Correction Evaluations and because these conditions are not really necessary as long as the 1D unfolding options only include phi_t (other unfolding plots are generally unnecessary)
+                                        # 
+                                        # if((Q2_xB_Bin_Num > 0) and (str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "y"])):
+                                        #     # Making a response matrix with cuts on the Q2-xB bins is unnecessary for these response matrices (just using as examples for analysis note)
+                                        #     continue
+                                        # if((Q2_xB_Bin_Num > 0) and "phi_t" not in str(variable)):
+                                        #     # No need to use the kinematic binning for response matrices that do not include the phi_t variable
+                                        #     continue
+                                        # 
                                             
                                             
                                         Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
@@ -7396,7 +7720,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                     Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
                                                     count_of_histograms += 1
                                                 else:
-                                                    print(color.Error, "\nERROR WHILE SAVING HISTOGRAM:\n", color.END, color.BOLD, "Histograms_All[", Histo_To_Save, "] was not found\n", color.END)
+                                                    print(color.Error, "\nERROR WHILE SAVING HISTOGRAM:\n", color.END_B, "Histograms_All[", Histo_To_Save, "] was not found\n", color.END)
                                         if((str(Histo_Name) not in [Histo_Name_No_Cut, Histo_Name_MM_Cut, Histo_Name__No_Cut, Histo_Name_Cutting, Histo_Name__MM_Cut, Histo_Name_1D_MM_Cut, Histo_Name_1D_No_Cut]) and (Histo_Name in Histograms_All)):
                                             if(str(file_location) not in ['time']):
                                                 Histograms_All[Histo_Name].Write()
