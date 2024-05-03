@@ -1305,7 +1305,7 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
     if(Use_Pass_2_Function):
         smearing_function = "".join(["""
         //=======================================================================//
-        //=================// Sigma Smearing Factor (Pass 2) //=================//
+        //=================// Sigma Smearing Factor (Pass 2) //==================//
         //=======================================================================//
         auto smear_func = [&](TLorentzVector V4, int ivec){
             // True generated values (i.e., values of the unsmeared TLorentzVector)
@@ -1372,6 +1372,96 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
                 P_new_rec = P_new_rec + gRandom->Gaus(0,(P_new_rec)*Extra_Smear_SF_Theta*smear_factor);
             }
             
+            // Making the smeared TLorentzVector:
+            TLorentzVector V4_smear(V4.X(), V4.Y(), V4.Z(), V4.E());
+            V4_smear.SetE(TMath::Sqrt(P_new_rec*P_new_rec + M_rec*M_rec));
+            V4_smear.SetRho(   P_new_rec);
+            V4_smear.SetTheta(Th_new_rec);
+            V4_smear.SetPhi( Phi_new_rec);
+            return V4_smear;
+        };"""])
+        smearing_function = "".join(["""
+        //=======================================================================//
+        //=================// Sigma Smearing Factor (Pass 2) //==================//
+        //=======================================================================//
+        // bool stop_over_smear = (pip > 4.5) || (pipth < 12.5);
+        bool stop_over_smear = (pipth < 12.5);
+        bool less_over_smear = (pip > 4.5) || (pipth < 20);
+        // bool stop_over_smear = (pipth < 15);
+        auto smear_func = [&](TLorentzVector V4, int ivec, bool stop_over_smear, bool less_over_smear){
+            // True generated values (i.e., values of the unsmeared TLorentzVector)
+            double M_rec   = V4.M();
+            double P_rec   = V4.P();
+            double Th_rec  = V4.Theta();
+            double Phi_rec = V4.Phi();
+
+            double Smear_SF_Theta = 0;
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (2.9693e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-1.3409e-03)*(TMath::RadToDeg()*Th_rec) + (0.01712);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (2.4652e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-3.0371e-04)*(TMath::RadToDeg()*Th_rec) + (4.3560e-04);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (-5.4842e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.1920e-03)*(TMath::RadToDeg()*Th_rec) + (-8.6631e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 0){ // Electron
+            //     // Smear_SF_Theta = (-3.6737e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.2103e-03)*(TMath::RadToDeg()*Th_rec) + (-2.6782e-03);
+            //     // Smear_SF_Theta = (-4.3310e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.4627e-03)*(TMath::RadToDeg()*Th_rec) + (-5.2904e-03);
+            //     Smear_SF_Theta = (-4.0439e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.3799e-03)*(TMath::RadToDeg()*Th_rec) + (-4.6519e-03);
+            //     Smear_SF_Theta = 0.5*Smear_SF_Theta;
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (4.0905e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.0371e-04)*(TMath::RadToDeg()*Th_rec) + (0.01161);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (-1.2573e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.7345e-03)*(TMath::RadToDeg()*Th_rec) + (-0.01872);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            if(ivec == 1){ // Pi+ Pion
+                Smear_SF_Theta = (-1.6512e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.6159e-03)*(TMath::RadToDeg()*Th_rec) + (-0.01402);
+                if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            }
+            if(ivec == 0){ // Electron
+                Smear_SF_Theta = (-7.6697e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.7102e-03)*(TMath::RadToDeg()*Th_rec) + (-0.01402);
+                // Smear_SF_Theta = 0.65*Smear_SF_Theta;
+                Smear_SF_Theta = 0.95*Smear_SF_Theta;
+                if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            }
+
+
+            if(stop_over_smear && ivec == 0){ // Stop the electron from over-smearing the pion
+                // Smear_SF_Theta = 0;
+                // Smear_SF_Theta = 0.05*Smear_SF_Theta;
+                Smear_SF_Theta = 0.10*Smear_SF_Theta;
+            }
+            else{
+                // Stop the electron from over-smearing the pion (less significant version)
+                // if(less_over_smear && ivec == 0){Smear_SF_Theta = 0.65*Smear_SF_Theta;}
+                if(less_over_smear && ivec == 0){Smear_SF_Theta = 0.71*Smear_SF_Theta;}
+            }
+
+            // Calculate resolutions
+            double smear_factor = """, str(smear_factor), """;
+            double P_new_rec   = P_rec   + gRandom->Gaus(0,   (P_rec)*Smear_SF_Theta*smear_factor);
+            // double Th_new_rec  = Th_rec  + gRandom->Gaus(0,  (Th_rec)*Smear_SF_Theta*smear_factor);
+            // double Phi_new_rec = Phi_rec + gRandom->Gaus(0, (Phi_rec)*Smear_SF_Theta*smear_factor);
+            double Th_new_rec  = Th_rec;
+            double Phi_new_rec = Phi_rec;
+
+            // double Extra_Smear_SF_Theta = 0;
+            // if(ivec == 1){ // Pi+ Pion
+            //     Extra_Smear_SF_Theta = (-2.2728e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.9750e-03)*(TMath::RadToDeg()*Th_rec) + (-0.02847);
+            //     if((Extra_Smear_SF_Theta < 0) || (stop_over_smear)){Extra_Smear_SF_Theta = 0;}
+            //     // stop_over_smear was added to keep that region consistent with the original pion smearing
+            //     P_new_rec = P_new_rec + gRandom->Gaus(0,(P_new_rec)*Extra_Smear_SF_Theta*smear_factor);
+            // }
+
             // Making the smeared TLorentzVector:
             TLorentzVector V4_smear(V4.X(), V4.Y(), V4.Z(), V4.E());
             V4_smear.SetE(TMath::Sqrt(P_new_rec*P_new_rec + M_rec*M_rec));
