@@ -931,6 +931,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Updated the smearing functions to be in line with "New_Smear_V9_" (see below)
     # Removed the Missing Mass plots from mdf smeared options
     # Added option for 5D Unfolding plots but not running those yet (will run in next update separately from the correction effect plots)
+    
+    
+    Extra_Name = "5D_Unfold_Test_V1_"
+    # Ran on 5/3/2024
+    # Using smearing functions developed with "New_Smear_V9_" (see below)
+    # Running standard histogram and cut options (changed the options that were ran for "Correction_Effects_V6_")
+        # Not running the 2D sector vs phi_h plots though (should be run with sector cuts which are not included in this version)
+    # Running new option for 5D Unfolding plots
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -1254,9 +1262,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Correction_Code_Full_In = """ See ExtraAnalysisCodeValues.py for details
     
     if(Mom_Correction_Q != "yes"):
-        print("".join([color.Error, "\n\tNot running with Momentum Corrections\n", color.END]))
+        print("".join([color.Error if(datatype in ["rdf"]) else color.RED, "\n\nNot running with Momentum Corrections\n", color.END]))
     else:
-        print("".join([color.BBLUE, "\n\tRunning with Momentum Corrections\n",     color.END]))
+        print("".join([color.BBLUE,                                        "\n\nRunning with Momentum Corrections\n",     color.END]))
         
         
     ###################################################################################################################################################################
@@ -1686,7 +1694,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # rdf = rdf.Define('eleY_CM','vals2[13]') # CM scattered electron y-momentum
     # rdf = rdf.Define('eleZ_CM','vals2[14]') # CM scattered electron z-momentum
     
-    if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"])):
+    Run_Uncorrected_phi_t_Info_Q = False
+    
+    if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"]) and Run_Uncorrected_phi_t_Info_Q):
         rdf = rdf.Define("Uncorrected_phi_t_Info", "".join([str(Correction_Code_Full_In), """
         auto fpip   = (dppC(pipx, pipy, pipz, pipsec, 1, """, "1" if(not Use_Pass_2) else "3", """) + 1)/(Complete_Correction_Factor_Pip);
         auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
@@ -2720,7 +2730,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #     print("".join(["Already defined: ", str(Variable)]))
             return Data_Frame
         elif(Variable in ["esec", "esec_smeared", "pipsec", "pipsec_smeared", "Hx", "Hx_smeared", "Hy", "Hy_smeared"]):
-            print(color.Error, "\nCannot smear particle sector\n", color.END)
+            print(f"{color.Error}Cannot smear particle sector{color.END}")
             Data_Frame = "continue"
             return Data_Frame
         else:
@@ -5739,8 +5749,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         # cut_list.append('no_cut_eS5o')
 #         # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
-        cut_list = ['cut_Complete_SIDIS']
-        # cut_list.append('cut_Complete_SIDIS')
+        # cut_list = ['cut_Complete_SIDIS']
+        cut_list.append('cut_Complete_SIDIS')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -5841,7 +5851,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
-    Use_5D_Response_Matrix = False
+    # Use_5D_Response_Matrix = False
     
     if(Use_5D_Response_Matrix):
         print(f"{color.BGREEN}\n\n{color.UNDERLINE}Will be making the plots needed for 5D Unfolding{color.END}\n\n")
@@ -5880,7 +5890,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 rdf = rdf.Define("Q2_xB_Bin_3_smeared",                             str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="3")))
                 rdf = rdf.Define("z_pT_Bin_3_smeared",                              str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="3")))
     if(("4" in binning_option_list or "y_bin"  in binning_option_list or "y_Bin" in binning_option_list) and ("Q2_y_Bin" not in list(rdf.GetColumnNames()))):
-        print("Q2-y Binning Scheme (main) --> 'y_bin'")
+        print("Q2-y Binning Scheme (old) --> 'y_bin'")
         rdf = rdf.Define("Q2_y_Bin",                                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="y_bin")))
         rdf = rdf.Define("z_pT_Bin_y_bin",                                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="y_bin")))
         rdf = rdf.Define("Q2_y_z_pT_4D_Bin",                                        str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="")))
@@ -5893,7 +5903,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 rdf = rdf.Define("z_pT_Bin_y_bin_smeared",                          str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="y_bin")))
                 rdf = rdf.Define("Q2_y_z_pT_4D_Bin_smeared",                        str(Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type="smear")))
     if(("5" in binning_option_list or "Y_bin"  in binning_option_list or "Y_Bin" in binning_option_list) and ("Q2_Y_Bin" not in list(rdf.GetColumnNames()))):
-        print("New Q2-y Binning Scheme (Testing) --> 'Y_bin'")
+        print("New Q2-y Binning Scheme --> 'Y_bin'")
         rdf = rdf.Define("Q2_Y_Bin",                                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Y_bin")))
         rdf = rdf.Define("All_MultiDim_Y_bin",                                      str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Y_bin")))
         rdf = rdf.Define("z_pT_Bin_Y_bin",                                          "All_MultiDim_Y_bin[0]")
@@ -6141,28 +6151,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # This value is only an option if "Y_bin" in binning_option_list
     
     
-    Hx_Binning = ['Hx', -400, 400, 800]
-    Hy_Binning = ['Hy', -400, 400, 800]
+    # Hx_Binning = ['Hx', -400, 400, 800]
+    # Hy_Binning = ['Hy', -400, 400, 800]
 
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
-#     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
-    
-#     List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
-#     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
+    # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
+    # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, phi_t_Binning]
+    # List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old, z_Binning_Old, pT_Binning_Old, phi_t_Binning]
+    # List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old]
+    # List_of_Quantities_1D = [phi_t_Binning, Q2_Binning_Old, xB_Binning_Old]
+    # List_of_Quantities_1D = [phi_t_Binning, Q2_y_Binning]
+    # List_of_Quantities_1D = [phi_t_Binning, MM_Binning, W_Binning]
+    # List_of_Quantities_1D = [phi_t_Binning, MM_Binning]
+    # List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     List_of_Quantities_1D = [phi_t_Binning]
-#     List_of_Quantities_1D = [Q2_Binning_Old, xB_Binning_Old]
-#     List_of_Quantities_1D = [phi_t_Binning, Q2_Binning_Old, xB_Binning_Old]
-
-#     List_of_Quantities_1D = [phi_t_Binning, Q2_y_Binning]
     
-#     List_of_Quantities_1D = [phi_t_Binning, MM_Binning, W_Binning]
-
-    List_of_Quantities_1D = [phi_t_Binning, MM_Binning]
-    
-    List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
-    
-    List_of_Quantities_1D = [phi_t_Binning]
     # if("Y_bin" in binning_option_list):
     #     print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
     #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
@@ -6171,77 +6175,66 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # List_of_Quantities_2D = [[['Q2', 0, 12, 200], ['xB', 0, 0.8, 200]], [['y', 0, 1, 200], ['xB', 0, 0.8, 200]], [['z', 0, 1, 200], ['pT', 0, 1.6, 200]], [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
     # List_of_Quantities_2D = [[Q2_Binning,         xB_Binning],          [y_Binning,        xB_Binning],          [z_Binning,        pT_Binning],          [['el', 0, 8, 200], ['elth', 0, 40, 200]], [['elth', 0, 40, 200], ['elPhi', 0, 360, 200]], [['pip', 0, 6, 200], ['pipth', 0, 40, 200]], [['pipth', 0, 40, 200], ['pipPhi', 0, 360, 200]]]
-#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
     
     
-    # Reduced Variable Options
-    # List_of_Quantities_1D = [Q2_Binning,  xB_Binning,  z_Binning,  pT_Binning, phi_t_Binning]
-#     List_of_Quantities_1D = [Q2_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, phi_t_Binning]
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-    
-#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
-    
-    # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['y',         0, 1, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['elth',         0, 40, 200], ['elPhi',         0, 360, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]], [['pipth',         0, 40, 200], ['pipPhi',         0, 360, 200]]]
-    # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['y',         0, 1, 200], ['xF',         -1, 1, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]]]
-
-    
-    
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-    
-#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [Q2_Binning, W_Binning], [W_Binning, y_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-    
-    
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-    
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [phi_t_Binning, pT_Binning]]
+    # # # Reduced Variable Options
+    # # List_of_Quantities_1D = [Q2_Binning,  xB_Binning,  z_Binning,  pT_Binning, phi_t_Binning]
+    # # List_of_Quantities_1D = [Q2_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, phi_t_Binning]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [z_Binning, pT_Binning]]
+    # # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['y',         0, 1, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['elth',         0, 40, 200], ['elPhi',         0, 360, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]], [['pipth',         0, 40, 200], ['pipPhi',         0, 360, 200]]]
+    # # List_of_Quantities_2D         = [[['Q2',         0, 12, 200], ['xB',         0, 0.8, 200]], [['z',         0, 1, 200], ['pT',         0, 1.6, 200]], [['y',         0, 1, 200], ['xF',         -1, 1, 200]], [['el',         0, 8, 200], ['elth',         0, 40, 200]], [['pip',         0, 6, 200], ['pipth',         0, 40, 200]]]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [Q2_Binning, W_Binning], [W_Binning, y_Binning], [y_Binning, xB_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [MM_Binning, W_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [phi_t_Binning, pT_Binning]]
+    # # # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
+    # # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
+    # # List_of_Quantities_2D = [[El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
     
     
-    # # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning]]
-    # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [El_Binning, phi_t_Binning], [El_Th_Binning, phi_t_Binning], [Pip_Binning, phi_t_Binning], [Pip_Th_Binning, phi_t_Binning]]
-
-    # List_of_Quantities_2D = [[El_Phi_Binning, phi_t_Binning], [Pip_Phi_Binning, phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
     
-    List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
-    List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
     
-    List_of_Quantities_3D = [[Hx_Binning, Hy_Binning, El_Phi_Binning]]
-    
-    
+    # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
+    # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
+    # List_of_Quantities_3D = [[Hx_Binning, Hy_Binning, El_Phi_Binning]]
     
     
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-    List_of_Quantities_2D = [[Q2_Binning, y_Binning],  [z_Binning, pT_Binning]]
-    if((Mom_Correction_Q in ["yes"]) and (str(datatype)     in ["rdf"])):
-        List_of_Quantities_1D = []
-        List_of_Quantities_1D.append(["Complete_Correction_Factor_Ele",  0.9, 1.1, 400])
-        List_of_Quantities_1D.append(["Complete_Correction_Factor_Pip",  0.9, 1.1, 400])
-        # List_of_Quantities_1D.append(["Percent_phi_t",                   -20, 20,  500])
-        List_of_Quantities_1D.append(["Delta_phi_t",                     -10, 10,  500])
-        List_of_Quantities_2D.append([["Complete_Correction_Factor_Ele", 0.9, 1.1, 400], El_Binning])
-        List_of_Quantities_2D.append([["Complete_Correction_Factor_Pip", 0.9, 1.1, 400], Pip_Binning])
-        # List_of_Quantities_2D.append([["Percent_phi_t",                  -20, 20,  500], phi_t_Binning])
-        List_of_Quantities_2D.append([["Delta_phi_t",                    -10, 10,  500], phi_t_Binning])
-        
-        
-    if((datatype in ["mdf"]) and (run_Mom_Cor_Code in ["no"])):
-        List_of_Quantities_1D = []
-        # for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning, MM_Binning]:
-        for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning]:
-            # This loop is used only in case I want to use specific binning for the comparison variable based on the binning/ranges used for these variables
-            rdf = Smear_Compare_Variable(DataFrame=rdf, Variable_Input=str(variable_compare[0]))
-            boundries = 2.5 if(variable_compare == phi_t_Binning) else 0.5
-            List_of_Quantities_1D.append([f"Smeared_Effect_on_{str(variable_compare[0])}",       -boundries, boundries, 500])
-            if(variable_compare != phi_t_Binning):
-                List_of_Quantities_1D.append([f"Smeared_Percent_of_{str(variable_compare[0])}",   -5, 5, 500])
-                List_of_Quantities_2D.append([[f"Smeared_Percent_of_{str(variable_compare[0])}",  -5, 5, 500],                variable_compare])
-            else:
-                List_of_Quantities_2D.append([[f"Smeared_Effect_on_{str(variable_compare[0])}",  -boundries, boundries, 500], variable_compare])
+    
+    
+    # # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, y_Binning],  [z_Binning, pT_Binning]]
+    # if((Mom_Correction_Q in ["yes"]) and (str(datatype)     in ["rdf"])):
+    #     List_of_Quantities_1D = []
+    #     List_of_Quantities_1D.append(["Complete_Correction_Factor_Ele",  0.9, 1.1, 400])
+    #     List_of_Quantities_1D.append(["Complete_Correction_Factor_Pip",  0.9, 1.1, 400])
+    #     # List_of_Quantities_1D.append(["Percent_phi_t",                   -20, 20,  500])
+    #     List_of_Quantities_1D.append(["Delta_phi_t",                     -10, 10,  500])
+    #     List_of_Quantities_2D.append([["Complete_Correction_Factor_Ele", 0.9, 1.1, 400], El_Binning])
+    #     List_of_Quantities_2D.append([["Complete_Correction_Factor_Pip", 0.9, 1.1, 400], Pip_Binning])
+    #     # List_of_Quantities_2D.append([["Percent_phi_t",                  -20, 20,  500], phi_t_Binning])
+    #     List_of_Quantities_2D.append([["Delta_phi_t",                    -10, 10,  500], phi_t_Binning])
+    # if((datatype in ["mdf"]) and (run_Mom_Cor_Code in ["no"])):
+    #     List_of_Quantities_1D = []
+    #     # for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning, MM_Binning]:
+    #     for variable_compare in [phi_t_Binning, Q2_Binning, y_Binning, z_Binning, pT_Binning, El_Binning, Pip_Binning]:
+    #         # This loop is used only in case I want to use specific binning for the comparison variable based on the binning/ranges used for these variables
+    #         rdf = Smear_Compare_Variable(DataFrame=rdf, Variable_Input=str(variable_compare[0]))
+    #         boundries = 2.5 if(variable_compare == phi_t_Binning) else 0.5
+    #         List_of_Quantities_1D.append([f"Smeared_Effect_on_{str(variable_compare[0])}",       -boundries, boundries, 500])
+    #         if(variable_compare != phi_t_Binning):
+    #             List_of_Quantities_1D.append([f"Smeared_Percent_of_{str(variable_compare[0])}",   -5, 5, 500])
+    #             List_of_Quantities_2D.append([[f"Smeared_Percent_of_{str(variable_compare[0])}",  -5, 5, 500],                variable_compare])
+    #         else:
+    #             List_of_Quantities_2D.append([[f"Smeared_Effect_on_{str(variable_compare[0])}",  -boundries, boundries, 500], variable_compare])
             
     
     # # # 1D histograms are turned off with this option
@@ -7033,7 +7026,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 if("EDIS" in Histo_Cut):
                                     # Do not need exclusive cuts for the response matrices
                                     continue
-                                # print(f"{color.BGREEN}\n\nMAKING 5D RESPONSE MATRIX\n\n{color.END}")
+                                print(f"{color.BGREEN}Making a 5D Response Matrix{color.END}")
                                 
                                 variable = Q2_y_z_pT_phi_h_5D_Binning[0]
                                 if(("smear" in Histo_Smear) and ("mear" not in variable)):
@@ -7118,6 +7111,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 for Histo_To_Save in [Histo_Name, Histo_Name_1D]:
+                                    if((Histo_Data   not in ["mdf", "pdf"]) and (Histo_To_Save in [Histo_Name])):
+                                        continue
                                     if(Histo_To_Save not in ["N/A"]):
                                         if(Histo_To_Save in Histograms_All):
                                             if(str(file_location) not in ['time']):
@@ -7151,7 +7146,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 if(Binning in ["4", "y_bin", "y_Bin"]):
                                     Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 42.5,  43]
                                 if(Binning in ["5", "Y_bin", "Y_Bin"]):
-                                    Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 65.5,  66]
+                                    # Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 65.5,  66]
                                     Res_Binning_2D_z_pT  = [str(z_pT_Bin_Filter_str),  -0.5, 37.5,  38]
                                     
                                     
@@ -7161,12 +7156,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     
                                 
                                 Res_Var_Add = []
-                                # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
-                                # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
-                                # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
-                                Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old]]
-                                Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", "OG", "Test", ""]) else 17 if(Binning in ["4", "y_bin", "y_Bin"]) else 14, 8 if(Binning in ["2", "OG", "Test", ""]) else 17 if(Binning in ["4", "y_bin", "y_Bin"]) else 14]]]
-                                # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
+                                # # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New], [[str(Q2_xB_Bin_Filter_str), 0, 8, 8], [str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                # # # Res_Var_Add = [[[str(Q2_xB_Bin_Filter_str), 0, 8, 8], phi_t_Binning_New], [[str(z_pT_Bin_Filter_str), 0, 49, 49], phi_t_Binning_New]]
+                                # # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8, 8]], [str(Q2_xB_Bin_Filter_str), 0, 8, 8]]
+                                # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old]]
+                                # Res_Var_Add = [[phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", "OG", "Test", ""]) else 17 if(Binning in ["4", "y_bin", "y_Bin"]) else 14, 8 if(Binning in ["2", "OG", "Test", ""]) else 17 if(Binning in ["4", "y_bin", "y_Bin"]) else 14]]]
+                                # # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, [str(Q2_xB_Bin_Filter_str), 0, 8 if(Binning in ["2", ""]) else 12, 8 if(Binning in ["2", ""]) else 12]]]
                                 
                                 if(Binning not in ["2", "OG"]):
                                     Res_Var_Add = []
@@ -7187,8 +7182,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, Q2_Y_Binning]]
                                     Res_Var_Add = [[[phi_t_Binning_New[0], 0, 360, 24], Res_Binning_2D_z_pT]]
                                 
-                                # REMOVING ALL ABOVE ADDITIONS (remove this line later)
-                                Res_Var_Add = []
+                                # # REMOVING ALL ABOVE ADDITIONS (remove this line later)
+                                # Res_Var_Add = []
                                 
                                 if(Alert_of_Response_Matricies):
                                     if(len(List_of_Quantities_1D) == 0):

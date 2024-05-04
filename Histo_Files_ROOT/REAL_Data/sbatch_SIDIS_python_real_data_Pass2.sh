@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_rdf_SIDIS_5_3_2024_Run1_Correction_Effects_V6_SIDIS
+#SBATCH --job-name=P2_rdf_SIDIS_5_3_2024_Run1_Pass_2_5D_Unfold_Test_V1_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -8,7 +8,7 @@
 #SBATCH --partition=production
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=3500
-#SBATCH --time=2:00:00
+#SBATCH --time=8:00:00
 #SBATCH --array=0-170
 
 
