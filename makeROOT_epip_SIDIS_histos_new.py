@@ -939,6 +939,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Running standard histogram and cut options (changed the options that were ran for "Correction_Effects_V6_")
         # Not running the 2D sector vs phi_h plots though (should be run with sector cuts which are not included in this version)
     # Running new option for 5D Unfolding plots
+    
+    Extra_Name = "5D_Unfold_Test_V2_"
+    # Ran on 5/7/2024
+    # Flipped the 5D Response Matrix's axis so that it does not have to be flipped when creating the 'RooUnfoldResponse' object with RooUnfold
+    # Removed the 2D histogram from the 'Background_5D_Response_Matrix' option (does not get used in unfolding)
+        # RooUnfold does not need the 2D Response Matrix for removing fake background events, it just needs a 1D histogram like the rdf/gdf datatypes (this 1D histogram is still being made)
+    # 5D Matrix Binning was updated from 12268 bins to 11814 (change was made previously, but the binning was also changed here to reflect that)
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -6145,9 +6152,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # This value might be capable of further optimization and is only an option if "Y_bin" in binning_option_list
     
     
-    # New as of 2/21/2024
-    Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 12268 + 1.5, 12268 + 2]
-    # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 12268 +2 for standard overflow on the plots)
+#     # New as of 2/21/2024
+#     Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 12268 + 1.5, 12268 + 2]
+#     # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 12268 +2 for standard overflow on the plots)
+#         # This value is only an option if "Y_bin" in binning_option_list
+
+
+    # New as of 5/7/2024
+    Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 11814 + 1.5, 11814 + 2]
+    # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 11814 +2 for standard overflow on the plots)
         # This value is only an option if "Y_bin" in binning_option_list
     
     
@@ -7054,14 +7067,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Migration_Title_L3     = "".join(["#scale[1.35]{Number of Bins: ", str(Num_of_Bins), "}"])
                                 Migration_Title_L4     = "All Q^{2}-y-z-P_{T} Bins"
 
-                                Migration_Title              = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
+                                Migration_Title              = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC Bins;", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins"])
                                 if(Histo_Data in ["mdf", "pdf"]):
                                     Migration_Title_L1_2     = "".join(["#scale[1.5]{Reconstructed (MC) Distribution of ",              str(variable_Title_name(variable)), "}"])
                                     if("Background" in Histo_Group):
                                         Migration_Title_L1_2 = "".join(["#scale[1.5]{(Background) Reconstructed (MC) Distribution of ", str(variable_Title_name(variable)), "}"])
                                     Migration_Title_2        = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                                                                            " REC Bins"])
                                 else:
-                                    Migration_Title          = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                         " REC"  if("g" not in Histo_Data) else " GEN",         " Bins"])
+                                    Migration_Title          = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)), " REC" if("g" not in Histo_Data) else " GEN",                                  " Bins"])
 
                                 Variable_Gen = str("".join([str(variable).replace("_smeared", ""), "_gen"]))
                                 Variable_Rec = str(variable)
@@ -7091,27 +7104,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Running without weighing the events
                                     #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     if(Histo_Data in ["mdf", "pdf"]):
-                                        Histograms_All[Histo_Name]    = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Gen), str(Variable_Rec))
-                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec))
+                                        if("Background" not in Histo_Group):
+                                            Histograms_All[Histo_Name] = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen))
+                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
                                     #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     else:
-                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec))
+                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
                             #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
                             #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 else:
                                     # Running Weighed Version of events
                                     #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     if(Histo_Data in ["mdf", "pdf"]):
-                                        Histograms_All[Histo_Name]    = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
-                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec), "Event_Weight")
+                                        if("Background" not in Histo_Group):
+                                            Histograms_All[Histo_Name] = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen), "Event_Weight")
+                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
                                     #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     else:
-                                        Histograms_All[Histo_Name_1D] = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range),                    str(Variable_Rec), "Event_Weight")
+                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 for Histo_To_Save in [Histo_Name, Histo_Name_1D]:
-                                    if((Histo_Data   not in ["mdf", "pdf"]) and (Histo_To_Save in [Histo_Name])):
+                                    if(((Histo_Data  not in ["mdf", "pdf"]) or ("Background" in Histo_Group)) and (Histo_To_Save in [Histo_Name])):
                                         continue
                                     if(Histo_To_Save not in ["N/A"]):
                                         if(Histo_To_Save in Histograms_All):
