@@ -1211,9 +1211,9 @@ def Draw_Canvas(canvas, cd_num, left_add=0.05, right_add=0.05, up_add=0.1, down_
         canvas.cd(cd_num).SetTopMargin(up_add)
         canvas.cd(cd_num).SetBottomMargin(down_add)
     # except:
-    #     print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, color.RED, str(traceback.format_exc()), color.END]))
+    #     print("".join([color.Error, "ERROR:\n", color.END_R, str(traceback.format_exc()), color.END]))
     except Exception as e:
-        print("".join([color.RED, color.BOLD, "Draw_Canvas(...) ERROR: ", color.LIGHT, str(e), color.END]))
+        print("".join([color.Error, "Draw_Canvas(...) ERROR: ", color.LIGHT, str(e), color.END]))
         print("".join(["canvas: ", str(canvas.GetName()), "\ncd_num: ", str(cd_num)]))
 
 
@@ -1352,7 +1352,7 @@ def print_rounded_str(number, rounding=0):
             output = number
         return output
     except Exception as e:
-        print("".join([color.BOLD, color.RED, "print_rounded_str(...) ERROR: number = ", str(output), " is not accepted", " --> failed to round input..." if(rounding != 0) else "", "\nERROR Output Is: \n", str(e), color.END]))
+        print("".join([color.Error, "print_rounded_str(...) ERROR: number = ", str(output), " is not accepted", " --> failed to round input..." if(rounding != 0) else "", "\nERROR Output Is: \n", str(e), color.END]))
         print("".join([color.RED, "TRACEBACK:\n", color.END, str(traceback.format_exc())]))
         return number
     
@@ -1416,22 +1416,22 @@ def Get_Max_Y_Histo_1D(Histo_List, Norm_Q="Default"):
         Max_Y = 0
         for Histo in Histo_List:
             if(type(Histo) is not bool and type(Histo) is not str):
-                # print("".join([color.BOLD, color.BLUE, "\n'", str(Histo.GetName()), "' Maximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), " Total = ", str(Histo.Integral()), color.END]))
+                # print("".join([color.BBLUE, "\n'", str(Histo.GetName()), "' Maximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), " Total = ", str(Histo.Integral()), color.END]))
                 if(Histo.Integral() != 0 and Histo.GetBinContent(Histo.GetMaximumBin()) != 0):
                     Test_Y = (Histo.GetBinContent(Histo.GetMaximumBin())) if((Norm_Q not in ["Normalized", "Norm"]) or (Norm_Q == "Default")) else ((Histo.GetBinContent(Histo.GetMaximumBin()))/(Histo.Integral()))
                 else:
                     Test_Y = 0
-                    print("".join([color.BOLD, color.RED, "\n EMPTY HISTOGRAM: '", str(Histo.GetName()), "'\n\tMaximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), "\n\tTotal = ", str(Histo.Integral()), color.END]))
+                    print("".join([color.Error, "\n EMPTY HISTOGRAM: '", str(Histo.GetName()), "'\n\tMaximum = ", str(Histo.GetBinContent(Histo.GetMaximumBin())), "\n\tTotal = ", str(Histo.Integral()), color.END]))
                     print(Histo_List)
                     print(Histo)
                     for Histo2 in Histo_List:
-                        print("".join(["".join([color.BOLD, color.BLUE]) if(Histo2 == Histo) else "\n", str(Histo2), color.END if(Histo2 == Histo) else "\n"]))
+                        print("".join([color.BBLUE if(Histo2 == Histo) else "\n", str(Histo2), color.END if(Histo2 == Histo) else "\n"]))
                 if(Test_Y > Max_Y):
                     Max_Y = Test_Y   
         return Max_Y
     except:
-        print("".join([color.BOLD, color.RED, "\nERROR IN GETTING THE MAX Y OF THE 1D HISTOGRAMS...", color.END]))
-        print("".join([color.BOLD, color.RED, "ERROR:\n", color.END, str(traceback.format_exc())]))
+        print("".join([color.Error, "\nERROR IN GETTING THE MAX Y OF THE 1D HISTOGRAMS...", color.END]))
+        print("".join([color.Error, "ERROR:\n", color.END, str(traceback.format_exc())]))
         print(Histo_List)
         return "ERROR"
     
