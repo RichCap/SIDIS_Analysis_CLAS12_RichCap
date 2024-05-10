@@ -946,6 +946,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Removed the 2D histogram from the 'Background_5D_Response_Matrix' option (does not get used in unfolding)
         # RooUnfold does not need the 2D Response Matrix for removing fake background events, it just needs a 1D histogram like the rdf/gdf datatypes (this 1D histogram is still being made)
     # 5D Matrix Binning was updated from 12268 bins to 11814 (change was made previously, but the binning was also changed here to reflect that)
+    
+    
+    Extra_Name = "5D_Unfold_Test_V3_"
+    # Ran on 5/9/2024
+    # Created a set of sliced versions of the 5D Response Matrix that should help avoid any errors caused by this code trying to write a 2D histogram with over 10000 bins
+        # Creating a single square histogram with the correct number of bins was proving to require too much memory to write correctly with ROOT warning that the product could become corrupted
             
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -6161,7 +6167,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # New as of 5/7/2024
     Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 11814 + 1.5, 11814 + 2]
     # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 11814 +2 for standard overflow on the plots)
+#     Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h', -0.5, 11814 + 0.5, 11814 + 1]
+#     # This is the combined Q2-y-z-pT-phi_h bin which is to be used with the 5D unfolding procedure (total bins = 11814 +1 for built-in bin 0)
         # This value is only an option if "Y_bin" in binning_option_list
+    
+    
+    Sliced_5D_Increment = 422 # This is the number of bins that will be used in each slice of the 5D Response Matrix (used to more easily write this histogram to the output root file)
+    if((Q2_y_z_pT_phi_h_5D_Binning[3]%Sliced_5D_Increment != 0) and Use_5D_Response_Matrix):
+        print(f"{color.Error}Major Error: Improper number of slices for the bin count{color.END}\n\tNum_of_Bins%Sliced_5D_Increment = {Q2_y_z_pT_phi_h_5D_Binning[3]}%{Sliced_5D_Increment} = {Q2_y_z_pT_phi_h_5D_Binning[3]%Sliced_5D_Increment}")
+        stop
     
     
     # Hx_Binning = ['Hx', -400, 400, 800]
@@ -7105,11 +7119,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     if(Histo_Data in ["mdf", "pdf"]):
                                         if("Background" not in Histo_Group):
-                                            Histograms_All[Histo_Name] = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen))
-                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
+                                            Start_Bin = Min_range
+                                            Num_Slice = int(Num_of_Bins/Sliced_5D_Increment)
+                                            for Slice in range(1, Num_Slice + 1):
+                                                Histo_Name_Slice                 = f"{Histo_Name}_Slice_{Slice}_(Increment='{Sliced_5D_Increment}')"
+                                                Histograms_All[Histo_Name_Slice] = (sdf.Filter(f"{Background_Filter} && (({Variable_Rec} >= {Start_Bin}) && ({Variable_Rec} <= {Start_Bin+Sliced_5D_Increment}))")).Histo2D((str(Histo_Name_Slice), str(Migration_Title),   Sliced_5D_Increment, Start_Bin, Start_Bin+Sliced_5D_Increment, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen))
+                                                Start_Bin += Sliced_5D_Increment
+                                        Histograms_All[Histo_Name_1D]            = (sdf.Filter(   Background_Filter                                                                                              )).Histo1D((str(Histo_Name_1D),    str(Migration_Title_2),                                                                int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
                                     #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     else:
-                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
+                                        Histograms_All[Histo_Name_1D]            = (sdf.Filter(   Background_Filter                                                                                              )).Histo1D((str(Histo_Name_1D),    str(Migration_Title),                                                                  int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
                             #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
                             #####================#####========================================================#####================#####=====##########################################################################################################################################################################################################################################################################################################################################################################################################################
                                 else:
@@ -7117,29 +7136,51 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     #####                  Matched Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     if(Histo_Data in ["mdf", "pdf"]):
                                         if("Background" not in Histo_Group):
-                                            Histograms_All[Histo_Name] = (sdf.Filter(Background_Filter)).Histo2D((str(Histo_Name),    str(Migration_Title),   int(Num_of_Bins), Min_range, Max_range, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen), "Event_Weight")
-                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title_2),                                         int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
+                                            Start_Bin = Min_range
+                                            Num_Slice = int(Num_of_Bins/Sliced_5D_Increment)
+                                            for Slice in range(1, Num_Slice + 1):
+                                                Histo_Name_Slice                 = f"{Histo_Name}_Slice_{Slice}_(Increment='{Sliced_5D_Increment}')"
+                                                Histograms_All[Histo_Name_Slice] = (sdf.Filter(f"{Background_Filter} && (({Variable_Rec} >= {Start_Bin}) && ({Variable_Rec} <= {Start_Bin+Sliced_5D_Increment}))")).Histo2D((str(Histo_Name_Slice), str(Migration_Title),   Sliced_5D_Increment, Start_Bin, Start_Bin+Sliced_5D_Increment, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen), "Event_Weight")
+                                                Start_Bin += Sliced_5D_Increment
+                                        Histograms_All[Histo_Name_1D]            = (sdf.Filter(   Background_Filter                                                                                              )).Histo1D((str(Histo_Name_1D),    str(Migration_Title_2),                                                                int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
                                     #####   Generated/Experimental Events Data     #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                     else:
-                                        Histograms_All[Histo_Name_1D]  = (sdf.Filter(Background_Filter)).Histo1D((str(Histo_Name_1D), str(Migration_Title),                                           int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
+                                        Histograms_All[Histo_Name_1D]            = (sdf.Filter(   Background_Filter                                                                                              )).Histo1D((str(Histo_Name_1D),    str(Migration_Title),                                                                  int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec),                    "Event_Weight")
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         #####====================#####       Made the Histos (END)      #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
-                                for Histo_To_Save in [Histo_Name, Histo_Name_1D]:
-                                    if(((Histo_Data  not in ["mdf", "pdf"]) or ("Background" in Histo_Group)) and (Histo_To_Save in [Histo_Name])):
-                                        continue
-                                    if(Histo_To_Save not in ["N/A"]):
-                                        if(Histo_To_Save in Histograms_All):
-                                            if(str(file_location) not in ['time']):
-                                                Histograms_All[Histo_To_Save].Write()
-                                            Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
-                                            count_of_histograms += 1
-                                        else:
-                                            print(color.Error, "\nERROR WHILE SAVING HISTOGRAM:\n", color.END_B, "Histograms_All[", Histo_To_Save, "] was not found\n", color.END)
+                                if(str(file_location) not in ['time']):
+                                    Histograms_All[Histo_Name_1D].Write()
+                                Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                count_of_histograms += 1
+                                if((Histo_Data in ["mdf", "pdf"]) and ("Background" not in Histo_Group)):
+                                    Start_Bin = Min_range
+                                    for Slice in range(1, Num_Slice + 1):
+                                        Histo_Name_Slice = f"{Histo_Name}_Slice_{Slice}_(Increment='{Sliced_5D_Increment}')"
+                                        if(str(file_location) not in ['time']):
+                                            Histograms_All[Histo_Name_Slice].Write()
+                                        Start_Bin += Sliced_5D_Increment
+                                        Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                        count_of_histograms += 1
                                 if(output_all_histo_names_Q not in ["yes"]):
                                     del Histograms_All
                                     Histograms_All = {}
                                 del sdf
+                                # for Histo_To_Save in [Histo_Name, Histo_Name_1D]:
+                                #     if(((Histo_Data  not in ["mdf", "pdf"]) or ("Background" in Histo_Group)) and (Histo_To_Save in [Histo_Name])):
+                                #         continue
+                                #     if(Histo_To_Save not in ["N/A"]):
+                                #         if(Histo_To_Save in Histograms_All):
+                                #             if(str(file_location) not in ['time']):
+                                #                 Histograms_All[Histo_To_Save].Write()
+                                #             Print_Progress(count_of_histograms, 1, 200 if(str(file_location) != 'time') else 50)
+                                #             count_of_histograms += 1
+                                #         else:
+                                #             print(color.Error, "\nERROR WHILE SAVING HISTOGRAM:\n", color.END_B, "Histograms_All[", Histo_To_Save, "] was not found\n", color.END)
+                                # if(output_all_histo_names_Q not in ["yes"]):
+                                #     del Histograms_All
+                                #     Histograms_All = {}
+                                # del sdf
                                 
 ##################################################=========================================##########################################################################################################################################
 ##======##======##======##======##======##======##     Response Matrix (1D and 3D)         ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
