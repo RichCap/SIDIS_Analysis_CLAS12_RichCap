@@ -952,7 +952,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Ran on 5/9/2024
     # Created a set of sliced versions of the 5D Response Matrix that should help avoid any errors caused by this code trying to write a 2D histogram with over 10000 bins
         # Creating a single square histogram with the correct number of bins was proving to require too much memory to write correctly with ROOT warning that the product could become corrupted
-            
+    
+    Extra_Name = "5D_Unfold_Test_V4_"
+    # Ran on 5/10/2024
+    # Accidentally turned off the 1D Background histograms (beta vectors) - Fixed options
+    # Switched the Background options to just the PID Mis-identification cuts (i.e., (PID_el != 11 && PID_pip != 211))
+        # Removed the Missing Mass Generated Cuts as a temporary test to see the impact of the mis-identified particle PID's (will combine their effects later)
+    # Experimental Data (rdf option) was left untouched (use "5D_Unfold_Test_V3_" for 'rdf' with "5D_Unfold_Test_V4_" for 'mdf' and 'gdf')
+    # Reran 'gdf' option on 5/13/2024
+        # Error in Background_Cuts_MC caused issues while running this option
+        # Edit to this file and ExtraAnalysisCodeValues.py transformed the Background_Cuts_MC string into a function called BG_Cut_Function(dataframe=Histo_Data) which returns the proper sting for a given datatype
+            # Using this type of function should be better going forward since it gives more control regarding when to make cuts to which dataframe (much more streamlined)
+            # Reran gdf and transformed the Background_Cuts_MC string into a function to return the proper sting for a given datatype (more streamlined)
+    
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
         # Not applying momentum corrections (despite them being available)
@@ -6465,7 +6477,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         if(Binning in ["2", "OG", "Off", "off", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]):
                             # histo_options = ["Normal", "Response_Matrix_Normal", "Background_Response_Matrix"]
                             histo_options = ["Normal", "Normal_Background", "Response_Matrix_Normal", "Background_Response_Matrix"]
-                            histo_options = ["Normal", "Response_Matrix_Normal"]
+                            # histo_options = ["Normal", "Response_Matrix_Normal"]
                         else:
                             histo_options = ["Normal", "Normal_Background", "Background_Response_Matrix"]
                             histo_options = ["Normal"]
@@ -6920,25 +6932,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_2D_Out    = Title_2D_Out.replace(") (", " - ")
                                         Bin_Filter      = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
-                                        if(Histo_Group  in ["Normal_Background"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && ({Background_Cuts_MC})"
+                                        Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
+                                        if(str(Background_Cuts_MC) not in ["", "ERROR"]):
+                                            if("Background" in Histo_Group):
+                                                Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
-                                                Bin_Filter = f"({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["mdf", "pdf", "gen"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})"
-                                            else:
-                                                Bin_Filter = f"!({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["gdf"]):
-                                            filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({filter_gdf_background})"
-                                            else:
-                                                Bin_Filter = f"!({filter_gdf_background})"
-                                            del filter_gdf_background
-                                        if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
-                                            Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
+                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                            if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
+                                                Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
+                                        elif(str(Background_Cuts_MC) in ["ERROR"]):
+                                            print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
                                         
                                         if(Use_Weight):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
@@ -7008,23 +7011,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_3D_Out  = Title_3D_Out.replace(") (", " - ")
                                         Bin_Filter    = "esec != -2" if(Q2_xB_Bin_Num == -1) else "".join([str(Q2_xB_Bin_Filter_str), " != 0"]) if(Q2_xB_Bin_Num == -2) else "".join([str(Q2_xB_Bin_Filter_str), " > 17"]) if(Q2_xB_Bin_Num == -3) else "".join([str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Num)])
                                         
-                                        if(Histo_Group  in ["Normal_Background"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && ({Background_Cuts_MC})"
+                                        
+                                        Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
+                                        if(str(Background_Cuts_MC) not in ["", "ERROR"]):
+                                            if("Background" in Histo_Group):
+                                                Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
-                                                Bin_Filter = f"({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["mdf", "pdf", "gen"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})"
-                                            else:
-                                                Bin_Filter = f"!({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["gdf"]):
-                                            filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({filter_gdf_background})"
-                                            else:
-                                                Bin_Filter = f"!({filter_gdf_background})"
-                                            del filter_gdf_background
+                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                            if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
+                                                Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
+                                        elif(str(Background_Cuts_MC) in ["ERROR"]):
+                                            print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
                                         
                                         
                                         Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_3D_Out), Vars_3D[2][3], Vars_3D[2][1], Vars_3D[2][2], Vars_3D[0][3], Vars_3D[0][1], Vars_3D[0][2], Vars_3D[1][3], Vars_3D[1][1], Vars_3D[1][2]), str(Vars_3D[2][0]), str(Vars_3D[0][0]), str(Vars_3D[1][0]))
@@ -7094,23 +7091,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 Variable_Rec = str(variable)
 
                                 Background_Filter = "esec != -2"
-                                if("Background" in Histo_Group):
-                                    if(Background_Filter  not in ["", "esec != -2"]):
-                                        Background_Filter = f"({Background_Filter}) && ({Background_Cuts_MC})"
+                                Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
+                                if(str(Background_Cuts_MC) not in ["", "ERROR"]):
+                                    if("Background" in Histo_Group):
+                                        Background_Filter = f"({Background_Filter}) &&  ({Background_Cuts_MC})" if(Background_Filter not in ["", "esec != -2"]) else  f"({Background_Cuts_MC})"
                                     else:
-                                        Background_Filter = f"({Background_Cuts_MC})"
-                                elif(Histo_Data in ["mdf", "pdf", "gen"]):
-                                    if(Background_Filter  not in ["", "esec != -2"]):
-                                        Background_Filter = f"({Background_Filter}) && !({Background_Cuts_MC})"
-                                    else:
-                                        Background_Filter = f"!({Background_Cuts_MC})"
-                                elif(Histo_Data in ["gdf"]):
-                                    filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
-                                    if(Background_Filter  not in ["", "esec != -2"]):
-                                        Background_Filter = f"({Background_Filter}) && !({filter_gdf_background})"
-                                    else:
-                                        Background_Filter = f"!({filter_gdf_background})"
-                                    del filter_gdf_background
+                                        Background_Filter = f"({Background_Filter}) && !({Background_Cuts_MC})" if(Background_Filter not in ["", "esec != -2"]) else f"!({Background_Cuts_MC})"
+                                    if((Histo_Data in ["gdf"]) and ("MM_gen" in Background_Filter)):
+                                        Background_Filter = str(Background_Filter).replace("MM_gen", "MM")
+                                elif(str(Background_Cuts_MC) in ["ERROR"]):
+                                    print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         #####====================#####     Making the Histos (START)    #####====================#####=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
                         ##############################################################################################=======================##########################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -7404,23 +7394,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if(("Combined" in str(variable) or "Multi_Dim" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " != 0", "".join([" && ", str((Q2_xB_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 0"]) if(Histo_Data in ["mdf", "pdf", "gen"]) else ""])
                                             
-                                        if(Histo_Group in ["Background_Response_Matrix"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && ({Background_Cuts_MC})"
+                                            
+                                        Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
+                                        if(str(Background_Cuts_MC) not in ["", "ERROR"]):
+                                            if("Background" in Histo_Group):
+                                                Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
-                                                Bin_Filter = f"({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["mdf", "pdf", "gen"]):
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})"
-                                            else:
-                                                Bin_Filter = f"!({Background_Cuts_MC})"
-                                        elif(Histo_Data in ["gdf"]):
-                                            filter_gdf_background = str(Background_Cuts_MC.replace("_gen", ""))
-                                            if(Bin_Filter not in [""]):
-                                                Bin_Filter = f"({Bin_Filter}) && !({filter_gdf_background})"
-                                            else:
-                                                Bin_Filter = f"!({filter_gdf_background})"
-                                            del filter_gdf_background
+                                                Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                            if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
+                                                Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
+                                        elif(str(Background_Cuts_MC) in ["ERROR"]):
+                                            print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
                                                 
                                             
                                         Migration_Title       = "".join([str(Migration_Title),   "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])

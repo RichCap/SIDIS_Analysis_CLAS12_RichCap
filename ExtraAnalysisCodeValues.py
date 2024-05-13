@@ -1613,16 +1613,26 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
     # # (*) To remove the background events from a rdf dataframe, use the following line:
         # # # NO_background_rdf = rdf.Filter(f"!({Background_Cuts_MC})")
         # # # (This will keep only those events which fail every condition given)
-Background_Cuts_MC = ""
-List_of_Cuts = ["MM_gen < 1.5"]
-for cuts in List_of_Cuts:
-    if(Background_Cuts_MC in [""]):
-        Background_Cuts_MC = cuts
+def BG_Cut_Function(dataframe="mdf"):
+    if(dataframe in ["rdf"]):
+        return ""
     else:
-        Background_Cuts_MC = "".join([str(Background_Cuts_MC), " || ", str(cuts)])
-    
-del cuts
-del List_of_Cuts
+        Background_Cuts_MC = ""
+        # List_of_Cuts = ["MM_gen < 1.5"]
+        List_of_Cuts = ["(PID_el != 11 && PID_pip != 211)"]
+        for cuts in List_of_Cuts:
+            if(dataframe in ["gdf"]):
+                if("PID" in str(cuts)):
+                    continue
+                else:
+                    cuts = str(cuts.replace("_gen", ""))
+            if(Background_Cuts_MC in [""]):
+                Background_Cuts_MC = cuts
+            else:
+                Background_Cuts_MC = "".join([str(Background_Cuts_MC), " || ", str(cuts)])
+        return Background_Cuts_MC
+    return "ERROR"
+
 
 
 
