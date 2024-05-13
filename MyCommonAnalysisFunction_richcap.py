@@ -1463,3 +1463,26 @@ def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_y_bin"):
         return skip_condition_Y_bins_return
     else:
         return False
+
+        
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+import re
+def Find_Bins_From_Histo_Name(data_string):
+    # Regular expression to extract NumBins, MinBin, and MaxBin
+    pattern = r"NumBins=(\d+),\s*MinBin=([-+]?\d*\.?\d+),\s*MaxBin=([-+]?\d*\.?\d+)"
+
+    # Search the string using the regular expression
+    match = re.search(pattern, data_string)
+    num_bins =   int(match.group(1)) if(match) else "Error"
+    min_bin  = float(match.group(2)) if(match) else "Error"
+    max_bin  = float(match.group(3)) if(match) else "Error"
+    if(not match):
+        print(f"{color.Error}No matching data found.{color.END}")
+    # else:
+    #     print(f"NumBins: {num_bins}, MinBin: {min_bin}, MaxBin: {max_bin}")
+    
+    return [num_bins, min_bin, max_bin]
