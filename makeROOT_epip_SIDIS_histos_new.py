@@ -963,7 +963,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Error in Background_Cuts_MC caused issues while running this option
         # Edit to this file and ExtraAnalysisCodeValues.py transformed the Background_Cuts_MC string into a function called BG_Cut_Function(dataframe=Histo_Data) which returns the proper sting for a given datatype
             # Using this type of function should be better going forward since it gives more control regarding when to make cuts to which dataframe (much more streamlined)
-            # Reran gdf and transformed the Background_Cuts_MC string into a function to return the proper sting for a given datatype (more streamlined)
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
