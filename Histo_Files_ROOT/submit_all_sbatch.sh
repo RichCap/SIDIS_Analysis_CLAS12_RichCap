@@ -10,6 +10,7 @@ squeue -u richcap | wc -l
 echo ""
 
 # Submit Normally:
+# echo "Skipping mdf files..."
 echo "Submitting for mdf file in:"
 cd "${DIR_WITH_SCRIPTS}/Matching_REC_MC/"
 pwd
@@ -23,11 +24,14 @@ pwd
 # cat ${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_SIDIS_python_gen_MC.sh
 sbatch ${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_SIDIS_python_gen_MC.sh
 
+# echo "Skipping rdf files..."
 echo "Submitting for rdf file in:"
 cd "${DIR_WITH_SCRIPTS}/REAL_Data/"
 pwd
 # cat ${DIR_WITH_SCRIPTS}/REAL_Data/sbatch_SIDIS_python_real_data.sh
 sbatch ${DIR_WITH_SCRIPTS}/REAL_Data/sbatch_SIDIS_python_real_data.sh
+
+
 
 
 # # # Submit with dependencies:
