@@ -1500,23 +1500,28 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
             //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             // }
             
-            if(ivec == 0){ // Electron
-                Smear_SF_Theta = (-3.5461e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.6259e-03)*(TMath::RadToDeg()*Th_rec) + (-5.0735e-03);
-                if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            }
+            // if(ivec == 0){ // Electron
+            //     Smear_SF_Theta = (-3.5461e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.6259e-03)*(TMath::RadToDeg()*Th_rec) + (-5.0735e-03);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            // if(ivec == 1){ // Pi+ Pion
+            //     Smear_SF_Theta = (-1.0458e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.4779e-04)*(TMath::RadToDeg()*Th_rec) + (0.01136);
+            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            // }
+            
             if(ivec == 1){ // Pi+ Pion
-                Smear_SF_Theta = (-1.0458e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.4779e-04)*(TMath::RadToDeg()*Th_rec) + (0.01136);
+                Smear_SF_Theta = (-9.3972e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0138e-03)*(TMath::RadToDeg()*Th_rec) + (-4.4572e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             
             
             // Calculate resolutions
             double smear_factor = """, str(smear_factor), """;
-            double P_new_rec    = P_rec   +   (P_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
-            double Th_new_rec   = Th_rec  +  (Th_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
-            double Phi_new_rec  = Phi_rec + (Phi_rec)*Smear_SF_Theta*smear_factor*(gRandom->Gaus(0,1));
-            Th_new_rec  = Th_rec;
-            Phi_new_rec = Phi_rec;
+            double P_new_rec   = P_rec   + gRandom->Gaus(0,   (P_rec)*Smear_SF_Theta*smear_factor);
+            // double Th_new_rec  = Th_rec  + gRandom->Gaus(0,  (Th_rec)*Smear_SF_Theta*smear_factor);
+            // double Phi_new_rec = Phi_rec + gRandom->Gaus(0, (Phi_rec)*Smear_SF_Theta*smear_factor);
+            double Th_new_rec  = Th_rec;
+            double Phi_new_rec = Phi_rec;
 
             // Making the smeared TLorentzVector:
             TLorentzVector V4_smear(V4.X(), V4.Y(), V4.Z(), V4.E());

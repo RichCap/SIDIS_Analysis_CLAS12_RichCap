@@ -963,6 +963,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Error in Background_Cuts_MC caused issues while running this option
         # Edit to this file and ExtraAnalysisCodeValues.py transformed the Background_Cuts_MC string into a function called BG_Cut_Function(dataframe=Histo_Data) which returns the proper sting for a given datatype
             # Using this type of function should be better going forward since it gives more control regarding when to make cuts to which dataframe (much more streamlined)
+            
+            
+    Extra_Name = "5D_Unfold_Test_V5_"
+    # Ran on 5/13/2024
+    # Fixed issue with all non-5D background plots (was plotting bin ranges instead of variable values - major issue for 1D background subtraction)
+    # Removed the default mdf cuts on PID != 0 (for both particles)
+        # Cut is assumed to be covered by the background cuts at all times
+        # Extra_Name = "5D_Unfold_Test_V4_" shows just the MIS-IDENTIFIED particles where background does not include unmatched events
+    # Updated the Pass 1 Momentum Smearing
+        # Electron smearing is turned off - Pi+ Pion is given a new function that is more similar to the form taken by the current Pass 2 corrections
+    
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -6937,6 +6948,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
                                                 Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                                if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in Bin_Filter)):
+                                                    print(f"{color.Error}\nWARNING: {color.END_R}Even if PID is not being considered as background, unmatched events must always be removed to plot the TH2D response matrices{color.END}")
+                                                    Normal_rdf = Normal_rdf.Filter("PID_el != 0 && PID_pip != 0")
                                             if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
                                                 Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
                                         elif(str(Background_Cuts_MC) in ["ERROR"]):
@@ -7017,6 +7031,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
                                                 Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                                if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in Bin_Filter)):
+                                                    print(f"{color.Error}\nWARNING: {color.END_R}Even if PID is not being considered as background, unmatched events must always be removed to plot the TH2D response matrices{color.END}")
+                                                    Normal_rdf = Normal_rdf.Filter("PID_el != 0 && PID_pip != 0")
                                             if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
                                                 Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
                                         elif(str(Background_Cuts_MC) in ["ERROR"]):
@@ -7062,8 +7079,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 sdf = DF_Filter_Function_Full(DF=rdf, Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning)
                                 if(sdf == "continue"):
                                     continue
-                                if(Histo_Data not in ["rdf", "gdf"]):
-                                    sdf = sdf.Filter("PID_el != 0 && PID_pip != 0")
+                                # if(Histo_Data not in ["rdf", "gdf"]):
+                                #     sdf = sdf.Filter("PID_el != 0 && PID_pip != 0")
                                     
                                 Histo_Binning_Name = "".join(["Binning-Type:'", str(Binning) if(str(Binning) != "") else "Stefan", "'-[Q2-y-Bin:All, z-PT-Bin:All]"])
 
@@ -7096,6 +7113,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Background_Filter = f"({Background_Filter}) &&  ({Background_Cuts_MC})" if(Background_Filter not in ["", "esec != -2"]) else  f"({Background_Cuts_MC})"
                                     else:
                                         Background_Filter = f"({Background_Filter}) && !({Background_Cuts_MC})" if(Background_Filter not in ["", "esec != -2"]) else f"!({Background_Cuts_MC})"
+                                        if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in Background_Filter)):
+                                            print(f"{color.Error}\nWARNING: {color.END_R}Even if PID is not being considered as background, unmatched events must always be removed to plot the TH2D response matrices{color.END}")
+                                            sdf = sdf.Filter("PID_el != 0 && PID_pip != 0")
                                     if((Histo_Data in ["gdf"]) and ("MM_gen" in Background_Filter)):
                                         Background_Filter = str(Background_Filter).replace("MM_gen", "MM")
                                 elif(str(Background_Cuts_MC) in ["ERROR"]):
@@ -7269,11 +7289,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2="None")
                                     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
                                     
-                                    sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
+                                    # sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf if(Histo_Data in ["rdf", "gdf"]) else rdf.Filter("PID_el != 0 && PID_pip != 0"), Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
+                                    sdf = Bin_Number_Variable_Function(DF_Filter_Function_Full(DF=rdf, Variables=variable, Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning), Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
                                     if(("Combined_" in variable) or ("Multi_Dim" in variable)):
                                         # sdf = Multi_Dimensional_Bin_Construction(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
                                         sdf = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_List_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
-
                                     if(sdf == "continue"):
                                         continue
 
@@ -7338,7 +7358,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             
                                         Migration_Title_L4 = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])]) if(Q2_xB_Bin_Num > 0) else ""
                                         
-                                        if(Histo_Group in ["Response_Matrix", "Background_Response_Matrix"]):
+                                        if(Histo_Group in ["Response_Matrix"]):
                                             Migration_Title       = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable.replace("_smeared", ""))), " GEN Bins; ", str(variable_Title_name(variable)), " REC Bins"])
                                             if(Histo_Data not in ["mdf", "pdf"]):
                                                 Migration_Title   = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1),   "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                         " REC"  if("g" not in Histo_Data) else " GEN",         " Bins; z-P_{T} Bins"])
@@ -7353,7 +7373,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             if(Histo_Group == "Response_Matrix_Normal"):
                                                 Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                                                                                     "; z-P_{T} Bins"])
                                         
-                                        if((Histo_Group in ["Response_Matrix", "Background_Response_Matrix"]) and ("Combined_" not in variable and "Multi_Dim" not in variable)):
+                                        if((Histo_Group in ["Response_Matrix"]) and ("Combined_" not in variable and "Multi_Dim" not in variable)):
                                             num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
                                             num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5)
 
@@ -7400,6 +7420,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Bin_Filter = f"({Bin_Filter}) &&  ({Background_Cuts_MC})" if(Bin_Filter not in [""]) else  f"({Background_Cuts_MC})"
                                             else:
                                                 Bin_Filter = f"({Bin_Filter}) && !({Background_Cuts_MC})" if(Bin_Filter not in [""]) else f"!({Background_Cuts_MC})"
+                                                if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in Bin_Filter)):
+                                                    print(f"{color.Error}\nWARNING: {color.END_R}Even if PID is not being considered as background, unmatched events must always be removed to plot the TH2D response matrices{color.END}")
+                                                    sdf = sdf.Filter("PID_el != 0 && PID_pip != 0")
                                             if((Histo_Data in ["gdf"]) and ("MM_gen" in Bin_Filter)):
                                                 Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
                                         elif(str(Background_Cuts_MC) in ["ERROR"]):
