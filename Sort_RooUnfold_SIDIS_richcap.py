@@ -130,7 +130,7 @@ os.mkdir(destination)
 destination_main = "".join([str(destination), "/Unfolding_Images"])
 # destination_pars = "".join([str(destination), "/Parameter_Images"])
 # destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
-destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
+# destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
 destination_Pars = "".join([str(destination), "/Fit_Pars"])
 # destination_txt  = "".join([str(destination), "/Text_Files"])
 
@@ -141,12 +141,12 @@ os.mkdir(destination_Pars)
 # os.mkdir(destination_txt)
 
 # destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
-destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
-destination_mult_z_pT_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_z_pT_Bin_phi_h"])
+# destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
+# destination_mult_z_pT_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_z_pT_Bin_phi_h"])
 
 # os.mkdir(destination_mult_Q2_phi_h)
-os.mkdir(destination_mult_Q2_y_Bin_phi_h)
-os.mkdir(destination_mult_z_pT_Bin_phi_h)
+# os.mkdir(destination_mult_Q2_y_Bin_phi_h)
+# os.mkdir(destination_mult_z_pT_Bin_phi_h)
 
 # os.mkdir("".join([str(destination_mult_Q2_phi_h),       "/Response_Matrix"]))
 # os.mkdir("".join([str(destination_mult_Q2_y_Bin_phi_h), "/Response_Matrix"]))
@@ -212,6 +212,7 @@ for Entry in os.listdir():
             if("".join([str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)]) in str(Entry)):
                 shutil.move(Entry, destination)
         if('.png'      in str(Entry)):
+            Moved_Q = False
             # if("_Pars_" in str(Entry)):
             #     shutil.move(Entry, destination_pars)
             if("Fit_Par" in str(Entry)):
@@ -219,56 +220,36 @@ for Entry in os.listdir():
                 #     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                 #         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
                 #             shutil.move(Entry, "".join([str(destination_Par_A), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                #             Moved_Q = True
                 #             break
                 if("Fit_Par_B" in str(Entry)):
                     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
                             shutil.move(Entry, "".join([str(destination_Par_B), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            Moved_Q = True
                             break
                 if("Fit_Par_C" in str(Entry)):
                     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
                             shutil.move(Entry, "".join([str(destination_Par_C), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            Moved_Q = True
                             break
                 shutil.move(Entry, str(destination_Pars))
+                Moved_Q = True
                 
-            if("Multi_Dim_Histo_" in str(Entry)):
-                try:
-                    # if("Response_Matrix_Normal_Multi_Dim_" in str(Entry)):
-                    #     if("Q2_phi_h" in str(Entry)):
-                    #         shutil.move(Entry, "".join([str(destination_mult_Q2_phi_h),       "/Response_Matrix"]))
-                    #     elif(("Q2_y_Bin_phi_h" in str(Entry)) or ("Q2_y_phi_h" in str(Entry))):
-                    #         shutil.move(Entry, "".join([str(destination_mult_Q2_y_Bin_phi_h), "/Response_Matrix"]))
-                    #     elif(("z_pT_Bin_phi_h" in str(Entry)) or ("z_pT_phi_h" in str(Entry)) or ("z_pT_Bin_y_bin_phi_h" in str(Entry)) or ("z_pT_y_bin_phi_h" in str(Entry))):
-                    #         shutil.move(Entry, "".join([str(destination_mult_z_pT_Bin_phi_h), "/Response_Matrix"]))
-                    #     else:
-                    #         shutil.move(Entry, destination_mult)
-                    # else:
-                    # if("Q2_phi_h" in str(Entry)):
-                    #     shutil.move(Entry, destination_mult_Q2_phi_h)
-                    if(("Q2_y_Bin_phi_h"   in str(Entry)) or ("Q2_y_phi_h" in str(Entry))):
-                        shutil.move(Entry, destination_mult_Q2_y_Bin_phi_h)
-                    elif(("z_pT_Bin_phi_h" in str(Entry)) or ("z_pT_phi_h" in str(Entry)) or ("z_pT_Bin_y_bin_phi_h" in str(Entry)) or ("z_pT_y_bin_phi_h" in str(Entry))):
-                        shutil.move(Entry, destination_mult_z_pT_Bin_phi_h)
-                    else:
-                        shutil.move(Entry, destination_mult)
-                except:
-                    print("".join([color.RED, "ERROR in 'Multi_Dim_Histo': \n", color.END, str(traceback.format_exc()), "\n"]))
-                    try:
-                        shutil.move(Entry, destination_mult)
-                    except:
-                        print("".join([color.Error, "\n2nd ERROR in 'Multi_Dim_Histo': \n", color.END, str(traceback.format_exc()), "\n"]))
-            elif((("Response_Matrix_" in str(Entry)) or ("Kinematic_Comparison_" in str(Entry))) and ("_z_pT_Bin_"   in str(Entry))):
+            if((("Response_Matrix_" in str(Entry)) or ("Kinematic_Comparison_" in str(Entry))) and ("_z_pT_Bin_"   in str(Entry))):
                 for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"])  in str(Entry)):
                         if(("Smear" not in str(Entry))                                           and ("smear"    not in str(Entry))):
                             try:
                                 shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Unsmeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
                         else:
                             try:
                                 shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Smeared 'Response_Matrix': \n",   color.END, str(traceback.format_exc()), "\n"]))
 
@@ -278,18 +259,24 @@ for Entry in os.listdir():
                         if(("Smear" not in str(Entry))  and ("smear"         not in str(Entry))):
                             try:
                                 shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Unsmeared 'Unfolded_Histos': \n", color.END, str(traceback.format_exc()), "\n"]))
                         else:
                             try:
                                 shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Smeared 'Unfolded_Histos': \n",   color.END, str(traceback.format_exc()), "\n"]))
             else:
                 shutil.move(Entry, destination)
+                Moved_Q = True
+            if(not Moved_Q):
+                print(f"\nNo folder found to move '{Entry}' to...\n")
+                shutil.move(Entry, destination)
                 
     except:
-        print("".join([color.Error, "\n\nERROR IN ENTRY OF THE listdir():\n\n", color.END, color.RED, str(traceback.format_exc()), color.END, "\n\n"]))
+        print("".join([color.Error, "\n\nERROR IN ENTRY OF THE listdir():\n\n", color.END_R, str(traceback.format_exc()), color.END, "\n\n"]))
         
 ##=====##   Image Sorting   ##=====##
 ##=================================##
@@ -304,7 +291,7 @@ for Entry in os.listdir():
 #############################################################################
     
 
-print("".join([color.BOLD, color.GREEN, color_bg.YELLOW, """
+print("".join([color.BGREEN, color_bg.YELLOW, """
 \t                                   \t   
 \t                                   \t   
 \tThis code has now finished running.\t   
