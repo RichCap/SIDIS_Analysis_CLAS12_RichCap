@@ -1252,10 +1252,14 @@ def configure_stat_box(hist, show_entries=True, canvas=False):
         # If there's a need to adjust the position for this specific histogram, it can be done via the histogram's TPaveStats
         stats = hist.GetListOfFunctions().FindObject("stats")
         if(stats):
-            stats.SetX1NDC(0.7)  # New X start position
-            stats.SetX2NDC(0.9)  # New X end position
-            stats.SetY1NDC(0.7)  # New Y start position
-            stats.SetY2NDC(0.9)  # New Y end position
+            stats.SetX1NDC(0)  # New X start position
+            stats.SetX2NDC(0)  # New X end position
+            stats.SetY1NDC(0)  # New Y start position
+            stats.SetY2NDC(0)  # New Y end position
+#             stats.SetX1NDC(0.7)  # New X start position
+#             stats.SetX2NDC(0.9)  # New X end position
+#             stats.SetY1NDC(0.7)  # New Y start position
+#             stats.SetY2NDC(0.9)  # New Y end position
 #             stats.SetX1NDC(0.35)  # New X start position
 #             stats.SetX2NDC(0.75)  # New X end position
 #             stats.SetY1NDC(0.25)  # New Y start position

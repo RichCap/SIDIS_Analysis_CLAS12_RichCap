@@ -136,7 +136,7 @@ destination_Pars = "".join([str(destination), "/Fit_Pars"])
 
 os.mkdir(destination_main)
 # os.mkdir(destination_pars)
-os.mkdir(destination_mult)
+# os.mkdir(destination_mult)
 os.mkdir(destination_Pars)
 # os.mkdir(destination_txt)
 
