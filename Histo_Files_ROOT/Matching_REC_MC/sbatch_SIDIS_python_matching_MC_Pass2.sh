@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=NS_P2_mdf_SIDIS_5_13_2024_Run1_Pass_2_5D_Unfold_Test_V5_SIDIS
+#SBATCH --job-name=P2_mdf_SIDIS_5_15_2024_Run1_Pass_2_5D_Unfold_Test_V6_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -16,4 +16,4 @@ FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/
 # Above is for (mdf) #SBATCH --array=0-53
 # Normally requested time: --time=14:00:00
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf_sidis_P2_NS ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf_sidis_P2 ${FILES[$SLURM_ARRAY_TASK_ID]}

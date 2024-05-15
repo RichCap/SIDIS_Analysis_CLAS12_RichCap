@@ -974,6 +974,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Extra_Name = "5D_Unfold_Test_V4_" shows just the MIS-IDENTIFIED particles where background does not include unmatched events
     # Updated the Pass 1 Momentum Smearing
         # Electron smearing is turned off - Pi+ Pion is given a new function that is more similar to the form taken by the current Pass 2 corrections
+        
+        
+    Extra_Name = "5D_Unfold_Test_V6_"
+    # Ran on 5/15/2024
+    # Updated Pass 1 smearing function (same as developed with "New_Smear_V12_" - See below)
+    # Now using the Missing Mass and incorrect PID cuts together to define background
+    # Added the 'MultiDim_z_pT_Bin_Y_bin_phi_t' variable to List_of_Quantities_1D
+        # Testing the newer version of multi-dimensional unfolding with the hopes of also fixing a newly identified issue:
+            # Issue identified is that the smearing functions seem to have different impact on the mdf distributions for the 1D, 3D, and 5D response matrices
+            # It appears that one explaination could be that the smearing function is re-applied uniquely for every instance of these matrices creation, causing there to be a difference in their distributions
+            # This could be possible from the fact that the variables used to fill these plots are defined in 3 different ways, giving the dataframe the opportunity to apply the smearing functions separately for each instance
+            # Since 'MultiDim_z_pT_Bin_Y_bin_phi_t' is defined at the same time that 'MultiDim_Q2_y_z_pT_phi_h' is, there should be far less reason to believe that the smearing function could behave differently between the 3D and 5D response matrices based on these variables
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -5174,7 +5186,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if("MultiDim_Q2_y_z_pT_phi_h"      in variable):
             output = "5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})"
         if("MultiDim_z_pT_Bin_Y_bin_phi_t" in variable):
-            output = "New 3D Bin Def (z+P_{T}+#phi_{h})"
+            output = "3D Kinematic Bins (z+P_{T}+#phi_{h})"
         if(variable in ['Hx', 'Hy']):
             output = str(variable)
         if(variable == 'el_E'):
@@ -6189,11 +6201,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # # There are a maximum of 65 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 65*24=1560 (+2 for standard overflow)
     #     # This value can be optimized further and is only an option if "Y_bin" in binning_option_list
     
-    # New as of 2/26/2024
-    z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 865.5, 866]
-    # There are a maximum of 36 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 36*24=866 (+2 for standard overflow)
-        # Does not include the z-pT overflow bins
-        # This value might be capable of further optimization and is only an option if "Y_bin" in binning_option_list
+#     # New as of 2/26/2024
+#     z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -0.5, 865.5, 866]
+#     # There are a maximum of 36 z-pT bins (with migration bins) for any given Q2-y bin so the maximum number of 3D bins for this variable is 36*24=866 (+2 for standard overflow)
+#         # Does not include the z-pT overflow bins
+#         # This value might be capable of further optimization and is only an option if "Y_bin" in binning_option_list
+        
+    # New as of 5/15/2024
+    z_pT_phi_h_Binning = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, 913.5, 915]
+    # This is the exact binning used for 'Multi_Dim_z_pT_Bin_Y_bin_phi_t' (the variable created by a function calculation - predates the creation of this variable/the 5D unfolding variable)
     
     
 #     # New as of 2/21/2024
@@ -6232,9 +6248,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     List_of_Quantities_1D = [phi_t_Binning]
     
-    # if("Y_bin" in binning_option_list):
-    #     print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-    #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -7333,11 +7349,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if(Q2_xB_Bin_Num < -2 and Binning not in ["5", "Y_bin", "Y_Bin"]):
                                             # This is the only binning scheme with a defined value for Q2_xB_Bin_Num = -3 (i.e., only migration bins)
                                             continue
-                                        if(Q2_xB_Bin_Num > 17 and Binning in ["4", "y_bin", "y_Bin"]):
+                                        if(Q2_xB_Bin_Num > 17 and Binning     in ["4", "y_bin", "y_Bin"]):
                                             # This binning scheme only goes up to 17 Q2-xB bins
                                             continue
 
-                                        if((Q2_xB_Bin_Num > 0) and ((str(Q2_xB_Bin_Filter_str) in str(variable)) or (("Bin" in str(variable)) and ("Multi_Dim_z_pT_Bin" not in str(variable))))):
+                                        if((Q2_xB_Bin_Num > 0) and ((str(Q2_xB_Bin_Filter_str) in str(variable)) or (("Bin" in str(variable)) and ("Multi_Dim_z_pT_Bin" not in str(variable) and ("MultiDim_z_pT_Bin" not in str(variable)))))):
                                         # if((Q2_xB_Bin_Num > 0) and ((str(Q2_xB_Bin_Filter_str) in str(variable)))):
                                             # Making a response matrix with cuts on the Q2-xB/Q2-y bins is unnecessary for the kinematic binned response matrices
                                             continue
@@ -7389,7 +7405,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             if(Histo_Group == "Response_Matrix_Normal"):
                                                 Migration_Title_2 = "".join(["#splitline{#splitline{#splitline{", str(Migration_Title_L1_2), "}{", str(Migration_Title_L2), "}}{", str(Migration_Title_L3), "}}{", str(Migration_Title_L4), "}; ", str(variable_Title_name(variable)),                                                                                     "; z-P_{T} Bins"])
                                         
-                                        if((Histo_Group in ["Response_Matrix"]) and ("Combined_" not in variable and "Multi_Dim" not in variable)):
+                                        if((Histo_Group in ["Response_Matrix"]) and (("Combined_" not in variable) and ("Multi_Dim" not in variable) and ("MultiDim" not in variable))):
                                             num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5) # Num of REC bins needs to equal Num of GEN bins for unfolding
                                             num_of_GEN_bins, min_GEN_bin, Max_GEN_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5)
 
@@ -7423,10 +7439,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # 1D Unfolding requires events be generated and reconstructed in the same bin
                                             Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "", str(Q2_xB_Bin_Filter_str), " == ", str(Q2_xB_Bin_Filter_str).replace("_smeared", "") , "_gen", " && ", str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
                                         
-                                        if((Histo_Data in ["mdf", "pdf", "gen"]) and (("Combined" in str(variable) or "Multi_Dim" in str(variable)) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                        if((Histo_Data in ["mdf", "pdf", "gen"]) and ((("Combined" in str(variable)) or ("Multi_Dim" in str(variable)) or ("MultiDim" in str(variable))) and str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             # Multidimensional unfolding should still exclude bin migration from other kinematic bins not included in the response matrix
                                             Bin_Filter = "".join(["".join([str(Bin_Filter), " && "]) if(Bin_Filter != "esec != -2") else "",                                                                                                        str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter_str).replace("_smeared", "") , "_gen"])
-                                        if(("Combined" in str(variable) or "Multi_Dim" in str(variable)) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
+                                        if((("Combined" in str(variable)) or ("Multi_Dim" in str(variable)) or ("MultiDim" in str(variable))) and (str(Q2_xB_Bin_Filter_str).replace("_smeared", "") in str(variable))):
                                             Bin_Filter = "".join([str(Bin_Filter), " && ", str(Q2_xB_Bin_Filter_str), " != 0", "".join([" && ", str((Q2_xB_Bin_Filter_str).replace("_smeared", "")).replace("_gen", ""), "_gen != 0"]) if(Histo_Data in ["mdf", "pdf", "gen"]) else ""])
                                             
                                             
@@ -7512,7 +7528,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # Running with Generated Missing Mass Cuts but without weighing the events
                                             #####         Matched Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             if(Histo_Data in ["mdf", "pdf"]):
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                     Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7558,7 +7574,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                     # Histograms_All[Histo_Name__MM_Cut] = (sdf.Filter("".join([str(Bin_Filter), " && Missing_Mass_Cut_Gen > 0"]))).Histo3D((str(Histo_Name__MM_Cut), str(Hist_Title_WCut),                                                                                      int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]),      str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
                                                     
                                                 if(Histo_Data in ["mdf"]):
-                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                         # Do not need to see the z-pT bins for these plots
                                                         Histo_Name_1D            = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                         Histo_Name_1D            = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7594,7 +7610,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             #####       Generated Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             elif(Histo_Data in ["gdf", "gen"]):
                                                 # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen")
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name_1D                = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                     Histo_Name_1D                = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7630,7 +7646,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             #####           Experimental Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             else:
                                                 # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
                                                     Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
@@ -7651,7 +7667,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # Running Weighed Version of events with the generated Missing Mass Cuts
                                             #####         Matched Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             if(Histo_Data in ["mdf", "pdf"]):
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                     Histo_Name                        = str((Histo_Name.replace("'Response_Matrix", "'Response_Matrix")).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7697,7 +7713,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                     # Histograms_All[Histo_Name__MM_Cut] = (sdf.Filter("".join([str(Bin_Filter), " && Missing_Mass_Cut_Gen > 0"]))).Histo3D((str(Histo_Name__MM_Cut), str(Hist_Title_WCut),                                                                                      int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin,  int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]),      str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]),                         "Event_Weight")
                                                     
                                                 if(Histo_Data in ["mdf"]):
-                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                    if((str(variable).replace("_smeared", "") in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                         # Do not need to see the z-pT bins for these plots
                                                         Histo_Name_1D            = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                         Histo_Name_1D            = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7733,7 +7749,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             #####       Generated Events Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             elif(Histo_Data in ["gdf", "gen"]):
                                                 # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin,                                                 int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2], 3, -1.5, 1.5), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Missing_Mass_Cut_Gen")
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name_1D                = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ", (Gen_MM_Cut)"))
                                                     Histo_Name_1D                = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ", (Gen_MM_Cut)"))
@@ -7769,7 +7785,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             #####           Experimental Data         #####################################################################################################################################################################################################################################################################################################################################################################################################################
                                             else:
                                                 # Histograms_All[Histo_Name_1D]         = (sdf.Filter(Bin_Filter)).Histo2D((str(Histo_Name_1D), str(Migration_Title),        int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable))):
+                                                if((str(variable).replace("_smeared", "")     in ["Q2", "xB", "z", "pT", "Q2_y_z_pT_4D_Bin", "y"]) or ("Multi_Dim_" in str(variable)) or ("MultiDim" in str(variable))):
                                                     # Do not need to see the z-pT bins for these plots
                                                     Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5])"]), ""))
                                                     Histo_Name_1D                     = str((Histo_Name_1D).replace("".join([", (Var-D2='", str(z_pT_Bin_Filter_str), "'-[NumBins=45, MinBin=-1.5, MaxBin=43.5])"]), ""))
