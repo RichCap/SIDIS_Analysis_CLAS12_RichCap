@@ -1256,6 +1256,10 @@ def configure_stat_box(hist, show_entries=True, canvas=False):
             stats.SetX2NDC(0.9)  # New X end position
             stats.SetY1NDC(0.7)  # New Y start position
             stats.SetY2NDC(0.9)  # New Y end position
+#             stats.SetX1NDC(0.35)  # New X start position
+#             stats.SetX2NDC(0.75)  # New X end position
+#             stats.SetY1NDC(0.25)  # New Y start position
+#             stats.SetY2NDC(0.45)  # New Y end position
         else:
             print(f"{color.Error}Error in configure_stat_box...{color.END}\n\tstats = {stats}")
     # else:
@@ -1330,7 +1334,7 @@ def statbox_move(Histogram, Canvas, Default_Stat_Obj="", Y1_add=0.05, Y2_add=0.2
             finding = 0
             search += 1
     # if(search > 4):
-    #     print("Failed search")
+    #     print(f"{color.RED}\nFailed search\n{color.END}")
 
         
 ##=========================================================================================##

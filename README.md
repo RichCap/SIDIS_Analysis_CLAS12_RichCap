@@ -10,20 +10,19 @@ This list will be updated as items are completed. Items here may not always rela
     - [x] 3) Calculate (1 + B*cos(phi) + C*cos(2*phi)) from theory and rewieght the response matrices to test modulations in generated phi_h
         * [x] Test this with the test (2) above
     - [ ] 4) Calculate Luminosity to start implementing proper normalization procedures during unfolding
-- [ ] Test new binning schemes:
-    - [ ] (1) Multidimensional bins (testing combining bins into a single variable for unfolding)
-        * [x] Tested up to 2D (Finished [x])
-        * [x] Tested up to 3D (Finished [ ])
-        * [x] Tested up to 5D (Finished [ ])
-            * [ ] Modify the final outputs to convert the 'Q2_y_z_pT_4D_Bin' variable into the separate Q2-y and z-pT bins
-    - [x] (2) New definitions for the Q2-xB bins (more square)
-        * [x] Also define a new z-pT binning scheme based on these new Q2-xB bins
-- [ ] For Momentum Correction Code, do the following:
-    - [ ] (1) MC needs its own momentum corrections 
-        * Use ∆P = P_gen - P_rec instead of calculations
-    - [ ] (2) Develop new smearing functions
-        * Use ∆P = P_gen - P_rec instead of calculations
-        * Only smear momentum
+- [ ] Multidimensional Unfolding Tests:
+    - [x] 1) Tested up to 2D (Finished [x])
+    - [x] 2) Tested up to 3D (Finished [x])
+    - [ ] 3) Tested up to 5D (Finished [ ])
+        * [x] Started
+        * [x] Working Bin-by-Bin (identical to other versions)
+        * [ ] Working Bayesian Method
+            * [ ] Perform test to find the ideal number of iterations for unfolding with 5D Response Matrix
+- [ ] Radiative Corrections:
+    - [ ] 1) Need to find new Monte Carlo files with radiative effects included
+        * [ ] Need to test and compare the new Monte Carlo with the current one (at generator level)
+    - [ ] 2) Run new event generator through GEMC for reconstructed distribution
+    - [ ] 3) Use new files to perform radiative corrections 
 
 
 
@@ -32,6 +31,22 @@ This list will be updated as items are completed. Items here may not always rela
 
 
 ## Detailed Commit Updates:
+
+### Update on 5-15-2024:
+* Many notes made within individual files or in the git commit notes
+    * Following update is not comprehensive towards all updates made since last note below (i.e., Update on 9-6-2023)
+* Main update note here is for RooUnfold_SIDIS_richcap.py as of its last commit prior to this note. Noteworthy changes being committed are as follows:
+    * Removed some unnecessary imports
+    * Added 5D unfolding via sliced Response Matrices
+        * Constructing a full 5D Response Matrix with a TH2D histogram was proving to be too memory demanding, so these slices are saved instead to be reconstructed later (saves on memormy when writing the histograms)
+    * Using files with Common_Name = "5D_Unfold_Test_V3_All", "5D_Unfold_Test_V4_All", and "5D_Unfold_Test_V5_All" for Pass 1 and Pass 2
+        * Different file versions were used for rdf, gdf, and mdf due to differences and bug fixes in each datatype
+    * 5D Response Matrix does not flip the TH2D's axis (assumes that the generated events are already on the x-axis)
+    * Added plot option for showing the background events (only)
+        * Still in the testing phase (has been seen working for the 5D plots but issues with the lower dimensions have not yet been confirmed as being resolved - current test should demonstrate whether the problems have all been fixed)
+    * Added the 5D-Multidimensional Rebuild Function (Rebuild_Matrix_5D(...))
+    * Trying to fix issue with showing the total number of entries in individual histograms (some are being drawn in less than ideal locations)
+        * Fit Parameters are now being shown in the proper locations but some statboxes that just show the number of events are still being drawn over more useful information
 
 ### Update on 9-6-2023:
 * Some updates were not listed in these notes (see code and individual commits for more details)
