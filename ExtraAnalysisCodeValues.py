@@ -1473,47 +1473,37 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
     else:
         smearing_function = "".join(["""
         //=======================================================================//
-        //=================//      Sigma Smearing Factor      //=================//
+        //=================// Sigma Smearing Factor (Pass 1) //==================//
         //=======================================================================//
-        auto smear_func = [&](TLorentzVector V4, int ivec){
+        bool stop_over_smear = (pipth < 12.5);
+        bool less_over_smear = (pip > 4);
+        auto smear_func = [&](TLorentzVector V4, int ivec, bool stop_over_smear, bool less_over_smear){
             // True generated values (i.e., values of the unsmeared TLorentzVector)
             double M_rec   = V4.M();
             double P_rec   = V4.P();
             double Th_rec  = V4.Theta();
             double Phi_rec = V4.Phi();
             
-            double Smear_SF_Theta = 0;
-            // if(ivec == 0){ // Electron
-            //     Smear_SF_Theta = (-1.2992e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (3.0979e-04)*(TMath::RadToDeg()*Th_rec) + (2.2603e-03);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            // if(ivec == 1){ // Pi+ Pion
-            //     Smear_SF_Theta = (-1.6372e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (5.0984e-04)*(TMath::RadToDeg()*Th_rec) + (-4.4164e-03);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            // if(ivec == 0){ // Electron
-            //     Smear_SF_Theta = (-3.2898e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0264e-03)*(TMath::RadToDeg()*Th_rec) + (-2.3797e-03);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            // if(ivec == 1){ // Pi+ Pion
-            //     Smear_SF_Theta = (1.3188e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.3662e-04)*(TMath::RadToDeg()*Th_rec) + (9.5990e-03);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            
-            // if(ivec == 0){ // Electron
-            //     Smear_SF_Theta = (-3.5461e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.6259e-03)*(TMath::RadToDeg()*Th_rec) + (-5.0735e-03);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            // if(ivec == 1){ // Pi+ Pion
-            //     Smear_SF_Theta = (-1.0458e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (2.4779e-04)*(TMath::RadToDeg()*Th_rec) + (0.01136);
-            //     if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
-            // }
-            
+            double Smear_SF_Theta = 0;            
+            if(ivec == 0){ // Electron
+                Smear_SF_Theta = (1.4242e-05)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (-4.0322e-05)*(TMath::RadToDeg()*Th_rec) + (2.0106e-03);
+                if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
+            }
             if(ivec == 1){ // Pi+ Pion
                 Smear_SF_Theta = (-9.3972e-06)*(TMath::RadToDeg()*Th_rec)*(TMath::RadToDeg()*Th_rec) + (1.0138e-03)*(TMath::RadToDeg()*Th_rec) + (-4.4572e-03);
                 if(Smear_SF_Theta < 0){Smear_SF_Theta = 0;}
             }
             
+            if(stop_over_smear && ivec == 0){ // Stop the electron from over-smearing the pion
+                // Smear_SF_Theta = 0;
+                Smear_SF_Theta = 0.05*Smear_SF_Theta;
+            }
+            else{
+                // Stop the electron from over-smearing the pion (less significant version)
+                if(less_over_smear && ivec == 0){Smear_SF_Theta = 0.70*Smear_SF_Theta;}
+                // Reduce the pion smearing to avoid over-smearing
+                if(less_over_smear && ivec == 1){Smear_SF_Theta = 0.70*Smear_SF_Theta;}
+            }
             
             // Calculate resolutions
             double smear_factor = """, str(smear_factor), """;

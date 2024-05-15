@@ -963,6 +963,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Error in Background_Cuts_MC caused issues while running this option
         # Edit to this file and ExtraAnalysisCodeValues.py transformed the Background_Cuts_MC string into a function called BG_Cut_Function(dataframe=Histo_Data) which returns the proper sting for a given datatype
             # Using this type of function should be better going forward since it gives more control regarding when to make cuts to which dataframe (much more streamlined)
+        # Note made on 5/14/2024: Errors in files 3115_3 and 3165_3 (did not rerun as of this note)
             
             
     Extra_Name = "5D_Unfold_Test_V5_"
@@ -1234,6 +1235,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # In "New_Smear_V8_", the reduction was 38.25%
             # Goal is to better balance the electron and pion smearing and to improve the missing mass distribution comparisons
             # Otherwise is the same as "New_Smear_V7_"
+            
+        Extra_Name = "New_Smear_V10_"
+        # Ran on 5/14/2024
+        # Reset the Pass 1 smearing functions from Extra_Name = "New_Smear_V9_"
+            # Only smearing the pion in a similar format as used for Pass 2
+            
+        Extra_Name = "New_Smear_V11_"
+        # Ran on 5/14/2024
+        # Updated the Pass 1 smearing functions from Extra_Name = "New_Smear_V10_"
+            # Includes Electron smearing with additional conditions to limit oversmearing (is similar to those used in the Pass 2 functions)
+            
+        Extra_Name = "New_Smear_V12_"
+        # Ran on 5/14/2024
+        # Updated the Pass 1 smearing functions from Extra_Name = "New_Smear_V11_"
+            # Slight modifications to less_over_smear including reducing the pion smearing for specific ranges of pion momentum (i.e., pip > 4 GeV)
 
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
             Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -4523,7 +4539,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     int MultiDim3D_Bin_val = 0;
     int MultiDim5D_Bin_val = 0;
     if(""", Q2_xB_Bin_event_name, """ != 0){
-        z_pT_Bin_event_val = Find_z_pT_Bin(""",       str(Q2_xB_Bin_event_name), """, z_event_val, pT_event_val);
+        z_pT_Bin_event_val = Find_z_pT_Bin(""",           str(Q2_xB_Bin_event_name), """, z_event_val, pT_event_val);
         if(z_pT_Bin_event_val == 0){
             MultiDim3D_Bin_val = 0;
             MultiDim5D_Bin_val = 0;
