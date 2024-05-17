@@ -32,6 +32,21 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 5-17-2024:
+* git commit notes for RooUnfold_SIDIS_richcap.py:
+    * Removed Draw_2D_Histograms_Simple(…) (now just using Draw_2D_Histograms_Simple_New(…))
+    * Cleaned up/Updated Large_Individual_Bin_Images(…)/Draw_2D_Histograms_Simple_New(…)
+        * Removed old comments
+        * Fixed bug(s) related to bins/missing mass cut lines not being drawn in some images
+        * Added MC Background plots to Large_Individual_Bin_Images(…) 
+            * Switched places with Acceptance/Response matrix which is now drawn next to the Q2-xB plot
+        * Made the horizontal size of the images controlled by these functions bigger
+            * Was ‘Size_X=2400’ —> Now is ‘Size_X=2600’
+    * Working on the newer method of performing the 3D unfolding (based on method used for the creation of the 5D response matricies)
+        * Work-in-progress
+* For other commit note for other files other than RooUnfold_SIDIS_richcap.py, see the individual commits
+
+
 ### Update on 5-15-2024:
 * Many notes made within individual files or in the git commit notes
     * Following update is not comprehensive towards all updates made since last note below (i.e., Update on 9-6-2023)
