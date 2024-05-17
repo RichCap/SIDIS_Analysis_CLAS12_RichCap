@@ -1858,6 +1858,235 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
 
 
 ################################################################################################################################################################################################################################################
+##==========##==========##        3D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
+################################################################################################################################################################################################################################################
+
+def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="MultiDim_z_pT_Bin_Y_bin_phi_t", Smear="", Q2_y_Bin_Select="All", Out_Option="Save", Fitting_Input="default"):
+    if(list is type(Histo)):
+        Histo, Histo_Cut = Histo # If the input of Histo is given as a list, the first histogram is considered to be the main one to be sliced. 
+                                 # The second one is considered to be the 'rdf' (or 'mdf') histogram used to tell when the edge bins should be cut (i.e., when the bin content of Histo_Cut = 0 --> Not good for acceptance).
+    else:
+        Histo_Cut = False
+    Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
+    if(str(Method) not in ["rdf", "gdf"]):
+        if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
+            print(color.BLUE, "\nRunning Multi3D_Slice(...)\n", color.END)
+        else:
+            print(color.Error, "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+            return "Error"
+    elif(Smear in [""]):
+        print(color.BLUE,      "\nRunning Multi3D_Slice(...)\n", color.END)
+    else:
+        print(color.Error,     "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+        return "Error"
+    try:
+        #######################################################################
+        #####==========#####     Catching Input Errors     #####==========#####
+        #######################################################################
+        if(Name != "none"):
+            if(Name in ["histo", "Histo", "input", "default"]):
+                Name = Histo.GetName()
+            if("MultiDim_z_pT_Bin_Y_bin_phi_t" not in str(Name)):
+                print(color.RED, "ERROR: WRONG TYPE OF HISTOGRAM\nName =", color.END, Name, "\nMulti3D_Slice() should be used on the histograms with the 'MultiDim_z_pT_Bin_Y_bin_phi_t' bin variable\n\n")
+                return "Error"
+        if(str(Variable).replace("_smeared", "") not in ["MultiDim_z_pT_Bin_Y_bin_phi_t"]):
+            print(color.RED, "ERROR in Multi3D_Slice(): Not set up for other variables (yet)", color.END, "\nVariable =", Variable, "\n\n")
+            return "Error"
+        if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
+            Variable = "".join([Variable,  "_smeared"])
+        if(("mear" not in str(Smear)) and ("_smeared"     in str(Variable))):
+            Smear = "Smear"
+        ########################################################################
+        #####==========#####      Catching Input Errors     #####==========#####
+        ########################################################################
+        #####==========#####    Setting Histogram Title     #####==========#####
+        ########################################################################
+        ###===============================================###
+        ###========###  Setting Method Title   ###========###
+        ###===============================================###
+        Method_Title = ""
+        if(Method in ["rdf", "Experimental"]):
+            Method_Title = "".join([" #color[", str(root_color.Blue),  "]{(Experimental)}"       if(not Sim_Test)      else "]{(MC REC - Pre-Unfolded)}"])
+            if(not Sim_Test):
+                Variable = Variable.replace("_smeared", "")
+                Smear    = ""
+        if(Method in ["mdf", "MC REC"]):
+            Method_Title = "".join([" #color[", str(root_color.Red),   "]{(MC REC)}"])
+        if(Method in ["gdf", "gen", "MC GEN"]):
+            Method_Title = "".join([" #color[", str(root_color.Green), "]{(MC GEN", " - Matched" if(Method in ["gen"]) else "", ")}"])
+            Variable     = Variable.replace("_smeared", "")
+            Smear        = ""
+        if(Method in ["tdf", "true"]):
+            Method_Title = "".join([" #color[", str(root_color.Cyan),  "]{(MC TRUE)}"])
+            Variable     = Variable.replace("_smeared", "")
+            Smear        = ""
+        if(Method in ["bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
+            Method_Title = "".join([" #color[", str(root_color.Brown), "]{(Bin-by-Bin)}"])
+        if(Method in ["bayes", "bayesian", "Bayesian"]):
+            Method_Title = "".join([" #color[", str(root_color.Teal),  "]{(Bayesian Unfolded)}"])
+        if(Method in ["Acceptance", "Background"]):
+            Method_Title = "".join(["(", str(root_color.Bold),          "{", str(Method), "})"])
+        ###===============================================###
+        ###========###  Setting Method Title   ###========###
+        ###===============================================###
+        if(Title in ["Default", "norm", "standard"]):
+            Title = str(Histo.GetTitle()) if(Title == "Default") else "".join(["#splitline{", str(root_color.Bold), "{3-Dimensional Plot of", " (Smeared)" if("mear" in Smear) else "", " #phi_{h}", str(Method_Title), "}}{MultiDim_3D_Var_Info}"])
+        fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
+        if((Method in ["gdf", "gen", "MC GEN", "tdf", "true", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting_Input in ["default", "Default"]) and Fit_Test):
+            Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{Fitted with: ", str(fit_function_title), "}}"])
+        if((Pass_Version not in [""]) and (Pass_Version not in str(Title))):
+            Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{", str(Pass_Version), "}}"])
+        ########################################################################
+        #####==========#####    Setting Histogram Title     #####==========#####
+        ########################################################################
+        #####==========#####    Setting Variable Binning    #####==========#####
+        ########################################################################
+                      # ['min', 'max', 'num_bins', 'size']
+        phi_h_Binning = [0,     360,   24,         15]
+        ########################################################################
+        #####==========#####   #Setting Variable Binning    #####==========#####
+        ################################################################################
+        ###==============###========================================###==============###
+        ###==============###   Creation of the Sliced Histograms    ###==============###
+        ###==============###========================================###==============###
+        ################################################################################
+        if(Name != "none"):
+            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_3D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin=Q2_y_Bin_Select, z_pT_Bin="MultiDim_3D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
+            if(str(Method) in ["tdf", "true"]):
+                Name = str(Name.replace("mdf", "tdf")).replace("gdf", "tdf")
+        if(str(Q2_y_Bin_Select) not in ["0", "All"]):
+            if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT=1", End_Bins_Name="3D_Bins")):
+                raise TypeError(f"Convert_All_Kinematic_Bins(Start_Bins_Name='Q2-y={Q2_y_Bin_Select}, z-pT=1', End_Bins_Name='3D_Bins') == ERROR")
+            else:
+                z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Select)[1]
+                for z_pT in range(0, z_pT_Range+1):
+                    Name_Out  = str(Name.replace("MultiDim_3D_z_pT_Bin_Info", str(z_pT) if(str(z_pT) not in ["0", "All"]) else "All"))
+                    Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
+                    Title_Out = str(Title.replace("MultiDim_3D_Var_Info", Bin_Title))
+                    if(z_pT not in [0]):
+                        if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT}", End_Bins_Name="3D_Bins")):
+                            break
+                        else:
+                            Start_phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT}",       End_Bins_Name="3D_Bins")
+                            End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT+1}",     End_Bins_Name="3D_Bins")
+                            if(End___phi_h_bin in ["ERROR"]):
+                                End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={int(Q2_y_Bin_Select)+1}, z-pT=1", End_Bins_Name="3D_Bins")
+                            if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                                continue
+                    else:
+                        Name_All                = Name_Out
+                        Output_Histos[Name_All] = ROOT.TH1D(Name_All, "".join([str(Title_Out), "; ",  "(Smeared) " if("mear" in Smear) else "", "#phi_{h} [", str(root_color.Degrees), "]"]), phi_h_Binning[2], phi_h_Binning[0], phi_h_Binning[1])
+                        continue
+                    Output_Histos[Name_Out]     = ROOT.TH1D(Name_Out, "".join([str(Title_Out), "; ",  "(Smeared) " if("mear" in Smear) else "", "#phi_{h} [", str(root_color.Degrees), "]"]), phi_h_Binning[2], phi_h_Binning[0], phi_h_Binning[1])
+                    #######################################################################
+                    #####==========#####   Filling Sliced Histogram    #####==========#####
+                    #######################################################################
+                    ii_bin_num = Start_phi_h_bin
+                    phi_Content, phi___Error = {}, {}
+                    for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
+                        phi_Content[phi_bin + 0.5*phi_h_Binning[3]] = 0
+                        phi___Error[phi_bin + 0.5*phi_h_Binning[3]] = 0
+                    while(ii_bin_num < End___phi_h_bin):
+                        for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
+                            if(Histo_Cut is not False):
+                                bin_ii = Histo.FindBin(ii_bin_num + 1)
+                                MultiDim_cut_num = Histo_Cut.GetBinContent(bin_ii)
+                                MultiDim_cut_err = Histo_Cut.GetBinError(bin_ii)
+                                if((MultiDim_cut_num == 0) or (MultiDim_cut_num <= MultiDim_cut_err)):
+                                    phi_Content[phi_bin + 0.5*phi_h_Binning[3]] += 0
+                                    phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += 0 # Histo.GetBinContent(bin_ii) + Histo.GetBinError(bin_ii)
+                                else:
+                                    phi_Content[phi_bin + 0.5*phi_h_Binning[3]] +=  Histo.GetBinContent(bin_ii)
+                                    phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
+                            else:
+                                bin_ii = 1 # Histo.FindBin(ii_bin_num + 1)
+                                phi_Content[phi_bin + 0.5*phi_h_Binning[3]] +=  Histo.GetBinContent(bin_ii)
+                                phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
+                            ii_bin_num += 1
+                    for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
+                        Output_Histos[Name_Out].Fill(                                       phi_bin + 0.5*phi_h_Binning[3],             phi_Content[phi_bin + 0.5*phi_h_Binning[3]])
+                        Output_Histos[Name_Out].SetBinError(Output_Histos[Name_Out].FindBin(phi_bin + 0.5*phi_h_Binning[3]), ROOT.sqrt(phi___Error[phi_bin + 0.5*phi_h_Binning[3]]))
+                        Current_All_Error = Output_Histos[Name_All].GetBinError(Output_Histos[Name_All].FindBin(phi_bin + 0.5*phi_h_Binning[3]))
+                        Output_Histos[Name_All].Fill(                                       phi_bin + 0.5*phi_h_Binning[3],             phi_Content[phi_bin + 0.5*phi_h_Binning[3]])
+                        Output_Histos[Name_All].SetBinError(Output_Histos[Name_All].FindBin(phi_bin + 0.5*phi_h_Binning[3]), ROOT.sqrt(Current_All_Error**2 + phi___Error[phi_bin + 0.5*phi_h_Binning[3]]))
+                    #######################################################################
+                    #####==========#####   Filling Sliced Histogram    #####==========#####
+                    #######################################################################
+                    for name in [Name_All, Name_Out]:
+                        if((name in [Name_All]) and (z_pT not in [z_pT_Range-3, z_pT_Range-2, z_pT_Range-1, z_pT_Range, z_pT_Range+1])):
+                            continue # Do not have to set the integrated z-pT bin plot more than once at the end of the z_pT loop
+                        #######################################################################
+                        #####==========#####   Drawing Histogram Options   #####==========#####
+                        #######################################################################
+                        Output_Histos[name].GetYaxis().SetRangeUser(0, 1.5*Output_Histos[name].GetBinContent(Output_Histos[name].GetMaximumBin()))
+                        if(Method in ["rdf", "Experimental"]):
+                            Output_Histos[name].SetLineColor(root_color.Blue)
+                            Output_Histos[name].SetMarkerColor(root_color.Blue)
+                        if(Method in ["mdf", "MC REC"]):
+                            Output_Histos[name].SetLineColor(root_color.Red)
+                            Output_Histos[name].SetMarkerColor(root_color.Red)
+                        if(Method in ["gdf", "gen", "MC GEN"]):
+                            Output_Histos[name].SetLineColor(root_color.Green)
+                            Output_Histos[name].SetMarkerColor(root_color.Green)
+                        if(Method in ["tdf", "true"]):
+                            Output_Histos[name].SetLineColor(root_color.Cyan)
+                            Output_Histos[name].SetMarkerColor(root_color.Cyan)
+                        if(Method in ["bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
+                            Output_Histos[name].SetLineColor(root_color.Brown)
+                            Output_Histos[name].SetMarkerColor(root_color.Brown)
+                        if(Method in ["bayes", "bayesian", "Bayesian"]):
+                            Output_Histos[name].SetLineColor(root_color.Teal)
+                            Output_Histos[name].SetMarkerColor(root_color.Teal)
+                        if(Method in ["Background"]):
+                            Output_Histos[name].SetLineColor(root_color.Black)
+                            Output_Histos[name].SetMarkerColor(root_color.Black)
+                        #######################################################################
+                        #####==========#####   Drawing Histogram Options   #####==========#####
+                        #######################################################################
+                        #####==========#####      Fitting Distribution     #####==========#####
+                        #######################################################################
+                        if(Fitting_Input in ["default", "Default"] and Fit_Test):
+                            Output_Histos[name], Unfolded_Fit_Function[name.replace("MultiDim_3D_Histo", "Fit_Function")], Fit_Chisquared[name.replace("MultiDim_3D_Histo", "Chi_Squared")], Fit_Par_A[name.replace("MultiDim_3D_Histo", "Fit_Par_A")], Fit_Par_B[name.replace("MultiDim_3D_Histo", "Fit_Par_B")], Fit_Par_C[name.replace("MultiDim_3D_Histo", "Fit_Par_C")] = Fitting_Phi_Function(Histo_To_Fit=Output_Histos[name], Method=Method, Fitting="default", Special=[int(Q2_y), int(z_pT)])
+                        #######################################################################
+                        #####==========#####      Fitting Distribution     #####==========#####
+                        #######################################################################
+
+        ################################################################################
+        ###==============###========================================###==============###
+        ###==============###   Creation of the Sliced Histograms    ###==============###
+        ###==============###========================================###==============###
+        ################################################################################
+        
+        ######################################################################
+        #####==========#####      Returning Outputs       #####==========#####
+        ######################################################################
+        if(Out_Option not in ["Save", "save"]):
+            Output_List = []
+            if(Out_Option in ["all", "All", "Histos", "histos", "Histo", "histo"]):
+                Output_List.append(Output_Histos)
+            if((Out_Option in ["all", "All", "Fit", "fit", "Pars", "pars"])):
+                Output_List.append(Unfolded_Fit_Function)
+            if((Out_Option in ["all", "All", "Pars", "pars"])):
+                Output_List.append(Fit_Par_A)
+                Output_List.append(Fit_Par_B)
+                Output_List.append(Fit_Par_C)
+            if(Out_Option in ["complete", "Complete"]):
+                Output_List = [Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C]
+            return Output_List
+        ######################################################################
+        #####==========#####      Returning Outputs       #####==========#####
+        ######################################################################
+    except:
+        print("".join([color.Error, "Multi3D_Slice(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+        return "Error"
+
+################################################################################################################################################################################################################################################
+##==========##==========##        3D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
+################################################################################################################################################################################################################################################
+
+
+
+################################################################################################################################################################################################################################################
 ##==========##==========##        5D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="", Out_Option="Save", Fitting_Input="default"):
@@ -5452,6 +5681,7 @@ Common_Name = "Pass_2_5D_Unfold_Test_V4_All"
 Common_Name = "5D_Unfold_Test_V4_All"
 
 Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
+Common_Name = "5D_Unfold_Test_V6_All"
 
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
@@ -5462,6 +5692,9 @@ if(Pass_Version not in [""]):
         Standard_Histogram_Title_Addition = Pass_Version
 
 
+print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
+        
+        
 # Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
 
 ##################################

@@ -44,6 +44,8 @@ This list will be updated as items are completed. Items here may not always rela
             * Was ‘Size_X=2400’ —> Now is ‘Size_X=2600’
     * Working on the newer method of performing the 3D unfolding (based on method used for the creation of the 5D response matricies)
         * Work-in-progress
+        * Added (but not using) Multi3D_Slice(...) function
+    * Added notification of what Pass version is in use that can be seen while the code is running (shows just before which files are loaded)
 * For other commit note for other files other than RooUnfold_SIDIS_richcap.py, see the individual commits
 
 
