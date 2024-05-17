@@ -1234,7 +1234,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
-                    bayes_iterations = (10 if(not Closure_Test) else 10) if(("Multi_Dim" not in str(Name_Main)) or ("Multi_Dim_z_pT_Bin" in str(Name_Main))) else 4
+                    bayes_iterations = (10 if(not Closure_Test) else 10) if(("Multi_Dim" not in str(Name_Main)) or (("Multi_Dim_z_pT_Bin" in str(Name_Main)) or ("MultiDim_z_pT" in str(Name_Main)))) else 4
                     if(Pass_Version not in ["", "Pass 1"]):
                         bayes_iterations += 3
                     if("MultiDim_Q2_y_z_pT_phi_h" in str(Name_Main)):
@@ -5874,6 +5874,9 @@ Common_Name = "Pass_2_New_Q2_Y_Bins_V5_All"
 Common_Name = "Pass_2_5D_Unfold_Test_V4_All"
 Common_Name = "5D_Unfold_Test_V4_All"
 
+Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
+
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -5888,13 +5891,14 @@ if(Pass_Version not in [""]):
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
+# if(False):
     REAL_File_Name = Common_Name
 else:
     REAL_File_Name = "Unfolding_Tests_V11_All"
     REAL_File_Name = "Pass_2_Correction_Effects_V1_5197"
     REAL_File_Name = "Pass_2_5D_Unfold_Test_V3_All" if(Pass_Version in ["Pass 2"]) else "5D_Unfold_Test_V3_All"
+    REAL_File_Name = "Pass_2_5D_Unfold_Test_V6_All" if(Pass_Version in ["Pass 2"]) else "5D_Unfold_Test_V6_All"
 ##################################
 ##   Real (Experimental) Data   ##
 ##################################
@@ -5919,6 +5923,7 @@ else:
     MC_REC_File_Name = "Pass_2_Correction_Effects_V1_30"
     MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V1_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V1_All"
     MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
+    MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V6_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V6_All"
     if(Pass_Version not in ["Pass 2"]):
         MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
 ########################################
@@ -6289,6 +6294,10 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
         # Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only Multidimensional Unfolding Plots
+        
+        Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
+        # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
+        
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
         # if(Closure_Test):
         #     Conditions_For_Unfolding.append("'Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main))
@@ -6826,7 +6835,7 @@ for ii in mdf.GetListOfKeys():
                     continue
                 # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'Multi_Dim" not in out_print_main)):
                 # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'MM" not in out_print_main) and ("'W" not in out_print_main)):
-                if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main) and ("'Multi_Dim" not in out_print_main) and ("'MultiDim_Q2_y_z_pT_phi_h" not in out_print_main)):
+                if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main) and ("'Multi_Dim" not in out_print_main) and ("'MultiDim_Q2_y_z_pT_phi_h" not in out_print_main) and ("'MultiDim_z_pT_Bin_Y_bin_phi_t" not in out_print_main)):
                     print("\nADDING CUTS FOR:", out_print_main, "\n")
 
                     if("'MM" not in out_print_main):
@@ -7627,7 +7636,7 @@ for variable in Variable_List:
                             PAR_HISTO_MASTER_NAME_VS_PT  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_PT"])
                             
                             Moment_Title     = "Cos(#phi_{h})" if("Fit_Par_B" in str(Parameter)) else "Cos(2#phi_{h})" if("Fit_Par_C" in str(Parameter)) else "Multiplicity" if("Fit_Par_A" in str(Parameter)) else "".join(["Parameter ", str(Parameter).replace("Fit_Par_", "")])
-                            MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional " if("Multi_Dim" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method), " Unfolding"]), "}}}"])
+                            MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional (Old) " if("Multi_Dim" in str(Variable)) else "3-Dimensional " if("MultiDim_z_pT" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method), " Unfolding"]), "}}}"])
                             if((Pass_Version not in [""]) and (Pass_Version not in str(MASTER_TITLE))):
                                 MASTER_TITLE = "".join(["#splitline{", str(MASTER_TITLE), "}{", root_color.Bold, "{#scale[1.05]{", str(Pass_Version), "}}}"])
 
@@ -7944,11 +7953,11 @@ if(Create_txt_File):
                         Text_Par_Outputs = f"{Text_Par_Outputs}\n======================================================================\nFor {color.UNDERLINE}{color.BOLD}Q2-y Bin {BIN_NUM} - z-PT Bin {z_pT_Bin}{color.END}: "
                     for Variable   in Variable_List_Final:
                         if(any("Multi_Dim" in ii for ii in Variable_List_Final)):
-                            Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t (*) ", "3D" if("Multi_Dim" in Variable) else "1D", " Histograms:", color.END])
+                            Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t (*) ", "3D" if(("Multi_Dim" in Variable) or ("MultiDim_z_pT" in Variable)) else "5D" if("MultiDim" in Variable) else "1D", " Histograms:", color.END])
                         for Method in Method_Type_List:
                             if(str(Method)   in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison"]):
                                 continue
-                            if((("Multi_Dim" in str(Variable)) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
+                            if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                                 continue
                             Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t - ", f"{Method} Unfolding" if(Method not in ["gdf", "bbb", "Bin", "bay"]) else "Bayesian Unfolding" if(Method not in ["gdf", "bbb", "Bin"]) else "Bin-by-Bin Correction" if(Method not in ["gdf"]) else "Generated Plot", " Fits:", color.END])
                             PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
