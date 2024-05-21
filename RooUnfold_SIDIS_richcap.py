@@ -741,7 +741,7 @@ if(extra_function_terms):
 
 
 
-def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Default", MC_BGS_1D="None", Test_Bayes_Iterations=False):
+def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Default", MC_BGS_1D="None"):#, Test_Bayes_Iterations=False):
     
 ##############################################################################################################
 #####=========================#####========================================#####=========================#####
@@ -894,7 +894,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Unfolded.SetBinContent(ii, 0)
             
             print("".join([color.BOLD, color.CYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure.", color.END]))
-            return [Bin_Unfolded, Bin_Acceptance]
+            # return [Bin_Unfolded, Bin_Acceptance]
         except:
             print("".join([color.Error, "\nFAILED TO CORRECT A HISTOGRAM (Bin-by-Bin)...", color.END]))
             print("".join([color.Error, "ERROR:\n", color.END_R, str(traceback.format_exc()), color.END]))
@@ -913,7 +913,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=====#####=====#####=====#####    Unfolding Method(s): "RooUnfold"    #####=====#####=====#####=====#####
 #####=========================#####========================================#####=========================#####
 ##############################################################################################################
-    elif(("RooUnfold" in str(Method)) or (str(Method) in ["Default"])):
+    if(("RooUnfold" in str(Method)) or (str(Method) in ["Default"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
         print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))        
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
@@ -996,7 +996,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 
                     Unfolding_Histo = ROOT.RooUnfoldSvd(Response_RooUnfold, ExREAL_1D, Reg_Par, 100)
 
-                elif("bbb" in str(Method)):
+                elif(("bbb" in str(Method)) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
                     print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
 
@@ -1045,9 +1045,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         Unfolded_Histo.SetBinError(bin_rec,          0)
                         Unfolded_Histo.SetBinContent(bin_rec,        0)
                         
-                Bin_Acceptance = MC_REC_1D.Clone()
-                Bin_Acceptance.Sumw2()
-                Bin_Acceptance.Divide(MC_GEN_1D)
+                if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
+                    Bin_Acceptance = MC_REC_1D.Clone()
+                    Bin_Acceptance.Sumw2()
+                    Bin_Acceptance.Divide(MC_GEN_1D)
                 for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
                     if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
                         # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
@@ -1058,11 +1059,14 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
                 print("".join([color.BOLD, color.CYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
-                return [Unfolded_Histo, Response_RooUnfold]
+                if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
+                    return [Unfolded_Histo, Response_RooUnfold]
+                else:
+                    return [Unfolded_Histo, Bin_Acceptance]
 
                         
             except:
-                print("".join([color.Error, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...",    color.END]))
+                print("".join([color.Error, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
                 print("".join([color.Error, "ERROR:\n", color.END, str(traceback.format_exc())]))
                 
         else:
@@ -1680,7 +1684,7 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
         if(Title == "Default"):
             Title = str(Histo.GetTitle())
         elif(Title in ["norm", "standard"]):
-            Title = "".join(["#splitline{", str(root_color.Bold), "{3-Dimensional Plot of", " (Smeared)" if("mear" in Smear) else "", " #phi_{h}", str(Method_Title), "}}{Multi_Dim_Var_Info}"])
+            Title = "".join(["#splitline{", str(root_color.Bold), "{(Old) 3-Dimensional Plot of", " (Smeared)" if("mear" in Smear) else "", " #phi_{h}", str(Method_Title), "}}{Multi_Dim_Var_Info}"])
         fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
         if((Method in ["gdf", "gen", "MC GEN", "tdf", "true", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting_Input in ["default", "Default"]) and Fit_Test):
             Title = "".join(["#splitline{", str(Title), "}{", str(root_color.Bold), "{Fitted with: ", str(fit_function_title), "}}"])
@@ -1960,6 +1964,8 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             else:
                 z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Select)[1]
                 for z_pT in range(0, z_pT_Range+1):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                        continue
                     Name_Out  = str(Name.replace("MultiDim_3D_z_pT_Bin_Info", str(z_pT) if(str(z_pT) not in ["0", "All"]) else "All"))
                     Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
                     Title_Out = str(Title.replace("MultiDim_3D_Var_Info", Bin_Title))
@@ -1970,7 +1976,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                             Start_phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT}",       End_Bins_Name="3D_Bins")
                             End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT+1}",     End_Bins_Name="3D_Bins")
                             if(End___phi_h_bin in ["ERROR"]):
-                                End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={int(Q2_y_Bin_Select)+1}, z-pT=1", End_Bins_Name="3D_Bins")
+                                End___phi_h_bin = Start_phi_h_bin + phi_h_Binning[2]
                             if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
                                 continue
                     else:
@@ -1999,7 +2005,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                                     phi_Content[phi_bin + 0.5*phi_h_Binning[3]] +=  Histo.GetBinContent(bin_ii)
                                     phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
                             else:
-                                bin_ii = 1 # Histo.FindBin(ii_bin_num + 1)
+                                bin_ii = Histo.FindBin(ii_bin_num + 1)
                                 phi_Content[phi_bin + 0.5*phi_h_Binning[3]] +=  Histo.GetBinContent(bin_ii)
                                 phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
                             ii_bin_num += 1
@@ -2046,7 +2052,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                         #####==========#####      Fitting Distribution     #####==========#####
                         #######################################################################
                         if(Fitting_Input in ["default", "Default"] and Fit_Test):
-                            Output_Histos[name], Unfolded_Fit_Function[name.replace("MultiDim_3D_Histo", "Fit_Function")], Fit_Chisquared[name.replace("MultiDim_3D_Histo", "Chi_Squared")], Fit_Par_A[name.replace("MultiDim_3D_Histo", "Fit_Par_A")], Fit_Par_B[name.replace("MultiDim_3D_Histo", "Fit_Par_B")], Fit_Par_C[name.replace("MultiDim_3D_Histo", "Fit_Par_C")] = Fitting_Phi_Function(Histo_To_Fit=Output_Histos[name], Method=Method, Fitting="default", Special=[int(Q2_y), int(z_pT)])
+                            Output_Histos[name], Unfolded_Fit_Function[name.replace("MultiDim_3D_Histo", "Fit_Function")], Fit_Chisquared[name.replace("MultiDim_3D_Histo", "Chi_Squared")], Fit_Par_A[name.replace("MultiDim_3D_Histo", "Fit_Par_A")], Fit_Par_B[name.replace("MultiDim_3D_Histo", "Fit_Par_B")], Fit_Par_C[name.replace("MultiDim_3D_Histo", "Fit_Par_C")] = Fitting_Phi_Function(Histo_To_Fit=Output_Histos[name], Method=Method, Fitting="default", Special=[int(Q2_y_Bin_Select), int(z_pT)])
                         #######################################################################
                         #####==========#####      Fitting Distribution     #####==========#####
                         #######################################################################
@@ -2181,11 +2187,11 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         if(Name != "none"):
             Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_5D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin="MultiDim_5D_Q2_y_Bin_Info", z_pT_Bin="MultiDim_5D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
             if(str(Method) in ["tdf", "true"]):
-                # print("".join([color.BBLUE, color_bg.RED, "\n\nMaking a Multi-Dim Histo for 'True' distribution\n", color.END, "\nName =", str(Name), "\n"]))
+                # print("".join([color.BBLUE, color_bg.RED, "\n\nMaking a MultiDim_5D Histo for 'True' distribution\n", color.END, "\nName =", str(Name), "\n"]))
                 Name = Name.replace("mdf", "tdf")
                 Name = Name.replace("gdf", "tdf")
             # else:
-            #     print("".join([color.BBLUE, color_bg.CYAN, "\nMaking a Multi-Dim Histo for '", str(Method), "' distribution\n", color.END, "\nName =", str(Name), "\n"]))
+            #     print("".join([color.BBLUE, color_bg.CYAN, "\nMaking a MultiDim_5D Histo for '", str(Method), "' distribution\n", color.END, "\nName =", str(Name), "\n"]))
         for Q2_y in Q2_xB_Bin_List:
             if(Q2_y not in ["0", "All"]):
                 if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")):
@@ -2394,7 +2400,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         #######################################################################
 
         Variable_Input = Histogram_Name_Def(Out_Print_Main, Variable="FindAll")
-        # print("Variable_Input =", Variable_Input)
+        print("Variable_Input =", Variable_Input)
         Allow_Fitting  = ("phi_t" in str(Variable_Input)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input))
 
         #####################################################################
@@ -2422,15 +2428,15 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         #         print("".join([color.Error, "ERROR IN RooUnfold SVD METHOD:\n",                    color.END_R, str(traceback.format_exc()), color.END]))
 
         # try:
-        #     RooUnfolded_BinByBin_Histos  = (Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="RooUnfold_bbb"))[0]
+        #     RooUnfolded_BinByBin_Histos  = (Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="RooUnfold_bbb", MC_BGS_1D=MC_BGS_1D))[0]
         # except:
-        #     print("".join([color.Error, "ERROR IN RooUnfold Bin-by-Bin METHOD:\n", color.END_R, str(traceback.format_exc()), color.END]))
+        #     print("".join([color.Error, "ERROR IN RooUnfold Bin-by-Bin METHOD:\n",             color.END_R, str(traceback.format_exc()), color.END]))
         #####################################################################
         #####==========#####      Unfolding Histos       #####==========#####
         #####################################################################
 
         #####==========#####      Multi_Dim Histos       #####==========#####
-        #####==========#####   (3D) Multi_Dim Histos     #####==========#####
+        #####==========##### (3D) Multi_Dim Histos (Old) #####==========#####
         if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", 0])):
             # Only the Multi_Dim z-pT Plots should be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
             if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
@@ -2467,7 +2473,42 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 ###=============================================###
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
-        #####==========#####   (5D) Multi_Dim Histos     #####==========#####
+        #####==========##### (3D) MultiDim Histos (New)  #####==========#####
+        elif(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0])):
+            # The MultiDim_z_pT_Bin z-pT Plots should only be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
+            if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
+                ###=============================================###
+                ###========###   Before Unfolding    ###========###
+                ###=============================================###        
+                Multi_Dim_ExREAL_1D                                                                                                  = Multi3D_Slice(Histo=ExREAL_1D,                             Title="norm", Name=Out_Print_Main, Method="rdf",           Variable=Variable_Input, Smear=Smear_Input if(Sim_Test) else "", Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                Multi_Dim_MC_REC_1D                                                                                                  = Multi3D_Slice(Histo=MC_REC_1D,                             Title="norm", Name=Out_Print_Main, Method="mdf",           Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                if(Fit_Test and Allow_Fitting):
+                    Multi_Dim_MC_GEN_1D,     Unfolded_GEN_Fit_Function, Chi_Squared_GEN, GEN_Fit_Par_A, GEN_Fit_Par_B, GEN_Fit_Par_C = Multi3D_Slice(Histo=MC_GEN_1D,                             Title="norm", Name=Out_Print_Main, Method="gdf",           Variable=Variable_Input, Smear="",                               Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
+                else:
+                    Multi_Dim_MC_GEN_1D                                                                                              = Multi3D_Slice(Histo=MC_GEN_1D,                             Title="norm", Name=Out_Print_Main, Method="gdf",           Variable=Variable_Input, Smear="",                               Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                if(MC_BGS_1D not in ["None"]):
+                    Multi_Dim_MC_BGS_1D                                                                                              = Multi3D_Slice(Histo=MC_BGS_1D,                             Title="norm", Name=Out_Print_Main, Method="Background",    Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                if(ExTRUE_1D not in ["N/A"]):
+                    if(Fit_Test and Allow_Fitting):
+                        Multi_Dim_ExTRUE_1D, Unfolded_TDF_Fit_Function, Chi_Squared_TDF, TDF_Fit_Par_A, TDF_Fit_Par_B, TDF_Fit_Par_C = Multi3D_Slice(Histo=ExTRUE_1D,                             Title="norm", Name=Out_Print_Main, Method="tdf",           Variable=Variable_Input, Smear="",                               Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
+                    else:
+                        Multi_Dim_ExTRUE_1D                                                                                          = Multi3D_Slice(Histo=ExTRUE_1D,                             Title="norm", Name=Out_Print_Main, Method="tdf",           Variable=Variable_Input, Smear="",                               Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                ###=============================================###
+                ###========###   Before Unfolding    ###========###
+                ###=============================================###
+                ###========###   After Unfolding     ###========###
+                ###=============================================###
+                Multi_Dim_Bin_Acceptance                                                                                             = Multi3D_Slice(Histo=Bin_Acceptance,                        Title="norm", Name=Out_Print_Main, Method="Acceptance", Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                if(Fit_Test and Allow_Fitting):
+                    Multi_Dim_Bin_Histo,     Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C = Multi3D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
+                    Multi_Dim_Bay_Histo,     Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
+                else:
+                    Multi_Dim_Bin_Histo                                                                                              = Multi3D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                    Multi_Dim_Bay_Histo                                                                                              = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
+                ###=============================================###
+                ###========###   After Unfolding     ###========###
+                ###=============================================###
+        #####==========#####   (5D) MultiDim Histos      #####==========#####
         elif(("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0]) and (Q2_Y_Bin in ["All", 0])):
             # The 5D MultiDim Histograms should only be able to run if Q2_Y_Bin and Z_PT_Bin are equal to "All" or 0 (all kinematic binning is done through these slices)
             ###=============================================###
@@ -2555,7 +2596,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 
         ###==========###         Normal/1D Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
         ################################################################### ########################################################################################################################################################################################################################################################################################################################
-        ###==========###         Multi_Dim Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
+        ###==========###         Multi-Dim Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
         # if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", 0])):
         if(("Multi" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0])):
             # Only the Multi_Dim z-pT Plots should be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
@@ -2639,13 +2680,14 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 
 def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Default_Histo_Name_Input="", Q2_Y_Bin_Input="All", Z_PT_Bin_Input="All", String_Output=""):
     
-    Name_Uses_MultiDim = any(multi in str(Default_Histo_Name_Input) for multi in ["(Multi-Dim Histo)", "(MultiDim_Q2_y_z_pT_phi_h)", "(MultiDim_5D_Histo)"])
+    Name_Uses_MultiDim = any(multi in str(Default_Histo_Name_Input) for multi in ["(Multi-Dim Histo)", "(MultiDim_Q2_y_z_pT_phi_h)", "(MultiDim_5D_Histo)", "(MultiDim_3D_Histo)"])
     
     Default_Histo_Name_Input = Default_Histo_Name_Input.replace("(1D)",                "(Normal_2D)")
     Default_Histo_Name_Input = Default_Histo_Name_Input.replace("(Multi-Dim Histo)",   "(Normal_2D)")
     Default_Histo_Name_Input = Default_Histo_Name_Input.replace("(MultiDim_5D_Histo)", "(Normal_2D)")
+    Default_Histo_Name_Input = Default_Histo_Name_Input.replace("(MultiDim_3D_Histo)", "(Normal_2D)")
     
-    Variable = "(MultiDim_Q2_y_z_pT_phi_h)" if("(MultiDim_Q2_y_z_pT_phi_h)" in Default_Histo_Name_Input) else "(phi_t)" if("(phi_t)" in Default_Histo_Name_Input) else "(Q2)" if("(Q2)" in Default_Histo_Name_Input) else "(xB)" if("(xB)" in Default_Histo_Name_Input) else "(z)" if("(z)" in Default_Histo_Name_Input) else "(pT)" if("(pT)" in Default_Histo_Name_Input) else "(y)" if("(y)" in Default_Histo_Name_Input) else "(MM)"
+    Variable = "(MultiDim_Q2_y_z_pT_phi_h)" if("(MultiDim_Q2_y_z_pT_phi_h)" in Default_Histo_Name_Input) else "(MultiDim_z_pT_Bin_Y_bin_phi_t)" if("(MultiDim_z_pT_Bin_Y_bin_phi_t)" in Default_Histo_Name_Input) else "(phi_t)" if("(phi_t)" in Default_Histo_Name_Input) else "(Q2)" if("(Q2)" in Default_Histo_Name_Input) else "(xB)" if("(xB)" in Default_Histo_Name_Input) else "(z)" if("(z)" in Default_Histo_Name_Input) else "(pT)" if("(pT)" in Default_Histo_Name_Input) else "(y)" if("(y)" in Default_Histo_Name_Input) else "(MM)"
     
     Q2_y__Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(Q2)_(y)")).replace("Smear",  "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf")).replace("(1D)", "(Normal_2D)")
     z_pT__Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name_Input.replace(str(Variable),       "(z)_(pT)")).replace("Smear",  "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf")).replace("(1D)", "(Normal_2D)")
@@ -2707,7 +2749,7 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
             Drawing_Histo_Set[New_Name] = Drawing_Histo_Found
             if((str(Bin_Title) not in str(Drawing_Histo_Set[New_Name].GetTitle())) and (str(Standard_Histogram_Title_Addition) not in [""]) and (str(Standard_Histogram_Title_Addition) not in str(Drawing_Histo_Set[New_Name].GetTitle()))):
                 Drawing_Histo_Set[New_Name].SetTitle("".join(["#splitline{", str(Bin_Title), "}{", str(Standard_Histogram_Title_Addition), "}"]))
-            if("MultiDim_Q2_y_z_pT_phi_h" not in New_Name):
+            if(("MultiDim_Q2_y_z_pT_phi_h" not in New_Name) or ("MultiDim_z_pT_Bin_Y_bin_phi_t" not in New_Name)):
                 print("Using Drawing_Histo_Found =", str(Drawing_Histo_Found))
         ##===============##     3D Slices     ##===============##
         #########################################################
@@ -3503,6 +3545,9 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     if(Multi_Dim_Option in ["5D"]):
         Default_Histo_Name = Default_Histo_Name.replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
         Default_Histo_Name = Default_Histo_Name.replace("(1D)",    "(MultiDim_5D_Histo)")
+    if(Multi_Dim_Option in ["3D"]):
+        Default_Histo_Name = Default_Histo_Name.replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
+        Default_Histo_Name = Default_Histo_Name.replace("(1D)",    "(MultiDim_3D_Histo)")
     elif((Multi_Dim_Option not in ["Off"]) and (str(Z_PT_Bin) not in ["All", "0"])):
         Default_Histo_Name = Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")
         
@@ -3526,7 +3571,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     else:
         ExTRUE_1D = "N/A"
     
-    Default_Response_Matrix_Name = str(str(str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")).replace("Multi-Dim Histo", "Response_Matrix")).replace("MultiDim_5D_Histo", "Response_Matrix")
+    Default_Response_Matrix_Name = str(str(str(str(Default_Histo_Name.replace("Data_Type", "mdf")).replace("1D", "Response_Matrix")).replace("Multi-Dim Histo", "Response_Matrix")).replace("MultiDim_5D_Histo", "Response_Matrix")).replace("MultiDim_3D_Histo", "Response_Matrix")
     if(Multi_Dim_Option not in ["Off"]):
         Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(z_pT_Bin_", str(Z_PT_Bin), ")"]),     "(z_pT_Bin_All)")
         if((("(MultiDim_Q2_y_z_pT_phi_h)" in Default_Response_Matrix_Name) or ("(Multi_Dim_Q2_y_Bin_phi_t)" in Default_Response_Matrix_Name) or ("(Multi_Dim_Q2_Y_Bin_phi_t)" in Default_Response_Matrix_Name)) and (str(Q2_Y_Bin) not in ["All", "0"])):
@@ -3672,9 +3717,9 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         MC_REC_1D.GetXaxis().SetRangeUser(0, 360)
         MC_GEN_1D.GetXaxis().SetRangeUser(0, 360)
         
-        ExREAL_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
-        MC_REC_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
-        MC_GEN_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
+        ExREAL_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
+        MC_REC_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
+        MC_GEN_1D.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
         
     ExREAL_1D_Norm = ExREAL_1D.DrawNormalized("H P E0 same")
     Legends_REC.AddEntry(ExREAL_1D_Norm, "#scale[2]{Experimental}", "lpE")
@@ -3714,8 +3759,8 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
             ExTRUE_1D.GetXaxis().SetRangeUser(0, 360)
             ExTRUE_1D.SetTitle("".join(["#splitline{#scale[1.5]{Unfolded Distributions of #phi_{h}}}{#scale[1.15]{",  str(Bin_Title), "}}"]))
             
-        UNFOLD_Bin.SetTitle("".join(["#splitline{#scale[1.5]{", "Unfolded" if(str(Multi_Dim_Option) in ["Off"]) else "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "".join(["#splitline{3D Unfolded}{", "Q^{2}-y-#phi_{h} Unfolding" if("(Multi_Dim_Q2_y_Bin_phi_t)" in str(Default_Histo_Name)) else "z-P_{T}-#phi_{h} Unfolding", "}"]), " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
-        UNFOLD_Bay.SetTitle("".join(["#splitline{#scale[1.5]{", "Unfolded" if(str(Multi_Dim_Option) in ["Off"]) else "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "".join(["#splitline{3D Unfolded}{", "Q^{2}-y-#phi_{h} Unfolding" if("(Multi_Dim_Q2_y_Bin_phi_t)" in str(Default_Histo_Name)) else "z-P_{T}-#phi_{h} Unfolding", "}"]), " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
+        UNFOLD_Bin.SetTitle("".join(["#splitline{#scale[1.5]{", "Unfolded" if(str(Multi_Dim_Option) in ["Off"]) else "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "".join(["#splitline{3D Unfolded}{", "Q^{2}-y-#phi_{h} Unfolding" if("(Multi_Dim_Q2_y_Bin_phi_t)" in str(Default_Histo_Name)) else "".join(["z-P_{T}-#phi_{h} Unfolding", " (Old)" if("(MultiDim_z_pT_Bin_Y_bin_phi_t)" not in str(Default_Histo_Name)) else ""]), "}"]), " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
+        UNFOLD_Bay.SetTitle("".join(["#splitline{#scale[1.5]{", "Unfolded" if(str(Multi_Dim_Option) in ["Off"]) else "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "".join(["#splitline{3D Unfolded}{", "Q^{2}-y-#phi_{h} Unfolding" if("(Multi_Dim_Q2_y_Bin_phi_t)" in str(Default_Histo_Name)) else "".join(["z-P_{T}-#phi_{h} Unfolding", " (Old)" if("(MultiDim_z_pT_Bin_Y_bin_phi_t)" not in str(Default_Histo_Name)) else ""]), "}"]), " Distributions of #phi_{h}}}{#scale[1.15]{", str(Bin_Title), "}}"]))
         
     else:
         UNFOLD_Bin.SetTitle(str(UNFOLD_Bin.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
@@ -3859,14 +3904,17 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     Save_Name = str(Save_Name.replace("Multi_Dim_Histo_Multi_Dim",  "Multi_Dim_Histo"))
     if(any(binning in Binning_Method for binning in ["y", "Y"])):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
-    if(Multi_Dim_Option not in ["Off", "5D"]):
+    if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
         Save_Name = "".join(["Multi_Unfold_",    str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Multi_Dim_Option     in ["5D"]):
         Save_Name = "".join(["Multi_5D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+    if(Multi_Dim_Option     in ["3D"]):
+        Save_Name = "".join(["Multi_3D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_", Save_Name])
         
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_Response_Matrix_Normal", "Multi_5D_Unfold_Response_Matrix_Normal")
+    Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_Response_Matrix_Normal", "Multi_3D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                            "Q2_y_phi_h")
     Save_Name = Save_Name.replace("z_pT_Bin_y_bin_phi_h",                      "z_pT_phi_h")
     Save_Name = Save_Name.replace("z_pT_Bin_Y_bin_phi_h",                      "z_pT_phi_h")
@@ -3912,10 +3960,12 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
             Default_Histo_Name = Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")
         Default_Histo_Name = str(Default_Histo_Name.replace("Multi_Dim_Q2_Y_Bin_phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t"))
         Default_Histo_Name = str(Default_Histo_Name.replace("Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t"))
-            
     if(Multi_Dim_Option in ["5D"]):
         Default_Histo_Name = Default_Histo_Name.replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
         Default_Histo_Name = Default_Histo_Name.replace("(1D)",    "(MultiDim_5D_Histo)")
+    if(Multi_Dim_Option in ["3D"]):
+        Default_Histo_Name = Default_Histo_Name.replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
+        Default_Histo_Name = Default_Histo_Name.replace("(1D)",    "(MultiDim_3D_Histo)")
             
     if(Multi_Dim_Option in ["Q2_y", "z_pT"]):
         Default_Histo_Name = Default_Histo_Name.replace("(phi_t)", ("(Multi_Dim_Q2_y_Bin_phi_t)" if("y" in Binning_Method) else "(Multi_Dim_Q2_Y_Bin_phi_t)") if(Multi_Dim_Option in ["Q2_y"])                                       else "(Multi_Dim_z_pT_Bin_y_bin_phi_t)" if("y" in Binning_Method) else "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
@@ -3936,10 +3986,10 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
                 fit_function_title = "Fit Function = A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}))"
         elif(Multi_Dim_Option     in ["5D"]):
             fit_function_title = "".join(["#splitline{Fitted Multidimensionally with: A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))}{5D Unfolding}"])
+        elif(Multi_Dim_Option     in ["3D"]):
+            fit_function_title = "".join(["#splitline{Fitted Multidimensionally with: A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))}{3D Unfolding}"])
         elif(Multi_Dim_Option not in ["Fitted", "Only"]):
             fit_function_title = "".join(["Plotted with #splitline{#color[", str(root_color.Pink), "]{Multidimensional Unfolding}}{",                       "Q^{2}-y-#phi_{h} Unfolding" if(str(Z_PT_Bin) in ["All", "0"]) else "z-P_{T}-#phi_{h} Unfolding", "}"])
-            # Will need to update the line above later for 5D unfolding
-            # Currently just switches between the 2 types of 3D Unfolding
         else:
             if(not extra_function_terms):
                 fit_function_title = "".join(["#splitline{Fitted Multidimensionally with: A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))}{",                    "Q^{2}-y-#phi_{h} Unfolding" if((Multi_Dim_Option in ["Q2_y"]) or ((str(Z_PT_Bin) in ["All", "0"]) and (Multi_Dim_Option not in ["z_pT"]))) else "z-P_{T}-#phi_{h} Unfolding", "}"])
@@ -4038,7 +4088,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     ##################################################################### ################################################################
     #####==========#####   Experimental Histogram    #####==========##### ################################################################
     
-    ExREAL_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
+    ExREAL_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
     ExREAL_1D.GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
     ExREAL_1D.SetLineColor(root_color.Blue)
     ExREAL_1D.SetLineWidth(2)
@@ -4051,7 +4101,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     else:
         ExREAL_1D.GetYaxis().SetTitle("")
     #####==========#####      MC REC Histogram       #####==========##### ################################################################
-    MC_REC_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
+    MC_REC_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
     MC_REC_1D.GetXaxis().SetTitle("#phi_{h}" if("Smear" not in str(Default_Histo_Name)) else "#phi_{h} (Smeared)")
     MC_REC_1D.SetLineColor(root_color.Red)
     MC_REC_1D.SetLineWidth(2)
@@ -4064,7 +4114,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     else:
         MC_REC_1D.GetYaxis().SetTitle("")
     #####==========#####      MC GEN Histogram       #####==========##### ################################################################ ################################################################
-    MC_GEN_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
+    MC_GEN_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
     MC_GEN_1D.SetLineColor(root_color.Green)
     MC_GEN_1D.SetLineWidth(3  if("Multi_Dim" not in str(Default_Histo_Name)) else 1)
     MC_GEN_1D.SetLineStyle(1)
@@ -4077,7 +4127,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
         MC_GEN_1D.GetYaxis().SetTitle("")
     #####==========#####      MC TRUE Histogram      #####==========##### ################################################################ ################################################################
     if(ExTRUE_1D not in ["N/A"]):
-        ExTRUE_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
+        ExTRUE_1D.SetTitle("".join(["#splitline{#scale[1.35]{Pre-", "5D Unfolded" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolded" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolded (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolded", " Distributions #phi_{h}}}{", str(Bin_Title), "}"]))
         ExTRUE_1D.SetLineColor(root_color.Cyan)
         ExTRUE_1D.SetLineWidth(3  if("Multi_Dim" not in str(Default_Histo_Name)) else 1)
         ExTRUE_1D.SetLineStyle(1)
@@ -4347,10 +4397,12 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     Save_Name = str(Save_Name.replace("Multi_Dim_Histo_Multi_Dim", "Multi_Dim_Histo"))
     if(any(binning in Binning_Method for binning in ["y", "Y"])):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
-    if(Multi_Dim_Option not in ["Off", "5D"]):
+    if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
         Save_Name = "".join(["Multi_Unfold_",    str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Multi_Dim_Option     in ["5D"]):
         Save_Name = "".join(["Multi_5D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+    if(Multi_Dim_Option     in ["3D"]):
+        Save_Name = "".join(["Multi_3D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
         
@@ -4359,6 +4411,8 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     Save_Name = Save_Name.replace("z_pT_Bin_Y_bin_phi_h",                      "z_pT_phi_h")
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_MultiDim_5D",            "Multi_5D_Unfold")
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_Response_Matrix_Normal", "Multi_5D_Unfold_Response_Matrix_Normal")
+    Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_MultiDim_3D",            "Multi_3D_Unfold")
+    Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_Response_Matrix_Normal", "Multi_3D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]),       str(File_Save_Format))
     Save_Name = Save_Name.replace("__",                                        "_")
     if(Saving_Q):
@@ -4694,6 +4748,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf") ].DrawNormalized("H P E0 same")
                 MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Data_Type",                                                           "mdf"))].DrawNormalized("H P E0 same")
                 MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type",                               "gdf") ].DrawNormalized("H P E0 same")                
+            elif(Multi_Dim_Option in ["3D"]):
+                Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(MultiDim_3D_Histo)")).replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
+                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf") ].DrawNormalized("H P E0 same")
+                MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Data_Type",                                                           "mdf"))].DrawNormalized("H P E0 same")
+                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''")).replace("Data_Type",                               "gdf") ].DrawNormalized("H P E0 same")                
             else:
                 Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
                 # Currently built so that the integrated z-pT bin for multidimensional unfolding uses the combined Q2-y-phi variable (whereas the unfolding done for the individual z-pT bins will unfold the z-pT-phi variable instead)
@@ -4724,7 +4783,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             ExREAL_1D_Norm.GetXaxis().SetRangeUser(0, 360)
             MC_REC_1D_Norm.GetXaxis().SetRangeUser(0, 360)
 
-            ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
             ExREAL_1D_Norm.GetYaxis().SetTitle("Normalized")
             ExREAL_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             ExREAL_1D_Norm.SetLineColor(root_color.Blue)
@@ -4734,7 +4793,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             ExREAL_1D_Norm.SetMarkerSize(1)
             ExREAL_1D_Norm.SetMarkerStyle(21)
             #####==========#####      MC REC Histogram       #####==========##### ################################################################
-            MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
             MC_REC_1D_Norm.GetYaxis().SetTitle("Normalized")
             MC_REC_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             MC_REC_1D_Norm.SetLineColor(root_color.Red)
@@ -4747,7 +4806,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
                 MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
                 MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
-                MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+                MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
                 MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
                 MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 MC_GEN_1D_Norm.SetLineColor(root_color.Green)
@@ -4782,13 +4841,13 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 scale_factor_MC_REC = 1.0
             MC_REC_1D_Norm_All.Scale(scale_factor_MC_REC)
 
-            ExREAL_1D_Norm_All.SetTitle(str(ExREAL_1D_Norm_All.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
-            MC_REC_1D_Norm_All.SetTitle(str(MC_REC_1D_Norm_All.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+            ExREAL_1D_Norm_All.SetTitle(str(ExREAL_1D_Norm_All.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(Multi_Dim_Option in ["Only"]) else ""))
+            MC_REC_1D_Norm_All.SetTitle(str(MC_REC_1D_Norm_All.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(Multi_Dim_Option in ["Only"]) else ""))
             
             Kinematic_Comparison_1D_All = ExREAL_1D_Norm_All.Clone(str(Default_Histo_Name.replace("Data_Type", "Kinematic_Comparison_1D")))
             Kinematic_Comparison_1D_All.Divide(MC_REC_1D_Norm_All)
 
-            Kinematic_Comparison_1D_All.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D " if(str(Multi_Dim_Option) not in ["Off"]) else "", "Comparison of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            Kinematic_Comparison_1D_All.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D " if(str(Multi_Dim_Option) not in ["Off"]) else "", "Comparison of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
 
             Kinematic_Comparison_1D_All.GetYaxis().SetRangeUser(0, 1.2*Kinematic_Comparison_1D_All.GetMaximumBin())
             Kinematic_Comparison_1D_All.GetXaxis().SetRangeUser(0, 360)
@@ -4832,8 +4891,10 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                     Max_Unfolded     = max([1, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMaximumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMaximumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMaximumBin())])
                     Min_Unfolded     = min([0, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMinimumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMinimumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMinimumBin())])
             else:
-                if(Multi_Dim_Option in ["5D"]):
+                if(Multi_Dim_Option   in ["5D"]):
                     Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
+                elif(Multi_Dim_Option in ["3D"]):
+                    Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(MultiDim_3D_Histo)")).replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
                 else:
                     Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)",   "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
                 BAY_Histo_Unfold     = Histogram_List_All[str(Default_Histo_Name_Multi_Dim).replace("Data_Type", "Bayesian")]
@@ -4861,7 +4922,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExTRUE_1D_Unfold.GetYaxis().SetRangeUser(Min_Unfolded, 1.3*Max_Unfolded)
                 ExTRUE_1D_Unfold.GetXaxis().SetRangeUser(0,            360)
                 #####==========#####    MC TRUE Histogram    #####==========##### ################################################################
-                ExTRUE_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+                ExTRUE_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
                 ExTRUE_1D_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 ExTRUE_1D_Unfold.SetLineColor(root_color.Cyan)
                 ExTRUE_1D_Unfold.SetLineWidth(3)
@@ -4883,7 +4944,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             #     SVD_Histo_Unfold.SetMarkerStyle(20)
             
             #####==========#####     BAYESIAN Histogram      #####==========##### ################################################################
-            BAY_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            BAY_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
             BAY_Histo_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             BAY_Histo_Unfold.SetLineColor(root_color.Teal)
             BAY_Histo_Unfold.SetLineWidth(2)
@@ -4892,7 +4953,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             BAY_Histo_Unfold.SetMarkerSize(1)
             BAY_Histo_Unfold.SetMarkerStyle(21)
             #####==========#####    Bin-by-Bin Histogram     #####==========##### ################################################################
-            BIN_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            BIN_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
             BIN_Histo_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             BIN_Histo_Unfold.SetLineColor(root_color.Brown)
             BIN_Histo_Unfold.SetLineWidth(2)
@@ -4901,7 +4962,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             BIN_Histo_Unfold.SetMarkerSize(1)
             BIN_Histo_Unfold.SetMarkerStyle(22)
             #####==========#####      MC GEN Histogram       #####==========##### ################################################################
-            MC_GEN_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            MC_GEN_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding",     " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
             MC_GEN_1D_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             MC_GEN_1D_Unfold.SetLineColor(root_color.Green)
             MC_GEN_1D_Unfold.SetLineWidth(3)
@@ -4939,9 +5000,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
 
     elif("Background" in str(Method)):
         Default_Histo_Name_Any     = str(Default_Histo_Name)
-        if(Multi_Dim_Option not in ["Off"]):
-            if(Multi_Dim_Option in ["5D"]):
+        if(Multi_Dim_Option   not in ["Off"]):
+            if(Multi_Dim_Option   in ["5D"]):
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
+            elif(Multi_Dim_Option in ["3D"]):
+                Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_3D_Histo)")).replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
             else:
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)",   "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
         if(str(Method) in ["rdf", "gdf", "tdf"]):
@@ -4976,9 +5039,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
 
     else:
         Default_Histo_Name_Any     = str(Default_Histo_Name)
-        if(Multi_Dim_Option not in ["Off"]):
-            if(Multi_Dim_Option in ["5D"]):
+        if(Multi_Dim_Option   not in ["Off"]):
+            if(Multi_Dim_Option   in ["5D"]):
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
+            elif(Multi_Dim_Option in ["3D"]):
+                Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_3D_Histo)")).replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
             else:
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)",   "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("Multi_Dim_Q2_Y_Bin_phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t"))
@@ -5127,9 +5192,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
         
         Bin_Title_z_pT_Bin              = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(str(z_pT_Bin) not in ["0"]) else "All"]), "}}}"])
         Default_Histo_Name_z_pT_Bin     = str(Default_Histo_Name.replace("z_pT_Bin_All",     "".join(["z_pT_Bin_", str(z_pT_Bin)])))
-        if((Multi_Dim_Option not in ["Off"]) and ("Response" not in str(Method))):
-            if(Multi_Dim_Option  in ["5D"]):
+        if((Multi_Dim_Option   not in ["Off"]) and ("Response" not in str(Method))):
+            if(Multi_Dim_Option    in ["5D"]):
                 Default_Histo_Name_z_pT_Bin     = str(Default_Histo_Name_z_pT_Bin.replace(VARIABLE,       "(MultiDim_Q2_y_z_pT_phi_h)")).replace("(1D)", "(MultiDim_5D_Histo)")
+            elif(Multi_Dim_Option  in ["3D"]):
+                Default_Histo_Name_z_pT_Bin     = str(Default_Histo_Name_z_pT_Bin.replace(VARIABLE,  "(MultiDim_z_pT_Bin_Y_bin_phi_t)")).replace("(1D)", "(MultiDim_3D_Histo)")
             else:
                 if("y" in Binning_Method):
                     Default_Histo_Name_z_pT_Bin = str(Default_Histo_Name_z_pT_Bin.replace(VARIABLE, "(Multi_Dim_z_pT_Bin_y_bin_phi_t)")).replace("(1D)", "(Multi-Dim Histo)")
@@ -5174,12 +5241,12 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
                 MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
                 
-                ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
-                MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
                 
                 if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
                     MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
-                    MC_GEN_1D_Norm.SetTitle(str(MC_GEN_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                    MC_GEN_1D_Norm.SetTitle(str(MC_GEN_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
                     Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
                 else:
                     Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin())])
@@ -5190,7 +5257,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm.GetXaxis().SetRangeUser(0, 360)
                 MC_REC_1D_Norm.GetXaxis().SetRangeUser(0, 360)
                 
-                ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 ExREAL_1D_Norm.GetYaxis().SetTitle("Normalized")
                 ExREAL_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 ExREAL_1D_Norm.SetLineColor(root_color.Blue)
@@ -5200,7 +5267,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm.SetMarkerSize(1)
                 ExREAL_1D_Norm.SetMarkerStyle(21)
                 #####==========#####      MC REC Histogram       #####==========##### ################################################################
-                MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 MC_REC_1D_Norm.GetYaxis().SetTitle("Normalized")
                 MC_REC_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 MC_REC_1D_Norm.SetLineColor(root_color.Red)
@@ -5213,7 +5280,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
                     MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
                     MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
-                    MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                    MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                     MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
                     MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                     MC_GEN_1D_Norm.SetLineColor(root_color.Green)
@@ -5246,13 +5313,13 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 else:
                     scale_factor_MC_REC = 1.0
                 
-                ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
-                MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
                 
                 Kinematic_Comparison_1D = ExREAL_1D_Norm.Clone(str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "Kinematic_Comparison_1D")))
                 Kinematic_Comparison_1D.Divide(MC_REC_1D_Norm)
                 
-                Kinematic_Comparison_1D.SetTitle("".join(["#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", "Kinematic Comparison of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                Kinematic_Comparison_1D.SetTitle("".join(["#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", "Kinematic Comparison of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 
                 Kinematic_Comparison_1D.GetYaxis().SetRangeUser(0, 1.2*Kinematic_Comparison_1D.GetMaximumBin())
                 if("phi_t" in str(VARIABLE)):
@@ -5298,8 +5365,10 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                         Max_Unfolded     = max([1, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMaximumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMaximumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMaximumBin())])
                         Min_Unfolded     = min([0, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMinimumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMinimumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMinimumBin())])
                 else:
-                    if(str(Multi_Dim_Option) in ["5D"]):
+                    if(str(Multi_Dim_Option)   in ["5D"]):
                         Default_Histo_Name_Multi_Dim = str(Default_Histo_Name_z_pT_Bin.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
+                    elif(str(Multi_Dim_Option) in ["3D"]):
+                        Default_Histo_Name_Multi_Dim = str(Default_Histo_Name_z_pT_Bin.replace("(1D)", "(MultiDim_3D_Histo)")).replace("(phi_t)", "(MultiDim_z_pT_Bin_Y_bin_phi_t)")
                     else:
                         Default_Histo_Name_Multi_Dim = str(Default_Histo_Name_z_pT_Bin.replace("(1D)",   "(Multi-Dim Histo)")).replace("(phi_t)", "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")
                     BAY_Histo_Unfold     = Histogram_List_All[str(Default_Histo_Name_Multi_Dim).replace("Data_Type", "Bayesian")]
@@ -5327,7 +5396,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                     ExTRUE_1D_Unfold.GetYaxis().SetRangeUser(Min_Unfolded, 1.3*Max_Unfolded)
                     ExTRUE_1D_Unfold.GetXaxis().SetRangeUser(0,            360)
                     #####==========#####    MC TRUE Histogram    #####==========##### ################################################################
-                    ExTRUE_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                    ExTRUE_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                     ExTRUE_1D_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), ""             if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                     ExTRUE_1D_Unfold.SetLineColor(root_color.Cyan)
                     ExTRUE_1D_Unfold.SetLineWidth(3)
@@ -5349,7 +5418,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 #     SVD_Histo_Unfold.SetMarkerStyle(20)
 
                 #####==========#####     BAYESIAN Histogram      #####==========##### ################################################################
-                BAY_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                BAY_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 BAY_Histo_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), ""             if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 BAY_Histo_Unfold.SetLineColor(root_color.Teal)
                 BAY_Histo_Unfold.SetLineWidth(2)
@@ -5358,7 +5427,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 BAY_Histo_Unfold.SetMarkerSize(1)
                 BAY_Histo_Unfold.SetMarkerStyle(21)
                 #####==========#####    Bin-by-Bin Histogram     #####==========##### ################################################################
-                BIN_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                BIN_Histo_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 BIN_Histo_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), ""             if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 BIN_Histo_Unfold.SetLineColor(root_color.Brown)
                 BIN_Histo_Unfold.SetLineWidth(2)
@@ -5367,7 +5436,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 BIN_Histo_Unfold.SetMarkerSize(1)
                 BIN_Histo_Unfold.SetMarkerStyle(22)
                 #####==========#####      MC GEN Histogram       #####==========##### ################################################################
-                MC_GEN_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                MC_GEN_1D_Unfold.SetTitle("".join(["#splitline{#scale[1.5]{",      "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"])        else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ",     str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
                 MC_GEN_1D_Unfold.GetXaxis().SetTitle("".join([str(Variable_Title), ""             if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 MC_GEN_1D_Unfold.SetLineColor(root_color.Green)
                 MC_GEN_1D_Unfold.SetLineWidth(3)
@@ -5428,7 +5497,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerSize(1)
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerStyle(21)
                 if(("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE))):
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Blue),  "]{(Experimental)}}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Blue),  "]{(Experimental)}}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
                 # str_Default_Histo_Name_z_pT_Bin = str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))
                 # Histogram_List_All_title_test   = Histogram_List_All[str_Default_Histo_Name_z_pT_Bin].GetTitle()
                 # print(f"Histogram_List_All[{str_Default_Histo_Name_z_pT_Bin}].GetTitle() =\n{Histogram_List_All_title_test}")
@@ -5441,7 +5510,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerSize(1)
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerStyle(22)
                 if(("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE))):
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Red),   "]{(MC REC)}}}{#scale[1.15]{",       str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Red),   "]{(MC REC)}}}{#scale[1.15]{",       str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
             #####==========#####      MC GEN Histogram             #####==========##### ################################################################
             if(str(Method) in ["gdf"]):
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetLineColor(root_color.Green)
@@ -5451,7 +5520,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerSize(1)
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerStyle(20)
                 if(("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE))):
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Green), "]{(MC GEN)}}}{#scale[1.15]{",       str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " #color[", str(root_color.Green), "]{(MC GEN)}}}{#scale[1.15]{",       str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
             #####==========#####      MC Background Histogram       #####==========##### ################################################################
             if(str(Method) in ["Background"]):
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetLineColor(root_color.Black)
@@ -5461,7 +5530,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerSize(1)
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetMarkerStyle(20)
                 if(("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE))):
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " ", str(root_color.Bold), "{(MC Background)}}}{#scale[1.15]{",         str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
+                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle("".join(["#splitline{#splitline{#scale[1.5]{", "5-Dimensional " if(str(Multi_Dim_Option) in ["5D"]) else "3-Dimensional " if(str(Multi_Dim_Option) in ["3D"]) else "(Old) 3-Dimensional " if(str(Multi_Dim_Option) not in ["Off"]) else "", " Distributions of ", str(Variable_Title), " ", str(root_color.Bold), "{(MC Background)}}}{#scale[1.15]{",         str(Bin_Title_z_pT_Bin), "}}}{#font[22]{", str(Standard_Histogram_Title_Addition), "}}"]))
             #####==========#####      MC True Histogram            #####==========##### ################################################################
             if(str(Method) in ["tdf"]):
                 Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetLineColor(root_color.Cyan)
@@ -5578,7 +5647,9 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
         Save_Name = str(Save_Name).replace(str(File_Save_Format), "".join(["_Flipped", str(File_Save_Format)]))
     if(Multi_Dim_Option     in ["5D"]):
         Save_Name = "".join(["Multi_5D_",  str(Save_Name)])
-    if(Multi_Dim_Option not in ["Off", "5D"]):
+    if(Multi_Dim_Option     in ["3D"]):
+        Save_Name = "".join(["Multi_3D_",  str(Save_Name)])
+    if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
         Save_Name = "".join(["Multi_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Sim_Test):
         Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
@@ -6076,6 +6147,8 @@ for ii in mdf.GetListOfKeys():
 
         # Conditions_For_Unfolding.append('''"Response_Matrix_Normal_1D" not in str(out_print_main)''')
         Conditions_For_Unfolding.append("Response_Matrix_Normal_1D"    not in str(out_print_main))
+        
+        Conditions_For_Unfolding.append("5D_Response" not in str(out_print_main))
 
         ## Correct Cuts:
         # Conditions_For_Unfolding.append('''"no_cut"                not in str(out_print_main)''')
@@ -6090,23 +6163,18 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
         Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
 
-        ## Generated Missing Mass Cuts (not ready yet)
-        if(Common_Name not in ["Gen_Cuts_V7_All"]):
-            # Conditions_For_Unfolding.append('''"Gen_MM_Cut"        not in str(out_print_main)''')
-            Conditions_For_Unfolding.append("Gen_MM_Cut"           not in str(out_print_main))
-            # Conditions_For_Unfolding.append('''"Gen_Cut_MM"        not in str(out_print_main)''')
-            Conditions_For_Unfolding.append("Gen_Cut_MM"           not in str(out_print_main))
-
-
         ## Correct Variable(s):
         # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
         Conditions_For_Unfolding.append("phi_t"    in str(out_print_main))
         # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
-        # Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all Multidimensional Unfolding Plots
-        # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only Multidimensional Unfolding Plots
+        Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
+        # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
-        Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
+        # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
+        
+        # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+        # Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
         
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
         # if(Closure_Test):
@@ -6638,6 +6706,8 @@ for ii in mdf.GetListOfKeys():
                 if((z_pT_Bin_Unfold   != 0)                            and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2"       in out_print_main))):
                     continue
                 if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("Multi_Dim_z_pT_Bin"         in out_print_main)):
+                    continue
+                if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("MultiDim_z_pT_Bin"          in out_print_main)):
                     continue
                 if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2_phi_t" in out_print_main))):
                     continue
@@ -7227,10 +7297,10 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Background" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
-#     if("Chi_Squared" in str(List_of_All_Histos_For_Unfolding_ii)):
-#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
-#     if("Normal_2D" in str(List_of_All_Histos_For_Unfolding_ii)):
-#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+#     if("MultiDim_3D_Histo" in str(List_of_All_Histos_For_Unfolding_ii)):
+#         if("MultiDim_z_pT_Bin_Y_bin_phi_t" in str(List_of_All_Histos_For_Unfolding_ii)):
+#             print(color.BLUE, "\n", str(List_of_All_Histos_For_Unfolding_ii), color.END)
+#             print(f"\t{List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]}")
 #     if("Multi_Dim" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("_(rdf)_(SMEAR=" in str(List_of_All_Histos_For_Unfolding_ii)):
@@ -7306,7 +7376,11 @@ Variable_List_Final = ["phi_t", "Multi_Dim_z_pT_Bin_y_bin_phi_t" if("y" in Binni
 Variable_List_Final = ["phi_t"]
 Variable_List_Final = []
 # Variable_List_Final = ["Multi_Dim_z_pT_Bin_y_bin_phi_t" if("y" in Binning_Method) else "Multi_Dim_z_pT_Bin_Y_bin_phi_t"]
-Variable_List_Final = ["phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
+Variable_List_Final = ["phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
+# Variable_List_Final = ["Multi_Dim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
+# Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
+
+Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
 
 if(Cor_Compare):
     Method_Type_List    = ["rdf", "mdf"]
@@ -7324,7 +7398,11 @@ Print_Run_Individual_Bin_Option  = True
 Multi_Dimensional_List = ["Only"]
 # Multi_Dimensional_List = ["5D"]
 Multi_Dimensional_List = ["Off", "Only", "5D"]
+Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 # Multi_Dimensional_List = ["Off",         "5D"]
+# Multi_Dimensional_List = ["Only", "3D"]
+# Multi_Dimensional_List = ["3D"]
+Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
@@ -7335,6 +7413,8 @@ if(("Multi_Dim_z_pT_Bin_Y_bin_phi_t" in Variable_List_Final) and ("Only" not in 
     Variable_List_Final.remove("Multi_Dim_z_pT_Bin_Y_bin_phi_t")
 if(("MultiDim_Q2_y_z_pT_phi_h"       in Variable_List_Final) and ("5D"   not in Multi_Dimensional_List)):
     Variable_List_Final.remove("MultiDim_Q2_y_z_pT_phi_h")
+if(("MultiDim_z_pT_Bin_Y_bin_phi_t"  in Variable_List_Final) and ("3D"   not in Multi_Dimensional_List)):
+    Variable_List_Final.remove("MultiDim_z_pT_Bin_Y_bin_phi_t")
 
 to_be_saved_count = 0
 Pars_Canvas, Histo_Pars_VS_Z, Histo_Pars_VS_PT, Pars_Legends = {}, {}, {}, {}
@@ -7347,15 +7427,10 @@ for variable in Variable_List:
         for smear in Smearing_final_list:
             HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
 
-            # for Multi_Dim in ["Off", "Only", "Q2_y", "z_pT"]:
-#             for Multi_Dim in ["Off", "Only"]:
-#             for Multi_Dim in ["Off"]:
-#             for Multi_Dim in ["Only"]:
-#             for Multi_Dim in ["5D"]:
             for Multi_Dim in Multi_Dimensional_List:
                 if((Multi_Dim not in ["Off"]) and (variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"])):
                     continue
-                if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "5D"]) and (str(variable) in ["phi_t", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"])):
+                if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"]) and (str(variable) in ["phi_t", "el", "pip", "elth", "pipth", "elPhi", "pipPhi"])):
                     for method in Method_Type_List:
                         if((method in ["RooUnfold_svd", "SVD", "Response"]) and (Multi_Dim not in ["Off"])):
                             continue
@@ -7395,7 +7470,7 @@ for variable in Variable_List:
                     #     continue
                     # if((Multi_Dim in ["Only"]) and ((BIN_NUM     in ["All"]) or (z_pT_Bin in [0]))):
                     #     continue
-                    if((Multi_Dim in ["Only", "z_pT"]) and (BIN_NUM  in ["All"])):
+                    if((Multi_Dim in ["Only", "z_pT", "3D"]) and (BIN_NUM  in ["All"])):
                         continue
                     if((Multi_Dim in ["Q2_y"])         and ((BIN_NUM in ["All"]) or (z_pT_Bin not in [0]))):
                         continue
@@ -7761,10 +7836,10 @@ if(Create_txt_File):
                     else:
                         Text_Par_Outputs = f"{Text_Par_Outputs}\n======================================================================\nFor {color.UNDERLINE}{color.BOLD}Q2-y Bin {BIN_NUM} - z-PT Bin {z_pT_Bin}{color.END}: "
                     for Variable   in Variable_List_Final:
-                        if(any("Multi_Dim" in ii for ii in Variable_List_Final)):
+                        if(any("Multi" in ii for ii in Variable_List_Final)):
                             Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t (*) ", "3D" if(("Multi_Dim" in Variable) or ("MultiDim_z_pT" in Variable)) else "5D" if("MultiDim" in Variable) else "1D", " Histograms:", color.END])
                         for Method in Method_Type_List:
-                            if(str(Method)   in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison"]):
+                            if(str(Method)   in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison", "Background"]):
                                 continue
                             if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                                 continue

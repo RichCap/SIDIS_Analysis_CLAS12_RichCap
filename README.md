@@ -32,6 +32,30 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 5-22-2024:
+* git commit notes for RooUnfold_SIDIS_richcap.py:
+    * Added the new 3D response matrix method for unfolding (now working)
+        * The original method is now named "Old" in all titles
+        * Multi_Dim_Option for the new 3D response matrix is "3D" while the old option remains "Only"
+        * Currently not running the old method anymore
+    * Modified the Bin-by-Bin Correction to now use the RooUnfold version of the corrected plots
+        * Have not yet checked to make sure that the methods are still identical (must do only to ensure that there are no bugs in the correction methods)
+* git commit notes for sbatch_SIDIS_unfold_python.sh:
+    * Running with txt file output for the fit parameters (changed from 'no_txt' option to 'no_stat' option)
+    * Added more mem-per-cpu (required for making the txt files)
+    * Added #SBATCH --constraint=el7 to force the sbatch job to run on the same network that I usually used
+        * The ifarm updates have switched to el9 as the default which is not currently compatible with this code
+* git commit notes for Bayes_RooUnfold_SIDIS_Iteration_Test.py:
+    * Added the function for Multi3D_Slice() (Commented out since it is not in use)
+    * Added functions/images to show the change in bin content/error between bayesian iterations
+    * Running tests with the bayesian iterations
+        * See notes on bayes_RooUnfold_SIDIS_Iteration_Test.sh
+        * Will likely be trying to improve memory efficiency where possible in future updates
+* git commit notes for bayes_RooUnfold_SIDIS_Iteration_Test.sh:
+    * Running tests with more memory requested (able to run but still runs out of memory before the script finishes)
+    * Similar update as sbatch_SIDIS_unfold_python.sh regarding #SBATCH --constraint=el7
+
+
 ### Update on 5-17-2024:
 * git commit notes for RooUnfold_SIDIS_richcap.py:
     * Removed Draw_2D_Histograms_Simple(…) (now just using Draw_2D_Histograms_Simple_New(…))
