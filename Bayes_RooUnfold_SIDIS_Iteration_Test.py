@@ -1140,7 +1140,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
                     else:
                         Bin_Acceptance = MC_REC_1D.Clone()
-                        Bin_Acceptance.Sumw2()
+                        # Bin_Acceptance.Sumw2()
                         Bin_Acceptance.Divide(MC_GEN_1D)
                         print(f"{color.BBLUE}Performing Iteration Test of 5D Bayes Unfolding...{color.END}")
                         Min_Range_of_Iterations = 1
@@ -1153,37 +1153,34 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                             # Unfolding_Histo.SetVerbose(1)
                             Unfolded_Histo  = Unfolding_Histo.Hunfold()
                             for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
-                                if(MC_REC_1D.GetBinContent(bin_rec) == 0):
+                                if((MC_REC_1D.GetBinContent(bin_rec) == 0) or (Bin_Acceptance.GetBinContent(bin_rec) < 0.02)):
                                     Unfolded_Histo.SetBinError(bin_rec,          0)
                                     Unfolded_Histo.SetBinContent(bin_rec,        0)
-                            for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
-                                if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
-                                    Unfolded_Histo.SetBinError(bin_acceptance,   0)
-                                    Unfolded_Histo.SetBinContent(bin_acceptance, 0)
                             Sliced_1D = Multi5D_Slice(Histo=Unfolded_Histo, Title=Unfolding_Histo.GetTitle(), Name=Unfolding_Histo.GetName(), Method="bayes", Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if(any(smear_find in Unfolding_Histo.GetName() for smear_find in ["'smear'", "'Smear'", "smeared"])) else "", Out_Option="histo", Fitting_Input="off")[0]
+                            del Unfolding_Histo
+                            del Unfolded_Histo
                             for ii in Sliced_1D:
                                 Sliced_1D[ii].GetYaxis().SetTitle("")
                                 Sliced_OutPut[f"{ii}_(Iteration_{bayes_iterations})"] = Sliced_1D[ii].Clone(f"{ii}_(Iteration_{bayes_iterations})")
+                            del Sliced_1D
                         print(f"{color.BOLD}{color.CYAN}Finished {color.GREEN}{str(Unfold_Title)}{color.END_B}{color.CYAN} Unfolding (Iteration Tests).\n{color.END}")
                         Sliced_OutPut_With_Diff = Sliced_OutPut.copy()
                         for ii in Sliced_OutPut:
-                            print(ii)
+                            # print(ii)
                             if(f"Iteration_{Min_Range_of_Iterations}" in str(ii)):
                                 Sliced_OutPut_With_Diff = Delta_in_Iterations(Sliced_List=Sliced_OutPut_With_Diff, Histo_Name=ii, Min_Range_of_Iterations=Min_Range_of_Iterations, Max_Range_of_Iterations=Max_Range_of_Iterations)
-                                for iteration in range(Min_Range_of_Iterations, Max_Range_of_Iterations):
-                                    Delta_Name_Content = ii.replace(f"Iteration_{Min_Range_of_Iterations}", f"Delta_Content_{iteration+1}")
-                                    Delta_Name___Error = ii.replace(f"Iteration_{Min_Range_of_Iterations}", f"Delta_Error_{iteration+1}")
-                                    if(str(Delta_Name_Content) in Sliced_OutPut_With_Diff):
-                                        print(f"{color.BGREEN}\t{Delta_Name_Content}{color.END}")
-                                    else:
-                                        print(f"{color.Error}\tMISSING: {Delta_Name_Content}{color.END}")
-                                    if(str(Delta_Name___Error) in Sliced_OutPut_With_Diff):
-                                        print(f"{color.BGREEN}\t{Delta_Name___Error}{color.END}")
-                                    else:
-                                        print(f"{color.Error}\tMISSING: {Delta_Name___Error}{color.END}")
+                                # for iteration in range(Min_Range_of_Iterations, Max_Range_of_Iterations):
+                                #     Delta_Name_Content = ii.replace(f"Iteration_{Min_Range_of_Iterations}", f"Delta_Content_{iteration+1}")
+                                #     Delta_Name___Error = ii.replace(f"Iteration_{Min_Range_of_Iterations}", f"Delta_Error_{iteration+1}")
+                                #     if(str(Delta_Name_Content) in Sliced_OutPut_With_Diff):
+                                #         print(f"{color.BGREEN}\t{Delta_Name_Content}{color.END}")
+                                #     else:
+                                #         print(f"{color.Error}\tMISSING: {Delta_Name_Content}{color.END}")
+                                #     if(str(Delta_Name___Error) in Sliced_OutPut_With_Diff):
+                                #         print(f"{color.BGREEN}\t{Delta_Name___Error}{color.END}")
+                                #     else:
+                                #         print(f"{color.Error}\tMISSING: {Delta_Name___Error}{color.END}")
                         return Sliced_OutPut_With_Diff
-                        # Sliced_OutPut = Sliced_OutPut_With_Diff
-                        # return Sliced_OutPut
 
 ##==============##==============================================================##==============##
 ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
@@ -1434,6 +1431,7 @@ def FileLocation(FileName, Datatype):
 ################################################################################################################################################################
 Common_Name = "Pass_2_5D_Unfold_Test_V5_All"
 Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
+# Common_Name = "5D_Unfold_Test_V6_All"
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -1472,7 +1470,7 @@ else:
     MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
     MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V6_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V6_All"
     if("Pass 2" not in Pass_Version):
-        MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2", "")
+        MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -1541,6 +1539,47 @@ print("".join(["\n\n", color.BOLD, "Done Loading RDataFrame files...\n", color.E
 ########################################################################################################################################################
 
 
+# for ii in mdf.GetListOfKeys():
+#     conditions = []
+#     conditions.append("MultiDim_z_pT_Bin_Y_bin_phi_t" in str(ii.GetName()))
+#     conditions.append("Background"                not in str(ii.GetName()))
+#     conditions.append("cut_Complete_SIDIS"            in str(ii.GetName()))
+#     if(all(conditions)):
+#         print(f"{color.BGREEN}{str(ii.GetName())}{color.END}")
+# #     else:
+# #         print(f"{color.ERROR}{ii}{color.END}")
+
+# for Q2_y_bin in Q2_xB_Bin_List:
+#     mdf_TH2D_Name = "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'),", " (Smear-Type='smear')," if(Smearing_Options == "smear") else " (Smear-Type=''),", " (Binning-Type='Y_bin'-[Q2-y-Bin=", str(Q2_y_bin), ", z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='", "z_pT_Bin_Y_bin_smeared" if(Smearing_Options == "smear") else "z_pT_Bin_Y_bin", "'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))"])
+#     Response_2D = mdf.Get(mdf_TH2D_Name)
+#     Response_2D.GetXaxis().SetTitleOffset(1.2)
+#     Response_2D.GetYaxis().SetTitleOffset(1.4)
+#     Line_1 = "".join(["#scale[1.5]{", "(Smeared) " if(Smearing_Options == "smear") else "", "Response Matrix of 3D Kinematic Bins (z+P_{T}+#phi_{h})}"])
+#     Line_2 = "".join(["#scale[1.35]{#color[", str(root_color.Blue), "]{", str(Pass_Version), "} #topbar Q^{2}-y Bin ", str(Q2_y_bin), "}"])
+#     Response_2D.SetTitle("".join(["#splitline{", str(Line_1), "}{", str(Line_2), "}"]))
+#     del Line_1
+#     del Line_2
+#     # Create a canvas
+#     canvas = ROOT.TCanvas(f"canvas_Bin_{Q2_y_bin}", f"3D Response Histogram Canvas Bin {Q2_y_bin}", 1300, 725)
+#     canvas.SetRightMargin(0.15)  # Increase if color palette is clipped
+#     canvas.SetLeftMargin(0.15)   # Increase for Y-axis label and title
+#     canvas.SetBottomMargin(0.15) # Increase for X-axis label and title
+#     canvas.SetTopMargin(0.175)   # Increase top margin to give more space for the title
+
+#     ROOT.gStyle.SetOptStat('i')  # Display overflow, underflow, integral, etc.
+#     ROOT.gStyle.SetStatX(0.900)   # Position of the top right corner of the stat box
+#     ROOT.gStyle.SetStatY(0.875)
+#     ROOT.gStyle.SetStatW(0.150)   # Width of the stat box
+#     ROOT.gStyle.SetStatH(0.200)   # Height of the stat box
+#     Response_2D.Draw("colz")
+#     canvas.SetLogz(True)  # Set logarithmic scale on the z-axis if needed
+#     canvas.Update()
+#     Save_Name = "".join([f"Response_Matrix_Multi_3D_Q2_y_Bin_{Q2_y_bin}_Histogram", ".png" if(str(Smearing_Options) not in ["smear"]) else "_Smeared.png"])
+#     canvas.SaveAs(Save_Name)
+#     del canvas
+#     del Response_2D
+
+
 
 rdf_TH1D_Name = "".join(["((Histo-Group='5D_Response_Matrix_1D'),",            " (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'),", " (Smear-Type=''),",                                                               " (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'-[NumBins=11816, MinBin=-0.5, MaxBin=11815.5]))"])
 mdf_TH1D_Name = "".join(["((Histo-Group='5D_Response_Matrix_1D'),",            " (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'),", " (Smear-Type='smear')," if(Smearing_Options == "smear") else " (Smear-Type=''),", " (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'-[NumBins=11816, MinBin=-0.5, MaxBin=11815.5]))"])
@@ -1566,16 +1605,32 @@ Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=
 del Histo_List
 
 
+# Response_2D.GetXaxis().SetTitleOffset(1.2)
+# Response_2D.GetYaxis().SetTitleOffset(1.4)
+# Line_1 = "".join(["#scale[1.5]{", "(Smeared) " if(Smearing_Options == "smear") else "", "Response Matrix of 5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})}"])
+# Line_2 = "".join(["#scale[1.35]{#color[", str(root_color.Blue), "]{", str(Pass_Version), "} #topbar All Q^{2}-y-z-P_{T} Bins #topbar Total Number of Bins: 11816}"])
+# Response_2D.SetTitle("".join(["#splitline{", str(Line_1), "}{", str(Line_2), "}"]))
+# del Line_1
+# del Line_2
+# # Create a canvas
+# canvas = ROOT.TCanvas("canvas", "Response Histogram Canvas", 1300, 725)
+# canvas.SetRightMargin(0.15)  # Increase if color palette is clipped
+# canvas.SetLeftMargin(0.15)   # Increase for Y-axis label and title
+# canvas.SetBottomMargin(0.10) # Increase for X-axis label and title
+# canvas.SetTopMargin(0.25)   # Increase top margin to give more space for the title
 
-# Create a canvas
-canvas = ROOT.TCanvas("canvas", "Response Histogram Canvas", 800, 600)
-Response_2D.Draw("colz")
+# ROOT.gStyle.SetOptStat('i')  # Display overflow, underflow, integral, etc.
+# ROOT.gStyle.SetStatX(0.90)   # Position of the top right corner of the stat box
+# ROOT.gStyle.SetStatY(0.80)
+# ROOT.gStyle.SetStatW(0.15)   # Width of the stat box
+# ROOT.gStyle.SetStatH(0.20)   # Height of the stat box
+# Response_2D.Draw("colz")
 # canvas.SetLogz(True)  # Set logarithmic scale on the z-axis if needed
-canvas.SetRightMargin(0.15)  # Adjust right margin to make room for the color palette
-canvas.Update()
-canvas.SaveAs("Response_Matrix_5D_Histogram.png" if(str(Smearing_Options) not in ["smear"]) else "Response_Matrix_5D_Histogram_Smeared.png")  # Saves the canvas as a PNG file
-del canvas
-
+# canvas.Update()
+# Save_Name = "".join(["Response_Matrix_Multi_5D_Histogram", ".png" if(str(Smearing_Options) not in ["smear"]) else "_Smeared.png"])
+# canvas.SaveAs(Save_Name)
+# del canvas
+# del Response_2D
 
 Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="RooUnfold", MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
 # Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="Test",      MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
