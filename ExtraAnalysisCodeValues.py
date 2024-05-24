@@ -1613,7 +1613,7 @@ def BG_Cut_Function(dataframe="mdf"):
         return ""
     else:
         Background_Cuts_MC = ""
-        List_of_Cuts = ["MM_gen < 1.5", "(PID_el != 11 && PID_pip != 211)"]
+        List_of_Cuts = ["MM_gen < 1.5", "PID_el != 11", "PID_pip != 211"]
         for cuts in List_of_Cuts:
             if(dataframe in ["gdf"]):
                 if("PID" in str(cuts)):

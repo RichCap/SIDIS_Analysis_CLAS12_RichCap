@@ -32,6 +32,29 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 5-24-2024:
+* Notes regarding Sort_RooUnfold_SIDIS_richcap.py:
+    * Error was discovered related to organizing the results of the Sim_Test options
+        * Caused the directory/text file to be renamed while moving files
+        * Issue was fixed by making it so that only PNG files with 'Sim_Test' in their names will be renamed
+* git commit notes for makeROOT_epip_SIDIS_histos_new.py:
+    * About to run Extra_Name = "5D_Unfold_Test_V7_"
+    * Discovered (and fixed) an issue with the background cuts
+        * The condition (PID_el != 11 && PID_pip != 211) missed events where only one particle's PID was wrong (or 0)
+        * Condition has now been updated to be (PID_el != 11 || PID_pip != 211) instead
+    * Added the Hx vs Hy plots but only for Q2-y Bin All (Bin -1)
+        * Also does not run while smearing
+        * Should/will be used to check edge cuts to (hopefully) improve agreement between data and MC
+    * Removed the production of the old construction of the 3D response matrix (now just using the variable definitions like the 5D response matrix)
+* git commit notes for ExtraAnalysisCodeValues.py:
+    * Discovered (and fixed) an issue with the background cuts
+        * The condition (PID_el != 11 && PID_pip != 211) missed events where only one particle's PID was wrong (or 0)
+        * Condition has now been updated to be (PID_el != 11 || PID_pip != 211) instead
+* git commit notes for all sbatch_SIDIS_(...).sh Files:
+    * Added "#SBATCH --constraint=el7"
+    * Running '5D_Unfold_Test_V7'
+        * Not running Sim_Test again (yet)
+
 ### Update on 5-23-2024:
 * ADDING NEW FILE: Fit_Parameter_Comparison.ipynb
     * Meant to help search and evaluate the Parameter text files

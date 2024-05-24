@@ -986,7 +986,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # It appears that one explaination could be that the smearing function is re-applied uniquely for every instance of these matrices creation, causing there to be a difference in their distributions
             # This could be possible from the fact that the variables used to fill these plots are defined in 3 different ways, giving the dataframe the opportunity to apply the smearing functions separately for each instance
             # Since 'MultiDim_z_pT_Bin_Y_bin_phi_t' is defined at the same time that 'MultiDim_Q2_y_z_pT_phi_h' is, there should be far less reason to believe that the smearing function could behave differently between the 3D and 5D response matrices based on these variables
-    
+            
+            
+    Extra_Name = "5D_Unfold_Test_V7_"
+    # Ran on 5/24/2024
+    # Discovered (and fixed) an issue with the background cuts
+        # The condition (PID_el != 11 && PID_pip != 211) missed events where only one particle's PID was wrong (or 0)
+        # Condition has now been updated to be (PID_el != 11 || PID_pip != 211) instead
+    # Added the Hx vs Hy plots but only for Q2-y Bin All (Bin -1)
+        # Also does not run while smearing
+        # Should/will be used to check edge cuts to (hopefully) improve agreement between data and MC
+    # Removed the production of the old construction of the 3D response matrix (now just using the variable definitions like the 5D response matrix)
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -5803,6 +5813,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
+#     cut_list.append('no_cut_eS1o')
 #     if(run_Mom_Cor_Code != "yes"):
 #         # cut_list.append('no_cut_eS1a')
 #         cut_list.append('no_cut_eS1o')
@@ -5814,6 +5825,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list.append('cut_Complete_SIDIS')
+#         cut_list.append('cut_Complete_SIDIS_eS1o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6229,11 +6241,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Sliced_5D_Increment = 422 # This is the number of bins that will be used in each slice of the 5D Response Matrix (used to more easily write this histogram to the output root file)
     if((Q2_y_z_pT_phi_h_5D_Binning[3]%Sliced_5D_Increment != 0) and Use_5D_Response_Matrix):
         print(f"{color.Error}Major Error: Improper number of slices for the bin count{color.END}\n\tNum_of_Bins%Sliced_5D_Increment = {Q2_y_z_pT_phi_h_5D_Binning[3]}%{Sliced_5D_Increment} = {Q2_y_z_pT_phi_h_5D_Binning[3]%Sliced_5D_Increment}")
-        stop
+        raise TypeError("Improper number of slices for the bin count")
     
     
-    # Hx_Binning = ['Hx', -400, 400, 800]
-    # Hy_Binning = ['Hy', -400, 400, 800]
+    Hx_Binning = ['Hx', -400, 400, 800]
+    Hy_Binning = ['Hy', -400, 400, 800]
 
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
@@ -6282,7 +6294,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
-    
+#     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+
+    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
+        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
+        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
+        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
     
     # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
@@ -6960,6 +6977,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         if(Q2_xB_Bin_Num > 17 and Binning in ["4", "y_bin", "y_Bin"]):
                                             # This binning scheme only goes up to 17 Q2-xB bins
                                             continue
+                                            
+                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_2d_histos in Histo_Var_D2_Name for non_binned_2d_histos in ["Var-D1='Hx'", "Var-D1='Hy'"])):
+                                            # The following variables should/do not have to be made with the full kinematic binning in mind (just make once for all Q2-y bins (bin -1))
+                                            continue
+                                            
                                         Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:" if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "'-[Q2-y-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
@@ -7279,8 +7301,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     # Res_Var_Add = [[phi_t_Binning_New, Q2_Binning_Old], [phi_t_Binning_New, Q2_Y_Binning]]
                                     Res_Var_Add = [[[phi_t_Binning_New[0], 0, 360, 24], Res_Binning_2D_z_pT]]
                                 
-                                # # REMOVING ALL ABOVE ADDITIONS (remove this line later)
-                                # Res_Var_Add = []
+                                # REMOVING ALL ABOVE ADDITIONS (remove this line later)
+                                Res_Var_Add = []
                                 
                                 if(Alert_of_Response_Matricies):
                                     if(len(List_of_Quantities_1D) == 0):
@@ -7459,7 +7481,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                                 Bin_Filter = str(Bin_Filter).replace("MM_gen", "MM")
                                         elif(str(Background_Cuts_MC) in ["ERROR"]):
                                             print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
-                                                
                                             
                                         Migration_Title       = "".join([str(Migration_Title),   "; ", str(variable_Title_name(Res_Binning_2D_z_pT[0]))])
                                         if(Histo_Data in ["mdf"]):
