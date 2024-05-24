@@ -27,13 +27,13 @@ else:
     
 Date_Day = "".join(["Started running on ", color.BOLD, str(datetime_object_full.month), "-", str(datetime_object_full.day), "-", str(datetime_object_full.year), color.END, " at "])
 # printing current time
-if(datetime_object_full.hour > 12 and datetime_object_full.hour < 24):
+if(datetime_object_full.hour  > 12 and datetime_object_full.hour < 24):
     print("".join([Date_Day, color.BOLD, str((datetime_object_full.hour)-12), ":", timeMin_full, " p.m.", color.END]))
-if(datetime_object_full.hour < 12 and datetime_object_full.hour > 0):
-    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour), ":", timeMin_full, " a.m.", color.END]))
+if(datetime_object_full.hour  < 12 and datetime_object_full.hour > 0):
+    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour),      ":", timeMin_full, " a.m.", color.END]))
 if(datetime_object_full.hour == 12):
-    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour), ":", timeMin_full, " p.m.", color.END]))
-if(datetime_object_full.hour == 0 or datetime_object_full.hour == 24):
+    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour),      ":", timeMin_full, " p.m.", color.END]))
+if(datetime_object_full.hour == 0  or  datetime_object_full.hour == 24):
     print("".join([Date_Day, color.BOLD, "12:", str(timeMin_full), " a.m.", color.END]))        
 print("")
 
@@ -105,20 +105,20 @@ Date_of_Save = "".join([str(datetime_object_full.month), "_", str(datetime_objec
 destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
 version = 2
 while(str(destination).replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/", "") in os.listdir()):
-    print(f"{color.BOLD}Error: {color.END}{color.RED}{destination}{color.END}{color.BOLD} already exists...{color.END}\n\tChecking for new version ({version - 1})")
+    print(f"{color.BOLD}Error: {color.END_R}{destination}{color.END_B} already exists...{color.END}\n\tChecking for new version ({version - 1})")
     destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_V", str(version), "_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
     version += 1
     if(version > 11):
         print("".join([color.Error, "\nWARNING: Many folders are being saved from the same date. This loop is automatically closed after 10 versions for the same folder.\n\n\tPlease overide this decision manually if this many folders are desired...\n\n", color.END]))
-        fail
+        raise TypeError("Too many folders with the same name/date")
 
-print(f"\nWill create a new directory called:\n\t{color.BOLD}{color.BLUE}{destination}{color.END}")
+print(f"\nWill create a new directory called:\n\t{color.BBLUE}{destination}{color.END}")
 user_approval = input("\nDo you approve to continue? (yes/no): ").lower()
 if(user_approval not in ['yes', 'y', 'Yes', 'Y']):
     print(f"{color.Error}User did not approve. Exiting the script.{color.END}\n\n")
     sys.exit()  # Exit the script if the user does not approve
 
-print(f"User approved.\n\n{color.BOLD}{color.BLUE}Starting final folder creation/image sorting...{color.END}\n")
+print(f"User approved.\n\n{color.BBLUE}Starting final folder creation/image sorting...{color.END}\n")
         
 
 os.mkdir(destination)
@@ -153,7 +153,7 @@ os.mkdir(destination_Pars)
 # os.mkdir("".join([str(destination_mult_z_pT_Bin_phi_h), "/Response_Matrix"]))
 
 
-destination_Par_A = "".join([str(destination_Pars), "/Fit_Par_A"])
+# destination_Par_A = "".join([str(destination_Pars), "/Fit_Par_A"])
 destination_Par_B = "".join([str(destination_Pars), "/Fit_Par_B"])
 destination_Par_C = "".join([str(destination_Pars), "/Fit_Par_C"])
 
@@ -204,14 +204,14 @@ for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destin
 ##=====##   Image Sorting   ##=====##
 for Entry in os.listdir():
     try:
-        if("Sim_Test_" in str(Entry)):
-            os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
-            Entry = str(Entry).replace("Sim_Test_", "")
-        if('.txt'      in str(Entry)):
+        if('.txt'          in str(Entry)):
             # shutil.move(Entry, destination_txt)
             if("".join([str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)]) in str(Entry)):
                 shutil.move(Entry, destination)
-        if('.png'      in str(Entry)):
+        if('.png'          in str(Entry)):
+            if("Sim_Test_" in str(Entry)):
+                os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
+                Entry = str(Entry).replace("Sim_Test_", "")
             Moved_Q = False
             # if("_Pars_" in str(Entry)):
             #     shutil.move(Entry, destination_pars)
