@@ -23,6 +23,8 @@ from MyCommonAnalysisFunction_richcap    import *
 from Convert_MultiDim_Kinematic_Bins     import *
 from Fit_Related_Functions_For_RooUnfold import *
 
+
+
 ROOT.TH1.AddDirectory(0)
 ROOT.gStyle.SetTitleOffset(1.3,'y')
 
@@ -1089,7 +1091,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
         if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D_Input.GetNbinsX() == Response_2D_Input.GetNbinsY()):
             try:
                 Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_1D, MC_GEN_1D, Response_2D_Input, "".join([str(Response_2D_Input.GetName()).replace("_Flipped", ""), "_RooUnfoldResponse_Object"]), Response_2D_Input_Title)
-                
+                del Response_2D_Input
                 if(MC_BGS_1D != "None"):
                     # Background Subtraction Method 1: Fill the Response_RooUnfold object explicitly with the content of a background histogram with the Fake() function
                     for rec_bin in range(0, nBins_CVM + 1, 1):
@@ -1147,6 +1149,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         Max_Range_of_Iterations = 4
                         for bayes_iterations in range(Min_Range_of_Iterations, Max_Range_of_Iterations + 1):
                             print(f"{color.BOLD}Running with '{bayes_iterations}' iteration(s){color.END}")
+                            sys.stdout.flush()
                             Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
                             # Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
                             # Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, 1)
@@ -1164,6 +1167,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                                 Sliced_OutPut[f"{ii}_(Iteration_{bayes_iterations})"] = Sliced_1D[ii].Clone(f"{ii}_(Iteration_{bayes_iterations})")
                             del Sliced_1D
                         print(f"{color.BOLD}{color.CYAN}Finished {color.GREEN}{str(Unfold_Title)}{color.END_B}{color.CYAN} Unfolding (Iteration Tests).\n{color.END}")
+                        sys.stdout.flush()
                         Sliced_OutPut_With_Diff = Sliced_OutPut.copy()
                         for ii in Sliced_OutPut:
                             # print(ii)
@@ -1591,10 +1595,16 @@ mdf_TH2D_Name = "".join(["((Histo-Group='5D_Response_Matrix'),",               "
 
 # out_print_main = mdf_TH2D_Name.replace("mdf", "DataFrame_Type")
 
-ExREAL_1D   = rdf.Get(rdf_TH1D_Name)
+# ExREAL_1D   = rdf.Get(rdf_TH1D_Name)
 MC_REC_1D   = mdf.Get(mdf_TH1D_Name)
 MC_GEN_1D   = gdf.Get(gdf_TH1D_Name)
 MC_BGS_1D   = mdf.Get(bdf_TH1D_Name)
+
+# For Simulated Closure Test #
+ExREAL_1D   = MC_REC_1D.Clone(str(rdf_TH1D_Name))
+ExREAL_1D.Add(MC_BGS_1D)
+# For Simulated Closure Test #
+
 # Response_2D = mdf.Get(mdf_TH2D_Name)
 Num_5D_Increments_Used_to_Slice = 422
 Histo_List = {}
@@ -1630,13 +1640,24 @@ del Histo_List
 # Save_Name = "".join(["Response_Matrix_Multi_5D_Histogram", ".png" if(str(Smearing_Options) not in ["smear"]) else "_Smeared.png"])
 # canvas.SaveAs(Save_Name)
 # del canvas
-# del Response_2D
+# # del Response_2D
+
+
+# No longer need the root files #
+del rdf
+del mdf
+del gdf
+# No longer need the root files #
+
 
 Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="RooUnfold", MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
 # Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="Test",      MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
 
 # print(type(Unfold_1D))
 print("Content of Unfold_1D:")
+
+sys.stdout.flush()
+
 for ii in Unfold_1D:
     print(f"\t{ii}")
 

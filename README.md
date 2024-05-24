@@ -32,6 +32,32 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 5-23-2024:
+* ADDING NEW FILE: Fit_Parameter_Comparison.ipynb
+    * Meant to help search and evaluate the Parameter text files
+    * Still in early test phase
+* git commit notes for RooUnfold_SIDIS_richcap.py:
+    * Added several 'raise TypeError()' instead of 'FAIL' or 'STOP' (meant to stop the code from running when encountering certain specific errors)
+    * Modified code related to Sim_Test
+        * Plotting the 'tdf' distributions where the 'SVD' method used to be drawn in the smaller individual images
+        * Removed ability to smear during the simulated unfolding tests (not necessary)
+        * Added the background distribution to the simulated 'rdf' plots since with the background identified, the plot to be unfolded should also include those distributions as well
+        * Running Sim_Test with Pass 2
+* git commit notes for sbatch_SIDIS_unfold_python.sh:
+    * Running Sim_Test with Pass 2
+    * No need to run the smeared option for Sim_Test
+* git commit notes for Bayes_RooUnfold_SIDIS_Iteration_Test.py:
+    * Running Sim_Test for Pass 2
+    * Added a few lines to more readily delete unnecessary histograms/objects to try to save a little more memory
+    * Added 'sys.stdout.flush()' to (hopefully) have the .out log files update more often so that more information about the code's progress/crash point may be observed
+* git commit notes for bayes_RooUnfold_SIDIS_Iteration_Test.sh:
+    * Increased memory request from 18000 to 19000
+        * Hoping that the few updates to Bayes_RooUnfold_SIDIS_Iteration_Test.py might make it more efficient, but still requesting a bit more in the hopes that it further improves the chances of success
+* git commit notes for sbatch_SIDIS_python_gen_MC_Pass2.sh/sbatch_SIDIS_python_matching_MC_Pass2.sh
+    * Running modulated MC test for Pass 2
+* git commit notes for Analysis_Notebook_SIDIS_richcap.ipynb
+    * General update (no changes)
+
 ### Update on 5-22-2024:
 * git commit notes for RooUnfold_SIDIS_richcap.py:
     * Added the new 3D response matrix method for unfolding (now working)
