@@ -1613,7 +1613,13 @@ def BG_Cut_Function(dataframe="mdf"):
         return ""
     else:
         Background_Cuts_MC = ""
-        List_of_Cuts = ["MM_gen < 1.5", "PID_el != 11", "PID_pip != 211"]
+        # List_of_Cuts = ["MM_gen < 1.5", "PID_el != 11", "PID_pip != 211"]
+        List_of_Cuts = []
+        # List_of_Cuts.append("MM_gen < 1.5")
+        # List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
+        # List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
+        List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
+        # List_of_Cuts.append("PID_pip == 0")                   # Identifies unmatched particles
         for cuts in List_of_Cuts:
             if(dataframe in ["gdf"]):
                 if("PID" in str(cuts)):
@@ -1621,9 +1627,9 @@ def BG_Cut_Function(dataframe="mdf"):
                 else:
                     cuts = str(cuts.replace("_gen", ""))
             if(Background_Cuts_MC in [""]):
-                Background_Cuts_MC = cuts
+                Background_Cuts_MC = f"({cuts})"
             else:
-                Background_Cuts_MC = "".join([str(Background_Cuts_MC), " || ", str(cuts)])
+                Background_Cuts_MC = "".join([str(Background_Cuts_MC), " || (", str(cuts), ")"])
         return Background_Cuts_MC
     return "ERROR"
 

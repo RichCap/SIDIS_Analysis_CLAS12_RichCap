@@ -998,6 +998,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Should/will be used to check edge cuts to (hopefully) improve agreement between data and MC
     # Removed the production of the old construction of the 3D response matrix (now just using the variable definitions like the 5D response matrix)
     
+    Extra_Name = "Background_Tests_V1_"
+    # Ran on 5/28/2024
+    # Running mdf with just the background plots to estimate the contributions from each currently identified source
+        # Current source being tested: Unmatched Electron
+    
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
         # Not applying momentum corrections (despite them being available)
@@ -1586,9 +1591,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
         # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
+        
+        if(datatype not in ["rdf"]):
+            print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
+        
         if(datatype in ["gdf"]):
-            print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
-            rdf = rdf.Filter("MM > 1.5")
+            if("MM" in str(BG_Cut_Function(dataframe="mdf"))):
+                print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
+                rdf = rdf.Filter("MM > 1.5")
+            else:
+                print(f"{color.Error}\n{color.UNDERLINE}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.5 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
+                
+        if(datatype in ["mdf"]):
+            BG_string = BG_Cut_Function(dataframe="mdf")
+            if(("PID_el  == 0" not in str(BG_string)) and ("(PID_el  != 11)"  not in str(BG_string))):
+                print(f"\n{color.Error}WARNINING: May be missing the unmatched ELECTRON background cuts\n\t{color.UNDERLINE}RUN WITH CAUTION{color.END}\n")
+            if(("PID_pip == 0" not in str(BG_string)) and ("(PID_pip != 211)" not in str(BG_string))):
+                print(f"\n{color.Error}WARNINING: May be missing the unmatched PI+ PION background cuts\n\t{color.UNDERLINE}RUN WITH CAUTION{color.END}\n")
+            del BG_string
+            
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen","""
@@ -5926,7 +5947,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
-    # Use_5D_Response_Matrix = False
+    Use_5D_Response_Matrix = False
     
     if(Use_5D_Response_Matrix):
         print(f"{color.BGREEN}\n\n{color.UNDERLINE}Will be making the plots needed for 5D Unfolding{color.END}\n\n")
@@ -6260,9 +6281,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_1D = [Q2_Y_Binning, MM_Binning]
     List_of_Quantities_1D = [phi_t_Binning]
     
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    
+#     if("Y_bin" in binning_option_list):
+#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6296,10 +6318,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 #     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
-    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
-        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
-        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
-        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+    
+#     if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
+#         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
+#         List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
+#         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
     
     # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
@@ -6537,6 +6561,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             # histo_options = ["Normal", "Response_Matrix_Normal", "Background_Response_Matrix"]
                             histo_options = ["Normal", "Normal_Background", "Response_Matrix_Normal", "Background_Response_Matrix"]
                             # histo_options = ["Normal", "Response_Matrix_Normal"]
+                            # histo_options = ["Normal_Background", "Background_Response_Matrix"] # Just background plots
                         else:
                             histo_options = ["Normal", "Normal_Background", "Background_Response_Matrix"]
                             histo_options = ["Normal"]
