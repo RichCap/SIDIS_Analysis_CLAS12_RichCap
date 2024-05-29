@@ -1,14 +1,14 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=NS_P2_Bayes_Test_5D_Unfold_Test_V6_5_23_2024_Run1
+#SBATCH --job-name=NS_P2_Bayes_Test_5D_Unfold_Test_V7_5_29_2024_Run1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=19000
-#SBATCH --time=24:00:00
+#SBATCH --mem-per-cpu=20050
+#SBATCH --time=48:00:00
 #SBATCH --array=1-17
 #SBATCH --constraint=el7
 

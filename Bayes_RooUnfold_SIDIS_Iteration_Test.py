@@ -155,6 +155,31 @@ print(Date_Time, "\n")
 
 
 
+def Get_Time(Time_Running=False):
+    # To have this function print the amount of time that has passed since a prior moment, let Time_Running be a datetime.now() object from the moment that you want to compare to. Otherwise, let Time_Running=False
+    datetime_object_current = datetime.now()
+    if(Time_Running):
+        datetime_object_change = datetime_object_current - Time_Running
+        delta_seconds = datetime_object_change.seconds
+        seconds     = delta_seconds % 60
+        minutes     = (delta_seconds // 60) % 60
+        hours       = (delta_seconds // 3600) % 24
+        days        = datetime_object_change.days
+        print(f"{color.BOLD}Time Elapsed:{color.END} Day(s) = {days}, Hour(s) = {hours}, Minute(s) = {minutes}, Second(s) = {seconds}")
+    current_min     = datetime_object_current.minute
+    current_hr      = datetime_object_current.hour
+    current_day     = datetime_object_current.day
+    date_day        = f"Called Get_Time() on {color.BOLD}{datetime_object_current.month}-{current_day}-{datetime_object_current.year}{color.END} at "
+    time_min_end    = f"{current_min:02d}"  # Format for leading zero
+    if(current_hr   > 12 and current_hr < 24):
+        print(f"{date_day}{current_hr - 12}:{time_min_end} p.m.")
+    elif(current_hr < 12 and current_hr > 0):
+        print(f"{date_day}{current_hr}:{time_min_end} a.m.")
+    elif(current_hr == 12):
+        print(f"{date_day}{current_hr}:{time_min_end} p.m.")
+    elif(current_hr in [0, 24]):  # Handling midnight as 12 a.m.
+        print(f"{date_day}12:{time_min_end} a.m.")
+
 
 try:
     import RooUnfold
@@ -1146,9 +1171,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         Bin_Acceptance.Divide(MC_GEN_1D)
                         print(f"{color.BBLUE}Performing Iteration Test of 5D Bayes Unfolding...{color.END}")
                         Min_Range_of_Iterations = 1
-                        Max_Range_of_Iterations = 4
+                        Max_Range_of_Iterations = 3
                         for bayes_iterations in range(Min_Range_of_Iterations, Max_Range_of_Iterations + 1):
                             print(f"{color.BOLD}Running with '{bayes_iterations}' iteration(s){color.END}")
+                            Time_Start_Running = datetime.now()
                             sys.stdout.flush()
                             Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
                             # Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
@@ -1159,6 +1185,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                                 if((MC_REC_1D.GetBinContent(bin_rec) == 0) or (Bin_Acceptance.GetBinContent(bin_rec) < 0.02)):
                                     Unfolded_Histo.SetBinError(bin_rec,          0)
                                     Unfolded_Histo.SetBinContent(bin_rec,        0)
+                            Get_Time(Time_Running=Time_Start_Running)
                             Sliced_1D = Multi5D_Slice(Histo=Unfolded_Histo, Title=Unfolding_Histo.GetTitle(), Name=Unfolding_Histo.GetName(), Method="bayes", Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if(any(smear_find in Unfolding_Histo.GetName() for smear_find in ["'smear'", "'Smear'", "smeared"])) else "", Out_Option="histo", Fitting_Input="off")[0]
                             del Unfolding_Histo
                             del Unfolded_Histo
@@ -1317,11 +1344,11 @@ def z_pT_Images_Together_For_Iteration_Test(Histogram_List_All, Default_Histo_Na
                     All_z_pT_Canvas_cd_2_z_pT_Bin.SetFillColor(root_color.LGrey)
                     All_z_pT_Canvas_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
             
-            Min_Iteration = 1
-            Max_Iteration = 4
+            Min_Range_of_Iterations = 1
+            Max_Range_of_Iterations = 3
             if(str(Compare_Type) not in ["Default", "Overlap"]):
-                Max_Iteration += -1
-            for Iteration in range(Min_Iteration, Max_Iteration + 1):
+                Max_Range_of_Iterations += -1
+            for Iteration in range(Min_Range_of_Iterations, Max_Range_of_Iterations + 1):
                 Default_Response_Matrix_Name = Initial_Response_Matrix_Name.replace("ITERATION_NUM", f"Iteration_{Iteration}" if(str(Compare_Type) in ["Default", "Overlap"]) else f"Delta_Content_{Iteration+1}" if(str(Compare_Type) in ["Diff", "Content"]) else f"Delta_Error_{Iteration+1}")
                 if(not (Default_Response_Matrix_Name in Histogram_List_All)):
                     print(f"{color.Error}Missing: {color.END_R}{Default_Response_Matrix_Name}{color.END}")
@@ -1350,7 +1377,7 @@ def z_pT_Images_Together_For_Iteration_Test(Histogram_List_All, Default_Histo_Na
                 if(str(z_pT) in ["All", "0"]):
                     Draw_Canvas(All_z_pT_Canvas_cd_1_Lower,     1, 0.15)
                     Histogram_List_All[Default_Response_Matrix_Name].Draw("H P E0 same")
-                    if(Iteration == Max_Iteration):
+                    if(Iteration == Max_Range_of_Iterations):
                         Draw_Canvas(All_z_pT_Canvas_cd_1_Upper, 1, 0.15)
                         Blank = Histogram_List_All[Default_Response_Matrix_Name].Clone("EMPTY")
                         Blank.SetTitle("")
@@ -1433,9 +1460,9 @@ def FileLocation(FileName, Datatype):
 ################################################################################################################################################################
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
-Common_Name = "Pass_2_5D_Unfold_Test_V5_All"
 Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
-# Common_Name = "5D_Unfold_Test_V6_All"
+Common_Name = "Pass_2_5D_Unfold_Test_V7_All"
+# Common_Name = "5D_Unfold_Test_V7_All"
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -1457,7 +1484,7 @@ else:
     REAL_File_Name = "Unfolding_Tests_V11_All"
     REAL_File_Name = "Pass_2_Correction_Effects_V1_5197"
     REAL_File_Name = "Pass_2_5D_Unfold_Test_V3_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V3_All"
-    REAL_File_Name = "Pass_2_5D_Unfold_Test_V6_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V6_All"
+    REAL_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
     
 ##################################
 ##   Real (Experimental) Data   ##
@@ -1472,7 +1499,7 @@ if(False):
     MC_REC_File_Name = Common_Name
 else:
     MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
-    MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V6_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V6_All"
+    MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V7_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V7_All"
     if("Pass 2" not in Pass_Version):
         MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
 ########################################
@@ -1490,6 +1517,7 @@ else:
     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
     MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
     MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V4_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V4_All"
+    MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
@@ -1704,8 +1732,7 @@ for Q2_y in Q2_xB_Bin_List:
 
 print("DONE")
     
-
-
+    
 # Getting Current Date
 datetime_object_end = datetime.now()
 endMin_full, endHr_full, endDay_full = datetime_object_end.minute, datetime_object_end.hour, datetime_object_end.day
