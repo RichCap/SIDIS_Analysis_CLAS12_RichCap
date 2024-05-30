@@ -1002,6 +1002,37 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Ran on 5/28/2024
     # Running mdf with just the background plots to estimate the contributions from each currently identified source
         # Current source being tested: Unmatched Electron
+    # Ran again on 5/29/2024 to complete the run
+        
+    Extra_Name = "Background_Tests_V2_"
+    # Ran on 5/28/2024
+    # Running mdf with just the background plots to estimate the contributions from each currently identified source
+        # Current source being tested: Unmatched Pi+ Pion
+    # Ran again on 5/29/2024 to complete the run
+        
+#     Extra_Name = "Background_Tests_V3_"
+#     # Ran on 5/28/2024
+#     # Running mdf with just the background plots to estimate the contributions from each currently identified source
+#         # Current source being tested: Wrong Electron
+        
+#     Extra_Name = "Background_Tests_V4_"
+#     # Ran on 5/28/2024
+#     # Running mdf with just the background plots to estimate the contributions from each currently identified source
+#         # Current source being tested: Wrong Pi+ Pion
+        
+    
+    Extra_Name = "New_Sector_Cut_Test_V1_"
+    # Ran on 5/29/2024
+    # Running with new fiducial cuts on the edges of the detector
+        # For better aggreement between Data and MC
+    # Not running with the multidimensional response matrices (not currently needed for the tests involving sector cuts)
+        # Should be running all other normal plots/cuts
+    # Will be running with additional fixed sector cuts to analyze the uncertainties associated with the sector-dependencies
+        # Running pipsec vs phi_t (2D) but not esec (the cuts should handle these combinations)
+        # Will only run 'cut_Complete_SIDIS_eS1o' through 'cut_Complete_SIDIS_eS3o' (i.e., esec == 1, 2, or 3)
+            # Not running all 6 sectors due to how many plots are required (over 3400) - Don't want to spend more time making these plots than I would be able to spend on working with them at this point
+        # Will not fix sector without applying other cuts as well (i.e., not using 'no_cut_eS1o', etc.)
+    
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
         Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -5564,9 +5595,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
+                        DF_Out  = DF_Out.Filter(New_Fiducial_Sector_Cuts)
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
+                        DF_Out  = DF_Out.Filter(New_Fiducial_Sector_Cuts)
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5834,7 +5867,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
-#     cut_list.append('no_cut_eS1o')
+    # cut_list.append('no_cut_eS1o')
+    # cut_list.append('no_cut_eS2o')
+    # cut_list.append('no_cut_eS3o')
+    # cut_list.append('no_cut_eS4o')
+    # cut_list.append('no_cut_eS5o')
+    # cut_list.append('no_cut_eS6o')
 #     if(run_Mom_Cor_Code != "yes"):
 #         # cut_list.append('no_cut_eS1a')
 #         cut_list.append('no_cut_eS1o')
@@ -5846,7 +5884,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list.append('cut_Complete_SIDIS')
-#         cut_list.append('cut_Complete_SIDIS_eS1o')
+        cut_list.append('cut_Complete_SIDIS_eS1o')
+        cut_list.append('cut_Complete_SIDIS_eS2o')
+        cut_list.append('cut_Complete_SIDIS_eS3o')
+#         cut_list.append('cut_Complete_SIDIS_eS4o')
+#         cut_list.append('cut_Complete_SIDIS_eS5o')
+#         cut_list.append('cut_Complete_SIDIS_eS6o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6314,16 +6357,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
 #     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
-    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+#     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
     
-#     if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
-#         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
-#         List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
-#         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
+    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
+        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
+        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
+        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
     
     # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]

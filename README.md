@@ -32,6 +32,14 @@ This list will be updated as items are completed. Items here may not always rela
 
 ## Detailed Commit Updates:
 
+### Update on 5-30-2024:
+* Notes regarding commit related to running 'New_Sector_Cut_Test_V1':
+    * Ran 'Background_Tests' versions 1-4 (completed V1 and V2, but will reset makeROOT_epip_SIDIS_histos_new.py and ExtraAnalysisCodeValues.py to complete V3 and V4)
+    * Ran 'New_Sector_Cut_Test_V1' which included the addition of the 'New_Fiducial_Sector_Cuts' for testing the additional fiducial cuts based on Hx and Hy
+        * Ran with sector-dependent cuts/plots
+        * Reset all background cuts that were being toggled in the 'Background_Tests'
+    * Added new jupyter-notebook (Working_on_Hx_Hy_Plots.ipynb) to create the 'New_Fiducial_Sector_Cuts' used in 'New_Sector_Cut_Test_V1'
+
 ### Update on 5-24-2024:
 * Notes regarding Sort_RooUnfold_SIDIS_richcap.py:
     * Error was discovered related to organizing the results of the Sim_Test options

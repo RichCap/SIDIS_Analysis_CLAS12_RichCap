@@ -1615,11 +1615,11 @@ def BG_Cut_Function(dataframe="mdf"):
         Background_Cuts_MC = ""
         # List_of_Cuts = ["MM_gen < 1.5", "PID_el != 11", "PID_pip != 211"]
         List_of_Cuts = []
-        # List_of_Cuts.append("MM_gen < 1.5")
-        # List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
-        # List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
+        List_of_Cuts.append("MM_gen < 1.5")
+        List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
+        List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
-        # List_of_Cuts.append("PID_pip == 0")                   # Identifies unmatched particles
+        List_of_Cuts.append("PID_pip == 0")                   # Identifies unmatched particles
         for cuts in List_of_Cuts:
             if(dataframe in ["gdf"]):
                 if("PID" in str(cuts)):
@@ -1634,5 +1634,29 @@ def BG_Cut_Function(dataframe="mdf"):
     return "ERROR"
 
 
+
+
+
+
+
+
+
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+###########################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+# Up-to-date as of: 5/29/2024
+New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
+return New_Fiducial_Sector_Cuts;'''
 
 
