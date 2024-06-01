@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=NS_P2_Bayes_Test_5D_Unfold_Test_V7_5_29_2024_Run1
+#SBATCH --job-name=NS_Bayes_Test_5D_Unfold_Test_V7_5_31_2024_Run1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
