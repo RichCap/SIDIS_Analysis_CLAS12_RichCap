@@ -1655,8 +1655,24 @@ def BG_Cut_Function(dataframe="mdf"):
 
 
 
-# Up-to-date as of: 5/29/2024
-New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
-return New_Fiducial_Sector_Cuts;'''
+# # Up-to-date as of: 5/29/2024
+# New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
+# return New_Fiducial_Sector_Cuts;'''
 
-
+# Up-to-date as of: 5/31/2024
+New_Fiducial_Sector_Cuts = """
+if((((Hx)*(Hx) + (Hy)*(Hy)) > (325)*(325)) || (((Hx)*(Hx) + (Hy)*(Hy)) < (75)*(75))){
+    return false;
+}
+else{
+    bool Fiducial_PCAL_Cuts =                        (((Hx)*(Hx) + (Hy)*(Hy)) < (325)*(325));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >     (-0.5)*Hx +     (25.0)) && (Hy <   (0.5241)*Hx +   (-27.2289)));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >   (0.6439)*Hx +   (26.145)) && (Hy <  (76.7615)*Hx + (-2409.6186)));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >  (-0.6292)*Hx +  (33.7585)) && (Hy < (-23.2943)*Hx +  (-601.7726)));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >      (0.5)*Hx +     (25.0)) && (Hy <     (-0.5)*Hx +      (-25.0)));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  ( 0.6494)*Hx + (-31.1688)) && (Hy >  (13.3333)*Hx +   (336.6667)));
+    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  (-0.5796)*Hx + (-35.5102)) && (Hy >    (-35.0)*Hx +      (825.0)));
+    Fiducial_PCAL_Cuts      = !Fiducial_PCAL_Cuts;
+    return Fiducial_PCAL_Cuts;
+}
+"""

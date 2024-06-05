@@ -1034,6 +1034,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Will only run 'cut_Complete_SIDIS_eS1o' through 'cut_Complete_SIDIS_eS3o' (i.e., esec == 1, 2, or 3)
             # Not running all 6 sectors due to how many plots are required (over 3400) - Don't want to spend more time making these plots than I would be able to spend on working with them at this point
         # Will not fix sector without applying other cuts as well (i.e., not using 'no_cut_eS1o', etc.)
+        
+    Extra_Name = "New_Sector_Cut_Test_V2_"
+    # Ran on 5/31/2024
+        # Same as "New_Sector_Cut_Test_V1_" but with 'cut_Complete_SIDIS_eS4o' through 'cut_Complete_SIDIS_eS6o' (i.e., esec == 4, 5, or 6)
+        
+    Extra_Name = "New_Sector_Cut_Test_V3_"
+    # Ran on 6/3/2024
+        # Same as "New_Sector_Cut_Test_V2_" but with adjustments made to the sector cuts so that the matched generated sectors are NOT cut with the 'mdf' option
+            # Can still apply these cuts with the 'pdf' or 'gen' options if those are ever used again, put those have not been in common use for a long time now
+            # Still using the electron sector cuts on esec = 4, 5, and 6 (these proved to have even more issues than the cuts on esec = 1, 2, and 3 - likely related the the matched generated sector cuts mentioned above)
+                # The generated sectors are assigned based on the lab angle only instead of where the particle physically hit the detector, so it is possible that the esec_gen/pipsec_gen variables are incompatible with the regular definitions of the sectors used by the 'rdf' and 'mdf' options
+        # Modified the New_Fiducial_Sector_Cuts to cut more of the problematic edges of the sector away
+        
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -5666,14 +5679,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 cutname = "".join([cutname, " (Excluding Sector ", str(sec), " Electrons)"])
                 if(Titles_or_DF == 'DF'):
                     DF_Out  = DF_Out.Filter("".join(["esec != ", str(sec)]))
-                    if(Data_Type in ["mdf", "pdf", "gen"]):
+                    if(Data_Type in ["pdf", "gen"]):
                         DF_Out  = DF_Out.Filter("".join(["esec_gen != ", str(sec)]))
                 break
             if("".join(["eS", str(sec), "o"]) in Cut_Choice):
                 cutname = "".join([cutname, " (Sector ", str(sec), " Electrons Only)"])
                 if(Titles_or_DF == 'DF'):
                     DF_Out  = DF_Out.Filter("".join(["esec == ", str(sec)]))
-                    if(Data_Type in ["mdf", "pdf", "gen"]):
+                    if(Data_Type in ["pdf", "gen"]):
                         DF_Out  = DF_Out.Filter("".join(["esec_gen == ", str(sec)]))
                 break
         ##################################################
@@ -5886,12 +5899,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list.append('cut_Complete_SIDIS')
-        cut_list.append('cut_Complete_SIDIS_eS1o')
-        cut_list.append('cut_Complete_SIDIS_eS2o')
-        cut_list.append('cut_Complete_SIDIS_eS3o')
-#         cut_list.append('cut_Complete_SIDIS_eS4o')
-#         cut_list.append('cut_Complete_SIDIS_eS5o')
-#         cut_list.append('cut_Complete_SIDIS_eS6o')
+#         cut_list.append('cut_Complete_SIDIS_eS1o')
+#         cut_list.append('cut_Complete_SIDIS_eS2o')
+#         cut_list.append('cut_Complete_SIDIS_eS3o')
+        cut_list.append('cut_Complete_SIDIS_eS4o')
+        cut_list.append('cut_Complete_SIDIS_eS5o')
+        cut_list.append('cut_Complete_SIDIS_eS6o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6477,6 +6490,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     def Print_Progress(Total, Increase, Rate):
         if((Rate == 1) or (((Total+Increase)%Rate) == 0) or (Rate < Increase) or ((Rate-((Total)%Rate)) < Increase)):
             print("".join([str(Total+Increase), "\tHistograms Have Been Made..."]))
+            sys.stdout.flush()
     
     
     ##############################################################     End of Choices For Graphing     ##############################################################
