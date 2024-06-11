@@ -62,7 +62,7 @@ run_Mom_Cor_Code = "no"
 smear_factor = "0.75"
 
 
-Use_Pass_2 = False
+Use_Pass_2, Use_New_PF = False, False
 
 
 # Run Reconstructed MC with Smearing Function (Run_With_Smear is automatically set to False if the datatype inputs include "rdf" or "gdf")
@@ -82,8 +82,8 @@ Momentum_Cor_List = ["_Mom",    "_mom"]
 Use__Mom_Cor_List = ["_UnCor",  "_Uncor", "mdf",       "gdf"]
 Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight", "_Q4"]
 Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
-Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0", "_1.2", "_1.5", "_1.75", "_2.0", "_FX"]
-Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1"]
+Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2", "     _1.5", "_1.75", "_2.0", "_FX"]
+Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 
 for sidis in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
@@ -144,10 +144,8 @@ if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
 
 for pass_ver in Pass_Version_List:
     if(str(pass_ver) in str(datatype)):
-        if("2" in str(pass_ver)):
-            Use_Pass_2 = True
-        else:
-            Use_Pass_2 = False
+        Use_Pass_2 = ("2"   in str(pass_ver))
+        Use_New_PF = ("New" in str(pass_ver))
         datatype   = str(datatype).replace(str(pass_ver), "")
         break
 
@@ -196,6 +194,8 @@ if(Use_Pass_2):
         print(f"\n{color.BOLD}No Pass 2 Momentum Corrections are available (yet) for the Monte Carlo Simulations...\n{color.END}")
         Mom_Correction_Q = "no"
 
+if(Use_New_PF):
+    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (new as of 6/6/2024)\n{color.END}")
 
 import ROOT 
 import math
@@ -218,17 +218,21 @@ if(str(file_location) == 'time'):
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num = str(file_location)
     if(datatype == "rdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",              "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                              "")).replace(".hipo.root", "")     
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                       "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                          "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                                          "")).replace(".hipo.root", "")     
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                                   "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new.nSidis_00",                                 "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new2.nSidis_00",                                "")).replace(".hipo.root", "")
     if(datatype in ["mdf", "pdf"]):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                 "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",       "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",             "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                             "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",                    "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new.inb-clasdis_",  "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new2.inb-clasdis_", "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",              "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                              "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                     "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                          "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                          "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                                 "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -240,31 +244,36 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     if(datatype == 'rdf'):
         if(str(file_location) in ['all', 'All', 'time']):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00*")
-            files_used_for_data_frame = "Data_sidis_epip_richcap.inb.qa.skim4_00*"                  if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
+            files_used_for_data_frame =  "Data_sidis_epip_richcap.inb.qa.skim4_00*"                               if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
+            if(Use_New_PF):
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new2.skim4_00")).replace("qa.nSidis_00", "qa.new2.nSidis_00")
+            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["Data_sidis_epip_richcap.inb.qa.skim4_00"          if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00",            str(file_num), "*"])
-            
+            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
     if(datatype in ['mdf', 'pdf']):
+#         if(str(file_location) in ['all', 'All', 'time']):
+#             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
+#             files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                                                          if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+#         else:
+#             rdf = ROOT.RDataFrame("h22", str(file_location))
+#             files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_"                                                  if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_", str(file_num), "*"])
         if(str(file_location) in ['all', 'All', 'time']):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*")
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
-            files_used_for_data_frame = "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"          if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+            files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                       if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+            if(Use_New_PF):
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
+            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_"  if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
-            # rdf = ROOT.RDataFrame("h22", "/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*")
             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
-            files_used_for_data_frame = "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+            files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"                                                               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame = "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",      str(file_num), "*"])
-            
+            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"                                                       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",      str(file_num), "*"])
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
     
@@ -1047,6 +1056,32 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # The generated sectors are assigned based on the lab angle only instead of where the particle physically hit the detector, so it is possible that the esec_gen/pipsec_gen variables are incompatible with the regular definitions of the sectors used by the 'rdf' and 'mdf' options
         # Modified the New_Fiducial_Sector_Cuts to cut more of the problematic edges of the sector away
         
+        
+    Extra_Name = "New_Sector_Cut_Test_V4_"
+    # Ran on 6/6/2024
+        # Running with only one electron sector cut ('cut_Complete_SIDIS_eS1o')
+            # Running the esec vs phi_t plots instead
+            # These plots skip the remaining 'cut_Complete_SIDIS_eS1o' cut
+        # Added 'Use_New_PF' to denote the new root files currently being added which contain new pieces of information from the hipo files not used before
+            # Added the drift chamber x/y positions (Hx_pip/Hy_pip) as optional plot when these new files are used
+            # Should act the same as the Hx/Hy variables except for the pions in the drift chambers instead of the electrons in the PCAL
+        # Started to add PID_el vs PID_pip plots to the unsmeared mdf option only
+            # Not successful (kept kicking me out of ifarm when testing)
+            
+            
+    Extra_Name = "New_Sector_Cut_Test_V5_"
+    # Ran on 6/10/2024
+        # Ran with only standard cuts (no uncut plots)
+            # Back to normal before running all files (i.e., ignore the above note for final file)
+        # Only running the Hx/Hy/Hx_pip/Hy_pip plots
+            # Added a 3D plot for Hx_pip/Hy_pip with layer_DC being plotted on the 3rd axis
+            # Added back the other normal options before running all files (i.e., read the above note as additions for the final file instead of replacements)
+        # Tried adding the PID_el vs PID_pip plots again
+            # Using new (improved) method for making these plots (less wasteful and better formated)
+        # Built the cut using 'New_Fiducial_Sector_Cuts' into the New_Fiducial_Cuts_Function() function
+            # Should still do the same thing, but now more cuts can be added later
+        # Fixed issue that would cause the background plots to not get made
+        
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -1690,6 +1725,32 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = rdf.Define('y_gen',   'vals_gen[7]')
             rdf = rdf.Define('z_gen',   'vals_gen[8]')
             # rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
+            
+            
+            PID_Interpertation_Code = """
+            int pid_to_index(int pid) {
+                using namespace std;
+                map<int, pair<int, string>> pid_map = {
+                    {-2212, {1, "Anti-Proton"}},
+                    {-321,  {2, "K-"}},
+                    {-211,  {3, "Pi-"}},
+                    {11,    {4, "Electron"}},
+                    {0,     {5, "Unidentified"}},
+                    {-11,   {6, "Positron"}},
+                    {-13,   {7, "Muon+"}},
+                    {211,   {8, "Pi+"}},
+                    {321,   {9, "K+"}},
+                    {2212,  {10, "Proton"}}
+                };
+                auto it = pid_map.find(pid);
+                if (it != pid_map.end()) return it->second.first;
+                else return 11; // Other
+            };
+            """
+            ROOT.gInterpreter.Declare(PID_Interpertation_Code)
+            # Apply the function and create the histogram
+            rdf = rdf.Define("PID_el_idx",  "pid_to_index(PID_el)")
+            rdf = rdf.Define("PID_pip_idx", "pid_to_index(PID_pip)")
         
     
     ##############################################################################
@@ -5261,153 +5322,163 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         output = 'error'
 
         if("MultiDim_Q2_y_z_pT_phi_h"      in variable):
-            output = "5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})"
+            output  =  "5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})"
         if("MultiDim_z_pT_Bin_Y_bin_phi_t" in variable):
-            output = "3D Kinematic Bins (z+P_{T}+#phi_{h})"
+            output  =  "3D Kinematic Bins (z+P_{T}+#phi_{h})"
         if(variable in ['Hx', 'Hy']):
-            output = str(variable)
+            output  =  str(variable)
+        if(variable == 'Hx_pip'):
+            output  =  "x_{DC}"
+        if(variable == 'Hy_pip'):
+            output  =  "y_{DC}"
         if(variable == 'el_E'):
-            output = 'E_{el}'
+            output  =  'E_{el}'
         if(variable == 'pip_E'):
-            output = 'E_{#pi^{+}}'
+            output  =  'E_{#pi^{+}}'
         if(variable == 'el'):
-            output = "p_{el}"
+            output  =  "p_{el}"
         if(variable == 'pip'):
-            output = "p_{#pi^{+}}"
+            output  =  "p_{#pi^{+}}"
         if(variable == 'elth'):
-            output = "#theta_{el}"
+            output  =  "#theta_{el}"
         if(variable == 'pipth'):
-            output = "#theta_{#pi^{+}}"
+            output  =  "#theta_{#pi^{+}}"
         if(variable == 'elPhi'):
-            output = "#phi_{el}"
+            output  =  "#phi_{el}"
         if(variable == 'pipPhi'):
-            output = "#phi_{#pi^{+}}"
+            output  =  "#phi_{#pi^{+}}"
         if(variable == 'MM'):
-            output = "Missing Mass"
+            output  =  "Missing Mass"
         if(variable == 'MM2'):
-            output = "Missing Mass^{2}"
+            output  =  "Missing Mass^{2}"
         if(variable == 'Q2'):
-            output = "Q^{2}"
+            output  =  "Q^{2}"
         if(variable == 'xB'):
-            output = "x_{B}"
+            output  =  "x_{B}"
         if(variable == 'v'):
-            output = "#nu (lepton energy loss)"
+            output  =  "#nu (lepton energy loss)"
         if(variable == 's'):
-            output = "s (CM Energy^{2})"
+            output  =  "s (CM Energy^{2})"
         if(variable == 'W'):
-            output = "W (Invariant Mass)"
+            output  =  "W (Invariant Mass)"
         if(variable == 'y'):
-            output = "y (lepton energy loss fraction)"
+            output  =  "y (lepton energy loss fraction)"
         if(variable == 'z'):
-            output = "z"
+            output  =  "z"
         if(variable == 'epsilon'):
-            output = "#epsilon"
+            output  =  "#epsilon"
         if(variable == 'pT'):
-            output = "P_{T}"
+            output  =  "P_{T}"
         if(variable in ['phi_t', 'phi_h']):
-            output = "#phi_{h}"
+            output  =  "#phi_{h}"
         if(variable == 'xF'):
-            output = "x_{F} (Feynman x)"
+            output  =  "x_{F} (Feynman x)"
         if(variable == 'pipx_CM'):
-            output = "CM p_{#pi^{+}} in #hat{x}"
+            output  =  "CM p_{#pi^{+}} in #hat{x}"
         if(variable == 'pipy_CM'):
-            output = "CM p_{#pi^{+}} in #hat{y}"
+            output  =  "CM p_{#pi^{+}} in #hat{y}"
         if(variable == 'pipz_CM'):
-            output = "CM p_{#pi^{+}} in #hat{z}"
+            output  =  "CM p_{#pi^{+}} in #hat{z}"
         if(variable == 'qx_CM'):
-            output = "CM p_{q} in #hat{x}"
+            output  =  "CM p_{q} in #hat{x}"
         if(variable == 'qy_CM'):
-            output = "CM p_{q} in #hat{y}"
+            output  =  "CM p_{q} in #hat{y}"
         if(variable == 'qz_CM'):
-            output = "CM p_{q} in #hat{z}"
+            output  =  "CM p_{q} in #hat{z}"
         if(variable == 'beamX_CM'):
-            output = "CM p_{beam} in #hat{x}"
+            output  =  "CM p_{beam} in #hat{x}"
         if(variable == 'beamY_CM'):
-            output = "CM p_{beam} in #hat{y}"
+            output  =  "CM p_{beam} in #hat{y}"
         if(variable == 'beamZ_CM'):
-            output = "CM p_{beam} in #hat{z}"
+            output  =  "CM p_{beam} in #hat{z}"
         if(variable == 'eleX_CM'):
-            output = "CM p_{el} in #hat{x}"
+            output  =  "CM p_{el} in #hat{x}"
         if(variable == 'eleY_CM'):
-            output = "CM p_{el} in #hat{y}"
+            output  =  "CM p_{el} in #hat{y}"
         if(variable == 'eleZ_CM'):
-            output = "CM p_{el} in #hat{z}"
+            output  =  "CM p_{el} in #hat{z}"
         if(variable == 'event'):
-            output = "Event Number"
+            output  =  "Event Number"
         if(variable == 'runN'):
-            output = "Run Number"
+            output  =  "Run Number"
         if(variable == 'ex'):
-            output = "Lab p_{el} in #hat{x}"
+            output  =  "Lab p_{el} in #hat{x}"
         if(variable == 'ey'):
-            output = "Lab p_{el} in #hat{y}"
+            output  =  "Lab p_{el} in #hat{y}"
         if(variable == 'ez'):
-            output = "Lab p_{el} in #hat{z}"
+            output  =  "Lab p_{el} in #hat{z}"
         if(variable == 'px'):
-            output = "Lab p_{#pi^{+}} in #hat{x}"
+            output  =  "Lab p_{#pi^{+}} in #hat{x}"
         if(variable == 'py'):
-            output = "Lab p_{#pi^{+}} in #hat{y}"
+            output  =  "Lab p_{#pi^{+}} in #hat{y}"
         if(variable == 'pz'):
-            output = "Lab p_{#pi^{+}} in #hat{z}"
+            output  =  "Lab p_{#pi^{+}} in #hat{z}"
         if(variable == 'esec'):
-            output = "Electron Sector"
+            output  =  "Electron Sector"
         if(variable == 'pipsec'):
-            output = "#pi^{+} Sector"
+            output  =  "#pi^{+} Sector"
         # if(variable == 'esec_a'):
         if('esec_a' in variable):
             output = "Electron Sector (Angle Def)"
         # if(variable == 'pipsec_a'):
         if('pipsec_a' in variable):
-            output = "#pi^{+} Sector (Angle Def)"
+            output  =  "#pi^{+} Sector (Angle Def)"
         if(variable == 'Q2_xB_Bin'):
-            output = "Q^{2}-x_{B} Bin"
+            output  =  "Q^{2}-x_{B} Bin"
         if(variable == 'Q2_xB_Bin_2'):
-            output = "Q^{2}-x_{B} Bin (New)"
+            output  =  "Q^{2}-x_{B} Bin (New)"
         if(variable == 'Q2_xB_Bin_Test'):
-            output = "Q^{2}-x_{B} Bin (Test)"
+            output  =  "Q^{2}-x_{B} Bin (Test)"
         if(variable == 'Q2_xB_Bin_3'):
-            output = "Q^{2}-x_{B} Bin (Square)"
+            output  =  "Q^{2}-x_{B} Bin (Square)"
         if(variable == 'Q2_xB_Bin_Off'):
-            output = "Q^{2}-x_{B} Bin (Off)"
+            output  =  "Q^{2}-x_{B} Bin (Off)"
         if(variable == 'Q2_y_Bin'):
-            output = "Q^{2}-y Bin"
+            output  =  "Q^{2}-y Bin"
         if(variable == 'Q2_Y_Bin'):
-            output = "Q^{2}-y Bin (New)"
+            output  =  "Q^{2}-y Bin (New)"
         if(variable == 'z_pT_Bin'):
-            output = "z-P_{T} Bin"
+            output  =  "z-P_{T} Bin"
         if(variable == 'z_pT_Bin_2'):
-            output = "z-P_{T} Bin (New)"
+            output  =  "z-P_{T} Bin (New)"
         if(variable == 'z_pT_Bin_Test'):
-            output = "z-P_{T} Bin (Test)"
+            output  =  "z-P_{T} Bin (Test)"
         if(variable == 'z_pT_Bin_3'):
-            output = "z-P_{T} Bin (Square)"
+            output  =  "z-P_{T} Bin (Square)"
         if(variable == 'z_pT_Bin_Off'):
-            output = "z-P_{T} Bin (Off)"
+            output  =  "z-P_{T} Bin (Off)"
         if(variable == 'z_pT_Bin_y_bin'):
-            output = "z-P_{T} Bin (y-binning)"
+            output  =  "z-P_{T} Bin (y-binning)"
         if(variable == 'z_pT_Bin_Y_bin'):
-            output = "z-P_{T} Bin (New y-binning - Testing)"
+            output  =  "z-P_{T} Bin (New y-binning - Testing)"
         if(variable == 'elec_events_found'):
-            output = "Number of Electrons Found"
+            output  =  "Number of Electrons Found"
         if(variable == 'Delta_Smear_El_P'):
-            output = "#Delta_{Smeared}p_{el}"
+            output  =  "#Delta_{Smeared}p_{el}"
         if(variable == 'Delta_Smear_El_Th'):
-            output = "#Delta_{Smeared}#theta_{el}"
+            output  =  "#Delta_{Smeared}#theta_{el}"
         if(variable == 'Delta_Smear_El_Phi'):
-            output = "#Delta_{Smeared}#phi_{el}"
+            output  =  "#Delta_{Smeared}#phi_{el}"
         if(variable == 'Delta_Smear_Pip_P'):
-            output = "#Delta_{Smeared}p_{#pi^{+}}"
+            output  =  "#Delta_{Smeared}p_{#pi^{+}}"
         if(variable == 'Delta_Smear_Pip_Th'):
-            output = "#Delta_{Smeared}#theta_{#pi^{+}}"
+            output  =  "#Delta_{Smeared}#theta_{#pi^{+}}"
         if(variable == 'Delta_Smear_Pip_Phi'):
-            output = "#Delta_{Smeared}#phi_{#pi^{+}}"
+            output  =  "#Delta_{Smeared}#phi_{#pi^{+}}"
         if(variable == 'Complete_Correction_Factor_Ele'):
-            output = "Correction Factor for the Electron Momentum"
+            output  =  "Correction Factor for the Electron Momentum"
         if(variable == 'Complete_Correction_Factor_Pip'):
-            output = "Correction Factor for the #pi^{+} Momentum"
+            output  =  "Correction Factor for the #pi^{+} Momentum"
         if(variable == 'Percent_phi_t'):
-            output = "Percent Dif of #phi_{h} from Mom Cors"
+            output  =  "Percent Dif of #phi_{h} from Mom Cors"
         if(variable == 'Delta_phi_t'):
-            output = "#Delta#phi_{h} from Mom Cors"
+            output  =  "#Delta#phi_{h} from Mom Cors"
+        if(variable in ['PID_el',  'PID_el_idx']):
+            output  =  "Electron PID"
+        if(variable in ['PID_pip', 'PID_pip_idx']):
+            output  =  "#pi^{+} Pion PID"
+        if(variable == 'layer_DC'):
+            output  =  "DC Detector Layer"
 
         if("Bin_4D" in variable):
             output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
@@ -5610,11 +5681,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = DF_Out.Filter(New_Fiducial_Sector_Cuts)
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="N/A")
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = DF_Out.Filter(New_Fiducial_Sector_Cuts)
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="N/A")
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5899,12 +5970,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list.append('cut_Complete_SIDIS')
-#         cut_list.append('cut_Complete_SIDIS_eS1o')
+        cut_list.append('cut_Complete_SIDIS_eS1o')
 #         cut_list.append('cut_Complete_SIDIS_eS2o')
 #         cut_list.append('cut_Complete_SIDIS_eS3o')
-        cut_list.append('cut_Complete_SIDIS_eS4o')
-        cut_list.append('cut_Complete_SIDIS_eS5o')
-        cut_list.append('cut_Complete_SIDIS_eS6o')
+#         cut_list.append('cut_Complete_SIDIS_eS4o')
+#         cut_list.append('cut_Complete_SIDIS_eS5o')
+#         cut_list.append('cut_Complete_SIDIS_eS6o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6323,9 +6394,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         raise TypeError("Improper number of slices for the bin count")
     
     
-    Hx_Binning = ['Hx', -400, 400, 800]
-    Hy_Binning = ['Hy', -400, 400, 800]
-
+    Hx_Binning = ['Hx',     -400, 400, 800]
+    Hy_Binning = ['Hy',     -400, 400, 800]
+    
     
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, MM_Binning, ['el', 0, 10, 200], ['pip', 0, 8, 200], phi_t_Binning, Binning_4D, W_Binning]
     # List_of_Quantities_1D = [Q2_Binning, xB_Binning, z_Binning, pT_Binning, y_Binning, phi_t_Binning]
@@ -6378,12 +6449,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
 
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    
-    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
-        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
-        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
-        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
     
     # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
@@ -6418,6 +6484,30 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #         else:
     #             List_of_Quantities_2D.append([[f"Smeared_Effect_on_{str(variable_compare[0])}",  -boundries, boundries, 500], variable_compare])
             
+        
+    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
+        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
+        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
+        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
+        if(Use_New_PF):
+            # Added on 6/6/2024 (for drift chambers)
+            DCxBinning = ['Hx_pip', -60, 60, 600]
+            DCyBinning = ['Hy_pip', -60, 60, 600]
+            # Variables do not exist in older files
+            List_of_Quantities_2D.append([DCxBinning, DCyBinning])
+            # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
+            
+            List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_DC", -0.5, 10.5, 11]]]
+            del DCxBinning
+            del DCyBinning
+    if((datatype in ["mdf"]) and (not Run_With_Smear)):
+        # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
+        # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
+        List_of_Quantities_2D.append([["PID_el_idx", 0.5, 11.5, 11], ["PID_pip_idx", 0.5, 11.5, 11]])
+        
+        
+    else:
+        List_of_Quantities_3D = []
     
     # # # 1D histograms are turned off with this option
     # List_of_Quantities_1D = []
@@ -6425,8 +6515,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []
     
-    # # 3D histograms are turned off with this option
-    List_of_Quantities_3D = []
+    # # # 3D histograms are turned off with this option
+    # List_of_Quantities_3D = []
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -6639,7 +6729,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 print(color.BBLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
                                 Alert_of_Response_Matricies = False
                             histo_options = ["Normal"]
-                            
+                            if(Histo_Data in ["mdf", "pdf"]):
+                                histo_options.append("Normal_Background")
+                                
                         if(Use_5D_Response_Matrix):
                             histo_options.append("5D_Response_Matrix")
                             if(not (Histo_Data in ["rdf", "gdf"])):
@@ -7037,6 +7129,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 for Vars_2D in Variable_Loop_2D:
 
                                     Histo_Var_D2_Name = Dimension_Name_Function(Histo_Var_D1=Vars_2D[0], Histo_Var_D2=Vars_2D[1], Histo_Var_D3="None")
+                                    if(("SIDIS_eS" in str(Histo_Cut)) and ("esec" in str(Histo_Var_D2_Name))):
+                                        # Removing redundant cuts
+                                        continue
+                        
                                     Normal_rdf        = DF_Filter_Function_Full(DF=rdf, Variables=[Vars_2D[0][0], Vars_2D[1][0]], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
                                     if(Normal_rdf == "continue"):
                                         continue
@@ -7064,7 +7160,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # This binning scheme only goes up to 17 Q2-xB bins
                                             continue
                                             
-                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_2d_histos in Histo_Var_D2_Name for non_binned_2d_histos in ["Var-D1='Hx'", "Var-D1='Hy'"])):
+                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_2d_histos in Histo_Var_D2_Name for non_binned_2d_histos in ["Var-D1='Hx", "Var-D1='Hy"])):
                                             # The following variables should/do not have to be made with the full kinematic binning in mind (just make once for all Q2-y bins (bin -1))
                                             continue
                                             
@@ -7100,6 +7196,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
                                         else:
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
+                                            
+                                        if(("PID_el_idx" in str(Histo_Name)) and ("PID_pip_idx" in str(Histo_Name))):
+                                            Histograms_All[Histo_Name] = PID_Histo_Label(Histograms_All[Histo_Name])
 
                                         # print("(2D) Histo_Group = ", Histo_Group)
                                         # print("Drawing: ", Histo_Name)

@@ -1655,6 +1655,7 @@ def BG_Cut_Function(dataframe="mdf"):
 
 
 
+
 # # Up-to-date as of: 5/29/2024
 # New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
 # return New_Fiducial_Sector_Cuts;'''
@@ -1676,3 +1677,110 @@ else{
     return Fiducial_PCAL_Cuts;
 }
 """
+
+
+
+
+from MyCommonAnalysisFunction_richcap import color
+
+# New Fiducial Cuts for the electron/pion
+    # Sangbaek_and_Valerii_Fiducial_Cuts() used cuts based on Sangbaek's code but developed by Valerii
+    # Up-to-date as of: 6/10/2024
+def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel = 'mid'):
+    # Checking Dataframe for correct columns
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames())   for needed_col in ["Hx_pip", "Hy_pip", "Hz_pip", "layer_DC"]):
+        print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
+        return Data_Frame_Input
+    elif(any(needed_col not in Data_Frame_Input.GetColumnNames()) for needed_col in ["Hy_pip_rot", "Hx_pip_rot"]):
+        Data_Frame_Input = Data_Frame_Input.Define("Hy_pip_rot", """
+        auto Hy_pip_rot_temp = Hy_pip;
+        // 60 degrees per sector
+        auto Angle_rot  = TMath::DegToRad()*(60)*(pipsec - 1);
+        Hy_pip_rot_temp = (Hy_pip*(TMath::Cos(Angle_rot))) - (Hx_pip*(TMath::Sin(Angle_rot)));
+        return Hy_pip_rot_temp;
+        """)
+        Data_Frame_Input = Data_Frame_Input.Define("Hx_pip_rot", """
+        auto Hx_pip_rot_temp = Hx_pip;
+        // 60 degrees per sector
+        auto Angle_rot  = TMath::DegToRad()*(60)*(pipsec - 1);
+        Hx_pip_rot_temp = (Hy_pip*(TMath::Sin(Angle_rot))) + (Hx_pip*(TMath::Cos(Angle_rot)));
+        Hx_pip_rot_temp = (TMath::Sin(-25/57.2958))*Hz_pip + (TMath::Cos(-25/57.2958))*Hx_pip_rot_temp;
+        return Hx_pip_rot_temp;
+        """)
+    # DC Fiducial Cuts
+    if(fidlevel == 'mid'):
+        adjustment_layer1 = 0
+        adjustment_layer2 = 0
+        adjustment_layer3 = 0
+    elif(fidlevel == 'loose'):
+        adjustment_layer1 = 0.6*1
+        adjustment_layer2 = 0.6*2
+        adjustment_layer3 = 0.6*3
+    elif(fidlevel == 'tight'):
+        adjustment_layer1 = -0.6*1
+        adjustment_layer2 = -0.6*2
+        adjustment_layer3 = -0.6*3
+    else:
+        print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
+        return Data_Frame_Input
+    
+    Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
+    auto Cal_layer_Min =   -120;
+    auto Cal_layer_Max =    120;
+    if(layer_DC == 1){
+        Cal_layer_Min  =   -0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
+        Cal_layer_Max  =    0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
+    }
+    if(layer_DC == 2){
+        Cal_layer_Min  =  -0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
+        Cal_layer_Max  =   0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
+    }
+    if(layer_DC == 3){
+        Cal_layer_Min  =  -0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
+        Cal_layer_Max  =   0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
+    }
+    return ((Hy_pip_rot < Cal_layer_Min) || (Hy_pip_rot > Cal_layer_Max));
+    """]))
+    
+    return Data_Frame_Input
+    
+    
+    
+# Function for applying all the Fiducial Cuts above
+def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
+    Data_Frame_Out = Data_Frame_In
+    Failed_Filter  = True
+    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "esec"])):
+        # Applying my fiducial cuts
+        Data_Frame_Out = Data_Frame_In.Filter(New_Fiducial_Sector_Cuts)
+        Failed_Filter = False
+    if(not any(DC_cuts in Skip_Options for DC_cuts in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_In, fidlevel='mid')
+        Failed_Filter = False
+    if(Failed_Filter):
+        print(f"{color.Error}\nPossible Error: New_Fiducial_Cuts_Function() did not apply any cuts...{color.END}\n\n")
+    return Data_Frame_Out
+
+
+
+def PID_Histo_Label(Histogram):
+    # Define the mapping and the histogram setup in Python
+    pid_map = {-2212: (1,  "Anti-Proton"),
+                -321: (2,  "Kaon (K^{-})"),
+                -211: (3,  "#pi^{-} Pion"),
+                  11: (4,  "Electron"),
+                   0: (5,  "Unidentified"),
+                 -11: (6,  "Positron"),
+                 -13: (7,  "#mu^{+} Muon"),
+                 211: (8,  "#pi^{+} Pion"),
+                 321: (9,  "Kaon (K^{+})"),
+                2212: (10, "Proton")}
+    for pid, (idx, name) in pid_map.items():
+        Histogram.GetZaxis().SetBinLabel(idx, name)
+        Histogram.GetYaxis().SetBinLabel(idx, name)
+    Histogram.GetZaxis().SetBinLabel(11, "Other")
+    Histogram.GetYaxis().SetBinLabel(11, "Other")
+    Histogram.GetZaxis().SetLabelSize(0.0375)
+    Histogram.GetYaxis().SetLabelSize(0.0375)
+    
+    return Histogram
