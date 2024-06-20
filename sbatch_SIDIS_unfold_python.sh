@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_RooUnfold_New_Sector_Cut_Test_V3_6_4_2024_Run3
+#SBATCH --job-name=Smear_P2_RooUnfold_New_Sector_Cut_Test_V10_6_14_2024_Run1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=18500
+#SBATCH --mem-per-cpu=13000
 #SBATCH --time=1:40:00
-#SBATCH --array=1-2,4-17
+#SBATCH --array=0-17
 #SBATCH --constraint=el7
 
 
@@ -20,5 +20,5 @@
 # no_txt request: #SBATCH --mem-per-cpu=9000
 # Use "#SBATCH --constraint=el7" for old ifarm
 
-# srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py    smear_no_stat $SLURM_ARRAY_TASK_ID
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py no_smear_no_stat $SLURM_ARRAY_TASK_ID
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py    smear_no_stat $SLURM_ARRAY_TASK_ID
+# srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py no_smear_no_stat $SLURM_ARRAY_TASK_ID
