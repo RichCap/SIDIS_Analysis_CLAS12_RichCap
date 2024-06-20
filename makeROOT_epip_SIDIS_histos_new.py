@@ -148,6 +148,12 @@ for pass_ver in Pass_Version_List:
         Use_New_PF = ("New" in str(pass_ver))
         datatype   = str(datatype).replace(str(pass_ver), "")
         break
+        
+Run_Small = False
+if("_Small" in str(datatype)):
+    Run_Small = True
+    datatype  = datatype.replace("_Small", "")
+    print("\033[91m\033[1mRunning reduced histogram options...\n\033[0m")
 
 del SIDIS_Unfold_List
 del Momentum_Cor_List
@@ -1070,7 +1076,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
             
     Extra_Name = "New_Sector_Cut_Test_V5_"
-    # Ran on 6/10/2024
+    # Ran on 6/10/2024-6/11/2024
         # Ran with only standard cuts (no uncut plots)
             # Back to normal before running all files (i.e., ignore the above note for final file)
         # Only running the Hx/Hy/Hx_pip/Hy_pip plots
@@ -1082,6 +1088,45 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Should still do the same thing, but now more cuts can be added later
         # Fixed issue that would cause the background plots to not get made
         
+        
+    Extra_Name = "New_Sector_Cut_Test_V9_"
+    # Ran on 6/12/2024
+        # Developed new Pion fiducial cuts (based on 'New_Sector_Cut_Test_V8_')
+        
+    if(datatype not in ["gdf"]):
+        Extra_Name = "New_Sector_Cut_Test_V10_"
+        # Ran on 6/13/2024
+            # Error in "New_Sector_Cut_Test_V9_" which caused the cut to not be included
+            
+            
+    Extra_Name = "New_Sector_Cut_Test_V12_"
+    # Ran on 6/20/2024
+        # Same cuts as "New_Sector_Cut_Test_V10_" but mainly using to get the Multidimensional cuts again
+        # Removed the sector dependent plots/cuts
+        
+    if(Run_Small):
+        Extra_Name = "New_Sector_Cut_Test_V6_"
+        # Ran on 6/11/2024
+            # Running alongside 'New_Sector_Cut_Test_V5_'
+        # Similar to 'New_Sector_Cut_Test_V5_' but with the following changes:
+            # Running a reduced number of histograms/cuts to decrease runtime
+                # No response matrix histograms
+                # Only running Hx/Hx_pip/Hy/Hy_pip/PID histograms (3 2D histograms and 1 3D histogram)
+                # Only running cut_Complete_SIDIS
+            # Added Run_Small to facilitate these reduced options
+            
+        Extra_Name = "New_Sector_Cut_Test_V7_"
+        # Ran on 6/11/2024
+        # Added the Hx_pip vs Hy_pip vs pipsec to the 3D histograms (otherwise the same as "New_Sector_Cut_Test_V6_")
+        
+        Extra_Name = "New_Sector_Cut_Test_V8_"
+        # Ran on 6/12/2024
+        # Removed Valerii's cuts (still needs more testing)
+        # Also minimized number of plots to be made even further
+        
+        Extra_Name = "New_Sector_Cut_Test_V11_"
+        # Ran on 6/13/2024
+            # Same as "New_Sector_Cut_Test_V10_"
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -1358,6 +1403,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Ran on 5/14/2024
         # Updated the Pass 1 smearing functions from Extra_Name = "New_Smear_V11_"
             # Slight modifications to less_over_smear including reducing the pion smearing for specific ranges of pion momentum (i.e., pip > 4 GeV)
+            
+            
+        Extra_Name = "New_Smear_V13_"
+        # Ran on 6/14/2024
+        # Same smearing functions as in 'New_Smear_V12_' but with the new sector cuts developed in 'New_Sector_Cut_Test_V10_'
 
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
             Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
@@ -1672,6 +1722,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
         # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
+        if(Use_New_PF):
+            print(f"\n{color.BOLD}Creating variables for Valerii's (New) Fiducial Cuts{color.END}")
+            rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A')
         
         if(datatype not in ["rdf"]):
             print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
@@ -5331,6 +5384,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output  =  "x_{DC}"
         if(variable == 'Hy_pip'):
             output  =  "y_{DC}"
+        if(variable == 'Hx_pip_rot'):
+            output  =  "x_{DC} (Rotated)"
+        if(variable == 'Hy_pip_rot'):
+            output  =  "y_{DC} (Rotated)"
         if(variable == 'el_E'):
             output  =  'E_{el}'
         if(variable == 'pip_E'):
@@ -5681,11 +5738,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="DC") # "N/A")
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="DC") # "N/A")
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5970,7 +6027,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list.append('cut_Complete_SIDIS')
-        cut_list.append('cut_Complete_SIDIS_eS1o')
+#         cut_list.append('cut_Complete_SIDIS_eS1o')
 #         cut_list.append('cut_Complete_SIDIS_eS2o')
 #         cut_list.append('cut_Complete_SIDIS_eS3o')
 #         cut_list.append('cut_Complete_SIDIS_eS4o')
@@ -5998,6 +6055,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #         cut_list.append('cut_Complete_SIDIS_Exgen')
     #     cut_list.append('cut_Gen')
     #     cut_list.append('cut_Exgen')
+    
+    if(Run_Small):
+        # cut_list = ['no_cut', 'cut_Complete_SIDIS']
+        cut_list = ['cut_Complete_SIDIS']
     print("".join([color.BBLUE, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
@@ -6072,6 +6133,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         binning_option_list = ["Y_bin"]
         List_of_Q2_xB_Bins_to_include = [-1]
 
+    if(Run_Small):
+        List_of_Q2_xB_Bins_to_include = [-1]
+        
     # List_of_Q2_xB_Bins_to_include = [-1, 1]
     
     # Conditions to make the 5D unfolding plots
@@ -6411,9 +6475,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-#     if("Y_bin" in binning_option_list):
-#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6483,7 +6547,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #             List_of_Quantities_2D.append([[f"Smeared_Percent_of_{str(variable_compare[0])}",  -5, 5, 500],                variable_compare])
     #         else:
     #             List_of_Quantities_2D.append([[f"Smeared_Effect_on_{str(variable_compare[0])}",  -boundries, boundries, 500], variable_compare])
-            
+        
+        
+    if(Run_Small):
+        List_of_Quantities_1D = []
+        # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
+        List_of_Quantities_2D = [[["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
         
     if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
@@ -6491,23 +6560,31 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
         if(Use_New_PF):
             # Added on 6/6/2024 (for drift chambers)
-            DCxBinning = ['Hx_pip', -60, 60, 600]
-            DCyBinning = ['Hy_pip', -60, 60, 600]
+            # DCyBinning = ['Hy_pip_rot', -150, 150, 600]
+            # DCxBinning = ['Hx_pip_rot', -200, 100, 600]
+            DCxBinning = ['Hx_pip',     -60, 60, 600]
+            DCyBinning = ['Hy_pip',     -60, 60, 600]
             # Variables do not exist in older files
             List_of_Quantities_2D.append([DCxBinning, DCyBinning])
             # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
             
-            List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_DC", -0.5, 10.5, 11]]]
+            List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_DC", -0.5, 37.5, 38]]]
+            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["pipsec", -0.5, 7.5, 8]])
             del DCxBinning
             del DCyBinning
-    if((datatype in ["mdf"]) and (not Run_With_Smear)):
+        else:
+            List_of_Quantities_3D = []
+    else:
+        List_of_Quantities_3D     = []
+    if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
         # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
         # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
         List_of_Quantities_2D.append([["PID_el_idx", 0.5, 11.5, 11], ["PID_pip_idx", 0.5, 11.5, 11]])
         
         
-    else:
-        List_of_Quantities_3D = []
+    # Base 2D histogram options:
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+
     
     # # # 1D histograms are turned off with this option
     # List_of_Quantities_1D = []
@@ -6515,8 +6592,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []
     
-    # # # 3D histograms are turned off with this option
-    # List_of_Quantities_3D = []
+    # # 3D histograms are turned off with this option
+    List_of_Quantities_3D = []
     
     
     if(run_Mom_Cor_Code == "yes"):
@@ -6731,6 +6808,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             histo_options = ["Normal"]
                             if(Histo_Data in ["mdf", "pdf"]):
                                 histo_options.append("Normal_Background")
+                                # histo_options = ["Normal_Background"]
                                 
                         if(Use_5D_Response_Matrix):
                             histo_options.append("5D_Response_Matrix")
@@ -7064,7 +7142,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Histo_Var_D1_Name = Dimension_Name_Function(Histo_Var_D1=Vars_1D, Histo_Var_D2="None")
 
                                         Histo_Name = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_1D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D1_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
-
+                                        # if(count_of_histograms > 180):
+                                        #     print(f"Histo_Name {count_of_histograms})\t{Histo_Name}")
+                                        
                                         Normal_rdf = DF_Filter_Function_Full(DF=rdf, Variables=Vars_1D[0], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
                                         if(("Combined_" in Vars_1D[0]) or ("Multi_Dim" in Vars_1D[0])):
                                             # Normal_rdf = Multi_Dimensional_Bin_Construction(DF=Normal_rdf, Variables_To_Combine=Vars_1D_Test, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF")
@@ -7168,6 +7248,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:" if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "'-[Q2-y-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
                                         Histo_Name      = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_2D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D2_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                        # if(count_of_histograms > 180):
+                                        #     print(f"Histo_Name {count_of_histograms})\t{Histo_Name}")
                                         Title_2D_L1     = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_2D[0][0])).replace(" (Smeared)", ""), " vs. ", str(variable_Title_name(Vars_2D[1][0]))])
                                         Title_2D_L2     = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
                                         Title_2D_L3     = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
@@ -7197,9 +7279,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         else:
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]))
                                             
-                                        if(("PID_el_idx" in str(Histo_Name)) and ("PID_pip_idx" in str(Histo_Name))):
-                                            Histograms_All[Histo_Name] = PID_Histo_Label(Histograms_All[Histo_Name])
-
+#                                         if(("PID_el_idx" in str(Histo_Name)) and ("PID_pip_idx" in str(Histo_Name))):
+#                                             print(f"Adding Axis Labels to the PID histogram (Histo_Name = {Histo_Name})")
+#                                             Histograms_All[Histo_Name] = PID_Histo_Label(Histograms_All[Histo_Name])
+#                                             print("Done adding labels")
+                                            
                                         # print("(2D) Histo_Group = ", Histo_Group)
                                         # print("Drawing: ", Histo_Name)
                                         if(str(file_location) != 'time'):
@@ -7253,6 +7337,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:" if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "'-[Q2-y-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
                                         
                                         Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_3D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_D3_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                        # if(count_of_histograms > 180):
+                                        #     print(f"Histo_Name {count_of_histograms})\t{Histo_Name}")
                                         Title_3D_L1   = "".join([str(Data_Type_Title(Data_Type=Histo_Data, Smearing_Q=Histo_Smear)), " ", str(variable_Title_name(Vars_3D[0][0])).replace(" (Smeared)", ""), " vs ", str(variable_Title_name(Vars_3D[1][0])).replace(" (Smeared)", ""), " vs ", str(variable_Title_name(Vars_3D[2][0]))])
                                         Title_3D_L2   = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
                                         Title_3D_L3   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
@@ -7325,6 +7411,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                                 Histo_Name    = ((("".join(["((", "; ".join([Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_RM_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
                                 Histo_Name_1D = ((("".join(["((", "; ".join([Histo_Group_Name.replace("".join(["'", str(Histo_Group), "'"]), "".join(["'", str(Histo_Group), "_1D'"])), Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name, Histo_Var_RM_Name]), "))"])).replace("; )", ")")).replace("; ", "), (")).replace(":", "=")
+                                # if(count_of_histograms > 180):
+                                #     print(f"Histo_Name    {count_of_histograms})\t{Histo_Name}")
+                                #     print(f"Histo_Name_1D {count_of_histograms})\t{Histo_Name_1D}")
 
                                 Migration_Title_L1     = "".join(["#scale[1.5]{Response Matrix of ",            str(variable_Title_name(variable)), "}"]) if(Histo_Data in ["mdf", "pdf"]) else "".join(["#scale[1.5]{", "Experimental" if(Histo_Data == "rdf") else "Generated" if(Histo_Data != "mdf") else "Reconstructed (MC)", " Distribution of ", str(variable_Title_name(variable)), "}"])
                                 if("Background" in Histo_Group):

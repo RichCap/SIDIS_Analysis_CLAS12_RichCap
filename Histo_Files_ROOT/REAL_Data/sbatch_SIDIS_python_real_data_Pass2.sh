@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=NP2_rdf_SIDIS_6_10_2024_Run1_New_Sector_Cut_Test_V5_SIDIS
+#SBATCH --job-name=NP2_rdf_SIDIS_6_20_2024_Run1_New_Sector_Cut_Test_V12_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -20,5 +20,8 @@
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new2.nSidis_005*)
 # Above is for (rdf_NewP2) #SBATCH --array=0-170
 # Normally requested time: --time=8:00:00
+
+
+# Use the following for the old version of the sbatch farm: #SBATCH --constraint=el7
 
 srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py rdf_sidis_NewP2 ${FILES[$SLURM_ARRAY_TASK_ID]}
