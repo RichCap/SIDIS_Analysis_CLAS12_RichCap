@@ -1678,20 +1678,41 @@ else{
 }
 """
 
-
-
+# Up-to-date as of: 6/12/2024
+New_Fiducial_Pip_Sector_Cuts = """
+if((((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) > (20.5)*(20.5)) || (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (5.2)*(5.2))){
+    return false;
+}
+else{
+    bool Fiducial_DC_Cuts =                      (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (20.5)*(20.5));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.3379)*Hx_pip  + (0.5954))  && (Hy_pip <   (0.6801)*Hx_pip + (-2.1023)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-56.375)*Hx_pip  + (95.4688)) && (Hy_pip >   (0.8029)*Hx_pip + (1.1253)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.5307)*Hx_pip  + (1.7336))  && (Hy_pip <  (-5.7821)*Hx_pip + (-5.3558)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip >  (0.5805)*Hx_pip  + (0.69))    && (Hy_pip <  (-0.4095)*Hx_pip + (-1.3394)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip <  (0.9324)*Hx_pip  + (-0.3521)) && (Hy_pip < (-12.8857)*Hx_pip + (-31.4429)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip < (-0.4617)*Hx_pip  + (-1.7652)) && (Hy_pip >  (-5.7595)*Hx_pip + (3.7975)));
+    Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
+    return Fiducial_DC_Cuts;
+}
+"""
 
 from MyCommonAnalysisFunction_richcap import color
 
 # New Fiducial Cuts for the electron/pion
     # Sangbaek_and_Valerii_Fiducial_Cuts() used cuts based on Sangbaek's code but developed by Valerii
     # Up-to-date as of: 6/10/2024
-def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel = 'mid'):
+def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid'):
     # Checking Dataframe for correct columns
-    if(any(needed_col not in Data_Frame_Input.GetColumnNames())   for needed_col in ["Hx_pip", "Hy_pip", "Hz_pip", "layer_DC"]):
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in ["Hx_pip", "Hy_pip", "Hz_pip"])):
         print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
+        print(f"{color.BOLD}Variables available:{color.END}")
+        col_num = 1
+        for column_name in Data_Frame_Input.GetColumnNames():
+            print(f"{col_num})\t{column_name}")
+            col_num += 1
+        del col_num
         return Data_Frame_Input
-    elif(any(needed_col not in Data_Frame_Input.GetColumnNames()) for needed_col in ["Hy_pip_rot", "Hx_pip_rot"]):
+    elif(any(needed_col not in Data_Frame_Input.GetColumnNames() for needed_col in ["Hy_pip_rot", "Hx_pip_rot"])):
         Data_Frame_Input = Data_Frame_Input.Define("Hy_pip_rot", """
         auto Hy_pip_rot_temp = Hy_pip;
         // 60 degrees per sector
@@ -1707,41 +1728,50 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel = 'mid'):
         Hx_pip_rot_temp = (TMath::Sin(-25/57.2958))*Hz_pip + (TMath::Cos(-25/57.2958))*Hx_pip_rot_temp;
         return Hx_pip_rot_temp;
         """)
-    # DC Fiducial Cuts
-    if(fidlevel == 'mid'):
-        adjustment_layer1 = 0
-        adjustment_layer2 = 0
-        adjustment_layer3 = 0
-    elif(fidlevel == 'loose'):
-        adjustment_layer1 = 0.6*1
-        adjustment_layer2 = 0.6*2
-        adjustment_layer3 = 0.6*3
-    elif(fidlevel == 'tight'):
-        adjustment_layer1 = -0.6*1
-        adjustment_layer2 = -0.6*2
-        adjustment_layer3 = -0.6*3
-    else:
-        print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in ["Hy_pip_rot", "Hx_pip_rot", "detector_DC", "layer_DC"])):
+        print(f"{color.Error}\nStill missing important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
+        # print(f"{color.BOLD}Variables available:{color.END}")
+        # col_num = 1
+        # for column_name in Data_Frame_Input.GetColumnNames():
+        #     print(f"{col_num})\t{column_name}")
+        #     col_num += 1
+        # del col_num
         return Data_Frame_Input
-    
-    Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
-    auto Cal_layer_Min =   -120;
-    auto Cal_layer_Max =    120;
-    if(layer_DC == 1){
-        Cal_layer_Min  =   -0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
-        Cal_layer_Max  =    0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
-    }
-    if(layer_DC == 2){
-        Cal_layer_Min  =  -0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
-        Cal_layer_Max  =   0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
-    }
-    if(layer_DC == 3){
-        Cal_layer_Min  =  -0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
-        Cal_layer_Max  =   0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
-    }
-    return ((Hy_pip_rot < Cal_layer_Min) || (Hy_pip_rot > Cal_layer_Max));
-    """]))
-    
+    if(fidlevel not in ["None", "N/A"]):
+        # DC Fiducial Cuts
+        if(fidlevel == 'mid'):
+            adjustment_layer1 = 0
+            adjustment_layer2 = 0
+            adjustment_layer3 = 0
+        elif(fidlevel == 'loose'):
+            adjustment_layer1 = 0.6*1
+            adjustment_layer2 = 0.6*2
+            adjustment_layer3 = 0.6*3
+        elif(fidlevel == 'tight'):
+            adjustment_layer1 = -0.6*1
+            adjustment_layer2 = -0.6*2
+            adjustment_layer3 = -0.6*3
+        else:
+            print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
+            return Data_Frame_Input
+        Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
+        auto Cal_layer_Min =   -120;
+        auto Cal_layer_Max =    120;
+        if(layer_DC == 6){  // R1
+            Cal_layer_Min  =   -0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
+            Cal_layer_Max  =    0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
+        }
+        if(layer_DC == 18){ // R2
+            Cal_layer_Min  =  -0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
+            Cal_layer_Max  =   0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
+        }
+        if(layer_DC == 36){ // R3
+            Cal_layer_Min  =  -0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
+            Cal_layer_Max  =   0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
+        }
+        return ((detector_DC != 6) || ((Hy_pip_rot > Cal_layer_Min) && (Hy_pip_rot < Cal_layer_Max)));
+        // Condition of (detector_DC != 6) means that this cut will only take effect if the pion is detected in the Drift Chamber (and other detector for the pion is uneffected)
+        """]))
     return Data_Frame_Input
     
     
@@ -1750,12 +1780,16 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel = 'mid'):
 def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
     Data_Frame_Out = Data_Frame_In
     Failed_Filter  = True
-    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "esec"])):
-        # Applying my fiducial cuts
-        Data_Frame_Out = Data_Frame_In.Filter(New_Fiducial_Sector_Cuts)
+    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron"])):
+        # Applying my (electron) fiducial cuts
+        Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Sector_Cuts)
+        Failed_Filter = False
+    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion"])):
+        # Applying my (pion) fiducial cuts
+        Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Pip_Sector_Cuts)
         Failed_Filter = False
     if(not any(DC_cuts in Skip_Options for DC_cuts in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
-        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_In, fidlevel='mid')
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid')
         Failed_Filter = False
     if(Failed_Filter):
         print(f"{color.Error}\nPossible Error: New_Fiducial_Cuts_Function() did not apply any cuts...{color.END}\n\n")
