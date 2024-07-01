@@ -1487,6 +1487,17 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                     # Cos(2*phi) Moment - C
                                     Fitting_Function.SetParameter(2, 0.03 if(str(z_pT_Bin_Special) in ["6"]) else 0.075 if(str(z_pT_Bin_Special) in ["12"]) else 0.1)
                                     Fitting_Function.SetParLimits(2, 0.01, 0.14)
+                                    
+                            elif((str(Q2_y_Bin_Special) in ["14"]) and ("Pass_2" in Common_Name)):
+                                # Pass 2 Fits
+                                if(str(z_pT_Bin_Special) in ["12"]):
+                                    # Cos(phi) Moment - B
+                                    Fitting_Function.SetParameter(1, -0.375)
+                                    Fitting_Function.SetParLimits(1, -0.4, -0.3)
+                                if(str(z_pT_Bin_Special) in ["3", "21"]):
+                                    # Cos(phi) Moment - B
+                                    Fitting_Function.SetParameter(1, -0.128 if(str(z_pT_Bin_Special) in ["21"]) else -0.12)
+                                    Fitting_Function.SetParLimits(1, -0.165, -0.1)
                                 
                                 
                             if(str(Q2_y_Bin_Special) in ["1"]):
