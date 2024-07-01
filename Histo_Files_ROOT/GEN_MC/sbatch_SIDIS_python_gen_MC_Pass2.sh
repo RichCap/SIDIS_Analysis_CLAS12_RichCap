@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_gdf_SIDIS_6_20_2024_Run1_New_Sector_Cut_Test_V12_SIDIS
+#SBATCH --job-name=P2_gdf_SIDIS_6_21_2024_Run1_New_Sector_Cut_Test_V12_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -10,7 +10,6 @@
 #SBATCH --mem-per-cpu=2000
 #SBATCH --time=24:00:00
 #SBATCH --array=0-53
-#SBATCH --constraint=el7
 
 
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*)
