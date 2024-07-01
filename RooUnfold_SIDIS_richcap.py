@@ -6054,7 +6054,7 @@ run_5D_Unfold  = not True
 if(run_5D_Unfold):
     Num_5D_Increments_Used_to_Slice = 422
     
-run_Sec_Unfold = True and (Smearing_Options in ["no_smear"])
+run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
 if(run_Sec_Unfold):
     Sector_List = [1, 2, 3, 4, 5, 6]
 #     Sector_List = [1]
