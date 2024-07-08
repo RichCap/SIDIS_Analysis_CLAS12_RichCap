@@ -201,7 +201,7 @@ if(Use_Pass_2):
         Mom_Correction_Q = "no"
 
 if(Use_New_PF):
-    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (new as of 6/6/2024)\n{color.END}")
+    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (Updated as of 7/8/2024)\n{color.END}")
 
 import ROOT 
 import math
@@ -229,12 +229,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                                   "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new.nSidis_00",                                 "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new2.nSidis_00",                                "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new4.nSidis_00",                                "")).replace(".hipo.root", "")
     if(datatype in ["mdf", "pdf"]):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",             "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                             "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",                    "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new.inb-clasdis_",  "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new2.inb-clasdis_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new4.inb-clasdis_", "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                          "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                          "")).replace(".hipo.root", "")
@@ -252,11 +254,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(str(file_location) in ['all', 'All', 'time']):
             files_used_for_data_frame =  "Data_sidis_epip_richcap.inb.qa.skim4_00*"                               if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
             if(Use_New_PF):
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new2.skim4_00")).replace("qa.nSidis_00", "qa.new2.nSidis_00")
+                # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new2.skim4_00")).replace("qa.nSidis_00", "qa.new2.nSidis_00")
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new4.skim4_00")).replace("qa.nSidis_00", "qa.new4.nSidis_00")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
     if(datatype in ['mdf', 'pdf']):
 #         if(str(file_location) in ['all', 'All', 'time']):
 #             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
@@ -267,11 +271,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(str(file_location) in ['all', 'All', 'time']):
             files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                       if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
             if(Use_New_PF):
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
+                # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new4.45nA_job_")).replace("qa.inb-clasdis_", "qa.new4.inb-clasdis_")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new4.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
@@ -563,6 +569,28 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Extra_Name = "New_Sector_Cut_Test_V11_"
         # Ran on 6/13/2024
             # Same as "New_Sector_Cut_Test_V10_"
+            
+            
+    Extra_Name = "New_Fiducial_Cut_Test_V1_"
+    # Ran on 7/8/2024
+    # Updating code to accept the newest versions of the files proccessed for the new Fiducial cuts
+        # `*_sidis_epip_richcap.inb.qa.new4.*` uses different variable names than earlier updates with some variables (like Hx_pip) having completely different definitions in the newer versions
+            # Renamed all outdated variables
+    # Turned off Drift Chamber cuts for electrons and pions (detector_ele_DC = 15 instead of 6 --> pion might work, but the incorrect information was gathered for the electron, so the cut might not be applied properly if used)
+        # Will test with it on later
+    # Turned off the 3D Unfolding (again)
+        # Currently more focused on the fiducial cuts (can see well enough from the 1D unfolding)
+    # Turned off PID_el vs PID_pip Histograms (not needed right now)
+        # Only affects 'mdf'
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (Only)
+        # 2D) Q2 vs y and z vs pT
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # Also 3D histogram of this vs the detector layer (for Pions only - same reason as why the cuts were turned off)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+    
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -4576,13 +4604,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(variable in ['Hx', 'Hy']):
             output  =  str(variable)
         if(variable == 'Hx_pip'):
-            output  =  "x_{DC}"
+            output  =  "Hx_{#pi^{+}}"
         if(variable == 'Hy_pip'):
-            output  =  "y_{DC}"
-        if(variable == 'Hx_pip_rot'):
-            output  =  "x_{DC} (Rotated)"
-        if(variable == 'Hy_pip_rot'):
-            output  =  "y_{DC} (Rotated)"
+            output  =  "Hy_{#pi^{+}}"
+        if(variable == 'ele_x_DC'):
+            output  =  "Electron x_{DC}"
+        if(variable == 'ele_y_DC'):
+            output  =  "Electron y_{DC}"
+        if(variable == 'ele_x_DC_rot'):
+            output  =  "Electron x_{DC} (Rotated)"
+        if(variable == 'ele_y_DC_rot'):
+            output  =  "Electron y_{DC} (Rotated)"
+        if(variable == 'pip_x_DC'):
+            output  =  "Pion x_{DC}"
+        if(variable == 'pip_y_DC'):
+            output  =  "Pion y_{DC}"
+        if(variable == 'pip_x_DC_rot'):
+            output  =  "Pion x_{DC} (Rotated)"
+        if(variable == 'pip_y_DC_rot'):
+            output  =  "Pion y_{DC} (Rotated)"
         if(variable == 'el_E'):
             output  =  'E_{el}'
         if(variable == 'pip_E'):
@@ -4731,6 +4771,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output  =  "#pi^{+} Pion PID"
         if(variable == 'layer_DC'):
             output  =  "DC Detector Layer"
+        if(variable == 'layer_pip_DC'):
+            output  =  "(Pion) DC Detector Layer"
+        if(variable == 'layer_ele_DC'):
+            output  =  "(Electron) DC Detector Layer"
+        if(variable == 'V_PCal'):
+            output  =  "V_{PCal}"
+        if(variable == 'W_PCal'):
+            output  =  "W_{PCal}"
+        if(variable == 'U_PCal'):
+            output  =  "U_{PCal}"
 
         if("Bin_4D" in variable):
             output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
@@ -5670,9 +5720,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+#     if("Y_bin" in binning_option_list):
+#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -5708,7 +5758,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
 
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
+#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
     
     # # List_of_Quantities_3D = [[Q2_Binning, xB_Binning, phi_t_Binning],  [Q2_Binning, y_Binning, phi_t_Binning], [Q2_Binning, xB_Binning, Pip_Phi_Binning], [Q2_Binning, y_Binning, Pip_Phi_Binning], [Q2_Binning, xB_Binning, Pip_Binning], [Q2_Binning, y_Binning, Pip_Binning]]
     # # List_of_Quantities_3D = [[El_Binning, Pip_Binning, phi_t_Binning], [El_Th_Binning, Pip_Th_Binning, phi_t_Binning], [El_Phi_Binning, Pip_Phi_Binning, phi_t_Binning]]
@@ -5753,32 +5803,55 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
         List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
-        if(Use_New_PF):
-            # Added on 6/6/2024 (for drift chambers)
-            # DCyBinning = ['Hy_pip_rot', -150, 150, 600]
-            # DCxBinning = ['Hx_pip_rot', -200, 100, 600]
-            DCxBinning = ['Hx_pip',     -60, 60, 600]
-            DCyBinning = ['Hy_pip',     -60, 60, 600]
+        if(Use_New_PF): # Added on 6/6/2024 (for drift chambers)
             # Variables do not exist in older files
+            
+            # Updated on 7/8/2024 (for pip PCal)
+            PCalxBinning = ['Hx_pip', -460, 840, 650]
+            PCalyBinning = ['Hy_pip', -460, 840, 650]
+            List_of_Quantities_2D.append([PCalxBinning, PCalyBinning])
+            # List_of_Quantities_2D = [[PCalxBinning, PCalyBinning]]
+            List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
+            # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
+            
+            # Updated on 7/8/2024 (for ele DC)
+            DCxBinning = ['ele_x_DC', -120, 120, 240]
+            DCyBinning = ['ele_y_DC', -120, 120, 240]
+
             List_of_Quantities_2D.append([DCxBinning, DCyBinning])
             # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
+            # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
+            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
+            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
             
-            List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_DC", -0.5, 37.5, 38]]]
-            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["pipsec", -0.5, 7.5, 8]])
+            # Updated on 7/8/2024 (for pip DC)
+            pip_DCxBinning = ['pip_x_DC', -300, 300, 600]
+            pip_DCyBinning = ['pip_y_DC', -300, 300, 600]
+            List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
+            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
+            # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
+            
+            # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
+            List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
+            
+            del PCalxBinning
+            del PCalyBinning
             del DCxBinning
             del DCyBinning
+            del pip_DCxBinning
+            del pip_DCyBinning
         else:
             List_of_Quantities_3D = []
     else:
         List_of_Quantities_3D     = []
-    if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
-        # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
-        # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
-        List_of_Quantities_2D.append([["PID_el_idx", 0.5, 11.5, 11], ["PID_pip_idx", 0.5, 11.5, 11]])
+    # if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
+    #     # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
+    #     # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
+    #     List_of_Quantities_2D.append([["PID_el_idx", 0.5, 11.5, 11], ["PID_pip_idx", 0.5, 11.5, 11]])
         
         
-    # Base 2D histogram options:
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # # Base 2D histogram options:
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
     
     # # # 1D histograms are turned off with this option
@@ -5787,8 +5860,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []
     
-    # # 3D histograms are turned off with this option
-    List_of_Quantities_3D = []
+    # # # 3D histograms are turned off with this option
+    # List_of_Quantities_3D = []
     
     
     if(run_Mom_Cor_Code == "yes"):
