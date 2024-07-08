@@ -1695,15 +1695,36 @@ else{
     return Fiducial_DC_Cuts;
 }
 """
+# Up-to-date as of: 7/3/2024 (new hipo.root files - V4)
+New_Fiducial_Pip_Sector_Cuts = """
+if((((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) > (20.5)*(20.5)) || (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (5.2)*(5.2))){
+    return false;
+}
+else{
+    bool Fiducial_DC_Cuts =                      (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (20.5)*(20.5));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.3379)*pip_x_DC  + (0.5954))  && (pip_y_DC <   (0.6801)*pip_x_DC + (-2.1023)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-56.375)*pip_x_DC  + (95.4688)) && (pip_y_DC >   (0.8029)*pip_x_DC + (1.1253)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.5307)*pip_x_DC  + (1.7336))  && (pip_y_DC <  (-5.7821)*pip_x_DC + (-5.3558)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC >  (0.5805)*pip_x_DC  + (0.69))    && (pip_y_DC <  (-0.4095)*pip_x_DC + (-1.3394)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC <  (0.9324)*pip_x_DC  + (-0.3521)) && (pip_y_DC < (-12.8857)*pip_x_DC + (-31.4429)));
+    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC < (-0.4617)*pip_x_DC  + (-1.7652)) && (pip_y_DC >  (-5.7595)*pip_x_DC + (3.7975)));
+    Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
+    return Fiducial_DC_Cuts;
+}
+"""
 
 from MyCommonAnalysisFunction_richcap import color
 
 # New Fiducial Cuts for the electron/pion
     # Sangbaek_and_Valerii_Fiducial_Cuts() used cuts based on Sangbaek's code but developed by Valerii
-    # Up-to-date as of: 6/10/2024
-def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid'):
+    # Up-to-date as of: 7/8/2024
+        # Changed variable names and added for both the electron and pion
+def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particle="ele"):
     # Checking Dataframe for correct columns
-    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in ["Hx_pip", "Hy_pip", "Hz_pip"])):
+    if(Particle not in ["ele", "pip"]):
+        print(f"{color.Error}Invalid Input for 'Particle'.\n{color.END_R}\tParticle = {color.UNDERLINE}{Particle}{color.END_R} (Must be either 'ele' or 'pip')\n\t{color.END_B}Defaulting to 'ele'{color.END}")
+        Particle = "ele"
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC", f"{Particle}_y_DC", f"{Particle}_z_DC"])):
         print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
         print(f"{color.BOLD}Variables available:{color.END}")
         col_num = 1
@@ -1712,23 +1733,24 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid'):
             col_num += 1
         del col_num
         return Data_Frame_Input
-    elif(any(needed_col not in Data_Frame_Input.GetColumnNames() for needed_col in ["Hy_pip_rot", "Hx_pip_rot"])):
-        Data_Frame_Input = Data_Frame_Input.Define("Hy_pip_rot", """
-        auto Hy_pip_rot_temp = Hy_pip;
+    elif(any(needed_col not in Data_Frame_Input.GetColumnNames() for needed_col in [f"{Particle}_y_DC_rot", f"{Particle}_x_DC_rot"])):
+        sector = "pipsec" if(Particle in ["pip"]) else "esec"
+        Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_y_DC_rot", f"""
+        auto {Particle}_y_DC_rot_temp = {Particle}_y_DC;
         // 60 degrees per sector
-        auto Angle_rot  = TMath::DegToRad()*(60)*(pipsec - 1);
-        Hy_pip_rot_temp = (Hy_pip*(TMath::Cos(Angle_rot))) - (Hx_pip*(TMath::Sin(Angle_rot)));
-        return Hy_pip_rot_temp;
+        auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
+        {Particle}_y_DC_rot_temp = ({Particle}_y_DC*(TMath::Cos(Angle_rot))) - ({Particle}_x_DC*(TMath::Sin(Angle_rot)));
+        return {Particle}_y_DC_rot_temp;
         """)
-        Data_Frame_Input = Data_Frame_Input.Define("Hx_pip_rot", """
-        auto Hx_pip_rot_temp = Hx_pip;
+        Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_x_DC_rot", f"""
+        auto {Particle}_x_DC_rot_temp = {Particle}_x_DC;
         // 60 degrees per sector
-        auto Angle_rot  = TMath::DegToRad()*(60)*(pipsec - 1);
-        Hx_pip_rot_temp = (Hy_pip*(TMath::Sin(Angle_rot))) + (Hx_pip*(TMath::Cos(Angle_rot)));
-        Hx_pip_rot_temp = (TMath::Sin(-25/57.2958))*Hz_pip + (TMath::Cos(-25/57.2958))*Hx_pip_rot_temp;
-        return Hx_pip_rot_temp;
+        auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
+        {Particle}_x_DC_rot_temp = ({Particle}_y_DC*(TMath::Sin(Angle_rot))) + ({Particle}_x_DC*(TMath::Cos(Angle_rot)));
+        {Particle}_x_DC_rot_temp = (TMath::Sin(-25/57.2958))*{Particle}_z_DC + (TMath::Cos(-25/57.2958))*{Particle}_x_DC_rot_temp;
+        return {Particle}_x_DC_rot_temp;
         """)
-    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in ["Hy_pip_rot", "Hx_pip_rot", "detector_DC", "layer_DC"])):
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC_rot", f"{Particle}_x_DC_rot", f"detector_{Particle}_DC", f"layer_{Particle}_DC"])):
         print(f"{color.Error}\nStill missing important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
         # print(f"{color.BOLD}Variables available:{color.END}")
         # col_num = 1
@@ -1757,21 +1779,41 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid'):
         Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
         auto Cal_layer_Min =   -120;
         auto Cal_layer_Max =    120;
-        if(layer_DC == 6){  // R1
-            Cal_layer_Min  =   -0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
-            Cal_layer_Max  =    0.50 * (Hx_pip_rot + 72  + """, str(adjustment_layer1), """);
+        if(layer_""", str(Particle), """_DC == 6){  // R1
+            Cal_layer_Min  =   -0.50 * (""", str(Particle), """_x_DC_rot + 72  + """, str(adjustment_layer1), """);
+            Cal_layer_Max  =    0.50 * (""", str(Particle), """_x_DC_rot + 72  + """, str(adjustment_layer1), """);
         }
-        if(layer_DC == 18){ // R2
-            Cal_layer_Min  =  -0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
-            Cal_layer_Max  =   0.505 * (Hx_pip_rot + 114 + """, str(adjustment_layer2), """);
+        if(layer_""", str(Particle), """_DC == 18){ // R2
+            Cal_layer_Min  =  -0.505 * (""", str(Particle), """_x_DC_rot + 114 + """, str(adjustment_layer2), """);
+            Cal_layer_Max  =   0.505 * (""", str(Particle), """_x_DC_rot + 114 + """, str(adjustment_layer2), """);
         }
-        if(layer_DC == 36){ // R3
-            Cal_layer_Min  =  -0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
-            Cal_layer_Max  =   0.495 * (Hx_pip_rot + 180 + """, str(adjustment_layer3), """);
+        if(layer_""", str(Particle), """_DC == 36){ // R3
+            Cal_layer_Min  =  -0.495 * (""", str(Particle), """_x_DC_rot + 180 + """, str(adjustment_layer3), """);
+            Cal_layer_Max  =   0.495 * (""", str(Particle), """_x_DC_rot + 180 + """, str(adjustment_layer3), """);
         }
-        return ((detector_DC != 6) || ((Hy_pip_rot > Cal_layer_Min) && (Hy_pip_rot < Cal_layer_Max)));
-        // Condition of (detector_DC != 6) means that this cut will only take effect if the pion is detected in the Drift Chamber (and other detector for the pion is uneffected)
+        return ((detector_""", str(Particle), """_DC != 6) || ((""", str(Particle), """_y_DC_rot > Cal_layer_Min) && (""", str(Particle), """_y_DC_rot < Cal_layer_Max)));
+        // Condition of (detector_DC != 6) means that this cut will only take effect if the electron/pion is detected in the Drift Chamber (and other detector for the electron/pion is uneffected)
         """]))
+    return Data_Frame_Input
+    
+    
+# New Fiducial Volume Cuts for the electron in the PCal
+    # Up-to-date as of: 7/8/2024
+def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input):
+    # Checking Dataframe for correct columns
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()for needed_col in ["V_PCal", "W_PCal", "U_PCal"])):
+        print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial {color.UNDERLINE}volume{color.END}{color.Error} cuts from Valerii (Cannot make cuts)\n{color.END}")
+        print(f"{color.BOLD}Variables available:{color.END}")
+        col_num = 1
+        for column_name in Data_Frame_Input.GetColumnNames():
+            print(f"{col_num})\t{column_name}")
+            col_num += 1
+        del col_num
+        return Data_Frame_Input
+    else:
+        Data_Frame_Input = Data_Frame_Input.Filter("""
+        return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));
+        """)
     return Data_Frame_Input
     
     
@@ -1780,19 +1822,24 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid'):
 def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
     Data_Frame_Out = Data_Frame_In
     Failed_Filter  = True
-    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron"])):
+    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron"])):
         # Applying my (electron) fiducial cuts
         Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Sector_Cuts)
-        Failed_Filter = False
-    if(not any(my_cuts in Skip_Options for my_cuts in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion"])):
+        Failed_Filter  = False
+    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion"])):
         # Applying my (pion) fiducial cuts
         Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Pip_Sector_Cuts)
-        Failed_Filter = False
-    if(not any(DC_cuts in Skip_Options for DC_cuts in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
-        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid')
-        Failed_Filter = False
+        Failed_Filter  = False
+    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele")
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
+        Failed_Filter  = False
+    if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii"])):
+        Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out)
+        Failed_Filter  = False
     if(Failed_Filter):
         print(f"{color.Error}\nPossible Error: New_Fiducial_Cuts_Function() did not apply any cuts...{color.END}\n\n")
+        return Data_Frame_In
     return Data_Frame_Out
 
 
