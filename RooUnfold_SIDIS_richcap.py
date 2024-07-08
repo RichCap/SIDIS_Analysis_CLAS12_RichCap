@@ -5885,6 +5885,8 @@ Common_Name = "Pass_2_New_Sector_Cut_Test_V3_All"
 
 Common_Name = "Pass_2_New_Sector_Cut_Test_V10_All"
 
+Common_Name = "Pass_2_New_Sector_Cut_Test_V12_All"
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -5952,8 +5954,8 @@ else:
 ##   Generated Monte Carlo Data   ##
 ####################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
+# if(False):
     MC_GEN_File_Name = Common_Name
 else:
     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
@@ -7811,7 +7813,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-
+Multi_Dimensional_List = ["Off", "3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
@@ -8251,8 +8253,10 @@ if(Create_txt_File):
             z_pT_Bin_Range   = 42       if(str(BIN_NUM) in ["2"]) else  36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
             if("Y_bin" in Binning_Method):
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[0]
-            for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+            for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
+                if(z_pT_Bin in [0]):
+                    z_pT_Bin = "All"
+                if((z_pT_Bin not in [0, "0", "All"]) and (skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method))):
                     continue
                 for smear in Smearing_final_list:
                     if(smear not in ["''"]):
