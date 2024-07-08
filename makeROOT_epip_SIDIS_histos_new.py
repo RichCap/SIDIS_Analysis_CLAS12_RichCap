@@ -5739,11 +5739,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="DC") # "N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options="DC") # "N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
