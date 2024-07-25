@@ -1,0 +1,1 @@
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/SIDIS_MC_GEN_epip_TTree_Batch_Pass2.sh
