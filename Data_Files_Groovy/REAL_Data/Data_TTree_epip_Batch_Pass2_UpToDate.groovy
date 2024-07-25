@@ -1,0 +1,1 @@
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_TTree_epip_Batch_Pass2.groovy
