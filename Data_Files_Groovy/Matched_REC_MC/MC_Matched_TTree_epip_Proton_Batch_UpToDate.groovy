@@ -1,0 +1,1 @@
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matched_TTree_epip_Proton_Batch.groovy
