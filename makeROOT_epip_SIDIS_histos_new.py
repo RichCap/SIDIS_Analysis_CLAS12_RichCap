@@ -199,9 +199,14 @@ if(Use_Pass_2):
     if(("rdf" not in str(datatype)) and (Mom_Correction_Q not in ["no"])):
         print(f"\n{color.BOLD}No Pass 2 Momentum Corrections are available (yet) for the Monte Carlo Simulations...\n{color.END}")
         Mom_Correction_Q = "no"
+        
 
 if(Use_New_PF):
-    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (Updated as of 7/8/2024)\n{color.END}")
+    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (Updated as of 7/26/2024)\n{color.END}")
+    
+Beam_Energy = 10.6041 if((datatype in ['rdf']) or (not Use_Pass_2)) else 10.6
+
+print(f"\n{color.BBLUE}Beam Energy in use is: {color.UNDERLINE}{Beam_Energy} GeV{color.END}\n")
 
 import ROOT 
 import math
@@ -224,23 +229,27 @@ if(str(file_location) == 'time'):
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num = str(file_location)
     if(datatype == "rdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                          "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                                          "")).replace(".hipo.root", "")     
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                                   "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new.nSidis_00",                                 "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new2.nSidis_00",                                "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new4.nSidis_00",                                "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                  "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Data_sidis_epip_richcap.inb.qa.skim4_00",                                                                  "")).replace(".hipo.root", "")     
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_00",                                                           "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new.nSidis_00",                                         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new2.nSidis_00",                                        "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new4.nSidis_00",                                        "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new5.nSidis_00",                                        "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.wProton.new5.nSidis_00",                                "")).replace(".hipo.root", "")
     if(datatype in ["mdf", "pdf"]):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",             "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                             "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",                    "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new.inb-clasdis_",  "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new2.inb-clasdis_", "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new4.inb-clasdis_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                     "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_",                                                     "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_",                            "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new.inb-clasdis_",          "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new2.inb-clasdis_",         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new4.inb-clasdis_",         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.inb-clasdis_",         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis_", "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
-        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                          "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                          "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                                 "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                  "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                                  "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                                         "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -255,12 +264,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             files_used_for_data_frame =  "Data_sidis_epip_richcap.inb.qa.skim4_00*"                               if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
             if(Use_New_PF):
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new2.skim4_00")).replace("qa.nSidis_00", "qa.new2.nSidis_00")
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new4.skim4_00")).replace("qa.nSidis_00", "qa.new4.nSidis_00")
+                # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new4.skim4_00")).replace("qa.nSidis_00", "qa.new4.nSidis_00")
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new5.skim4_00")).replace("qa.nSidis_00", "qa.new5.nSidis_00")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
             # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
     if(datatype in ['mdf', 'pdf']):
 #         if(str(file_location) in ['all', 'All', 'time']):
 #             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
@@ -272,12 +283,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                       if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
             if(Use_New_PF):
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new4.45nA_job_")).replace("qa.inb-clasdis_", "qa.new4.inb-clasdis_")
+                # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new4.45nA_job_")).replace("qa.inb-clasdis_", "qa.new4.inb-clasdis_")
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis_")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
             # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
-            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new4.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new4.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
@@ -588,6 +601,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
         # 2D) Electron/Pion x vs y positions in the 'DC'
             # Also 3D histogram of this vs the detector layer (for Pions only - same reason as why the cuts were turned off)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+    Extra_Name = "New_Fiducial_Cut_Test_V2_"
+    # Ran on 7/29/2024
+    # Updating code to accept the newest versions of the files proccessed for the new Fiducial cuts
+        # `*_sidis_epip_richcap.inb.qa.new5.*` uses different variable names than earlier updates with some variables (like Hx_pip) having completely different definitions in the newer versions
+            # Renamed all outdated variables
+            # DC layer is now integrated into the variables themselves (different variables for different layers) instead of having another set of variables for detector and layer of the particles
+    # Updated beam energy used by Monte Carlo files (all Pass 2 Monte Carlo options will use a beam energy of 10.6 instead of 10.6041 like the experimental data)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (Only)
+        # 2D) Q2 vs y and z vs pT
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # One set of histograms per layer (3 layers for 6 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
         
     
@@ -912,7 +941,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto fe      = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         
-        auto beam    = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto beam    = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto targ    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         
         auto ele     = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
@@ -969,8 +998,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
         
         if(datatype in ["mdf", "pdf"]):
-            rdf = rdf.Define("vals_gen","""
-            auto beam_gen    = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+            rdf = rdf.Define("vals_gen", "".join(["""
+            auto beam_gen    = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
             auto targ_gen    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
             auto ele_gen     = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto pip0_gen    = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
@@ -989,7 +1018,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             std::vector<double> vals_gen = {epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen, epsilon_gen};
 
-            return vals_gen;""")
+            return vals_gen;"""]))
 
             rdf = rdf.Define('MM_gen',  'vals_gen[0]')
             rdf = rdf.Define('MM2_gen', 'vals_gen[1]')
@@ -1047,7 +1076,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     
-    auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+    auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
     auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0,       0.938272);
     
     auto eleM   = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
@@ -1055,7 +1084,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     auto lv_qMM = beamM - eleM;
 
-    TLorentzVector beam(0, 0, 10.6041, beamM.E());
+    TLorentzVector beam(0, 0, """, str(Beam_Energy), """, beamM.E());
     TLorentzVector targ(0, 0, 0, targM.E());
     
     TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,     eleM.E());
@@ -1176,11 +1205,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"]) and Run_Uncorrected_phi_t_Info_Q):
         rdf = rdf.Define("Uncorrected_phi_t_Info", "".join([str(Correction_Code_Full_In), """
         auto fpip   = (dppC(pipx, pipy, pipz, pipsec, 1, """, "1" if(not Use_Pass_2) else "3", """) + 1)/(Complete_Correction_Factor_Pip);
-        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto eleM   = ROOT::Math::PxPyPzMVector(ex, ey, ez,     0);
         auto pip0M  = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
         auto lv_qMM = beamM - eleM;
-        TLorentzVector beam(0,  0, 10.6041, beamM.E());
+        TLorentzVector beam(0,  0, """, str(Beam_Energy), """, beamM.E());
         TLorentzVector ele(ex, ey, ez,      eleM.E());
         TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
         TLorentzVector lv_q = beam - ele;
@@ -1212,13 +1241,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
-        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6041, 0);
+        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         auto eleM   = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
         auto pip0M  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
         auto lv_qMM = beamM - eleM;
 
-        TLorentzVector beam(0, 0, 10.6041, beamM.E());
+        TLorentzVector beam(0, 0, """, str(Beam_Energy), """, beamM.E());
         TLorentzVector targ(0, 0, 0, targM.E());
         TLorentzVector ele(ex_gen, ey_gen, ez_gen, eleM.E());
         TLorentzVector pip0(pipx_gen, pipy_gen, pipz_gen, pip0M.E());
@@ -1476,12 +1505,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto fe    = dppC(ex,   ey,   ez,   esec,   0, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
         auto fpip  = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
 
-        auto beamM = ROOT::Math::PxPyPzMVector(0,         0,         10.6041,   0);
+        auto beamM = ROOT::Math::PxPyPzMVector(0,         0,         """, str(Beam_Energy), """,   0);
         auto targM = ROOT::Math::PxPyPzMVector(0,         0,         0,         0.938272);
         auto eleM  = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
         auto pip0M = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        TLorentzVector beam(0,         0,         10.6041,      beamM.E());
+        TLorentzVector beam(0,         0,         """, str(Beam_Energy), """,      beamM.E());
         TLorentzVector targ(0,         0,         0,            targM.E());
         TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,        eleM.E());
         TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip,    pip0M.E());
@@ -2493,7 +2522,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto eleC = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
         auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        auto Beam_Energy = 10.6041;
+        auto Beam_Energy = """, str(Beam_Energy), """;
         // Defined by the run group/data set
 
         double neutronM2 = 0.9396*0.9396;
@@ -2522,7 +2551,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto eleC = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
         auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        auto Beam_Energy = 10.6041;
+        auto Beam_Energy = """, str(Beam_Energy), """;
         // Defined by the run group/data set
 
         double neutronM2 = 0.9396*0.9396;
@@ -2569,7 +2598,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto eleC = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
         auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        auto Beam_Energy = 10.6041;
+        auto Beam_Energy = """, str(Beam_Energy), """;
         // Defined by the run group/data set
 
         double neutronM2 = 0.9396*0.9396;
@@ -2602,7 +2631,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto eleC = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
         auto pipC = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        auto Beam_Energy = 10.6041;
+        auto Beam_Energy = """, str(Beam_Energy), """;
         // Defined by the run group/data set
 
         double neutronM2 = 0.9396*0.9396;
@@ -2654,7 +2683,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
 
-            auto Beam_Energy = 10.6041;
+            auto Beam_Energy = """, str(Beam_Energy), """;
             // Defined by the run group/data set
 
             double neutronM2 = 0.9396*0.9396;
@@ -2694,7 +2723,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
             
-            auto Beam_Energy = 10.6041;
+            auto Beam_Energy = """, str(Beam_Energy), """;
             // Defined by the run group/data set
 
             double neutronM2 = 0.9396*0.9396;
@@ -2749,7 +2778,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(),  ele_smeared.Y(),  ele_smeared.Z(),  ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
 
-            auto Beam_Energy = 10.6041;
+            auto Beam_Energy = """, str(Beam_Energy), """;
             // Defined by the run group/data set
 
             double neutronM2 = 0.9396*0.9396;
@@ -2789,7 +2818,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto eleC = ROOT::Math::PxPyPzMVector(ele_smeared.X(), ele_smeared.Y(), ele_smeared.Z(), ele_smeared.M());
             auto pipC = ROOT::Math::PxPyPzMVector(pip0_smeared.X(), pip0_smeared.Y(), pip0_smeared.Z(), pip0_smeared.M());
 
-            auto Beam_Energy = 10.6041;
+            auto Beam_Energy = """, str(Beam_Energy), """;
             // Defined by the run group/data set
 
             double neutronM2 = 0.9396*0.9396;
@@ -2906,7 +2935,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     def Calculated_Exclusive_Cuts(Smear_Q):
         output = "".join(["""
         """, str(smearing_function), """
-        auto beam = ROOT::Math::PxPyPzMVector(0,    0,    10.6041, 0);
+        auto beam = ROOT::Math::PxPyPzMVector(0,    0,    """, str(Beam_Energy), """, 0);
         auto targ = ROOT::Math::PxPyPzMVector(0,    0,    0,       0.938);
         auto ele  = ROOT::Math::PxPyPzMVector(ex,   ey,   ez,      0);
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz,    0.13957);
@@ -4623,6 +4652,54 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output  =  "Pion x_{DC} (Rotated)"
         if(variable == 'pip_y_DC_rot'):
             output  =  "Pion y_{DC} (Rotated)"
+        if(variable == 'ele_x_DC_6'):
+            output  =  "Electron x_{DC} (Layer 6)"
+        if(variable == 'ele_y_DC_6'):
+            output  =  "Electron y_{DC} (Layer 6)"
+        if(variable == 'ele_x_DC_6_rot'):
+            output  =  "Electron x_{DC} (Rotated - Layer 6)"
+        if(variable == 'ele_y_DC_6_rot'):
+            output  =  "Electron y_{DC} (Rotated - Layer 6)"
+        if(variable == 'pip_x_DC_6'):
+            output  =  "Pion x_{DC} (Layer 6)"
+        if(variable == 'pip_y_DC_6'):
+            output  =  "Pion y_{DC} (Layer 6)"
+        if(variable == 'pip_x_DC_6_rot'):
+            output  =  "Pion x_{DC} (Rotated - Layer 6)"
+        if(variable == 'pip_y_DC_6_rot'):
+            output  =  "Pion y_{DC} (Rotated - Layer 6)"
+        if(variable == 'ele_x_DC_18'):
+            output  =  "Electron x_{DC} (Layer 18)"
+        if(variable == 'ele_y_DC_18'):
+            output  =  "Electron y_{DC} (Layer 18)"
+        if(variable == 'ele_x_DC_18_rot'):
+            output  =  "Electron x_{DC} (Rotated - Layer 18)"
+        if(variable == 'ele_y_DC_18_rot'):
+            output  =  "Electron y_{DC} (Rotated - Layer 18)"
+        if(variable == 'pip_x_DC_18'):
+            output  =  "Pion x_{DC} (Layer 18)"
+        if(variable == 'pip_y_DC_18'):
+            output  =  "Pion y_{DC} (Layer 18)"
+        if(variable == 'pip_x_DC_18_rot'):
+            output  =  "Pion x_{DC} (Rotated - Layer 18)"
+        if(variable == 'pip_y_DC_18_rot'):
+            output  =  "Pion y_{DC} (Rotated - Layer 18)"
+        if(variable == 'ele_x_DC_36'):
+            output  =  "Electron x_{DC} (Layer 36)"
+        if(variable == 'ele_y_DC_36'):
+            output  =  "Electron y_{DC} (Layer 36)"
+        if(variable == 'ele_x_DC_36_rot'):
+            output  =  "Electron x_{DC} (Rotated - Layer 36)"
+        if(variable == 'ele_y_DC_36_rot'):
+            output  =  "Electron y_{DC} (Rotated - Layer 36)"
+        if(variable == 'pip_x_DC_36'):
+            output  =  "Pion x_{DC} (Layer 36)"
+        if(variable == 'pip_y_DC_36'):
+            output  =  "Pion y_{DC} (Layer 36)"
+        if(variable == 'pip_x_DC_36_rot'):
+            output  =  "Pion x_{DC} (Rotated - Layer 36)"
+        if(variable == 'pip_y_DC_36_rot'):
+            output  =  "Pion y_{DC} (Rotated - Layer 36)"
         if(variable == 'el_E'):
             output  =  'E_{el}'
         if(variable == 'pip_E'):
@@ -5810,25 +5887,27 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             PCalxBinning = ['Hx_pip', -460, 840, 650]
             PCalyBinning = ['Hy_pip', -460, 840, 650]
             List_of_Quantities_2D.append([PCalxBinning, PCalyBinning])
+            List_of_Quantities_3D = []
             # List_of_Quantities_2D = [[PCalxBinning, PCalyBinning]]
-            List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
+            # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
-            # Updated on 7/8/2024 (for ele DC)
-            DCxBinning = ['ele_x_DC', -120, 120, 240]
-            DCyBinning = ['ele_y_DC', -120, 120, 240]
-
-            List_of_Quantities_2D.append([DCxBinning, DCyBinning])
+            # Updated on 7/26/2024 (for ele DC)
+            for layer in [6, 18, 36]:
+                DCxBinning = [f'ele_x_DC_{layer}', -120, 120, 240]
+                DCyBinning = [f'ele_y_DC_{layer}', -120, 120, 240]
+                List_of_Quantities_2D.append([DCxBinning, DCyBinning])
             # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
             # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
             # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
             
-            # Updated on 7/8/2024 (for pip DC)
-            pip_DCxBinning = ['pip_x_DC', -300, 300, 600]
-            pip_DCyBinning = ['pip_y_DC', -300, 300, 600]
-            List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
-            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
+            # Updated on 7/26/2024 (for pip DC)
+            for layer in [6, 18, 36]:
+                pip_DCxBinning = [f'pip_x_DC_{layer}', -300, 300, 600]
+                pip_DCyBinning = [f'pip_y_DC_{layer}', -300, 300, 600]
+                List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
+            # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
             # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
             
             # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)

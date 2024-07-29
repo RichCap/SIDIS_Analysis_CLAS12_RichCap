@@ -1717,83 +1717,81 @@ from MyCommonAnalysisFunction_richcap import color
 
 # New Fiducial Cuts for the electron/pion
     # Sangbaek_and_Valerii_Fiducial_Cuts() used cuts based on Sangbaek's code but developed by Valerii
-    # Up-to-date as of: 7/8/2024
+    # Up-to-date as of: 7/26/2024
         # Changed variable names and added for both the electron and pion
 def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particle="ele"):
-    # Checking Dataframe for correct columns
-    if(Particle not in ["ele", "pip"]):
-        print(f"{color.Error}Invalid Input for 'Particle'.\n{color.END_R}\tParticle = {color.UNDERLINE}{Particle}{color.END_R} (Must be either 'ele' or 'pip')\n\t{color.END_B}Defaulting to 'ele'{color.END}")
-        Particle = "ele"
-    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC", f"{Particle}_y_DC", f"{Particle}_z_DC"])):
-        print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
-        print(f"{color.BOLD}Variables available:{color.END}")
-        col_num = 1
-        for column_name in Data_Frame_Input.GetColumnNames():
-            print(f"{col_num})\t{column_name}")
-            col_num += 1
-        del col_num
-        return Data_Frame_Input
-    elif(any(needed_col not in Data_Frame_Input.GetColumnNames() for needed_col in [f"{Particle}_y_DC_rot", f"{Particle}_x_DC_rot"])):
-        sector = "pipsec" if(Particle in ["pip"]) else "esec"
-        Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_y_DC_rot", f"""
-        auto {Particle}_y_DC_rot_temp = {Particle}_y_DC;
-        // 60 degrees per sector
-        auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
-        {Particle}_y_DC_rot_temp = ({Particle}_y_DC*(TMath::Cos(Angle_rot))) - ({Particle}_x_DC*(TMath::Sin(Angle_rot)));
-        return {Particle}_y_DC_rot_temp;
-        """)
-        Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_x_DC_rot", f"""
-        auto {Particle}_x_DC_rot_temp = {Particle}_x_DC;
-        // 60 degrees per sector
-        auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
-        {Particle}_x_DC_rot_temp = ({Particle}_y_DC*(TMath::Sin(Angle_rot))) + ({Particle}_x_DC*(TMath::Cos(Angle_rot)));
-        {Particle}_x_DC_rot_temp = (TMath::Sin(-25/57.2958))*{Particle}_z_DC + (TMath::Cos(-25/57.2958))*{Particle}_x_DC_rot_temp;
-        return {Particle}_x_DC_rot_temp;
-        """)
-    if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC_rot", f"{Particle}_x_DC_rot", f"detector_{Particle}_DC", f"layer_{Particle}_DC"])):
-        print(f"{color.Error}\nStill missing important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
-        # print(f"{color.BOLD}Variables available:{color.END}")
-        # col_num = 1
-        # for column_name in Data_Frame_Input.GetColumnNames():
-        #     print(f"{col_num})\t{column_name}")
-        #     col_num += 1
-        # del col_num
-        return Data_Frame_Input
-    if(fidlevel not in ["None", "N/A"]):
-        # DC Fiducial Cuts
-        if(fidlevel == 'mid'):
-            adjustment_layer1 = 0
-            adjustment_layer2 = 0
-            adjustment_layer3 = 0
-        elif(fidlevel == 'loose'):
-            adjustment_layer1 = 0.6*1
-            adjustment_layer2 = 0.6*2
-            adjustment_layer3 = 0.6*3
-        elif(fidlevel == 'tight'):
-            adjustment_layer1 = -0.6*1
-            adjustment_layer2 = -0.6*2
-            adjustment_layer3 = -0.6*3
-        else:
-            print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
+    for layer in [6, 18, 36]:
+        # Checking Dataframe for correct columns
+        if(Particle not in ["ele", "pip"]):
+            print(f"{color.Error}Invalid Input for 'Particle'.\n{color.END_R}\tParticle = {color.UNDERLINE}{Particle}{color.END_R} (Must be either 'ele' or 'pip')\n\t{color.END_B}Defaulting to 'ele'{color.END}")
+            Particle = "ele"
+        if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC_{layer}", f"{Particle}_y_DC_{layer}", f"{Particle}_z_DC_{layer}"])):
+            print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
+            print(f"{color.BOLD}Variables available:{color.END}")
+            col_num = 1
+            for column_name in Data_Frame_Input.GetColumnNames():
+                print(f"{col_num})\t{column_name}")
+                col_num += 1
+            del col_num
             return Data_Frame_Input
-        Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
-        auto Cal_layer_Min =   -120;
-        auto Cal_layer_Max =    120;
-        if(layer_""", str(Particle), """_DC == 6){  // R1
-            Cal_layer_Min  =   -0.50 * (""", str(Particle), """_x_DC_rot + 72  + """, str(adjustment_layer1), """);
-            Cal_layer_Max  =    0.50 * (""", str(Particle), """_x_DC_rot + 72  + """, str(adjustment_layer1), """);
-        }
-        if(layer_""", str(Particle), """_DC == 18){ // R2
-            Cal_layer_Min  =  -0.505 * (""", str(Particle), """_x_DC_rot + 114 + """, str(adjustment_layer2), """);
-            Cal_layer_Max  =   0.505 * (""", str(Particle), """_x_DC_rot + 114 + """, str(adjustment_layer2), """);
-        }
-        if(layer_""", str(Particle), """_DC == 36){ // R3
-            Cal_layer_Min  =  -0.495 * (""", str(Particle), """_x_DC_rot + 180 + """, str(adjustment_layer3), """);
-            Cal_layer_Max  =   0.495 * (""", str(Particle), """_x_DC_rot + 180 + """, str(adjustment_layer3), """);
-        }
-        return ((detector_""", str(Particle), """_DC != 6) || ((""", str(Particle), """_y_DC_rot > Cal_layer_Min) && (""", str(Particle), """_y_DC_rot < Cal_layer_Max)));
-        // Condition of (detector_DC != 6) means that this cut will only take effect if the electron/pion is detected in the Drift Chamber (and other detector for the electron/pion is uneffected)
-        """]))
+        elif(any(needed_col not in Data_Frame_Input.GetColumnNames() for needed_col in [f"{Particle}_y_DC_{layer}_rot", f"{Particle}_x_DC_{layer}_rot"])):
+            sector = "pipsec" if(Particle in ["pip"]) else "esec"
+            Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_y_DC_{layer}_rot", f"""
+            auto {Particle}_y_DC_{layer}_rot_temp = {Particle}_y_DC_{layer};
+            // 60 degrees per sector
+            auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
+            {Particle}_y_DC_{layer}_rot_temp = ({Particle}_y_DC_{layer}*(TMath::Cos(Angle_rot))) - ({Particle}_x_DC_{layer}*(TMath::Sin(Angle_rot)));
+            return {Particle}_y_DC_{layer}_rot_temp;
+            """)
+            Data_Frame_Input = Data_Frame_Input.Define(f"{Particle}_x_DC_{layer}_rot", f"""
+            auto {Particle}_x_DC_{layer}_rot_temp = {Particle}_x_DC_{layer};
+            // 60 degrees per sector
+            auto Angle_rot  = TMath::DegToRad()*(60)*({sector} - 1);
+            {Particle}_x_DC_{layer}_rot_temp = ({Particle}_y_DC_{layer}*(TMath::Sin(Angle_rot))) + ({Particle}_x_DC_{layer}*(TMath::Cos(Angle_rot)));
+            {Particle}_x_DC_{layer}_rot_temp = (TMath::Sin(-25/57.2958))*{Particle}_z_DC_{layer} + (TMath::Cos(-25/57.2958))*{Particle}_x_DC_{layer}_rot_temp;
+            return {Particle}_x_DC_{layer}_rot_temp;
+            """)
+        if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC_{layer}_rot", f"{Particle}_x_DC_{layer}_rot"])):
+            print(f"{color.Error}\nStill missing important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
+            # print(f"{color.BOLD}Variables available:{color.END}")
+            # col_num = 1
+            # for column_name in Data_Frame_Input.GetColumnNames():
+            #     print(f"{col_num})\t{column_name}")
+            #     col_num += 1
+            # del col_num
+            return Data_Frame_Input
+        if(fidlevel not in ["None", "N/A"]):
+            # DC Fiducial Cuts
+            if(fidlevel == 'mid'):
+                adjustment_layer1 = 0
+                adjustment_layer2 = 0
+                adjustment_layer3 = 0
+            elif(fidlevel == 'loose'):
+                adjustment_layer1 = 0.6*1
+                adjustment_layer2 = 0.6*2
+                adjustment_layer3 = 0.6*3
+            elif(fidlevel == 'tight'):
+                adjustment_layer1 = -0.6*1
+                adjustment_layer2 = -0.6*2
+                adjustment_layer3 = -0.6*3
+            else:
+                print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
+                return Data_Frame_Input
+            Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
+            auto Cal_layer_Min =   -120;
+            auto Cal_layer_Max =    120;
+            """, f"""
+            Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_rot_{layer} + 72  + {str(adjustment_layer1)});
+            Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_rot_{layer} + 72  + {str(adjustment_layer1)});
+            """ if(layer in [6]) else f"""
+            Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_rot_{layer} + 114 + {str(adjustment_layer2)});
+            Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_rot_{layer} + 114 + {str(adjustment_layer2)});
+            """ if(layer in [18]) else f"""
+            Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_rot_{layer} + 180 + {str(adjustment_layer3)});
+            Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_rot_{layer} + 180 + {str(adjustment_layer3)});
+            """, f"""
+            return (({str(Particle)}_y_DC_{layer}_rot > Cal_layer_Min) && ({str(Particle)}_y_DC_{layer}_rot < Cal_layer_Max));
+            """]))
     return Data_Frame_Input
     
     
