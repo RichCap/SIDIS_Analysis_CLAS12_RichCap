@@ -7796,7 +7796,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = True
+Run_Individual_Bin_Images_Option = not True
 Print_Run_Individual_Bin_Option  = True
 
 
