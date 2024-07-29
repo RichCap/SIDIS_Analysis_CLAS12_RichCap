@@ -77,6 +77,10 @@ Use_Weight = False
 Mom_Correction_Q = "yes"
 # Mom_Correction_Q = "no"
 
+# Option to use the tagged proton files (as of 7/29/2024, only available for the "_NewPass2" version of the files)
+# # Let 'Tag_Proton = False' for running without tagged protons, while 'Tag_Proton = True' will use the files/options with the proton being tagged
+Tag_Proton = False
+
 SIDIS_Unfold_List = ["_SIDIS",  "_sidis", "_unfold",   "_Unfold"]
 Momentum_Cor_List = ["_Mom",    "_mom"]
 Use__Mom_Cor_List = ["_UnCor",  "_Uncor", "mdf",       "gdf"]
@@ -84,20 +88,21 @@ Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight"
 Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2", "     _1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
+Tag___Proton_List = ["_Pro",    "_Proton"]
 
-for sidis in SIDIS_Unfold_List:
+for sidis         in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
         run_Mom_Cor_Code = "no"
         datatype         = str(datatype).replace(str(sidis), "")
         break
         
-for mom_cor in Momentum_Cor_List:
+for mom_cor         in Momentum_Cor_List:
     if(str(mom_cor) in str(datatype)):
         run_Mom_Cor_Code = "yes"
         datatype         = str(datatype).replace(str(mom_cor), "")
         break
         
-for use_cor in Use__Mom_Cor_List:
+for use_cor         in Use__Mom_Cor_List:
     if(str(use_cor) in str(datatype)):
         Mom_Correction_Q = "no"
         # Default option is to use the momentum corrections whenever possible (unless some other option is automatically selected below due to availability or applicability of the correction)
@@ -107,7 +112,7 @@ for use_cor in Use__Mom_Cor_List:
         break
 
 
-for smearQ in Smear_Option_List:
+for smearQ         in Smear_Option_List:
     if(str(smearQ) in str(datatype)):
         if("_" in str(smearQ)):
             datatype     = str(datatype).replace(str(smearQ), "")
@@ -120,13 +125,13 @@ for smearQ in Smear_Option_List:
                 print("\033[91m\033[1m\nIgnoring Option to not smear...\n\033[0m")
         break
     
-for smear in Smear_Factor_List:
+for smear         in Smear_Factor_List:
     if(str(smear) in str(datatype)):
         smear_factor     = str(smear).replace("_", "")
         datatype         = str(datatype).replace(str(smear), "")
         break
         
-for weight_Q in Using_Weight_List:
+for weight_Q         in Using_Weight_List:
     if(str(weight_Q) in str(datatype)):
         Use_Weight       = True
         if("_Q4"     in str(datatype)):
@@ -134,6 +139,12 @@ for weight_Q in Using_Weight_List:
         else:
             Q4_Weight    = False
         datatype         = str(datatype).replace(str(weight_Q), "")
+        break
+        
+for tagging_proton         in Tag___Proton_List:
+    if(str(tagging_proton) in str(datatype)):
+        Tag_Proton = True
+        datatype   = str(datatype).replace(str(tagging_proton), "")
         break
         
         
@@ -148,6 +159,10 @@ for pass_ver in Pass_Version_List:
         Use_New_PF = ("New" in str(pass_ver))
         datatype   = str(datatype).replace(str(pass_ver), "")
         break
+        
+if(Tag_Proton and not Use_New_PF):
+    print("\033[91m\033[1mCannot Run the Tagged Proton without the newest versions of the Pass 2 root files...\n\033[0m")
+    Tag_Proton = False
         
 Run_Small = False
 if("_Small" in str(datatype)):
@@ -246,10 +261,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new4.inb-clasdis_",         "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.inb-clasdis_",         "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis_", "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.inb-clasdis-",         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis-", "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                  "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                                  "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                                         "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.inb-clasdis_",                                                    "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis_",                                            "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.inb-clasdis-",                                                    "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis-",                                            "")).replace(".hipo.root", "")
     
     
     ########################################################################################################################################################################
@@ -266,6 +287,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new2.skim4_00")).replace("qa.nSidis_00", "qa.new2.nSidis_00")
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new4.skim4_00")).replace("qa.nSidis_00", "qa.new4.nSidis_00")
                 files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new5.skim4_00")).replace("qa.nSidis_00", "qa.new5.nSidis_00")
+                if(Tag_Proton):
+                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
@@ -284,7 +307,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(Use_New_PF):
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
                 # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new4.45nA_job_")).replace("qa.inb-clasdis_", "qa.new4.inb-clasdis_")
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis_")
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
+                if(Tag_Proton):
+                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
@@ -611,6 +636,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Renamed all outdated variables
             # DC layer is now integrated into the variables themselves (different variables for different layers) instead of having another set of variables for detector and layer of the particles
     # Updated beam energy used by Monte Carlo files (all Pass 2 Monte Carlo options will use a beam energy of 10.6 instead of 10.6041 like the experimental data)
+    # Set up the Tagged Proton option
+        # As of this version, nothing with this code except the file loaded is effected by the tagged proton (i.e., no additional cuts added based on the extra proton)
     # Included 1D/2D/3D Histograms:
         # 1D) phi_t (Only)
         # 2D) Q2 vs y and z vs pT
@@ -687,6 +714,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
         print(f"\n\n\t{color.BBLUE}Using Pass 2 Version of Data/MC Files{color.END}")
         
+    if(Tag_Proton):
+        # Option added with "New_Fiducial_Cut_Test_V2_" on 7/29/2024
+        Extra_Name = "".join(["Tagged_Proton_", str(Extra_Name)])
+        print(f"\n\n\t{color.Error}Tagging Proton{color.END}")
     
     if(datatype == 'rdf'):
         ROOT_File_Output_Name     = "".join(["SIDIS_epip_Data_REC_",                      str(Extra_Name), str(file_num), ".root"])
@@ -704,7 +735,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(output_type in ["data", "test"]):
         ROOT_File_Output_Name = "".join(["DataFrame_", str(ROOT_File_Output_Name)])
     
-    print("".join(["\nFile being made is: \033[1m",    str(ROOT_File_Output_Name), "\033[0m"]))
+    print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
     
     
     #################     Final ROOT File     #################
