@@ -35,114 +35,113 @@ int Multiple_Pions_Per_Electron = 0
 int Total_Events_Found = 0
 
 GParsPool.withPool 2,{
-args.eachParallel{fname->
-    println(fname)
-    QADB qa = new QADB()
+    args.eachParallel{fname->
+        println(fname)
+        QADB qa = new QADB()
 
-    def reader = new HipoReader()
-    reader.open(fname)
-    def event = new Event()
-    def factory = reader.getSchemaFactory()
-    def banks = ['MC::Header', 'REC::Event', 'MC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
+        def reader = new HipoReader()
+        reader.open(fname)
+        def event = new Event()
+        def factory = reader.getSchemaFactory()
+        def banks = ['MC::Header', 'REC::Event', 'MC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
 
-    while(reader.hasNext()){
-        reader.nextEvent(event)
-        banks.each{event.read(it)}
+        while(reader.hasNext()){
+            reader.nextEvent(event)
+            banks.each{event.read(it)}
 
-        if(banks.every()){
-            def (runb, evb, partb, ecb, ccb, trajb, scb) = banks
+            if(banks.every()){
+                def (runb, evb, partb, ecb, ccb, trajb, scb) = banks
 
-            def run = runb.getInt("run",   0)
-            def evn = runb.getInt("event", 0)
-            def pid = partb.getInt("pid",  0)
-            
-            def beamCharge = evb.getFloat("beamCharge", 0)
-            
-            if(pid == 11){ // Is an electron
-                
-                int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+                def run = runb.getInt("run",   0)
+                def evn = runb.getInt("event", 0)
+                def pid = partb.getInt("pid",  0)
 
-                // Check for the presence of a proton (for Harut's Vector Meson Cuts)
-                boolean hasProton = false
-                // def proV = null // Declare proV to store the proton Lorentz vector
-                def prox = null
-                def proy = null
-                def proz = null
-                for (int ipart_proton = 1; ipart_proton < partb.getRows(); ipart_proton++) {
-                    def pid_pro = partb.getInt("pid", ipart)
-                    if(pid_pro == 2212){
-                        hasProton = true
-                        def prox = partb.getFloat("px", ipart_proton)
-                        def proy = partb.getFloat("py", ipart_proton)
-                        def proz = partb.getFloat("pz", ipart_proton)
-                        // def proV = LorentzVector.withPID(pid_pro, prox, proy, proz) // Get the Lorentz vector of the proton
-                        // Lorentz vector for proton is not in use due to not keeping the proton sector info
-                        break
-                    }
-                }
-                // Skip to the next event if no proton is found
-                if(!hasProton){
-                    continue
-                }
-                
-                for(int ipart = 1; ipart < partb.getRows(); ipart++){
-                    def pid_pip = partb.getInt("pid", ipart)
-                    
-                    if(pid_pip == 211){ // Is a Pi+
-                        
-                        pionCount += 1;                       // Increment pion counter
-                        Total_Events_Found += 1;              // Increment "total event" counter
-                        if(pionCount != 1){
-                            Multiple_Pions_Per_Electron += 1; // Increment "number of double-counted electron" counter
+                def beamCharge = evb.getFloat("beamCharge", 0)
+
+                if(pid == 11){ // Is an electron
+
+                    int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+
+                    // Check for the presence of a proton (for Harut's Vector Meson Cuts)
+                    boolean hasProton = false
+                    // def proV = null // Declare proV to store the proton Lorentz vector
+                    def prox = null
+                    def proy = null
+                    def proz = null
+                    for (int ipart_proton = 1; ipart_proton < partb.getRows(); ipart_proton++){
+                        def pid_pro = partb.getInt("pid", ipart_proton)
+                        if(pid_pro == 2212){
+                            hasProton = true
+                            prox = partb.getFloat("px", ipart_proton)
+                            proy = partb.getFloat("py", ipart_proton)
+                            proz = partb.getFloat("pz", ipart_proton)
+                            // proV = LorentzVector.withPID(pid_pro, prox, proy, proz) // Get the Lorentz vector of the proton
+                            // Lorentz vector for proton is not in use due to not keeping the proton sector info
+                            break
                         }
-                        
-                        def ex = partb.getFloat("px", 0)
-                        def ey = partb.getFloat("py", 0)
-                        def ez = partb.getFloat("pz", 0)
-                        def ele = LorentzVector.withPID(pid, ex, ey, ez)
-                        
-                        def px = partb.getFloat("px", ipart)
-                        def py = partb.getFloat("py", ipart)
-                        def pz = partb.getFloat("pz", ipart)
-                        def pip0 = LorentzVector.withPID(pid_pip, px, py, pz)
+                    }
+                    // Skip to the next event if no proton is found
+                    if(!hasProton){
+                        continue
+                    }
 
-                        // Coordinate of the matched hit (cm) - for Valerii's cuts (done in python)
-                        float Hx = ecb.getFloat("hx", 0)
-                        float Hy = ecb.getFloat("hy", 0)
+                    for(int ipart = 1; ipart < partb.getRows(); ipart++){
+                        def pid_pip = partb.getInt("pid", ipart)
 
-                        // Spherical Momentum Coordinates
-                        def elPhi = (180/3.1415926)*ele.phi()
-                        def pipPhi = (180/3.1415926)*pip0.phi()
+                        if(pid_pip == 211){ // Is a Pi+
 
-                        // Electron Sectors (From Angle)
-                        def esec_a = 0
-                        if(elPhi >=  -30 && elPhi <   30){esec_a = 1}
-                        if(elPhi >=   30 && elPhi <   90){esec_a = 2}
-                        if(elPhi >=   90 && elPhi <  150){esec_a = 3}
-                        if(elPhi >=  150 || elPhi < -150){esec_a = 4}
-                        if(elPhi >=  -90 && elPhi <  -30){esec_a = 5}
-                        if(elPhi >= -150 && elPhi <  -90){esec_a = 6}
+                            pionCount += 1;                       // Increment pion counter
+                            Total_Events_Found += 1;              // Increment "total event" counter
+                            if(pionCount != 1){
+                                Multiple_Pions_Per_Electron += 1; // Increment "number of double-counted electron" counter
+                            }
 
-                        // Pi+ Sectors (From Angle)
-                        def pipsec_a = 0
-                        if(pipPhi >=  -45 && pipPhi <   15){pipsec_a = 1}
-                        if(pipPhi >=   15 && pipPhi <   75){pipsec_a = 2}
-                        if(pipPhi >=   75 && pipPhi <  135){pipsec_a = 3}
-                        if(pipPhi >=  135 || pipPhi < -165){pipsec_a = 4}
-                        if(pipPhi >= -105 && pipPhi <  -45){pipsec_a = 5}
-                        if(pipPhi >= -165 && pipPhi < -105){pipsec_a = 6}
-                        
-                        tt.fill(evn, run, beamCharge, pionCount,
-                                ex,  ey,  ez, px, py, pz,  prox, proy, proz
-                            esec_a, pipsec_a, Hx, Hy)
+                            def ex = partb.getFloat("px", 0)
+                            def ey = partb.getFloat("py", 0)
+                            def ez = partb.getFloat("pz", 0)
+                            def ele = LorentzVector.withPID(pid, ex, ey, ez)
+
+                            def px = partb.getFloat("px", ipart)
+                            def py = partb.getFloat("py", ipart)
+                            def pz = partb.getFloat("pz", ipart)
+                            def pip0 = LorentzVector.withPID(pid_pip, px, py, pz)
+
+                            // Coordinate of the matched hit (cm) - for Valerii's cuts (done in python)
+                            float Hx = ecb.getFloat("hx", 0)
+                            float Hy = ecb.getFloat("hy", 0)
+
+                            // Spherical Momentum Coordinates
+                            def elPhi = (180/3.1415926)*ele.phi()
+                            def pipPhi = (180/3.1415926)*pip0.phi()
+
+                            // Electron Sectors (From Angle)
+                            def esec_a = 0
+                            if(elPhi >=  -30 && elPhi <   30){esec_a = 1}
+                            if(elPhi >=   30 && elPhi <   90){esec_a = 2}
+                            if(elPhi >=   90 && elPhi <  150){esec_a = 3}
+                            if(elPhi >=  150 || elPhi < -150){esec_a = 4}
+                            if(elPhi >=  -90 && elPhi <  -30){esec_a = 5}
+                            if(elPhi >= -150 && elPhi <  -90){esec_a = 6}
+
+                            // Pi+ Sectors (From Angle)
+                            def pipsec_a = 0
+                            if(pipPhi >=  -45 && pipPhi <   15){pipsec_a = 1}
+                            if(pipPhi >=   15 && pipPhi <   75){pipsec_a = 2}
+                            if(pipPhi >=   75 && pipPhi <  135){pipsec_a = 3}
+                            if(pipPhi >=  135 || pipPhi < -165){pipsec_a = 4}
+                            if(pipPhi >= -105 && pipPhi <  -45){pipsec_a = 5}
+                            if(pipPhi >= -165 && pipPhi < -105){pipsec_a = 6}
+
+                            tt.fill(evn, run, beamCharge, pionCount,
+                                    ex,  ey,  ez, px, py, pz,  prox, proy, proz,
+                                esec_a, pipsec_a, Hx, Hy)
+                        }
                     }
                 }
             }
         }
+        reader.close()
     }
-
-    reader.close()
-}
 }
 
 System.out.println("");
