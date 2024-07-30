@@ -39,6 +39,7 @@ ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 Saving_Q         = True
 Sim_Test         = False
 Mod_Test         = False
+Tag_ProQ         = False
 Closure_Test     = False
 Fit_Test         = True
 Create_txt_File  = True
@@ -60,6 +61,7 @@ if(len(sys.argv) > 1):
         Create_txt_File  = False if("no_txt"      in str(arg_option_1)) else True if("txt"  in str(arg_option_1)) else Create_txt_File
         Create_stat_File = False if("no_stat"     in str(arg_option_1)) else True if("stat" in str(arg_option_1)) else (Create_stat_File and Create_txt_File)
         Cor_Compare      = True  if(any(compare   in str(arg_option_1) for compare in ["cor_compare", "Cor_Compare", "CC"])) else False
+        Tag_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["proton",      "tagged",      "TP"])) else False
         if(Closure_Test):
             Sim_Test = True
             Mod_Test = False
@@ -92,6 +94,9 @@ if(len(sys.argv) > 1):
         for compare in ["cor_compare", "Cor_Compare", "CC"]:
             arg_option_1 = arg_option_1.replace(f"_{compare}", "")
             arg_option_1 = arg_option_1.replace(f"{compare}",  "")
+        for taggedP in ["proton", "tagged", "TP"]:
+            arg_option_1 = arg_option_1.replace(f"_{taggedP}", "")
+            arg_option_1 = arg_option_1.replace(f"{taggedP}",  "")
         Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
         if(Smearing_Options == ""):
             Smearing_Options = "both"
@@ -115,6 +120,10 @@ if(Mod_Test):
         Standard_Histogram_Title_Addition = "".join([str(Standard_Histogram_Title_Addition), " - Using Modulated Response Matrix"])
     else:
         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
+
+if(Tag_ProQ):
+    Standard_Histogram_Title_Addition = "".join(["Tagged Proton", f" - {Standard_Histogram_Title_Addition}" if(Standard_Histogram_Title_Addition not in [""]) else ""])
+    print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}Tagged Proton{color.END}{color.BBLUE}' Files{color.END}\n")
         
 if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
     print(f"\n{color.BOLD}Unfolding Simulated data for Closure Tests should (probably) not use any additional smearing (forcing choice change)\n{color.END}")
@@ -860,7 +869,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=========================#####======================================#####=========================#####
 ############################################################################################################
     elif((Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]) or (Response_2D in ["N/A", "None", "Error"])):
-        print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
+        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
         if(Response_2D in ["N/A", "None", "Error"]):
             print(f"{color.Error}WARNING: NOT Using Response Matrix for unfolding{color.END}")
         if((str(MC_REC_1D.GetName()).find("-[NumBins")) != -1):
@@ -898,7 +907,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Unfolded.SetBinError(ii,   0)
                     Bin_Unfolded.SetBinContent(ii, 0)
             
-            print("".join([color.BOLD, color.CYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure.", color.END]))
+            print("".join([color.BCYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure.", color.END]))
             if(Response_2D in ["N/A", "None", "Error"]):
                 return [Bin_Unfolded, Bin_Acceptance]
         except:
@@ -920,7 +929,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=========================#####========================================#####=========================#####
 ##############################################################################################################
     if((("RooUnfold" in str(Method)) or (str(Method) in ["Default"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])) and (Response_2D not in ["N/A", "None", "Error"])):
-        print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))        
+        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))        
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
@@ -990,7 +999,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfold_Title = "ERROR"
                 if("svd" in str(Method)):
                     Unfold_Title = "RooUnfold (SVD)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
 
                     ##################################################
                     ##=====##  SVD Regularization Parameter  ##=====##
@@ -1004,23 +1013,23 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 
                 elif(("bbb" in str(Method)) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
 
                     Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
 
                 elif("inv" in str(Method)):
                     Unfold_Title = "RooUnfold Inversion (without regulation)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
 
                     Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
 
                 else:
                     Unfold_Title = "RooUnfold (Bayesian)"
                     if(str(Method) not in ["RooUnfold", "RooUnfold_bayes", "Default"]):
-                        print("".join(["\t", color.RED, "Method '",                 color.BOLD,   str(Method),       color.END_R,           "' is unknown/undefined...", color.END]))
-                        print("".join(["\t", color.RED, "Defaulting to using the ", color.BGREEN, str(Unfold_Title), color.END_R,           " method to unfold...",      color.END]))
+                        print("".join(["\t", color.RED, "Method '",                 color.BOLD,   str(Method),       color.END_R, "' is unknown/undefined...", color.END]))
+                        print("".join(["\t", color.RED, "Defaulting to using the ", color.BGREEN, str(Unfold_Title), color.END_R, " method to unfold...",      color.END]))
                     else:
-                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " method to unfold...",      color.END]))
+                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END_C, " method to unfold...",      color.END]))
                         
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
@@ -1064,7 +1073,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
-                print("".join([color.BOLD, color.CYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
+                print("".join([color.BCYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
                 if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
                     return [Unfolded_Histo, Response_RooUnfold]
                 else:
@@ -4543,6 +4552,130 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
 
 
 ##################################################################################################################################################################
+##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
+##################################################################################################################################################################
+# # Run the following code whenever changes are made to the z-pT bins in order to get the correct (new) values for 'Area_of_z_pT_Bins'
+# Area_of_z_pT_Bins = {}
+# for Q2_y_Bin     in range(1, 18):
+#     Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = 0
+#     for z_pT_Bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin)[0]):
+#         if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+#             continue
+#         else:
+#             z_Max, z_Min, pTMax, pTMin = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT_Bin, Q2_y_Bin_Num=Q2_y_Bin)
+#             Area_of_z_pT_Bins[f"{Q2_y_Bin}"]           +=       abs((z_Max - z_Min)*(pTMax - pTMin))
+#             Area_of_z_pT_Bins[f"{Q2_y_Bin}_{z_pT_Bin}"] = round(abs((z_Max - z_Min)*(pTMax - pTMin)), 6)
+#     Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = round(Area_of_z_pT_Bins[f"{Q2_y_Bin}"], 6)
+# print(f"Area_of_z_pT_Bins = {Area_of_z_pT_Bins}")
+Area_of_z_pT_Bins = {'1': 0.4741, '1_1': 0.0527, '1_2': 0.031, '1_3': 0.031, '1_4': 0.031, '1_5': 0.0341, '1_6': 0.0372, '1_7': 0.0744, '1_8': 0.0187, '1_9': 0.011, '1_10': 0.011, '1_11': 0.011, '1_12': 0.0121, '1_13': 0.0132, '1_14': 0.0264, '1_15': 0.0102, '1_16': 0.006, '1_17': 0.006, '1_18': 0.006, '1_19': 0.0066, '1_20': 0.0072, '1_22': 0.0068, '1_23': 0.004, '1_24': 0.004, '1_25': 0.004, '1_26': 0.0044, '1_29': 0.0051, '1_30': 0.003, '1_31': 0.003, '1_32': 0.003, '2': 0.4564, '2_1': 0.05, '2_2': 0.025, '2_3': 0.025, '2_4': 0.0225, '2_5': 0.0325, '2_6': 0.065, '2_7': 0.024, '2_8': 0.012, '2_9': 0.012, '2_10': 0.0108, '2_11': 0.0156, '2_12': 0.0312, '2_13': 0.014, '2_14': 0.007, '2_15': 0.007, '2_16': 0.0063, '2_17': 0.0091, '2_18': 0.0182, '2_19': 0.01, '2_20': 0.005, '2_21': 0.005, '2_22': 0.0045, '2_23': 0.0065, '2_25': 0.006, '2_26': 0.003, '2_27': 0.003, '2_28': 0.0027, '2_29': 0.0039, '2_31': 0.008, '2_32': 0.004, '2_33': 0.004, '2_34': 0.0036, '3': 0.3661, '3_1': 0.0285, '3_2': 0.019, '3_3': 0.0171, '3_4': 0.019, '3_5': 0.019, '3_6': 0.0323, '3_7': 0.0225, '3_8': 0.015, '3_9': 0.0135, '3_10': 0.015, '3_11': 0.015, '3_12': 0.0255, '3_13': 0.012, '3_14': 0.008, '3_15': 0.0072, '3_16': 0.008, '3_17': 0.008, '3_18': 0.0136, '3_19': 0.0075, '3_20': 0.005, '3_21': 0.0045, '3_22': 0.005, '3_23': 0.005, '3_24': 0.0085, '3_25': 0.009, '3_26': 0.006, '3_27': 0.0054, '3_28': 0.006, '3_29': 0.006, '4': 0.3024, '4_1': 0.018, '4_2': 0.0108, '4_3': 0.0108, '4_4': 0.012, '4_5': 0.0156, '4_7': 0.0135, '4_8': 0.0081, '4_9': 0.0081, '4_10': 0.009, '4_11': 0.0117, '4_12': 0.0216, '4_13': 0.0105, '4_14': 0.0063, '4_15': 0.0063, '4_16': 0.007, '4_17': 0.0091, '4_18': 0.0168, '4_19': 0.0075, '4_20': 0.0045, '4_21': 0.0045, '4_22': 0.005, '4_23': 0.0065, '4_24': 0.012, '4_25': 0.0075, '4_26': 0.0045, '4_27': 0.0045, '4_28': 0.005, '4_29': 0.0065, '4_31': 0.0105, '4_32': 0.0063, '4_33': 0.0063, '4_34': 0.007, '4_35': 0.0091, '5': 0.469, '5_1': 0.0391, '5_2': 0.023, '5_3': 0.0207, '5_4': 0.023, '5_5': 0.0322, '5_6': 0.0759, '5_7': 0.0187, '5_8': 0.011, '5_9': 0.0099, '5_10': 0.011, '5_11': 0.0154, '5_12': 0.0363, '5_13': 0.0136, '5_14': 0.008, '5_15': 0.0072, '5_16': 0.008, '5_17': 0.0112, '5_18': 0.0264, '5_19': 0.0102, '5_20': 0.006, '5_21': 0.0054, '5_22': 0.006, '5_23': 0.0084, '5_25': 0.0068, '5_26': 0.004, '5_27': 0.0036, '5_28': 0.004, '5_29': 0.0056, '5_31': 0.0068, '5_32': 0.004, '5_33': 0.0036, '5_34': 0.004, '6': 0.4465, '6_1': 0.0459, '6_2': 0.027, '6_3': 0.0243, '6_4': 0.027, '6_5': 0.0378, '6_6': 0.0945, '6_7': 0.017, '6_8': 0.01, '6_9': 0.009, '6_10': 0.01, '6_11': 0.014, '6_12': 0.035, '6_13': 0.0119, '6_14': 0.007, '6_15': 0.0063, '6_16': 0.007, '6_17': 0.0098, '6_19': 0.0085, '6_20': 0.005, '6_21': 0.0045, '6_22': 0.005, '6_23': 0.007, '6_25': 0.0085, '6_26': 0.005, '6_27': 0.0045, '6_28': 0.005, '7': 0.3646, '7_1': 0.0285, '7_2': 0.0171, '7_3': 0.0171, '7_4': 0.019, '7_5': 0.0228, '7_7': 0.0195, '7_8': 0.0117, '7_9': 0.0117, '7_10': 0.013, '7_11': 0.0156, '7_12': 0.0299, '7_13': 0.012, '7_14': 0.0072, '7_15': 0.0072, '7_16': 0.008, '7_17': 0.0096, '7_18': 0.0184, '7_19': 0.009, '7_20': 0.0054, '7_21': 0.0054, '7_22': 0.006, '7_23': 0.0072, '7_24': 0.0138, '7_25': 0.006, '7_26': 0.0036, '7_27': 0.0036, '7_28': 0.004, '7_29': 0.0048, '7_31': 0.0075, '7_32': 0.0045, '7_33': 0.0045, '7_34': 0.005, '7_35': 0.006, '8': 0.2281, '8_1': 0.021, '8_2': 0.0126, '8_3': 0.0112, '8_4': 0.0126, '8_5': 0.0196, '8_6': 0.0105, '8_7': 0.0063, '8_8': 0.0056, '8_9': 0.0063, '8_10': 0.0098, '8_11': 0.0075, '8_12': 0.0045, '8_13': 0.004, '8_14': 0.0045, '8_15': 0.007, '8_16': 0.0075, '8_17': 0.0045, '8_18': 0.004, '8_19': 0.0045, '8_20': 0.007, '8_21': 0.0045, '8_22': 0.0027, '8_23': 0.0024, '8_24': 0.0027, '8_25': 0.0042, '8_26': 0.0045, '8_27': 0.0027, '8_28': 0.0024, '8_29': 0.0027, '8_30': 0.0042, '8_31': 0.009, '8_32': 0.0054, '8_33': 0.0048, '8_34': 0.0054, '9': 0.439, '9_1': 0.0476, '9_2': 0.0224, '9_3': 0.0224, '9_4': 0.0224, '9_5': 0.0336, '9_6': 0.0448, '9_7': 0.0588, '9_8': 0.0204, '9_9': 0.0096, '9_10': 0.0096, '9_11': 0.0096, '9_12': 0.0144, '9_13': 0.0192, '9_14': 0.0252, '9_15': 0.0102, '9_16': 0.0048, '9_17': 0.0048, '9_18': 0.0048, '9_19': 0.0072, '9_20': 0.0096, '9_22': 0.0068, '9_23': 0.0032, '9_24': 0.0032, '9_25': 0.0032, '9_26': 0.0048, '9_29': 0.0068, '9_30': 0.0032, '9_31': 0.0032, '9_32': 0.0032, '10': 0.4111, '10_1': 0.0352, '10_2': 0.022, '10_3': 0.0198, '10_4': 0.022, '10_5': 0.0308, '10_6': 0.0572, '10_7': 0.016, '10_8': 0.01, '10_9': 0.009, '10_10': 0.01, '10_11': 0.014, '10_12': 0.026, '10_13': 0.0128, '10_14': 0.008, '10_15': 0.0072, '10_16': 0.008, '10_17': 0.0112, '10_18': 0.0208, '10_19': 0.0096, '10_20': 0.006, '10_21': 0.0054, '10_22': 0.006, '10_23': 0.0084, '10_25': 0.0048, '10_26': 0.003, '10_27': 0.0027, '10_28': 0.003, '10_29': 0.0042, '10_31': 0.0064, '10_32': 0.004, '10_33': 0.0036, '10_34': 0.004, '11': 0.3184, '11_1': 0.0315, '11_2': 0.021, '11_3': 0.021, '11_4': 0.0273, '11_5': 0.0336, '11_6': 0.0195, '11_7': 0.013, '11_8': 0.013, '11_9': 0.0169, '11_10': 0.0208, '11_11': 0.0105, '11_12': 0.007, '11_13': 0.007, '11_14': 0.0091, '11_15': 0.0112, '11_16': 0.0075, '11_17': 0.005, '11_18': 0.005, '11_19': 0.0065, '11_20': 0.008, '11_21': 0.0075, '11_22': 0.005, '11_23': 0.005, '11_24': 0.0065, '12': 0.199, '12_1': 0.0285, '12_2': 0.0152, '12_3': 0.0152, '12_4': 0.0171, '12_6': 0.012, '12_7': 0.0064, '12_8': 0.0064, '12_9': 0.0072, '12_10': 0.012, '12_11': 0.009, '12_12': 0.0048, '12_13': 0.0048, '12_14': 0.0054, '12_15': 0.009, '12_16': 0.006, '12_17': 0.0032, '12_18': 0.0032, '12_19': 0.0036, '12_20': 0.006, '12_21': 0.009, '12_22': 0.0048, '12_23': 0.0048, '12_24': 0.0054, '13': 0.4288, '13_1': 0.0442, '13_2': 0.0312, '13_3': 0.026, '13_4': 0.0364, '13_5': 0.0832, '13_6': 0.0187, '13_7': 0.0132, '13_8': 0.011, '13_9': 0.0154, '13_10': 0.0352, '13_11': 0.0102, '13_12': 0.0072, '13_13': 0.006, '13_14': 0.0084, '13_15': 0.0192, '13_16': 0.0085, '13_17': 0.006, '13_18': 0.005, '13_19': 0.007, '13_21': 0.0068, '13_22': 0.0048, '13_23': 0.004, '13_24': 0.0056, '13_26': 0.0068, '13_27': 0.0048, '13_28': 0.004, '14': 0.4026, '14_1': 0.0336, '14_2': 0.021, '14_3': 0.0189, '14_4': 0.021, '14_5': 0.0294, '14_6': 0.0546, '14_7': 0.0176, '14_8': 0.011, '14_9': 0.0099, '14_10': 0.011, '14_11': 0.0154, '14_12': 0.0286, '14_13': 0.0112, '14_14': 0.007, '14_15': 0.0063, '14_16': 0.007, '14_17': 0.0098, '14_18': 0.0182, '14_19': 0.008, '14_20': 0.005, '14_21': 0.0045, '14_22': 0.005, '14_23': 0.007, '14_25': 0.0064, '14_26': 0.004, '14_27': 0.0036, '14_28': 0.004, '14_29': 0.0056, '14_31': 0.0064, '14_32': 0.004, '14_33': 0.0036, '14_34': 0.004, '15': 0.2975, '15_1': 0.0408, '15_2': 0.024, '15_3': 0.024, '15_4': 0.0312, '15_6': 0.0153, '15_7': 0.009, '15_8': 0.009, '15_9': 0.0117, '15_10': 0.0225, '15_11': 0.0136, '15_12': 0.008, '15_13': 0.008, '15_14': 0.0104, '15_15': 0.02, '15_16': 0.0085, '15_17': 0.005, '15_18': 0.005, '15_19': 0.0065, '15_21': 0.0085, '15_22': 0.005, '15_23': 0.005, '15_24': 0.0065, '16': 0.3823, '16_1': 0.0425, '16_2': 0.025, '16_3': 0.025, '16_4': 0.025, '16_5': 0.035, '16_6': 0.06, '16_7': 0.0187, '16_8': 0.011, '16_9': 0.011, '16_10': 0.011, '16_11': 0.0154, '16_12': 0.0264, '16_13': 0.0119, '16_14': 0.007, '16_15': 0.007, '16_16': 0.007, '16_17': 0.0098, '16_19': 0.0068, '16_20': 0.004, '16_21': 0.004, '16_22': 0.004, '16_25': 0.0068, '16_26': 0.004, '16_27': 0.004, '17': 0.313, '17_1': 0.0336, '17_2': 0.0216, '17_3': 0.0216, '17_4': 0.0192, '17_5': 0.024, '17_6': 0.0432, '17_7': 0.014, '17_8': 0.009, '17_9': 0.009, '17_10': 0.008, '17_11': 0.01, '17_12': 0.018, '17_13': 0.0084, '17_14': 0.0054, '17_15': 0.0054, '17_16': 0.0048, '17_17': 0.006, '17_18': 0.0108, '17_19': 0.007, '17_20': 0.0045, '17_21': 0.0045, '17_22': 0.004, '17_23': 0.005, '17_25': 0.0056, '17_26': 0.0036, '17_27': 0.0036, '17_28': 0.0032}
+
+def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t)", Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off"):
+    Default_Histo_Name_Integrated = str(str(Default_Histo_Name.replace("Data_Type", Method)).replace("z_pT_Bin_All", "z_pT_Bin_Integrated"))    
+    if((Multi_Dim_Option   not in ["Off"]) and ("Response" not in str(Method))):
+        if(Multi_Dim_Option    in ["5D"]):
+            Default_Histo_Name_Integrated     = str(Default_Histo_Name_Integrated.replace(VARIABLE,       "(MultiDim_Q2_y_z_pT_phi_h)")).replace("(1D)", "(MultiDim_5D_Histo)")
+        elif(Multi_Dim_Option  in ["3D"]):
+            Default_Histo_Name_Integrated     = str(Default_Histo_Name_Integrated.replace(VARIABLE,  "(MultiDim_z_pT_Bin_Y_bin_phi_t)")).replace("(1D)", "(MultiDim_3D_Histo)")
+        else:
+            if("y" in Binning_Method):
+                Default_Histo_Name_Integrated = str(Default_Histo_Name_Integrated.replace(VARIABLE, "(Multi_Dim_z_pT_Bin_y_bin_phi_t)")).replace("(1D)", "(Multi-Dim Histo)")
+            else:
+                Default_Histo_Name_Integrated = str(Default_Histo_Name_Integrated.replace(VARIABLE, "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")).replace("(1D)", "(Multi-Dim Histo)")
+    if(str(Method) in ["rdf", "gdf", "tdf"]):
+        Default_Histo_Name_Integrated         = str(Default_Histo_Name_Integrated.replace("Smear",  "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear"))
+        
+    Allow_Fitting = ("phi" in VARIABLE) and (Fit_Test) and (Method not in ["rdf", "mdf", "Background", "Relative_Background"])
+        
+    if(Allow_Fitting):
+        for entry_type in ["1D", "(MultiDim_5D_Histo)", "(MultiDim_3D_Histo)", "(Multi-Dim Histo)"]:
+            Integrated_Histo_Fit_Function = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Function"))
+            Integrated_Histo__Chi_Squared = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Chi_Squared"))
+            Integrated_Histo____Fit_Par_A = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Par_A"))
+            Integrated_Histo____Fit_Par_B = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Par_B"))
+            Integrated_Histo____Fit_Par_C = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Par_C"))
+            if("Fit_Function" in str(Integrated_Histo_Fit_Function)):
+                break
+        if("Fit_Function" not in str(Integrated_Histo_Fit_Function)):
+            raise TypeError(f"Integrated_Histo_Fit_Function = {Integrated_Histo_Fit_Function} is missing the proper naming convensions (i.e., it should have 'Fit_Function' in its name)")
+    
+    Bin_Title_Integrated_z_pT_Bins     = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: Integrated}}}"])
+    if(Standard_Histogram_Title_Addition not in [""]):
+        Bin_Title_Integrated_z_pT_Bins = "".join(["#splitline{", str(Bin_Title_Integrated_z_pT_Bins), "}{", str(Standard_Histogram_Title_Addition), "}"])
+    if("sec" in str(VARIABLE)):
+        Variable_Title = "#phi_{h}"
+        for particle_sec in ["esec", "pipsec"]:
+            for sec in [1, 2, 3, 4, 5, 6]:
+                if(f"{particle_sec}_{sec}" in VARIABLE):
+                    Bin_Title_Integrated_z_pT_Bins = Bin_Title_Integrated_z_pT_Bins.replace("".join(["{", str(Standard_Histogram_Title_Addition), "}"]), "".join(["{", "#pi^{+} Pion" if(particle_sec in ["pipsec"]) else "Electron", " Sector ", str(sec), " #topbar ", str(Standard_Histogram_Title_Addition), "}"]))
+                    Particle_Sector = f"{particle_sec}_{sec}"
+                    break
+    else:
+        Particle_Sector = "N/A"
+        Variable_Title = "".join(["P_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(el)", "(pip)"]) else "".join(["#theta_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(elth)", "(pipth)"]) else "".join(["#phi_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(elPhi)", "(pipPhi)"]) else "#phi_{h}"
+        if("#phi_{h}" not in Variable_Title):
+            for var_error_title in ["{elth}", "{elPhi}", "{pipth}", "{pipPhi}"]:
+                Variable_Title = Variable_Title.replace(var_error_title, "{El}" if("el" in var_error_title) else "{#pi^{+}}")
+        if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in (Default_Histo_Name_Integrated))):
+            Variable_Title = f"{Variable_Title} (Smeared)"
+            
+    z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
+    for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+            continue
+        Default_Histo_Name_z_pT_Bin = str(str(Default_Histo_Name_Integrated.replace("z_pT_Bin_All", "".join(["z_pT_Bin_", str(z_pT_Bin)]))).replace("z_pT_Bin_Integrated", "".join(["z_pT_Bin_", str(z_pT_Bin)])))
+        
+        try:
+            if("1D" in str(type(Histogram_List_All[Default_Histo_Name_Integrated]))):
+                # Histogram_List_All[str(Default_Histo_Name_Integrated)] Already Exists...
+                hist_clone = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone()
+                hist_clone.Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+                Histogram_List_All[Default_Histo_Name_Integrated].Add(hist_clone)
+                # hist_clone.Delete()
+                hist_clone = None  # Explicitly drop the reference, allowing Python to clean up
+            else:
+                raise TypeError(f"{Default_Histo_Name_Integrated} is NOT a 1D histogram")
+        except KeyError:
+            # print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}] from the initial z-pT Bin (Bin {z_pT_Bin})...{color.END}")
+            print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}]...{color.END}")
+            Histogram_List_All[Default_Histo_Name_Integrated] = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone(Default_Histo_Name_Integrated)
+            Histogram_List_All[Default_Histo_Name_Integrated].SetTitle(f"{Bin_Title_Integrated_z_pT_Bins};{Variable_Title}")
+            Histogram_List_All[Default_Histo_Name_Integrated].Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+            ##################################################################### ################################################################
+            #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineStyle(1)
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1)
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(2)
+            # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1 if(str(Method) not in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else 1.5)
+            # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(3  if(str(Method)     in ["gdf", "Background", "Relative_Background", "tdf"]) else 2)
+            Set_Color       = root_color.Blue if(str(Method) in ["rdf"]) else root_color.Red if(str(Method) in ["mdf"]) else root_color.Green if(str(Method) in ["gdf"]) else root_color.Black if(str(Method) in ["Background", "Relative_Background"]) else root_color.Cyan  if(str(Method) in ["tdf"]) else root_color.Brown if(str(Method) in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else root_color.Teal  if(str(Method) in ["Bayesian", "Bayes"]) else root_color.Pink  if(str(Method) in ["SVD"]) else "ERROR"
+            Set_MarkerStyle = 21              if(str(Method) in ["mdf"]) else 20             if(str(Method) in ["gdf", "tdf", "Background", "Relative_Background"]) else 21
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineColor(Set_Color)
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerColor(Set_Color)
+            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerStyle(Set_MarkerStyle)
+            #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
+            ##################################################################### ################################################################
+        except Exception as e:
+            # Re-raise any other unexpected exceptions
+            print(f"Unexpected error occurred: {e}")
+            raise
+            
+    try:
+        if(Allow_Fitting):
+            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special="Normal")
+    except Exception as e:
+        print(f"{color.Error}ERROR IN 'Integrated z-pT Bins' METHOD = '{str(Method)}':\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+    
+    return Histogram_List_All
+    
+##################################################################################################################################################################
+##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
+##################################################################################################################################################################
+
+
+
+
+
+##################################################################################################################################################################
 ##==========##==========## Function for Creating the Images for All z-pT Bins Together  ##==========##==========##==========##==========##==========##==========##
 ##################################################################################################################################################################
 
@@ -5158,7 +5291,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             print("".join([color.Error, "ERROR IN METHOD = '", str(Method), "':\n", color.END_R, str(traceback.format_exc()), color.END]))
 
     else:
-        Default_Histo_Name_Any     = str(Default_Histo_Name)
+        Default_Histo_Name_Any     = str(Default_Histo_Name).replace("z_pT_Bin_All", "z_pT_Bin_Integrated" if(str(Method) not in ["Acceptance"]) else "z_pT_Bin_All")
         if(Multi_Dim_Option   not in ["Off"]):
             if(Multi_Dim_Option   in ["5D"]):
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
@@ -5895,6 +6028,9 @@ if(Pass_Version not in [""]):
         Standard_Histogram_Title_Addition = Pass_Version
 
 
+if(Tag_ProQ):
+    Common_Name = f"Tagged_Proton_{Common_Name}"
+
 print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
         
         
@@ -6258,15 +6394,15 @@ for ii in mdf.GetListOfKeys():
                 out_print_main_tdf = out_print_main_gdf
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, color.CYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
                         continue
                 else:
                     print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,             str(out_print_main_rdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN,            str(out_print_main_gdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
                 continue
 
             count += 1
@@ -6377,15 +6513,15 @@ for ii in mdf.GetListOfKeys():
                 out_print_main_tdf = out_print_main_gdf
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, color.CYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
                         continue
                 else:
                     print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,             str(out_print_main_rdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN,            str(out_print_main_gdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
                 continue
 
             count += 1
@@ -6672,15 +6808,15 @@ for ii in mdf.GetListOfKeys():
                 out_print_main_tdf = out_print_main_gdf
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, color.CYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
                         continue
                 else:
                     print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,             str(out_print_main_rdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN,            str(out_print_main_gdf), color.END, "\n"]))
+                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
                 continue
 
 
@@ -7706,7 +7842,7 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #         print(f"\t{type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
 print("\nFinal Count =", final_count)
-del final_count
+# del final_count
 
 
 
@@ -7834,6 +7970,40 @@ if(("MultiDim_Q2_y_z_pT_phi_h"       in Variable_List_Final) and ("5D"   not in 
     Variable_List_Final.remove("MultiDim_Q2_y_z_pT_phi_h")
 if(("MultiDim_z_pT_Bin_Y_bin_phi_t"  in Variable_List_Final) and ("3D"   not in Multi_Dimensional_List)):
     Variable_List_Final.remove("MultiDim_z_pT_Bin_Y_bin_phi_t")
+    
+    
+print("")
+for variable in Variable_List:
+    if((variable not in ["phi_t"]) or ("sec" in variable)):
+        continue
+    for BIN in Q2_xB_Bin_List:
+        BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
+        for smear in Smearing_final_list:
+            HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+            for Multi_Dim in Multi_Dimensional_List:
+                if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
+                    continue
+                if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"])):
+                    for method in Method_Type_List:
+                        if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background"]) and (Multi_Dim not in ["Off"])):
+                            continue
+                        if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
+                            # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
+                            continue
+                        if((method in ["gdf", "tdf"]) and ("Smear" in str(smear))):
+                            continue
+                        if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"]) or (variable not in ["phi_t"]) or ("sec" in variable)):
+                            continue
+                        if(method in ["Data"]):
+                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                            final_count += 2
+                        else:
+                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                            final_count += 1
+
+print("\n(Extra) Final Count =", final_count, "\n")
+del final_count
 
 to_be_saved_count = 0
 Pars_Canvas, Histo_Pars_VS_Z, Histo_Pars_VS_PT, Pars_Legends = {}, {}, {}, {}
@@ -8253,10 +8423,12 @@ if(Create_txt_File):
             z_pT_Bin_Range   = 42       if(str(BIN_NUM) in ["2"]) else  36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
             if("Y_bin" in Binning_Method):
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[0]
-            for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
+            for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
+                if(z_pT_Bin in [-1]):
+                    z_pT_Bin = "Integrated"
                 if(z_pT_Bin in [0]):
                     z_pT_Bin = "All"
-                if((z_pT_Bin not in [0, "0", "All"]) and (skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method))):
+                if((z_pT_Bin not in [0, "0", "All", "Integrated"]) and (skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method))):
                     continue
                 for smear in Smearing_final_list:
                     if(smear not in ["''"]):
