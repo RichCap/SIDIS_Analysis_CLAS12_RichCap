@@ -292,9 +292,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                      if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
     if(datatype in ['mdf', 'pdf']):
 #         if(str(file_location) in ['all', 'All', 'time']):
 #             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
@@ -321,9 +321,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(str(file_location) in ['all', 'All', 'time']):
             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
             files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"                                                               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+            if(Use_New_PF):
+                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
+                if(Tag_Proton):
+                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_"                                                       if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",      str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                         if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
     
@@ -1005,7 +1009,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
         # rdf = rdf.Define('epsilon', 'vals[9]') # ratio of the longitudinal and transverse photon flux
         
-        if(Use_New_PF):
+        if(Use_New_PF and (str(datatype) not in ["gdf"])):
             print(f"\n{color.BOLD}Creating variables for Valerii's (New) Fiducial Cuts{color.END}")
             rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A')
         
@@ -5911,7 +5915,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
         List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
-        if(Use_New_PF): # Added on 6/6/2024 (for drift chambers)
+        if(Use_New_PF and (str(datatype) not in ["gdf"])): # Added on 6/6/2024 (for drift chambers)
             # Variables do not exist in older files
             
             # Updated on 7/8/2024 (for pip PCal)
