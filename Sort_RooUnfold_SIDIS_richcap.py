@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from MyCommonAnalysisFunction_richcap import color, color_bg
 print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis (File Sorting)\n{color.END}")
