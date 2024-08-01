@@ -4598,25 +4598,16 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
         if("Fit_Function" not in str(Integrated_Histo_Fit_Function)):
             raise TypeError(f"Integrated_Histo_Fit_Function = {Integrated_Histo_Fit_Function} is missing the proper naming convensions (i.e., it should have 'Fit_Function' in its name)")
     
-    Bin_Title_Integrated_z_pT_Bins     = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: Integrated}}}"])
-    if(Standard_Histogram_Title_Addition not in [""]):
-        Bin_Title_Integrated_z_pT_Bins = "".join(["#splitline{", str(Bin_Title_Integrated_z_pT_Bins), "}{", str(Standard_Histogram_Title_Addition), "}"])
     if("sec" in str(VARIABLE)):
         Variable_Title = "#phi_{h}"
-        for particle_sec in ["esec", "pipsec"]:
-            for sec in [1, 2, 3, 4, 5, 6]:
-                if(f"{particle_sec}_{sec}" in VARIABLE):
-                    Bin_Title_Integrated_z_pT_Bins = Bin_Title_Integrated_z_pT_Bins.replace("".join(["{", str(Standard_Histogram_Title_Addition), "}"]), "".join(["{", "#pi^{+} Pion" if(particle_sec in ["pipsec"]) else "Electron", " Sector ", str(sec), " #topbar ", str(Standard_Histogram_Title_Addition), "}"]))
-                    Particle_Sector = f"{particle_sec}_{sec}"
-                    break
     else:
         Particle_Sector = "N/A"
         Variable_Title = "".join(["P_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(el)", "(pip)"]) else "".join(["#theta_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(elth)", "(pipth)"]) else "".join(["#phi_{", str(VARIABLE.replace("(", "")).replace(")", ""), "}"]) if(VARIABLE in ["(elPhi)", "(pipPhi)"]) else "#phi_{h}"
         if("#phi_{h}" not in Variable_Title):
             for var_error_title in ["{elth}", "{elPhi}", "{pipth}", "{pipPhi}"]:
                 Variable_Title = Variable_Title.replace(var_error_title, "{El}" if("el" in var_error_title) else "{#pi^{+}}")
-        if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in (Default_Histo_Name_Integrated))):
-            Variable_Title = f"{Variable_Title} (Smeared)"
+    if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in (Default_Histo_Name_Integrated))):
+        Variable_Title = f"{Variable_Title} (Smeared)"
             
     z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
     for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
@@ -4628,9 +4619,8 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             if("1D" in str(type(Histogram_List_All[Default_Histo_Name_Integrated]))):
                 # Histogram_List_All[str(Default_Histo_Name_Integrated)] Already Exists...
                 hist_clone = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone()
-                hist_clone.Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+                # hist_clone.Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
                 Histogram_List_All[Default_Histo_Name_Integrated].Add(hist_clone)
-                # hist_clone.Delete()
                 hist_clone = None  # Explicitly drop the reference, allowing Python to clean up
             else:
                 raise TypeError(f"{Default_Histo_Name_Integrated} is NOT a 1D histogram")
@@ -4638,8 +4628,10 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             # print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}] from the initial z-pT Bin (Bin {z_pT_Bin})...{color.END}")
             print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}]...{color.END}")
             Histogram_List_All[Default_Histo_Name_Integrated] = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone(Default_Histo_Name_Integrated)
+            Bin_Title_Integrated_z_pT_Bins = str(Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()).replace("z-P_{T} Bin: 1}", "z-P_{T} Bin: Integrated}")
             Histogram_List_All[Default_Histo_Name_Integrated].SetTitle(f"{Bin_Title_Integrated_z_pT_Bins};{Variable_Title}")
-            Histogram_List_All[Default_Histo_Name_Integrated].Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+            # print(f"Final Title   = {Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()}")
+            # Histogram_List_All[Default_Histo_Name_Integrated].Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
             ##################################################################### ################################################################
             #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
             Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineStyle(1)
