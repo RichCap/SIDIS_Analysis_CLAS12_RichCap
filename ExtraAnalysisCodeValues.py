@@ -1696,21 +1696,62 @@ else{
 }
 """
 # Up-to-date as of: 7/3/2024 (new hipo.root files - V4)
+# New_Fiducial_Pip_Sector_Cuts = """
+# if((((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) > (20.5)*(20.5)) || (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (5.2)*(5.2))){
+#     return false;
+# }
+# else{
+#     bool Fiducial_DC_Cuts =                      (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (20.5)*(20.5));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.3379)*pip_x_DC  + (0.5954))  && (pip_y_DC <   (0.6801)*pip_x_DC + (-2.1023)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-56.375)*pip_x_DC  + (95.4688)) && (pip_y_DC >   (0.8029)*pip_x_DC + (1.1253)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.5307)*pip_x_DC  + (1.7336))  && (pip_y_DC <  (-5.7821)*pip_x_DC + (-5.3558)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC >  (0.5805)*pip_x_DC  + (0.69))    && (pip_y_DC <  (-0.4095)*pip_x_DC + (-1.3394)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC <  (0.9324)*pip_x_DC  + (-0.3521)) && (pip_y_DC < (-12.8857)*pip_x_DC + (-31.4429)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC < (-0.4617)*pip_x_DC  + (-1.7652)) && (pip_y_DC >  (-5.7595)*pip_x_DC + (3.7975)));
+#     Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
+#     return Fiducial_DC_Cuts;
+# }
+# """
+
+# Up-to-date as of: 8/2/2024 (new hipo.root files - V5)
 New_Fiducial_Pip_Sector_Cuts = """
-if((((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) > (20.5)*(20.5)) || (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (5.2)*(5.2))){
-    return false;
+double angle(double x1, double y1, double x2, double y2) {
+    return std::atan2(y2 - y1, x2 - x1);
 }
-else{
-    bool Fiducial_DC_Cuts =                      (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (20.5)*(20.5));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.3379)*pip_x_DC  + (0.5954))  && (pip_y_DC <   (0.6801)*pip_x_DC + (-2.1023)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-56.375)*pip_x_DC  + (95.4688)) && (pip_y_DC >   (0.8029)*pip_x_DC + (1.1253)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.5307)*pip_x_DC  + (1.7336))  && (pip_y_DC <  (-5.7821)*pip_x_DC + (-5.3558)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC >  (0.5805)*pip_x_DC  + (0.69))    && (pip_y_DC <  (-0.4095)*pip_x_DC + (-1.3394)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC <  (0.9324)*pip_x_DC  + (-0.3521)) && (pip_y_DC < (-12.8857)*pip_x_DC + (-31.4429)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC < (-0.4617)*pip_x_DC  + (-1.7652)) && (pip_y_DC >  (-5.7595)*pip_x_DC + (3.7975)));
-    Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
-    return Fiducial_DC_Cuts;
+bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
+    int num_vertices = polygon.size();
+    double winding_number = 0.0;
+    for (int i = 0; i < num_vertices; ++i) {
+        double x1 = polygon[i].first;
+        double y1 = polygon[i].second;
+        double x2 = polygon[(i + 1) % num_vertices].first;
+        double y2 = polygon[(i + 1) % num_vertices].second;
+        double a1 = angle(x, y, x1, y1);
+        double a2 = angle(x, y, x2, y2);
+        double angle_diff = a2 - a1;
+        if(angle_diff > M_PI){angle_diff -= 2 * M_PI;} else if(angle_diff < -M_PI){angle_diff += 2 * M_PI;}
+        winding_number += angle_diff;
+    }
+    return std::abs(winding_number) > M_PI;
 }
+
+bool polygon_cut(double Hx_pip, double Hy_pip) {
+    std::vector<std::vector<std::pair<double, double>>> polygons = {
+        {{425, 220}, {425, -225}, {385, -225}, {100, -40}, {100, 0}, {140, 0}, {180, -65}, {220, -87}, {350, -161}, {351, -90}, {356, -90}, {360, -130}, {360, -167}, {380, -180}, {381, -100}, {380, 189}, {250, 110}, {230, 101}, {200, 80}, {165, 50}, {150, 20}, {140, 10}, {140, 0}, {100, 0}, {100, 40}, {380, 220}},
+        {{50, 460}, {0, 460}, {0, 80}, {50, 60}, {70, 120}, {55, 125}, {50, 145}, {276, 281}, {275, 283}, {50, 150}, {30, 180}, {30, 250}, {30, 325}, {25, 330}, {27, 425}, {275, 283}, {276, 281}, {350, 240}, {300, 215}, {250, 185}, {150, 122}, {140, 120}, {115, 120}, {175, 160}, {160, 155}, {100, 120}, {70, 120}, {50, 60}, {100, 40}, {380, 220}, {425, 220}, {425, 250}},
+        {{-50, 460}, {0, 460}, {0, 80}, {-50, 60}, {-70, 120}, {-30, 190}, {-28, 222}, {-40, 300}, {-40, 418}, {-338, 247}, {-338, 230}, {-310, 225}, {-212, 165}, {-200, 150}, {-125, 115}, {-70, 120}, {-50, 60}, {-100, 40}, {-380, 220}, {-425, 220}, {-425, 250}},
+        {{-425, -225}, {-365, -225}, {-100, -40}, {-100, 0}, {-135, 0}, {-150, -25}, {-170, -60}, {-210, -87}, {-382, -190}, {-382, 179}, {-200, 75}, {-200, 85}, {-155, 30}, {-135, 0}, {-100, 0}, {-100, 40}, {-380, 220}, {-425, 220}},
+        {{-50, -460}, {0, -460}, {0, -80}, {-50, -60}, {-75, -115}, {-50, -150}, {-35, -170}, {-30, -200}, {-25, -410}, {-50, -415}, {-250, -297}, {-300, -266}, {-340, -240}, {-250, -195}, {-220, -170}, {-190, -150}, {-150, -125}, {-75, -115}, {-50, -60}, {-100, -40}, {-365, -225}, {-425, -225}, {-425, -250}},
+        {{0, -460}, {0, -80}, {50, -60}, {75, -115}, {60, -135}, {29, -200}, {28, -250}, {32, -250}, {36, -265}, {37, -410}, {100, -375}, {145, -350}, {200, -320}, {240, -300}, {330, -250}, {350, -235}, {220, -165}, {205, -155}, {210, -150}, {150, -120}, {130, -115}, {75, -115}, {50, -60}, {100, -40}, {385, -225}, {425, -225}, {425, -250}, {20, -460}}
+    };
+    for (const auto& poly : polygons) {
+        if(is_point_in_polygon(Hx_pip, Hy_pip, poly)){
+            return false; // Point is inside a polygon, filter it out
+        }
+    }
+    return true; // Point is outside all polygons
+}
+return polygon_cut(Hx_pip, Hy_pip);
 """
 
 from MyCommonAnalysisFunction_richcap import color
