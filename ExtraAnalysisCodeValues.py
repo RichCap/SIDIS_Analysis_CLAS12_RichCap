@@ -1822,14 +1822,14 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particl
             auto Cal_layer_Min =   -120;
             auto Cal_layer_Max =    120;
             """, f"""
-            Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_rot_{layer} + 72  + {str(adjustment_layer1)});
-            Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_rot_{layer} + 72  + {str(adjustment_layer1)});
+            Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
+            Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
             """ if(layer in [6]) else f"""
-            Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_rot_{layer} + 114 + {str(adjustment_layer2)});
-            Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_rot_{layer} + 114 + {str(adjustment_layer2)});
+            Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
+            Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
             """ if(layer in [18]) else f"""
-            Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_rot_{layer} + 180 + {str(adjustment_layer3)});
-            Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_rot_{layer} + 180 + {str(adjustment_layer3)});
+            Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
+            Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
             """, f"""
             return (({str(Particle)}_y_DC_{layer}_rot > Cal_layer_Min) && ({str(Particle)}_y_DC_{layer}_rot < Cal_layer_Max));
             """]))
