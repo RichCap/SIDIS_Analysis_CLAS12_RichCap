@@ -319,17 +319,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
     if(datatype == 'gdf'):
         if(str(file_location) in ['all', 'All', 'time']):
-            rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
-            files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"                                                               if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+            # rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
+            files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
             if(Use_New_PF):
                 files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
                 if(Tag_Proton):
                     files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
+            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/", "" if(not Use_Pass_2) else "Pass2/", str(files_used_for_data_frame)]))
         else:
             rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                         if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
+    
+    # if(output_all_histo_names_Q == "yes"):
+    #     print(f"{color.BOLD}Columns of the RDataFrame when first loaded:{color.END}")
+    #     for ii in range(0, len(rdf.GetColumnNames()), 1):
+    #         print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
+    #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
     
     
     ##========================================================================##
@@ -650,6 +657,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # One set of histograms per layer (3 layers for 6 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
         
+        
+    Extra_Name = "New_Fiducial_Cut_Test_V3_"
+    # Ran on 8/6/2024
+    # Running with all of Valerii's cuts (also applying his Hx/Hy PCAL cuts to the pion on the assumption that the bad channels for the electron are also bad for the pion)
+    # Added MM_pro plots and 'Proton' Cuts (Cut is on MM_pro > 1.35)
+        # Cut is known as 'cut_Complete_SIDIS_Proton'
+    # Modified how/which variables are allowed to be smeared
+        # Options for smeared plots might not be used with this file version (testing other things)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (Only - no multidimensional unfolding still)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # One set of histograms per layer (3 layers for 6 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
     
     
     
@@ -774,6 +800,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##=====##  These calculations may have been made in the groovy code already  ##=====##
     ######################################################################################
     
+    ##=====## The following is for the Tagged Proton files ##=====##
+    if(Tag_Proton):
+        print(f"\n{color.BBLUE}Calculating Variables with the Tagged Proton{color.END}\n")
+        rdf = rdf.Define("MM2_pro", "".join([str(Correction_Code_Full_In), """
+        auto fe       = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+        auto fpip     = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
+        auto beam     = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
+        auto targ     = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto ele      = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+        auto pip0     = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+        auto proV     = ROOT::Math::PxPyPzMVector(prox,  proy,  proz,  0.938272);
+        auto MM_pro_V = beam + targ - ele - pip0 - proV;
+        return MM_pro_V.M2();"""]))
+        rdf = rdf.Define("MM_pro", "sqrt(MM2_pro)")
+        rdf = rdf.Define("pro",    "sqrt(prox*prox + proy*proy + proz*proz)")
     
     ##=====## The following is for backwards compatibility ##=====##
     if("pipx" not in rdf.GetColumnNames()):
@@ -2270,8 +2311,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # if(str(Variable) in Data_Frame.GetColumnNames()):
             #     print("".join(["Already defined: ", str(Variable)]))
             return Data_Frame
-        elif(Variable in ["esec", "esec_smeared", "pipsec", "pipsec_smeared", "Hx", "Hx_smeared", "Hy", "Hy_smeared"]):
-            print(f"{color.Error}Cannot smear particle sector{color.END}")
+        elif(any(Variable in [test_var, f"{test_var}_smeared"] for test_var in ["esec", "pipsec", "prosec", "Hx", "Hy", "Hx_pip", "Hy_pip", "ele_x_DC_6", "ele_x_DC_18", "ele_x_DC_36", "pip_x_DC_6", "pip_x_DC_18", "pip_x_DC_36", "pro", "MM_pro", "V_PCal", "W_PCal", "U_PCal"])):
+            print(f"{color.Error}Cannot smear the variable '{Variable}'{color.END}")
             Data_Frame = "continue"
             return Data_Frame
         else:
@@ -2898,6 +2939,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     print("Kinematic Variables have been calculated.")
     
+    if(output_all_histo_names_Q == "yes"):
+        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+        for ii in range(0, len(rdf.GetColumnNames()), 1):
+            print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
+        print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
     
     ###################################################################################################################################################################
     ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
@@ -2908,9 +2954,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################################################################################################################################
     
     
-    def filter_Valerii(Data_Frame, Valerii_Cut):
+    def filter_Valerii(Data_Frame, Valerii_Cut, Include_Pion=Use_New_PF):
         if("Valerii_Cut" in Valerii_Cut or "Complete" in Valerii_Cut):
-            Data_Frame_Clone = Data_Frame.Filter("""
+            Data_Frame_Clone = Data_Frame.Filter("".join(["""
                 auto func = [&](double x, double k, double b){
                     return k * x + b;
                 };
@@ -2960,7 +3006,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }
                     return false;
                 };
-                return BadElementKnockOut(Hx, Hy, esec, 1);""")
+                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion and True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
             return Data_Frame_Clone
         else:
             return Data_Frame
@@ -4893,6 +4939,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output  =  "W_{PCal}"
         if(variable == 'U_PCal'):
             output  =  "U_{PCal}"
+        if(variable == 'MM2_pro'):
+            output  =  "Missing Mass^{2} (Proton)"
+        if(variable == 'MM_pro'):
+            output  =  "Missing Mass (Proton)"
+        if(variable == 'pro'):
+            output  =  "p_{pro}"
 
         if("Bin_4D" in variable):
             output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
@@ -4904,7 +4956,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             output = "".join(["Combined Binning: ", str(variable.replace("Combined_", ""))]).replace("Multi_Dim_", "")
             
         if(smeared_named == 'yes'):
-            output = "".join([output, " (Smeared)"])
+            List_of_non_smearable_variables = ["esec", "pipsec", "prosec", "Hx", "Hy", "Hx_pip", "Hy_pip", "ele_x_DC_6", "ele_x_DC_18", "ele_x_DC_36", "pip_x_DC_6", "pip_x_DC_18", "pip_x_DC_36", "pro", "MM_pro", "V_PCal", "W_PCal", "U_PCal"]
+            if(variable not in List_of_non_smearable_variables):
+                output = "".join([output, " (Smeared)"])
             
         if(bank_named == 'yes'):
             output = "".join([output, " (Generated)"])
@@ -5095,11 +5149,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             print(f"DF_Out = {type(DF_Out)}({DF_Out})")
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5111,6 +5167,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
                         else:
                             DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                if("Proton" in Cut_Choice):
+                    cutname = f"{cutname} (Proton MM) "
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out  = DF_Out.Filter("MM_pro > 1.35")
                 if("Binned"  in Cut_Choice):
                     cutname = "".join([cutname, "(Binned) "])
                     if(Titles_or_DF == 'DF'):
@@ -5390,6 +5450,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         cut_list.append('cut_Complete_SIDIS_eS4o')
 #         cut_list.append('cut_Complete_SIDIS_eS5o')
 #         cut_list.append('cut_Complete_SIDIS_eS6o')
+        if(Tag_Proton):
+            cut_list.append('cut_Complete_SIDIS_Proton')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -5864,11 +5926,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-#     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
 #     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
-    List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
+#     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning]]
 
 #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
     
@@ -5958,6 +6020,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             List_of_Quantities_3D = []
     else:
         List_of_Quantities_3D     = []
+        
+    if(Tag_Proton):
+        List_of_Quantities_2D.append([["pro", 0, 8, 200], ["MM_pro", -0.5, 5, 220]])
+        
     # if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
     #     # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
     #     # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
@@ -6622,7 +6688,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             # This binning scheme only goes up to 17 Q2-xB bins
                                             continue
                                             
-                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_2d_histos in Histo_Var_D2_Name for non_binned_2d_histos in ["Var-D1='Hx", "Var-D1='Hy"])):
+                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_2d_histos in Histo_Var_D2_Name for non_binned_2d_histos in ["Var-D1='Hx", "Var-D1='Hy", "Var-D1='ele_x_DC", "Var-D1='pip_x_DC", "Var-D1='ele_y_DC", "Var-D1='pip_y_DC", "Var-D1='V_PCal", "Var-D1='W_PCal", "Var-D1='U_PCal", "Var-D1='MM_pro", "Var-D1='pro"])):
                                             # The following variables should/do not have to be made with the full kinematic binning in mind (just make once for all Q2-y bins (bin -1))
                                             continue
                                             
@@ -6714,6 +6780,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                             continue
                                         if(Q2_xB_Bin_Num > 17 and Binning in ["4", "y_bin", "y_Bin"]):
                                             # This binning scheme only goes up to 17 Q2-y bins
+                                            continue
+                                        if(Q2_xB_Bin_Num > 0 and any(non_binned_3d_histos in Histo_Var_D3_Name for non_binned_3d_histos in ["Var-D1='Hx", "Var-D1='Hy", "Var-D1='ele_x_DC", "Var-D1='pip_x_DC", "Var-D1='ele_y_DC", "Var-D1='pip_y_DC", "Var-D1='V_PCal", "Var-D1='W_PCal", "Var-D1='U_PCal", "Var-D1='MM_pro", "Var-D1='pro"])):
+                                            # The following variables should/do not have to be made with the full kinematic binning in mind (just make once for all Q2-y bins (bin -1))
                                             continue
                                         Histo_Binning      = [Binning, "All" if(Q2_xB_Bin_Num == -1) else str(Q2_xB_Bin_Num), "All"]
                                         Histo_Binning_Name = "".join(["Binning-Type:'", str(Histo_Binning[0]) if(str(Histo_Binning[0]) != "") else "Stefan", "'-[Q2-xB-Bin:" if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "'-[Q2-y-Bin:", str(Histo_Binning[1]), ", z-PT-Bin:", str(Histo_Binning[2]), "]"])
