@@ -1332,300 +1332,316 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                 if((str(Special) not in ["Normal"]) and (str(type(Special)) not in [str(type("Normal"))]) and (not Closure_Test)):
                     try:
                         Q2_y_Bin_Special, z_pT_Bin_Special = Special
-                        if(Method in ["bayes", "bayesian", "Bayesian", "bay", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
-                        # if(Method in ["bayes", "bayesian", "Bayesian"]):
-                            if((str(Q2_y_Bin_Special) in ["5"]) and ("Pass_2" not in Common_Name)):
-                                # print("\n\n\n\nAPPLYING SPECIAL PARAMETERS FOR:\nQ2_y_Bin_Special =", str(Q2_y_Bin_Special), "\nz_pT_Bin_Special =", str(z_pT_Bin_Special), "\n\n\n")
-                                if(str(z_pT_Bin_Special) in ["26", "32"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.08)
-                                    Fitting_Function.SetParLimits(1, -0.10, -0.065)
-                                    Allow_Multiple_Fits = False
-                                if(str(z_pT_Bin_Special) in ["8"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.07)
-                                    Fitting_Function.SetParLimits(1, -0.08, -0.06)
-                                    Allow_Multiple_Fits = False
-                                if(str(z_pT_Bin_Special) in ["14"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.085)
-                                    Fitting_Function.SetParLimits(1, -0.125, -0.05)
-                                    
-                                if(str(z_pT_Bin_Special) in ["9"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.10)
-                                    Fitting_Function.SetParLimits(1, -0.145, -0.065)
-                                    Allow_Multiple_Fits = False
-                                    
-                                if(str(z_pT_Bin_Special) in ["23"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.25)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.16)
-                                    # Allow_Multiple_Fits = False
-                                    
-                                   
-                                # Just Cos(2*phi) Moments - C
-                                if(str(z_pT_Bin_Special) in ["1", "7", "13", "19", "25", "31"]):
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.025)
-                                    # Fitting_Function.SetParLimits(2, -0.06, 0)
-                                    Fitting_Function.SetParLimits(2, -0.06, -0.01)
-                                    Allow_Multiple_Fits_C = False
-                                if(str(z_pT_Bin_Special) in ["2", "8", "14", "20", "26", "32"]):
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.02 if(str(z_pT_Bin_Special) not in ["2"]) else 0.01)
-                                    if(str(z_pT_Bin_Special) in ["2", "8"]):
-                                        Fitting_Function.SetParLimits(2, -0.01, 0.05)                                        
-                                    else:
-                                        Fitting_Function.SetParLimits(2, -0.04, 0.02)
-                                    Allow_Multiple_Fits_C = False
-                                if(str(z_pT_Bin_Special) in ["3", "9", "15", "21", "27", "33"]):
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.01)
-                                    # Fitting_Function.SetParLimits(2, -0.03, 0.03)
-                                    Fitting_Function.SetParLimits(2, -0.03, 0.01)
-                                    Allow_Multiple_Fits_C = False
-                                if(str(z_pT_Bin_Special) in ["4"]):
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0)
-                                    # Fitting_Function.SetParLimits(2, -0.01, 0.025)
-                                    Fitting_Function.SetParLimits(2, -0.01, 0.01)
-                                    Allow_Multiple_Fits_C = False
-                                    
-                                    
-                                if(str(z_pT_Bin_Special) in ["2"]):
-                                    # Cos(phi) Moment - B
-                                    # Fitting_Function.SetParameter(1, -0.1062)
-                                    # # Fitting_Function.SetParLimits(1, -0.1062   - 0.005,    -0.1062 + 0.005)
-                                    # Fitting_Function.SetParLimits(1, -0.125, -0.05)
-                                    Fitting_Function.SetParameter(1, -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.105, -0.08)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.01945)
-                                    Fitting_Function.SetParLimits(2, 0.01945   - 0.06,     0.01945 + 0.06)
-                                    Allow_Multiple_Fits = False
-                                if(str(z_pT_Bin_Special) in ["3"]):
-                                    # # Cos(phi) Moment - B
-                                    # Fitting_Function.SetParameter(1, -0.2175)
-                                    # # Fitting_Function.SetParLimits(1, -0.2175   - 0.05,     -0.2175 + 0.05)
-                                    # Fitting_Function.SetParLimits(1, -0.2175   - 0.025,     -0.2175 + 0.025)
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.1375)
-                                    Fitting_Function.SetParLimits(1, -0.1, -0.16)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.001952)
-                                    Fitting_Function.SetParLimits(2, 0.001952  - 0.003,   0.001952 + 0.003)
-                                if(str(z_pT_Bin_Special) in ["4"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.195)
-                                    Fitting_Function.SetParLimits(1, -0.18, -0.22)
-                                if(str(z_pT_Bin_Special) in ["5"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.24)
-                                    Fitting_Function.SetParLimits(1, -0.2, -0.3)
-                                if(str(z_pT_Bin_Special) in ["6", "12", "18"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.35)
-                                    Fitting_Function.SetParLimits(1, -0.35     - 0.5,        -0.35 + 0.5)
-                                if(str(z_pT_Bin_Special) in ["13"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.027)
-                                    Fitting_Function.SetParLimits(1, -0.09, 0)
-                                if(str(z_pT_Bin_Special) in ["20"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.04262)
-                                    # Fitting_Function.SetParLimits(1, -0.04262  - 0.02,    -0.04262 + 0.02)
-                                    Fitting_Function.SetParLimits(1, -0.04262  - 0.005,    -0.04262 + 0.01)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.001472)
-                                    Fitting_Function.SetParLimits(2, -0.001472 - 0.003,  -0.001472 + 0.003)
-                                    
-                                    # Fitting_Function.SetRange(30, 330)
-                                    
-                                if(str(z_pT_Bin_Special) in ["29"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.19)
-                                    Fitting_Function.SetParLimits(1, -0.19     - 0.5,        -0.19 + 0.5)
-                                if(str(z_pT_Bin_Special) in ["35"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.25)
-                                    Fitting_Function.SetParLimits(1, -0.30, -0.175)
-                                    Allow_Multiple_Fits = False
-                                    
-                            elif((str(Q2_y_Bin_Special) in ["5"]) and ("Pass_2" in Common_Name)):
-                                # Pass 2 Fits
-                                if(str(z_pT_Bin_Special) in ["1", "7", "13", "19", "25", "31"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.11 if(str(z_pT_Bin_Special) in ["1"])       else -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.15, 0)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.01 if(str(z_pT_Bin_Special) in ["1"])       else -0.02 if(str(z_pT_Bin_Special) in ["7"]) else -0.03 if(str(z_pT_Bin_Special) in ["13", "19", "25"]) else -0.057)
-                                    Fitting_Function.SetParLimits(2, -0.07, 0)
-                                if(str(z_pT_Bin_Special) in ["2", "8", "14", "20", "26", "32"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.2, 0)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.05 if(str(z_pT_Bin_Special) in ["2"])       else 0.035 if(str(z_pT_Bin_Special) in ["8"])  else -0.03 if(str(z_pT_Bin_Special) in ["26", "32"]) else 0)
-                                    Fitting_Function.SetParLimits(2, -0.05, 0.1)
-                                if(str(z_pT_Bin_Special) in ["3", "9", "15", "21", "27", "33"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.2  if(str(z_pT_Bin_Special) in ["3"])       else -0.16 if(str(z_pT_Bin_Special) in ["9"])  else -0.135 if(str(z_pT_Bin_Special) in ["15"]) else -0.15 if(str(z_pT_Bin_Special) in ["21"]) else -0.155 if(str(z_pT_Bin_Special) in ["27"]) else -0.145)
-                                    Fitting_Function.SetParLimits(1, -0.22, -0.1)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.009 if(str(z_pT_Bin_Special) in ["3"])       else 0.015 if(str(z_pT_Bin_Special) in ["9"])  else -0.005 if(str(z_pT_Bin_Special) in ["15"]) else -0.04 if(str(z_pT_Bin_Special) in ["21"]) else -0.015 if(str(z_pT_Bin_Special) in ["27"]) else -0.007)
-                                    Fitting_Function.SetParLimits(2, -0.05, 0.02)
-                                if(str(z_pT_Bin_Special) in ["4", "10", "16", "22", "28", "34"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.28 if(str(z_pT_Bin_Special) in ["4"])       else -0.24 if(str(z_pT_Bin_Special) in ["10"]) else -0.21  if(str(z_pT_Bin_Special) in ["16"]) else -0.2  if(str(z_pT_Bin_Special) in ["22"]) else -0.16  if(str(z_pT_Bin_Special) in ["28"]) else -0.18)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.03)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.01  if(str(z_pT_Bin_Special) in ["4", "28"]) else 0.015 if(str(z_pT_Bin_Special) in ["10"]) else -0.025 if(str(z_pT_Bin_Special) in ["16"]) else  0    if(str(z_pT_Bin_Special) in ["22"]) else 0.022)
-                                    Fitting_Function.SetParLimits(2, -0.05, 0.035)
-                                if(str(z_pT_Bin_Special) in ["5", "11", "17", "23", "29"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.3  if(str(z_pT_Bin_Special) in ["5", "11"]) else -0.26 if(str(z_pT_Bin_Special) in ["17"]) else -0.25  if(str(z_pT_Bin_Special) in ["23"]) else -0.24)
-                                    Fitting_Function.SetParLimits(1, -0.35, -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.01  if(str(z_pT_Bin_Special) in ["5"])       else  0.   if(str(z_pT_Bin_Special) in ["11"]) else  0.022 if(str(z_pT_Bin_Special) in ["17"]) else 0.041 if(str(z_pT_Bin_Special) in ["23"]) else 0.06)
-                                    Fitting_Function.SetParLimits(2, -0.03, 0.08)
-                                if(str(z_pT_Bin_Special) in ["6", "12", "18"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.4)
-                                    Fitting_Function.SetParLimits(1, -0.5, -0.3)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.03 if(str(z_pT_Bin_Special) in ["6"]) else 0.075 if(str(z_pT_Bin_Special) in ["12"]) else 0.1)
-                                    Fitting_Function.SetParLimits(2, 0.01, 0.14)
-                                    
-                            elif((str(Q2_y_Bin_Special) in ["14"]) and ("Pass_2" in Common_Name)):
-                                # Pass 2 Fits
-                                if(str(z_pT_Bin_Special) in ["12"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.375)
-                                    Fitting_Function.SetParLimits(1, -0.4, -0.3)
-                                if(str(z_pT_Bin_Special) in ["3", "21"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.128 if(str(z_pT_Bin_Special) in ["21"]) else -0.12)
-                                    Fitting_Function.SetParLimits(1, -0.165, -0.1)
-                                    
-                                    
-                                
-                            if(str(Q2_y_Bin_Special) in ["1"]):
-                                if(str(z_pT_Bin_Special) in ["14", "21"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.3)
-                                    Fitting_Function.SetParLimits(1, -0.4, -0.275)
-                            if(str(Q2_y_Bin_Special) in ["2"]):
-                                if(str(z_pT_Bin_Special) in ["7", "14", "21"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.3)
-                                    Fitting_Function.SetParLimits(1, -0.4, -0.275)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.1)
-                                    Fitting_Function.SetParLimits(2, 0.06, 0.2)
-                            if(str(Q2_y_Bin_Special) in ["10"]):
-                                if(str(z_pT_Bin_Special) in ["6", "12", "18", "24"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.275)
-                                    Fitting_Function.SetParLimits(1, -0.4, -0.2)
-                            if(str(Q2_y_Bin_Special) in ["14"]):
-                                if(str(z_pT_Bin_Special) in ["2"]):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.12, -0.02)
-                                if(str(z_pT_Bin_Special) in ["20"]):
-                                    # Cos(phi) Moment - B
-                                    if("y_bin" in Binning_Method):
+                        if(z_pT_Bin_Special in ["Integrated", -1]):
+                            Par_initial_B = -0.05 if(str(Q2_y_Bin_Special) in ["12"]) else -0.1   if(str(Q2_y_Bin_Special) in ["8", "15"]) else -0.12 if(str(Q2_y_Bin_Special) in ["4", "11", "17"]) else -0.14  if(str(Q2_y_Bin_Special) in ["7", "16"]) else -0.155 if(str(Q2_y_Bin_Special) in ["3",  "6", "13", "14"]) else -0.1625 if(str(Q2_y_Bin_Special) in ["12"]) else -0.174
+                            Par_initial_C = -0.05 if(str(Q2_y_Bin_Special) in ["8"])  else -0.075 if(str(Q2_y_Bin_Special) in ["12"])      else -0.04 if(str(Q2_y_Bin_Special) in ["4", "15"])       else -0.029 if(str(Q2_y_Bin_Special) in ["11"])      else -0.021 if(str(Q2_y_Bin_Special) in ["7", "14", "16", "17"]) else -0.01   if(str(Q2_y_Bin_Special) in ["10"]) else -0.006 if(str(Q2_y_Bin_Special) in ["3", "6", "13"]) else 0.0045 if(str(Q2_y_Bin_Special) in ["2"]) else 0.0067 if(str(Q2_y_Bin_Special) in ["9"]) else 0.009
+                            Par__range__B = [0.5*Par_initial_B, 1.5*Par_initial_B]
+                            Par__range__C = [0.5*Par_initial_C, 1.5*Par_initial_C]
+                            # Cos(phi) Moment - B
+                            Fitting_Function.SetParameter(1, Par_initial_B)
+                            Fitting_Function.SetParLimits(1, min(Par__range__B), max(Par__range__B))
+                            # Cos(2*phi) Moment - C
+                            Fitting_Function.SetParameter(2, Par_initial_C)
+                            Fitting_Function.SetParLimits(2, min(Par__range__C), max(Par__range__C))
+                            
+                            fit_range_lower =  45 if(str(Q2_y_Bin_Special) in ["1", "5"]) else  30 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else  15
+                            fit_range_upper = 315 if(str(Q2_y_Bin_Special) in ["1", "5"]) else 330 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else 345
+                            Fitting_Function.SetRange(fit_range_lower, fit_range_upper)
+                        else:
+                            if(Method in ["bayes", "bayesian", "Bayesian", "bay", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
+                            # if(Method in ["bayes", "bayesian", "Bayesian"]):
+                                if((str(Q2_y_Bin_Special) in ["5"]) and ("Pass_2" not in Common_Name)):
+                                    # print("\n\n\n\nAPPLYING SPECIAL PARAMETERS FOR:\nQ2_y_Bin_Special =", str(Q2_y_Bin_Special), "\nz_pT_Bin_Special =", str(z_pT_Bin_Special), "\n\n\n")
+                                    if(str(z_pT_Bin_Special) in ["26", "32"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.08)
+                                        Fitting_Function.SetParLimits(1, -0.10, -0.065)
+                                        Allow_Multiple_Fits = False
+                                    if(str(z_pT_Bin_Special) in ["8"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.07)
+                                        Fitting_Function.SetParLimits(1, -0.08, -0.06)
+                                        Allow_Multiple_Fits = False
+                                    if(str(z_pT_Bin_Special) in ["14"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.085)
+                                        Fitting_Function.SetParLimits(1, -0.125, -0.05)
+
+                                    if(str(z_pT_Bin_Special) in ["9"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.10)
+                                        Fitting_Function.SetParLimits(1, -0.145, -0.065)
+                                        Allow_Multiple_Fits = False
+
+                                    if(str(z_pT_Bin_Special) in ["23"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.25)
+                                        Fitting_Function.SetParLimits(1, -0.3, -0.16)
+                                        # Allow_Multiple_Fits = False
+
+
+                                    # Just Cos(2*phi) Moments - C
+                                    if(str(z_pT_Bin_Special) in ["1", "7", "13", "19", "25", "31"]):
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.025)
+                                        # Fitting_Function.SetParLimits(2, -0.06, 0)
+                                        Fitting_Function.SetParLimits(2, -0.06, -0.01)
+                                        Allow_Multiple_Fits_C = False
+                                    if(str(z_pT_Bin_Special) in ["2", "8", "14", "20", "26", "32"]):
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.02 if(str(z_pT_Bin_Special) not in ["2"]) else 0.01)
+                                        if(str(z_pT_Bin_Special) in ["2", "8"]):
+                                            Fitting_Function.SetParLimits(2, -0.01, 0.05)                                        
+                                        else:
+                                            Fitting_Function.SetParLimits(2, -0.04, 0.02)
+                                        Allow_Multiple_Fits_C = False
+                                    if(str(z_pT_Bin_Special) in ["3", "9", "15", "21", "27", "33"]):
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.01)
+                                        # Fitting_Function.SetParLimits(2, -0.03, 0.03)
+                                        Fitting_Function.SetParLimits(2, -0.03, 0.01)
+                                        Allow_Multiple_Fits_C = False
+                                    if(str(z_pT_Bin_Special) in ["4"]):
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0)
+                                        # Fitting_Function.SetParLimits(2, -0.01, 0.025)
+                                        Fitting_Function.SetParLimits(2, -0.01, 0.01)
+                                        Allow_Multiple_Fits_C = False
+
+
+                                    if(str(z_pT_Bin_Special) in ["2"]):
+                                        # Cos(phi) Moment - B
+                                        # Fitting_Function.SetParameter(1, -0.1062)
+                                        # # Fitting_Function.SetParLimits(1, -0.1062   - 0.005,    -0.1062 + 0.005)
+                                        # Fitting_Function.SetParLimits(1, -0.125, -0.05)
+                                        Fitting_Function.SetParameter(1, -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.105, -0.08)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.01945)
+                                        Fitting_Function.SetParLimits(2, 0.01945   - 0.06,     0.01945 + 0.06)
+                                        Allow_Multiple_Fits = False
+                                    if(str(z_pT_Bin_Special) in ["3"]):
+                                        # # Cos(phi) Moment - B
+                                        # Fitting_Function.SetParameter(1, -0.2175)
+                                        # # Fitting_Function.SetParLimits(1, -0.2175   - 0.05,     -0.2175 + 0.05)
+                                        # Fitting_Function.SetParLimits(1, -0.2175   - 0.025,     -0.2175 + 0.025)
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.1375)
+                                        Fitting_Function.SetParLimits(1, -0.1, -0.16)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.001952)
+                                        Fitting_Function.SetParLimits(2, 0.001952  - 0.003,   0.001952 + 0.003)
+                                    if(str(z_pT_Bin_Special) in ["4"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.195)
+                                        Fitting_Function.SetParLimits(1, -0.18, -0.22)
+                                    if(str(z_pT_Bin_Special) in ["5"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.24)
+                                        Fitting_Function.SetParLimits(1, -0.2, -0.3)
+                                    if(str(z_pT_Bin_Special) in ["6", "12", "18"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.35)
+                                        Fitting_Function.SetParLimits(1, -0.35     - 0.5,        -0.35 + 0.5)
+                                    if(str(z_pT_Bin_Special) in ["13"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.027)
+                                        Fitting_Function.SetParLimits(1, -0.09, 0)
+                                    if(str(z_pT_Bin_Special) in ["20"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.04262)
+                                        # Fitting_Function.SetParLimits(1, -0.04262  - 0.02,    -0.04262 + 0.02)
+                                        Fitting_Function.SetParLimits(1, -0.04262  - 0.005,    -0.04262 + 0.01)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.001472)
+                                        Fitting_Function.SetParLimits(2, -0.001472 - 0.003,  -0.001472 + 0.003)
+
+                                        # Fitting_Function.SetRange(30, 330)
+
+                                    if(str(z_pT_Bin_Special) in ["29"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.19)
+                                        Fitting_Function.SetParLimits(1, -0.19     - 0.5,        -0.19 + 0.5)
+                                    if(str(z_pT_Bin_Special) in ["35"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.25)
+                                        Fitting_Function.SetParLimits(1, -0.30, -0.175)
+                                        Allow_Multiple_Fits = False
+
+                                elif((str(Q2_y_Bin_Special) in ["5"]) and ("Pass_2" in Common_Name)):
+                                    # Pass 2 Fits
+                                    if(str(z_pT_Bin_Special) in ["1", "7", "13", "19", "25", "31"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.11 if(str(z_pT_Bin_Special) in ["1"])       else -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.15, 0)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.01 if(str(z_pT_Bin_Special) in ["1"])       else -0.02 if(str(z_pT_Bin_Special) in ["7"]) else -0.03 if(str(z_pT_Bin_Special) in ["13", "19", "25"]) else -0.057)
+                                        Fitting_Function.SetParLimits(2, -0.07, 0)
+                                    if(str(z_pT_Bin_Special) in ["2", "8", "14", "20", "26", "32"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.2, 0)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.05 if(str(z_pT_Bin_Special) in ["2"])       else 0.035 if(str(z_pT_Bin_Special) in ["8"])  else -0.03 if(str(z_pT_Bin_Special) in ["26", "32"]) else 0)
+                                        Fitting_Function.SetParLimits(2, -0.05, 0.1)
+                                    if(str(z_pT_Bin_Special) in ["3", "9", "15", "21", "27", "33"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.2  if(str(z_pT_Bin_Special) in ["3"])       else -0.16 if(str(z_pT_Bin_Special) in ["9"])  else -0.135 if(str(z_pT_Bin_Special) in ["15"]) else -0.15 if(str(z_pT_Bin_Special) in ["21"]) else -0.155 if(str(z_pT_Bin_Special) in ["27"]) else -0.145)
+                                        Fitting_Function.SetParLimits(1, -0.22, -0.1)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.009 if(str(z_pT_Bin_Special) in ["3"])       else 0.015 if(str(z_pT_Bin_Special) in ["9"])  else -0.005 if(str(z_pT_Bin_Special) in ["15"]) else -0.04 if(str(z_pT_Bin_Special) in ["21"]) else -0.015 if(str(z_pT_Bin_Special) in ["27"]) else -0.007)
+                                        Fitting_Function.SetParLimits(2, -0.05, 0.02)
+                                    if(str(z_pT_Bin_Special) in ["4", "10", "16", "22", "28", "34"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.28 if(str(z_pT_Bin_Special) in ["4"])       else -0.24 if(str(z_pT_Bin_Special) in ["10"]) else -0.21  if(str(z_pT_Bin_Special) in ["16"]) else -0.2  if(str(z_pT_Bin_Special) in ["22"]) else -0.16  if(str(z_pT_Bin_Special) in ["28"]) else -0.18)
+                                        Fitting_Function.SetParLimits(1, -0.3, -0.03)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.01  if(str(z_pT_Bin_Special) in ["4", "28"]) else 0.015 if(str(z_pT_Bin_Special) in ["10"]) else -0.025 if(str(z_pT_Bin_Special) in ["16"]) else  0    if(str(z_pT_Bin_Special) in ["22"]) else 0.022)
+                                        Fitting_Function.SetParLimits(2, -0.05, 0.035)
+                                    if(str(z_pT_Bin_Special) in ["5", "11", "17", "23", "29"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.3  if(str(z_pT_Bin_Special) in ["5", "11"]) else -0.26 if(str(z_pT_Bin_Special) in ["17"]) else -0.25  if(str(z_pT_Bin_Special) in ["23"]) else -0.24)
+                                        Fitting_Function.SetParLimits(1, -0.35, -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.01  if(str(z_pT_Bin_Special) in ["5"])       else  0.   if(str(z_pT_Bin_Special) in ["11"]) else  0.022 if(str(z_pT_Bin_Special) in ["17"]) else 0.041 if(str(z_pT_Bin_Special) in ["23"]) else 0.06)
+                                        Fitting_Function.SetParLimits(2, -0.03, 0.08)
+                                    if(str(z_pT_Bin_Special) in ["6", "12", "18"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.4)
+                                        Fitting_Function.SetParLimits(1, -0.5, -0.3)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.03 if(str(z_pT_Bin_Special) in ["6"]) else 0.075 if(str(z_pT_Bin_Special) in ["12"]) else 0.1)
+                                        Fitting_Function.SetParLimits(2, 0.01, 0.14)
+
+                                elif((str(Q2_y_Bin_Special) in ["14"]) and ("Pass_2" in Common_Name)):
+                                    # Pass 2 Fits
+                                    if(str(z_pT_Bin_Special) in ["12"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.375)
+                                        Fitting_Function.SetParLimits(1, -0.4, -0.3)
+                                    if(str(z_pT_Bin_Special) in ["3", "21"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.128 if(str(z_pT_Bin_Special) in ["21"]) else -0.12)
+                                        Fitting_Function.SetParLimits(1, -0.165, -0.1)
+
+
+
+                                if(str(Q2_y_Bin_Special) in ["1"]):
+                                    if(str(z_pT_Bin_Special) in ["14", "21"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.3)
+                                        Fitting_Function.SetParLimits(1, -0.4, -0.275)
+                                if(str(Q2_y_Bin_Special) in ["2"]):
+                                    if(str(z_pT_Bin_Special) in ["7", "14", "21"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.3)
+                                        Fitting_Function.SetParLimits(1, -0.4, -0.275)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.1)
+                                        Fitting_Function.SetParLimits(2, 0.06, 0.2)
+                                if(str(Q2_y_Bin_Special) in ["10"]):
+                                    if(str(z_pT_Bin_Special) in ["6", "12", "18", "24"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.275)
+                                        Fitting_Function.SetParLimits(1, -0.4, -0.2)
+                                if(str(Q2_y_Bin_Special) in ["14"]):
+                                    if(str(z_pT_Bin_Special) in ["2"]):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.12, -0.02)
+                                    if(str(z_pT_Bin_Special) in ["20"]):
+                                        # Cos(phi) Moment - B
+                                        if("y_bin" in Binning_Method):
+                                            Fitting_Function.SetParameter(1, -0.25)
+                                            Fitting_Function.SetParLimits(1, -0.3, -0.2)
+                                        else:
+                                            Fitting_Function.SetParameter(1, -0.02)
+                                            Fitting_Function.SetParLimits(1, -0.06, 0)
+
+
+                                if("Pass_2" in Common_Name):
+                                    if((str(Q2_y_Bin_Special) in ["1"]) and (str(z_pT_Bin_Special) in ["4"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.265)
+                                        Fitting_Function.SetParLimits(1, -0.3, -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.029)
+                                        Fitting_Function.SetParLimits(2, -0.035, -0.02)
+                                    if((str(Q2_y_Bin_Special) in ["3"]) and (str(z_pT_Bin_Special) in ["5"])):
+                                        # Cos(phi) Moment - B
                                         Fitting_Function.SetParameter(1, -0.25)
                                         Fitting_Function.SetParLimits(1, -0.3, -0.2)
-                                    else:
-                                        Fitting_Function.SetParameter(1, -0.02)
-                                        Fitting_Function.SetParLimits(1, -0.06, 0)
-                                        
-                                        
-                            if("Pass_2" in Common_Name):
-                                if((str(Q2_y_Bin_Special) in ["1"]) and (str(z_pT_Bin_Special) in ["4"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.265)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.029)
-                                    Fitting_Function.SetParLimits(2, -0.035, -0.02)
-                                if((str(Q2_y_Bin_Special) in ["3"]) and (str(z_pT_Bin_Special) in ["5"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.25)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.2)
-                                if((str(Q2_y_Bin_Special) in ["4"]) and (str(z_pT_Bin_Special) in ["18"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.25)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.06)
-                                    Fitting_Function.SetParLimits(2, -0.1, -0.03)
-                                if((str(Q2_y_Bin_Special) in ["6"]) and (str(z_pT_Bin_Special) in ["6"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.26)
-                                    Fitting_Function.SetParLimits(1, -0.3, -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.02)
-                                    Fitting_Function.SetParLimits(2, 0.005, 0.04)
-                                if((str(Q2_y_Bin_Special) in ["8"]) and (str(z_pT_Bin_Special) in ["4"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.2)
-                                    Fitting_Function.SetParLimits(1, -0.29, -0.1)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0)
-                                    Fitting_Function.SetParLimits(2, -0.1, 0.02)
-                                if((str(Q2_y_Bin_Special) in ["9"]) and (str(z_pT_Bin_Special) in ["4", "7"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.3 if(str(z_pT_Bin_Special) in ["7"]) else -0.15)
-                                    Fitting_Function.SetParLimits(1, -0.4 if(str(z_pT_Bin_Special) in ["7"]) else -0.25, -0.19 if(str(z_pT_Bin_Special) in ["7"]) else -0.1)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, 0.02 if(str(z_pT_Bin_Special) in ["7"]) else  0.04)
-                                    Fitting_Function.SetParLimits(2, 0.01 if(str(z_pT_Bin_Special) in ["7"]) else -0.06,  0.04 if(str(z_pT_Bin_Special) in ["7"]) else 0.02)
-                                if((str(Q2_y_Bin_Special) in ["10"]) and (str(z_pT_Bin_Special) in ["4", "5"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.2       if(str(z_pT_Bin_Special) in ["4"]) else -0.3)
-                                    Fitting_Function.SetParLimits(1, -0.4, -0.1 if(str(z_pT_Bin_Special) in ["4"]) else -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2,  0           if(str(z_pT_Bin_Special) in ["4"]) else 0.002)
-                                    Fitting_Function.SetParLimits(2, -0.008, 0.07 if(str(z_pT_Bin_Special) in ["4"]) else 0.09)
-                                if((str(Q2_y_Bin_Special) in ["11"]) and (str(z_pT_Bin_Special) in ["5"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.2)
-                                    Fitting_Function.SetParLimits(1, -0.25, -0.1)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.03)
-                                    Fitting_Function.SetParLimits(2, -0.005, 0.02)
-                                if((str(Q2_y_Bin_Special) in ["13"]) and (str(z_pT_Bin_Special) in ["15", "23"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.21  if(str(z_pT_Bin_Special) in ["15"]) else -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.3   if(str(z_pT_Bin_Special) in ["15"]) else -0.2, -0.1  if(str(z_pT_Bin_Special) in ["15"]) else -0.04)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2,  0.01  if(str(z_pT_Bin_Special) in ["15"]) else -0.01)
-                                    Fitting_Function.SetParLimits(2, -0.001 if(str(z_pT_Bin_Special) in ["15"]) else -0.02, 0.07 if(str(z_pT_Bin_Special) in ["15"]) else  0.02)
-                                if((str(Q2_y_Bin_Special) in ["14"]) and (str(z_pT_Bin_Special) in ["3", "12"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.15  if(str(z_pT_Bin_Special) in ["3"]) else -0.27)
-                                    Fitting_Function.SetParLimits(1, -0.25  if(str(z_pT_Bin_Special) in ["3"]) else -0.3, -0.1 if(str(z_pT_Bin_Special) in ["3"]) else -0.2)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.056 if(str(z_pT_Bin_Special) in ["3"]) else  0.05)
-                                    Fitting_Function.SetParLimits(2, -0.1   if(str(z_pT_Bin_Special) in ["3"]) else -0.08, 0.1)
-                                if((str(Q2_y_Bin_Special) in ["16"]) and (str(z_pT_Bin_Special) in ["5", "12", "17"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.2  if(str(z_pT_Bin_Special) in ["5"])       else -0.3         if(str(z_pT_Bin_Special) in ["12"]) else -0.1)
-                                    Fitting_Function.SetParLimits(1, -0.4  if(str(z_pT_Bin_Special) in ["5", "12"]) else -0.25, -0.15 if(str(z_pT_Bin_Special) in ["5"])  else -0.2 if(str(z_pT_Bin_Special) in ["12"]) else -0.05)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2,  0    if(str(z_pT_Bin_Special) in ["5"])       else  0.02        if(str(z_pT_Bin_Special) in ["12"]) else  0.01)
-                                    Fitting_Function.SetParLimits(2, -0.06 if(str(z_pT_Bin_Special) in ["5", "17"]) else -0.1,   0.04)
-                                if((str(Q2_y_Bin_Special) in ["17"]) and (str(z_pT_Bin_Special) in ["23"])):
-                                    # Cos(phi) Moment - B
-                                    Fitting_Function.SetParameter(1, -0.15)
-                                    Fitting_Function.SetParLimits(1, -0.2,  -0.1)
-                                    # Cos(2*phi) Moment - C
-                                    Fitting_Function.SetParameter(2, -0.03)
-                                    Fitting_Function.SetParLimits(2, -0.05, -0.01)
-                                
+                                    if((str(Q2_y_Bin_Special) in ["4"]) and (str(z_pT_Bin_Special) in ["18"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.25)
+                                        Fitting_Function.SetParLimits(1, -0.3, -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.06)
+                                        Fitting_Function.SetParLimits(2, -0.1, -0.03)
+                                    if((str(Q2_y_Bin_Special) in ["6"]) and (str(z_pT_Bin_Special) in ["6"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.26)
+                                        Fitting_Function.SetParLimits(1, -0.3, -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.02)
+                                        Fitting_Function.SetParLimits(2, 0.005, 0.04)
+                                    if((str(Q2_y_Bin_Special) in ["8"]) and (str(z_pT_Bin_Special) in ["4"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.2)
+                                        Fitting_Function.SetParLimits(1, -0.29, -0.1)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0)
+                                        Fitting_Function.SetParLimits(2, -0.1, 0.02)
+                                    if((str(Q2_y_Bin_Special) in ["9"]) and (str(z_pT_Bin_Special) in ["4", "7"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.3 if(str(z_pT_Bin_Special) in ["7"]) else -0.15)
+                                        Fitting_Function.SetParLimits(1, -0.4 if(str(z_pT_Bin_Special) in ["7"]) else -0.25, -0.19 if(str(z_pT_Bin_Special) in ["7"]) else -0.1)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, 0.02 if(str(z_pT_Bin_Special) in ["7"]) else  0.04)
+                                        Fitting_Function.SetParLimits(2, 0.01 if(str(z_pT_Bin_Special) in ["7"]) else -0.06,  0.04 if(str(z_pT_Bin_Special) in ["7"]) else 0.02)
+                                    if((str(Q2_y_Bin_Special) in ["10"]) and (str(z_pT_Bin_Special) in ["4", "5"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.2       if(str(z_pT_Bin_Special) in ["4"]) else -0.3)
+                                        Fitting_Function.SetParLimits(1, -0.4, -0.1 if(str(z_pT_Bin_Special) in ["4"]) else -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2,  0           if(str(z_pT_Bin_Special) in ["4"]) else 0.002)
+                                        Fitting_Function.SetParLimits(2, -0.008, 0.07 if(str(z_pT_Bin_Special) in ["4"]) else 0.09)
+                                    if((str(Q2_y_Bin_Special) in ["11"]) and (str(z_pT_Bin_Special) in ["5"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.2)
+                                        Fitting_Function.SetParLimits(1, -0.25, -0.1)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.03)
+                                        Fitting_Function.SetParLimits(2, -0.005, 0.02)
+                                    if((str(Q2_y_Bin_Special) in ["13"]) and (str(z_pT_Bin_Special) in ["15", "23"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.21  if(str(z_pT_Bin_Special) in ["15"]) else -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.3   if(str(z_pT_Bin_Special) in ["15"]) else -0.2, -0.1  if(str(z_pT_Bin_Special) in ["15"]) else -0.04)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2,  0.01  if(str(z_pT_Bin_Special) in ["15"]) else -0.01)
+                                        Fitting_Function.SetParLimits(2, -0.001 if(str(z_pT_Bin_Special) in ["15"]) else -0.02, 0.07 if(str(z_pT_Bin_Special) in ["15"]) else  0.02)
+                                    if((str(Q2_y_Bin_Special) in ["14"]) and (str(z_pT_Bin_Special) in ["3", "12"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.15  if(str(z_pT_Bin_Special) in ["3"]) else -0.27)
+                                        Fitting_Function.SetParLimits(1, -0.25  if(str(z_pT_Bin_Special) in ["3"]) else -0.3, -0.1 if(str(z_pT_Bin_Special) in ["3"]) else -0.2)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.056 if(str(z_pT_Bin_Special) in ["3"]) else  0.05)
+                                        Fitting_Function.SetParLimits(2, -0.1   if(str(z_pT_Bin_Special) in ["3"]) else -0.08, 0.1)
+                                    if((str(Q2_y_Bin_Special) in ["16"]) and (str(z_pT_Bin_Special) in ["5", "12", "17"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.2  if(str(z_pT_Bin_Special) in ["5"])       else -0.3         if(str(z_pT_Bin_Special) in ["12"]) else -0.1)
+                                        Fitting_Function.SetParLimits(1, -0.4  if(str(z_pT_Bin_Special) in ["5", "12"]) else -0.25, -0.15 if(str(z_pT_Bin_Special) in ["5"])  else -0.2 if(str(z_pT_Bin_Special) in ["12"]) else -0.05)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2,  0    if(str(z_pT_Bin_Special) in ["5"])       else  0.02        if(str(z_pT_Bin_Special) in ["12"]) else  0.01)
+                                        Fitting_Function.SetParLimits(2, -0.06 if(str(z_pT_Bin_Special) in ["5", "17"]) else -0.1,   0.04)
+                                    if((str(Q2_y_Bin_Special) in ["17"]) and (str(z_pT_Bin_Special) in ["23"])):
+                                        # Cos(phi) Moment - B
+                                        Fitting_Function.SetParameter(1, -0.15)
+                                        Fitting_Function.SetParLimits(1, -0.2,  -0.1)
+                                        # Cos(2*phi) Moment - C
+                                        Fitting_Function.SetParameter(2, -0.03)
+                                        Fitting_Function.SetParLimits(2, -0.05, -0.01)
+
                                     
                     except:
                         print(color.Error, "\nERROR in Fitting_Phi_Function() for 'Special' arguement...", color.END)
@@ -4653,7 +4669,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             
     try:
         if(Allow_Fitting):
-            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special="Normal")
+            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated"])
     except Exception as e:
         print(f"{color.Error}ERROR IN 'Integrated z-pT Bins' METHOD = '{str(Method)}':\n{color.END_R}{str(traceback.format_exc())}{color.END}")
     
@@ -6012,6 +6028,8 @@ Common_Name = "Pass_2_New_Sector_Cut_Test_V10_All"
 
 Common_Name = "Pass_2_New_Sector_Cut_Test_V12_All"
 
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_V3_All"
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -7044,7 +7062,8 @@ for ii in mdf.GetListOfKeys():
 
                 if("3D" in str(type(Response_2D_initial))):
                     try:
-                        bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
+                        # bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
+                        bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
                         if(z_pT_Bin_Unfold != 0):
                             Response_2D_initial.GetZaxis().SetRange(bin_Response_2D_0, bin_Response_2D_1)
                         Response_2D           = Response_2D_initial.Project3D('yx e')
@@ -7070,7 +7089,8 @@ for ii in mdf.GetListOfKeys():
         ##===============##     2D Slices     ##===============##
                 if("2D" in str(type(ExREAL_1D_initial))):
                     try:
-                        bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
+                        # bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
+                        bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
                         ExREAL_1D                        = ExREAL_1D_initial.ProjectionX(str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExREAL_1D_0, bin_ExREAL_1D_1, "e")
                         if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                             ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
@@ -7087,7 +7107,8 @@ for ii in mdf.GetListOfKeys():
 
                 if("2D" in str(type(MC_REC_1D_initial))):
                     try:
-                        bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
+                        # bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
+                        bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
                         MC_REC_1D                        = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_REC_1D_0, bin_MC_REC_1D_1, "e")
                         if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                             MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
@@ -7106,7 +7127,8 @@ for ii in mdf.GetListOfKeys():
                 if(MC_BGS_1D_initial != "None"):
                     if("2D" in str(type(MC_BGS_1D_initial))):
                         try:
-                            bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
+                            # bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
+                            bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
                             MC_BGS_1D                        = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_BGS_1D_0, bin_MC_BGS_1D_1, "e")
                             if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                                 MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
@@ -7126,7 +7148,8 @@ for ii in mdf.GetListOfKeys():
 
                 if("2D" in str(type(MC_GEN_1D_initial))):
                     try:
-                        bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
+                        # bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
+                        bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
                         MC_GEN_1D                        = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_GEN_1D_0, bin_MC_GEN_1D_1, "e")
                         if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                             MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
@@ -7144,7 +7167,8 @@ for ii in mdf.GetListOfKeys():
                 if(tdf not in ["N/A"]):
                     if("2D" in str(type(ExTRUE_1D_initial))):
                         try:
-                            bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
+                            # bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
+                            bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
                             ExTRUE_1D                        = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExTRUE_1D_0, bin_ExTRUE_1D_1, "e")
                             if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
                                 ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
@@ -7924,7 +7948,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = not True
+Run_Individual_Bin_Images_Option = True
 Print_Run_Individual_Bin_Option  = True
 
 
@@ -7941,7 +7965,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-Multi_Dimensional_List = ["Off", "3D"]
+# Multi_Dimensional_List = ["Off", "3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
@@ -8043,7 +8067,7 @@ for variable in Variable_List:
                 if((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable)):
                     continue
                 # continue # This is to skip everything that isn't the z_pT_Images_Together() images
-                for z_pT_Bin in range(0, z_pT_Bin_Range + 1, 1):
+                for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
                     if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
                         continue
                     # if("Y_bin" not in Binning_Method):
@@ -8055,7 +8079,7 @@ for variable in Variable_List:
                     #     continue
                     if((Multi_Dim in ["Only", "z_pT", "3D"]) and (BIN_NUM  in ["All"])):
                         continue
-                    if((Multi_Dim in ["Q2_y"])         and ((BIN_NUM in ["All"]) or (z_pT_Bin not in [0]))):
+                    if((Multi_Dim in ["Q2_y"])               and ((BIN_NUM in ["All"]) or (z_pT_Bin not in [0]))):
                         continue
                         
 
@@ -8066,17 +8090,18 @@ for variable in Variable_List:
                     # print("z_pT_Bin   =", z_pT_Bin)
 
                     if(Run_Individual_Bin_Images_Option):
-                        try:
-                            String_For_Output_txt  = Large_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,      Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [0]) else "All", Multi_Dim_Option=Multi_Dim, String_Input=String_For_Output_txt)
-                            if(str(Multi_Dim) in ["Off"]):
-                                to_be_saved_count += 2
-                            else:
-                                to_be_saved_count += 1
-                        except Exception as e:
-                            print("".join([color.Error, "ERROR IN Large_Individual_Bin_Images():\n",        color.END_R, str(traceback.format_exc()), color.END]))
+                        if(z_pT_Bin not in [0, "Integrated"]):
+                            try:
+                                String_For_Output_txt  = Large_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim, String_Input=String_For_Output_txt)
+                                if(str(Multi_Dim) in ["Off"]):
+                                    to_be_saved_count += 2
+                                else:
+                                    to_be_saved_count += 1
+                            except Exception as e:
+                                print("".join([color.Error, "ERROR IN Large_Individual_Bin_Images():\n",        color.END_R, str(traceback.format_exc()), color.END]))
                         if(str(variable) in ["phi_t"]):
                             try:
-                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,   Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [0]) else "All", Multi_Dim_Option=Multi_Dim)
+                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                   Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim)
                                 to_be_saved_count += 1
                             except Exception as e:
                                 print("".join([color.Error, "ERROR IN Unfolded_Individual_Bin_Images():\n", color.END_R, str(traceback.format_exc()), color.END]))
