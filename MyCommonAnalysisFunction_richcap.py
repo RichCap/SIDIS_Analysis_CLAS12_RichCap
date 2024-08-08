@@ -692,7 +692,8 @@ def Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=1):
         Migration_Bin_1 = 30
         Total_Number_of_Bins = 30
     if(str(Q2_y_Bin_Num_In) in ['4']):
-        Migration_Bin_2 = [6, 30, 36]
+        # Migration_Bin_2 = [6, 30, 36]
+        Migration_Bin_2 = [6, 30, 35, 36]
         Migration_Bin_1 = 36
         Total_Number_of_Bins = 36
     if(str(Q2_y_Bin_Num_In) in ['5']):
@@ -708,7 +709,8 @@ def Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=1):
         Migration_Bin_1 = 36
         Total_Number_of_Bins = 36
     if(str(Q2_y_Bin_Num_In) in ['8']):
-        Migration_Bin_2 = []
+        # Migration_Bin_2 = []
+        Migration_Bin_2 = [35]
         Migration_Bin_1 = 35
         Total_Number_of_Bins = 35
     if(str(Q2_y_Bin_Num_In) in ['9']):
@@ -724,7 +726,8 @@ def Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=1):
         Migration_Bin_1 = 25
         Total_Number_of_Bins = 25
     if(str(Q2_y_Bin_Num_In) in ['12']):
-        Migration_Bin_2 = [5]
+        # Migration_Bin_2 = [5]
+        Migration_Bin_2 = [5, 25]
         Migration_Bin_1 = 25
         Total_Number_of_Bins = 25
     if(str(Q2_y_Bin_Num_In) in ['13']):
