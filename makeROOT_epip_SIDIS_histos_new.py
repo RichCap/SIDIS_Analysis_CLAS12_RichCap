@@ -676,6 +676,27 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # One set of histograms per layer (3 layers for 6 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
         
+        
+    Extra_Name = "New_Fiducial_Cut_Test_V4_"
+    # Ran on 8/8/2024
+    # Removed my fiducial cut refinements (to the electron)
+        # Aiming to see the impact of just Valerii's cuts
+    # Fixed issues with MM_pro plots and 'Proton' Cuts
+        # Minor title and range issues
+    # Modified how/which variables are allowed to be smeared
+        # Some un-smearable variables will now be defined with a dummy column to pretend that they were smeared so that the relevant plots can still be made
+    # Removed several z-pT bins from different Q2-y bins by redefining them to bin 0 (better way to handle the migration bins)
+    # Running the Pass 2 Monte Carlo with more/larger files
+    # Removed all DC and PCal variable plots except for Hx/Hy/Hx_pip/Hy_pip (See below)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        
     
     
     
@@ -2312,8 +2333,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #     print("".join(["Already defined: ", str(Variable)]))
             return Data_Frame
         elif(any(Variable in [test_var, f"{test_var}_smeared"] for test_var in ["esec", "pipsec", "prosec", "Hx", "Hy", "Hx_pip", "Hy_pip", "ele_x_DC_6", "ele_x_DC_18", "ele_x_DC_36", "pip_x_DC_6", "pip_x_DC_18", "pip_x_DC_36", "pro", "MM_pro", "V_PCal", "W_PCal", "U_PCal"])):
-            print(f"{color.Error}Cannot smear the variable '{Variable}'{color.END}")
-            Data_Frame = "continue"
+            print(f"{color.Error}Cannot smear the variable '{Variable}' {color.UNDERLINE}(Using 'Alias' to the unsmeared variable){color.END}")
+            # Data_Frame = "continue"
+            Data_Frame = Data_Frame.Define(Variable if("_smeared" in str(Variable)) else f"{Variable}_smeared", str(Variable.replace("_smeared", "")))
             return Data_Frame
         else:
             done_Q = 'no'
@@ -4097,8 +4119,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     //     z_pT_Bin_event_val = 0;
     //     MultiDim3D_Bin_val = 0;
     //     MultiDim5D_Bin_val = 0;
-    // }""", """
-    std::vector<int> z_pT_and_MultiDim_Bins = {z_pT_Bin_event_val, MultiDim3D_Bin_val, MultiDim5D_Bin_val};
+    // }""", f"""
+    // Refinement of Migration/Overflow Bins
+    if((({Q2_xB_Bin_event_name} == 1) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 2) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 3) && ((z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 4) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 5) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 6) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 7) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 8) && ((z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 9) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 10) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 11) && ((z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 12) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 13) && ((z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 14) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 15) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 16) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 23) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 17) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30)))){{
+        z_pT_Bin_event_val = 0;
+        MultiDim3D_Bin_val = 0;
+        MultiDim5D_Bin_val = 0;
+    }}
+    std::vector<int> z_pT_and_MultiDim_Bins = {{z_pT_Bin_event_val, MultiDim3D_Bin_val, MultiDim5D_Bin_val}};
     return z_pT_and_MultiDim_Bins;"""])
             
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -5150,12 +5178,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         DF_Out  = DF_Out.Filter("smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5168,7 +5198,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         else:
                             DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
                 if("Proton" in Cut_Choice):
-                    cutname = f"{cutname} (Proton MM) "
+                    cutname = f"{cutname} (Proton Cut) "
                     if(Titles_or_DF == 'DF'):
                         DF_Out  = DF_Out.Filter("MM_pro > 1.35")
                 if("Binned"  in Cut_Choice):
@@ -5332,6 +5362,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Cut_Name = "Cuts with Inverted Generated MM Cut"
         if("Binned"   in str(Cut_Type)):
             Cut_Name = "".join([str(Cut_Name), " with Kinematic Binning"])
+        if("Proton"   in str(Cut_Type)):
+            Cut_Name = "".join([str(Cut_Name), " with Proton Cuts"])
         if("Complete" in str(Cut_Type)):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
         if("eS" in str(Cut_Type)):
@@ -5894,9 +5926,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-#     if("Y_bin" in binning_option_list):
-#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -5989,40 +6021,42 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
-            # Updated on 7/26/2024 (for ele DC)
-            for layer in [6, 18, 36]:
-                DCxBinning = [f'ele_x_DC_{layer}', -120, 120, 240]
-                DCyBinning = [f'ele_y_DC_{layer}', -120, 120, 240]
-                List_of_Quantities_2D.append([DCxBinning, DCyBinning])
-            # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
-            # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
-            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
-            # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
-            
-            # Updated on 7/26/2024 (for pip DC)
-            for layer in [6, 18, 36]:
-                pip_DCxBinning = [f'pip_x_DC_{layer}', -300, 300, 600]
-                pip_DCyBinning = [f'pip_y_DC_{layer}', -300, 300, 600]
-                List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
-            # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
-            # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
-            
-            # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
-            List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
+            if(not True):
+                # Updated on 7/26/2024 (for ele DC)
+                for layer in [6, 18, 36]:
+                    DCxBinning = [f'ele_x_DC_{layer}', -120, 120, 240]
+                    DCyBinning = [f'ele_y_DC_{layer}', -120, 120, 240]
+                    List_of_Quantities_2D.append([DCxBinning, DCyBinning])
+                # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
+                # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
+                # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
+                # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
+
+                # Updated on 7/26/2024 (for pip DC)
+                for layer in [6, 18, 36]:
+                    pip_DCxBinning = [f'pip_x_DC_{layer}', -300, 300, 600]
+                    pip_DCyBinning = [f'pip_y_DC_{layer}', -300, 300, 600]
+                    List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
+                # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
+                # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
+
+                # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
+                List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
+                
+                del DCxBinning
+                del DCyBinning
+                del pip_DCxBinning
+                del pip_DCyBinning
             
             del PCalxBinning
             del PCalyBinning
-            del DCxBinning
-            del DCyBinning
-            del pip_DCxBinning
-            del pip_DCyBinning
         else:
             List_of_Quantities_3D = []
     else:
         List_of_Quantities_3D     = []
         
     if(Tag_Proton):
-        List_of_Quantities_2D.append([["pro", 0, 8, 200], ["MM_pro", -0.5, 5, 220]])
+        List_of_Quantities_2D.append([["pro", 0, 6, 150], ["MM_pro", 0, 2.5, 100]])
         
     # if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
     #     # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
