@@ -898,11 +898,12 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             
             cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
             cut_criteria = 0.02
+            cut_criteria = 0
             
             for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
                 if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
-                    # if(Bin_Acceptance.GetBinContent(ii) != 0):
-                    #     print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...\n\t(cut_criteria = ", str(cut_criteria), ")\n\t(Bin_Content  = ", str(Bin_Acceptance.GetBinContent(ii)), ")", color.END]))
+                    if(Bin_Acceptance.GetBinContent(ii) != 0):
+                        print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...\n\t(cut_criteria = ", str(cut_criteria), ")\n\t(Bin_Content  = ", str(Bin_Acceptance.GetBinContent(ii)), ")", color.END]))
                     # Bin_Unfolded.SetBinError(ii,   Bin_Unfolded.GetBinContent(ii) + Bin_Unfolded.GetBinError(ii))
                     Bin_Unfolded.SetBinError(ii,   0)
                     Bin_Unfolded.SetBinContent(ii, 0)
@@ -1056,19 +1057,19 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
     
                 for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
                     if(MC_REC_1D.GetBinContent(bin_rec) == 0):
-                        # Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
-                        Unfolded_Histo.SetBinError(bin_rec,          0)
-                        Unfolded_Histo.SetBinContent(bin_rec,        0)
+                        Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
+                        # Unfolded_Histo.SetBinError(bin_rec,          0)
+                        # Unfolded_Histo.SetBinContent(bin_rec,        0)
                         
                 if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
                     Bin_Acceptance = MC_REC_1D.Clone()
                     Bin_Acceptance.Sumw2()
                     Bin_Acceptance.Divide(MC_GEN_1D)
-                for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
-                    if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
-                        # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
-                        Unfolded_Histo.SetBinError(bin_acceptance,   0)
-                        Unfolded_Histo.SetBinContent(bin_acceptance, 0)
+                # for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
+                #     if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
+                #         # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
+                #         Unfolded_Histo.SetBinError(bin_acceptance,   0)
+                #         Unfolded_Histo.SetBinContent(bin_acceptance, 0)
                         
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
@@ -2870,7 +2871,8 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
         #########################################################
         ##===============##     3D Slices     ##===============##
         if("3D" in str(type(Drawing_Histo_Found))):
-            bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input    if(str(Z_PT_Bin_Input) not in ["All", "0"]) else 0), Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0"]) else Drawing_Histo_Found.GetNbinsX())
+            # bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input    if(str(Z_PT_Bin_Input) not in ["All", "0"]) else 0), Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0"]) else Drawing_Histo_Found.GetNbinsX())
+            bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input    if(str(Z_PT_Bin_Input) not in ["All", "0"]) else 1), Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0"]) else Drawing_Histo_Found.GetNbinsX())
             if(str(Z_PT_Bin_Input) not in ["All", "0"]):
                 Drawing_Histo_Found.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
             New_Name = str(Drawing_Histo_Name).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D" if(str(Z_PT_Bin_Input)     in ["All", "0"]) else str(Z_PT_Bin_Input)]))
@@ -4757,7 +4759,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
     ######################################################### ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ##===============##     3D Slices     ##===============## ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     if("3D" in str(type(Q2_y_Histo_rdf_Initial))):
-        bin_Histo_2D_0, bin_Histo_2D_1 = Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(0), Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Q2_y_Histo_rdf_Initial.GetNbinsX())
+        # bin_Histo_2D_0, bin_Histo_2D_1 = Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(0), Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Q2_y_Histo_rdf_Initial.GetNbinsX())
+        bin_Histo_2D_0, bin_Histo_2D_1 = Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(1), Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Q2_y_Histo_rdf_Initial.GetNbinsX())
         Q2_y_Histo_rdf_Initial.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
         Q2_y_Name = str(Q2_y_Histo_rdf_Initial.GetName())
         Drawing_Histo_Set[Q2_y_Name] = Q2_y_Histo_rdf_Initial.Project3D('yz e')
@@ -4782,7 +4785,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
         print("Using Q2_y_Histo_rdf_Initial =", str(Q2_y_Histo_rdf_Initial))
         
     if("3D" in str(type(z_pT_Histo_rdf_Initial))):
-        bin_Histo_2D_0, bin_Histo_2D_1 = z_pT_Histo_rdf_Initial.GetXaxis().FindBin(0), z_pT_Histo_rdf_Initial.GetXaxis().FindBin(z_pT_Histo_rdf_Initial.GetNbinsX())
+        # bin_Histo_2D_0, bin_Histo_2D_1 = z_pT_Histo_rdf_Initial.GetXaxis().FindBin(0), z_pT_Histo_rdf_Initial.GetXaxis().FindBin(z_pT_Histo_rdf_Initial.GetNbinsX())
+        bin_Histo_2D_0, bin_Histo_2D_1 = z_pT_Histo_rdf_Initial.GetXaxis().FindBin(1), z_pT_Histo_rdf_Initial.GetXaxis().FindBin(z_pT_Histo_rdf_Initial.GetNbinsX())
         z_pT_Histo_rdf_Initial.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
         z_pT_Name = str(z_pT_Histo_rdf_Initial.GetName())
         Drawing_Histo_Set[z_pT_Name] = z_pT_Histo_rdf_Initial.Project3D('yz e'                        if(Plot_Orientation in ["z_pT"]) else 'zy e')
