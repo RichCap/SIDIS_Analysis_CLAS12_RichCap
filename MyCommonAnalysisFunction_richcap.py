@@ -785,6 +785,8 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
     z_pT_Bins_Borders = {}
 
     for z_pT in range(1, Total_Number_of_Bins + 1, 1):
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Num_In, Z_PT_BIN=z_pT, BINNING_METHOD="_Y_bin")):
+            continue
         bin_color = 41 if(z_pT in Migration_Bin_2) else root_color.Black if(z_pT < (Migration_Bin_1 + 1)) else root_color.Red
         if(bin_color == root_color.Red):
             break
