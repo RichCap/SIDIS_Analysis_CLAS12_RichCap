@@ -716,6 +716,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # One set of histograms per layer (3 layers for 6 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
         
+        
+    Extra_Name = "Fiducial_Tests_Only_V1_"
+    # Ran on 8/13/2024
+    # Same Fiducial cut test as "New_Fiducial_Cut_Test_V5_" (testing only the fiducial cut/2D histograms)
+    # Modified ranges and binning for some of the relevant plots
+    # Removed all Unfolding histograms (not testing unfolding currently)
+    # Only using the 'All' Q2-y bin option
+    # Included 1D/2D/3D Histograms:
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        # 2D) Missing Mass (with Proton) vs proton momentum (if proton is tagged)
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # One set of histograms per layer (3 layers for 6 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
     
     
     
@@ -5607,6 +5623,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         List_of_Q2_xB_Bins_to_include = [-1]
         
     # List_of_Q2_xB_Bins_to_include = [-1, 1]
+    List_of_Q2_xB_Bins_to_include = [-1]
     
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
@@ -6031,9 +6048,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(Use_New_PF and (str(datatype) not in ["gdf"])): # Added on 6/6/2024 (for drift chambers)
             # Variables do not exist in older files
             
-            # Updated on 7/8/2024 (for pip PCal)
-            PCalxBinning = ['Hx_pip', -460, 840, 650]
-            PCalyBinning = ['Hy_pip', -460, 840, 650]
+            # Updated on 8/13/2024 (for pip PCal)
+            PCalxBinning = ['Hx_pip', -500, 500, 500]
+            PCalyBinning = ['Hy_pip', -500, 500, 500]
             List_of_Quantities_2D.append([PCalxBinning, PCalyBinning])
             List_of_Quantities_3D = []
             # List_of_Quantities_2D = [[PCalxBinning, PCalyBinning]]
@@ -6041,20 +6058,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
             if(True):
-                # Updated on 7/26/2024 (for ele DC)
+                # Updated on 8/13/2024 (for ele DC)
                 for layer in [6, 18, 36]:
-                    DCxBinning = [f'ele_x_DC_{layer}', -120, 120, 240]
-                    DCyBinning = [f'ele_y_DC_{layer}', -120, 120, 240]
+                    DCxBinning = [f'ele_x_DC_{layer}', -350, 350, 700]
+                    DCyBinning = [f'ele_y_DC_{layer}', -350, 350, 700]
                     List_of_Quantities_2D.append([DCxBinning, DCyBinning])
                 # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
                 # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
                 # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
                 # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
 
-                # Updated on 7/26/2024 (for pip DC)
+                # Updated on 8/13/2024 (for pip DC)
                 for layer in [6, 18, 36]:
-                    pip_DCxBinning = [f'pip_x_DC_{layer}', -300, 300, 600]
-                    pip_DCyBinning = [f'pip_y_DC_{layer}', -300, 300, 600]
+                    pip_DCxBinning = [f'pip_x_DC_{layer}', -350, 350, 700]
+                    pip_DCyBinning = [f'pip_y_DC_{layer}', -350, 350, 700]
                     List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
                 # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
                 # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
@@ -6087,8 +6104,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
     
-    # # # 1D histograms are turned off with this option
-    # List_of_Quantities_1D = []
+    # # 1D histograms are turned off with this option
+    List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []
