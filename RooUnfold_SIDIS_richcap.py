@@ -6032,7 +6032,7 @@ Common_Name = "Pass_2_New_Sector_Cut_Test_V10_All"
 
 Common_Name = "Pass_2_New_Sector_Cut_Test_V12_All"
 
-Common_Name = "Pass_2_New_Fiducial_Cut_Test_V3_All"
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_V4_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -6654,6 +6654,10 @@ for ii in mdf.GetListOfKeys():
         Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
         # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
         Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
+        
+        # Proton Cuts
+        Conditions_For_Unfolding.append("_Proton'), "              not in str(out_print_main)) # Remove Cuts
+        # Conditions_For_Unfolding.append("_Proton'), "                  in str(out_print_main)) # Include Cuts
 
         ## Correct Variable(s):
         # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
@@ -7721,7 +7725,7 @@ else:
     for ii in mdf.GetListOfKeys():
         try:
             out_print_main = str(ii.GetName())
-            if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut"]))):
+            if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut", "cut_Complete_SIDIS_Proton"]))):
 #             if("Normal_2D" in out_print_main):
                 mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
                 mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)",           "")
@@ -7734,6 +7738,7 @@ else:
                 gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
                 for sector_cut_remove in range(1, 6):
                     gdf_print_str = gdf_print_str.replace(f"(gdf)_(eS{sector_cut_remove}o)", "(gdf)")
+                gdf_print_str     = gdf_print_str.replace(f"(gdf)_(Proton)",                 "(gdf)")
                 SEARCH = []
                 for BIN in BIN_SEARCH:
                     SEARCH.append(str(BIN) in str(mdf_print_str))
@@ -7940,7 +7945,11 @@ Variable_List_Final = ["phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT
 
 Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
 
-Variable_List_Final = ["phi_t"]
+Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
+# Variable_List_Final = ["phi_t"]
+
+Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+
 if(run_Sec_Unfold):
     for sec in Sector_List:
         Variable_List_Final.append(f"pipsec_{sec})_(phi_t")
@@ -7969,7 +7978,8 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-# Multi_Dimensional_List = ["Off", "3D"]
+Multi_Dimensional_List = ["Off", "3D"]
+# Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
