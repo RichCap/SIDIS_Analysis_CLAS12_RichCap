@@ -697,6 +697,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) Missing Mass (with Proton) vs proton momentum
         # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
         
+        
+    Extra_Name = "New_Fiducial_Cut_Test_V5_"
+    # Ran on 8/12/2024
+    # Removed all new fiducial cut refinements
+        # Valerii's cuts seemed to cut too much data, testing full impact
+        # Also set his original Hx/Hy cuts to only impact the electron
+    # Added back the DC and PCal variable plots that were removed for "New_Fiducial_Cut_Test_V4" (See below)
+    # Also removed 3D Unfolding
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (Only - no multidimensional unfolding still)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # One set of histograms per layer (3 layers for 6 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
     
     
     
@@ -3028,7 +3047,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }
                     return false;
                 };
-                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion and True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
+                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion and not True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
             return Data_Frame_Clone
         else:
             return Data_Frame
@@ -5179,13 +5198,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts", "Valerii"])
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts", "Valerii"])
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5926,9 +5945,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+#     if("Y_bin" in binning_option_list):
+#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6021,7 +6040,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
-            if(not True):
+            if(True):
                 # Updated on 7/26/2024 (for ele DC)
                 for layer in [6, 18, 36]:
                     DCxBinning = [f'ele_x_DC_{layer}', -120, 120, 240]
