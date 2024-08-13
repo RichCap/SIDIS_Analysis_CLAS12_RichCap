@@ -1871,7 +1871,7 @@ def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
         Failed_Filter  = False
     if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
         Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele")
-        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
+        # Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
         Failed_Filter  = False
     if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii"])):
         Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out)
