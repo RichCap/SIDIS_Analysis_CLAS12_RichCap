@@ -747,6 +747,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # One set of histograms per layer (3 layers for 6 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
         
+        
+    Extra_Name = "Fiducial_Tests_Only_V3_"
+    # Ran on 8/14/2024
+    # Turned on Valerii's DC/PCal cuts but only for the electron
+        # PCal Volume cuts turned back on (otherwise the same as "Fiducial_Tests_Only_V2")
+    # All other options are the same as "Fiducial_Tests_Only_V1"/"Fiducial_Tests_Only_V2"
+    # Included 1D/2D/3D Histograms:
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        # 2D) Missing Mass (with Proton) vs proton momentum (if proton is tagged)
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC'
+            # One set of histograms per layer (3 layers for 6 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+        
     
     
     
@@ -5229,13 +5246,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts", "PCal"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts", "PCal"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
