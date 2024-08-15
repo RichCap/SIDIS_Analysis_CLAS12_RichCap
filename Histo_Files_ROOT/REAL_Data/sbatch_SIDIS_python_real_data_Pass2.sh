@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=NP2_rdf_SIDIS_8_14_2024_Run1_Fiducial_Tests_Only_V3_SIDIS
+#SBATCH --job-name=FC1_rdf_SIDIS_8_14_2024_Run1_New_Fiducial_Cut_Test_V6_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -20,4 +20,4 @@ FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/D
 # Above is for (rdf_NewP2 - As of 7/29/2024) #SBATCH --array=0-170
 # Normally requested time: --time=8:00:00
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py rdf_sidis_NewP2 ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py rdf_sidis_NewP2_FC1 ${FILES[$SLURM_ARRAY_TASK_ID]}

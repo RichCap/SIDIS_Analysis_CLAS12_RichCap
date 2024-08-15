@@ -86,9 +86,12 @@ Momentum_Cor_List = ["_Mom",    "_mom"]
 Use__Mom_Cor_List = ["_UnCor",  "_Uncor", "mdf",       "gdf"]
 Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight", "_Q4"]
 Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
-Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2", "     _1.5", "_1.75", "_2.0", "_FX"]
+Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 Tag___Proton_List = ["_Pro",    "_Proton"]
+SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9"]
+
+
 
 for sidis         in SIDIS_Unfold_List:
     if(str(sidis) in str(datatype)):
@@ -152,13 +155,51 @@ if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
     Use_Weight = False
     Q4_Weight  = False
     # Do not use the simulated modulations on the momentum correction code or for the experimental data set
-
+    
+    
 for pass_ver in Pass_Version_List:
     if(str(pass_ver) in str(datatype)):
         Use_Pass_2 = ("2"   in str(pass_ver))
         Use_New_PF = ("New" in str(pass_ver))
         datatype   = str(datatype).replace(str(pass_ver), "")
         break
+        
+        
+# Setting the skip cut configuration for the New_Fiducial_Cuts_Function() function
+# Skipped_Fiducial_Cuts = ["N/A"]
+Skipped_Fiducial_Cuts  = ["My_Cuts"] # My fiducial cuts are not being used
+Cut_Configuration_Name = ""
+for SkipC         in SkipFiducial_List:
+    if(str(SkipC) in str(datatype)):
+        Cut_Configuration_Name    = SkipC
+        if(SkipC  in ["_FC0"]):
+            Skipped_Fiducial_Cuts = ["All",     "Hpip"]             # Skips All new fiducial cuts added after new Pass 2 files
+        if(SkipC  in ["_FC1"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip"]            # Bad PCal Channels for the Pion (Hx_pip and Hy_pip Cuts)
+        if(SkipC  in ["_FC2"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "DC_pip"]          # Valerii's DC Cuts (on the Pion)
+        if(SkipC  in ["_FC3"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "DC_ele"]          # Valerii's DC Cuts (on the Electron)
+        if(SkipC  in ["_FC4"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "PCal"]            # Valerii's PCal Volume Cuts
+        if(SkipC  in ["_FC5"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "DC_pip"]  # Skipping Valerii's (New) Electron Cuts
+        if(SkipC  in ["_FC6"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "PCal", "DC_ele"]  # Skipping New Pion Cuts (from Valerii)
+        if(SkipC  in ["_FC7"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "DC"]              # Skipping all DC cuts
+        if(SkipC  in ["_FC8"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "PCal"]    # Skipping all PCal cuts (Only new DC Cuts)
+        if(SkipC  in ["_FC9"]):
+            Skipped_Fiducial_Cuts = ["All"]                        # Skipping all cuts from within the New_Fiducial_Cuts_Function() function
+        datatype                  = str(datatype).replace(str(SkipC), "")
+        if("gdf" not in str(datatype)):
+            print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
+        break
+        
+        
+        
+
         
 if(Tag_Proton and not Use_New_PF):
     print("\033[91m\033[1mCannot Run the Tagged Proton without the newest versions of the Pass 2 root files...\n\033[0m")
@@ -196,8 +237,8 @@ elif(output_type   not in ["histo", "data", "tree"]):
     if(output_type not in ["test", "time"]):
         output_type = "histo"
 
-print("".join(["The Output type will be: ", output_type]))
-print("".join(["The Data type will be:   ", datatype]))
+print(f"The Output type will be: {output_type}")
+print(f"The Data type will be:   {datatype}")
 
 
 from MyCommonAnalysisFunction_richcap import color, color_bg, root_color
@@ -764,7 +805,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         
         
-    
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V6_"
+    # Ran on 8/14/2024
+    # Fiducial Cut Refinements are controlled by the main input 
+        # See 'Cut_Configuration_Name' and the definitions of the 'Skipped_Fiducial_Cuts' list for details
+    # Added the rotated DC hit plots
+    # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V5" (see below)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (Only - no multidimensional unfolding still)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
+            # Two set of histograms per layer (3 layers each for 12 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -1140,7 +1196,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if(Use_New_PF and (str(datatype) not in ["gdf"])):
             print(f"\n{color.BOLD}Creating variables for Valerii's (New) Fiducial Cuts{color.END}")
-            rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A')
+            rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A', Particle="ele")
+            rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A', Particle="pip")
         
         if(datatype not in ["rdf"]):
             print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
@@ -3095,7 +3152,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }
                     return false;
                 };
-                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion and not True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
+                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion or ("Hpip" in Skipped_Fiducial_Cuts)) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
             return Data_Frame_Clone
         else:
             return Data_Frame
@@ -5246,13 +5303,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=Skipped_Fiducial_Cuts)
                     else:
                         DF_Out  = DF_Out.Filter("y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
                         DF_Out  = filter_Valerii(DF_Out, Cut_Choice)
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["DC", "pipsec"]) # "N/A")
                         # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["pipsec"])
-                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        # DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=["My_Cuts"])
+                        DF_Out  = New_Fiducial_Cuts_Function(Data_Frame_In=DF_Out, Skip_Options=Skipped_Fiducial_Cuts)
                 if("EDIS"   in Cut_Choice):
                     cutname = "".join([cutname, "Exclusive "])
                     if(Titles_or_DF == 'DF'):
@@ -5303,6 +5362,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         else:
                             DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
                 cutname = "".join([cutname, "Cuts"])
+                if(Skipped_Fiducial_Cuts != ["My_Cuts"]):
+                    cutname = "".join([cutname, f" (Skipped these Fiducial Cuts: {Skipped_Fiducial_Cuts})"])
         else:
             # Generated Monte Carlo should not have cuts applied to it (until now...)
 #             if(Data_Type in ["gdf", "gen"]):
@@ -5655,7 +5716,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         List_of_Q2_xB_Bins_to_include = [-1]
         
     # List_of_Q2_xB_Bins_to_include = [-1, 1]
-    List_of_Q2_xB_Bins_to_include = [-1]
+    # List_of_Q2_xB_Bins_to_include = [-1]
     
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
@@ -6090,23 +6151,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
             if(True):
-                # Updated on 8/13/2024 (for ele DC)
-                for layer in [6, 18, 36]:
-                    DCxBinning = [f'ele_x_DC_{layer}', -350, 350, 700]
-                    DCyBinning = [f'ele_y_DC_{layer}', -350, 350, 700]
-                    List_of_Quantities_2D.append([DCxBinning, DCyBinning])
-                # List_of_Quantities_2D = [[DCxBinning, DCyBinning]]
-                # List_of_Quantities_3D = [[DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]]]
-                # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["layer_ele_DC", -0.5, 37.5, 38]])
-                # List_of_Quantities_3D.append([DCxBinning, DCyBinning, ["esec", -0.5, 7.5, 8]])
+                # Rotation variables added on 8/14/2024
+                for rotation in ["", "_rot"]:
+                    # Updated on 8/13/2024 (for ele DC)
+                    for layer in [6, 18, 36]:
+                        DCxBinning = [f'ele_x_DC_{layer}{rotation}', -350, 350, 700]
+                        DCyBinning = [f'ele_y_DC_{layer}{rotation}', -350, 350, 700]
+                        List_of_Quantities_2D.append([DCxBinning, DCyBinning])
 
-                # Updated on 8/13/2024 (for pip DC)
-                for layer in [6, 18, 36]:
-                    pip_DCxBinning = [f'pip_x_DC_{layer}', -350, 350, 700]
-                    pip_DCyBinning = [f'pip_y_DC_{layer}', -350, 350, 700]
-                    List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
-                # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["layer_pip_DC", -0.5, 37.5, 38]])
-                # List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, ["pipsec", -0.5, 7.5, 8]])
+                    # Updated on 8/13/2024 (for pip DC)
+                    for layer in [6, 18, 36]:
+                        pip_DCxBinning = [f'pip_x_DC_{layer}{rotation}', -350, 350, 700]
+                        pip_DCyBinning = [f'pip_y_DC_{layer}{rotation}', -350, 350, 700]
+                        List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
 
                 # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
                 List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
@@ -6136,8 +6193,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
     
-    # # 1D histograms are turned off with this option
-    List_of_Quantities_1D = []
+    # # # 1D histograms are turned off with this option
+    # List_of_Quantities_1D = []
 
     # # # 2D histograms are turned off with this option
     # List_of_Quantities_2D = []

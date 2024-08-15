@@ -1859,21 +1859,25 @@ def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input):
     
 # Function for applying all the Fiducial Cuts above
 def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
+    if("All" in Skip_Options):
+        return Data_Frame_In
     Data_Frame_Out = Data_Frame_In
     Failed_Filter  = True
-    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron"])):
+    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
         # Applying my (electron) fiducial cuts
         Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Sector_Cuts)
         Failed_Filter  = False
-    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion"])):
+    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
         # Applying my (pion) fiducial cuts
         Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Pip_Sector_Cuts)
         Failed_Filter  = False
-    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii"])):
+    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_ele", "DC_el", "All"])):
         Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele")
-        # Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
         Failed_Filter  = False
-    if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii"])):
+    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_pip", "All"])):
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
+        Failed_Filter  = False
+    if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii", "All"])):
         Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out)
         Failed_Filter  = False
     if(Failed_Filter):
