@@ -193,11 +193,12 @@ for SkipC         in SkipFiducial_List:
         if(SkipC  in ["_FC9"]):
             Skipped_Fiducial_Cuts = ["All"]                        # Skipping all cuts from within the New_Fiducial_Cuts_Function() function
         datatype                  = str(datatype).replace(str(SkipC), "")
-        if("gdf" not in str(datatype)):
-            print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
+        # if("gdf" not in str(datatype)):
+        #     print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
         break
         
-        
+if("gdf" not in str(datatype)):
+    print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")   
         
 
         
@@ -3152,7 +3153,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }
                     return false;
                 };
-                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if(not Include_Pion or ("Hpip" in Skipped_Fiducial_Cuts)) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
+                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if((not Include_Pion) or ("Hpip" in Skipped_Fiducial_Cuts) or True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
             return Data_Frame_Clone
         else:
             return Data_Frame
