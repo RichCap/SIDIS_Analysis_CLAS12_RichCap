@@ -81,9 +81,13 @@ if [ "$skip_mdf" = false ]; then
     script_path="${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_${script_type}_python_matching_MC_Pass2.sh"
     if [ "$use_cat" = true ]; then
         cat "$script_path"
+        echo ""
+        echo ""
     else
         if [ "$use_git" = true ]; then
             git diff "$script_path"
+            echo ""
+            echo ""
         else
             if [ "$use_lt" = true ]; then
                 ls -lhtr "$script_path"
@@ -111,9 +115,13 @@ if [ "$skip_gdf" = false ]; then
     script_path="${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_${script_type}_python_gen_MC_Pass2.sh"
     if [ "$use_cat" = true ]; then
         cat "$script_path"
+        echo ""
+        echo ""
     else
         if [ "$use_git" = true ]; then
             git diff "$script_path"
+            echo ""
+            echo ""
         else
             if [ "$use_lt" = true ];then
                 ls -lhtr "$script_path"
@@ -141,9 +149,13 @@ if [ "$skip_rdf" = false ]; then
     script_path="${DIR_WITH_SCRIPTS}/REAL_Data/sbatch_${script_type}_python_real_data_Pass2.sh"
     if [ "$use_cat" = true ]; then
         cat "$script_path"
+        echo ""
+        echo ""
     else
         if [ "$use_git" = true ]; then
             git diff "$script_path"
+            echo ""
+            echo ""
         else
             if [ "$use_lt" = true ]; then
                 ls -lhtr "$script_path"
@@ -160,8 +172,8 @@ else
 fi
 
 echo ""
-echo "Done submitting all jobs"
 if [ "$use_cat" = false ] && [ "$use_git" = false ] && [ "$use_lt" = false ]; then
+    echo "Done submitting all jobs"
     echo "Currently Running Jobs:"
     squeue -u richcap
     echo "Total:"
@@ -171,4 +183,5 @@ fi
 echo ""
 echo ""
 echo ""
+echo "Done"
 echo ""
