@@ -89,7 +89,7 @@ Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 Tag___Proton_List = ["_Pro",    "_Proton"]
-SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9"]
+SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10"]
 
 
 
@@ -173,7 +173,7 @@ for SkipC         in SkipFiducial_List:
     if(str(SkipC) in str(datatype)):
         Cut_Configuration_Name    = SkipC
         if(SkipC  in ["_FC0"]):
-            Skipped_Fiducial_Cuts = ["All",     "Hpip"]             # Skips All new fiducial cuts added after new Pass 2 files
+            Skipped_Fiducial_Cuts = ["All",     "Hpip"]            # Skips All new fiducial cuts added after new Pass 2 files
         if(SkipC  in ["_FC1"]):
             Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip"]            # Bad PCal Channels for the Pion (Hx_pip and Hy_pip Cuts)
         if(SkipC  in ["_FC2"]):
@@ -183,15 +183,17 @@ for SkipC         in SkipFiducial_List:
         if(SkipC  in ["_FC4"]):
             Skipped_Fiducial_Cuts = ["My_Cuts", "PCal"]            # Valerii's PCal Volume Cuts
         if(SkipC  in ["_FC5"]):
-            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "DC_pip"]  # Skipping Valerii's (New) Electron Cuts
+            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "DC_pip"]  # Skipping New Pion Cuts (from Valerii)
         if(SkipC  in ["_FC6"]):
-            Skipped_Fiducial_Cuts = ["My_Cuts", "PCal", "DC_ele"]  # Skipping New Pion Cuts (from Valerii)
+            Skipped_Fiducial_Cuts = ["My_Cuts", "PCal", "DC_ele"]  # Skipping Valerii's (New) Electron Cuts
         if(SkipC  in ["_FC7"]):
             Skipped_Fiducial_Cuts = ["My_Cuts", "DC"]              # Skipping all DC cuts
         if(SkipC  in ["_FC8"]):
             Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "PCal"]    # Skipping all PCal cuts (Only new DC Cuts)
         if(SkipC  in ["_FC9"]):
             Skipped_Fiducial_Cuts = ["All"]                        # Skipping all cuts from within the New_Fiducial_Cuts_Function() function
+        if(SkipC  in ["_FC_10"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip"]             # Skipping New Pion Cuts (from Valerii) but including my new fiducial cuts
         datatype                  = str(datatype).replace(str(SkipC), "")
         # if("gdf" not in str(datatype)):
         #     print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
@@ -814,6 +816,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V5" (see below)
     # Included 1D/2D/3D Histograms:
         # 1D) phi_t (Only - no multidimensional unfolding still)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
+            # Two set of histograms per layer (3 layers each for 12 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V7_"
+    # Ran on 8/14/2024
+    # Fiducial Cut Refinements are controlled by the main input 
+        # See 'Cut_Configuration_Name' and the definitions of the 'Skipped_Fiducial_Cuts' list for details
+    # The Monte Carlo files now include even more new files (for improved statistics)
+    # Added the 3D Unfolding Option back to the histogram list
+    # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V6" (see below)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
         # 2D) Q2 vs y, z vs pT, and Q2 vs xB
         # 2D) All phase space plots for electron+pion
         ##### All plots below only run for the 'All' Q2-y bin:
@@ -6056,9 +6078,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-#     if("Y_bin" in binning_option_list):
-#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
