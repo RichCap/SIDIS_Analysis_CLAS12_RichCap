@@ -2,7 +2,7 @@
 
 # Check if at least one argument was provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 base_name_of_files [Smeared|Unsmeared]"
+    echo "Usage: $0 base_name_of_files [Smeared|Unsmeared|TagProton_Unsmeared|TagProton_Smeared|ProtonCut_Unsmeared|ProtonCut_Smeared]"
     exit 1
 fi
 
@@ -10,10 +10,10 @@ BASE_NAME="$1"
 SUFFIX=""
 if [ "$#" -eq 2 ]; then
     # Check if the second argument is either "Smeared" or "Unsmeared"
-    if [ "$2" == "Smeared" ] || [ "$2" == "Unsmeared" ]; then
+    if [ "$2" == "Smeared" ] || [ "$2" == "Unsmeared" ] || [ "$2" == "TagProton_Unsmeared" ] || [ "$2" == "TagProton_Smeared" ] || [ "$2" == "ProtonCut_Unsmeared" ] || [ "$2" == "ProtonCut_Smeared" ]; then
         SUFFIX="_$2"
     else
-        echo "Invalid suffix. Only 'Smeared' or 'Unsmeared' are accepted."
+        echo "Invalid suffix. Only 'Smeared', 'Unsmeared', 'TagProton_Unsmeared', 'TagProton_Smeared', 'ProtonCut_Unsmeared', or 'ProtonCut_Smeared' are accepted."
         exit 1
     fi
 fi
