@@ -655,381 +655,589 @@ auto Find_phi_h_Bin  = [&](int Q2_y_Bin_Num_Value, int Z_PT_Bin_Num_Value, doubl
 
 
 
+# Correction_Code_Full_In = """
+# auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
+#     // corON == 0 --> DOES NOT apply the momentum corrections (i.e., turns the corrections 'off')
+#     // corON == 1 --> Applies the (Pass 1) momentum corrections for the experimental (real) data
+#     // corON == 2 --> Applies the (Pass 1) momentum corrections for the Monte Carlo (simulated) data
+#     // corON == 3 --> Applies the (Pass 2) momentum corrections for the experimental (real) data
+#     // corON == 4 --> Applies the (Pass 2) momentum corrections for the Monte Carlo (simulated) data
+#     if(corON == 0){ // Momentum Corrections are OFF
+#         double dp = 0;
+#         return dp;
+#     }
+#     else{ // corON != 0 --> Applies the momentum corrections (i.e., turns the corrections 'on')
+#         // ivec = 0 --> Electron Corrections
+#         // ivec = 1 --> π+ Corrections
+#         // ivec = 2 --> π- Corrections
+#         // ivec = 3 --> Proton Corrections
+#         // Momentum Magnitude
+#         double pp = sqrt(Px*Px + Py*Py + Pz*Pz);
+#         // Initializing the correction factor
+#         double dp = 0;
+#         // Defining Phi Angle
+#         double Phi = (180/3.1415926)*atan2(Py, Px);
+#         // (Initial) Shift of the Phi Angle (done to realign sectors whose data is separated when plotted from ±180˚)
+#         if(((sec == 4 || sec == 3) && Phi < 0) || (sec > 4 && Phi < 90)){
+#             Phi += 360;
+#         }
+#         // Getting Local Phi Angle
+#         double PhiLocal = Phi - (sec - 1)*60;
+#         // Applying Shift Functions to Phi Angles (local shifted phi = phi)
+#         double phi = PhiLocal;
+#         // For Electron Shift
+#         if(ivec == 0){
+#             phi = PhiLocal - 30/pp;
+#         }
+#         // For π+ Pion/Proton Shift
+#         if(ivec == 1 || ivec == 3){
+#             phi = PhiLocal + (32/(pp-0.05));
+#         }
+#         // For π- Pion Shift
+#         if(ivec == 2){
+#             phi = PhiLocal - (32/(pp-0.05));
+#         }
+#         if(corON == 2){ // Pass 1 Monte Carlo Simulated Corrections
+#             // Not Sector or Angle dependent (as of 3-21-2023)
+#             // Both particles were corrected at the same time using Extra_Name = "Multi_Dimension_Unfold_V1_"
+#             // Used ∆P = GEN - REC so the other particle does not affect how much the correction is needed
+#             if(ivec == 0){ // Electron Corrections
+#                 // // For MC REC (Unsmeared) ∆P(Electron) Vs Momentum Correction Equation:
+#                 // dp = (-8.2310e-04)*pp*pp + (9.0877e-03)*pp + (-1.5853e-02);
+#                 // From Normal ∆P corrections:
+#                 // For MC REC (Unsmeared) ∆P(Electron) Vs Momentum Correction Equation:
+#                 dp = (-6.9141e-04)*pp*pp + (5.5852e-03)*pp + (-5.2144e-03);
+#                 // Corrected after the pion
+#             }
+#             if(ivec == 1){ // Pi+ Pion Corrections
+#                 // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
+#                 dp = (-7.3067e-05)*pp*pp + (-8.1215e-06)*pp + (4.2144e-03);
+#                 // From Normal ∆P corrections:
+#                 // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
+#                 dp = (-1.8752e-03)*pp*pp + (1.0679e-02)*pp +  (2.5653e-03);
+#                 // Corrected before the electron
+#                 // Cannot use iterative corrections as of 7-8-2023 due to the corrections being applied automatically so that dp is no longer a function of the same pp
+#                 // dp = dp + (-1.8949e-03)*pp*pp + (9.3060e-03)*pp + (-9.7925e-03);
+#             }
+#             return dp/pp;
+#         }
+#         else{
+#             if(corON == 1){ // Pass 1 Data Momentum Corrections
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 //==============================================================================//
+#                 //==========//==========//     Electron Corrections     //==========//==========//
+#                 //==============================================================================//
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 if(ivec == 0){
+#                     if(sec == 1){
+#                         dp = ((-4.3303e-06)*phi*phi +  (1.1006e-04)*phi + (-5.7235e-04))*pp*pp +  ((3.2555e-05)*phi*phi +  (-0.0014559)*phi +   (0.0014878))*pp + ((-1.9577e-05)*phi*phi +   (0.0017996)*phi + (0.025963));
+#                     }
+#                     if(sec == 2){
+#                         dp = ((-9.8045e-07)*phi*phi +  (6.7395e-05)*phi + (-4.6757e-05))*pp*pp + ((-1.4958e-05)*phi*phi +  (-0.0011191)*phi +  (-0.0025143))*pp +  ((1.2699e-04)*phi*phi +   (0.0033121)*phi + (0.020819));
+#                     }
+#                     if(sec == 3){
+#                         dp = ((-5.9459e-07)*phi*phi + (-2.8289e-05)*phi + (-4.3541e-04))*pp*pp + ((-1.5025e-05)*phi*phi +  (5.7730e-04)*phi +  (-0.0077582))*pp +  ((7.3348e-05)*phi*phi +   (-0.001102)*phi + (0.057052));
+#                     }
+#                     if(sec == 4){
+#                         dp = ((-2.2714e-06)*phi*phi + (-3.0360e-05)*phi + (-8.9322e-04))*pp*pp +  ((2.9737e-05)*phi*phi +  (5.1142e-04)*phi +   (0.0045641))*pp + ((-1.0582e-04)*phi*phi + (-5.6852e-04)*phi + (0.027506));
+#                     }
+#                     if(sec == 5){
+#                         dp = ((-1.1490e-06)*phi*phi + (-6.2147e-06)*phi + (-4.7235e-04))*pp*pp +  ((3.7039e-06)*phi*phi + (-1.5943e-04)*phi + (-8.5238e-04))*pp +  ((4.4069e-05)*phi*phi +   (0.0014152)*phi + (0.031933));
+#                     }
+#                     if(sec == 6){
+#                         dp =  ((1.1076e-06)*phi*phi +  (4.0156e-05)*phi + (-1.6341e-04))*pp*pp + ((-2.8613e-05)*phi*phi + (-5.1861e-04)*phi +  (-0.0056437))*pp +  ((1.2419e-04)*phi*phi +  (4.9084e-04)*phi + (0.049976));
+#                     }
+#                 }
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 //==============================================================================//
+#                 //==========//==========//  Electron Corrections (End)  //==========//==========//
+#                 //==============================================================================//
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 //=============================================================================//
+#                 //==========//==========//     π+ Pion Corrections     //==========//==========//
+#                 //=============================================================================//
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 if(ivec == 1){
+#                     if(sec == 1){
+#                         dp =      ((-5.4904e-07)*phi*phi + (-1.4436e-05)*phi +  (3.1534e-04))*pp*pp +  ((3.8231e-06)*phi*phi +  (3.6582e-04)*phi +  (-0.0046759))*pp + ((-5.4913e-06)*phi*phi + (-4.0157e-04)*phi + (0.010767));
+#                         dp = dp +  ((6.1103e-07)*phi*phi +  (5.5291e-06)*phi + (-1.9120e-04))*pp*pp + ((-3.2300e-06)*phi*phi +  (1.5377e-05)*phi +  (7.5279e-04))*pp +  ((2.1434e-06)*phi*phi + (-6.9572e-06)*phi + (-7.9333e-05));
+#                         dp = dp + ((-1.3049e-06)*phi*phi +  (1.1295e-05)*phi +  (4.5797e-04))*pp*pp +  ((9.3122e-06)*phi*phi + (-5.1074e-05)*phi +  (-0.0030757))*pp + ((-1.3102e-05)*phi*phi +  (2.2153e-05)*phi + (0.0040938));
+#                     }
+#                     if(sec == 2){
+#                         dp =      ((-1.0087e-06)*phi*phi +  (2.1319e-05)*phi +  (7.8641e-04))*pp*pp +  ((6.7485e-06)*phi*phi +  (7.3716e-05)*phi +  (-0.0094591))*pp + ((-1.1820e-05)*phi*phi + (-3.8103e-04)*phi + (0.018936));
+#                         dp = dp +  ((8.8155e-07)*phi*phi + (-2.8257e-06)*phi + (-2.6729e-04))*pp*pp + ((-5.4499e-06)*phi*phi +  (3.8397e-05)*phi +   (0.0015914))*pp +  ((6.8926e-06)*phi*phi + (-5.9386e-05)*phi + (-0.0021749));
+#                         dp = dp + ((-2.0147e-07)*phi*phi +  (1.1061e-05)*phi +  (3.8827e-04))*pp*pp +  ((4.9294e-07)*phi*phi + (-6.0257e-05)*phi +  (-0.0022087))*pp +  ((9.8548e-07)*phi*phi +  (5.9047e-05)*phi + (0.0022905));
+#                     }
+#                     if(sec == 3){
+#                         dp =       ((8.6722e-08)*phi*phi + (-1.7975e-05)*phi +  (4.8118e-05))*pp*pp +  ((2.6273e-06)*phi*phi +  (3.1453e-05)*phi +  (-0.0015943))*pp + ((-6.4463e-06)*phi*phi + (-5.8990e-05)*phi + (0.0041703));
+#                         dp = dp +  ((9.6317e-07)*phi*phi + (-1.7659e-06)*phi + (-8.8318e-05))*pp*pp + ((-5.1346e-06)*phi*phi +  (8.3318e-06)*phi +  (3.7723e-04))*pp +  ((3.9548e-06)*phi*phi + (-6.9614e-05)*phi + (2.1393e-04));
+#                         dp = dp +  ((5.6438e-07)*phi*phi +  (8.1678e-06)*phi + (-9.4406e-05))*pp*pp + ((-3.9074e-06)*phi*phi + (-6.5174e-05)*phi +  (5.4218e-04))*pp +  ((6.3198e-06)*phi*phi +  (1.0611e-04)*phi + (-4.5749e-04));
+#                     }
+#                     if(sec == 4){
+#                         dp =       ((4.3406e-07)*phi*phi + (-4.9036e-06)*phi +  (2.3064e-04))*pp*pp +  ((1.3624e-06)*phi*phi +  (3.2907e-05)*phi +  (-0.0034872))*pp + ((-5.1017e-06)*phi*phi +  (2.4593e-05)*phi + (0.0092479));
+#                         dp = dp +  ((6.0218e-07)*phi*phi + (-1.4383e-05)*phi + (-3.1999e-05))*pp*pp + ((-1.1243e-06)*phi*phi +  (9.3884e-05)*phi + (-4.1985e-04))*pp + ((-1.8808e-06)*phi*phi + (-1.2222e-04)*phi + (0.0014037));
+#                         dp = dp + ((-2.5490e-07)*phi*phi + (-8.5120e-07)*phi +  (7.9109e-05))*pp*pp +  ((2.5879e-06)*phi*phi +  (8.6108e-06)*phi + (-5.1533e-04))*pp + ((-4.4521e-06)*phi*phi + (-1.7012e-05)*phi + (7.4848e-04));
+#                     }
+#                     if(sec == 5){
+#                         dp =       ((2.4292e-07)*phi*phi +  (8.8741e-06)*phi +  (2.9482e-04))*pp*pp +  ((3.7229e-06)*phi*phi +  (7.3215e-06)*phi +  (-0.0050685))*pp + ((-1.1974e-05)*phi*phi + (-1.3043e-04)*phi + (0.0078836));
+#                         dp = dp +  ((1.0867e-06)*phi*phi + (-7.7630e-07)*phi + (-4.4930e-05))*pp*pp + ((-5.6564e-06)*phi*phi + (-1.3417e-05)*phi +  (2.5224e-04))*pp +  ((6.8460e-06)*phi*phi +  (9.0495e-05)*phi + (-4.6587e-04));
+#                         dp = dp +  ((8.5720e-07)*phi*phi + (-6.7464e-06)*phi + (-4.0944e-05))*pp*pp + ((-4.7370e-06)*phi*phi +  (5.8808e-05)*phi +  (1.9047e-04))*pp +  ((5.7404e-06)*phi*phi + (-1.1105e-04)*phi + (-1.9392e-04));
+#                     }
+#                     if(sec == 6){
+#                         dp =       ((2.1191e-06)*phi*phi + (-3.3710e-05)*phi +  (2.5741e-04))*pp*pp + ((-1.2915e-05)*phi*phi +  (2.3753e-04)*phi + (-2.6882e-04))*pp +  ((2.2676e-05)*phi*phi + (-2.3115e-04)*phi + (-0.001283));
+#                         dp = dp +  ((6.0270e-07)*phi*phi + (-6.8200e-06)*phi +  (1.3103e-04))*pp*pp + ((-1.8745e-06)*phi*phi +  (3.8646e-05)*phi + (-8.8056e-04))*pp +  ((2.0885e-06)*phi*phi + (-3.4932e-05)*phi + (4.5895e-04));
+#                         dp = dp +  ((4.7349e-08)*phi*phi + (-5.7528e-06)*phi + (-3.4097e-06))*pp*pp +  ((1.7731e-06)*phi*phi +  (3.5865e-05)*phi + (-5.7881e-04))*pp + ((-9.7008e-06)*phi*phi + (-4.1836e-05)*phi + (0.0035403));
+#                     }
+#                 }
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 //=============================================================================//
+#                 //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
+#                 //=============================================================================//
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 //=============================================================================//
+#                 //==========//==========//     π- Pion Corrections     //==========//==========//
+#                 //=============================================================================//
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 if(ivec == 2){
+#                     if(sec == 1){
+#                         dp = ((-4.0192658422317425e-06)*phi*phi - (2.660222128967742e-05)*phi + 0.004774434682983547)*pp*pp;
+#                         dp = dp + ((1.9549520962477972e-05)*phi*phi - 0.0002456062756770577*phi - 0.03787692408323466)*pp; 
+#                         dp = dp + (-2.128953094937459e-05)*phi*phi + 0.0002461708852239913*phi + 0.08060704449822174 - 0.01;
+#                     }
+#                     if(sec == 2){
+#                         dp = ((1.193010521758372e-05)*phi*phi - (5.996221756031922e-05)*phi + 0.0009093437955814359)*pp*pp;
+#                         dp = dp + ((-4.89113824430594e-05)*phi*phi + 0.00021676479488147118*phi - 0.01861892053916726)*pp;  
+#                         dp = dp + (4.446394152208071e-05)*phi*phi - (3.6592784167335244e-05)*phi + 0.05498710249944096 - 0.01;
+#                     }
+#                     if(sec == 3){
+#                         dp = ((-1.6596664895992133e-07)*phi*phi + (6.317189710683516e-05)*phi + 0.0016364212312654086)*pp*pp;
+#                         dp = dp + ((-2.898409777520318e-07)*phi*phi - 0.00014531513577533802*phi - 0.025456145839203827)*pp;  
+#                         dp = dp + (2.6432552410603506e-06)*phi*phi + 0.00018447151306275443*phi + 0.06442602664627255 - 0.01;
+#                     }
+#                     if(sec == 4){
+#                         dp = ((2.4035259647558634e-07)*phi*phi - (8.649647351491232e-06)*phi + 0.004558993439848128)*pp*pp;
+#                         dp = dp + ((-5.981498144060984e-06)*phi*phi + 0.00010582131454222416*phi - 0.033572004651981686)*pp;  
+#                         dp = dp + (8.70140266889548e-06)*phi*phi - 0.00020137414379966883*phi + 0.07258774523336173 - 0.01;   
+#                     }
+#                     if(sec == 5){
+#                         dp = ((2.5817024702834863e-06)*phi*phi + 0.00010132810066914441*phi + 0.003397314538804711)*pp*pp;
+#                         dp = dp + ((-1.5116941263931812e-05)*phi*phi - 0.00040679799541839254*phi - 0.028144285760769876)*pp;  
+#                         dp = dp + (1.4701931057951464e-05)*phi*phi + 0.0002426350390593454*phi + 0.06781682510174941 - 0.01;
+#                     }
+#                     if(sec == 6){
+#                         dp = ((-8.196823669099362e-07)*phi*phi - (5.280412421933636e-05)*phi + 0.0018457238328451137)*pp*pp;
+#                         dp = dp + ((5.2675062282094536e-06)*phi*phi + 0.0001515803461044587*phi - 0.02294371578470564)*pp;  
+#                         dp = dp + (-9.459454671739747e-06)*phi*phi - 0.0002389523716779765*phi + 0.06428970810739926 - 0.01;
+#                     }
+#                 }
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 //=============================================================================//
+#                 //==========//==========//  π- Pion Corrections (End)  //==========//==========//
+#                 //=============================================================================//
+#                 /////////////////////////////////////////////////////////////////////////////////
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 //==============================================================================//
+#                 //==========//==========//      Proton Corrections      //==========//==========//
+#                 //==============================================================================//
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 if(ivec == 3){
+#                     if(sec == 1){
+#                         dp = (5.415e-04)*pp*pp + (-1.0262e-02)*pp + (7.78075e-03);
+#                         dp = dp + ((1.2129e-04)*pp*pp + (1.5373e-04)*pp + (-2.7084e-04));
+#                     }
+#                     if(sec == 2){
+#                         dp = (-9.5439e-04)*pp*pp + (-2.86273e-03)*pp + (3.38149e-03);
+#                         dp = dp + ((-1.6890e-03)*pp*pp + (4.3744e-03)*pp + (-2.1218e-03));
+#                     }
+#                     if(sec == 3){
+#                         dp = (-5.5541e-04)*pp*pp + (-7.69739e-03)*pp + (5.7692e-03);
+#                         dp = dp + ((7.6422e-04)*pp*pp + (-1.5425e-03)*pp + (5.4255e-04));
+#                     }
+#                     if(sec == 4){
+#                         dp = (-1.944e-04)*pp*pp + (-5.77104e-03)*pp + (3.42399e-03);
+#                         dp = dp + ((1.1174e-03)*pp*pp + (-3.2747e-03)*pp + (2.3687e-03));
+#                     }
+#                     if(sec == 5){
+#                         dp = (1.54009e-03)*pp*pp + (-1.69437e-02)*pp + (1.04656e-02);
+#                         dp = dp + ((-2.1067e-04)*pp*pp + (1.2266e-03)*pp + (-1.0553e-03));
+#                     }
+#                     if(sec == 6){
+#                         dp = (2.38182e-03)*pp*pp + (-2.07301e-02)*pp + (1.72325e-02);
+#                         dp = dp + ((-3.6002e-04)*pp*pp + (8.9582e-04)*pp + (-1.0093e-03));
+#                     }
+#                 }
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 //==============================================================================//
+#                 //==========//==========//   Proton Corrections (End)   //==========//==========//
+#                 //==============================================================================//
+#                 //////////////////////////////////////////////////////////////////////////////////
+#                 return dp/pp;
+#             }
+#             else{
+#                 if(corON == 3){ // Pass 2 Data Momentum Corrections
+#                     //////////////////////////////////////////////////////////////////////////////////
+#                     //==============================================================================//
+#                     //==========//==========//     Electron Corrections     //==========//==========//
+#                     //==============================================================================//
+#                     //////////////////////////////////////////////////////////////////////////////////
+#                     if(ivec == 0){
+#                         if(sec == 1){
+#                             dp =      ((-2.9814e-06)*phi*phi + (-1.3177e-06)*phi + (-3.9424e-04))*pp*pp +  ((3.1475e-05)*phi*phi + (-1.7967e-04)*phi +  (3.7474e-04))*pp + ((-6.5941e-05)*phi*phi +  (8.3099e-04)*phi + (0.032777));
+#                             dp = dp +  ((2.1054e-07)*phi*phi + (-2.2491e-05)*phi + (-8.5798e-05))*pp*pp + ((-7.1256e-06)*phi*phi +  (1.9323e-04)*phi +   (0.0014213))*pp +  ((3.4079e-05)*phi*phi + (-3.7406e-04)*phi + (-0.0050973));
+#                             dp = dp + ((-4.4455e-06)*phi*phi +  (5.2006e-06)*phi +  (5.2186e-04))*pp*pp +  ((5.4746e-05)*phi*phi + (-1.0079e-04)*phi +  (-0.0069383))*pp + ((-1.5578e-04)*phi*phi +  (3.5947e-04)*phi + (0.024074));
+#                             dp = dp + ((-2.6078e-06)*phi*phi + (-4.3875e-06)*phi +  (2.5482e-04))*pp*pp +  ((3.2246e-05)*phi*phi +  (6.6817e-05)*phi +    (-0.00348))*pp + ((-9.4096e-05)*phi*phi + (-2.2928e-04)*phi + (0.01352));
+#                         }
+#                         if(sec == 2){
+#                             dp =      ((-9.1199e-08)*phi*phi +  (1.5504e-05)*phi + (-8.6526e-04))*pp*pp + ((-1.4237e-05)*phi*phi + (-3.8364e-04)*phi +   (0.0065896))*pp +  ((9.4995e-05)*phi*phi +   (0.0013291)*phi + (-0.0014618));
+#                             dp = dp + ((-2.6120e-06)*phi*phi + (-1.7473e-05)*phi + (-4.4569e-05))*pp*pp +  ((3.0510e-05)*phi*phi +  (1.6557e-04)*phi +  (3.7791e-04))*pp + ((-8.3982e-05)*phi*phi + (-3.9073e-04)*phi + (-7.4750e-04));
+#                             dp = dp + ((-5.0891e-06)*phi*phi + (-2.0499e-05)*phi +  (3.3179e-04))*pp*pp +  ((6.1969e-05)*phi*phi +  (2.2982e-04)*phi +  (-0.0046372))*pp + ((-1.7498e-04)*phi*phi + (-5.9972e-04)*phi + (0.018597));
+#                             dp = dp +  ((5.0347e-08)*phi*phi +  (6.5833e-08)*phi +  (1.5151e-04))*pp*pp + ((-2.8341e-06)*phi*phi + (-2.5084e-05)*phi +  (-0.0020883))*pp +  ((1.6091e-05)*phi*phi +  (2.4040e-04)*phi + (0.0089674));
+#                         }
+#                         if(sec == 3){
+#                             dp =      ((-1.7128e-06)*phi*phi +  (3.6506e-05)*phi + (-5.0322e-04))*pp*pp +  ((1.1945e-05)*phi*phi + (-4.3094e-04)*phi +   (0.0025542))*pp +  ((6.9253e-06)*phi*phi +  (9.8027e-04)*phi + (0.0062225));
+#                             dp = dp + ((-1.2384e-08)*phi*phi + (-1.2878e-05)*phi + (-1.5680e-04))*pp*pp + ((-7.6080e-06)*phi*phi +  (2.0174e-04)*phi +   (0.0022586))*pp +  ((4.8887e-05)*phi*phi + (-7.6605e-04)*phi + (-0.0076052));
+#                             dp = dp + ((-3.9399e-06)*phi*phi + (-1.1728e-05)*phi + (-1.7596e-04))*pp*pp +  ((4.7853e-05)*phi*phi +  (1.5792e-04)*phi +   (0.0016687))*pp + ((-1.4504e-04)*phi*phi + (-4.8236e-04)*phi + (0.0016249));
+#                             dp = dp +  ((5.4972e-07)*phi*phi + (-2.3883e-05)*phi +  (1.5269e-04))*pp*pp + ((-6.9613e-06)*phi*phi +  (2.7983e-04)*phi +  (-0.0029828))*pp + ((-1.2184e-06)*phi*phi + (-7.9843e-04)*phi + (0.017712));
+#                         }
+#                         if(sec == 4){
+#                             dp =      ((-3.4682e-06)*phi*phi +  (2.2003e-05)*phi +  (5.7129e-04))*pp*pp +  ((4.1493e-05)*phi*phi + (-1.4497e-04)*phi +   (-0.010517))*pp + ((-1.0323e-04)*phi*phi + (-2.7535e-04)*phi + (0.062998));
+#                             dp = dp +  ((1.1756e-06)*phi*phi +  (9.2843e-06)*phi + (-3.8049e-04))*pp*pp + ((-1.5805e-05)*phi*phi + (-6.8510e-05)*phi +   (0.0039821))*pp +  ((3.5444e-05)*phi*phi + (-1.3072e-04)*phi + (-0.0052522));
+#                             dp = dp + ((-9.1117e-09)*phi*phi +  (1.2690e-05)*phi + (-3.6216e-04))*pp*pp + ((-1.4697e-06)*phi*phi + (-1.7092e-04)*phi +   (0.0044829))*pp +  ((1.7339e-05)*phi*phi +  (6.4128e-04)*phi + (-0.010911));
+#                             dp = dp + ((-1.6261e-06)*phi*phi + (-2.1688e-05)*phi +  (2.9801e-04))*pp*pp +  ((2.4431e-05)*phi*phi +  (2.5886e-04)*phi +  (-0.0039035))*pp + ((-9.5725e-05)*phi*phi + (-5.2092e-04)*phi + (0.013865));
+#                         }
+#                         if(sec == 5){
+#                             dp =       ((8.6648e-07)*phi*phi +  (2.5573e-05)*phi +  (6.5377e-05))*pp*pp + ((-1.0315e-05)*phi*phi + (-3.5840e-04)*phi +  (-0.0066741))*pp +  ((2.1142e-05)*phi*phi +  (5.8774e-04)*phi + (0.045555));
+#                             dp = dp +  ((1.3520e-06)*phi*phi + (-2.2701e-06)*phi + (-1.4880e-04))*pp*pp + ((-1.7672e-05)*phi*phi + (-7.3631e-06)*phi +   (0.0018864))*pp +  ((5.2958e-05)*phi*phi +  (4.8608e-05)*phi + (-0.005351));
+#                             dp = dp + ((-1.6660e-06)*phi*phi +  (1.2066e-05)*phi +  (2.5740e-04))*pp*pp +  ((2.1087e-05)*phi*phi + (-2.2948e-04)*phi +  (-0.0034624))*pp + ((-6.1307e-05)*phi*phi +  (8.9383e-04)*phi + (0.014613));
+#                             dp = dp +  ((2.5118e-07)*phi*phi + (-9.5617e-06)*phi +  (1.8624e-04))*pp*pp + ((-3.0324e-06)*phi*phi +  (7.8390e-05)*phi +  (-0.0026539))*pp +  ((5.7233e-06)*phi*phi +  (2.6912e-05)*phi + (0.011676));
+#                         }
+#                         if(sec == 6){
+#                             dp =       ((2.2827e-06)*phi*phi + (-8.3888e-06)*phi + (-3.2263e-04))*pp*pp + ((-3.6229e-05)*phi*phi +  (1.2242e-04)*phi + (-4.8752e-04))*pp +  ((1.4049e-04)*phi*phi + (-5.0717e-04)*phi + (0.021858));
+#                             dp = dp + ((-2.1844e-06)*phi*phi + (-4.4769e-06)*phi + (-3.0654e-05))*pp*pp +  ((2.6552e-05)*phi*phi +  (1.8092e-05)*phi +  (5.2104e-04))*pp + ((-7.6253e-05)*phi*phi +  (5.1816e-05)*phi + (-0.001956));
+#                             dp = dp + ((-1.9016e-06)*phi*phi +  (1.2110e-05)*phi +  (2.6684e-04))*pp*pp +  ((2.4525e-05)*phi*phi + (-1.1772e-04)*phi +  (-0.0034957))*pp + ((-7.8749e-05)*phi*phi +  (2.3031e-04)*phi + (0.015083));
+#                             dp = dp + ((-1.5191e-07)*phi*phi +  (8.7979e-06)*phi +  (6.5120e-05))*pp*pp +  ((2.1214e-06)*phi*phi + (-8.5858e-05)*phi +  (-0.0013935))*pp + ((-1.3211e-05)*phi*phi +  (1.5676e-04)*phi + (0.0097685));
+#                         }
+#                     }
+#                     //////////////////////////////////////////////////////////////////////////////////
+#                     //==============================================================================//
+#                     //==========//==========//  Electron Corrections (End)  //==========//==========//
+#                     //==============================================================================//
+#                     //////////////////////////////////////////////////////////////////////////////////
+#                     /////////////////////////////////////////////////////////////////////////////////
+#                     //=============================================================================//
+#                     //==========//==========//     π+ Pion Corrections     //==========//==========//
+#                     //=============================================================================//
+#                     /////////////////////////////////////////////////////////////////////////////////
+#                     if(ivec == 1){
+#                         if(sec == 1){
+#                             dp =       ((1.0111e-06)*phi*phi +  (5.5576e-05)*phi + (-2.0734e-04))*pp*pp + ((-4.7499e-06)*phi*phi + (-6.3800e-04)*phi +   (0.0017997))*pp + ((-3.6325e-06)*phi*phi +  (1.0091e-04)*phi + (-4.1379e-04));
+#                             dp = dp +  ((9.6529e-07)*phi*phi + (-6.3808e-06)*phi +  (1.6481e-04))*pp*pp + ((-7.4268e-06)*phi*phi +  (1.4101e-04)*phi +  (-0.0030306))*pp +  ((1.0624e-05)*phi*phi + (-1.7095e-04)*phi + (0.010411));
+#                             dp = dp + ((-6.2255e-07)*phi*phi +  (1.0214e-06)*phi +  (2.5344e-04))*pp*pp +  ((7.9815e-06)*phi*phi +  (3.3594e-05)*phi +  (-0.0027925))*pp + ((-1.8099e-05)*phi*phi + (-5.4133e-05)*phi + (0.0071398));
+#                             dp = dp + ((-1.5386e-08)*phi*phi + (-3.0703e-06)*phi + (-6.3720e-05))*pp*pp +  ((1.3492e-06)*phi*phi +  (5.6471e-05)*phi +  (3.5015e-04))*pp + ((-8.2798e-07)*phi*phi + (-1.0091e-04)*phi + (-0.0016961));
+#                         }
+#                         if(sec == 2){
+#                             dp =       ((3.2353e-06)*phi*phi +  (3.2231e-05)*phi + (-5.2636e-04))*pp*pp + ((-2.1611e-05)*phi*phi + (-3.6647e-04)*phi +   (0.0046012))*pp +  ((1.9479e-05)*phi*phi +  (4.8691e-05)*phi + (-0.0077236));
+#                             dp = dp + ((-8.0014e-07)*phi*phi +  (9.0447e-06)*phi +  (6.3132e-04))*pp*pp +  ((8.1699e-06)*phi*phi +  (6.3365e-05)*phi +  (-0.0072546))*pp + ((-7.7759e-06)*phi*phi + (-3.1762e-04)*phi + (0.012731));
+#                             dp = dp + ((-1.2641e-06)*phi*phi + (-1.5281e-06)*phi +  (3.2149e-04))*pp*pp +  ((9.2496e-06)*phi*phi +  (5.0090e-05)*phi +   (-0.002904))*pp + ((-1.4918e-05)*phi*phi + (-1.2946e-04)*phi + (0.0066272));
+#                             dp = dp + ((-5.8884e-07)*phi*phi +  (1.0919e-05)*phi +  (9.1370e-05))*pp*pp +  ((7.5700e-06)*phi*phi + (-9.0078e-05)*phi +   (-0.001896))*pp + ((-1.8800e-05)*phi*phi +  (1.2259e-04)*phi + (0.0034845));
+#                         }
+#                         if(sec == 3){
+#                             dp =      ((-5.0785e-08)*phi*phi + (-1.2543e-05)*phi + (-6.5541e-05))*pp*pp + ((-2.9050e-06)*phi*phi +  (1.6694e-04)*phi + (-1.6092e-06))*pp +  ((8.7479e-06)*phi*phi + (-1.4064e-04)*phi + (-0.0019552));
+#                             dp = dp + ((-1.0293e-07)*phi*phi +  (5.9311e-06)*phi +  (3.4851e-04))*pp*pp +  ((4.7281e-06)*phi*phi + (-1.1553e-04)*phi +  (-0.0041831))*pp + ((-1.4566e-05)*phi*phi +  (1.4323e-04)*phi + (0.01277));
+#                             dp = dp +  ((2.4281e-07)*phi*phi + (-1.2261e-06)*phi +  (4.4800e-05))*pp*pp + ((-1.4789e-07)*phi*phi + (-1.2145e-05)*phi + (-5.5506e-04))*pp + ((-3.7526e-07)*phi*phi +  (3.6310e-05)*phi + (0.001157));
+#                             dp = dp + ((-7.0691e-07)*phi*phi + (-6.6656e-06)*phi +  (2.5692e-04))*pp*pp +  ((6.6035e-06)*phi*phi +  (5.3531e-05)*phi +  (-0.0030788))*pp + ((-1.0673e-05)*phi*phi + (-1.1955e-04)*phi + (0.0039758));
+#                         }
+#                         if(sec == 4){
+#                             dp =       ((6.8155e-07)*phi*phi +  (4.1069e-06)*phi + (-5.7928e-04))*pp*pp + ((-7.9321e-06)*phi*phi + (-1.1182e-05)*phi +   (0.0057558))*pp +  ((1.6317e-05)*phi*phi + (-2.3502e-05)*phi + (-0.015802));
+#                             dp = dp + ((-3.8735e-07)*phi*phi + (-1.4431e-05)*phi +  (8.2589e-04))*pp*pp +  ((1.0733e-05)*phi*phi +  (6.8166e-05)*phi +    (-0.00904))*pp + ((-3.4539e-05)*phi*phi +  (5.0404e-05)*phi + (0.026127));
+#                             dp = dp +  ((2.2241e-07)*phi*phi + (-1.0564e-05)*phi +  (3.5392e-04))*pp*pp + ((-5.9992e-07)*phi*phi +  (5.5053e-05)*phi +  (-0.0025682))*pp +  ((5.4840e-06)*phi*phi +  (6.0706e-06)*phi + (0.0031961));
+#                             dp = dp +  ((4.2134e-07)*phi*phi + (-7.2136e-06)*phi + (-6.6800e-05))*pp*pp + ((-3.8195e-06)*phi*phi +  (6.2408e-05)*phi +  (2.0413e-04))*pp +  ((9.2423e-06)*phi*phi + (-1.1143e-04)*phi + (-0.0027527));
+#                         }
+#                         if(sec == 5){
+#                             dp =      ((-9.8062e-07)*phi*phi +  (1.8881e-05)*phi + (-4.3191e-04))*pp*pp +  ((5.8950e-06)*phi*phi + (-1.8007e-04)*phi +   (0.0054105))*pp + ((-1.6796e-05)*phi*phi + (-8.0562e-05)*phi + (-0.013527));
+#                             dp = dp +  ((1.1929e-08)*phi*phi +  (4.0469e-06)*phi +   (0.0015612))*pp*pp +  ((4.4733e-06)*phi*phi + (-3.5644e-05)*phi +   (-0.015765))*pp + ((-5.6667e-06)*phi*phi +  (8.1663e-05)*phi + (0.02723));
+#                             dp = dp +  ((3.8356e-07)*phi*phi +  (3.3064e-06)*phi +  (1.2935e-04))*pp*pp + ((-4.5853e-07)*phi*phi + (-3.2460e-05)*phi +  (-0.0018519))*pp + ((-2.7462e-06)*phi*phi +  (7.2391e-05)*phi + (0.0060517));
+#                             dp = dp +  ((7.6080e-07)*phi*phi + (-4.1006e-06)*phi + (-9.5440e-05))*pp*pp + ((-7.0970e-06)*phi*phi +  (6.1629e-05)*phi +  (3.5178e-04))*pp +  ((1.6766e-05)*phi*phi + (-1.8855e-04)*phi + (-0.0021373));
+#                         }
+#                         if(sec == 6){
+#                             dp =       ((4.8744e-07)*phi*phi +  (8.0932e-05)*phi + (-8.0001e-04))*pp*pp + ((-3.6221e-06)*phi*phi + (-5.9260e-04)*phi +   (0.0049435))*pp +  ((3.4766e-06)*phi*phi +  (3.9113e-04)*phi + (-0.013482));
+#                             dp = dp +  ((1.3205e-06)*phi*phi + (-3.4827e-05)*phi +   (0.0014486))*pp*pp + ((-7.2797e-06)*phi*phi +  (2.2309e-04)*phi +  (-0.0091902))*pp +  ((8.5223e-06)*phi*phi + (-1.5744e-04)*phi + (0.018861));
+#                             dp = dp +  ((1.1602e-06)*phi*phi + (-1.9015e-05)*phi + (-3.6810e-05))*pp*pp + ((-6.8771e-06)*phi*phi +  (1.4793e-04)*phi +  (1.8771e-04))*pp +  ((2.6825e-06)*phi*phi + (-2.0166e-04)*phi + (0.0037471));
+#                             dp = dp + ((-1.0246e-06)*phi*phi + (-1.3784e-05)*phi +  (6.4560e-05))*pp*pp +  ((9.8205e-06)*phi*phi +  (1.4208e-04)*phi +   (-0.001803))*pp + ((-1.3982e-05)*phi*phi + (-2.5638e-04)*phi + (0.0027303));
+#                         }
+#                     }
+#                     /////////////////////////////////////////////////////////////////////////////////
+#                     //=============================================================================//
+#                     //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
+#                     //=============================================================================//
+#                     /////////////////////////////////////////////////////////////////////////////////
+#                     return dp/pp;
+#                 }
+#                 else{// Pass 2 Monte Carlo Simulated Corrections (corON == 4)
+#                     // No Pass 2 MC Corrections as of 3/26/2024
+#                     dp = 0;
+#                     return dp/pp;
+#                 }
+#             }
+#         }
+#     }
+# };"""
+
 Correction_Code_Full_In = """
-auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
 
-    // corON == 0 --> DOES NOT apply the momentum corrections (i.e., turns the corrections 'off')
-    // corON == 1 --> Applies the (Pass 1) momentum corrections for the experimental (real) data
-    // corON == 2 --> Applies the (Pass 1) momentum corrections for the Monte Carlo (simulated) data
-    // corON == 3 --> Applies the (Pass 2) momentum corrections for the experimental (real) data
-    // corON == 4 --> Applies the (Pass 2) momentum corrections for the Monte Carlo (simulated) data
+double dppC(float Px, float Py, float Pz, int sec, int ivec, int corON) {
+    
+    // 'Px'/'Py'/'Pz'   ==> Corresponds to the Cartesian Components of the particle momentum being corrected
+    // 'sec'            ==> Corresponds to the Forward Detector Sectors where the given particle is detected (6 total)
+    // 'ivec'           ==> Corresponds to the particle being corrected (See below)    
+        // (*) ivec = 0 --> Electron Corrections
+        // (*) ivec = 1 --> Pi+ Corrections
+    // 'corON' ==> Controls which version of the particle correction is used
+        // Includes:
+            // (*) Correction On/Off
+            // (*) Pass Version
+            // (*) Data Set (Experimental or Monte Carlo)
+        // corON == 0 --> DOES NOT apply the momentum corrections (i.e., turns the corrections 'off')
+        // corON == 1 --> Fall  2018 - Pass 1 (Experimental Data)
+        // corON == 2 --> Applies the (Pass 1) momentum corrections for the Monte Carlo (simulated) data
+        // corON == 3 --> Fall  2018 - Pass 2 (Experimental Data)
+        // corON == 4 --> Applies the (Pass 2) momentum corrections for the Monte Carlo (simulated) data
+            // Not Available as of 8/30/2024
 
-    if(corON == 0){ // Momentum Corrections are OFF
-        double dp = 0;
-        return dp;
+    // Momentum Magnitude
+    double pp = sqrt(Px*Px + Py*Py + Pz*Pz);
+
+    // Initializing the correction factor
+    double dp = 0;
+
+    // Defining Phi Angle
+    double Phi = (180/3.1415926)*atan2(Py, Px);
+
+    // Central Detector Corrections Not Included (Yet)
+
+    // (Initial) Shift of the Phi Angle (done to realign sectors whose data is separated when plotted from ±180˚)
+    if(((sec == 4 || sec == 3) && Phi < 0) || (sec > 4 && Phi < 90)){
+        Phi += 360;
     }
 
-    else{ // corON != 0 --> Applies the momentum corrections (i.e., turns the corrections 'on')
-        // ivec = 0 --> Electron Corrections
-        // ivec = 1 --> π+ Corrections
-        // ivec = 2 --> π- Corrections
-        // ivec = 3 --> Proton Corrections
+    // Getting Local Phi Angle
+    double PhiLocal = Phi - (sec - 1)*60;
 
-        // Momentum Magnitude
-        double pp = sqrt(Px*Px + Py*Py + Pz*Pz);
+    // Applying Shift Functions to Phi Angles (local shifted phi = phi)
+    double phi = PhiLocal;
 
-        // Initializing the correction factor
-        double dp = 0;
+    // For Electron Shift
+    if(ivec == 0){
+        phi = PhiLocal - 30/pp;
+    }
 
-        // Defining Phi Angle
-        double Phi = (180/3.1415926)*atan2(Py, Px);
+    // For π+ Pion/Proton Shift
+    if(ivec == 1 || ivec == 3){
+        phi = PhiLocal + (32/(pp-0.05));
+    }
 
-        // (Initial) Shift of the Phi Angle (done to realign sectors whose data is separated when plotted from ±180˚)
-        if(((sec == 4 || sec == 3) && Phi < 0) || (sec > 4 && Phi < 90)){
-            Phi += 360;
+    // For π- Pion Shift
+    if(ivec == 2){
+        phi = PhiLocal - (32/(pp-0.05));
+    }
+    
+    if(corON == 2){ // Pass 1 Monte Carlo Simulated Corrections
+        // Not Sector or Angle dependent (as of 3-21-2023)
+        // Both particles were corrected at the same time using Extra_Name = "Multi_Dimension_Unfold_V1_"
+        // Used ∆P = GEN - REC so the other particle does not affect how much the correction is needed
+        if(ivec == 0){ // Electron Corrections
+            // From Normal ∆P corrections:
+            // For MC REC (Unsmeared) ∆P(Electron) Vs Momentum Correction Equation:
+            dp = (-6.9141e-04)*pp*pp + (5.5852e-03)*pp + (-5.2144e-03);
+            // Corrected after the pion
         }
+        if(ivec == 1){ // Pi+ Pion Corrections
+            // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
+            dp = (-7.3067e-05)*pp*pp + (-8.1215e-06)*pp + (4.2144e-03);
 
-        // Getting Local Phi Angle
-        double PhiLocal = Phi - (sec - 1)*60;
-
-        // Applying Shift Functions to Phi Angles (local shifted phi = phi)
-        double phi = PhiLocal;
-
-        // For Electron Shift
-        if(ivec == 0){
-            phi = PhiLocal - 30/pp;
+            // From Normal ∆P corrections:
+            // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
+            dp = (-1.8752e-03)*pp*pp + (1.0679e-02)*pp +  (2.5653e-03);
+            // Corrected before the electron
         }
-
-        // For π+ Pion/Proton Shift
-        if(ivec == 1 || ivec == 3){
-            phi = PhiLocal + (32/(pp-0.05));
-        }
-
-        // For π- Pion Shift
-        if(ivec == 2){
-            phi = PhiLocal - (32/(pp-0.05));
-        }
-
-        if(corON == 2){ // Pass 1 Monte Carlo Simulated Corrections
-            // Not Sector or Angle dependent (as of 3-21-2023)
-
-            // Both particles were corrected at the same time using Extra_Name = "Multi_Dimension_Unfold_V1_"
-            // Used ∆P = GEN - REC so the other particle does not affect how much the correction is needed
-            if(ivec == 0){ // Electron Corrections
-                // // For MC REC (Unsmeared) ∆P(Electron) Vs Momentum Correction Equation:
-                // dp = (-8.2310e-04)*pp*pp + (9.0877e-03)*pp + (-1.5853e-02);
-
-                // From Normal ∆P corrections:
-                // For MC REC (Unsmeared) ∆P(Electron) Vs Momentum Correction Equation:
-                dp = (-6.9141e-04)*pp*pp + (5.5852e-03)*pp + (-5.2144e-03);
-                // Corrected after the pion
-
-            }
-            if(ivec == 1){ // Pi+ Pion Corrections
-                // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
-                dp = (-7.3067e-05)*pp*pp + (-8.1215e-06)*pp + (4.2144e-03);
-
-                // From Normal ∆P corrections:
-                // For MC REC (Unsmeared) ∆P(Pi+ Pion) Vs Momentum Correction Equation:
-                dp = (-1.8752e-03)*pp*pp + (1.0679e-02)*pp +  (2.5653e-03);
-                // Corrected before the electron
-
-                // Cannot use iterative corrections as of 7-8-2023 due to the corrections being applied automatically so that dp is no longer a function of the same pp
-                // dp = dp + (-1.8949e-03)*pp*pp + (9.3060e-03)*pp + (-9.7925e-03);
-            }
-
+        return dp/pp;
+    }
+    else{
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        //===============//===============//     No Corrections     //===============//===============//
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        if(corON == 0 || corON == 4){ // No Momentum Corrections (Also no Pass 2 Monte Carlo Momentum Corrections)
             return dp/pp;
         }
-        else{
-            if(corON == 1){ // Pass 1 Data Momentum Corrections
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        //==============//==============//    No Corrections (End)    //==============//==============//
+        ////////////////////////////////////////////////////////////////////////////////////////////////
 
-                //////////////////////////////////////////////////////////////////////////////////
-                //==============================================================================//
-                //==========//==========//     Electron Corrections     //==========//==========//
-                //==============================================================================//
-                //////////////////////////////////////////////////////////////////////////////////
 
-                if(ivec == 0){
-                    if(sec == 1){
-                        dp = ((-4.3303e-06)*phi*phi +  (1.1006e-04)*phi + (-5.7235e-04))*pp*pp +  ((3.2555e-05)*phi*phi +  (-0.0014559)*phi +   (0.0014878))*pp + ((-1.9577e-05)*phi*phi +   (0.0017996)*phi + (0.025963));
-                    }
-                    if(sec == 2){
-                        dp = ((-9.8045e-07)*phi*phi +  (6.7395e-05)*phi + (-4.6757e-05))*pp*pp + ((-1.4958e-05)*phi*phi +  (-0.0011191)*phi +  (-0.0025143))*pp +  ((1.2699e-04)*phi*phi +   (0.0033121)*phi + (0.020819));
-                    }
-                    if(sec == 3){
-                        dp = ((-5.9459e-07)*phi*phi + (-2.8289e-05)*phi + (-4.3541e-04))*pp*pp + ((-1.5025e-05)*phi*phi +  (5.7730e-04)*phi +  (-0.0077582))*pp +  ((7.3348e-05)*phi*phi +   (-0.001102)*phi + (0.057052));
-                    }
-                    if(sec == 4){
-                        dp = ((-2.2714e-06)*phi*phi + (-3.0360e-05)*phi + (-8.9322e-04))*pp*pp +  ((2.9737e-05)*phi*phi +  (5.1142e-04)*phi +   (0.0045641))*pp + ((-1.0582e-04)*phi*phi + (-5.6852e-04)*phi + (0.027506));
-                    }
-                    if(sec == 5){
-                        dp = ((-1.1490e-06)*phi*phi + (-6.2147e-06)*phi + (-4.7235e-04))*pp*pp +  ((3.7039e-06)*phi*phi + (-1.5943e-04)*phi + (-8.5238e-04))*pp +  ((4.4069e-05)*phi*phi +   (0.0014152)*phi + (0.031933));
-                    }
-                    if(sec == 6){
-                        dp =  ((1.1076e-06)*phi*phi +  (4.0156e-05)*phi + (-1.6341e-04))*pp*pp + ((-2.8613e-05)*phi*phi + (-5.1861e-04)*phi +  (-0.0056437))*pp +  ((1.2419e-04)*phi*phi +  (4.9084e-04)*phi + (0.049976));
-                    }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //==================================================================================================================================//
+        //=======================//=======================//     Electron Corrections     //=======================//=======================//
+        //==================================================================================================================================//
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(corON != 0 && ivec == 0){
+            if(corON == 1){ // Fall 2018 - Pass 1 Corrections
+                if(sec == 1){
+                    dp = ((-4.3303e-06)*phi*phi +  (1.1006e-04)*phi + (-5.7235e-04))*pp*pp +  ((3.2555e-05)*phi*phi +  (-0.0014559)*phi +   (0.0014878))*pp + ((-1.9577e-05)*phi*phi +   (0.0017996)*phi + (0.025963));
                 }
-
-                //////////////////////////////////////////////////////////////////////////////////
-                //==============================================================================//
-                //==========//==========//  Electron Corrections (End)  //==========//==========//
-                //==============================================================================//
-                //////////////////////////////////////////////////////////////////////////////////
-
-
-                /////////////////////////////////////////////////////////////////////////////////
-                //=============================================================================//
-                //==========//==========//     π+ Pion Corrections     //==========//==========//
-                //=============================================================================//
-                /////////////////////////////////////////////////////////////////////////////////
-
-                if(ivec == 1){
-                    if(sec == 1){
-                        dp =      ((-5.4904e-07)*phi*phi + (-1.4436e-05)*phi +  (3.1534e-04))*pp*pp +  ((3.8231e-06)*phi*phi +  (3.6582e-04)*phi +  (-0.0046759))*pp + ((-5.4913e-06)*phi*phi + (-4.0157e-04)*phi + (0.010767));
-                        dp = dp +  ((6.1103e-07)*phi*phi +  (5.5291e-06)*phi + (-1.9120e-04))*pp*pp + ((-3.2300e-06)*phi*phi +  (1.5377e-05)*phi +  (7.5279e-04))*pp +  ((2.1434e-06)*phi*phi + (-6.9572e-06)*phi + (-7.9333e-05));
-                        dp = dp + ((-1.3049e-06)*phi*phi +  (1.1295e-05)*phi +  (4.5797e-04))*pp*pp +  ((9.3122e-06)*phi*phi + (-5.1074e-05)*phi +  (-0.0030757))*pp + ((-1.3102e-05)*phi*phi +  (2.2153e-05)*phi + (0.0040938));
-                    }
-                    if(sec == 2){
-                        dp =      ((-1.0087e-06)*phi*phi +  (2.1319e-05)*phi +  (7.8641e-04))*pp*pp +  ((6.7485e-06)*phi*phi +  (7.3716e-05)*phi +  (-0.0094591))*pp + ((-1.1820e-05)*phi*phi + (-3.8103e-04)*phi + (0.018936));
-                        dp = dp +  ((8.8155e-07)*phi*phi + (-2.8257e-06)*phi + (-2.6729e-04))*pp*pp + ((-5.4499e-06)*phi*phi +  (3.8397e-05)*phi +   (0.0015914))*pp +  ((6.8926e-06)*phi*phi + (-5.9386e-05)*phi + (-0.0021749));
-                        dp = dp + ((-2.0147e-07)*phi*phi +  (1.1061e-05)*phi +  (3.8827e-04))*pp*pp +  ((4.9294e-07)*phi*phi + (-6.0257e-05)*phi +  (-0.0022087))*pp +  ((9.8548e-07)*phi*phi +  (5.9047e-05)*phi + (0.0022905));
-                    }
-                    if(sec == 3){
-                        dp =       ((8.6722e-08)*phi*phi + (-1.7975e-05)*phi +  (4.8118e-05))*pp*pp +  ((2.6273e-06)*phi*phi +  (3.1453e-05)*phi +  (-0.0015943))*pp + ((-6.4463e-06)*phi*phi + (-5.8990e-05)*phi + (0.0041703));
-                        dp = dp +  ((9.6317e-07)*phi*phi + (-1.7659e-06)*phi + (-8.8318e-05))*pp*pp + ((-5.1346e-06)*phi*phi +  (8.3318e-06)*phi +  (3.7723e-04))*pp +  ((3.9548e-06)*phi*phi + (-6.9614e-05)*phi + (2.1393e-04));
-                        dp = dp +  ((5.6438e-07)*phi*phi +  (8.1678e-06)*phi + (-9.4406e-05))*pp*pp + ((-3.9074e-06)*phi*phi + (-6.5174e-05)*phi +  (5.4218e-04))*pp +  ((6.3198e-06)*phi*phi +  (1.0611e-04)*phi + (-4.5749e-04));
-                    }
-                    if(sec == 4){
-                        dp =       ((4.3406e-07)*phi*phi + (-4.9036e-06)*phi +  (2.3064e-04))*pp*pp +  ((1.3624e-06)*phi*phi +  (3.2907e-05)*phi +  (-0.0034872))*pp + ((-5.1017e-06)*phi*phi +  (2.4593e-05)*phi + (0.0092479));
-                        dp = dp +  ((6.0218e-07)*phi*phi + (-1.4383e-05)*phi + (-3.1999e-05))*pp*pp + ((-1.1243e-06)*phi*phi +  (9.3884e-05)*phi + (-4.1985e-04))*pp + ((-1.8808e-06)*phi*phi + (-1.2222e-04)*phi + (0.0014037));
-                        dp = dp + ((-2.5490e-07)*phi*phi + (-8.5120e-07)*phi +  (7.9109e-05))*pp*pp +  ((2.5879e-06)*phi*phi +  (8.6108e-06)*phi + (-5.1533e-04))*pp + ((-4.4521e-06)*phi*phi + (-1.7012e-05)*phi + (7.4848e-04));
-                    }
-                    if(sec == 5){
-                        dp =       ((2.4292e-07)*phi*phi +  (8.8741e-06)*phi +  (2.9482e-04))*pp*pp +  ((3.7229e-06)*phi*phi +  (7.3215e-06)*phi +  (-0.0050685))*pp + ((-1.1974e-05)*phi*phi + (-1.3043e-04)*phi + (0.0078836));
-                        dp = dp +  ((1.0867e-06)*phi*phi + (-7.7630e-07)*phi + (-4.4930e-05))*pp*pp + ((-5.6564e-06)*phi*phi + (-1.3417e-05)*phi +  (2.5224e-04))*pp +  ((6.8460e-06)*phi*phi +  (9.0495e-05)*phi + (-4.6587e-04));
-                        dp = dp +  ((8.5720e-07)*phi*phi + (-6.7464e-06)*phi + (-4.0944e-05))*pp*pp + ((-4.7370e-06)*phi*phi +  (5.8808e-05)*phi +  (1.9047e-04))*pp +  ((5.7404e-06)*phi*phi + (-1.1105e-04)*phi + (-1.9392e-04));
-                    }
-                    if(sec == 6){
-                        dp =       ((2.1191e-06)*phi*phi + (-3.3710e-05)*phi +  (2.5741e-04))*pp*pp + ((-1.2915e-05)*phi*phi +  (2.3753e-04)*phi + (-2.6882e-04))*pp +  ((2.2676e-05)*phi*phi + (-2.3115e-04)*phi + (-0.001283));
-                        dp = dp +  ((6.0270e-07)*phi*phi + (-6.8200e-06)*phi +  (1.3103e-04))*pp*pp + ((-1.8745e-06)*phi*phi +  (3.8646e-05)*phi + (-8.8056e-04))*pp +  ((2.0885e-06)*phi*phi + (-3.4932e-05)*phi + (4.5895e-04));
-                        dp = dp +  ((4.7349e-08)*phi*phi + (-5.7528e-06)*phi + (-3.4097e-06))*pp*pp +  ((1.7731e-06)*phi*phi +  (3.5865e-05)*phi + (-5.7881e-04))*pp + ((-9.7008e-06)*phi*phi + (-4.1836e-05)*phi + (0.0035403));
-                    }
+                if(sec == 2){
+                    dp = ((-9.8045e-07)*phi*phi +  (6.7395e-05)*phi + (-4.6757e-05))*pp*pp + ((-1.4958e-05)*phi*phi +  (-0.0011191)*phi +  (-0.0025143))*pp +  ((1.2699e-04)*phi*phi +   (0.0033121)*phi + (0.020819));
                 }
-
-                /////////////////////////////////////////////////////////////////////////////////
-                //=============================================================================//
-                //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
-                //=============================================================================//
-                /////////////////////////////////////////////////////////////////////////////////
-
-
-                /////////////////////////////////////////////////////////////////////////////////
-                //=============================================================================//
-                //==========//==========//     π- Pion Corrections     //==========//==========//
-                //=============================================================================//
-                /////////////////////////////////////////////////////////////////////////////////
-
-                if(ivec == 2){
-                    if(sec == 1){
-                        dp = ((-4.0192658422317425e-06)*phi*phi - (2.660222128967742e-05)*phi + 0.004774434682983547)*pp*pp;
-                        dp = dp + ((1.9549520962477972e-05)*phi*phi - 0.0002456062756770577*phi - 0.03787692408323466)*pp; 
-                        dp = dp + (-2.128953094937459e-05)*phi*phi + 0.0002461708852239913*phi + 0.08060704449822174 - 0.01;
-                    }
-                    if(sec == 2){
-                        dp = ((1.193010521758372e-05)*phi*phi - (5.996221756031922e-05)*phi + 0.0009093437955814359)*pp*pp;
-                        dp = dp + ((-4.89113824430594e-05)*phi*phi + 0.00021676479488147118*phi - 0.01861892053916726)*pp;  
-                        dp = dp + (4.446394152208071e-05)*phi*phi - (3.6592784167335244e-05)*phi + 0.05498710249944096 - 0.01;
-                    }
-                    if(sec == 3){
-                        dp = ((-1.6596664895992133e-07)*phi*phi + (6.317189710683516e-05)*phi + 0.0016364212312654086)*pp*pp;
-                        dp = dp + ((-2.898409777520318e-07)*phi*phi - 0.00014531513577533802*phi - 0.025456145839203827)*pp;  
-                        dp = dp + (2.6432552410603506e-06)*phi*phi + 0.00018447151306275443*phi + 0.06442602664627255 - 0.01;
-                    }
-                    if(sec == 4){
-                        dp = ((2.4035259647558634e-07)*phi*phi - (8.649647351491232e-06)*phi + 0.004558993439848128)*pp*pp;
-                        dp = dp + ((-5.981498144060984e-06)*phi*phi + 0.00010582131454222416*phi - 0.033572004651981686)*pp;  
-                        dp = dp + (8.70140266889548e-06)*phi*phi - 0.00020137414379966883*phi + 0.07258774523336173 - 0.01;   
-                    }
-                    if(sec == 5){
-                        dp = ((2.5817024702834863e-06)*phi*phi + 0.00010132810066914441*phi + 0.003397314538804711)*pp*pp;
-                        dp = dp + ((-1.5116941263931812e-05)*phi*phi - 0.00040679799541839254*phi - 0.028144285760769876)*pp;  
-                        dp = dp + (1.4701931057951464e-05)*phi*phi + 0.0002426350390593454*phi + 0.06781682510174941 - 0.01;
-                    }
-                    if(sec == 6){
-                        dp = ((-8.196823669099362e-07)*phi*phi - (5.280412421933636e-05)*phi + 0.0018457238328451137)*pp*pp;
-                        dp = dp + ((5.2675062282094536e-06)*phi*phi + 0.0001515803461044587*phi - 0.02294371578470564)*pp;  
-                        dp = dp + (-9.459454671739747e-06)*phi*phi - 0.0002389523716779765*phi + 0.06428970810739926 - 0.01;
-                    }
+                if(sec == 3){
+                    dp = ((-5.9459e-07)*phi*phi + (-2.8289e-05)*phi + (-4.3541e-04))*pp*pp + ((-1.5025e-05)*phi*phi +  (5.7730e-04)*phi +  (-0.0077582))*pp +  ((7.3348e-05)*phi*phi +   (-0.001102)*phi + (0.057052));
                 }
-
-                /////////////////////////////////////////////////////////////////////////////////
-                //=============================================================================//
-                //==========//==========//  π- Pion Corrections (End)  //==========//==========//
-                //=============================================================================//
-                /////////////////////////////////////////////////////////////////////////////////
-
-
-                //////////////////////////////////////////////////////////////////////////////////
-                //==============================================================================//
-                //==========//==========//      Proton Corrections      //==========//==========//
-                //==============================================================================//
-                //////////////////////////////////////////////////////////////////////////////////
-
-                if(ivec == 3){
-                    if(sec == 1){
-                        dp = (5.415e-04)*pp*pp + (-1.0262e-02)*pp + (7.78075e-03);
-                        dp = dp + ((1.2129e-04)*pp*pp + (1.5373e-04)*pp + (-2.7084e-04));
-                    }
-                    if(sec == 2){
-                        dp = (-9.5439e-04)*pp*pp + (-2.86273e-03)*pp + (3.38149e-03);
-                        dp = dp + ((-1.6890e-03)*pp*pp + (4.3744e-03)*pp + (-2.1218e-03));
-                    }
-                    if(sec == 3){
-                        dp = (-5.5541e-04)*pp*pp + (-7.69739e-03)*pp + (5.7692e-03);
-                        dp = dp + ((7.6422e-04)*pp*pp + (-1.5425e-03)*pp + (5.4255e-04));
-                    }
-                    if(sec == 4){
-                        dp = (-1.944e-04)*pp*pp + (-5.77104e-03)*pp + (3.42399e-03);
-                        dp = dp + ((1.1174e-03)*pp*pp + (-3.2747e-03)*pp + (2.3687e-03));
-                    }
-                    if(sec == 5){
-                        dp = (1.54009e-03)*pp*pp + (-1.69437e-02)*pp + (1.04656e-02);
-                        dp = dp + ((-2.1067e-04)*pp*pp + (1.2266e-03)*pp + (-1.0553e-03));
-                    }
-                    if(sec == 6){
-                        dp = (2.38182e-03)*pp*pp + (-2.07301e-02)*pp + (1.72325e-02);
-                        dp = dp + ((-3.6002e-04)*pp*pp + (8.9582e-04)*pp + (-1.0093e-03));
-                    }
+                if(sec == 4){
+                    dp = ((-2.2714e-06)*phi*phi + (-3.0360e-05)*phi + (-8.9322e-04))*pp*pp +  ((2.9737e-05)*phi*phi +  (5.1142e-04)*phi +   (0.0045641))*pp + ((-1.0582e-04)*phi*phi + (-5.6852e-04)*phi + (0.027506));
                 }
-
-                //////////////////////////////////////////////////////////////////////////////////
-                //==============================================================================//
-                //==========//==========//   Proton Corrections (End)   //==========//==========//
-                //==============================================================================//
-                //////////////////////////////////////////////////////////////////////////////////
-
-                return dp/pp;
+                if(sec == 5){
+                    dp = ((-1.1490e-06)*phi*phi + (-6.2147e-06)*phi + (-4.7235e-04))*pp*pp +  ((3.7039e-06)*phi*phi + (-1.5943e-04)*phi + (-8.5238e-04))*pp +  ((4.4069e-05)*phi*phi +   (0.0014152)*phi + (0.031933));
+                }
+                if(sec == 6){
+                    dp =  ((1.1076e-06)*phi*phi +  (4.0156e-05)*phi + (-1.6341e-04))*pp*pp + ((-2.8613e-05)*phi*phi + (-5.1861e-04)*phi +  (-0.0056437))*pp +  ((1.2419e-04)*phi*phi +  (4.9084e-04)*phi + (0.049976));
+                }
             }
-            else{
-                if(corON == 3){ // Pass 2 Data Momentum Corrections
 
-                    //////////////////////////////////////////////////////////////////////////////////
-                    //==============================================================================//
-                    //==========//==========//     Electron Corrections     //==========//==========//
-                    //==============================================================================//
-                    //////////////////////////////////////////////////////////////////////////////////
-
-                    if(ivec == 0){
-                        if(sec == 1){
-                            dp =      ((-2.9814e-06)*phi*phi + (-1.3177e-06)*phi + (-3.9424e-04))*pp*pp +  ((3.1475e-05)*phi*phi + (-1.7967e-04)*phi +  (3.7474e-04))*pp + ((-6.5941e-05)*phi*phi +  (8.3099e-04)*phi + (0.032777));
-                            dp = dp +  ((2.1054e-07)*phi*phi + (-2.2491e-05)*phi + (-8.5798e-05))*pp*pp + ((-7.1256e-06)*phi*phi +  (1.9323e-04)*phi +   (0.0014213))*pp +  ((3.4079e-05)*phi*phi + (-3.7406e-04)*phi + (-0.0050973));
-                            dp = dp + ((-4.4455e-06)*phi*phi +  (5.2006e-06)*phi +  (5.2186e-04))*pp*pp +  ((5.4746e-05)*phi*phi + (-1.0079e-04)*phi +  (-0.0069383))*pp + ((-1.5578e-04)*phi*phi +  (3.5947e-04)*phi + (0.024074));
-                            dp = dp + ((-2.6078e-06)*phi*phi + (-4.3875e-06)*phi +  (2.5482e-04))*pp*pp +  ((3.2246e-05)*phi*phi +  (6.6817e-05)*phi +    (-0.00348))*pp + ((-9.4096e-05)*phi*phi + (-2.2928e-04)*phi + (0.01352));
-                        }
-                        if(sec == 2){
-                            dp =      ((-9.1199e-08)*phi*phi +  (1.5504e-05)*phi + (-8.6526e-04))*pp*pp + ((-1.4237e-05)*phi*phi + (-3.8364e-04)*phi +   (0.0065896))*pp +  ((9.4995e-05)*phi*phi +   (0.0013291)*phi + (-0.0014618));
-                            dp = dp + ((-2.6120e-06)*phi*phi + (-1.7473e-05)*phi + (-4.4569e-05))*pp*pp +  ((3.0510e-05)*phi*phi +  (1.6557e-04)*phi +  (3.7791e-04))*pp + ((-8.3982e-05)*phi*phi + (-3.9073e-04)*phi + (-7.4750e-04));
-                            dp = dp + ((-5.0891e-06)*phi*phi + (-2.0499e-05)*phi +  (3.3179e-04))*pp*pp +  ((6.1969e-05)*phi*phi +  (2.2982e-04)*phi +  (-0.0046372))*pp + ((-1.7498e-04)*phi*phi + (-5.9972e-04)*phi + (0.018597));
-                            dp = dp +  ((5.0347e-08)*phi*phi +  (6.5833e-08)*phi +  (1.5151e-04))*pp*pp + ((-2.8341e-06)*phi*phi + (-2.5084e-05)*phi +  (-0.0020883))*pp +  ((1.6091e-05)*phi*phi +  (2.4040e-04)*phi + (0.0089674));
-                        }
-                        if(sec == 3){
-                            dp =      ((-1.7128e-06)*phi*phi +  (3.6506e-05)*phi + (-5.0322e-04))*pp*pp +  ((1.1945e-05)*phi*phi + (-4.3094e-04)*phi +   (0.0025542))*pp +  ((6.9253e-06)*phi*phi +  (9.8027e-04)*phi + (0.0062225));
-                            dp = dp + ((-1.2384e-08)*phi*phi + (-1.2878e-05)*phi + (-1.5680e-04))*pp*pp + ((-7.6080e-06)*phi*phi +  (2.0174e-04)*phi +   (0.0022586))*pp +  ((4.8887e-05)*phi*phi + (-7.6605e-04)*phi + (-0.0076052));
-                            dp = dp + ((-3.9399e-06)*phi*phi + (-1.1728e-05)*phi + (-1.7596e-04))*pp*pp +  ((4.7853e-05)*phi*phi +  (1.5792e-04)*phi +   (0.0016687))*pp + ((-1.4504e-04)*phi*phi + (-4.8236e-04)*phi + (0.0016249));
-                            dp = dp +  ((5.4972e-07)*phi*phi + (-2.3883e-05)*phi +  (1.5269e-04))*pp*pp + ((-6.9613e-06)*phi*phi +  (2.7983e-04)*phi +  (-0.0029828))*pp + ((-1.2184e-06)*phi*phi + (-7.9843e-04)*phi + (0.017712));
-                        }
-                        if(sec == 4){
-                            dp =      ((-3.4682e-06)*phi*phi +  (2.2003e-05)*phi +  (5.7129e-04))*pp*pp +  ((4.1493e-05)*phi*phi + (-1.4497e-04)*phi +   (-0.010517))*pp + ((-1.0323e-04)*phi*phi + (-2.7535e-04)*phi + (0.062998));
-                            dp = dp +  ((1.1756e-06)*phi*phi +  (9.2843e-06)*phi + (-3.8049e-04))*pp*pp + ((-1.5805e-05)*phi*phi + (-6.8510e-05)*phi +   (0.0039821))*pp +  ((3.5444e-05)*phi*phi + (-1.3072e-04)*phi + (-0.0052522));
-                            dp = dp + ((-9.1117e-09)*phi*phi +  (1.2690e-05)*phi + (-3.6216e-04))*pp*pp + ((-1.4697e-06)*phi*phi + (-1.7092e-04)*phi +   (0.0044829))*pp +  ((1.7339e-05)*phi*phi +  (6.4128e-04)*phi + (-0.010911));
-                            dp = dp + ((-1.6261e-06)*phi*phi + (-2.1688e-05)*phi +  (2.9801e-04))*pp*pp +  ((2.4431e-05)*phi*phi +  (2.5886e-04)*phi +  (-0.0039035))*pp + ((-9.5725e-05)*phi*phi + (-5.2092e-04)*phi + (0.013865));
-                        }
-                        if(sec == 5){
-                            dp =       ((8.6648e-07)*phi*phi +  (2.5573e-05)*phi +  (6.5377e-05))*pp*pp + ((-1.0315e-05)*phi*phi + (-3.5840e-04)*phi +  (-0.0066741))*pp +  ((2.1142e-05)*phi*phi +  (5.8774e-04)*phi + (0.045555));
-                            dp = dp +  ((1.3520e-06)*phi*phi + (-2.2701e-06)*phi + (-1.4880e-04))*pp*pp + ((-1.7672e-05)*phi*phi + (-7.3631e-06)*phi +   (0.0018864))*pp +  ((5.2958e-05)*phi*phi +  (4.8608e-05)*phi + (-0.005351));
-                            dp = dp + ((-1.6660e-06)*phi*phi +  (1.2066e-05)*phi +  (2.5740e-04))*pp*pp +  ((2.1087e-05)*phi*phi + (-2.2948e-04)*phi +  (-0.0034624))*pp + ((-6.1307e-05)*phi*phi +  (8.9383e-04)*phi + (0.014613));
-                            dp = dp +  ((2.5118e-07)*phi*phi + (-9.5617e-06)*phi +  (1.8624e-04))*pp*pp + ((-3.0324e-06)*phi*phi +  (7.8390e-05)*phi +  (-0.0026539))*pp +  ((5.7233e-06)*phi*phi +  (2.6912e-05)*phi + (0.011676));
-                        }
-                        if(sec == 6){
-                            dp =       ((2.2827e-06)*phi*phi + (-8.3888e-06)*phi + (-3.2263e-04))*pp*pp + ((-3.6229e-05)*phi*phi +  (1.2242e-04)*phi + (-4.8752e-04))*pp +  ((1.4049e-04)*phi*phi + (-5.0717e-04)*phi + (0.021858));
-                            dp = dp + ((-2.1844e-06)*phi*phi + (-4.4769e-06)*phi + (-3.0654e-05))*pp*pp +  ((2.6552e-05)*phi*phi +  (1.8092e-05)*phi +  (5.2104e-04))*pp + ((-7.6253e-05)*phi*phi +  (5.1816e-05)*phi + (-0.001956));
-                            dp = dp + ((-1.9016e-06)*phi*phi +  (1.2110e-05)*phi +  (2.6684e-04))*pp*pp +  ((2.4525e-05)*phi*phi + (-1.1772e-04)*phi +  (-0.0034957))*pp + ((-7.8749e-05)*phi*phi +  (2.3031e-04)*phi + (0.015083));
-                            dp = dp + ((-1.5191e-07)*phi*phi +  (8.7979e-06)*phi +  (6.5120e-05))*pp*pp +  ((2.1214e-06)*phi*phi + (-8.5858e-05)*phi +  (-0.0013935))*pp + ((-1.3211e-05)*phi*phi +  (1.5676e-04)*phi + (0.0097685));
-                        }
-                    }
-
-                    //////////////////////////////////////////////////////////////////////////////////
-                    //==============================================================================//
-                    //==========//==========//  Electron Corrections (End)  //==========//==========//
-                    //==============================================================================//
-                    //////////////////////////////////////////////////////////////////////////////////
-
-
-                    /////////////////////////////////////////////////////////////////////////////////
-                    //=============================================================================//
-                    //==========//==========//     π+ Pion Corrections     //==========//==========//
-                    //=============================================================================//
-                    /////////////////////////////////////////////////////////////////////////////////
-
-                    if(ivec == 1){
-                        if(sec == 1){
-                            dp =       ((1.0111e-06)*phi*phi +  (5.5576e-05)*phi + (-2.0734e-04))*pp*pp + ((-4.7499e-06)*phi*phi + (-6.3800e-04)*phi +   (0.0017997))*pp + ((-3.6325e-06)*phi*phi +  (1.0091e-04)*phi + (-4.1379e-04));
-                            dp = dp +  ((9.6529e-07)*phi*phi + (-6.3808e-06)*phi +  (1.6481e-04))*pp*pp + ((-7.4268e-06)*phi*phi +  (1.4101e-04)*phi +  (-0.0030306))*pp +  ((1.0624e-05)*phi*phi + (-1.7095e-04)*phi + (0.010411));
-                            dp = dp + ((-6.2255e-07)*phi*phi +  (1.0214e-06)*phi +  (2.5344e-04))*pp*pp +  ((7.9815e-06)*phi*phi +  (3.3594e-05)*phi +  (-0.0027925))*pp + ((-1.8099e-05)*phi*phi + (-5.4133e-05)*phi + (0.0071398));
-                            dp = dp + ((-1.5386e-08)*phi*phi + (-3.0703e-06)*phi + (-6.3720e-05))*pp*pp +  ((1.3492e-06)*phi*phi +  (5.6471e-05)*phi +  (3.5015e-04))*pp + ((-8.2798e-07)*phi*phi + (-1.0091e-04)*phi + (-0.0016961));
-                        }
-                        if(sec == 2){
-                            dp =       ((3.2353e-06)*phi*phi +  (3.2231e-05)*phi + (-5.2636e-04))*pp*pp + ((-2.1611e-05)*phi*phi + (-3.6647e-04)*phi +   (0.0046012))*pp +  ((1.9479e-05)*phi*phi +  (4.8691e-05)*phi + (-0.0077236));
-                            dp = dp + ((-8.0014e-07)*phi*phi +  (9.0447e-06)*phi +  (6.3132e-04))*pp*pp +  ((8.1699e-06)*phi*phi +  (6.3365e-05)*phi +  (-0.0072546))*pp + ((-7.7759e-06)*phi*phi + (-3.1762e-04)*phi + (0.012731));
-                            dp = dp + ((-1.2641e-06)*phi*phi + (-1.5281e-06)*phi +  (3.2149e-04))*pp*pp +  ((9.2496e-06)*phi*phi +  (5.0090e-05)*phi +   (-0.002904))*pp + ((-1.4918e-05)*phi*phi + (-1.2946e-04)*phi + (0.0066272));
-                            dp = dp + ((-5.8884e-07)*phi*phi +  (1.0919e-05)*phi +  (9.1370e-05))*pp*pp +  ((7.5700e-06)*phi*phi + (-9.0078e-05)*phi +   (-0.001896))*pp + ((-1.8800e-05)*phi*phi +  (1.2259e-04)*phi + (0.0034845));
-                        }
-                        if(sec == 3){
-                            dp =      ((-5.0785e-08)*phi*phi + (-1.2543e-05)*phi + (-6.5541e-05))*pp*pp + ((-2.9050e-06)*phi*phi +  (1.6694e-04)*phi + (-1.6092e-06))*pp +  ((8.7479e-06)*phi*phi + (-1.4064e-04)*phi + (-0.0019552));
-                            dp = dp + ((-1.0293e-07)*phi*phi +  (5.9311e-06)*phi +  (3.4851e-04))*pp*pp +  ((4.7281e-06)*phi*phi + (-1.1553e-04)*phi +  (-0.0041831))*pp + ((-1.4566e-05)*phi*phi +  (1.4323e-04)*phi + (0.01277));
-                            dp = dp +  ((2.4281e-07)*phi*phi + (-1.2261e-06)*phi +  (4.4800e-05))*pp*pp + ((-1.4789e-07)*phi*phi + (-1.2145e-05)*phi + (-5.5506e-04))*pp + ((-3.7526e-07)*phi*phi +  (3.6310e-05)*phi + (0.001157));
-                            dp = dp + ((-7.0691e-07)*phi*phi + (-6.6656e-06)*phi +  (2.5692e-04))*pp*pp +  ((6.6035e-06)*phi*phi +  (5.3531e-05)*phi +  (-0.0030788))*pp + ((-1.0673e-05)*phi*phi + (-1.1955e-04)*phi + (0.0039758));
-                        }
-                        if(sec == 4){
-                            dp =       ((6.8155e-07)*phi*phi +  (4.1069e-06)*phi + (-5.7928e-04))*pp*pp + ((-7.9321e-06)*phi*phi + (-1.1182e-05)*phi +   (0.0057558))*pp +  ((1.6317e-05)*phi*phi + (-2.3502e-05)*phi + (-0.015802));
-                            dp = dp + ((-3.8735e-07)*phi*phi + (-1.4431e-05)*phi +  (8.2589e-04))*pp*pp +  ((1.0733e-05)*phi*phi +  (6.8166e-05)*phi +    (-0.00904))*pp + ((-3.4539e-05)*phi*phi +  (5.0404e-05)*phi + (0.026127));
-                            dp = dp +  ((2.2241e-07)*phi*phi + (-1.0564e-05)*phi +  (3.5392e-04))*pp*pp + ((-5.9992e-07)*phi*phi +  (5.5053e-05)*phi +  (-0.0025682))*pp +  ((5.4840e-06)*phi*phi +  (6.0706e-06)*phi + (0.0031961));
-                            dp = dp +  ((4.2134e-07)*phi*phi + (-7.2136e-06)*phi + (-6.6800e-05))*pp*pp + ((-3.8195e-06)*phi*phi +  (6.2408e-05)*phi +  (2.0413e-04))*pp +  ((9.2423e-06)*phi*phi + (-1.1143e-04)*phi + (-0.0027527));
-                        }
-                        if(sec == 5){
-                            dp =      ((-9.8062e-07)*phi*phi +  (1.8881e-05)*phi + (-4.3191e-04))*pp*pp +  ((5.8950e-06)*phi*phi + (-1.8007e-04)*phi +   (0.0054105))*pp + ((-1.6796e-05)*phi*phi + (-8.0562e-05)*phi + (-0.013527));
-                            dp = dp +  ((1.1929e-08)*phi*phi +  (4.0469e-06)*phi +   (0.0015612))*pp*pp +  ((4.4733e-06)*phi*phi + (-3.5644e-05)*phi +   (-0.015765))*pp + ((-5.6667e-06)*phi*phi +  (8.1663e-05)*phi + (0.02723));
-                            dp = dp +  ((3.8356e-07)*phi*phi +  (3.3064e-06)*phi +  (1.2935e-04))*pp*pp + ((-4.5853e-07)*phi*phi + (-3.2460e-05)*phi +  (-0.0018519))*pp + ((-2.7462e-06)*phi*phi +  (7.2391e-05)*phi + (0.0060517));
-                            dp = dp +  ((7.6080e-07)*phi*phi + (-4.1006e-06)*phi + (-9.5440e-05))*pp*pp + ((-7.0970e-06)*phi*phi +  (6.1629e-05)*phi +  (3.5178e-04))*pp +  ((1.6766e-05)*phi*phi + (-1.8855e-04)*phi + (-0.0021373));
-                        }
-                        if(sec == 6){
-                            dp =       ((4.8744e-07)*phi*phi +  (8.0932e-05)*phi + (-8.0001e-04))*pp*pp + ((-3.6221e-06)*phi*phi + (-5.9260e-04)*phi +   (0.0049435))*pp +  ((3.4766e-06)*phi*phi +  (3.9113e-04)*phi + (-0.013482));
-                            dp = dp +  ((1.3205e-06)*phi*phi + (-3.4827e-05)*phi +   (0.0014486))*pp*pp + ((-7.2797e-06)*phi*phi +  (2.2309e-04)*phi +  (-0.0091902))*pp +  ((8.5223e-06)*phi*phi + (-1.5744e-04)*phi + (0.018861));
-                            dp = dp +  ((1.1602e-06)*phi*phi + (-1.9015e-05)*phi + (-3.6810e-05))*pp*pp + ((-6.8771e-06)*phi*phi +  (1.4793e-04)*phi +  (1.8771e-04))*pp +  ((2.6825e-06)*phi*phi + (-2.0166e-04)*phi + (0.0037471));
-                            dp = dp + ((-1.0246e-06)*phi*phi + (-1.3784e-05)*phi +  (6.4560e-05))*pp*pp +  ((9.8205e-06)*phi*phi +  (1.4208e-04)*phi +   (-0.001803))*pp + ((-1.3982e-05)*phi*phi + (-2.5638e-04)*phi + (0.0027303));
-                        }
-
-                    }
-
-                    /////////////////////////////////////////////////////////////////////////////////
-                    //=============================================================================//
-                    //==========//==========//  π+ Pion Corrections (End)  //==========//==========//
-                    //=============================================================================//
-                    /////////////////////////////////////////////////////////////////////////////////
-
-                    return dp/pp;
+            if(corON == 3){ // Fall 2018 - Pass 2 Corrections
+                if(sec == 1){
+                    dp =                           ((-9.82416e-06)*phi*phi +             (-2.29956e-05)*phi +  (0.00029664199999999996))*pp*pp +           ((0.0001113414)*phi*phi +   (-2.041300000000001e-05)*phi +            (-0.00862226))*pp +            ((-0.000281738)*phi*phi +              (0.00058712)*phi +              (0.0652737));
+                    if(pp < 7){dp = dp +            ((-3.4001e-06)*phi*phi +              (-2.2885e-05)*phi +              (9.9705e-04))*pp*pp +             ((2.1840e-05)*phi*phi +               (2.4238e-04)*phi +             (-0.0091904))*pp +             ((-2.9180e-05)*phi*phi +             (-6.4496e-04)*phi +               (0.022505));}
+                    else{      dp = dp +             ((5.3611e-06)*phi*phi +               (8.1979e-06)*phi +              (5.9789e-04))*pp*pp +            ((-4.8185e-05)*phi*phi +              (-1.5188e-04)*phi +             (-0.0084675))*pp +              ((9.2324e-05)*phi*phi +              (6.4420e-04)*phi +               (0.026792));}
+                    dp =            dp + ((3.2780000000000006e-07)*phi*phi +               (6.7084e-07)*phi +  (-4.390000000000004e-05))*pp*pp + ((-7.230999999999999e-06)*phi*phi +             (-2.37482e-05)*phi +  (0.0004909000000000007))*pp +   ((3.285299999999999e-05)*phi*phi +             (9.63723e-05)*phi +               (-0.00115));
                 }
-                else{// Pass 2 Monte Carlo Simulated Corrections (corON == 4)
-                    // No Pass 2 MC Corrections as of 3/26/2024
-                    dp = 0;
-                    return dp/pp;
+                if(sec == 2){
+                    dp =                          ((-7.741952e-06)*phi*phi +  (-2.2402167000000004e-05)*phi + (-0.00042652900000000004))*pp*pp +            ((7.54079e-05)*phi*phi +  (-1.3333999999999984e-05)*phi +  (0.0002420100000000004))*pp +            ((-0.000147876)*phi*phi +              (0.00057905)*phi +              (0.0253551));
+                    if(pp < 7){dp = dp +             ((9.9281e-07)*phi*phi +               (3.4879e-06)*phi +               (0.0011673))*pp*pp +            ((-2.0071e-05)*phi*phi +              (-3.1362e-05)*phi +              (-0.012329))*pp +              ((6.9463e-05)*phi*phi +              (3.5102e-05)*phi +               (0.037505));}
+                    else{      dp = dp +            ((-4.8455e-06)*phi*phi +              (-1.2074e-05)*phi +               (0.0013221))*pp*pp +             ((3.2207e-05)*phi*phi +               (1.3144e-04)*phi +              (-0.010451))*pp +             ((-3.7365e-05)*phi*phi +             (-4.2344e-04)*phi +               (0.019952));}
+                    dp =            dp +           ((6.221217e-07)*phi*phi +   (1.9596000000000003e-06)*phi +              (-9.826e-05))*pp*pp +           ((-1.28576e-05)*phi*phi +             (-4.36589e-05)*phi +             (0.00130342))*pp +             ((5.80399e-05)*phi*phi +             (0.000215388)*phi + (-0.0040414000000000005));
+                }
+                if(sec == 3){
+                    dp =                 ((-5.115364000000001e-06)*phi*phi +  (-1.1983000000000004e-05)*phi +  (-0.0006832899999999999))*pp*pp +            ((4.52287e-05)*phi*phi +   (0.00020855000000000003)*phi +  (0.0034986999999999996))*pp +  ((-9.044610000000001e-05)*phi*phi +             (-0.00106657)*phi +    (0.017954199999999997));
+                    if(pp < 7){dp = dp +             ((7.7156e-07)*phi*phi +              (-3.9566e-05)*phi +             (-2.3589e-04))*pp*pp +            ((-9.8309e-06)*phi*phi +               (3.7353e-04)*phi +              (0.0020382))*pp +              ((2.9506e-05)*phi*phi +             (-8.0409e-04)*phi +              (-0.0045615));}
+                    else{      dp = dp +            ((-8.2535e-07)*phi*phi +               (9.1433e-06)*phi +              (3.5395e-04))*pp*pp +            ((-3.4272e-06)*phi*phi +              (-1.3012e-04)*phi +             (-0.0030724))*pp +              ((4.9211e-05)*phi*phi +              (4.5807e-04)*phi +               (0.0058932));}
+                    dp =            dp + ((-4.045999999999999e-07)*phi*phi +  (-1.3115999999999994e-06)*phi +  (3.9510000000000006e-05))*pp*pp +              ((5.521e-06)*phi*phi +   (2.4436999999999997e-05)*phi +             (-0.0016887))*pp + ((-1.0962999999999997e-05)*phi*phi +            (-0.000151944)*phi +    (0.009313599999999998));
+                }
+                if(sec == 4){
+                    dp =                ((-3.9278116999999996e-06)*phi*phi +   (2.2289300000000004e-05)*phi +  (0.00012665000000000002))*pp*pp + ((4.8649299999999995e-05)*phi*phi +              (-0.00012554)*phi +  (-0.005955500000000001))*pp + ((-0.00014617199999999997)*phi*phi +             (-0.00028571)*phi +               (0.0606998));
+                    if(pp < 7){dp = dp +            ((-6.3656e-05)*phi*phi +               (1.7266e-04)*phi +              (-0.0017909))*pp*pp +                ((0.00104)*phi*phi +               (-0.0028401)*phi +                (0.02981))*pp +              ((-0.0041995)*phi*phi +                (0.011537)*phi +                 (-0.1196));}
+                    else{      dp = dp +            ((-6.1139e-05)*phi*phi +               (5.4087e-06)*phi +              (-0.0021284))*pp*pp +              ((0.0010007)*phi*phi +               (9.3492e-05)*phi +               (0.039813))*pp +              ((-0.0040434)*phi*phi +              (-0.0010953)*phi +                (-0.18112));}
+                    dp =            dp +          ((-4.593089e-07)*phi*phi +              (1.40673e-05)*phi +                (6.69e-05))*pp*pp +             ((4.0239e-06)*phi*phi +             (-0.000180863)*phi + (-0.0008272199999999999))*pp + ((-5.1310000000000005e-06)*phi*phi +              (0.00049748)*phi +              (0.00255231));
+                }
+                if(sec == 5){
+                    dp =                  ((8.036599999999999e-07)*phi*phi +              (2.58072e-05)*phi +             (0.000360217))*pp*pp + ((-9.932400000000002e-06)*phi*phi +            (-0.0005168531)*phi +              (-0.010904))*pp +  ((1.8516299999999998e-05)*phi*phi +   (0.0015570900000000001)*phi +                (0.066493));
+                    if(pp < 7){dp = dp +            ((-3.2178e-06)*phi*phi +               (4.0630e-05)*phi +               (-0.005209))*pp*pp +             ((2.0884e-05)*phi*phi +              (-6.8800e-04)*phi +               (0.086513))*pp +              ((3.9530e-05)*phi*phi +               (0.0029306)*phi +                 (-0.3507));}
+                    else{      dp = dp +            ((-3.9554e-05)*phi*phi +               (5.5496e-06)*phi +              (-0.0058293))*pp*pp +             ((6.5077e-04)*phi*phi +               (2.6735e-05)*phi +               (0.095025))*pp +              ((-0.0026457)*phi*phi +             (-6.1394e-04)*phi +                 (-0.3793));}
+                    dp =            dp +            ((-1.2151e-06)*phi*phi +              (-8.5087e-06)*phi +               (4.968e-05))*pp*pp +            ((1.46998e-05)*phi*phi +              (0.000115047)*phi +            (-0.00039269))*pp + ((-4.0368600000000005e-05)*phi*phi +             (-0.00037078)*phi +              (0.00073998));
+                }
+                if(sec == 6){
+                    dp =                ((-1.9552099999999998e-06)*phi*phi +    (8.042199999999997e-06)*phi + (-2.1324000000000028e-05))*pp*pp + ((1.6969399999999997e-05)*phi*phi +   (-6.306600000000001e-05)*phi +            (-0.00485568))*pp +             ((-2.7723e-05)*phi*phi +  (-6.828400000000003e-05)*phi +               (0.0447535));
+                    if(pp < 7){dp = dp +            ((-3.2410e-05)*phi*phi +              (-4.3301e-05)*phi +              (-0.0028742))*pp*pp +             ((5.3787e-04)*phi*phi +               (6.8921e-04)*phi +               (0.049578))*pp +              ((-0.0021955)*phi*phi +              (-0.0027698)*phi +                (-0.21142));}
+                    else{      dp = dp +            ((-4.9760e-05)*phi*phi +              (-7.2903e-05)*phi +              (-0.0020453))*pp*pp +             ((8.0918e-04)*phi*phi +                (0.0011688)*phi +               (0.037042))*pp +              ((-0.0032504)*phi*phi +              (-0.0046169)*phi +                (-0.16331));}
+                    dp =            dp + ((-7.153000000000002e-07)*phi*phi +              (1.62859e-05)*phi +               (8.129e-05))*pp*pp + ((7.2249999999999994e-06)*phi*phi +             (-0.000178946)*phi + (-0.0009485399999999999))*pp + ((-1.3018000000000003e-05)*phi*phi +  (0.00046643000000000005)*phi +              (0.00266508));
                 }
             }
         }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //====================================================================================================================================//
+        //======================//======================//     Electron Corrections (End)     //======================//======================//
+        //====================================================================================================================================//
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //========================================================================================================================================================//
+        //==============================//==============================//     π+ Corrections     //==============================//==============================//
+        //========================================================================================================================================================//
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(corON != 0 && ivec == 1){
+            if(corON == 1){ // Fall 2018 - Pass 1 Corrections
+                if(sec == 1){
+                    dp =      ((-5.4904e-07)*phi*phi + (-1.4436e-05)*phi +  (3.1534e-04))*pp*pp +  ((3.8231e-06)*phi*phi +  (3.6582e-04)*phi +  (-0.0046759))*pp + ((-5.4913e-06)*phi*phi + (-4.0157e-04)*phi +    (0.010767));
+                    dp = dp +  ((6.1103e-07)*phi*phi +  (5.5291e-06)*phi + (-1.9120e-04))*pp*pp + ((-3.2300e-06)*phi*phi +  (1.5377e-05)*phi +  (7.5279e-04))*pp +  ((2.1434e-06)*phi*phi + (-6.9572e-06)*phi + (-7.9333e-05));
+                    dp = dp + ((-1.3049e-06)*phi*phi +  (1.1295e-05)*phi +  (4.5797e-04))*pp*pp +  ((9.3122e-06)*phi*phi + (-5.1074e-05)*phi +  (-0.0030757))*pp + ((-1.3102e-05)*phi*phi +  (2.2153e-05)*phi +   (0.0040938));
+                }
+                if(sec == 2){
+                    dp =      ((-1.0087e-06)*phi*phi +  (2.1319e-05)*phi +  (7.8641e-04))*pp*pp +  ((6.7485e-06)*phi*phi +  (7.3716e-05)*phi +  (-0.0094591))*pp + ((-1.1820e-05)*phi*phi + (-3.8103e-04)*phi +    (0.018936));
+                    dp = dp +  ((8.8155e-07)*phi*phi + (-2.8257e-06)*phi + (-2.6729e-04))*pp*pp + ((-5.4499e-06)*phi*phi +  (3.8397e-05)*phi +   (0.0015914))*pp +  ((6.8926e-06)*phi*phi + (-5.9386e-05)*phi +  (-0.0021749));
+                    dp = dp + ((-2.0147e-07)*phi*phi +  (1.1061e-05)*phi +  (3.8827e-04))*pp*pp +  ((4.9294e-07)*phi*phi + (-6.0257e-05)*phi +  (-0.0022087))*pp +  ((9.8548e-07)*phi*phi +  (5.9047e-05)*phi +   (0.0022905));
+                }
+                if(sec == 3){
+                    dp =       ((8.6722e-08)*phi*phi + (-1.7975e-05)*phi +  (4.8118e-05))*pp*pp +  ((2.6273e-06)*phi*phi +  (3.1453e-05)*phi +  (-0.0015943))*pp + ((-6.4463e-06)*phi*phi + (-5.8990e-05)*phi +   (0.0041703));
+                    dp = dp +  ((9.6317e-07)*phi*phi + (-1.7659e-06)*phi + (-8.8318e-05))*pp*pp + ((-5.1346e-06)*phi*phi +  (8.3318e-06)*phi +  (3.7723e-04))*pp +  ((3.9548e-06)*phi*phi + (-6.9614e-05)*phi +  (2.1393e-04));
+                    dp = dp +  ((5.6438e-07)*phi*phi +  (8.1678e-06)*phi + (-9.4406e-05))*pp*pp + ((-3.9074e-06)*phi*phi + (-6.5174e-05)*phi +  (5.4218e-04))*pp +  ((6.3198e-06)*phi*phi +  (1.0611e-04)*phi + (-4.5749e-04));
+                }
+                if(sec == 4){
+                    dp =       ((4.3406e-07)*phi*phi + (-4.9036e-06)*phi +  (2.3064e-04))*pp*pp +  ((1.3624e-06)*phi*phi +  (3.2907e-05)*phi +  (-0.0034872))*pp + ((-5.1017e-06)*phi*phi +  (2.4593e-05)*phi +   (0.0092479));
+                    dp = dp +  ((6.0218e-07)*phi*phi + (-1.4383e-05)*phi + (-3.1999e-05))*pp*pp + ((-1.1243e-06)*phi*phi +  (9.3884e-05)*phi + (-4.1985e-04))*pp + ((-1.8808e-06)*phi*phi + (-1.2222e-04)*phi +   (0.0014037));
+                    dp = dp + ((-2.5490e-07)*phi*phi + (-8.5120e-07)*phi +  (7.9109e-05))*pp*pp +  ((2.5879e-06)*phi*phi +  (8.6108e-06)*phi + (-5.1533e-04))*pp + ((-4.4521e-06)*phi*phi + (-1.7012e-05)*phi +  (7.4848e-04));
+                }
+                if(sec == 5){
+                    dp =       ((2.4292e-07)*phi*phi +  (8.8741e-06)*phi +  (2.9482e-04))*pp*pp +  ((3.7229e-06)*phi*phi +  (7.3215e-06)*phi +  (-0.0050685))*pp + ((-1.1974e-05)*phi*phi + (-1.3043e-04)*phi +   (0.0078836));
+                    dp = dp +  ((1.0867e-06)*phi*phi + (-7.7630e-07)*phi + (-4.4930e-05))*pp*pp + ((-5.6564e-06)*phi*phi + (-1.3417e-05)*phi +  (2.5224e-04))*pp +  ((6.8460e-06)*phi*phi +  (9.0495e-05)*phi + (-4.6587e-04));
+                    dp = dp +  ((8.5720e-07)*phi*phi + (-6.7464e-06)*phi + (-4.0944e-05))*pp*pp + ((-4.7370e-06)*phi*phi +  (5.8808e-05)*phi +  (1.9047e-04))*pp +  ((5.7404e-06)*phi*phi + (-1.1105e-04)*phi + (-1.9392e-04));
+                }
+                if(sec == 6){
+                    dp =       ((2.1191e-06)*phi*phi + (-3.3710e-05)*phi +  (2.5741e-04))*pp*pp + ((-1.2915e-05)*phi*phi +  (2.3753e-04)*phi + (-2.6882e-04))*pp +  ((2.2676e-05)*phi*phi + (-2.3115e-04)*phi +   (-0.001283));
+                    dp = dp +  ((6.0270e-07)*phi*phi + (-6.8200e-06)*phi +  (1.3103e-04))*pp*pp + ((-1.8745e-06)*phi*phi +  (3.8646e-05)*phi + (-8.8056e-04))*pp +  ((2.0885e-06)*phi*phi + (-3.4932e-05)*phi +  (4.5895e-04));
+                    dp = dp +  ((4.7349e-08)*phi*phi + (-5.7528e-06)*phi + (-3.4097e-06))*pp*pp +  ((1.7731e-06)*phi*phi +  (3.5865e-05)*phi + (-5.7881e-04))*pp + ((-9.7008e-06)*phi*phi + (-4.1836e-05)*phi +   (0.0035403));
+                }
+            }
+
+            if(corON == 3){ // Fall 2018 - Pass 2 Corrections
+                if(sec == 1){
+                    dp =                  ((1.338454e-06)*phi*phi +   (4.714629999999999e-05)*phi +            (0.00014719))*pp*pp + ((-2.8460000000000004e-06)*phi*phi +            (-0.000406925)*phi +           (-0.00367325))*pp +           ((-1.193548e-05)*phi*phi +            (-0.000225083)*phi +           (0.01544091));
+                    if(pp < 2.5){dp = dp +  ((1.0929e-05)*phi*phi +             (-3.8002e-04)*phi +              (-0.01412))*pp*pp +             ((-2.8491e-05)*phi*phi +              (5.0952e-04)*phi +              (0.037728))*pp +              ((1.6927e-05)*phi*phi +              (1.8165e-04)*phi +            (-0.027772));}
+                    else{        dp = dp +  ((9.2373e-06)*phi*phi +             (-3.3151e-04)*phi +             (-0.019254))*pp*pp +             ((-2.7546e-05)*phi*phi +              (5.3915e-04)*phi +              (0.052516))*pp +              ((2.5220e-05)*phi*phi +              (7.5362e-05)*phi +            (-0.033504));}
+                    dp =              dp + ((-3.7494e-07)*phi*phi +             (-1.5439e-06)*phi +            (4.2760e-05))*pp*pp +              ((3.5348e-06)*phi*phi +              (4.8165e-05)*phi +           (-2.3799e-04))*pp +             ((-8.2116e-06)*phi*phi +             (-7.1750e-05)*phi +           (1.5984e-04));
+                }
+                if(sec == 2){
+                    dp =                    ((5.8222e-07)*phi*phi +  (5.0666599999999994e-05)*phi +            (0.00051782))*pp*pp +              ((3.3785e-06)*phi*phi +            (-0.000343093)*phi + (-0.007453400000000001))*pp + ((-2.2014899999999998e-05)*phi*phi + (-0.00027579899999999997)*phi + (0.015119099999999998));
+                    if(pp < 2.5){dp = dp +  ((1.8595e-06)*phi*phi +              (3.6900e-04)*phi +            (-0.0099622))*pp*pp +              ((8.4410e-06)*phi*phi +              (-0.0010457)*phi +              (0.027038))*pp +             ((-1.2191e-05)*phi*phi +              (6.0203e-04)*phi +            (-0.019176));}
+                    else{        dp = dp +  ((9.5779e-06)*phi*phi +              (3.5339e-04)*phi +              (-0.01054))*pp*pp +             ((-1.8077e-05)*phi*phi +              (-0.0010543)*phi +              (0.028379))*pp +              ((3.1773e-06)*phi*phi +              (5.6223e-04)*phi +            (-0.018865));}
+                    dp =              dp +  ((4.3694e-07)*phi*phi +              (1.1476e-05)*phi +            (1.1123e-04))*pp*pp +             ((-2.4617e-06)*phi*phi +             (-7.5353e-05)*phi +           (-6.2511e-04))*pp +             ((-1.0387e-06)*phi*phi +              (5.8447e-05)*phi +           (6.4986e-04));
+                }
+                if(sec == 3){
+                    dp =                  ((-6.17815e-07)*phi*phi + (-1.4503600000000001e-05)*phi +           (0.000584689))*pp*pp +             ((8.27871e-06)*phi*phi +              (9.2796e-05)*phi +         (-0.0078185692))*pp + ((-1.6866360000000002e-05)*phi*phi +  (-8.065000000000001e-05)*phi +            (0.0159476));
+                    if(pp < 2.5){dp = dp +  ((3.3685e-05)*phi*phi +              (2.8972e-04)*phi +             (-0.017862))*pp*pp +             ((-8.4089e-05)*phi*phi +             (-9.8038e-04)*phi +              (0.050405))*pp +              ((4.3478e-05)*phi*phi +              (6.9924e-04)*phi +            (-0.033066));}
+                    else{        dp = dp +  ((1.7381e-05)*phi*phi +              (5.4630e-04)*phi +             (-0.019637))*pp*pp +             ((-3.8681e-05)*phi*phi +              (-0.0017358)*phi +                (0.0565))*pp +              ((1.2268e-05)*phi*phi +               (0.0011412)*phi +            (-0.035608));}
+                    dp =              dp +  ((1.8639e-07)*phi*phi +              (4.9444e-06)*phi +           (-2.9030e-05))*pp*pp +             ((-1.3752e-06)*phi*phi +             (-3.3709e-05)*phi +            (3.8288e-04))*pp +              ((1.0113e-06)*phi*phi +              (5.1273e-05)*phi +          (-6.7844e-04));
+                }
+                if(sec == 4){
+                    dp =         ((9.379499999999998e-07)*phi*phi + (-2.8101700000000002e-05)*phi +            (0.00053373))*pp*pp + ((-1.6185199999999991e-06)*phi*phi +  (0.00017444500000000001)*phi + (-0.005648269999999999))*pp +  ((-3.495700000000003e-06)*phi*phi +  (-7.845739999999999e-05)*phi + (0.010768400000000001));
+                    if(pp < 2.5){dp = dp +  ((4.3191e-07)*phi*phi +             (-9.0581e-05)*phi +            (-0.0011766))*pp*pp +             ((-3.6232e-06)*phi*phi +               (0.0010342)*phi +              (0.012454))*pp +              ((1.2235e-05)*phi*phi +              (-0.0025855)*phi +            (-0.035323));}
+                    else{        dp = dp +  ((2.2654e-08)*phi*phi +             (-8.8436e-05)*phi +            (-0.0013542))*pp*pp +              ((3.0630e-07)*phi*phi +              (9.4319e-04)*phi +                (0.0147))*pp +             ((-3.5941e-06)*phi*phi +              (-0.0022473)*phi +            (-0.036874));}
+                    dp =              dp +  ((4.8394e-07)*phi*phi +              (3.6342e-06)*phi +           (-2.0136e-04))*pp*pp +             ((-3.2757e-06)*phi*phi +             (-3.5397e-05)*phi +             (0.0015599))*pp +              ((3.2095e-06)*phi*phi +              (7.9013e-05)*phi +            (-0.002012));
+                }
+                if(sec == 5){
+                    dp =        ((1.7566900000000006e-07)*phi*phi +             (2.21337e-05)*phi +             (0.0011632))*pp*pp +   ((2.812770000000001e-06)*phi*phi + (-0.00018654499999999998)*phi + (-0.011854620000000001))*pp +  ((-8.442900000000003e-06)*phi*phi + (-0.00011505800000000001)*phi +            (0.0176174));
+                    if(pp < 2.5){dp = dp +  ((6.8265e-07)*phi*phi +              (3.0246e-05)*phi +            (-0.0011116))*pp*pp +             ((-4.8481e-06)*phi*phi +             (-3.7082e-04)*phi +              (0.011452))*pp +              ((7.2478e-06)*phi*phi +              (9.9858e-04)*phi +            (-0.027972));}
+                    else{        dp = dp +  ((7.7000e-07)*phi*phi +              (4.1000e-06)*phi +            (-0.0010144))*pp*pp +             ((-8.1960e-06)*phi*phi +             (-4.7753e-05)*phi +              (0.010594))*pp +              ((2.0716e-05)*phi*phi +              (1.2151e-04)*phi +            (-0.028619));}
+                    dp =              dp +  ((4.3113e-07)*phi*phi +              (2.6869e-06)*phi +           (-2.1326e-04))*pp*pp +             ((-3.1063e-06)*phi*phi +             (-2.7152e-05)*phi +             (0.0017964))*pp +              ((3.1946e-06)*phi*phi +              (4.2059e-05)*phi +           (-0.0031325));
+                }
+                if(sec == 6){
+                    dp =                   ((1.94354e-06)*phi*phi +  (1.3306000000000006e-05)*phi +            (0.00067634))*pp*pp +             ((-7.9584e-06)*phi*phi +  (-7.949999999999998e-05)*phi + (-0.005861990000000001))*pp +   ((6.994000000000005e-07)*phi*phi +             (-0.00022435)*phi +            (0.0118564));
+                    if(pp < 2.5){dp = dp +  ((4.6106e-07)*phi*phi +             (-3.6786e-05)*phi +            (-0.0015894))*pp*pp +             ((-4.4217e-06)*phi*phi +              (3.7321e-04)*phi +              (0.015917))*pp +              ((7.5188e-06)*phi*phi +             (-8.0676e-04)*phi +            (-0.036944));}
+                    else{        dp = dp + ((-8.9398e-08)*phi*phi +             (-1.2347e-05)*phi +            (-0.0018442))*pp*pp +              ((7.8164e-08)*phi*phi +              (1.3063e-04)*phi +               (0.01783))*pp +              ((8.2374e-06)*phi*phi +             (-3.5862e-04)*phi +            (-0.047011));}
+                    dp =              dp +  ((4.9123e-07)*phi*phi +              (5.1828e-06)*phi +           (-1.3898e-04))*pp*pp +             ((-3.4108e-06)*phi*phi +             (-5.0009e-05)*phi +             (0.0014879))*pp +              ((4.0320e-06)*phi*phi +              (6.5853e-05)*phi +           (-0.0032227));
+                }
+
+            }
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //==============================================================================================================================================================//
+        //==============================//==============================//     π+ Corrections (End)     //==============================//==============================//
+        //==============================================================================================================================================================//
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
+
+    return dp/pp;
 };"""
-
-
 
 
 
@@ -1056,7 +1264,7 @@ auto dppC = [&](float Px, float Py, float Pz, int sec, int ivec, int corON){
 Rotation_Matrix = """
 /////////////////////////////////////////////          Rotation Matrix          /////////////////////////////////////////////
 
-auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot){
+TLorentzVector Rot_Matrix(TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_Rot, double Phi_Rot) {
     double Rot_X1 = vector.X();
     double Rot_Y1 = vector.Y();
     double Rot_Z1 = vector.Z();
@@ -1120,7 +1328,7 @@ auto Rot_Matrix = [&](TLorentzVector vector, int Lab2CM_or_CM2Lab, double Theta_
 #----------#      π+ Pion Energy Loss Corrections (Pass 2)      #----------#
 ############################################################################
 Pion_Energy_Loss_Cor_Function = """
-auto eloss_pip_In_Forward = [&](double pion_p, double pip_theta){
+double eloss_pip_In_Forward(double pion_p, double pip_theta){
     double pion_det = 2;
     bool outbending = false;
     // momentum loss correction for low momentum pions:
@@ -1656,102 +1864,140 @@ def BG_Cut_Function(dataframe="mdf"):
 
 
 
-# # Up-to-date as of: 5/29/2024
-# New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
-# return New_Fiducial_Sector_Cuts;'''
+# # # Up-to-date as of: 5/29/2024
+# # New_Fiducial_Sector_Cuts = '''bool New_Fiducial_Sector_Cuts = ! ((((Hx*Hx) + (Hy*Hy)) < (325*325)) && (!((Hy > (-0.4803)*Hx + (19.0945)) && (Hy < (0.5236)*Hx + (-27.0866)))) && (!((Hy > (0.6749)*Hx + (17.7778)) && (Hy < (33.832)*Hx + (-877.4638)))) && (!((Hy > (-0.6442)*Hx + (29.6081)) && (Hy < (-19.0013)*Hx + (-430.0535)))) && (!((Hy > (0.4717)*Hx + (16.5094)) && (Hy < (-0.4717)*Hx + (-16.5094)))) && (!((Hy < (0.669)*Hx + (-26.0705)) && (Hy > (12.6372)*Hx + (301.8584)))) && (!((Hy < (-0.5909)*Hx + (-32.4477)) && (Hy > (-21.0059)*Hx + (363.1938))))) || (((Hx*Hx) + (Hy*Hy)) > (325*325));
+# # return New_Fiducial_Sector_Cuts;'''
 
-# Up-to-date as of: 5/31/2024
-New_Fiducial_Sector_Cuts = """
-if((((Hx)*(Hx) + (Hy)*(Hy)) > (325)*(325)) || (((Hx)*(Hx) + (Hy)*(Hy)) < (75)*(75))){
-    return false;
-}
-else{
-    bool Fiducial_PCAL_Cuts =                        (((Hx)*(Hx) + (Hy)*(Hy)) < (325)*(325));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >     (-0.5)*Hx +     (25.0)) && (Hy <   (0.5241)*Hx +   (-27.2289)));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >   (0.6439)*Hx +   (26.145)) && (Hy <  (76.7615)*Hx + (-2409.6186)));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >  (-0.6292)*Hx +  (33.7585)) && (Hy < (-23.2943)*Hx +  (-601.7726)));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >      (0.5)*Hx +     (25.0)) && (Hy <     (-0.5)*Hx +      (-25.0)));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  ( 0.6494)*Hx + (-31.1688)) && (Hy >  (13.3333)*Hx +   (336.6667)));
-    Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  (-0.5796)*Hx + (-35.5102)) && (Hy >    (-35.0)*Hx +      (825.0)));
-    Fiducial_PCAL_Cuts      = !Fiducial_PCAL_Cuts;
-    return Fiducial_PCAL_Cuts;
-}
-"""
-
-# Up-to-date as of: 6/12/2024
-New_Fiducial_Pip_Sector_Cuts = """
-if((((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) > (20.5)*(20.5)) || (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (5.2)*(5.2))){
-    return false;
-}
-else{
-    bool Fiducial_DC_Cuts =                      (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (20.5)*(20.5));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.3379)*Hx_pip  + (0.5954))  && (Hy_pip <   (0.6801)*Hx_pip + (-2.1023)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-56.375)*Hx_pip  + (95.4688)) && (Hy_pip >   (0.8029)*Hx_pip + (1.1253)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.5307)*Hx_pip  + (1.7336))  && (Hy_pip <  (-5.7821)*Hx_pip + (-5.3558)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip >  (0.5805)*Hx_pip  + (0.69))    && (Hy_pip <  (-0.4095)*Hx_pip + (-1.3394)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip <  (0.9324)*Hx_pip  + (-0.3521)) && (Hy_pip < (-12.8857)*Hx_pip + (-31.4429)));
-    Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip < (-0.4617)*Hx_pip  + (-1.7652)) && (Hy_pip >  (-5.7595)*Hx_pip + (3.7975)));
-    Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
-    return Fiducial_DC_Cuts;
-}
-"""
-# Up-to-date as of: 7/3/2024 (new hipo.root files - V4)
-# New_Fiducial_Pip_Sector_Cuts = """
-# if((((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) > (20.5)*(20.5)) || (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (5.2)*(5.2))){
+# # Up-to-date as of: 5/31/2024
+# New_Fiducial_Sector_Cuts = """
+# if((((Hx)*(Hx) + (Hy)*(Hy)) > (325)*(325)) || (((Hx)*(Hx) + (Hy)*(Hy)) < (75)*(75))){
 #     return false;
 # }
 # else{
-#     bool Fiducial_DC_Cuts =                      (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (20.5)*(20.5));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.3379)*pip_x_DC  + (0.5954))  && (pip_y_DC <   (0.6801)*pip_x_DC + (-2.1023)));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-56.375)*pip_x_DC  + (95.4688)) && (pip_y_DC >   (0.8029)*pip_x_DC + (1.1253)));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.5307)*pip_x_DC  + (1.7336))  && (pip_y_DC <  (-5.7821)*pip_x_DC + (-5.3558)));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC >  (0.5805)*pip_x_DC  + (0.69))    && (pip_y_DC <  (-0.4095)*pip_x_DC + (-1.3394)));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC <  (0.9324)*pip_x_DC  + (-0.3521)) && (pip_y_DC < (-12.8857)*pip_x_DC + (-31.4429)));
-#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC < (-0.4617)*pip_x_DC  + (-1.7652)) && (pip_y_DC >  (-5.7595)*pip_x_DC + (3.7975)));
+#     bool Fiducial_PCAL_Cuts =                        (((Hx)*(Hx) + (Hy)*(Hy)) < (325)*(325));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >     (-0.5)*Hx +     (25.0)) && (Hy <   (0.5241)*Hx +   (-27.2289)));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >   (0.6439)*Hx +   (26.145)) && (Hy <  (76.7615)*Hx + (-2409.6186)));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >  (-0.6292)*Hx +  (33.7585)) && (Hy < (-23.2943)*Hx +  (-601.7726)));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy >      (0.5)*Hx +     (25.0)) && (Hy <     (-0.5)*Hx +      (-25.0)));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  ( 0.6494)*Hx + (-31.1688)) && (Hy >  (13.3333)*Hx +   (336.6667)));
+#     Fiducial_PCAL_Cuts      =  Fiducial_PCAL_Cuts && !((Hy <  (-0.5796)*Hx + (-35.5102)) && (Hy >    (-35.0)*Hx +      (825.0)));
+#     Fiducial_PCAL_Cuts      = !Fiducial_PCAL_Cuts;
+#     return Fiducial_PCAL_Cuts;
+# }
+# """
+
+# # Up-to-date as of: 6/12/2024
+# New_Fiducial_Pip_Sector_Cuts = """
+# if((((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) > (20.5)*(20.5)) || (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (5.2)*(5.2))){
+#     return false;
+# }
+# else{
+#     bool Fiducial_DC_Cuts =                      (((Hx_pip)*(Hx_pip) + (Hy_pip)*(Hy_pip)) < (20.5)*(20.5));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.3379)*Hx_pip  + (0.5954))  && (Hy_pip <   (0.6801)*Hx_pip + (-2.1023)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-56.375)*Hx_pip  + (95.4688)) && (Hy_pip >   (0.8029)*Hx_pip + (1.1253)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip > (-0.5307)*Hx_pip  + (1.7336))  && (Hy_pip <  (-5.7821)*Hx_pip + (-5.3558)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip >  (0.5805)*Hx_pip  + (0.69))    && (Hy_pip <  (-0.4095)*Hx_pip + (-1.3394)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip <  (0.9324)*Hx_pip  + (-0.3521)) && (Hy_pip < (-12.8857)*Hx_pip + (-31.4429)));
+#     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((Hy_pip < (-0.4617)*Hx_pip  + (-1.7652)) && (Hy_pip >  (-5.7595)*Hx_pip + (3.7975)));
 #     Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
 #     return Fiducial_DC_Cuts;
 # }
 # """
+# # Up-to-date as of: 7/3/2024 (new hipo.root files - V4)
+# # New_Fiducial_Pip_Sector_Cuts = """
+# # if((((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) > (20.5)*(20.5)) || (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (5.2)*(5.2))){
+# #     return false;
+# # }
+# # else{
+# #     bool Fiducial_DC_Cuts =                      (((pip_x_DC)*(pip_x_DC) + (pip_y_DC)*(pip_y_DC)) < (20.5)*(20.5));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.3379)*pip_x_DC  + (0.5954))  && (pip_y_DC <   (0.6801)*pip_x_DC + (-2.1023)));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-56.375)*pip_x_DC  + (95.4688)) && (pip_y_DC >   (0.8029)*pip_x_DC + (1.1253)));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC > (-0.5307)*pip_x_DC  + (1.7336))  && (pip_y_DC <  (-5.7821)*pip_x_DC + (-5.3558)));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC >  (0.5805)*pip_x_DC  + (0.69))    && (pip_y_DC <  (-0.4095)*pip_x_DC + (-1.3394)));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC <  (0.9324)*pip_x_DC  + (-0.3521)) && (pip_y_DC < (-12.8857)*pip_x_DC + (-31.4429)));
+# #     Fiducial_DC_Cuts      =  Fiducial_DC_Cuts && !((pip_y_DC < (-0.4617)*pip_x_DC  + (-1.7652)) && (pip_y_DC >  (-5.7595)*pip_x_DC + (3.7975)));
+# #     Fiducial_DC_Cuts      = !Fiducial_DC_Cuts;
+# #     return Fiducial_DC_Cuts;
+# # }
+# # """
 
-# Up-to-date as of: 8/2/2024 (new hipo.root files - V5)
-New_Fiducial_Pip_Sector_Cuts = """
-double angle(double x1, double y1, double x2, double y2) {
-    return std::atan2(y2 - y1, x2 - x1);
-}
+# # Up-to-date as of: 8/2/2024 (new hipo.root files - V5)
+# New_Fiducial_Pip_Sector_Cuts = """
+# double angle(double x1, double y1, double x2, double y2) {
+#     return std::atan2(y2 - y1, x2 - x1);
+# }
+# bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
+#     int num_vertices = polygon.size();
+#     double winding_number = 0.0;
+#     for (int i = 0; i < num_vertices; ++i) {
+#         double x1 = polygon[i].first;
+#         double y1 = polygon[i].second;
+#         double x2 = polygon[(i + 1) % num_vertices].first;
+#         double y2 = polygon[(i + 1) % num_vertices].second;
+#         double a1 = angle(x, y, x1, y1);
+#         double a2 = angle(x, y, x2, y2);
+#         double angle_diff = a2 - a1;
+#         if(angle_diff > M_PI){angle_diff -= 2 * M_PI;} else if(angle_diff < -M_PI){angle_diff += 2 * M_PI;}
+#         winding_number += angle_diff;
+#     }
+#     return std::abs(winding_number) > M_PI;
+# }
+
+# bool polygon_cut(double Hx_pip, double Hy_pip) {
+#     std::vector<std::vector<std::pair<double, double>>> polygons = {
+#         {{425, 220}, {425, -225}, {385, -225}, {100, -40}, {100, 0}, {140, 0}, {180, -65}, {220, -87}, {350, -161}, {351, -90}, {356, -90}, {360, -130}, {360, -167}, {380, -180}, {381, -100}, {380, 189}, {250, 110}, {230, 101}, {200, 80}, {165, 50}, {150, 20}, {140, 10}, {140, 0}, {100, 0}, {100, 40}, {380, 220}},
+#         {{50, 460}, {0, 460}, {0, 80}, {50, 60}, {70, 120}, {55, 125}, {50, 145}, {276, 281}, {275, 283}, {50, 150}, {30, 180}, {30, 250}, {30, 325}, {25, 330}, {27, 425}, {275, 283}, {276, 281}, {350, 240}, {300, 215}, {250, 185}, {150, 122}, {140, 120}, {115, 120}, {175, 160}, {160, 155}, {100, 120}, {70, 120}, {50, 60}, {100, 40}, {380, 220}, {425, 220}, {425, 250}},
+#         {{-50, 460}, {0, 460}, {0, 80}, {-50, 60}, {-70, 120}, {-30, 190}, {-28, 222}, {-40, 300}, {-40, 418}, {-338, 247}, {-338, 230}, {-310, 225}, {-212, 165}, {-200, 150}, {-125, 115}, {-70, 120}, {-50, 60}, {-100, 40}, {-380, 220}, {-425, 220}, {-425, 250}},
+#         {{-425, -225}, {-365, -225}, {-100, -40}, {-100, 0}, {-135, 0}, {-150, -25}, {-170, -60}, {-210, -87}, {-382, -190}, {-382, 179}, {-200, 75}, {-200, 85}, {-155, 30}, {-135, 0}, {-100, 0}, {-100, 40}, {-380, 220}, {-425, 220}},
+#         {{-50, -460}, {0, -460}, {0, -80}, {-50, -60}, {-75, -115}, {-50, -150}, {-35, -170}, {-30, -200}, {-25, -410}, {-50, -415}, {-250, -297}, {-300, -266}, {-340, -240}, {-250, -195}, {-220, -170}, {-190, -150}, {-150, -125}, {-75, -115}, {-50, -60}, {-100, -40}, {-365, -225}, {-425, -225}, {-425, -250}},
+#         {{0, -460}, {0, -80}, {50, -60}, {75, -115}, {60, -135}, {29, -200}, {28, -250}, {32, -250}, {36, -265}, {37, -410}, {100, -375}, {145, -350}, {200, -320}, {240, -300}, {330, -250}, {350, -235}, {220, -165}, {205, -155}, {210, -150}, {150, -120}, {130, -115}, {75, -115}, {50, -60}, {100, -40}, {385, -225}, {425, -225}, {425, -250}, {20, -460}}
+#     };
+#     for (const auto& poly : polygons) {
+#         if(is_point_in_polygon(Hx_pip, Hy_pip, poly)){
+#             return false; // Point is inside a polygon, filter it out
+#         }
+#     }
+#     return true; // Point is outside all polygons
+# }
+# return polygon_cut(Hx_pip, Hy_pip);
+# """
+
+
+# Up-to-date as of: 8/30/2024
+    # Note: The Pion cuts are "PRELIMINARY ONLY" - Are to be replaced once the Electron cuts have been applied
+New_Fiducial_DC_Cuts_Functions = """
+auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
+    {"Layer_6__ele", {{-65,  0}, {-65,   -3}, {13,   -41}, {14,  -40}, {19,   0}, {13,   42}, {-65,  2}, {-65,  0}}},
+    {"Layer_18_ele", {{-105, 0}, {-94,   -8}, {15,   -62}, {25,    0}, {15,  63}, {-92,   9}, {-105, 0}, {-127, 0}}},
+    {"Layer_36_ele", {{-170, 0}, {-169,  -5}, {-100, -36}, {5,   -81}, {18,   0}, {5,    85}, {-75, 49}, {-170, 3}, {-170, 0}}},
+    {"Layer_6__pip", {{-80,  0}, {-80,   -6}, {-60,  -18}, {-20, -37}, {20, -57}, {35,    0}, {20,  56}, {-20, 37}, {-60, 18}, {-80,  8}, {-80,   0}}},
+    {"Layer_18_pip", {{-114, 0}, {-114,  -7}, {-80,  -32}, {-50, -47}, {0,  -73}, {30,  -89}, {55,   0}, {30,  89}, {0,   73}, {-80, 33}, {-114,  8}, {-114,  0}}},
+    {"Layer_36_pip", {{-150, 0}, {-150, -10}, {-100, -40}, {-50, -70}, {0, -100}, {75, -140}, {95,   0}, {75, 140}, {0,  100}, {-50, 70}, {-100, 40}, {-150, 10}, {-150, 0}}}
+};
+
 bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
-    int num_vertices = polygon.size();
     double winding_number = 0.0;
+    int num_vertices = polygon.size();
+
     for (int i = 0; i < num_vertices; ++i) {
         double x1 = polygon[i].first;
         double y1 = polygon[i].second;
         double x2 = polygon[(i + 1) % num_vertices].first;
         double y2 = polygon[(i + 1) % num_vertices].second;
-        double a1 = angle(x, y, x1, y1);
-        double a2 = angle(x, y, x2, y2);
+
+        double a1 = atan2(y1 - y, x1 - x);
+        double a2 = atan2(y2 - y, x2 - x);
         double angle_diff = a2 - a1;
-        if(angle_diff > M_PI){angle_diff -= 2 * M_PI;} else if(angle_diff < -M_PI){angle_diff += 2 * M_PI;}
+
+        if(angle_diff > 3.1415926){
+            angle_diff -= 2 * 3.1415926;
+        } else if(angle_diff < -3.1415926){
+            angle_diff += 2 * 3.1415926;
+        }
         winding_number += angle_diff;
     }
-    return std::abs(winding_number) > M_PI;
+    return (std::abs(winding_number) > 3.1415926);
 }
-
-bool polygon_cut(double Hx_pip, double Hy_pip) {
-    std::vector<std::vector<std::pair<double, double>>> polygons = {
-        {{425, 220}, {425, -225}, {385, -225}, {100, -40}, {100, 0}, {140, 0}, {180, -65}, {220, -87}, {350, -161}, {351, -90}, {356, -90}, {360, -130}, {360, -167}, {380, -180}, {381, -100}, {380, 189}, {250, 110}, {230, 101}, {200, 80}, {165, 50}, {150, 20}, {140, 10}, {140, 0}, {100, 0}, {100, 40}, {380, 220}},
-        {{50, 460}, {0, 460}, {0, 80}, {50, 60}, {70, 120}, {55, 125}, {50, 145}, {276, 281}, {275, 283}, {50, 150}, {30, 180}, {30, 250}, {30, 325}, {25, 330}, {27, 425}, {275, 283}, {276, 281}, {350, 240}, {300, 215}, {250, 185}, {150, 122}, {140, 120}, {115, 120}, {175, 160}, {160, 155}, {100, 120}, {70, 120}, {50, 60}, {100, 40}, {380, 220}, {425, 220}, {425, 250}},
-        {{-50, 460}, {0, 460}, {0, 80}, {-50, 60}, {-70, 120}, {-30, 190}, {-28, 222}, {-40, 300}, {-40, 418}, {-338, 247}, {-338, 230}, {-310, 225}, {-212, 165}, {-200, 150}, {-125, 115}, {-70, 120}, {-50, 60}, {-100, 40}, {-380, 220}, {-425, 220}, {-425, 250}},
-        {{-425, -225}, {-365, -225}, {-100, -40}, {-100, 0}, {-135, 0}, {-150, -25}, {-170, -60}, {-210, -87}, {-382, -190}, {-382, 179}, {-200, 75}, {-200, 85}, {-155, 30}, {-135, 0}, {-100, 0}, {-100, 40}, {-380, 220}, {-425, 220}},
-        {{-50, -460}, {0, -460}, {0, -80}, {-50, -60}, {-75, -115}, {-50, -150}, {-35, -170}, {-30, -200}, {-25, -410}, {-50, -415}, {-250, -297}, {-300, -266}, {-340, -240}, {-250, -195}, {-220, -170}, {-190, -150}, {-150, -125}, {-75, -115}, {-50, -60}, {-100, -40}, {-365, -225}, {-425, -225}, {-425, -250}},
-        {{0, -460}, {0, -80}, {50, -60}, {75, -115}, {60, -135}, {29, -200}, {28, -250}, {32, -250}, {36, -265}, {37, -410}, {100, -375}, {145, -350}, {200, -320}, {240, -300}, {330, -250}, {350, -235}, {220, -165}, {205, -155}, {210, -150}, {150, -120}, {130, -115}, {75, -115}, {50, -60}, {100, -40}, {385, -225}, {425, -225}, {425, -250}, {20, -460}}
-    };
-    for (const auto& poly : polygons) {
-        if(is_point_in_polygon(Hx_pip, Hy_pip, poly)){
-            return false; // Point is inside a polygon, filter it out
-        }
-    }
-    return true; // Point is outside all polygons
-}
-return polygon_cut(Hx_pip, Hy_pip);
 """
 
 from MyCommonAnalysisFunction_richcap import color
@@ -1865,16 +2111,20 @@ def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
     Failed_Filter  = True
     if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
         # Applying my (electron) fiducial cuts
-        Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Sector_Cuts)
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])""")
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])""")
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"])""")
         Failed_Filter  = False
     if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
         # Applying my (pion) fiducial cuts
-        Data_Frame_Out = Data_Frame_Out.Filter(New_Fiducial_Pip_Sector_Cuts)
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])""")
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])""")
+        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"])""")
         Failed_Filter  = False
     if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_ele", "DC_el", "All"])):
         Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele")
         Failed_Filter  = False
-    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_pip", "All"])):
+    if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_pip",          "All"])):
         Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
         Failed_Filter  = False
     if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii", "All"])):

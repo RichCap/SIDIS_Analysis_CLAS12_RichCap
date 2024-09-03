@@ -167,7 +167,9 @@ for pass_ver in Pass_Version_List:
         
 # Setting the skip cut configuration for the New_Fiducial_Cuts_Function() function
 # Skipped_Fiducial_Cuts = ["N/A"]
+Default_Cut_Option     = ["Hpip", "DC_pip", "Pion"]
 Skipped_Fiducial_Cuts  = ["My_Cuts"] # My fiducial cuts are not being used
+Skipped_Fiducial_Cuts  = Default_Cut_Option
 Cut_Configuration_Name = ""
 for SkipC         in SkipFiducial_List:
     if(str(SkipC) in str(datatype)):
@@ -381,6 +383,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #     for ii in range(0, len(rdf.GetColumnNames()), 1):
     #         print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
     #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+    
+    print(f"{color.BOLD}\nDefining pre-made functions to be used within the RDataFrame{color.END}")
+    ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
+    ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
+    ROOT.gInterpreter.Declare(Correction_Code_Full_In)
+    ROOT.gInterpreter.Declare(Rotation_Matrix)
+    
     
     
     ##========================================================================##
@@ -844,6 +853,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
             # Two set of histograms per layer (3 layers each for 12 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V8_"
+    # Ran on 8/30/2024
+    # Updated the Pass 2 Momentum Corrections (for experimental data)
+        # Applying the Pi+ Energy Loss Corrections to the Reconstructed Monte Carlo files now as well
+    # Added new Electron DC Fiducial Cuts to improve Data to MC agreement
+        # Will be running new Pion Cuts in a later update
+    # Now using "ROOT.gInterpreter.Declare" to set up functions like the momentum corrections, rotation matrix, and (new) fiducial cut code instead of having it define those functions within each "Define" or "Filter" function
+        # Should hopefully be more efficient and may make the kinematic binning code work better in the future (not incorporated in this version yet)
+    # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V6" (see below)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
+            # Two set of histograms per layer (3 layers each for 12 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+    
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -970,7 +1002,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##=====## The following is for the Tagged Proton files ##=====##
     if(Tag_Proton):
         print(f"\n{color.BBLUE}Calculating Variables with the Tagged Proton{color.END}\n")
-        rdf = rdf.Define("MM2_pro", "".join([str(Correction_Code_Full_In), """
+        rdf = rdf.Define("MM2_pro", "".join(["""
         auto fe       = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip     = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto beam     = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
@@ -991,12 +1023,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if("pipz" not in rdf.GetColumnNames()):
         rdf = rdf.Define("pipz", "pz")
         
-    if((Mom_Correction_Q in ["yes"]) and (str(datatype) in ["rdf"]) and Use_Pass_2):
+    if(((Mom_Correction_Q in ["yes"]) or True) and (str(datatype) in ["rdf", "mdf"]) and Use_Pass_2):
         print(f"{color.BBLUE}\nApplying Pass 2 (Forward Detector) Energy Loss Corrections to the Pi+ Pion\n{color.END}")
-        rdf = rdf.Define("Energy_Loss_Cor_Factor", f"""
+        rdf = rdf.Define("Energy_Loss_Cor_Factor", """
             double pip_mom                  =       sqrt(pipx*pipx + pipy*pipy + pipz*pipz);
             double pip__th                  = atan2(sqrt(pipx*pipx + pipy*pipy), pipz)*(180/3.1415926);
-            {Pion_Energy_Loss_Cor_Function}
             auto p_pip_loss                 = eloss_pip_In_Forward(pip_mom, pip__th);
             auto pip_Energy_Loss_Cor_Factor = ((pip_mom + p_pip_loss)/pip_mom);
             return pip_Energy_Loss_Cor_Factor;
@@ -1041,11 +1072,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         #####################     Momentum     #####################
 
         try:
-            rdf = rdf.Define("el", "".join([str(Correction_Code_Full_In), """
+            rdf = rdf.Define("el",  "".join(["""
             auto fe     = dppC(ex, ey, ez, esec, 0, """,          "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
             double el_P = fe*(sqrt(ex*ex + ey*ey + ez*ez));
             return el_P;"""]))
-            rdf = rdf.Define("pip", "".join([str(Correction_Code_Full_In), """
+            rdf = rdf.Define("pip", "".join(["""
             auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
             double pip_P = fpip*(sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
             return pip_P;"""]))
@@ -1057,10 +1088,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 double pip_P_no_cor = (sqrt(pipx*pipx + pipy*pipy + pipz*pipz));
                 return pip_P_no_cor;""")
             if((Mom_Correction_Q in ["yes"]) and (str(datatype)     in ["rdf"])):
-                rdf = rdf.Define("Complete_Correction_Factor_Ele", "".join([str(Correction_Code_Full_In), """
+                rdf = rdf.Define("Complete_Correction_Factor_Ele", "".join(["""
                 auto Correction_Factor_Ele = dppC(ex,     ey,   ez,   esec, 0, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
                 return Correction_Factor_Ele;"""]))
-                rdf = rdf.Define("Complete_Correction_Factor_Pip", "".join([str(Correction_Code_Full_In), """
+                rdf = rdf.Define("Complete_Correction_Factor_Pip", "".join(["""
                 auto Correction_Factor_Pip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
                 """,  "Correction_Factor_Pip = Correction_Factor_Pip*Energy_Loss_Cor_Factor;" if(Use_Pass_2) else "", """
                 return Correction_Factor_Pip;"""]))
@@ -1180,7 +1211,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         #####################     Other Values     #####################
 
-        rdf = rdf.Define("vals", "".join([str(Correction_Code_Full_In), """
+        rdf = rdf.Define("vals", "".join(["""
         auto fe      = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         
@@ -1316,7 +1347,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Rotation_Matrix = """ See ExtraAnalysisCodeValues.py for details
     
-    rdf = rdf.Define("vals2", "".join([str(Correction_Code_Full_In), """
+    rdf = rdf.Define("vals2", "".join(["""
     auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     
@@ -1339,8 +1370,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ///////////////     Angles for Rotation     ///////////////
     double Theta_q = lv_q.Theta();
     double Phi_el  = ele.Phi();
-
-    """, str(Rotation_Matrix), """
 
     ///////////////     Rotating to CM Frame     ///////////////
 
@@ -1447,7 +1476,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Run_Uncorrected_phi_t_Info_Q = False
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"]) and Run_Uncorrected_phi_t_Info_Q):
-        rdf = rdf.Define("Uncorrected_phi_t_Info", "".join([str(Correction_Code_Full_In), """
+        rdf = rdf.Define("Uncorrected_phi_t_Info", "".join(["""
         auto fpip   = (dppC(pipx, pipy, pipz, pipsec, 1, """, "1" if(not Use_Pass_2) else "3", """) + 1)/(Complete_Correction_Factor_Pip);
         auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto eleM   = ROOT::Math::PxPyPzMVector(ex, ey, ez,     0);
@@ -1460,7 +1489,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
         double Phi_el  = ele.Phi();
-        """, str(Rotation_Matrix), """
         ///////////////     Rotating to CM Frame     ///////////////
         auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
         double phi_h_uncorrected = pip0_Clone.Phi()*TMath::RadToDeg();
@@ -1500,8 +1528,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
         double Phi_el  = ele.Phi();
-
-        """, str(Rotation_Matrix), """
 
         ///////////////     Rotating to CM Frame     ///////////////
 
@@ -1744,7 +1770,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if((datatype in ["mdf", "pdf"]) and Run_With_Smear):
         rdf = rdf.Define("smeared_vals", "".join(["""
         """, str(smearing_function),       """
-        """, str(Correction_Code_Full_In), """
         
         auto fe    = dppC(ex,   ey,   ez,   esec,   0, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
         auto fpip  = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
@@ -1826,8 +1851,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
         double Phi_el  = ele_smeared.Phi();
-
-        """, str(Rotation_Matrix), """
 
         ///////////////     Rotating to CM Frame     ///////////////
 
@@ -2760,7 +2783,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####================================================================================####
     ########################################################################################
 
-    rdf = rdf.Define("Delta_Pel_Cors", "".join([str(Correction_Code_Full_In), """
+    rdf = rdf.Define("Delta_Pel_Cors", "".join(["""
         auto fe   = dppC(ex,   ey,   ez,   esec,   0, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
 
@@ -2789,7 +2812,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         return Delta_Pel_Cors;"""]))
 
 
-    rdf = rdf.Define("Delta_Ppip_Cors", "".join([str(Correction_Code_Full_In), """
+    rdf = rdf.Define("Delta_Ppip_Cors", "".join(["""
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
 
@@ -2836,7 +2859,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####====================================================================================####
     ############################################################################################
 
-    rdf = rdf.Define("Delta_Theta_el_Cors", "".join([str(Correction_Code_Full_In), """
+    rdf = rdf.Define("Delta_Theta_el_Cors", "".join(["""
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
 
@@ -2869,7 +2892,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         return Delta_Theta_el_Cors;"""]))
 
 
-    rdf = rdf.Define("Delta_Theta_pip_Cors",  "".join([str(Correction_Code_Full_In), """
+    rdf = rdf.Define("Delta_Theta_pip_Cors",  "".join(["""
         auto fe   = dppC(ex,   ey,   ez,   esec,   0, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
 
@@ -2912,7 +2935,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if((datatype not in ["rdf", "gdf"]) and Run_With_Smear):
 
         rdf = rdf.Define("Delta_Pel_Cors_smeared", "".join([str(smearing_function), """
-""", str(Correction_Code_Full_In), """
             auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
             auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
 
@@ -2952,7 +2974,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
 
         rdf = rdf.Define("Delta_Ppip_Cors_smeared", "".join([str(smearing_function), """
-""", str(Correction_Code_Full_In), """
             auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
             auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
             
@@ -5385,7 +5406,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         else:
                             DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
                 cutname = "".join([cutname, "Cuts"])
-                if(Skipped_Fiducial_Cuts != ["My_Cuts"]):
+                if(Skipped_Fiducial_Cuts != Default_Cut_Option):
                     cutname = "".join([cutname, f" (Skipped these Fiducial Cuts: {Skipped_Fiducial_Cuts})"])
         else:
             # Generated Monte Carlo should not have cuts applied to it (until now...)
