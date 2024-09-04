@@ -89,7 +89,7 @@ Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 Tag___Proton_List = ["_Pro",    "_Proton"]
-SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10"]
+SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13"]
 
 
 
@@ -167,7 +167,7 @@ for pass_ver in Pass_Version_List:
         
 # Setting the skip cut configuration for the New_Fiducial_Cuts_Function() function
 # Skipped_Fiducial_Cuts = ["N/A"]
-Default_Cut_Option     = ["Hpip", "DC_pip", "Pion"]
+Default_Cut_Option     = ["Hpip", "DC_pip"]
 Skipped_Fiducial_Cuts  = ["My_Cuts"] # My fiducial cuts are not being used
 Skipped_Fiducial_Cuts  = Default_Cut_Option
 Cut_Configuration_Name = ""
@@ -195,7 +195,15 @@ for SkipC         in SkipFiducial_List:
         if(SkipC  in ["_FC9"]):
             Skipped_Fiducial_Cuts = ["All"]                        # Skipping all cuts from within the New_Fiducial_Cuts_Function() function
         if(SkipC  in ["_FC_10"]):
-            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip"]             # Skipping New Pion Cuts (from Valerii) but including my new fiducial cuts
+            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip"]             # Skipping Valerii's Pion Cuts but including all of my new fiducial cuts (also includes Valerii's Electron Cuts)
+        if(SkipC  in ["_FC_11"]):
+            Skipped_Fiducial_Cuts = ["My_Cuts", "Hpip", "DC_pip"]  # Skipping Pion Cuts and all of my DC Cuts (includes just Valerii's Electron Cuts - same as 'FC5')
+        if(SkipC  in ["_FC_12"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip", "Pion"]     # Skipping New Pion Cuts (includes all of Valerii's Electron Cuts and my electron DC refinements)
+        if(SkipC  in ["_FC_13"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC", "Electron"]     # Skipping All Electron DC Fiducial cuts (including Valerii's cuts and my refinements, BUT including my pion DC cuts - Valerii's cuts are also never to be applied to the pion at the point that this option was added)
+        if(SkipC  in ["_FC7"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC", "My_Cuts"]      # Skipping all DC cuts (as of 9/3/2024, 'FC7' no longer allows Valerii's PCAL cuts to be applied to the pion - i.e., skipping 'Hpip')
         datatype                  = str(datatype).replace(str(SkipC), "")
         # if("gdf" not in str(datatype)):
         #     print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
@@ -859,10 +867,39 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Ran on 8/30/2024
     # Updated the Pass 2 Momentum Corrections (for experimental data)
         # Applying the Pi+ Energy Loss Corrections to the Reconstructed Monte Carlo files now as well
+        # Note as of 9/3/2024: Momentum corrections were applied incorrectly
     # Added new Electron DC Fiducial Cuts to improve Data to MC agreement
         # Will be running new Pion Cuts in a later update
     # Now using "ROOT.gInterpreter.Declare" to set up functions like the momentum corrections, rotation matrix, and (new) fiducial cut code instead of having it define those functions within each "Define" or "Filter" function
         # Should hopefully be more efficient and may make the kinematic binning code work better in the future (not incorporated in this version yet)
+    # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V6" (see below)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion Hit Positions against the PCal (Hx/Hy/Hx_pip/Hy_pip)
+        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
+            # Two set of histograms per layer (3 layers each for 12 total histograms)
+        # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+        
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V9_"
+    # Ran on 9/3/2024
+    # Updated the Pass 2 Momentum Corrections (for experimental data)
+        # Issues in the last version (typos) caused the corrections to be applied incorrectly
+        # Corrections have now been propperly updated
+    # Updated the new Pion DC Fiducial Cuts to improve Data to MC agreement
+        # Will be running multiple fiducial cut configurations to fully test all of the cuts/refinements
+        # Configurations include: "FC7", "FC_11", "FC_12", "FC_13", and the default setting
+            # "FC7"     --> No new DC cuts (neither Valerii's nor my cuts are included)
+            # "FC_11"   --> None of my DC Cuts (just includes all of Valerii's Electron DC Cuts but skips my electron DC refinements/pion cuts)
+            # "FC_12"   --> No new Pion DC Cuts (includes all of Valerii's Electron DC Cuts and my electron DC refinements, BUT EXCLUDES my pion cuts)
+            # "FC_13"   --> No Electron DC Cuts (excludes all of Valerii's Electron DC Cuts and my electron DC refinements, BUT INCLUDES my pion cuts)
+            # "Default" --> Includes all of my new fiducial cuts and Valerii's Electron Cuts (only excludes Valerii's cuts being applied to the pion)
     # Otherwise running with all other normal options from "New_Fiducial_Cut_Test_V6" (see below)
     # Included 1D/2D/3D Histograms:
         # 1D) phi_t
