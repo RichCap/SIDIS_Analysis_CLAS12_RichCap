@@ -912,6 +912,27 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
             # Two set of histograms per layer (3 layers each for 12 total histograms)
         # 3D) V_PCal vs W_PCal vs U_PCal (Basis of the PCal Fiducial Volume Cuts)
+        
+        
+        
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V10_"
+    # Ran on 9/4/2024
+    # Refined the new Pion DC Fiducial Cuts to improve Data to MC agreement
+        # Will be running multiple fiducial cut configurations to fully test all of the cuts/refinements
+        # Configurations include: "FC7", "FC_11", and the default setting (might run "FC7" and "FC_11" at later time...)
+            # "FC7"     --> No new DC cuts (neither Valerii's nor my cuts are included)
+            # "FC_11"   --> None of my DC Cuts (just includes all of Valerii's Electron DC Cuts but skips my electron DC refinements/pion cuts)
+            # "Default" --> Includes all of my new fiducial cuts and Valerii's Electron Cuts (only excludes Valerii's cuts being applied to the pion)
+    # Added the sector cuts (using the 2D phi_h vs sector plots)
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t (1D unfolding only)
+        # 2D) phi_t vs esec/pipsec
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
+            # Two set of histograms per layer (3 layers each for 12 total histograms)
     
     
     
@@ -6136,9 +6157,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-    if("Y_bin" in binning_option_list):
-        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+#     if("Y_bin" in binning_option_list):
+#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6216,20 +6237,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         List_of_Quantities_2D = [[["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
         
     if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
-        # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
-        List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
-        # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
+#         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
+#         List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
+#         # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
         if(Use_New_PF and (str(datatype) not in ["gdf"])): # Added on 6/6/2024 (for drift chambers)
             # Variables do not exist in older files
             
-            # Updated on 8/13/2024 (for pip PCal)
-            PCalxBinning = ['Hx_pip', -500, 500, 500]
-            PCalyBinning = ['Hy_pip', -500, 500, 500]
-            List_of_Quantities_2D.append([PCalxBinning, PCalyBinning])
+#             # Updated on 8/13/2024 (for pip PCal)
+#             PCalxBinning = ['Hx_pip', -500, 500, 500]
+#             PCalyBinning = ['Hy_pip', -500, 500, 500]
+#             List_of_Quantities_2D.append([PCalxBinning, PCalyBinning])
             List_of_Quantities_3D = []
             # List_of_Quantities_2D = [[PCalxBinning, PCalyBinning]]
             # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
+            
+            List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
+            List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
             
             if(True):
                 # Rotation variables added on 8/14/2024
@@ -6246,16 +6270,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         pip_DCyBinning = [f'pip_y_DC_{layer}{rotation}', -350, 350, 700]
                         List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
 
-                # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
-                List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
+#                 # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
+#                 List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
                 
                 del DCxBinning
                 del DCyBinning
                 del pip_DCxBinning
                 del pip_DCyBinning
             
-            del PCalxBinning
-            del PCalyBinning
+#             del PCalxBinning
+#             del PCalyBinning
         else:
             List_of_Quantities_3D = []
     else:
