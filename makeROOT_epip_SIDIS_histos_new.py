@@ -933,7 +933,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) Missing Mass (with Proton) vs proton momentum
         # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
             # Two set of histograms per layer (3 layers each for 12 total histograms)
-    
+    # Ran Cut_Configuration_Name = "_FC_11" on 9/5/2024
+        # Started running after updating the 'Run_Small' option
+            
+            
+    if(Run_Small):
+        Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
+        # Ran on 9/5/2024
+        # Similar to f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V10_" but with the following changes:
+            # Running a reduced number of histograms to decrease runtime
+                # Not using individual kinematic binning
+                # No response matrix histograms
+                # Just including these 3D Histograms:
+                    # 3D) Electron/Pion x vs y positions in the 'DC' (just rotated) versus the lab phi/theta angle
+                        # Same as the 2D option but with the third dimension being used for the lab angles of both particles (24 total combinations)
+        # Will just run with Cut_Configuration_Name = "_FC_11" until new pion cuts are created
+            # My electron refinements do not seem like they'll be needed anymore
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -5737,9 +5752,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #     cut_list.append('cut_Gen')
     #     cut_list.append('cut_Exgen')
     
-    if(Run_Small):
-        # cut_list = ['no_cut', 'cut_Complete_SIDIS']
-        cut_list = ['cut_Complete_SIDIS']
+    # if(Run_Small):
+    #     # cut_list = ['no_cut', 'cut_Complete_SIDIS']
+    #     cut_list = ['cut_Complete_SIDIS']
     print("".join([color.BBLUE, "\nCuts in use: ", color.END]))
     for cuts in cut_list:
         print("".join(["\t(*) ", str(cuts)]))
@@ -6234,7 +6249,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(Run_Small):
         List_of_Quantities_1D = []
         # List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning]]
-        List_of_Quantities_2D = [[["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+        # List_of_Quantities_2D = [[["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+        List_of_Quantities_2D = [] # [[El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
         
     if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
 #         # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
@@ -6252,24 +6268,37 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
-            List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
-            List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
+            if(not Run_Small):
+                List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
+                List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
             
             if(True):
                 # Rotation variables added on 8/14/2024
                 for rotation in ["", "_rot"]:
+                    if(Run_Small and (rotation not in ["_rot"])):
+                        continue
                     # Updated on 8/13/2024 (for ele DC)
                     for layer in [6, 18, 36]:
                         DCxBinning = [f'ele_x_DC_{layer}{rotation}', -350, 350, 700]
                         DCyBinning = [f'ele_y_DC_{layer}{rotation}', -350, 350, 700]
-                        List_of_Quantities_2D.append([DCxBinning, DCyBinning])
-
+                        if(not Run_Small):
+                            List_of_Quantities_2D.append([DCxBinning,     DCyBinning])
+                        else:
+                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Phi_Binning])
+                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Phi_Binning])
+                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Th_Binning])
+                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Th_Binning])
                     # Updated on 8/13/2024 (for pip DC)
                     for layer in [6, 18, 36]:
                         pip_DCxBinning = [f'pip_x_DC_{layer}{rotation}', -350, 350, 700]
                         pip_DCyBinning = [f'pip_y_DC_{layer}{rotation}', -350, 350, 700]
-                        List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
-
+                        if(not Run_Small):
+                            List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
+                        else:
+                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, El_Phi_Binning])
+                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, Pip_Phi_Binning])
+                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, El_Th_Binning])
+                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, Pip_Th_Binning])
 #                 # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
 #                 List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
                 
@@ -7058,7 +7087,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         Title_3D_L2   = "".join(["Q^{2}-x_{B} Bin: " if(Binning not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q^{2}-y Bin: ", str(Histo_Binning[1])])
                                         Title_3D_L3   = "".join(["Cut: ", str(Cut_Choice_Title(Cut_Type=Histo_Cut))])
                                         if(Histo_Group  in ["Normal_Background"]):
-                                            Title_2D_L3 = "".join(["#splitline{Background Plot}{", str(Title_2D_L3), "}"])
+                                            Title_3D_L3 = "".join(["#splitline{Background Plot}{", str(Title_3D_L3), "}"])
                                         Title_3D_Axis = "".join([str(variable_Title_name(Vars_3D[2][0])), "; ", str(variable_Title_name(Vars_3D[0][0])), "; ", str(variable_Title_name(Vars_3D[1][0]))])
                                         Title_3D_Out  = "".join(["#splitline{#splitline{", str(Title_3D_L1), "}{", str(Title_3D_L2), "}}{", str(Title_3D_L3), "};", str(Title_3D_Axis)])
                                         Title_3D_Out  = Title_3D_Out.replace(") (", " - ")
