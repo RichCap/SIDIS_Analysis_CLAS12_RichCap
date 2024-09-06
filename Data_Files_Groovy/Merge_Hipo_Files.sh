@@ -38,7 +38,7 @@ username=$1
 job_id=$2
 
 # Set input_directory based on the first two arguments
-input_directory="/lustre19/expphy/volatile/clas12/osg/$username/job_$job_id/output"
+input_directory="/volatile/clas12/osg/$username/job_$job_id/output"
 # Set output_directory to the third argument or default to the current working directory
 output_directory=${3:-$(pwd)}
 
@@ -65,6 +65,9 @@ if [ ! -d "$output_directory" ]; then
 fi
 
 
+# Initialize variables for summing percentages and counting iterations
+total_percent=0
+count=0
 
 # Loop to process the files
 for i in $(seq 0 9); do
@@ -74,17 +77,33 @@ for i in $(seq 0 9); do
     if [ "$test_mode" = true ]; then
         # Count the number of input files
         num_files=$(ls $input_files 2>/dev/null | wc -l)
+        percent_F=$(echo "scale=3; ($num_files / 1000) * 100" | bc)
+        # percent_F=$(echo $percent_F | awk '{printf "%g", $0}')
+        percent_F=$(printf "%.1f" $percent_F)
+        # Add the current percent_F to the total_percent
+        total_percent=$(echo "$total_percent + $percent_F" | bc)
+        # Increment the count
+        count=$(($count + 1))
         echo
-        echo "Found $num_files files matching pattern: $input_files"
-        echo "       Would have merged to form: $output_file"
+        echo "Found $num_files files ($percent_F%) matching pattern: $input_files"
+        echo "               Would have merged to form: $output_file"
     else
         echo
         echo "Merging these HIPO files: $input_files"
         echo "                 To form: $output_file"
-        # hipo-utils -merger -o $output_file $input_files
+        hipo-utils -merge -o $output_file $input_files
         echo "Done"
     fi
     echo
 done
+
+# Calculate and print the average percentage if test_mode is true
+if [ "$test_mode" = true ]; then
+    average_percent=$(echo "scale=3; $total_percent / $count" | bc)
+    average_percent=$(printf "%.1f" $average_percent)
+    echo
+    echo "Average percentage of files present across all patterns: $average_percent%"
+    echo
+fi
 
 # End of the script

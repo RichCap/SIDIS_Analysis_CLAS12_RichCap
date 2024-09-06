@@ -24,6 +24,27 @@ This list will be updated as items are completed. Items here may not always rela
     - [ ] 2) Run new event generator through GEMC for reconstructed distribution
     - [ ] 3) Use new files to perform radiative corrections 
 
+### Systematic Uncertainties 'To Do' List:
+ 1) [ ] Track Reconstruction Efficiency (HERMES/Rebecca estimated based on a detector variable - must investigate if a similar one exists in CLAS12)
+ 2) [ ] PID - Handled within Unfolding (check impact on moments)
+ 3) [ ] phi_h binning (currently 24 bins per 360 degrees - adjust and check impact)
+     * [ ] Also vary the other kinematic bins to see impact of shifting Q2, y, z, and pT (vary individually)
+ 4) [ ] Bin statistics (HERMES/Rebecca had a method to evaluate what constituted poor statistics)
+ 5) [ ] Closure tests (self-evaluations of unfolding)
+ 6) [ ] Impact of higher terms (i.e., add cos(3phi), cos(4phi), and/or sin(phi) to fit functions to evaluate the impact on cos(phi) and cos(2phi)
+     * The extra moments should (ideally) be consistent with 0
+ 7) [ ] Model Dependence Including:
+     * [ ] Monte Carlo simulator (clasdis vs pythia)
+     * [ ] Background Subtraction (background identification is reliant on the reliablity of the MC)
+     * [ ] MC Smearing/Momentum/Energy Loss Corrections
+     * [ ] Type of Unfolding (i.e., Bin-by-Bin vs Bayesian - Includes the dimensions used within unfolding including: 1D, 3D, and 5D Response Matrices)
+ 8) [ ] Fiducial Cuts (vary the different cuts to see the impact of tighter/looser/no cut - variation can depend on the cuts)
+ 9) [ ] Proton Tagging/Cuts (for Vector Meson Corrections)
+     * Impact may be analyzed in a sub-section of the overall kinematic region due to impact to statistics/kinematic coverage
+     * [ ] Look for how others handled rho extraction
+10) [ ] Number of Bayesian Iterations
+11) [ ] Radiative Effects
+12) [ ] Sector Dependence
 
 
 ---

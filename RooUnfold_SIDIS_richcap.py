@@ -40,6 +40,7 @@ Saving_Q         = True
 Sim_Test         = False
 Mod_Test         = False
 Tag_ProQ         = False
+Cut_ProQ         = False
 Closure_Test     = False
 Fit_Test         = True
 Create_txt_File  = True
@@ -61,7 +62,8 @@ if(len(sys.argv) > 1):
         Create_txt_File  = False if("no_txt"      in str(arg_option_1)) else True if("txt"  in str(arg_option_1)) else Create_txt_File
         Create_stat_File = False if("no_stat"     in str(arg_option_1)) else True if("stat" in str(arg_option_1)) else (Create_stat_File and Create_txt_File)
         Cor_Compare      = True  if(any(compare   in str(arg_option_1) for compare in ["cor_compare", "Cor_Compare", "CC"])) else False
-        Tag_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["proton",      "tagged",      "TP"])) else False
+        Cut_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["Cutpro",      "MMproC",      "CP"])) else False
+        Tag_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["proton",      "tagged",      "TP"])  or Cut_ProQ) else False
         if(Closure_Test):
             Sim_Test = True
             Mod_Test = False
@@ -94,7 +96,7 @@ if(len(sys.argv) > 1):
         for compare in ["cor_compare", "Cor_Compare", "CC"]:
             arg_option_1 = arg_option_1.replace(f"_{compare}", "")
             arg_option_1 = arg_option_1.replace(f"{compare}",  "")
-        for taggedP in ["proton", "tagged", "TP"]:
+        for taggedP in ["proton", "tagged", "TP", "Cutpro", "MMproC", "CP"]:
             arg_option_1 = arg_option_1.replace(f"_{taggedP}", "")
             arg_option_1 = arg_option_1.replace(f"{taggedP}",  "")
         Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
@@ -122,8 +124,10 @@ if(Mod_Test):
         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
 
 if(Tag_ProQ):
-    Standard_Histogram_Title_Addition = "".join(["Tagged Proton", f" - {Standard_Histogram_Title_Addition}" if(Standard_Histogram_Title_Addition not in [""]) else ""])
-    print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}Tagged Proton{color.END}{color.BBLUE}' Files{color.END}\n")
+    Proton_Type = "Tagged Proton" if(not Cut_ProQ) else "Cut with Proton Missing Mass"
+    Standard_Histogram_Title_Addition = "".join([Proton_Type, f" - {Standard_Histogram_Title_Addition}" if(Standard_Histogram_Title_Addition not in [""]) else ""])
+    print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}{Proton_Type}{color.END}{color.BBLUE}' Files{color.END}\n")
+    del Proton_Type
         
 if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
     print(f"\n{color.BOLD}Unfolding Simulated data for Closure Tests should (probably) not use any additional smearing (forcing choice change)\n{color.END}")
@@ -1225,6 +1229,8 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
         Name_Output = Name_Output.replace("(", "")
         Name_Output = Name_Output.replace(")", "")
     
+    Name_Output = str(Name_Output.replace("cut_Complete_SIDIS_Proton", "Proton"))
+    
     return Name_Output
 
 ######################################################################################################################################################################################################################################
@@ -1855,7 +1861,7 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
         ###==============###========================================###==============################
         #############################################################################################
         if(Name != "none"):
-            Name = Histogram_Name_Def(out_print=Name, Histo_General="Multi-Dim Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin="Multi_Dim_Q2_y_Bin_Info", z_pT_Bin="Multi_Dim_z_pT_Bin_Info", Bin_Extra="Multi_Dim_Bin_Info" if(Multi_Dim_Var not in ["Q2_y", "z_pT"]) else "Default", Variable="Default")
+            Name = Histogram_Name_Def(out_print=Name, Histo_General="Multi-Dim Histo", Data_Type=str(Method), Cut_Type="Skip" if("cut_Complete_SIDIS_Proton" not in str(Name)) else "Find", Smear_Type=str(Smear), Q2_y_Bin="Multi_Dim_Q2_y_Bin_Info", z_pT_Bin="Multi_Dim_z_pT_Bin_Info", Bin_Extra="Multi_Dim_Bin_Info" if(Multi_Dim_Var not in ["Q2_y", "z_pT"]) else "Default", Variable="Default")
             if(str(Method) in ["tdf", "true"]):
                 Name = str(Name.replace("mdf", "tdf")).replace("gdf", "tdf")
         if(str(Multi_Dim_Var) in ["z_pT"]):
@@ -2083,7 +2089,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         ###==============###========================================###==============###
         ################################################################################
         if(Name != "none"):
-            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_3D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin=Q2_y_Bin_Select, z_pT_Bin="MultiDim_3D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
+            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_3D_Histo", Data_Type=str(Method), Cut_Type="Skip" if("cut_Complete_SIDIS_Proton" not in str(Name)) else "Find", Smear_Type=str(Smear), Q2_y_Bin=Q2_y_Bin_Select, z_pT_Bin="MultiDim_3D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
             if(str(Method) in ["tdf", "true"]):
                 Name = str(Name.replace("mdf", "tdf")).replace("gdf", "tdf")
         if(str(Q2_y_Bin_Select) not in ["0", "All"]):
@@ -2313,7 +2319,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         ###==============###========================================###==============###
         ################################################################################
         if(Name != "none"):
-            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_5D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin="MultiDim_5D_Q2_y_Bin_Info", z_pT_Bin="MultiDim_5D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
+            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_5D_Histo", Data_Type=str(Method), Cut_Type="Skip" if("cut_Complete_SIDIS_Proton" not in str(Name)) else "Find", Smear_Type=str(Smear), Q2_y_Bin="MultiDim_5D_Q2_y_Bin_Info", z_pT_Bin="MultiDim_5D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default")
             if(str(Method) in ["tdf", "true"]):
                 # print("".join([color.BBLUE, color_bg.RED, "\n\nMaking a MultiDim_5D Histo for 'True' distribution\n", color.END, "\nName =", str(Name), "\n"]))
                 Name = Name.replace("mdf", "tdf")
@@ -2693,7 +2699,10 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         ###==============###   Adding Histos to Histogram_List_All    ###==============###
         ###==============###==========================================###==============###
         ##################################################################################
-        Histo_Name_General = Histogram_Name_Def(out_print=Out_Print_Main, Histo_General="1D", Data_Type="METHOD", Cut_Type="Skip", Smear_Type=Smear_Input, Q2_y_Bin=Q2_Y_Bin, z_pT_Bin=Z_PT_Bin, Bin_Extra="Default", Variable=Variable_Input)
+        Histo_Name_General = Histogram_Name_Def(out_print=Out_Print_Main, Histo_General="1D", Data_Type="METHOD", Cut_Type="Skip" if("cut_Complete_SIDIS_Proton" not in str(Out_Print_Main)) else "Find", Smear_Type=Smear_Input, Q2_y_Bin=Q2_Y_Bin, z_pT_Bin=Z_PT_Bin, Bin_Extra="Default", Variable=Variable_Input)
+        if("cut_Complete_SIDIS_Proton" in str(Histo_Name_General)):
+            print(f"\n\n\n{color.Error}'cut_Complete_SIDIS_Proton' is still in 'Histo_Name_General' ({Histo_Name_General}){color.END}\n\n")
+            Histo_Name_General = str(Histo_Name_General.replace("cut_Complete_SIDIS_Proton", "Proton"))
         if("sec'-[" in Out_Print_Main):
             Histo_Name_General = Histo_Name_General.replace("((", "(")
             for sec in [1, 2, 3, 4, 5, 6]:
@@ -3639,6 +3648,10 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
                 print(color.Error, "\n\nUsing Old Binning Scheme (i.e., Binning_Method = ", str(Binning_Method), ")", color.END, "\n\n")
                 Save_Name = Save_Name.replace("_Q2_y_Bin_", "_Q2_xB_Bin_")
             Save_Name = Save_Name.replace("__", "_")
+            if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+                Save_Name = Save_Name.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
+            elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+                Save_Name = Save_Name.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
             if(Saving_Q):
                 if("root" in str(File_Save_Format)):
                     Large_Bin_Canvas_Compare.SetName(Save_Name.replace(".root", ""))
@@ -4059,6 +4072,10 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     Save_Name = Save_Name.replace("z_pT_Bin_Y_bin_phi_h",                      "z_pT_phi_h")
     Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]),       str(File_Save_Format))
     Save_Name = Save_Name.replace("__",                                        "_")
+    if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
+    elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
     if(Saving_Q):
         if("root" in str(File_Save_Format)):
             Large_Bin_Canvas.SetName(Save_Name.replace(".root", ""))
@@ -4550,6 +4567,10 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_Response_Matrix_Normal", "Multi_3D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]),       str(File_Save_Format))
     Save_Name = Save_Name.replace("__",                                        "_")
+    if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
+    elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
     if(Saving_Q):
         if("root" in str(File_Save_Format)):
             Small_Bin_Canvas.SetName(Save_Name.replace(".root", ""))
@@ -4692,7 +4713,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
 def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t)", Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z", Cut_Option="Cut", Stats_Text_Output=False):
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
-    All_z_pT_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("1D", "".join(["".join(["CANVAS_", str(Plot_Orientation)]) if(Multi_Dim_Option in ["Off"]) else "".join(["CANVAS_", str(Plot_Orientation), "_", str(Multi_Dim_Option)]), "_UnCut" if(Cut_Option not in ["Cut"]) else ""])), Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
+    All_z_pT_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("1D", "".join(["".join(["CANVAS_", str(Plot_Orientation)]) if(Multi_Dim_Option in ["Off"]) else "".join(["CANVAS_", str(Plot_Orientation), "_", str(Multi_Dim_Option)]), "_UnCut" if(Cut_Option not in ["Cut", "Proton"]) else "_ProtonCut" if(Cut_Option not in ["Cut"]) else ""])), Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
     All_z_pT_Canvas.SetFillColor(root_color.LGrey)
     # All_z_pT_Canvas.Draw()
 
@@ -4745,11 +4766,16 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
     # z_pT_Histo_rdf_Initial = Histogram_List_All[str(str(str(Default_Histo_Name.replace("(phi_t)", "(z)_(pT)")).replace("Smear", "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear")).replace("Data_Type", ("rdf" if(not Sim_Test) else "mdf") if(str(Method) not in ["mdf", "gdf", "tdf"]) else str(Method))).replace("(1D)", "(Normal_2D)")]
     Q2_y_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace(VARIABLE, "(Q2)_(y)")).replace("Smear", "''" if(((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) and (str(Method) not in ["mdf", "pdf", "bbb", "Unfold", "Background", "Relative_Background"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf", "Background", "Relative_Background"]) else "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method))).replace("(1D)", "(Normal_2D)")
     z_pT_Histo_rdf_Initial_Name = str(str(str(Default_Histo_Name.replace(VARIABLE, "(z)_(pT)")).replace("Smear", "''" if(((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) and (str(Method) not in ["mdf", "pdf", "bbb", "Unfold", "Background", "Relative_Background"])) else "Smear")).replace("Data_Type", "bbb" if("Unfold" in str(Method)) else "rdf" if(str(Method) not in ["mdf", "gdf", "tdf", "Background", "Relative_Background"]) else "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method))).replace("(1D)", "(Normal_2D)")
-    if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option not in ["Cut"])):
+    if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option in ["UnCut"])):
         Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(no_cut)_(SMEAR"]))
         z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(no_cut)_(SMEAR"]))
         Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                                                                                                                                                                                "(Normal_2D)_(rdf)_(no_cut)_(SMEAR")
         z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                                                                                                                                                                                "(Normal_2D)_(rdf)_(no_cut)_(SMEAR")
+    if((str(Method) not in ["gdf", "tdf"]) and (Cut_Option in ["Proton"])):
+        Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(Proton)_(SMEAR"]))
+        z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(SMEAR"]), "".join(["(Normal_2D)_(", "mdf" if(str(Method) in ["Background", "Relative_Background"]) else str(Method), ")_(Proton)_(SMEAR"]))
+        Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                                                                                                                                                                                "(Normal_2D)_(rdf)_(Proton)_(SMEAR")
+        z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace(         "(Normal_2D)_(rdf)_(SMEAR",                                                                                                                                                                                "(Normal_2D)_(rdf)_(Proton)_(SMEAR")
     if("Background" in str(Method)):
         Q2_y_Histo_rdf_Initial_Name = str(Q2_y_Histo_rdf_Initial_Name).replace("(Normal_2D)", f"(Normal_{Method}_2D)")
         z_pT_Histo_rdf_Initial_Name = str(z_pT_Histo_rdf_Initial_Name).replace("(Normal_2D)", f"(Normal_{Method}_2D)")
@@ -5931,10 +5957,16 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
     Save_Name = Save_Name.replace("__",                                        "_")
     if(("phi_h" not in str(VARIABLE)) and ("phi_t" not in str(VARIABLE))):
         Save_Name = Save_Name.replace(str(File_Save_Format),                   "".join(["_", str(VARIABLE.replace("(", "")).replace(")", ""), str(File_Save_Format)]))
-    if(Cut_Option not in ["Cut"]):
-        Save_Name = Save_Name.replace(str(File_Save_Format),                   "".join(["_UnCut", str(File_Save_Format)]))
+    if(Cut_Option   in ["UnCut"]):
+        Save_Name = Save_Name.replace(str(File_Save_Format),                   "".join(["_UnCut",     str(File_Save_Format)]))
+    if(Cut_Option   in ["Proton"]):
+        Save_Name = Save_Name.replace(str(File_Save_Format),                   "".join(["_ProtonCut", str(File_Save_Format)]))
     if(Particle_Sector not in ["N/A", "None", "Error"]):
-       Save_Name = Save_Name.replace(str(File_Save_Format), f"_{Particle_Sector}{File_Save_Format}")
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_{Particle_Sector}{File_Save_Format}")
+    if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
+    elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
+        Save_Name = Save_Name.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
     if(Saving_Q):
         if("root" in str(File_Save_Format)):
             All_z_pT_Canvas.SetName(Save_Name.replace(".root", ""))
@@ -6034,6 +6066,13 @@ Common_Name = "Pass_2_New_Sector_Cut_Test_V12_All"
 
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_V5_All"
 
+
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V7_All"
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC5_V7_All"
+
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_V9_All"
+# Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC7_V9_All"
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -6104,13 +6143,22 @@ else:
 ##   Generated Monte Carlo Data   ##
 ####################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
+if(False):
     MC_GEN_File_Name = Common_Name
 else:
-    MC_GEN_File_Name = "Unfolding_Tests_V11_All"
-    MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
-    MC_GEN_File_Name = "Pass_2_New_Sector_Cut_Test_V9_All"
+#     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
+#     MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
+#     MC_GEN_File_Name = "Pass_2_New_Sector_Cut_Test_V9_All"
+    for ii in range(0, 10, 1):
+        if(Common_Name   not in [str(Common_Name).replace(f"_FC{ii}_",   "_")]):
+            MC_GEN_File_Name   = str(Common_Name).replace(f"_FC{ii}_",   "_")
+            break
+        elif(Common_Name not in [str(Common_Name).replace(f"_FC_1{ii}_", "_")]):
+            MC_GEN_File_Name   = str(Common_Name).replace(f"_FC_1{ii}_", "_")
+            break
+        else:
+            MC_GEN_File_Name = Common_Name
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
@@ -6655,9 +6703,12 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
         Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
         
-        # Proton Cuts
-        Conditions_For_Unfolding.append("_Proton'), "              not in str(out_print_main)) # Remove Cuts
-        # Conditions_For_Unfolding.append("_Proton'), "                  in str(out_print_main)) # Include Cuts
+        # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
+        if(Cut_ProQ):
+            Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
+        else:
+            Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
+
 
         ## Correct Variable(s):
         # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
@@ -6666,7 +6717,7 @@ for ii in mdf.GetListOfKeys():
         Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
-        # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
+        Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
         
         # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
@@ -6753,6 +6804,7 @@ for ii in mdf.GetListOfKeys():
             for sector_cut_remove in range(1, 6):
                 out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
             del sector_cut_remove
+            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS_Proton",                  "no_cut")
             out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
             out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
             ##=============##    Removing Cuts from the Generated files    ##=============##
@@ -7865,6 +7917,8 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #     if((")_(mdf" in str(List_of_All_Histos_For_Unfolding_ii)) or (")_(Background" in str(List_of_All_Histos_For_Unfolding_ii)) or (")_(Relative_Background" in str(List_of_All_Histos_For_Unfolding_ii))):
 #         print(color.BLUE, "\n", str(List_of_All_Histos_For_Unfolding_ii), color.END)
 #         print(f"\t{type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
+#     if("Proton" in  str(List_of_All_Histos_For_Unfolding_ii)):
+#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
 print("\nFinal Count =", final_count)
 # del final_count
@@ -7926,8 +7980,14 @@ if(run_Sec_Unfold):
     for sec in Sector_List:
         Variable_List.append(f"pipsec_{sec})_(phi_t")
 
+
 # Cut_Options_List = ["Cut", "UnCut"]
+# Cut_Options_List = ["Cut", "Proton"]
 Cut_Options_List = ["Cut"]
+if(Cut_ProQ):
+    Cut_Options_List = ["Proton"]
+# 'Cut'    --> Normal Cuts (Default)
+# 'Proton' --> Normal Cuts + Proton Missing Mass Cuts
 
 
 Orientation_Option_List = ["pT_z", "z_pT"]
@@ -7946,9 +8006,9 @@ Variable_List_Final = ["phi_t", "Multi_Dim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT
 Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_z_pT_phi_h"]
 
 Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
-# Variable_List_Final = ["phi_t"]
+Variable_List_Final = ["phi_t"]
 
-Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+# Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
 
 if(run_Sec_Unfold):
     for sec in Sector_List:
@@ -7961,7 +8021,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = True
+Run_Individual_Bin_Images_Option = not True
 Print_Run_Individual_Bin_Option  = True
 
 
@@ -7979,7 +8039,7 @@ Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
 # Multi_Dimensional_List = ["Off", "3D"]
-# Multi_Dimensional_List = ["3D"]
+# # Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
@@ -8009,28 +8069,32 @@ for variable in Variable_List:
     for BIN in Q2_xB_Bin_List:
         BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
         for smear in Smearing_final_list:
-            HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
-            for Multi_Dim in Multi_Dimensional_List:
-                if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
-                    continue
-                if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"])):
-                    for method in Method_Type_List:
-                        if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background"]) and (Multi_Dim not in ["Off"])):
-                            continue
-                        if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
-                            # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
-                            continue
-                        if((method in ["gdf", "tdf"]) and ("Smear" in str(smear))):
-                            continue
-                        if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"]) or (variable not in ["phi_t"]) or ("sec" in variable)):
-                            continue
-                        if(method in ["Data"]):
-                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                            final_count += 2
-                        else:
-                            List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                            final_count += 1
+            for Cut in Cut_Options_List:
+                if(Cut in ["Proton"]):
+                    HISTO_NAME = "".join(["(1D)_(Data_Type)_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+                else:
+                    HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+                for Multi_Dim in Multi_Dimensional_List:
+                    if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
+                        continue
+                    if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"])):
+                        for method in Method_Type_List:
+                            if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background"]) and (Multi_Dim not in ["Off"])):
+                                continue
+                            if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
+                                # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
+                                continue
+                            if((method in ["gdf", "tdf"]) and (("Smear" in str(smear)) or (Cut in ["Proton"]))):
+                                continue
+                            if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"]) or (variable not in ["phi_t"]) or ("sec" in variable)):
+                                continue
+                            if(method in ["Data"]):
+                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                final_count += 2
+                            else:
+                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                final_count += 1
 
 print("\n(Extra) Final Count =", final_count, "\n")
 del final_count
@@ -8068,6 +8132,12 @@ for variable in Variable_List:
                             if((Cut in ["UnCut"]) and (method not in ["rdf", "mdf", "Data"])):
                                 # There is (currently) no point in running any other method with both the cut and uncut versions of this plot (this option only affects the 2D histograms and not the unfolded histograms - gdf and tdf are also already uncut by default)
                                 continue
+                            if(Cut in ["Proton"]):
+                                if(method in ["gdf", "tdf"]):
+                                    continue
+                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(SMEAR", "Data_Type)_(Proton)_(SMEAR"))
+                            else:
+                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(Proton)_(SMEAR", "Data_Type)_(SMEAR"))
                             for Orientation in Orientation_Option_List:
                                 if((Orientation not in ["z_pT"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or (method in ["Kinematic_Comparison"]))):
                                     # No need to have the flipped plots for the particle kinematic plots or for the kinematic comparisons
@@ -8112,17 +8182,17 @@ for variable in Variable_List:
                                 else:
                                     to_be_saved_count += 1
                             except Exception as e:
-                                print("".join([color.Error, "ERROR IN Large_Individual_Bin_Images():\n",        color.END_R, str(traceback.format_exc()), color.END]))
+                                print("".join([color.Error, "ERROR IN Large_Individual_Bin_Images():\n",    color.END_R, str(traceback.format_exc()), color.END]))
                         if(str(variable) in ["phi_t"]):
                             try:
-                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                   Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim)
+                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                       Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim)
                                 to_be_saved_count += 1
                             except Exception as e:
                                 print("".join([color.Error, "ERROR IN Unfolded_Individual_Bin_Images():\n", color.END_R, str(traceback.format_exc()), color.END]))
                         else:
                             continue
                     elif(Print_Run_Individual_Bin_Option):
-                        print(color.BOLD, "\n\n\n\nNOT MAKING INDIVIDUAL BIN IMAGES AT THIS TIME", color.END, "\n\tMust set Run_Individual_Bin_Images_Option = True\n\n\n\n")
+                        print(color.BOLD, "\n\n\n\nNOT MAKING INDIVIDUAL BIN IMAGES AT THIS TIME",          color.END, "\n\tMust set Run_Individual_Bin_Images_Option = True\n\n\n\n")
                         Print_Run_Individual_Bin_Option = False
 
 
@@ -8136,192 +8206,209 @@ for variable in Variable_List:
                                 continue
                             if((("Multi" in str(Variable)) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                                 continue
-                            LAST_Z_BIN,  LAST_PT_BIN  = "NA", "NA"
-                            Z_BIN_COLOR, PT_BIN_COLOR = 1, 1
-                            PAR_HISTO_MASTER_NAME_VS_Z   = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_Z"])
-                            PAR_HISTO_MASTER_NAME_VS_PT  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_PT"])
-                            
-                            Moment_Title     = "Cos(#phi_{h})" if("Fit_Par_B" in str(Parameter)) else "Cos(2#phi_{h})" if("Fit_Par_C" in str(Parameter)) else "Multiplicity" if("Fit_Par_A" in str(Parameter)) else "".join(["Parameter ", str(Parameter).replace("Fit_Par_", "")])
-                            MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional (Old) " if("Multi_Dim" in str(Variable)) else "3-Dimensional " if("MultiDim_z_pT" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method), " Unfolding"]), "}}}"])
-                            if((Pass_Version not in [""]) and (Pass_Version not in str(MASTER_TITLE))):
-                                MASTER_TITLE = "".join(["#splitline{", str(MASTER_TITLE), "}{", root_color.Bold, "{#scale[1.05]{", str(Pass_Version), "}}}"])
-                            if("sec" in Variable):
-                                Sector = Variable.replace(")_(phi_t", "")
-                                Sector = str(Sector.replace("pipsec_", "")).replace("esec_", "")
-                                MASTER_TITLE = MASTER_TITLE.replace("".join(["{", str(Pass_Version), "}"]), "".join(["{", "#pi^{+} Pion" if("pipsec" in Variable) else "Electron", " Sector ", str(Sector), " #topbar ", str(Pass_Version), "}"]))
-                                del Sector
-
-                            if(str(PAR_HISTO_MASTER_NAME_VS_Z)  not in Histo_Pars_VS_Z):
-                                Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z]   = ROOT.TMultiGraph(PAR_HISTO_MASTER_NAME_VS_Z,  "".join(["#splitline{", str(MASTER_TITLE), "}{#scale[1.05]{Showing all P_{T} bins vs z}};", "(Smeared) " if(str(smear) in ["Smear"]) else "", "z; ",           str(Moment_Title)]))
-                            if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Histo_Pars_VS_PT):
-                                Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT] = ROOT.TMultiGraph(PAR_HISTO_MASTER_NAME_VS_PT, "".join(["#splitline{", str(MASTER_TITLE), "}{#scale[1.05]{Showing all z bins vs P_{T}}};", "(Smeared) " if(str(smear) in ["Smear"]) else "", "P_{T} [GeV]; ", str(Moment_Title)]))
-
-                            if(str(PAR_HISTO_MASTER_NAME_VS_Z)  not in Pars_Legends):
-                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z]      = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
-                            if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Pars_Legends):
-                                Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
-
-                            for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                                if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
-                                    continue
-                                PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-
-                                
-                                Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][1], 3)
-                                PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][1], 3)
-                                # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
-                                # PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
-                                Z_BIN         = str(Z_BIN_VALUE)
-                                PT_BIN        = str(PT_BIN_VALUE)
-                                
-                                Z_BIN_VALUE_Title   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
-                                PT_BIN_VALUE_Title  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
-                                Z_BIN         = str(Z_BIN_VALUE_Title)
-                                PT_BIN        = str(PT_BIN_VALUE_Title)
-
-                                Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][0])/2, 3)
-                                PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][0])/2, 3)
-                                # Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
-                                # PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
-
-                                # PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
-                                # PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
-                                # PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
-                                
-                                PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
-                                PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
-                                PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
-                                
-                                if("y_bin" in Binning_Method):
-                                    if(("0.27" in str(PT_BIN)) and (("Bay" in str(Method)) or ("Bin" in str(Method)))):
-                                        # print("\nSKIPPING PT_BIN = 0.27\n")
+                            for Cut in Cut_Options_List:
+                                if(Cut in ["Proton"]):
+                                    if(Method in ["gdf", "tdf"]):
                                         continue
-
-                                if(Fit_Test):
-                                    try:
-                                        PARAMETER_TO_ADD, PAR_ERROR_TO_ADD = List_of_All_Histos_For_Unfolding[str(PAR_FIND_NAME)]
-                                    except:
-                                        print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETERS FOR: ", color.END, str(PAR_FIND_NAME), "\n", color.RED, str(traceback.format_exc()), color.END]))
-                                        continue
+                                    PAR_HISTO_MASTER_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_Z"])
+                                    PAR_HISTO_MASTER_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_PT"])
                                 else:
-                                    PARAMETER_TO_ADD, PAR_ERROR_TO_ADD = 1, 1
-                                    continue
+                                    PAR_HISTO_MASTER_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_Z"])
+                                    PAR_HISTO_MASTER_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(", str(Variable), ")_VS_PT"])
+                                LAST_Z_BIN,  LAST_PT_BIN  = "NA", "NA"
+                                Z_BIN_COLOR, PT_BIN_COLOR = 1, 1
 
-                                if((PT_BIN != LAST_PT_BIN) and (Z_BIN == LAST_Z_BIN)):
-                                    LAST_PT_BIN       = PT_BIN
-                                    PT_BIN_COLOR     += 1
-                                    if(PT_BIN_COLOR in [3, 5, 7]):
-                                        PT_BIN_COLOR += 1
-                                    if(PT_BIN_COLOR in [9]):
-                                        PT_BIN_COLOR  = 28
-                                    if(PT_BIN_COLOR in [29]):
-                                        PT_BIN_COLOR  = 30
-                                    if(PT_BIN_COLOR in [31]):
-                                        PT_BIN_COLOR  = 42
-                                    if(PT_BIN_COLOR in [43]):
-                                        PT_BIN_COLOR  = 46
-                                    if(PT_BIN_COLOR in [47]):
-                                        PT_BIN_COLOR  = 12
-                                if((Z_BIN  != LAST_Z_BIN)):
-                                    LAST_Z_BIN        = Z_BIN
-                                    LAST_PT_BIN       = PT_BIN
-                                    Z_BIN_COLOR      += 1
-                                    if(Z_BIN_COLOR in [3, 5, 7]):
-                                        Z_BIN_COLOR  += 1
-                                    if(Z_BIN_COLOR in [9]):
-                                        Z_BIN_COLOR   = 28
-                                    if(Z_BIN_COLOR in [29]):
-                                        Z_BIN_COLOR   = 30
-                                    if(Z_BIN_COLOR in [31]):
-                                        Z_BIN_COLOR   = 42
-                                    if(Z_BIN_COLOR in [43]):
-                                        Z_BIN_COLOR   = 46
-                                    if(Z_BIN_COLOR in [47]):
-                                        Z_BIN_COLOR   = 12
-                                    PT_BIN_COLOR      = 2
-                                    
-                                if("y_bin" in Binning_Method):
-                                    Borders_z_pT   = z_pT_Border_Lines(BIN_NUM)
-                                    z_length       = Borders_z_pT[0][1] - 1
-                                    pT_length      = Borders_z_pT[1][1] - 1
-                                # else:
-                                #     z_length, pT_length = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=BIN_NUM)
-                                if(str(z_pT_Bin) not in ["All", "0"]):
-                                    if("y_bin" in Binning_Method):
-                                        # This finds the dimensions of a particular z-pT bin for a given Q2-y bin
-                                        z_bin      = ((z_pT_Bin - 1) // pT_length) + 1
-                                        z_bin      = (z_length + 1) - z_bin
-                                        pT_bin     = ((z_pT_Bin - 1) %  pT_length) + 1
-                                        z_bin_max  = Borders_z_pT[0][2][z_bin]
-                                        z_bin_min  = Borders_z_pT[0][2][z_bin  - 1]
-                                        pT_bin_max = Borders_z_pT[1][2][pT_bin]
-                                        pT_bin_min = Borders_z_pT[1][2][pT_bin - 1]
+                                Moment_Title     = "Cos(#phi_{h})" if("Fit_Par_B" in str(Parameter)) else "Cos(2#phi_{h})" if("Fit_Par_C" in str(Parameter)) else "Multiplicity" if("Fit_Par_A" in str(Parameter)) else "".join(["Parameter ", str(Parameter).replace("Fit_Par_", "")])
+                                MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional (Old) " if("Multi_Dim" in str(Variable)) else "3-Dimensional " if("MultiDim_z_pT" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method), " Unfolding"]), "}}}"])
+                                if((Pass_Version not in [""]) and (Pass_Version not in str(MASTER_TITLE))):
+                                    MASTER_TITLE = "".join(["#splitline{", str(MASTER_TITLE), "}{", root_color.Bold, "{#scale[1.05]{", str(Pass_Version), "}}}"])
+                                if((Cut in ["Proton"]) and ("Cut with Proton Missing Mass" not in str(MASTER_TITLE))):
+                                    MASTER_TITLE = "".join(["#splitline{", str(MASTER_TITLE), "}{Cut with Proton Missing Mass}"])
+                                if("sec" in Variable):
+                                    Sector = Variable.replace(")_(phi_t", "")
+                                    Sector = str(Sector.replace("pipsec_", "")).replace("esec_", "")
+                                    MASTER_TITLE = MASTER_TITLE.replace("".join(["{", str(Pass_Version), "}"]), "".join(["{", "#pi^{+} Pion" if("pipsec" in Variable) else "Electron", " Sector ", str(Sector), " #topbar ", str(Pass_Version), "}"]))
+                                    del Sector
+
+                                if(str(PAR_HISTO_MASTER_NAME_VS_Z)  not in Histo_Pars_VS_Z):
+                                    Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z]   = ROOT.TMultiGraph(PAR_HISTO_MASTER_NAME_VS_Z,  "".join(["#splitline{", str(MASTER_TITLE), "}{#scale[1.05]{Showing all P_{T} bins vs z}};", "(Smeared) " if(str(smear) in ["Smear"]) else "", "z; ",           str(Moment_Title)]))
+                                if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Histo_Pars_VS_PT):
+                                    Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT] = ROOT.TMultiGraph(PAR_HISTO_MASTER_NAME_VS_PT, "".join(["#splitline{", str(MASTER_TITLE), "}{#scale[1.05]{Showing all z bins vs P_{T}}};", "(Smeared) " if(str(smear) in ["Smear"]) else "", "P_{T} [GeV]; ", str(Moment_Title)]))
+
+                                if(str(PAR_HISTO_MASTER_NAME_VS_Z)  not in Pars_Legends):
+                                    Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z]      = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
+                                if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Pars_Legends):
+                                    Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
+
+                                for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+                                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                                        continue
+                                    if(Cut in ["Proton"]):
+                                        PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
                                     else:
-                                        z_bin_max, z_bin_min, pT_bin_max, pT_bin_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT_Bin, Q2_y_Bin_Num=BIN_NUM)
-                                    if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
-                                        # Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z for #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin with ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}}}; #scale[1.25]{z}; ",           str(Moment_Title)]))
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
-                                        
-                                        # # TEMPORARY PASS 2 EXCLUSION
-                                        #     # REMOVE THE if() STATEMENT ONLY
-                                        # if(not (str(round(pT_bin_min, 3)) in ["0.05"])):
-                                        Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
-                                        # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
-                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin: ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}"]), "lep")
+                                        PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
 
-                                    if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
-                                        # Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} for #color[", str(Z_BIN_COLOR),  "]{z Bin with ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}}}; #scale[1.25]{P_{T} [GeV]}; ", str(Moment_Title)]))
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
 
-                                        Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
-                                        # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
-                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin: ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}"]), "lep")
-                                    
-                                else:
-                                    print(color.Error, "\n\nERROR: Using center of bin in title/legends...\n\n", color.END)
-                                    if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; ",           str(Moment_Title)]))
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
-                                        Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
-                                        
-                                        Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
-                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
-                                    if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; ", str(Moment_Title)]))
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
-                                        Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
+                                    Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][1], 3)
+                                    PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][1], 3)
+                                    # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
+                                    # PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
+                                    Z_BIN         = str(Z_BIN_VALUE)
+                                    PT_BIN        = str(PT_BIN_VALUE)
 
-                                        Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
-                                        Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
+                                    Z_BIN_VALUE_Title   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
+                                    PT_BIN_VALUE_Title  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
+                                    Z_BIN         = str(Z_BIN_VALUE_Title)
+                                    PT_BIN        = str(PT_BIN_VALUE_Title)
 
-                                Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPoint(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN(),              Z_BIN_VALUE,  PARAMETER_TO_ADD)
-                                Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPointError(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN()     - 1, Z_BIN_WIDTH,  PAR_ERROR_TO_ADD)
-                                
-                                # if(("0.135" in str(PT_BIN)) or ("0.27" in str(PT_BIN)) or ("0.365" in str(PT_BIN))):
-                                #     print("".join([color.BOLD, color_bg.YELLOW, "\n\n\nFor z_pT_Bin = ", str(z_pT_Bin), ":\t\n\tZ_BIN        = ", str(Z_BIN), "\t\n\tZ_BIN_VALUE  = ", str(Z_BIN_VALUE), "\t\nand\t\t\n\tPT_BIN       = ", str(PT_BIN), "\t\n\tPT_BIN_VALUE = ", str(PT_BIN_VALUE), "\n\n", color.END, "\n\n"]))
-                                
-                                Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetPoint(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].GetN(),          PT_BIN_VALUE, PARAMETER_TO_ADD)
-                                Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetPointError(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].GetN() - 1, PT_BIN_WIDTH, PAR_ERROR_TO_ADD)
+                                    Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][0][0])/2, 3)
+                                    PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb")[1][1][0])/2, 3)
+                                    # Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
+                                    # PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
+
+                                    # PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                    # PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
+                                    # PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
+
+                                    if(Cut in ["Proton"]):
+                                        PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                        PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
+                                        PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
+                                    else:
+                                        PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                        PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
+                                        PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
+
+                                    if("y_bin" in Binning_Method):
+                                        if(("0.27" in str(PT_BIN)) and (("Bay" in str(Method)) or ("Bin" in str(Method)))):
+                                            # print("\nSKIPPING PT_BIN = 0.27\n")
+                                            continue
+
+                                    if(Fit_Test):
+                                        try:
+                                            PARAMETER_TO_ADD, PAR_ERROR_TO_ADD = List_of_All_Histos_For_Unfolding[str(PAR_FIND_NAME)]
+                                        except:
+                                            print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETERS FOR: ", color.END, str(PAR_FIND_NAME), "\n", color.RED, str(traceback.format_exc()), color.END]))
+                                            continue
+                                    else:
+                                        PARAMETER_TO_ADD, PAR_ERROR_TO_ADD = 1, 1
+                                        continue
+
+                                    if((PT_BIN != LAST_PT_BIN) and (Z_BIN == LAST_Z_BIN)):
+                                        LAST_PT_BIN       = PT_BIN
+                                        PT_BIN_COLOR     += 1
+                                        if(PT_BIN_COLOR in [3, 5, 7]):
+                                            PT_BIN_COLOR += 1
+                                        if(PT_BIN_COLOR in [9]):
+                                            PT_BIN_COLOR  = 28
+                                        if(PT_BIN_COLOR in [29]):
+                                            PT_BIN_COLOR  = 30
+                                        if(PT_BIN_COLOR in [31]):
+                                            PT_BIN_COLOR  = 42
+                                        if(PT_BIN_COLOR in [43]):
+                                            PT_BIN_COLOR  = 46
+                                        if(PT_BIN_COLOR in [47]):
+                                            PT_BIN_COLOR  = 12
+                                    if((Z_BIN  != LAST_Z_BIN)):
+                                        LAST_Z_BIN        = Z_BIN
+                                        LAST_PT_BIN       = PT_BIN
+                                        Z_BIN_COLOR      += 1
+                                        if(Z_BIN_COLOR in [3, 5, 7]):
+                                            Z_BIN_COLOR  += 1
+                                        if(Z_BIN_COLOR in [9]):
+                                            Z_BIN_COLOR   = 28
+                                        if(Z_BIN_COLOR in [29]):
+                                            Z_BIN_COLOR   = 30
+                                        if(Z_BIN_COLOR in [31]):
+                                            Z_BIN_COLOR   = 42
+                                        if(Z_BIN_COLOR in [43]):
+                                            Z_BIN_COLOR   = 46
+                                        if(Z_BIN_COLOR in [47]):
+                                            Z_BIN_COLOR   = 12
+                                        PT_BIN_COLOR      = 2
+
+                                    if("y_bin" in Binning_Method):
+                                        Borders_z_pT   = z_pT_Border_Lines(BIN_NUM)
+                                        z_length       = Borders_z_pT[0][1] - 1
+                                        pT_length      = Borders_z_pT[1][1] - 1
+                                    # else:
+                                    #     z_length, pT_length = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=BIN_NUM)
+                                    if(str(z_pT_Bin) not in ["All", "0"]):
+                                        if("y_bin" in Binning_Method):
+                                            # This finds the dimensions of a particular z-pT bin for a given Q2-y bin
+                                            z_bin      = ((z_pT_Bin - 1) // pT_length) + 1
+                                            z_bin      = (z_length + 1) - z_bin
+                                            pT_bin     = ((z_pT_Bin - 1) %  pT_length) + 1
+                                            z_bin_max  = Borders_z_pT[0][2][z_bin]
+                                            z_bin_min  = Borders_z_pT[0][2][z_bin  - 1]
+                                            pT_bin_max = Borders_z_pT[1][2][pT_bin]
+                                            pT_bin_min = Borders_z_pT[1][2][pT_bin - 1]
+                                        else:
+                                            z_bin_max, z_bin_min, pT_bin_max, pT_bin_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT_Bin, Q2_y_Bin_Num=BIN_NUM)
+                                        if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
+                                            # Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; Parameter ",           str(Parameter).replace("Fit_Par_", "")]))
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z for #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin with ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}}}; #scale[1.25]{z}; ",           str(Moment_Title)]))
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
+
+                                            # # TEMPORARY PASS 2 EXCLUSION
+                                            #     # REMOVE THE if() STATEMENT ONLY
+                                            # if(not (str(round(pT_bin_min, 3)) in ["0.05"])):
+                                            Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
+                                            # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
+                                            Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin: ", str(round(pT_bin_min, 3)), " < P_{T} < ", str(round(pT_bin_max, 3)), "}"]), "lep")
+
+                                        if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
+                                            # Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; Parameter ", str(Parameter).replace("Fit_Par_", "")]))
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} for #color[", str(Z_BIN_COLOR),  "]{z Bin with ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}}}; #scale[1.25]{P_{T} [GeV]}; ", str(Moment_Title)]))
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
+
+                                            Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
+                                            # Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
+                                            Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin: ",     str(round(z_bin_min, 3)),  " < z < ",     str(round(z_bin_max, 3)),  "}"]), "lep")
+
+                                    else:
+                                        print(color.Error, "\n\nERROR: Using center of bin in title/legends...\n\n", color.END)
+                                        if(str(PAR_HISTO_NAME_VS_Z)  not in Histo_Pars_VS_Z):
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z]   = ROOT.TGraphErrors()
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs z with #color[",       str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}}}; z; ",           str(Moment_Title)]))
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineColor(PT_BIN_COLOR)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerColor(PT_BIN_COLOR)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerStyle(33)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetMarkerSize(3)
+                                            Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetLineWidth(2)
+
+                                            Histo_Pars_VS_Z[PAR_HISTO_MASTER_NAME_VS_Z].Add(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z])
+                                            Pars_Legends[PAR_HISTO_MASTER_NAME_VS_Z].AddEntry(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z],    "".join(["#color[", str(PT_BIN_COLOR), "]{P_{T} Bin Centered at ", str(PT_BIN), "}"]), "lep")
+                                        if(str(PAR_HISTO_NAME_VS_PT) not in Histo_Pars_VS_PT):
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT] = ROOT.TGraphErrors()
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetTitle("".join(["#splitline{", str(MASTER_TITLE), "}{#scale[0.75]{Plotting vs P_{T} with #color[", str(Z_BIN_COLOR), "]{z Bin Centered at ",     str(Z_BIN),   "}}}; P_{T} [GeV]; ", str(Moment_Title)]))
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineColor(Z_BIN_COLOR)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerColor(Z_BIN_COLOR)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerStyle(33)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetMarkerSize(3)
+                                            Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetLineWidth(2)
+
+                                            Histo_Pars_VS_PT[PAR_HISTO_MASTER_NAME_VS_PT].Add(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT])
+                                            Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT].AddEntry(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT], "".join(["#color[", str(Z_BIN_COLOR),  "]{z Bin Centered at ",     str(Z_BIN),  "}"]), "lep")
+
+                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPoint(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN(),              Z_BIN_VALUE,  PARAMETER_TO_ADD)
+                                    Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].SetPointError(Histo_Pars_VS_Z[PAR_HISTO_NAME_VS_Z].GetN()     - 1, Z_BIN_WIDTH,  PAR_ERROR_TO_ADD)
+
+                                    # if(("0.135" in str(PT_BIN)) or ("0.27" in str(PT_BIN)) or ("0.365" in str(PT_BIN))):
+                                    #     print("".join([color.BOLD, color_bg.YELLOW, "\n\n\nFor z_pT_Bin = ", str(z_pT_Bin), ":\t\n\tZ_BIN        = ", str(Z_BIN), "\t\n\tZ_BIN_VALUE  = ", str(Z_BIN_VALUE), "\t\nand\t\t\n\tPT_BIN       = ", str(PT_BIN), "\t\n\tPT_BIN_VALUE = ", str(PT_BIN_VALUE), "\n\n", color.END, "\n\n"]))
+
+                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetPoint(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].GetN(),          PT_BIN_VALUE, PARAMETER_TO_ADD)
+                                    Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].SetPointError(Histo_Pars_VS_PT[PAR_HISTO_NAME_VS_PT].GetN() - 1, PT_BIN_WIDTH, PAR_ERROR_TO_ADD)
 
 
                                 
@@ -8390,6 +8477,10 @@ for CanvasPar_Name in Pars_Canvas:
         Save_Name_Pars = str(Save_Name_Pars).replace("__", "_")
 
         Save_Name_Pars = "".join([str(Save_Name_Pars), File_Save_Format])
+        if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name_Pars))):
+            Save_Name_Pars = Save_Name_Pars.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
+        elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name_Pars)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name_Pars))):
+            Save_Name_Pars = Save_Name_Pars.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
         if(Saving_Q):
             if("root" in str(File_Save_Format)):
                 Pars_Canvas[CanvasPar_Name].SetName(Save_Name_Pars.replace(".root", ""))
@@ -8413,6 +8504,12 @@ if(Create_txt_File):
     File_Time = str((str((File_Time.replace(" ", "_")).replace("-", "_")).replace(":", "_")).replace(".", "")).replace("__", "_")
     # Output_txt_Name = "".join([str(Common_Name).replace("_All", ""), "_Q2_y_Bins_", str(Q2_y_Select_bin), "_from_", str(File_Time), ".txt"])
     Output_txt_Name         = "".join([str(Common_Name).replace("_All", ""), "_", str(File_Time), "_Q2_y_Bins_", str(Q2_y_Select_bin), ".txt"])
+    
+    if(Cut_ProQ   and ("_ProtonCut.txt" not in str(Output_txt_Name))):
+        Output_txt_Name = Output_txt_Name.replace(".txt", "_ProtonCut.txt")
+    elif(Tag_ProQ and ("_TagProton.txt" not in str(Output_txt_Name)) and ("_ProtonCut.txt" not in str(Output_txt_Name))):
+        Output_txt_Name = Output_txt_Name.replace(".txt", "_TagProton.txt")
+    
     if(Smearing_Options     in ["no_smear"]):
         Output_txt_Name     = Output_txt_Name.replace(".txt", "_Unsmeared.txt")
     elif(Smearing_Options   in ["smear"]):
@@ -8424,7 +8521,7 @@ if(Create_txt_File):
             Output_txt_Name = "".join(["Sim_Test_", str(Output_txt_Name)])
         if(Mod_Test):
             Output_txt_Name = "".join(["Mod_Test_", str(Output_txt_Name)])
-
+        
     Output_txt_Name = str(Output_txt_Name.replace(" ", "_")).replace("__", "_")
     # print(Output_txt_Name)
 
