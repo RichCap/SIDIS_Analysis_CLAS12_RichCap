@@ -167,7 +167,7 @@ for pass_ver in Pass_Version_List:
         
 # Setting the skip cut configuration for the New_Fiducial_Cuts_Function() function
 # Skipped_Fiducial_Cuts = ["N/A"]
-Default_Cut_Option     = ["Hpip", "DC_pip"]
+Default_Cut_Option     = ["Hpip", "Electron"]
 Skipped_Fiducial_Cuts  = ["My_Cuts"] # My fiducial cuts are not being used
 Skipped_Fiducial_Cuts  = Default_Cut_Option
 Cut_Configuration_Name = ""
@@ -949,6 +949,21 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         # Same as the 2D option but with the third dimension being used for the lab angles of both particles (24 total combinations)
         # Will just run with Cut_Configuration_Name = "_FC_11" until new pion cuts are created
             # My electron refinements do not seem like they'll be needed anymore
+            
+            
+        Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V2_"
+        # Ran on 9/9/2024
+        # Similar to f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V10_" but with the following changes:
+            # Updated the (New) Pion DC Fiducial cuts
+            # Running a reduced number of histograms to decrease runtime
+                # Not using individual kinematic binning
+                # No response matrix histograms
+                # Just including these 3D Histograms:
+                    # 3D) Pion x vs y positions in the 'DC' (rotated and un-rotated) versus the Electron/Pion lab phi/theta angle
+                        # Same as the 2D option but with the third dimension being used for the lab angles of both particles (24 total combinations)
+                        # Not using the electron hit positions (trusting Valerii's cuts instead)
+                        # Using the unrotated hit positions to (hopefully get better insight into the individual sector dependences)
+        # Will run without my electron refinements (did not seem like they'll be needed anymore)
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
@@ -6275,19 +6290,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(True):
                 # Rotation variables added on 8/14/2024
                 for rotation in ["", "_rot"]:
-                    if(Run_Small and (rotation not in ["_rot"])):
-                        continue
+                    # if(Run_Small and (rotation not in ["_rot"])):
+                    #     continue
                     # Updated on 8/13/2024 (for ele DC)
                     for layer in [6, 18, 36]:
                         DCxBinning = [f'ele_x_DC_{layer}{rotation}', -350, 350, 700]
                         DCyBinning = [f'ele_y_DC_{layer}{rotation}', -350, 350, 700]
                         if(not Run_Small):
                             List_of_Quantities_2D.append([DCxBinning,     DCyBinning])
-                        else:
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Phi_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Phi_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Th_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Th_Binning])
+                        # else:
+                        #     List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Phi_Binning])
+                        #     List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Phi_Binning])
+                        #     List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Th_Binning])
+                        #     List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Th_Binning])
                     # Updated on 8/13/2024 (for pip DC)
                     for layer in [6, 18, 36]:
                         pip_DCxBinning = [f'pip_x_DC_{layer}{rotation}', -350, 350, 700]
