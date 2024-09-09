@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=sFC_11_NS_mdf_SIDIS_9_9_2024_Run1_Only_Cut_Tests_V2_SIDIS
+#SBATCH --job-name=sNS_mdf_SIDIS_9_9_2024_Run1_Only_Cut_Tests_V2_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -24,4 +24,4 @@ FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/
 # Above is for (mdf_NewP2 - As of 9/9/2024) #SBATCH --array=0-123
 # Normally requested time: --time=14:00:00
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf_sidis_NewP2_NS_Small_FC_11 ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py mdf_sidis_NewP2_NS_Small ${FILES[$SLURM_ARRAY_TASK_ID]}
