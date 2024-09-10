@@ -26,7 +26,7 @@ This script processes SIDIS TTree data for ROOT files.
                 4) 'Smear_Factor_List' options control which smear factor/function is used when smearing the MC
                     (*) Use when testing different options - default option is set within the code if not included in this argument
                 5) 'Pass_Version_List' options control which pass version of the data/MC is used when running the code
-                    (*) Currently defaults to Pass 1
+                    (*) Currently defaults to Pass 2
                 6) 'Use__Mom_Cor_List' options control whether or not momentum corrections are applied
                 7) 'Smear_Option_List' options control whether or not momentum smearing is applied
                 8) 'Tag___Proton_List' options control whether the tagged proton files (and related plots/cuts) are used
@@ -39,8 +39,9 @@ This script processes SIDIS TTree data for ROOT files.
             3) [file location] --> Runs normally, produces an output file.
             4) All             --> Runs all files in the directory based on selected options.
             
-    EXAMPLE: 
-        ./TTree_create_ROOT_epip_SIDIS.py <df>_NewP2 time
+    EXAMPLE(S): 
+        ./TTree_create_ROOT_epip_SIDIS.py <df>_NewP2 time (Old - 'NewP2' is now the default and is therefore unnecessary)
+        ./TTree_create_ROOT_epip_SIDIS.py <df> time
     Note: <df> above can be any of the data-type options given above
         """,
         formatter_class=argparse.RawTextHelpFormatter  # Preserves your formatting
@@ -2069,7 +2070,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     def filter_Valerii(Data_Frame, Valerii_Cut, Include_Pion=Use_New_PF, Cut_Flag=False):
-        if("Valerii_Cut" in Valerii_Cut or "Complete" in Valerii_Cut):
+        if(("Valerii_Cut" in Valerii_Cut) or ("Complete" in Valerii_Cut) or Cut_Flag):
             Valerii_Cut_Code = "".join(["""
                 auto func = [&](double x, double k, double b){
                     return k * x + b;
@@ -4520,11 +4521,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
 
     rdf = rdf.Define("Complete_SIDIS_Cuts", "sqrt(MM2) > 1.5 && y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-    rdf = filter_Valerii(rdf, Cut_Choice, Cut_Flag=True)
+    rdf = filter_Valerii(rdf, Cut_Choice="Complete",     Cut_Flag=True)
     rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
     if(("smear" in Smearing_Q) and (Data_Type not in ["rdf", "gdf"])):
         rdf = rdf.Define("Complete_SIDIS_Cuts_Smeared", "sqrt(smeared_vals[1]) > 1.5 && smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-        rdf = filter_Valerii(rdf, Cut_Choice, Cut_Flag=True)
+        rdf = filter_Valerii(rdf, Cut_Choice="Complete", Cut_Flag=True)
         rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
 
         
