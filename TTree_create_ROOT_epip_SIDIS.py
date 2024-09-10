@@ -4520,10 +4520,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         
 
-    rdf = rdf.Define("Complete_SIDIS_Cuts", "sqrt(MM2) > 1.5 && y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-    rdf = filter_Valerii(rdf, "Complete",     Cut_Flag=True)
-    rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
-    if(("smear" in Smearing_Q) and (Data_Type not in ["rdf", "gdf"])):
+    rdf     = rdf.Define("Complete_SIDIS_Cuts", "sqrt(MM2) > 1.5 && y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
+    rdf     = filter_Valerii(rdf, "Complete",     Cut_Flag=True)
+    rdf     = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
+    if(("smear" in smearing_options_list) and (Data_Type not in ["rdf", "gdf"])):
         rdf = rdf.Define("Complete_SIDIS_Cuts_Smeared", "sqrt(smeared_vals[1]) > 1.5 && smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
         rdf = filter_Valerii(rdf, "Complete", Cut_Flag=True)
         rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
@@ -5980,13 +5980,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("\nThe total time the code took to run the given files is:")
     print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
     
-    if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
-        rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
-        print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
+#     if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
+#         rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
+#         print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
     
-    if(str(file_location) in ['time' , 'test']):
-        print("".join(["\nEstimated time to run: ", "".join([str(round(count_of_histograms/6, 4)), " mins"]) if(round(count_of_histograms/6, 4) < 60) else  "".join([str(int(round(count_of_histograms/6, 4)/60)), " hrs and ", str(round(((round(count_of_histograms/6, 4)/60)%1)*60, 3)), " mins (Total: ", str(round(count_of_histograms/6, 3)), " mins)"])]))
-        # Estimate based on observations made on 12-2-2022 (estimates are very rough - based on the "mdf" run option)
+#     if(str(file_location) in ['time' , 'test']):
+#         print("".join(["\nEstimated time to run: ", "".join([str(round(count_of_histograms/6, 4)), " mins"]) if(round(count_of_histograms/6, 4) < 60) else  "".join([str(int(round(count_of_histograms/6, 4)/60)), " hrs and ", str(round(((round(count_of_histograms/6, 4)/60)%1)*60, 3)), " mins (Total: ", str(round(count_of_histograms/6, 3)), " mins)"])]))
+#         # Estimate based on observations made on 12-2-2022 (estimates are very rough - based on the "mdf" run option)
     
     print("\n")
     
