@@ -4521,11 +4521,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
 
     rdf = rdf.Define("Complete_SIDIS_Cuts", "sqrt(MM2) > 1.5 && y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
-    rdf = filter_Valerii(rdf, Cut_Choice="Complete",     Cut_Flag=True)
+    rdf = filter_Valerii(rdf, "Complete",     Cut_Flag=True)
     rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
     if(("smear" in Smearing_Q) and (Data_Type not in ["rdf", "gdf"])):
         rdf = rdf.Define("Complete_SIDIS_Cuts_Smeared", "sqrt(smeared_vals[1]) > 1.5 && smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-        rdf = filter_Valerii(rdf, Cut_Choice="Complete", Cut_Flag=True)
+        rdf = filter_Valerii(rdf, "Complete", Cut_Flag=True)
         rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
 
         
