@@ -424,42 +424,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     # # # See File_Name_Updates.md file for notes on versions older than "New_Q2_Y_Bins_V5_"
             
-    Common_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V10_"
-    # Ran on 9/4/2024
-    # Refined the new Pion DC Fiducial Cuts to improve Data to MC agreement
-        # Will be running multiple fiducial cut configurations to fully test all of the cuts/refinements
-        # Configurations include: "FC7", "FC_11", and the default setting (might run "FC7" and "FC_11" at later time...)
-            # "FC7"     --> No new DC cuts (neither Valerii's nor my cuts are included)
-            # "FC_11"   --> None of my DC Cuts (just includes all of Valerii's Electron DC Cuts but skips my electron DC refinements/pion cuts)
-            # "Default" --> Includes all of my new fiducial cuts and Valerii's Electron Cuts (only excludes Valerii's cuts being applied to the pion)
-    # Added the sector cuts (using the 2D phi_h vs sector plots)
-    # Included 1D/2D/3D Histograms:
-        # 1D) phi_t (1D unfolding only)
-        # 2D) phi_t vs esec/pipsec
-        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
-        # 2D) All phase space plots for electron+pion
-        ##### All plots below only run for the 'All' Q2-y bin:
-        # 2D) Missing Mass (with Proton) vs proton momentum
-        # 2D) Electron/Pion x vs y positions in the 'DC' (rotated and not rotated)
-            # Two set of histograms per layer (3 layers each for 12 total histograms)
-    # Ran Cut_Configuration_Name = "_FC_11" on 9/5/2024
-        # Started running after updating the 'Run_Small' option
-            
-            
-    if(Run_Small):
-        Common_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
-        # Ran on 9/5/2024
-        # Similar to f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V10_" but with the following changes:
-            # Running a reduced number of histograms to decrease runtime
-                # Not using individual kinematic binning
-                # No response matrix histograms
-                # Just including these 3D Histograms:
-                    # 3D) Electron/Pion x vs y positions in the 'DC' (just rotated) versus the lab phi/theta angle
-                        # Same as the 2D option but with the third dimension being used for the lab angles of both particles (24 total combinations)
-        # Will just run with Cut_Configuration_Name = "_FC_11" until new pion cuts are created
-            # My electron refinements do not seem like they'll be needed anymore
-
-    
+    Common_Name = f"New_TTree{Cut_Configuration_Name}_V1_"
+    # Ran on 9/10/2024
+    # First version of the TTree File Creator
     
     if(run_Mom_Cor_Code == "yes"):
         if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Common_Name)):
@@ -4252,10 +4219,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # rdf = rdf.Define('Delta_Smear_Pip_Phi', 'smeared_vals[28]')
 
         
-    print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
-    for ii in range(0, len(rdf.GetColumnNames()), 1):
-        print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-    print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+    if(output_all_histo_names_Q == "yes"):
+        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+        for ii in range(0, len(rdf.GetColumnNames()), 1):
+            name_of_variable = str((rdf.GetColumnNames())[ii])
+            variables_type   = rdf.GetColumnType(rdf.GetColumnNames()[ii])
+            print(f"\t{str(ii+1).rjust(3)}) {name_of_variable.ljust(40)} | (type -> {variables_type})")
+        print(f"Total length= {str(len(rdf.GetColumnNames()))}\n\n")
+    else:
+        print(f"\n{color.BOLD}Current length of the RDataFrame is: {color.UNDERLINE}{str(len(rdf.GetColumnNames()))}{color.END}")
     
     
     ###########################################################
@@ -4263,7 +4235,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if((str(file_location) not in ['time', 'test']) and output_type in ["data", "tree"]):
         print(f"{color.BOLD}Taking Snapshot of the RDataFrame...{color.END}")
         rdf.Snapshot("h22", ROOT_File_Output_Name)
-        print(f"{color.BGREEN}\nFinal ROOT file has been created...{color.END}")
+        print(f"\n{color.BGREEN}Final ROOT file has been created.{color.END}\n")
     else:
         print(f"\n{color.RED}Not saving ROOT file...{color.END}\n")
     #################     Final ROOT File     #################

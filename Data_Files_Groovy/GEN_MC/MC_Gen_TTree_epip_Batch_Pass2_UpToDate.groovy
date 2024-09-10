@@ -11,7 +11,7 @@ import uconn.utils.pid.Candidate.Level
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
 import my.Sugar
-import clasqa.QADB
+// import clasqa.QADB
 
 long StartTime = System.nanoTime()
 
@@ -40,7 +40,7 @@ int Total_Events_Found = 0
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
-    QADB qa = new QADB()
+    // QADB qa = new QADB()
 
     def reader = new HipoReader()
     reader.open(fname)
