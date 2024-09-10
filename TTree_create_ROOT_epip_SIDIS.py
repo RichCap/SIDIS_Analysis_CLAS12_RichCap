@@ -816,6 +816,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if(datatype not in ["rdf"]):
             print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
+            rdf = rdf.Define("Background_Identification_Cuts", BG_Cut_Function(dataframe=str(datatype)))
         
         if(datatype in ["gdf"]):
             if("MM" in str(BG_Cut_Function(dataframe="mdf"))):
@@ -2054,11 +2055,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     print("Kinematic Variables have been calculated.")
     
-    if(output_all_histo_names_Q == "yes"):
-        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
-        for ii in range(0, len(rdf.GetColumnNames()), 1):
-            print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-        print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+    # if(output_all_histo_names_Q == "yes"):
+    #     print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+    #     for ii in range(0, len(rdf.GetColumnNames()), 1):
+    #         print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
+    #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
     
     ###################################################################################################################################################################
     ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
@@ -4037,38 +4038,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##===============##     Full Filter + Cut Title (End)     ##===============##
     ###################=======================================###################
     
-##########################################################################################################################################################################################
-##########################################################################################################################################################################################
-    
-    ###################=======================================###################
-    ##===============##   (Other) Histogram Functions Title   ##===============##
-    ###################=======================================###################
-
-    def Dimension_Name_Function(Histo_Var_D1, Histo_Var_D2="None", Histo_Var_D3="None"):
-        Dimensions_Output = "Variable_Error"
-        try:
-            Histo_Var_D1_Name = "".join(["Var-D1:'",         str(Histo_Var_D1[0]), "'-[NumBins:", str(Histo_Var_D1[3]), ", MinBin:", str(Histo_Var_D1[1]), ", MaxBin:", str(Histo_Var_D1[2]), "]"])
-            Dimensions_Output = Histo_Var_D1_Name
-            if(Histo_Var_D2      != "None"):
-                Histo_Var_D2_Name = "".join(["Var-D2:'",     str(Histo_Var_D2[0]), "'-[NumBins:", str(Histo_Var_D2[3]), ", MinBin:", str(Histo_Var_D2[1]), ", MaxBin:", str(Histo_Var_D2[2]), "]"])
-                if(Histo_Var_D3      != "None"):
-                    Histo_Var_D3_Name = "".join(["Var-D3:'", str(Histo_Var_D3[0]), "'-[NumBins:", str(Histo_Var_D3[3]), ", MinBin:", str(Histo_Var_D3[1]), ", MaxBin:", str(Histo_Var_D3[2]), "]"])
-                    Dimensions_Output = "".join([str(Histo_Var_D1_Name), "; ", str(Histo_Var_D2_Name), "; ", str(Histo_Var_D3_Name)])
-                else:
-                    Dimensions_Output = "".join([str(Histo_Var_D1_Name), "; ", str(Histo_Var_D2_Name)])
-
-            Dimensions_Output = (Dimensions_Output.replace(":", "=")).replace("; ", "), (")
-            
-            
-        except:
-            print(f"{color.Error}ERROR IN DIMENSIONS:\n{color.END_R}{str(traceback.format_exc())}{color.END}")
-
-        return Dimensions_Output
-
-    ###################=======================================###################
-    ##===============##    Histogram Functions Title (End)    ##===============##
-    ###################=======================================###################
-    
     
     ##################################################################################################################################################################
     ###################################################          Done Making the Functions for Histograms          ###################################################
@@ -4107,27 +4076,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
           # Do not combine with "Mom" or "SIDIS" separately as doing so will be meaningless (combination is already built in) 
         # 5) 'Valerii_Cut' --> Valerii's Fiducial cuts to remove bad detectors
         # 6) 'Q2'  -> New Q2 cut of "Q2 > 2"
-        
-    # # Other than 'no_cut', all of the above cuts can be combined separately by adding them to the str in cut_list as a suffix of another cut
-    # # # Example:
-        # # cut_list = ["no_cut", "cut_all", "cut_Mom_SIDIS"]
-          # # The first two cuts in the above list are the same as describles in entry (1) and (4) in the list above. The 3rd entry is a combination of "Mom" and "SIDIS" where both cuts are applied together (order doesn't matter). This combination can be done with any of the cuts given in the list above (except 'no_cut') and can be done with as many of them as desired (no limits to number of cuts that can be added to one entry).
-
-    # cut_list = ['no_cut', 'cut_Complete', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
-#     cut_list = ['no_cut', 'cut_Complete_EDIS', 'cut_Complete_SIDIS']
-    # cut_list = ['no_cut', 'cut_Complete_SIDIS']
-    # cut_list = ['cut_Complete_SIDIS']
-    
-    cut_list = ['no_cut']
-    if(datatype not in ["gdf"]):
-        cut_list.append('cut_Complete_SIDIS')
-        if(Tag_Proton):
-            cut_list.append('cut_Complete_SIDIS_Proton')
-        if(run_Mom_Cor_Code == "yes"):
-            cut_list.append('cut_Complete_EDIS')
-    print("".join([color.BBLUE, "\nCuts in use: ", color.END]))
-    for cuts in cut_list:
-        print("".join(["\t(*) ", str(cuts)]))
         
     
     #####################       Cut Choices       #####################
@@ -4169,44 +4117,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # The options 'Off' or 'off'    uses no binning schemes and turns them off by setting their values to always be equal to '1' to improve the runtime when the bins are not needed
     
     
-    # # The following are the maximum number of Q2-xB this code recognizes by all of the binning schemes
-    # List_of_Q2_xB_Bins_to_include = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-
-    # Minimum Default for the binning option 'Off'
-    List_of_Q2_xB_Bins_to_include = [-1]
-        
-    if("2" in binning_option_list or "OG"     in binning_option_list):
-        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8]
-        
-    if(""  in binning_option_list or "Stefan" in binning_option_list):
-        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        
-    if("5" in binning_option_list or "Y_bin"  in binning_option_list or "Y_Bin" in binning_option_list):
-        # List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] # Old version (removed as of 9/27/2023)
-        List_of_Q2_xB_Bins_to_include = [-3, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-        List_of_Q2_xB_Bins_to_include =     [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-    
-    if("3" in binning_option_list or "Square" in binning_option_list):
-        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-        
-    if("4" in binning_option_list or "y_bin"  in binning_option_list or "y_Bin" in binning_option_list):
-        List_of_Q2_xB_Bins_to_include = [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-#         List_of_Q2_xB_Bins_to_include = [-1, 3]
-        
-    if(run_Mom_Cor_Code == "yes"):
-        # # binning_option_list = ["2"]
-        # binning_option_list = ["Off"]
-        binning_option_list = ["Y_bin"]
-        List_of_Q2_xB_Bins_to_include = [-1]
-
-    if(Run_Small):
-        List_of_Q2_xB_Bins_to_include = [-1]
-        
-    # List_of_Q2_xB_Bins_to_include = [-1, 1]
-    # List_of_Q2_xB_Bins_to_include = [-1]
-    
     # Conditions to make the 5D unfolding plots
-    Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
+    Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (run_Mom_Cor_Code != "yes")
     Use_5D_Response_Matrix = False
     
     if(Use_5D_Response_Matrix):
@@ -4290,66 +4202,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("".join([color.BBLUE, "\nBinning Scheme(s) in use: ", color.END]))
     for binning in binning_option_list:
         print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
-        
-    print("".join([color.BBLUE, "\n(Possible) Q2-xB/Q2-y bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
     
 
     #####################     Bin Choices     #####################
     ###############################################################
     
-        
-    
-    #####################################################################################################################
-    ###############################################     3D Histograms     ###############################################
-    
-    # Post-GRC Binning
-    Q2_Binning_Old = ['Q2', 1.4805,  11.8705, 20]
-    # Bin size: 0.5195 per bin
-    xB_Binning_Old = ['xB', 0.08977, 0.82643, 20]
-    # Bin size: 0.03683 per bin
-    z_Binning_Old  = ['z',  0.11944, 0.73056, 20]
-    # Bin size: 0.03056 per bin
-    pT_Binning_Old = ['pT', 0,       1.05,    20]
-    # Bin size: 0.05 per bin
-    y_Binning_Old  = ['y',  0,       1,       20]
-    # Bin size: 0.05 per bin
-
-    y_Binning     = ['y',      0,     1,      20]
-    # Bin size: 0.05 per bin
-    
-    phi_t_Binning = ['phi_t',  0,     360,    24]
-    # Bin size: 15 per bin
-    
-    
-    
-    El_Binning      = ['el',    0, 8,   200]
-    El_Th_Binning   = ['elth',  0, 40,  200]
-    El_Phi_Binning  = ['elPhi', 0, 360, 200]
-    
-    Pip_Binning     = ['pip',    0, 6,   200]
-    Pip_Th_Binning  = ['pipth',  0, 40,  200]
-    Pip_Phi_Binning = ['pipPhi', 0, 360, 200]
-     
-    # New (September 27 2023) 2D Binning
-    z_Binning  = ['z',  0, 1.20, 120]
-    # Bin size: 0.01 per bin
-    pT_Binning = ['pT', 0, 2.00, 200]
-    # Bin size: 0.01 per bin
-    
-    # New (May 26 2023) 2D Binning
-    xB_Binning = ['xB', 0.09,  0.826, 50]
-    # Bin size: 0.01472 per bin
-
-    # New (September 27 2023) 2D Binning
-    Q2_Binning = ['Q2', 0, 14, 280]
-    # Bin size: 0.05  per bin
-    y_Binning  = ['y',  0,  1, 100]
-    # Bin size: 0.01 per bin
-    
-    MM_Binning    = ['MM',  0,     4.2, 60]
-    # Bin size: 0.07 per bin
-    W_Binning     = ['W', 0.9,     5.1, 14]
-    # Bin size: 0.3 per bin
     
     Q2_y_Binning = ['Q2_y_Bin', -0.5,  18.5, 19]
     # There are 17 Bins (extra bins are for overflow/empty space in histograms)
@@ -4369,127 +4226,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         raise TypeError("Improper number of slices for the bin count")
     
     
-    Hx_Binning = ['Hx',     -400, 400, 800]
-    Hy_Binning = ['Hy',     -400, 400, 800]
-    
-    
-    List_of_Quantities_1D = [phi_t_Binning]
-    
-    
-#     if("Y_bin" in binning_option_list):
-#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
-    
-            
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
-        
-    if(Run_Small):
-        List_of_Quantities_1D = []
-        List_of_Quantities_2D = []
-        
-    if((datatype in ["rdf", "gdf"]) or (not Run_With_Smear)):
-        # # Do not attempt to create the Hx vs Hy plots while smearing (these variables cannot be smeared)
-        # List_of_Quantities_2D.append([Hx_Binning, Hy_Binning])
-        # # List_of_Quantities_2D = [[Hx_Binning, Hy_Binning]]
-        if(Use_New_PF and (str(datatype) not in ["gdf"])): # Added on 6/6/2024 (for drift chambers)
-            # Variables do not exist in older files
-            List_of_Quantities_3D = []
-            
-            if(not Run_Small):
-                List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
-                List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
-            
-            if(True):
-                # Rotation variables added on 8/14/2024
-                for rotation in ["", "_rot"]:
-                    if(Run_Small and (rotation not in ["_rot"])):
-                        continue
-                    # Updated on 8/13/2024 (for ele DC)
-                    for layer in [6, 18, 36]:
-                        DCxBinning = [f'ele_x_DC_{layer}{rotation}', -350, 350, 700]
-                        DCyBinning = [f'ele_y_DC_{layer}{rotation}', -350, 350, 700]
-                        if(not Run_Small):
-                            List_of_Quantities_2D.append([DCxBinning,     DCyBinning])
-                        else:
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Phi_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Phi_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     El_Th_Binning])
-                            List_of_Quantities_3D.append([DCxBinning,     DCyBinning,     Pip_Th_Binning])
-                    # Updated on 8/13/2024 (for pip DC)
-                    for layer in [6, 18, 36]:
-                        pip_DCxBinning = [f'pip_x_DC_{layer}{rotation}', -350, 350, 700]
-                        pip_DCyBinning = [f'pip_y_DC_{layer}{rotation}', -350, 350, 700]
-                        if(not Run_Small):
-                            List_of_Quantities_2D.append([pip_DCxBinning, pip_DCyBinning])
-                        else:
-                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, El_Phi_Binning])
-                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, Pip_Phi_Binning])
-                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, El_Th_Binning])
-                            List_of_Quantities_3D.append([pip_DCxBinning, pip_DCyBinning, Pip_Th_Binning])
-                # # Added on 7/8/2024 (for PCal Fiducial Volume Cuts)
-                # List_of_Quantities_3D.append([['V_PCal', 0, 400, 100], ['W_PCal', 0, 400, 100], ['U_PCal', 0, 420, 210]])
-                
-                del DCxBinning
-                del DCyBinning
-                del pip_DCxBinning
-                del pip_DCyBinning
-            
-            # del PCalxBinning
-            # del PCalyBinning
-        else:
-            List_of_Quantities_3D = []
-    else:
-        List_of_Quantities_3D     = []
-        
-    if(Tag_Proton):
-        List_of_Quantities_2D.append([["pro", 0, 6, 150], ["MM_pro", 0, 2.5, 100]])
-        
-    # if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
-    #     # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)
-    #     # List_of_Quantities_2D.append([["PID_el", -2220.5, 80.5, 2301], ["PID_pip", -80.5, 2220.5, 2301]])
-    #     List_of_Quantities_2D.append([["PID_el_idx", 0.5, 11.5, 11], ["PID_pip_idx", 0.5, 11.5, 11]])
-    
-    
-    # # # 1D histograms are turned off with this option
-    # List_of_Quantities_1D = []
-
-    # # # 2D histograms are turned off with this option
-    # List_of_Quantities_2D = []
-    
-    # # # 3D histograms are turned off with this option
-    # List_of_Quantities_3D = []
-    
-    
-    if(run_Mom_Cor_Code == "yes"):
-        List_of_Quantities_1D, List_of_Quantities_2D, List_of_Quantities_3D = [], [], []
-    
-    Alert_of_Response_Matricies = True
-    
-    if(len(List_of_Quantities_1D) == 0):
-        print(f"{color.Error}\nNot running 1D histograms...{color.END}")
-    else:
-        print(f"{color.BBLUE}\n1D Histograms Selected Include: {color.END}")
-        for histo_1D in List_of_Quantities_1D:
-            print("".join(["\t(*) ", str(histo_1D).replace(",", ",\t")]))
-    
-    
-    if(len(List_of_Quantities_2D) == 0):
-        print(f"{color.Error}\nNot running 2D histograms...{color.END}")
-    else:
-        print(f"{color.BBLUE}\n2D Histograms Selected Include: {color.END}")
-        for histo_2D in List_of_Quantities_2D:
-            print("".join(["\t(*) ", str(histo_2D).replace(",", ",\t")]))
-            
-            
-    if(len(List_of_Quantities_3D) == 0):
-        print(f"{color.Error}\nNot running 3D histograms...{color.END}")
-    else:
-        print(f"{color.BBLUE}\n3D Histograms Selected Include: {color.END}")
-        for histo_3D in List_of_Quantities_3D:
-            print("".join(["\t(*) ", str(histo_3D)]))
-    
-    
     # smearing_options_list = ["", "smear"]
     smearing_options_list = ["smear"]
     # smearing_options_list = [""]
@@ -4505,9 +4241,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 
     if(Use_Pass_2 and ("smear" in smearing_options_list)):
         print(f"\n{color.BOLD}Using Pass 2 momentum smearing function\n{color.END}")
-        # for ii in smearing_options_list:
-        #     if("smear" in ii):
-        #         smearing_options_list.remove(ii)
                 
     if(("stop_over_smear" in smearing_function) and ("smear" in smearing_options_list)):
         print(f"{color.BGREEN}\nRunning New Smearing Funtion with extra criteria (SF = {smear_factor}){color.END}")
@@ -4517,14 +4250,39 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         print("".join([color.BBLUE, "\nRunning FX's Smearing Funtion", color.END]))
     else:
         print("".join([color.RED,   "\nNot Smearing...", color.END]))
-        
-        
 
     rdf     = rdf.Define("Complete_SIDIS_Cuts", "sqrt(MM2) > 1.5 && y < 0.75 && xF > 0 && W > 2 && Q2 > 2 && pip > 1.25 && pip < 5 && 5 < elth && elth < 35 && 5 < pipth && pipth < 35")
     rdf     = filter_Valerii(rdf, "Complete",     Cut_Flag=True)
     rdf     = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
     if(("smear" in smearing_options_list) and (datatype not in ["rdf", "gdf"])):
         rdf = rdf.Define("Complete_SIDIS_Cuts_Smeared", "sqrt(smeared_vals[1]) > 1.5 && smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
+        rdf = rdf.Define('MM_smeared',          'smeared_vals[0]')
+        rdf = rdf.Define('MM2_smeared',         'smeared_vals[1]')
+        rdf = rdf.Define('Q2_smeared',          'smeared_vals[2]')
+        rdf = rdf.Define('xB_smeared',          'smeared_vals[3]')
+        rdf = rdf.Define('v_smeared',           'smeared_vals[4]')
+        rdf = rdf.Define('s_smeared',           'smeared_vals[5]')
+        rdf = rdf.Define('W_smeared',           'smeared_vals[6]')
+        rdf = rdf.Define('y_smeared',           'smeared_vals[7]')
+        rdf = rdf.Define('z_smeared',           'smeared_vals[8]')
+        rdf = rdf.Define('epsilon_smeared',     'smeared_vals[9]')
+        rdf = rdf.Define('pT_smeared',          'smeared_vals[10]')
+        rdf = rdf.Define('phi_t_smeared',       'smeared_vals[11]')
+        rdf = rdf.Define('xF_smeared',          'smeared_vals[12]')
+        rdf = rdf.Define('el_smeared',          'smeared_vals[15]')
+        rdf = rdf.Define('el_E_smeared',        'smeared_vals[16]')
+        rdf = rdf.Define('elth_smeared',        'smeared_vals[17]')
+        rdf = rdf.Define('elPhi_smeared',       'smeared_vals[18]')
+        rdf = rdf.Define('pip_smeared',         'smeared_vals[19]')
+        rdf = rdf.Define('pip_E_smeared',       'smeared_vals[20]')
+        rdf = rdf.Define('pipth_smeared',       'smeared_vals[21]')
+        rdf = rdf.Define('pipPhi_smeared',      'smeared_vals[22]')
+        # rdf = rdf.Define('Delta_Smear_El_P',    'smeared_vals[23]')
+        # rdf = rdf.Define('Delta_Smear_El_Th',   'smeared_vals[24]')
+        # rdf = rdf.Define('Delta_Smear_El_Phi',  'smeared_vals[25]')
+        # rdf = rdf.Define('Delta_Smear_Pip_P',   'smeared_vals[26]')
+        # rdf = rdf.Define('Delta_Smear_Pip_Th',  'smeared_vals[27]')
+        # rdf = rdf.Define('Delta_Smear_Pip_Phi', 'smeared_vals[28]')
 
         
     print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
@@ -5951,32 +5709,32 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
 #     print("".join(["Made ", str(count_of_histograms), " histograms..."]))
         
-    Num_of_Days, Num_of_Hrs, Num_of_Mins = 0, 0, 0
+#     Num_of_Days, Num_of_Hrs, Num_of_Mins = 0, 0, 0
     
-    if(startDay_full > endDay_full):
-        Num_of_Days = endDay_full + (30 - startDay_full)
-    else:
-        Num_of_Days = endDay_full - startDay_full
+#     if(startDay_full > endDay_full):
+#         Num_of_Days = endDay_full + (30 - startDay_full)
+#     else:
+#         Num_of_Days = endDay_full - startDay_full
         
-    if(startHr_full > endHr_full):
-        Num_of_Hrs = endHr_full + (24 - startHr_full)
-    else:
-        Num_of_Hrs = endHr_full - startHr_full
+#     if(startHr_full > endHr_full):
+#         Num_of_Hrs = endHr_full + (24 - startHr_full)
+#     else:
+#         Num_of_Hrs = endHr_full - startHr_full
         
-    if(startMin_full > endMin_full):
-        Num_of_Mins = endMin_full + (60 - startMin_full)
-    else:
-        Num_of_Mins = endMin_full - startMin_full
+#     if(startMin_full > endMin_full):
+#         Num_of_Mins = endMin_full + (60 - startMin_full)
+#     else:
+#         Num_of_Mins = endMin_full - startMin_full
         
         
-    if(Num_of_Hrs > 0 and startMin_full >= endMin_full):
-        Num_of_Hrs += -1
+#     if(Num_of_Hrs > 0 and startMin_full >= endMin_full):
+#         Num_of_Hrs += -1
         
-    if(Num_of_Days > 0 and startHr_full >= endHr_full):
-        Num_of_Days += -1
+#     if(Num_of_Days > 0 and startHr_full >= endHr_full):
+#         Num_of_Days += -1
         
-    print("\nThe total time the code took to run the given files is:")
-    print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
+#     print("\nThe total time the code took to run the given files is:")
+#     print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
     
 #     if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
 #         rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
