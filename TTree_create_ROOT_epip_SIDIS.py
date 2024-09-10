@@ -816,7 +816,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if(datatype not in ["rdf"]):
             print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
-            rdf = rdf.Define("Background_Identification_Cuts", BG_Cut_Function(dataframe=str(datatype)))
         
         if(datatype in ["gdf"]):
             if("MM" in str(BG_Cut_Function(dataframe="mdf"))):
@@ -886,7 +885,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 };
                 auto it = pid_map.find(pid);
                 if (it != pid_map.end()) return it->second.first;
-                else return 11; // Other
+                else return 5; // Other
             };
             """
             ROOT.gInterpreter.Declare(PID_Interpertation_Code)
@@ -899,7 +898,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##=====##  The above calculations used to be run in the groovy code  ##=====##
     ##############################################################################
     
-    
+    if(datatype not in ["rdf"]):
+        rdf = rdf.Define("Background_Identification_Cuts", BG_Cut_Function(dataframe=str(datatype)))
     
     ####################################################################################################################################################################
     ###################################################     Done with Calculating (Initial) Kinematic Variables      ###################################################
