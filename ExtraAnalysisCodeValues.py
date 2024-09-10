@@ -2005,7 +2005,7 @@ from MyCommonAnalysisFunction_richcap import color
     # Sangbaek_and_Valerii_Fiducial_Cuts() used cuts based on Sangbaek's code but developed by Valerii
     # Up-to-date as of: 7/26/2024
         # Changed variable names and added for both the electron and pion
-def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particle="ele"):
+def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particle="ele", Cut_Flag=False):
     for layer in [6, 18, 36]:
         # Checking Dataframe for correct columns
         if(Particle not in ["ele", "pip"]):
@@ -2063,27 +2063,46 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particl
             else:
                 print(f"{color.Error}Error: Check fidlevel ({fidlevel})\n{color.END}")
                 return Data_Frame_Input
-            Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
-            auto Cal_layer_Min =   -120;
-            auto Cal_layer_Max =    120;
-            """, f"""
-            Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
-            Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
-            """ if(layer in [6]) else f"""
-            Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
-            Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
-            """ if(layer in [18]) else f"""
-            Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
-            Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
-            """, f"""
-            return (({str(Particle)}_y_DC_{layer}_rot > Cal_layer_Min) && ({str(Particle)}_y_DC_{layer}_rot < Cal_layer_Max));
-            """]))
+            if(not Cut_Flag):
+                # Applies Cut normally with the Filter() function
+                Data_Frame_Input = Data_Frame_Input.Filter("".join(["""
+                auto Cal_layer_Min =   -120;
+                auto Cal_layer_Max =    120;
+                """, f"""
+                Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
+                Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
+                """ if(layer in [6]) else f"""
+                Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
+                Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
+                """ if(layer in [18]) else f"""
+                Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
+                Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
+                """, f"""
+                return (({str(Particle)}_y_DC_{layer}_rot > Cal_layer_Min) && ({str(Particle)}_y_DC_{layer}_rot < Cal_layer_Max));
+                """]))
+            else:
+                # Creates a new column to flag the events to cut (rather than cut them right away)
+                Data_Frame_Input = Data_Frame_Input.Define("Valerii_DC_Fiducial_Cuts", "".join(["""
+                auto Cal_layer_Min =   -120;
+                auto Cal_layer_Max =    120;
+                """, f"""
+                Cal_layer_Min  =   -0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
+                Cal_layer_Max  =    0.50 * ({str(Particle)}_x_DC_{layer}_rot + 72  + {str(adjustment_layer1)});
+                """ if(layer in [6]) else f"""
+                Cal_layer_Min  =  -0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
+                Cal_layer_Max  =   0.505 * ({str(Particle)}_x_DC_{layer}_rot + 114 + {str(adjustment_layer2)});
+                """ if(layer in [18]) else f"""
+                Cal_layer_Min  =  -0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
+                Cal_layer_Max  =   0.495 * ({str(Particle)}_x_DC_{layer}_rot + 180 + {str(adjustment_layer3)});
+                """, f"""
+                return (({str(Particle)}_y_DC_{layer}_rot > Cal_layer_Min) && ({str(Particle)}_y_DC_{layer}_rot < Cal_layer_Max));
+                """]))
     return Data_Frame_Input
     
     
 # New Fiducial Volume Cuts for the electron in the PCal
     # Up-to-date as of: 7/8/2024
-def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input):
+def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False):
     # Checking Dataframe for correct columns
     if(any(needed_col not in Data_Frame_Input.GetColumnNames()for needed_col in ["V_PCal", "W_PCal", "U_PCal"])):
         print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial {color.UNDERLINE}volume{color.END}{color.Error} cuts from Valerii (Cannot make cuts)\n{color.END}")
@@ -2094,40 +2113,52 @@ def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input):
             col_num += 1
         del col_num
         return Data_Frame_Input
+    elif(not Cut_Flag):
+        # Applies Cut normally with the Filter() function
+        Data_Frame_Input = Data_Frame_Input.Filter("return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));")
     else:
-        Data_Frame_Input = Data_Frame_Input.Filter("""
-        return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));
-        """)
+        # Creates a new column to flag the events to cut (rather than cut them right away)
+        Data_Frame_Input = Data_Frame_Input.Define("Valerii_PCal_Fiducial_Cuts", "return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));")
     return Data_Frame_Input
     
     
     
 # Function for applying all the Fiducial Cuts above
-def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A"):
+def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A", Cut_Flag=False):
     if("All" in Skip_Options):
         return Data_Frame_In
     Data_Frame_Out = Data_Frame_In
     Failed_Filter  = True
-    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
-        # Applying my (electron) fiducial cuts
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])""")
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])""")
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"])""")
-        Failed_Filter  = False
-    if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
-        # Applying my (pion) fiducial cuts
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])""")
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])""")
-        Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"])""")
-        Failed_Filter  = False
+    if(not Cut_Flag):
+        if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
+            # Applying my (electron) fiducial cuts
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])""")
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])""")
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"])""")
+            Failed_Filter  = False
+        if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
+            # Applying my (pion) fiducial cuts
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])""")
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])""")
+            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"])""")
+            Failed_Filter  = False
+    else:
+        if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
+            # Applying my (electron) fiducial cuts
+            Data_Frame_Out = Data_Frame_Out.Define("My_ele_DC_Fiducial_Cuts", """(is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])) && (is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])) && (is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"]))""")
+            Failed_Filter  = False
+        if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
+            # Applying my (pion) fiducial cuts
+            Data_Frame_Out = Data_Frame_Out.Define("My_pip_DC_Fiducial_Cuts", """(is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])) && (is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])) && (is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"]))""")
+            Failed_Filter  = False
     if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_ele", "DC_el", "All"])):
-        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele")
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele", Cut_Flag=Cut_Flag)
         Failed_Filter  = False
     if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_pip",          "All"])):
-        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip")
+        Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="pip", Cut_Flag=Cut_Flag)
         Failed_Filter  = False
     if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii", "All"])):
-        Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out)
+        Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out, Cut_Flag=Cut_Flag)
         Failed_Filter  = False
     if(Failed_Filter):
         print(f"{color.Error}\nPossible Error: New_Fiducial_Cuts_Function() did not apply any cuts...{color.END}\n\n")
