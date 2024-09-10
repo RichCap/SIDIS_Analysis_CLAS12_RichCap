@@ -4525,8 +4525,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     rdf     = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
     if(("smear" in smearing_options_list) and (datatype not in ["rdf", "gdf"])):
         rdf = rdf.Define("Complete_SIDIS_Cuts_Smeared", "sqrt(smeared_vals[1]) > 1.5 && smeared_vals[7] < 0.75 && smeared_vals[12] > 0 && smeared_vals[6] > 2 && smeared_vals[2] > 2 && smeared_vals[19] > 1.25 && smeared_vals[19] < 5 && 5 < smeared_vals[17] && smeared_vals[17] < 35 && 5 < smeared_vals[21] && smeared_vals[21] < 35")
-        rdf = filter_Valerii(rdf, "Complete", Cut_Flag=True)
-        rdf = New_Fiducial_Cuts_Function(Data_Frame_In=rdf, Skip_Options=Skipped_Fiducial_Cuts, Cut_Flag=True)
 
         
     print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
