@@ -2082,7 +2082,7 @@ def Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input, fidlevel='mid', Particl
                 """]))
             else:
                 # Creates a new column to flag the events to cut (rather than cut them right away)
-                Data_Frame_Input = Data_Frame_Input.Define("Valerii_DC_Fiducial_Cuts", "".join(["""
+                Data_Frame_Input = Data_Frame_Input.Define(f"Valerii_DC_Fiducial_Cuts_{str(Particle)}_DC_{layer}", "".join(["""
                 auto Cal_layer_Min =   -120;
                 auto Cal_layer_Max =    120;
                 """, f"""
