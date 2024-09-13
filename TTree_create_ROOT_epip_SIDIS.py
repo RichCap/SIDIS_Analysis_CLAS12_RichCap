@@ -4233,9 +4233,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###########################################################
     #################     Final ROOT File     #################
     if((str(file_location) not in ['time', 'test']) and output_type in ["data", "tree"]):
-        print(f"{color.BOLD}Taking Snapshot of the RDataFrame...{color.END}")
+        print(f"\n{color.BOLD}Taking Snapshot of the RDataFrame...{color.END}")
         rdf.Snapshot("h22", ROOT_File_Output_Name)
-        print(f"\n{color.BGREEN}Final ROOT file has been created.{color.END}\n")
+        print(f"{color.BGREEN}Final ROOT file has been created.{color.END}\n")
     else:
         print(f"\n{color.RED}Not saving ROOT file...{color.END}\n")
     #################     Final ROOT File     #################
