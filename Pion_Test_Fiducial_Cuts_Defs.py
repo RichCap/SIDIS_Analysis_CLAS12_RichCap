@@ -747,5 +747,101 @@ polygon_pip_secs["Sector_6"] = polygon_sec_6
 
 
 
+if(__name__ in ["__main__"]):    
+    print("\nDone defining polygon_pip_secs...\n")
+
+
+polygon_ele = {}
+polygon_ele["Layer_6__ele"] = [(-65, 0), (-65, -3), (13, -41), (14, -40)]
+polygon_ele["Layer_6__ele"].append((19,    0))
+polygon_ele["Layer_6__ele"].append((13,   42))#
+polygon_ele["Layer_6__ele"].append((-65,   2))
+polygon_ele["Layer_6__ele"].append((-65,   0))
+
+polygon_ele["Layer_18_ele"] = [(-105, 0), (-94, -8), (15, -62)]
+polygon_ele["Layer_18_ele"].append((25,   0))
+polygon_ele["Layer_18_ele"].append((15,   63))#
+polygon_ele["Layer_18_ele"].append((-92,  9))
+polygon_ele["Layer_18_ele"].append((-105, 0))
+
+polygon_ele["Layer_36_ele"] = [(-170, 0), (-169, -5), (-100, -36), (5, -81)]
+polygon_ele["Layer_36_ele"].append((18,    0))
+polygon_ele["Layer_36_ele"].append((5,    85))#
+polygon_ele["Layer_36_ele"].append((-75,  49))
+polygon_ele["Layer_36_ele"].append((-170,  3))    
+polygon_ele["Layer_36_ele"].append((-170,  0))
+
+if(__name__ in ["__main__"]):
+    print("\nDone defining polygon_ele...\n")
+
+polygon_all    = {}
+for particle    in ["ele", "pip"]:
+    for DC_Layer_ii in [6, 18, 36]:
+        if(particle in ["ele"]):
+            polygon_all["".join(["Layer_",     str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "ele"])] = polygon_ele["".join(["Layer_",       str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "ele"])].copy()
+        else:
+            polygon_all["".join(["Layer_",     str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "pip"])] = polygon_pip_secs[f"Sector_{1}"][f"Layer_{DC_Layer_ii}"].copy()
+            for sec in range(2, 7, 1):
+                polygon_all["".join(["Layer_", str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "pip"])].extend(polygon_pip_secs[f"Sector_{sec}"][f"Layer_{DC_Layer_ii}"])
+
+if(__name__ in ["__main__"]):
+    print("\nDone defining polygon_all...\n")
+    for ii in polygon_all:
+        print(f"polygon_all[{ii}] = {polygon_all[ii]}")
+
+New_Test_Fiducial_DC_Cuts_Functions = str(str("".join(["""
+    auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
+    \t""", str(str(str(str(str(str(str(polygon_all).replace("[", "{")).replace("], 'Lay", "}},\n\t{'Lay")).replace("]", "}")).replace(":", ",")).replace("(", "{")).replace(")", "}")).replace(", ", ", "), """
+    };
     
-# print("\nDone defining polygon_pip_secs...\n")
+    bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
+        double winding_number = 0.0;
+        int num_vertices = polygon.size();
+    
+        for (int i = 0; i < num_vertices; ++i) {
+            double x1 = polygon[i].first;
+            double y1 = polygon[i].second;
+            double x2 = polygon[(i + 1) % num_vertices].first;
+            double y2 = polygon[(i + 1) % num_vertices].second;
+    
+            double a1 = atan2(y1 - y, x1 - x);
+            double a2 = atan2(y2 - y, x2 - x);
+            double angle_diff = a2 - a1;
+    
+            if(angle_diff > 3.1415926){
+                angle_diff -= 2 * 3.1415926;
+            } else if(angle_diff < -3.1415926){
+                angle_diff += 2 * 3.1415926;
+            }
+            winding_number += angle_diff;
+        }
+        return (std::abs(winding_number) > 3.1415926);
+    }
+"""])).replace("'", '"'))
+
+if(__name__ in ["__main__"]):
+    print("Code to run these Fiducial Cuts:")
+    from MyCommonAnalysisFunction_richcap import color
+    print(f'''{color.BOLD}\nNew_Test_Fiducial_DC_Cuts_Functions = """{New_Test_Fiducial_DC_Cuts_Functions}"""
+    
+    ROOT.gInterpreter.Declare(New_Test_Fiducial_DC_Cuts_Functions)
+    {color.END}''')
+
+
+import ROOT
+def Apply_Test_Fiducial_Cuts(Data_Frame_In, List_of_Layers=["6", "18", "36"], List_of_Particles=["ele", "pip"]):
+    Data_Frame_Out = Data_Frame_In
+    ROOT.gInterpreter.Declare(New_Test_Fiducial_DC_Cuts_Functions)
+    for layer        in List_of_Layers:
+        Polygon_Layer = f"{layer}" if(str(layer) not in ["6"]) else "6_"
+        for particle in List_of_Particles:
+            if(particle in ["ele"]):
+                # As of 9/23/2024, the electron fiducial cuts are only meant for the rotated DC hit variables
+                    # Also uses the inverse condition of the is_point_in_polygon() fuction (i.e., cuts are applied if 'is_point_in_polygon' is 'True' for the electron, but for the pion, they are applied if 'is_point_in_polygon' is False)
+                Data_Frame_Out = Data_Frame_Out.Filter(f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+            else:
+                Data_Frame_Out = Data_Frame_Out.Filter(f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+    return Data_Frame_Out
+
+if(__name__ in ["__main__"]):
+    print("\nDone defining the 'Apply_Test_Fiducial_Cuts(...)' function\n")
