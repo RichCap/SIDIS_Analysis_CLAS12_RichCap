@@ -30,6 +30,7 @@ class color:
     END_R     = '\033[0m\033[91m' # Combines END and RED
     END_C     = '\033[0m\033[96m' # Combines END and CYAN
     END_G     = '\033[0m\033[92m' # Combines END and GREEN
+    END_b     = '\033[0m\033[94m' # Combines END and BLUE
     
 class color_bg:
     BLACK   = '\033[40m'
