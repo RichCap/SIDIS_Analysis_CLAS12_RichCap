@@ -354,10 +354,20 @@ polygon_sec_1["Layer_18"] = Outer_Sector_1.copy()
 polygon_sec_1["Layer_36"] = Outer_Sector_1.copy()
 del Outer_Sector_1
 
+# polygon_sec_1["Layer_6"].append((24,    0))
+# polygon_sec_1["Layer_6"].append((24,   -6))
+# polygon_sec_1["Layer_6"].append((111, -54))
+# polygon_sec_1["Layer_6"].append((111,  54))
+# polygon_sec_1["Layer_6"].append((24,    6))
+# polygon_sec_1["Layer_6"].append((24,    0))
+
 polygon_sec_1["Layer_6"].append((24,    0))
 polygon_sec_1["Layer_6"].append((24,   -6))
-polygon_sec_1["Layer_6"].append((111, -54))
-polygon_sec_1["Layer_6"].append((111,  54))
+polygon_sec_1["Layer_6"].append((111, -54)) # OG
+polygon_sec_1["Layer_6"].append((118, -50))#
+polygon_sec_1["Layer_6"].append((122,   0))
+polygon_sec_1["Layer_6"].append((120,  20))
+polygon_sec_1["Layer_6"].append((111,  54)) # OG
 polygon_sec_1["Layer_6"].append((24,    6))
 polygon_sec_1["Layer_6"].append((24,    0))
 
@@ -416,10 +426,20 @@ polygon_sec_2["Layer_18"] = Outer_Sector_2.copy()
 polygon_sec_2["Layer_36"] = Outer_Sector_2.copy()
 del Outer_Sector_2
 
+# polygon_sec_2["Layer_6"].append((12,   21))
+# polygon_sec_2["Layer_6"].append((8,    24))
+# polygon_sec_2["Layer_6"].append((10,  120))
+# polygon_sec_2["Layer_6"].append((100,  69))
+# polygon_sec_2["Layer_6"].append((17,   19))
+# polygon_sec_2["Layer_6"].append((12,   21))
 polygon_sec_2["Layer_6"].append((12,   21))
 polygon_sec_2["Layer_6"].append((8,    24))
-polygon_sec_2["Layer_6"].append((10,  120))
-polygon_sec_2["Layer_6"].append((100,  69))
+polygon_sec_2["Layer_6"].append((10,  120)) # OG
+polygon_sec_2["Layer_6"].append((10,  126))#
+polygon_sec_2["Layer_6"].append((50,  110))
+polygon_sec_2["Layer_6"].append((75,  100))
+polygon_sec_2["Layer_6"].append((100,  75))#
+polygon_sec_2["Layer_6"].append((100,  69)) # OG
 polygon_sec_2["Layer_6"].append((17,   19))
 polygon_sec_2["Layer_6"].append((12,   21))
 
@@ -488,10 +508,20 @@ polygon_sec_3["Layer_18"] = Outer_Sector_3.copy()
 polygon_sec_3["Layer_36"] = Outer_Sector_3.copy()
 del Outer_Sector_3
 
+# polygon_sec_3["Layer_6"].append((-12,   21))
+# polygon_sec_3["Layer_6"].append((-17,   18))
+# polygon_sec_3["Layer_6"].append((-98,   70))
+# polygon_sec_3["Layer_6"].append((-11,  120))
+# polygon_sec_3["Layer_6"].append((-8,    24))
+# polygon_sec_3["Layer_6"].append((-12,   21))
 polygon_sec_3["Layer_6"].append((-12,   21))
 polygon_sec_3["Layer_6"].append((-17,   18))
-polygon_sec_3["Layer_6"].append((-98,   70))
-polygon_sec_3["Layer_6"].append((-11,  120))
+polygon_sec_3["Layer_6"].append((-98,   70)) # OG
+polygon_sec_3["Layer_6"].append((-100,  75))#
+polygon_sec_3["Layer_6"].append((-78,  100))
+polygon_sec_3["Layer_6"].append((-50,  112))
+polygon_sec_3["Layer_6"].append((-15,  125))#
+polygon_sec_3["Layer_6"].append((-11,  120)) # OG
 polygon_sec_3["Layer_6"].append((-8,    24))
 polygon_sec_3["Layer_6"].append((-12,   21))
 
@@ -543,12 +573,22 @@ polygon_sec_4["Layer_18"] = Outer_Sector_4.copy()
 polygon_sec_4["Layer_36"] = Outer_Sector_4.copy()
 del Outer_Sector_4
 
+# polygon_sec_4["Layer_6"].append((-24,    0))
+# polygon_sec_4["Layer_6"].append((-24,   -6))
+# polygon_sec_4["Layer_6"].append((-110, -54))
+# polygon_sec_4["Layer_6"].append((-110,  54))
+# polygon_sec_4["Layer_6"].append((-24,    6))
+# polygon_sec_4["Layer_6"].append((-24,    0))
 polygon_sec_4["Layer_6"].append((-24,    0))
 polygon_sec_4["Layer_6"].append((-24,   -6))
-polygon_sec_4["Layer_6"].append((-110, -54))
-polygon_sec_4["Layer_6"].append((-110,  54))
+polygon_sec_4["Layer_6"].append((-110, -54)) # OG
+polygon_sec_4["Layer_6"].append((-120, -54))#
+polygon_sec_4["Layer_6"].append((-125,   0))
+polygon_sec_4["Layer_6"].append((-120,  58))#
+polygon_sec_4["Layer_6"].append((-110,  54)) # OG
 polygon_sec_4["Layer_6"].append((-24,    6))
 polygon_sec_4["Layer_6"].append((-24,    0))
+
 
 polygon_sec_4["Layer_18"].append((-40,     0))
 polygon_sec_4["Layer_18"].append((-40,    -5))
@@ -601,16 +641,27 @@ polygon_sec_5["Layer_18"] = Outer_Sector_5.copy()
 polygon_sec_5["Layer_36"] = Outer_Sector_5.copy()
 del Outer_Sector_5
 
-polygon_sec_5["Layer_6"].append((-14,   -20))
-polygon_sec_5["Layer_6"].append((-8,    -25))
-polygon_sec_5["Layer_6"].append((-9,    -80))
-polygon_sec_5["Layer_6"].append((-12,   -120))
-polygon_sec_5["Layer_6"].append((-15,   -130))
-polygon_sec_5["Layer_6"].append((-65,   -110))
-polygon_sec_5["Layer_6"].append((-105,  -75))
-polygon_sec_5["Layer_6"].append((-100,  -70))
-polygon_sec_5["Layer_6"].append((-17,   -18))
-polygon_sec_5["Layer_6"].append((-14,   -20))
+# polygon_sec_5["Layer_6"].append((-14,   -20))
+# polygon_sec_5["Layer_6"].append((-8,    -25))
+# polygon_sec_5["Layer_6"].append((-9,    -80))
+# polygon_sec_5["Layer_6"].append((-12,   -120))
+# polygon_sec_5["Layer_6"].append((-15,   -130))
+# polygon_sec_5["Layer_6"].append((-65,   -110))
+# polygon_sec_5["Layer_6"].append((-105,  -75))
+# polygon_sec_5["Layer_6"].append((-100,  -70))
+# polygon_sec_5["Layer_6"].append((-17,   -18))
+# polygon_sec_5["Layer_6"].append((-14,   -20))
+polygon_sec_5["Layer_6"].append((-14,    -20))
+polygon_sec_5["Layer_6"].append((-8,     -25))
+polygon_sec_5["Layer_6"].append((-9,     -80))
+polygon_sec_5["Layer_6"].append((-12,   -120)) # OG
+polygon_sec_5["Layer_6"].append((-15,   -128))#
+polygon_sec_5["Layer_6"].append((-65,   -109))
+polygon_sec_5["Layer_6"].append((-105,   -75)) # OG
+polygon_sec_5["Layer_6"].append((-100,   -70))
+polygon_sec_5["Layer_6"].append((-18,    -18))
+# polygon_sec_5["Layer_6"].append((-17,    -18))
+polygon_sec_5["Layer_6"].append((-14,    -20))
 
 polygon_sec_5["Layer_18"].append((-21,   -35))
 polygon_sec_5["Layer_18"].append((-13,   -38))
@@ -660,10 +711,20 @@ polygon_sec_6["Layer_18"] = Outer_Sector_6.copy()
 polygon_sec_6["Layer_36"] = Outer_Sector_6.copy()
 del Outer_Sector_6
 
+# polygon_sec_6["Layer_6"].append((12,   -21))
+# polygon_sec_6["Layer_6"].append((17,   -18))
+# polygon_sec_6["Layer_6"].append((100,  -69))
+# polygon_sec_6["Layer_6"].append((10,  -118))
+# polygon_sec_6["Layer_6"].append((8,    -24))
+# polygon_sec_6["Layer_6"].append((12,   -21))
 polygon_sec_6["Layer_6"].append((12,   -21))
 polygon_sec_6["Layer_6"].append((17,   -18))
-polygon_sec_6["Layer_6"].append((100,  -69))
-polygon_sec_6["Layer_6"].append((10,  -118))
+polygon_sec_6["Layer_6"].append((100,  -69)) # OG
+polygon_sec_6["Layer_6"].append((100,  -75))#
+polygon_sec_6["Layer_6"].append((70,  -100))
+polygon_sec_6["Layer_6"].append((50,  -110))
+polygon_sec_6["Layer_6"].append((14,  -125))#
+polygon_sec_6["Layer_6"].append((10,  -118)) # OG
 polygon_sec_6["Layer_6"].append((8,    -24))
 polygon_sec_6["Layer_6"].append((12,   -21))
 

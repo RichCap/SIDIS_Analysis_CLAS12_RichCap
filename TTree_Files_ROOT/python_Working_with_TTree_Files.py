@@ -10,7 +10,6 @@ script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from Pion_Test_Fiducial_Cuts_Defs     import *
-# from Pion_Test_Fiducial_Cuts_Defs     import polygon_pip_secs
 # Now you can remove the path if you wish
 sys.path.remove(script_dir)
 del script_dir
@@ -83,8 +82,8 @@ print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
+# if(False):
     REAL_File_Name = Common_Name
 else:
     REAL_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if(Pass_Version in ["Pass 2"]) else "5D_Unfold_Test_V7_All"
@@ -97,8 +96,8 @@ else:
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-if(False):
+#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
+# if(False):
     MC_REC_File_Name = Common_Name
 else:
     # MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
@@ -225,37 +224,6 @@ def Normalize_Histogram(histogram):
         histogram.Scale(100 / integral)
     return histogram
 
-# def is_point_in_polygon(x, y, polygon):
-#     def angle(x1, y1, x2, y2):
-#         return math.atan2(y2 - y1, x2 - x1)
-#     winding_number = 0
-#     num_vertices = len(polygon)
-#     for i in range(num_vertices):
-#         x1, y1 = polygon[i]
-#         x2, y2 = polygon[(i + 1) % num_vertices]
-#         a1 = angle(x, y, x1, y1)
-#         a2 = angle(x, y, x2, y2)
-#         angle_diff = a2 - a1
-#         if(angle_diff > math.pi):
-#             angle_diff -= 2 * math.pi
-#         elif(angle_diff < -math.pi):
-#             angle_diff += 2 * math.pi
-#         winding_number += angle_diff
-#     return abs(winding_number) > math.pi
-
-# def apply_cut_on_boxes_3D(histogram, box_borders):
-#     for binz in range(0, histogram.GetNbinsZ() + 2):
-#         for biny in range(0, histogram.GetNbinsY() + 2):
-#             DCy = histogram.GetZaxis().GetBinCenter(binz)
-#             DCx = histogram.GetYaxis().GetBinCenter(biny)
-#             # Perform the cut check based only on DCx and DCy
-#             if(not (any(is_point_in_polygon(DCx, DCy, quad) for quad in box_borders))):
-#             # if((any(is_point_in_polygon(DCx, DCy, quad) for quad in box_borders))):
-#                 for binx in range(0, histogram.GetNbinsX() + 2):
-#                     # angle = histogram.GetXaxis().GetBinCenter(binx)
-#                     histogram.SetBinContent(binx, biny, binz, 0)  # Set bin content to zero
-#     return histogram
-
 def set_common_yaxis_range(hist1, hist2, hist3="N/A", hist4="N/A"):
     # Initialize variables for global min and max
     global_min = float('inf')
@@ -303,142 +271,24 @@ canvas, histograms, pl = {}, {}, {}
 ROOT.gStyle.SetOptStat("i")
 
 
-# polygon = {}
 
-Particle = "pip"
-Particle_Title = "#pi^{+} Pion" if(Particle in ["pip"]) else "Electron"
-DC_Layer = 6
+print("\nSelecting Options...\n")
 
-Search_Include = ["(Histo-Group='Normal_3D')", "(Data-Cut='cut_Complete_SIDIS')", "(Smear-Type='')"]
+DC_2D_Bin_Nums = 100
 
-# Search_Include.append("Var-D1='ele_x_DC")
-# Search_Include.append("ele_x_DC_18_rot")
-Search_Include.append(f"Var-D1='{Particle}_x_DC")
-Search_Include.append(f"{Particle}_x_DC_{DC_Layer}")
-# Search_Include.append(f"{Particle}_x_DC_{DC_Layer}_rot")
+Phi___Bin_Nums =  90
+Phi___MaxRange = 360
+Theta_Bin_Nums =  60
+Theta_MaxRange =  60
 
-particle_angle = "pipPhi"
-# particle_angle = "pipth"
-particle_angle_Title = "".join(["#phi" if("Phi" in particle_angle) else "#theta", "_{", "#pi^{+} Pion" if("pip" in particle_angle) else "Electron", "}"])
-Search_Include.append(particle_angle)
-# Search_Include.append("pipth")
+List_of_Cuts = ["Complete_SIDIS_Cuts", "Valerii_DC_Fiducial_Cuts_ele_DC_6", "Valerii_DC_Fiducial_Cuts_ele_DC_18", "Valerii_DC_Fiducial_Cuts_ele_DC_36", "Valerii_OG_Cut", "Valerii_PCal_Fiducial_Cuts", "My_pip_DC_Fiducial_Cuts"]
+# List_of_Cuts = ["Complete_SIDIS_Cuts"]
 
-Search_Exclude = ["(Data-Cut='no_cut')"]
-Search_Exclude.append("elPhi")
-Search_Exclude.append("elth")
-
-Search_Exclude.append("_rot")
-
-
-Rotation_Conditions = ("_rot" not in Search_Exclude)
-Rotation_Conditions = False
-
-Sector = "All"
-# Sector = 3
-if(Rotation_Conditions):
-    x_axis_DC_min, x_axis_DC_max         = -200, 200
-    y_axis_DC_min, y_axis_DC_max         = -100 - (50*int((DC_Layer/6)/3)), 100 + (50*int((DC_Layer/6)/3))
-else:
-    if(DC_Layer in [6]):
-        x_axis_DC_min, x_axis_DC_max     = -150, 150
-        y_axis_DC_min, y_axis_DC_max     = -175, 175
-        if(Sector == 1):
-            x_axis_DC_min, x_axis_DC_max =    0, 150
-            y_axis_DC_min, y_axis_DC_max = -100, 100
-        if(Sector == 2):
-            x_axis_DC_min, x_axis_DC_max = -50,  150
-            y_axis_DC_min, y_axis_DC_max =   0,  150
-        if(Sector == 3):
-            x_axis_DC_min, x_axis_DC_max = -150,  50
-            y_axis_DC_min, y_axis_DC_max =    0, 150
-        if(Sector == 4):
-            x_axis_DC_min, x_axis_DC_max = -150,   0
-            y_axis_DC_min, y_axis_DC_max = -100, 100
-        if(Sector == 5):
-            x_axis_DC_min, x_axis_DC_max = -150,  50
-            y_axis_DC_min, y_axis_DC_max = -160,   0
-        if(Sector == 6):
-            x_axis_DC_min, x_axis_DC_max =  -50, 150
-            y_axis_DC_min, y_axis_DC_max = -150,   0
-    # if(DC_Layer in [18]):
-    #     h1[SECTOR].GetXaxis().SetRangeUser(-225, 225)
-    #     h1[SECTOR].GetYaxis().SetRangeUser(-250, 300)
-        # h1[SECTOR].GetXaxis().SetRangeUser(-5, 225)
-        # h1[SECTOR].GetYaxis().SetRangeUser(-300, 5)
-        # h1[SECTOR].GetYaxis().SetRangeUser(-100, 100)
-    if(DC_Layer in [18]):
-        x_axis_DC_min, x_axis_DC_max     = -300, 300
-        y_axis_DC_min, y_axis_DC_max     = -300, 300
-        if(Sector in [1]):
-            x_axis_DC_min, x_axis_DC_max = -5,   300
-            y_axis_DC_min, y_axis_DC_max = -200, 200
-        if(Sector in [2]):
-            x_axis_DC_min, x_axis_DC_max = -5,   300
-            y_axis_DC_min, y_axis_DC_max = -5,   300
-        if(Sector in [3]):
-            x_axis_DC_min, x_axis_DC_max = -300,   5
-            y_axis_DC_min, y_axis_DC_max = -5,   300
-        if(Sector in [4]):
-            x_axis_DC_min, x_axis_DC_max = -300,   5
-            y_axis_DC_min, y_axis_DC_max = -200, 200
-        if(Sector in [5]):
-            x_axis_DC_min, x_axis_DC_max = -300,   5
-            y_axis_DC_min, y_axis_DC_max = -300,   5
-        if(Sector in [6]):
-            x_axis_DC_min, x_axis_DC_max = -5,   275
-            y_axis_DC_min, y_axis_DC_max = -250,   5
-    if(DC_Layer in [36]):
-        x_axis_DC_min, x_axis_DC_max     = -500, 500
-        y_axis_DC_min, y_axis_DC_max     = -500, 500
-        if(Sector in [1]):
-            x_axis_DC_min, x_axis_DC_max = -5,   500
-            y_axis_DC_min, y_axis_DC_max = -200, 200
-        if(Sector in [2]):
-            x_axis_DC_min, x_axis_DC_max = -5,   500
-            y_axis_DC_min, y_axis_DC_max = -5,   500
-        if(Sector in [3]):
-            x_axis_DC_min, x_axis_DC_max = -500,   5
-            y_axis_DC_min, y_axis_DC_max = -5,   500
-        if(Sector in [4]):
-            x_axis_DC_min, x_axis_DC_max = -500,   5
-            y_axis_DC_min, y_axis_DC_max = -200, 200
-        if(Sector in [5]):
-            x_axis_DC_min, x_axis_DC_max = -500,   5
-            y_axis_DC_min, y_axis_DC_max = -500,   5
-        if(Sector in [6]):
-            x_axis_DC_min, x_axis_DC_max = -5,   500
-            y_axis_DC_min, y_axis_DC_max = -500,   5
-
-# quadrilaterals = []
-# if(Rotation_Conditions):
-#     quadrilaterals.append(polygon["".join(["Layer_", str(DC_Layer), "_", "" if (DC_Layer not in [6]) else "_", str(Particle)])])
-# else:
-#     quadrilaterals = []
-#     for sec in range(1 if(str(Sector) in ["All", "0"]) else Sector, 7 if(str(Sector) in ["All", "0"]) else Sector+1, 1):
-#         # if(sec in [6]):
-#         #     continue
-#         quadrilaterals.append(polygon_pip_secs[f"Sector_{sec}"][f"Layer_{DC_Layer}"])
-#         print(f"Adding: [Sector_{sec}][Layer_{DC_Layer}]")
-#     def apply_cut_on_boxes_3D(histogram, box_borders):
-#         for binz in range(0, histogram.GetNbinsZ() + 2):
-#             for biny in range(0, histogram.GetNbinsY() + 2):
-#                 DCy = histogram.GetZaxis().GetBinCenter(binz)
-#                 DCx = histogram.GetYaxis().GetBinCenter(biny)
-#                 # Perform the cut check based only on DCx and DCy
-#                 if(any(is_point_in_polygon(DCx, DCy, quad) for quad in box_borders)):
-#                     for binx in range(0, histogram.GetNbinsX() + 2):
-#                         histogram.SetBinContent(binx, biny, binz, 0)  # Set bin content to zero
-#         return histogram
-
-#     polygon_pip    = {}
-#     for DC_Layer_ii in [6, 18, 36]:
-#         # polygon_pip["".join(["Layer_",     str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "ele"])] = polygon["".join(["Layer_",           str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "ele"])].copy()
-#         polygon_pip["".join(["Layer_",     str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "pip"])] = polygon_pip_secs[f"Sector_{1}"][f"Layer_{DC_Layer_ii}"].copy()
-#         for sec in range(2, 7, 1):
-#             polygon_pip["".join(["Layer_", str(DC_Layer_ii), "_", "" if(DC_Layer_ii not in [6]) else "_", "pip"])].append(polygon_pip_secs[f"Sector_{sec}"][f"Layer_{DC_Layer_ii}"])
-
-# List_of_Cuts = ["Complete_SIDIS_Cuts", "Valerii_DC_Fiducial_Cuts_ele_DC_6", "Valerii_DC_Fiducial_Cuts_ele_DC_18", "Valerii_DC_Fiducial_Cuts_ele_DC_36", "Valerii_OG_Cut", "Valerii_PCal_Fiducial_Cuts", "My_pip_DC_Fiducial_Cuts"]
-List_of_Cuts = ["Complete_SIDIS_Cuts"]
+DC_Layer_List = ["6", "18", "36"]
+DC_Layer_List = ["6", "18"]
+Particle_List = ["pip"]
+# P_Angle__List = ["pipPhi", "pipth", "elPhi", "elth"]
+P_Angle__List = ["pipPhi"]
 
 print("\nAdding (Initial) Cuts to RDataFrames...\n")
 
@@ -452,261 +302,339 @@ print("\nAdding (Test) Cuts to RDataFrames...\n")
 
 rdf_cut_2 = rdf_cut
 mdf_cut_2 = mdf_cut
-rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"])
-mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"])
+rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6"], List_of_Particles=["pip"])
+# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
+mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6"], List_of_Particles=["pip"])
+# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
 
-print("\nCreating Histograms...\n")
-
-histo_name_rdf = f"RDF_{Particle}_DC_Layer_{DC_Layer}_Main"
-histo_name_mdf = f"MDF_{Particle}_DC_Layer_{DC_Layer}_Main"
-
-DC_2D_Bin_Nums = 400
-Angle_Bin_Nums = 360
-
-histograms[f"{histo_name_rdf}____Drift_Chamber"] = rdf_cut.Histo2D((f"{histo_name_rdf}____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Experimental Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]", DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
-histograms[f"{histo_name_mdf}____Drift_Chamber"] = mdf_cut.Histo2D((f"{histo_name_mdf}____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Monte Carlo Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]",  DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
-histograms[f"{histo_name_rdf}____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-histograms[f"{histo_name_rdf}____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-histograms[f"{histo_name_mdf}____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-histograms[f"{histo_name_mdf}____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-
-histograms[f"{histo_name_rdf}_{particle_angle}"] = rdf_cut.Histo1D((f"{histo_name_rdf}_{particle_angle}", "rdf (angle) Title", Angle_Bin_Nums, 0, 360), str(particle_angle))
-histograms[f"{histo_name_rdf}_{particle_angle}"] = histograms[f"{histo_name_rdf}_{particle_angle}"].GetValue()
-histograms[f"{histo_name_rdf}_{particle_angle}"].SetLineColor(ROOT.kBlue)
-histograms[f"{histo_name_mdf}_{particle_angle}"] = mdf_cut.Histo1D((f"{histo_name_mdf}_{particle_angle}", "mdf (angle) Title", Angle_Bin_Nums, 0, 360), str(particle_angle))
-histograms[f"{histo_name_mdf}_{particle_angle}"] = histograms[f"{histo_name_mdf}_{particle_angle}"].GetValue()
-histograms[f"{histo_name_mdf}_{particle_angle}"].SetLineColor(ROOT.kRed)
-
-Normalize_Histogram(histograms[f"{histo_name_rdf}____Drift_Chamber"])
-Normalize_Histogram(histograms[f"{histo_name_rdf}_{particle_angle}"])
-Normalize_Histogram(histograms[f"{histo_name_mdf}____Drift_Chamber"])
-Normalize_Histogram(histograms[f"{histo_name_mdf}_{particle_angle}"])
-
-histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"] = histograms[f"{histo_name_rdf}____Drift_Chamber"].Clone(f"{histo_name_rdf}____Drift_Chamber_ratio")
-histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"] = Ratio_of_2D_Histos(out_hist=histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"], rdf_hist=histograms[f"{histo_name_rdf}____Drift_Chamber"], mdf_hist=histograms[f"{histo_name_mdf}____Drift_Chamber"])
-
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_{particle_angle}"].Clone(f"{histo_name_rdf}_{particle_angle}_ratio")
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_{particle_angle}"], -1)
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_{particle_angle}"])
-
-
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"] = rdf_cut_2.Histo2D((f"{histo_name_rdf}_After_Cut____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Experimental Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{AFTER Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]", DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
-histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"] = mdf_cut_2.Histo2D((f"{histo_name_mdf}_After_Cut____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Monte Carlo Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{AFTER Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]",  DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"] = rdf_cut_2.Histo1D((f"{histo_name_rdf}_After_Cut_{particle_angle}", "rdf (angle) Title - AFTER CUTS", Angle_Bin_Nums, 0, 360), str(particle_angle))
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"] = histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetValue()
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].SetLineColor(ROOT.kBlue)
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"] = mdf_cut_2.Histo1D((f"{histo_name_mdf}_After_Cut_{particle_angle}", "mdf (angle) Title - AFTER CUTS", Angle_Bin_Nums, 0, 360), str(particle_angle))
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"] = histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetValue()
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].SetLineColor(ROOT.kRed)
-
-Normalize_Histogram(histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"])
-Normalize_Histogram(histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"])
-Normalize_Histogram(histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"])
-Normalize_Histogram(histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"])
-
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"] = histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].Clone(f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio")
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"] = Ratio_of_2D_Histos(out_hist=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"], rdf_hist=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"], mdf_hist=histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"])
-
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].Clone(f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"], -1)
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"])
-
-
-print("\nCreating TCanvas...\n")
-
-canvas[histo_name_rdf] = Canvas_Create(Name=f"canvas_{histo_name_rdf}", Num_Columns=1, Num_Rows=3, Size_X=2400, Size_Y=1800, cd_Space=0)
-canvas[histo_name_rdf].SetFillColor(17)  # Color index 17 corresponds to a light grey color
-
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"] = canvas[histo_name_rdf].cd(1)
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"] = canvas[histo_name_rdf].cd(2)
-canvas[f"{histo_name_rdf}_cd_SamePadNew_Cuts"] = canvas[histo_name_rdf].cd(3)
-
-Plot_All_Q = not False
-
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].SetPad(0.05, 0.545, 0.95, 0.95)
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].SetPad(0.05, 0.05,  0.95, 0.555)
-canvas[f"{histo_name_rdf}_cd_SamePadNew_Cuts"].SetPad(0.78 if(Plot_All_Q) else 0.71, 0.3, 0.9, 0.8)
-
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].Divide(6 if(Plot_All_Q) else 4, 1, 0.01, 0.01)
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].Divide(6 if(Plot_All_Q) else 4, 1, 0.01, 0.01)
-
-set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"])
-# set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_{particle_angle}_ratio"])
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].SetLineColor(ROOT.kBlack)
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].SetLineColor(ROOT.kGreen)
-
-set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"])
-# set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_{particle_angle}_ratio"])
-set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"], histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"])
-# set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"], histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"])
-
-histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].SetTitle(f"#splitline{{#splitline{{#scale[2.5]{{% Diff in Drift Chamber (Layer {DC_Layer})}}}}{{#scale[1.5]{{Comparison of Data/MC Hits of the {Particle_Title}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}")
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].SetTitle(f"#splitline{{#splitline{{#scale[2.5]{{% Diff in Drift Chamber (Layer {DC_Layer})}}}}{{#scale[1.5]{{Comparison of Data/MC Hits of the {Particle_Title}}}}}}}{{#scale[2]{{After Applying the (New) DC Fiducial Cuts}}}}")
-
-histograms[f"{histo_name_rdf}_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(Before Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
-histograms[f"{histo_name_mdf}_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(Before Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
-
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(After Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(After Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
-
-histograms[f"{histo_name_rdf}_{particle_angle}"].GetYaxis().SetTitle("Normalized")
-histograms[f"{histo_name_mdf}_{particle_angle}"].GetYaxis().SetTitle("Normalized")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetYaxis().SetTitle("Normalized")
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetYaxis().SetTitle("Normalized")
-
-histograms[f"{histo_name_rdf}_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-histograms[f"{histo_name_mdf}_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-
-
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].SetTitle(f"#splitline{{#scale[2]{{#splitline{{% Diff of Lab {particle_angle_Title} Angle}}{{Comparison Between Data and MC}}}}}}{{#scale[1.8]{{#splitline{{{root_color.Bold}{{Before (New) DC Cuts}}}}{{#color[{ROOT.kGreen}]{{After (New) DC Cuts}}}}}}}}")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].SetTitle(f"#splitline{{#scale[2]{{#splitline{{% Diff of Lab {particle_angle_Title} Angle}}{{Comparison Between Data and MC}}}}}}{{#scale[1.8]{{#splitline{{{root_color.Bold}{{Before (New) DC Cuts}}}}{{#color[{ROOT.kGreen}]{{After (New) DC Cuts}}}}}}}}")
-
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].GetYaxis().SetTitle("% Difference")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].GetYaxis().SetTitle("% Difference")
-
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
-
-if(Plot_All_Q):
-    canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(1)
-    histograms[f"{histo_name_rdf}____Drift_Chamber"].Draw("colz")
-    ROOT.gPad.SetLogz(0)
-    canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(2)
-    histograms[f"{histo_name_mdf}____Drift_Chamber"].Draw("colz")
-    ROOT.gPad.SetLogz(0)
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(3 if(Plot_All_Q) else 1)
-histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].Draw("colz")
-ROOT.gPad.SetLogz(1)
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(4 if(Plot_All_Q) else 2)
-histograms[f"{histo_name_rdf}_{particle_angle}"].Draw("hist EO same")
-histograms[f"{histo_name_mdf}_{particle_angle}"].Draw("hist EO same")
-canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(5 if(Plot_All_Q) else 3)
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Draw("hist EO same")
-
-if(Plot_All_Q):
-    canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(1)
-    histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].Draw("colz")
-    ROOT.gPad.SetLogz(0)
-    canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(2)
-    histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].Draw("colz")
-    ROOT.gPad.SetLogz(0)
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(3 if(Plot_All_Q) else 1)
-histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].Draw("colz")
-ROOT.gPad.SetLogz(1)
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(4 if(Plot_All_Q) else 2)
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].Draw("hist EO same")
-histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].Draw("hist EO same")
-canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(5 if(Plot_All_Q) else 3)
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Draw("hist EO same")
-
-canvas[histo_name_rdf].cd(3)
-canvas[histo_name_rdf].cd(3).SetTopMargin(0.05)
-histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Draw("hist EO same")
-histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Draw("hist EO same")
-
-canvas[histo_name_rdf].Update()
-
-
-CD_NUM_List = [1, 2, 3] if(Plot_All_Q) else [1]
-list_of_lines = []
-list_of_lines.append(polygon_all["".join(["Layer_", str(DC_Layer), "_", "" if (DC_Layer not in [6]) else "_", str(Particle)])])
-for CD_NUM in CD_NUM_List:
-    try:
-        for ii, polygon_ii in enumerate(list_of_lines):
-            n_points = len(polygon_ii)
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"] = ROOT.TPolyLine(n_points + 1)
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"] = ROOT.TPolyLine(n_points + 1)
-            for i, (x, y) in enumerate(polygon_ii):
-                pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetPoint(i, x, y)
-                pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetPoint(i, x, y)
-            # Close the shape by repeating the first point
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetLineColor(2)  # Red color
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetLineWidth(1)
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetLineColor(2)  # Red color
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetLineWidth(1)
-            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(CD_NUM)
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].Draw("same")
-            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(CD_NUM)
-            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].Draw("same")
-        canvas[histo_name_rdf].Update()
-    except:
-        print("ERROR in box.Draw('same')")
-        print(f"{color.Error}TRACEBACK:\n{color.END_B}{str(traceback.format_exc())}{color.END}")
-
-print("\nDrawing TCanvas...\n")
-
-# canvas[histo_name_rdf].Draw()
-canvas[histo_name_rdf].Update()
-
-
-
-# canvas[f"canvas_{histo_name_rdf}_DC"] = Canvas_Create(Name=f"canvas_{histo_name_rdf}_DC", Num_Columns=2, Num_Rows=1, Size_X=1800, Size_Y=1600, cd_Space=0.01)
-# canvas[f"canvas_{histo_name_rdf}_DC"].SetFillColor(17)  # Color index 17 corresponds to a light grey color
-
-# canvas[f"canvas_{histo_name_rdf}_DC"].cd(1).SetPad(0.1,   0.1, 0.495, 0.9)
-# canvas[f"canvas_{histo_name_rdf}_DC"].cd(2).SetPad(0.505, 0.1, 0.9,   0.9)
-
-# canvas[f"canvas_{histo_name_rdf}_DC"].cd(1)
-# # Draw_Canvas(canvas[f"canvas_{histo_name_rdf}_DC"], 1, left_add=0.05, right_add=0.05, up_add=0.1, down_add=0.1)
-# histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].Draw("colz")
-# histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-# histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-# ROOT.gPad.SetLogz(1)
-# palette_move(canvas=canvas[f"canvas_{histo_name_rdf}_DC"], histo=histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"],           x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
-
-# # canvas[f"canvas_{histo_name_rdf}_DC"].cd(2)
-# # # Draw_Canvas(canvas[f"canvas_{histo_name_rdf}_DC"], 2, left_add=0.05, right_add=0.05, up_add=0.1, down_add=0.1)
-# # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].Draw("colz")
-# # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
-# # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
-# # palette_move(canvas=canvas[f"canvas_{histo_name_rdf}_DC"], histo=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
-
-# # for CD_NUM in [1, 2]:
-# for CD_NUM in [1]:
-#     try:
-#         for ii, polygon_ii in enumerate(quadrilaterals):
-#             n_points = len(polygon_ii)
-#             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"] = ROOT.TPolyLine(n_points + 1)
-#             for i, (x, y) in enumerate(polygon_ii):
-#                 pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetPoint(i, x, y)
-#             # Close the shape by repeating the first point
-#             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
-#             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetLineColor(2)  # Red color
-#             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetLineWidth(1)
-#             canvas[f"canvas_{histo_name_rdf}_DC"].cd(CD_NUM)
-#             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].Draw("same")
-#         canvas[f"canvas_{histo_name_rdf}_DC"].Update()
-#     except:
-#         print("ERROR in box.Draw('same')")
-
-# canvas[f"canvas_{histo_name_rdf}_DC"].Draw()
-# canvas[f"canvas_{histo_name_rdf}_DC"].Update()
-
-# canvas[histo_name_rdf].Draw()
-# canvas[histo_name_rdf].Update()
-
-
-# if(Rotation_Conditions):
-#     print(str("".join([color.BOLD, """
-
-# auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
-# \t""", str(str(str(str(str(str(str(polygon).replace("[", "{")).replace("], 'Lay", "}},\n\t{'Lay")).replace("]", "}")).replace(":", ",")).replace("(", "{")).replace(")", "}")).replace(", ", ", "), """
-# };""", color.END])).replace("'", '"'))
-# else:
-#     print(str("".join([color.BOLD, """
-
-# auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
-# \t""", str(str(str(str(str(str(str(polygon_pip).replace("[", "{")).replace("], 'Lay", "}},\n\t{'Lay")).replace("]", "}")).replace(":", ",")).replace("(", "{")).replace(")", "}")).replace(", ", ", "), """
-# };""", color.END])).replace("'", '"'))
+# Particle = "pip"
+# DC_Layer = 6
+# particle_angle = "pipPhi"
+# # particle_angle = "pipth"
+print("Starting loop through selected options...\n")
+for         DC_Layer       in DC_Layer_List:
+    DC_Layer = int(DC_Layer)
+    for     Particle       in Particle_List:
+        for particle_angle in P_Angle__List:
+            Angle_Bin_Nums = Phi___Bin_Nums if("th" not in particle_angle) else Theta_Bin_Nums
+            Angle_MaxRange = Phi___MaxRange if("th" not in particle_angle) else Theta_MaxRange
+            
+            Particle_Title = "#pi^{+} Pion" if(Particle in ["pip"]) else "Electron"
+            particle_angle_Title = "".join(["#phi" if("Phi" in particle_angle) else "#theta", "_{", "#pi^{+} Pion" if("pip" in particle_angle) else "Electron", "}"])
+            Sector = "All"
+            # Sector = 3
+            if(Particle not in ["pip"]):
+                x_axis_DC_min, x_axis_DC_max         = -200, 200
+                y_axis_DC_min, y_axis_DC_max         = -100 - (50*int((DC_Layer/6)/3)), 100 + (50*int((DC_Layer/6)/3))
+            else:
+                if(DC_Layer in [6]):
+                    x_axis_DC_min, x_axis_DC_max     = -150, 150
+                    y_axis_DC_min, y_axis_DC_max     = -175, 175
+                    if(Sector == 1):
+                        x_axis_DC_min, x_axis_DC_max =    0, 150
+                        y_axis_DC_min, y_axis_DC_max = -100, 100
+                    if(Sector == 2):
+                        x_axis_DC_min, x_axis_DC_max = -50,  150
+                        y_axis_DC_min, y_axis_DC_max =   0,  150
+                    if(Sector == 3):
+                        x_axis_DC_min, x_axis_DC_max = -150,  50
+                        y_axis_DC_min, y_axis_DC_max =    0, 150
+                    if(Sector == 4):
+                        x_axis_DC_min, x_axis_DC_max = -150,   0
+                        y_axis_DC_min, y_axis_DC_max = -100, 100
+                    if(Sector == 5):
+                        x_axis_DC_min, x_axis_DC_max = -150,  50
+                        y_axis_DC_min, y_axis_DC_max = -160,   0
+                    if(Sector == 6):
+                        x_axis_DC_min, x_axis_DC_max =  -50, 150
+                        y_axis_DC_min, y_axis_DC_max = -150,   0
+                if(DC_Layer in [18]):
+                    x_axis_DC_min, x_axis_DC_max     = -300, 300
+                    y_axis_DC_min, y_axis_DC_max     = -300, 300
+                    if(Sector in [1]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   300
+                        y_axis_DC_min, y_axis_DC_max = -200, 200
+                    if(Sector in [2]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   300
+                        y_axis_DC_min, y_axis_DC_max = -5,   300
+                    if(Sector in [3]):
+                        x_axis_DC_min, x_axis_DC_max = -300,   5
+                        y_axis_DC_min, y_axis_DC_max = -5,   300
+                    if(Sector in [4]):
+                        x_axis_DC_min, x_axis_DC_max = -300,   5
+                        y_axis_DC_min, y_axis_DC_max = -200, 200
+                    if(Sector in [5]):
+                        x_axis_DC_min, x_axis_DC_max = -300,   5
+                        y_axis_DC_min, y_axis_DC_max = -300,   5
+                    if(Sector in [6]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   275
+                        y_axis_DC_min, y_axis_DC_max = -250,   5
+                if(DC_Layer in [36]):
+                    x_axis_DC_min, x_axis_DC_max     = -500, 500
+                    y_axis_DC_min, y_axis_DC_max     = -500, 500
+                    if(Sector in [1]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   500
+                        y_axis_DC_min, y_axis_DC_max = -200, 200
+                    if(Sector in [2]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   500
+                        y_axis_DC_min, y_axis_DC_max = -5,   500
+                    if(Sector in [3]):
+                        x_axis_DC_min, x_axis_DC_max = -500,   5
+                        y_axis_DC_min, y_axis_DC_max = -5,   500
+                    if(Sector in [4]):
+                        x_axis_DC_min, x_axis_DC_max = -500,   5
+                        y_axis_DC_min, y_axis_DC_max = -200, 200
+                    if(Sector in [5]):
+                        x_axis_DC_min, x_axis_DC_max = -500,   5
+                        y_axis_DC_min, y_axis_DC_max = -500,   5
+                    if(Sector in [6]):
+                        x_axis_DC_min, x_axis_DC_max = -5,   500
+                        y_axis_DC_min, y_axis_DC_max = -500,   5
+            
+            
+            histo_name_rdf = f"RDF_{Particle}_DC_Layer_{DC_Layer}_Main_{particle_angle}"
+            histo_name_mdf = f"MDF_{Particle}_DC_Layer_{DC_Layer}_Main_{particle_angle}"
+            print(f"{color.BOLD}\nCreating Histograms for histo_name_rdf = {color.UNDERLINE}{histo_name_rdf}{color.END}\n")
+            
+            
+            histograms[f"{histo_name_rdf}____Drift_Chamber"] = rdf_cut.Histo2D((f"{histo_name_rdf}____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Experimental Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]", DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
+            histograms[f"{histo_name_mdf}____Drift_Chamber"] = mdf_cut.Histo2D((f"{histo_name_mdf}____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Monte Carlo Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]",  DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
+            histograms[f"{histo_name_rdf}____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            histograms[f"{histo_name_rdf}____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            histograms[f"{histo_name_mdf}____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            histograms[f"{histo_name_mdf}____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}"] = rdf_cut.Histo1D((f"{histo_name_rdf}_{particle_angle}", "rdf (angle) Title", Angle_Bin_Nums, 0, Angle_MaxRange), str(particle_angle))
+            histograms[f"{histo_name_rdf}_{particle_angle}"] = histograms[f"{histo_name_rdf}_{particle_angle}"].GetValue()
+            histograms[f"{histo_name_rdf}_{particle_angle}"].SetLineColor(ROOT.kBlue)
+            histograms[f"{histo_name_mdf}_{particle_angle}"] = mdf_cut.Histo1D((f"{histo_name_mdf}_{particle_angle}", "mdf (angle) Title", Angle_Bin_Nums, 0, Angle_MaxRange), str(particle_angle))
+            histograms[f"{histo_name_mdf}_{particle_angle}"] = histograms[f"{histo_name_mdf}_{particle_angle}"].GetValue()
+            histograms[f"{histo_name_mdf}_{particle_angle}"].SetLineColor(ROOT.kRed)
+            
+            Normalize_Histogram(histograms[f"{histo_name_rdf}____Drift_Chamber"])
+            Normalize_Histogram(histograms[f"{histo_name_rdf}_{particle_angle}"])
+            Normalize_Histogram(histograms[f"{histo_name_mdf}____Drift_Chamber"])
+            Normalize_Histogram(histograms[f"{histo_name_mdf}_{particle_angle}"])
+            
+            histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"] = histograms[f"{histo_name_rdf}____Drift_Chamber"].Clone(f"{histo_name_rdf}____Drift_Chamber_ratio")
+            histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"] = Ratio_of_2D_Histos(out_hist=histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"], rdf_hist=histograms[f"{histo_name_rdf}____Drift_Chamber"], mdf_hist=histograms[f"{histo_name_mdf}____Drift_Chamber"])
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_{particle_angle}"].Clone(f"{histo_name_rdf}_{particle_angle}_ratio")
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_{particle_angle}"], -1)
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_{particle_angle}"])
+            
+            
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"] = rdf_cut_2.Histo2D((f"{histo_name_rdf}_After_Cut____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Experimental Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{AFTER Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]", DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
+            histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"] = mdf_cut_2.Histo2D((f"{histo_name_mdf}_After_Cut____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Monte Carlo Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{AFTER Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]",  DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"] = rdf_cut_2.Histo1D((f"{histo_name_rdf}_After_Cut_{particle_angle}", "rdf (angle) Title - AFTER CUTS", Angle_Bin_Nums, 0, Angle_MaxRange), str(particle_angle))
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"] = histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetValue()
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].SetLineColor(ROOT.kBlue)
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"] = mdf_cut_2.Histo1D((f"{histo_name_mdf}_After_Cut_{particle_angle}", "mdf (angle) Title - AFTER CUTS", Angle_Bin_Nums, 0, Angle_MaxRange), str(particle_angle))
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"] = histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetValue()
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].SetLineColor(ROOT.kRed)
+            
+            Normalize_Histogram(histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"])
+            Normalize_Histogram(histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"])
+            Normalize_Histogram(histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"])
+            Normalize_Histogram(histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"])
+            
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"] = histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].Clone(f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio")
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"] = Ratio_of_2D_Histos(out_hist=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"], rdf_hist=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"], mdf_hist=histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"])
+            
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].Clone(f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"], -1)
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"])
+            
+            
+            print("\nCreating TCanvas...\n")
+            
+            canvas[histo_name_rdf] = Canvas_Create(Name=f"canvas_{histo_name_rdf}", Num_Columns=1, Num_Rows=3, Size_X=2400, Size_Y=1800, cd_Space=0)
+            canvas[histo_name_rdf].SetFillColor(17)  # Color index 17 corresponds to a light grey color
+            
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"] = canvas[histo_name_rdf].cd(1)
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"] = canvas[histo_name_rdf].cd(2)
+            canvas[f"{histo_name_rdf}_cd_SamePadNew_Cuts"] = canvas[histo_name_rdf].cd(3)
+            
+            Plot_All_Q = not False
+            
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].SetPad(0.05, 0.545, 0.95, 0.95)
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].SetPad(0.05, 0.05,  0.95, 0.555)
+            canvas[f"{histo_name_rdf}_cd_SamePadNew_Cuts"].SetPad(0.78 if(Plot_All_Q) else 0.71, 0.3, 0.9, 0.8)
+            
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].Divide(6 if(Plot_All_Q) else 4, 1, 0.01, 0.01)
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].Divide(6 if(Plot_All_Q) else 4, 1, 0.01, 0.01)
+            
+            set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"])
+            # set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_{particle_angle}_ratio"])
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].SetLineColor(ROOT.kBlack)
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].SetLineColor(ROOT.kGreen)
+            
+            set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"])
+            # set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}_ratio"], histograms[f"{histo_name_rdf}_{particle_angle}_ratio"])
+            set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"], histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"], histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"])
+            # set_common_yaxis_range(histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"], histograms[f"{histo_name_rdf}_{particle_angle}"], histograms[f"{histo_name_mdf}_{particle_angle}"])
+            
+            histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].SetTitle(f"#splitline{{#splitline{{#scale[2.5]{{% Diff in Drift Chamber (Layer {DC_Layer})}}}}{{#scale[1.5]{{Comparison of Data/MC Hits of the {Particle_Title}}}}}}}{{#scale[2]{{Before Applying the (New) DC Fiducial Cuts}}}}")
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].SetTitle(f"#splitline{{#splitline{{#scale[2.5]{{% Diff in Drift Chamber (Layer {DC_Layer})}}}}{{#scale[1.5]{{Comparison of Data/MC Hits of the {Particle_Title}}}}}}}{{#scale[2]{{After Applying the (New) DC Fiducial Cuts}}}}")
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(Before Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
+            histograms[f"{histo_name_mdf}_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(Before Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
+            
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(After Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].SetTitle(f"#splitline{{#scale[2]{{Lab {particle_angle_Title} Angle {root_color.Bold}{{(After Cuts)}}}}}}{{#scale[1.8]{{#splitline{{#color[{ROOT.kBlue}]{{Experimental Data Distribution}}}}{{#color[{ROOT.kRed}]{{Monte Carlo Distribution}}}}}}}}")
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}"].GetYaxis().SetTitle("Normalized")
+            histograms[f"{histo_name_mdf}_{particle_angle}"].GetYaxis().SetTitle("Normalized")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetYaxis().SetTitle("Normalized")
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetYaxis().SetTitle("Normalized")
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            histograms[f"{histo_name_mdf}_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].SetTitle(f"#splitline{{#scale[2]{{#splitline{{% Diff of Lab {particle_angle_Title} Angle}}{{Comparison Between Data and MC}}}}}}{{#scale[1.8]{{#splitline{{{root_color.Bold}{{Before (New) DC Cuts}}}}{{#color[{ROOT.kGreen}]{{After (New) DC Cuts}}}}}}}}")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].SetTitle(f"#splitline{{#scale[2]{{#splitline{{% Diff of Lab {particle_angle_Title} Angle}}{{Comparison Between Data and MC}}}}}}{{#scale[1.8]{{#splitline{{{root_color.Bold}{{Before (New) DC Cuts}}}}{{#color[{ROOT.kGreen}]{{After (New) DC Cuts}}}}}}}}")
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].GetYaxis().SetTitle("% Difference")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].GetYaxis().SetTitle("% Difference")
+            
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].GetXaxis().SetTitle(f"{particle_angle_Title} [#circ]")
+            
+            if(Plot_All_Q):
+                canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(1)
+                histograms[f"{histo_name_rdf}____Drift_Chamber"].Draw("colz")
+                ROOT.gPad.SetLogz(0)
+                canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(2)
+                histograms[f"{histo_name_mdf}____Drift_Chamber"].Draw("colz")
+                ROOT.gPad.SetLogz(0)
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(3 if(Plot_All_Q) else 1)
+            histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].Draw("colz")
+            ROOT.gPad.SetLogz(1)
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(4 if(Plot_All_Q) else 2)
+            histograms[f"{histo_name_rdf}_{particle_angle}"].Draw("hist EO same")
+            histograms[f"{histo_name_mdf}_{particle_angle}"].Draw("hist EO same")
+            canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(5 if(Plot_All_Q) else 3)
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Draw("hist EO same")
+            
+            if(Plot_All_Q):
+                canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(1)
+                histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"].Draw("colz")
+                ROOT.gPad.SetLogz(0)
+                canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(2)
+                histograms[f"{histo_name_mdf}_After_Cut____Drift_Chamber"].Draw("colz")
+                ROOT.gPad.SetLogz(0)
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(3 if(Plot_All_Q) else 1)
+            histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].Draw("colz")
+            ROOT.gPad.SetLogz(1)
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(4 if(Plot_All_Q) else 2)
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].Draw("hist EO same")
+            histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"].Draw("hist EO same")
+            canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(5 if(Plot_All_Q) else 3)
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Draw("hist EO same")
+            
+            canvas[histo_name_rdf].cd(3)
+            canvas[histo_name_rdf].cd(3).SetTopMargin(0.05)
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Draw("hist EO same")
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Draw("hist EO same")
+            
+            canvas[histo_name_rdf].Update()
+            
+            CD_NUM_List = [1, 2, 3] if(Plot_All_Q) else [1]
+            list_of_lines = []
+            list_of_lines.append(polygon_all["".join(["Layer_", str(DC_Layer), "_", "" if (DC_Layer not in [6]) else "_", str(Particle)])])
+            for CD_NUM in CD_NUM_List:
+                try:
+                    for ii, polygon_ii in enumerate(list_of_lines):
+                        n_points = len(polygon_ii)
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"] = ROOT.TPolyLine(n_points + 1)
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"] = ROOT.TPolyLine(n_points + 1)
+                        for i, (x, y) in enumerate(polygon_ii):
+                            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetPoint(i, x, y)
+                            pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetPoint(i, x, y)
+                        # Close the shape by repeating the first point
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetLineColor(2)  # Red color
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].SetLineWidth(1)
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetLineColor(2)  # Red color
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].SetLineWidth(1)
+                        canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(CD_NUM)
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_Before"].Draw("same")
+                        canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd(CD_NUM)
+                        pl[f"{histo_name_rdf}_{CD_NUM}_{ii}__After"].Draw("same")
+                    canvas[histo_name_rdf].Update()
+                except:
+                    print("ERROR in box.Draw('same')")
+                    print(f"{color.Error}TRACEBACK:\n{color.END_B}{str(traceback.format_exc())}{color.END}")
+            
+            print("\nDrawing TCanvas...\n")
+            
+            # canvas[histo_name_rdf].Draw()
+            canvas[histo_name_rdf].Update()
+            
+            
+            
+            # canvas[f"canvas_{histo_name_rdf}_DC"] = Canvas_Create(Name=f"canvas_{histo_name_rdf}_DC", Num_Columns=2, Num_Rows=1, Size_X=1800, Size_Y=1600, cd_Space=0.01)
+            # canvas[f"canvas_{histo_name_rdf}_DC"].SetFillColor(17)  # Color index 17 corresponds to a light grey color
+            
+            # canvas[f"canvas_{histo_name_rdf}_DC"].cd(1).SetPad(0.1,   0.1, 0.495, 0.9)
+            # canvas[f"canvas_{histo_name_rdf}_DC"].cd(2).SetPad(0.505, 0.1, 0.9,   0.9)
+            
+            # canvas[f"canvas_{histo_name_rdf}_DC"].cd(1)
+            # # Draw_Canvas(canvas[f"canvas_{histo_name_rdf}_DC"], 1, left_add=0.05, right_add=0.05, up_add=0.1, down_add=0.1)
+            # histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].Draw("colz")
+            # histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            # histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            # ROOT.gPad.SetLogz(1)
+            # palette_move(canvas=canvas[f"canvas_{histo_name_rdf}_DC"], histo=histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"],           x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
+            
+            # # canvas[f"canvas_{histo_name_rdf}_DC"].cd(2)
+            # # # Draw_Canvas(canvas[f"canvas_{histo_name_rdf}_DC"], 2, left_add=0.05, right_add=0.05, up_add=0.1, down_add=0.1)
+            # # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].Draw("colz")
+            # # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].GetXaxis().SetRangeUser(x_axis_DC_min, x_axis_DC_max)
+            # # histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].GetYaxis().SetRangeUser(y_axis_DC_min, y_axis_DC_max)
+            # # palette_move(canvas=canvas[f"canvas_{histo_name_rdf}_DC"], histo=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
+            
+            # # for CD_NUM in [1, 2]:
+            # for CD_NUM in [1]:
+            #     try:
+            #         for ii, polygon_ii in enumerate(quadrilaterals):
+            #             n_points = len(polygon_ii)
+            #             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"] = ROOT.TPolyLine(n_points + 1)
+            #             for i, (x, y) in enumerate(polygon_ii):
+            #                 pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetPoint(i, x, y)
+            #             # Close the shape by repeating the first point
+            #             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetPoint(n_points, polygon_ii[0][0], polygon_ii[0][1])
+            #             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetLineColor(2)  # Red color
+            #             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].SetLineWidth(1)
+            #             canvas[f"canvas_{histo_name_rdf}_DC"].cd(CD_NUM)
+            #             pl[f"{histo_name_rdf}_{CD_NUM}_{ii}_DC"].Draw("same")
+            #         canvas[f"canvas_{histo_name_rdf}_DC"].Update()
+            #     except:
+            #         print("ERROR in box.Draw('same')")
+            
+            # canvas[f"canvas_{histo_name_rdf}_DC"].Draw()
+            # canvas[f"canvas_{histo_name_rdf}_DC"].Update()
+            
+            # canvas[histo_name_rdf].Draw()
+            # canvas[histo_name_rdf].Update()
+            
+            
+            # print(str("".join([color.BOLD, """
+            
+            # auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
+            # \t""", str(str(str(str(str(str(str(polygon).replace("[", "{")).replace("], 'Lay", "}},\n\t{'Lay")).replace("]", "}")).replace(":", ",")).replace("(", "{")).replace(")", "}")).replace(", ", ", "), """
+            # };""", color.END])).replace("'", '"'))
 
 
 
