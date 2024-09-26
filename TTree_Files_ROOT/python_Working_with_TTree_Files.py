@@ -211,7 +211,7 @@ def Ratio_of_2D_Histos(out_hist, rdf_hist, mdf_hist):
                 percent_diff = 10000 if(Histo_mdf_value != 0) else 0
             else:
                 percent_diff = (abs(Histo_rdf_value - Histo_mdf_value)/Histo_rdf_value)*100
-            if(percent_diff   < 20):
+            if(percent_diff   < 10):
                 percent_diff  = 0
             out_hist.SetBinContent(x_bin, y_bin, percent_diff)
     return out_hist
@@ -220,7 +220,6 @@ def Normalize_Histogram(histogram):
     integral = histogram.Integral()
     # Check if the integral is non-zero to avoid division by zero
     if(integral != 0):
-        # histogram.Scale(1.0 / integral)
         histogram.Scale(100 / integral)
     return histogram
 
@@ -274,9 +273,12 @@ ROOT.gStyle.SetOptStat("i")
 
 print("\nSelecting Options...\n")
 
-DC_2D_Bin_Nums = 100
+# DC_2D_Bin_Nums = 100
+# DC_2D_Bin_Nums = 160
+DC_2D_Bin_Nums = 320
 
-Phi___Bin_Nums =  90
+# Phi___Bin_Nums =  90
+Phi___Bin_Nums =  72
 Phi___MaxRange = 360
 Theta_Bin_Nums =  60
 Theta_MaxRange =  60
@@ -285,10 +287,11 @@ List_of_Cuts = ["Complete_SIDIS_Cuts", "Valerii_DC_Fiducial_Cuts_ele_DC_6", "Val
 # List_of_Cuts = ["Complete_SIDIS_Cuts"]
 
 DC_Layer_List = ["6", "18", "36"]
-DC_Layer_List = ["6", "18"]
+# DC_Layer_List = ["6", "18"]
+# DC_Layer_List = ["36"]
 Particle_List = ["pip"]
-# P_Angle__List = ["pipPhi", "pipth", "elPhi", "elth"]
-P_Angle__List = ["pipPhi"]
+P_Angle__List = ["pipPhi", "pipth", "elPhi", "elth"]
+# P_Angle__List = ["pipPhi"]
 
 print("\nAdding (Initial) Cuts to RDataFrames...\n")
 
@@ -302,11 +305,11 @@ print("\nAdding (Test) Cuts to RDataFrames...\n")
 
 rdf_cut_2 = rdf_cut
 mdf_cut_2 = mdf_cut
-rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6"], List_of_Particles=["pip"])
-# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
+rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
 # rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
-mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6"], List_of_Particles=["pip"])
-# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
+mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
 # mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
 
 # Particle = "pip"
