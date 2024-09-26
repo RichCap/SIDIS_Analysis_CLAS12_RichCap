@@ -935,6 +935,26 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Two set of histograms per layer (3 layers each for 12 total histograms)
     # Ran Cut_Configuration_Name = "_FC_11" on 9/5/2024
         # Started running after updating the 'Run_Small' option
+
+
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V11_"
+    # Ran on 9/26/2024
+    # Refined the new Pion DC Fiducial Cuts to improve Data to MC agreement
+        # Will be running multiple fiducial cut configurations to fully test all of the cuts/refinements
+        # Configurations include: "FC_11" and the default setting (might run "FC_11" at later time...)
+            # "FC_11"   --> None of my DC Cuts (just includes all of Valerii's Electron DC Cuts but skips my electron DC refinements/pion cuts)
+            # "Default" --> Includes all of my new fiducial cuts and Valerii's Electron Cuts (only excludes Valerii's cuts being applied to the pion)
+    # Removed the sector cuts (using the 2D phi_h vs sector plots)
+    # Removed DC hit plots (analysis involving those plots has been moved to the TTree files)
+    # Added back the 3D unfolding plots
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
+    # Ran Cut_Configuration_Name = "_FC_11" on ...
             
             
     if(Run_Small):
@@ -6187,9 +6207,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-#     if("Y_bin" in binning_option_list):
-#         print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-#         List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6283,11 +6303,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # List_of_Quantities_3D = [[PCalxBinning, PCalyBinning, ["layer_pip_DC", -0.5, 37.5, 38]]]
             # List_of_Quantities_3D.append([PCalxBinning, PCalyBinning, ["pipsec", -0.5, 7.5, 8]])
             
-            if(not Run_Small):
-                List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
-                List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
+            # if(not Run_Small):
+            #     List_of_Quantities_2D.append([["esec",   -0.5, 7.5, 8], phi_t_Binning])
+            #     List_of_Quantities_2D.append([["pipsec", -0.5, 7.5, 8], phi_t_Binning])
             
-            if(True):
+            if(not True):
                 # Rotation variables added on 8/14/2024
                 for rotation in ["", "_rot"]:
                     # if(Run_Small and (rotation not in ["_rot"])):
