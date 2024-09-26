@@ -27,6 +27,15 @@ ROOT.gStyle.SetPadGridY(1)
 
 print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis\n{color.END}")
 
+from datetime import datetime
+# Function to format time in 12-hour format with a.m./p.m.
+def format_time(dt):
+    return dt.strftime("%I:%M %p").lstrip('0')  # Remove leading zero for hour
+# Start Time
+start_time = datetime.now()
+print(f"\nStarted running on {color.BOLD}{color.UNDERLINE}{start_time.strftime('%m-%d-%Y')} at {format_time(start_time)}{color.END}")
+
+
 # Turns off the canvases when running in the command line
 ROOT.gROOT.SetBatch(1)
 
@@ -211,7 +220,7 @@ def Ratio_of_2D_Histos(out_hist, rdf_hist, mdf_hist):
                 percent_diff = 10000 if(Histo_mdf_value != 0) else 0
             else:
                 percent_diff = (abs(Histo_rdf_value - Histo_mdf_value)/Histo_rdf_value)*100
-            if(percent_diff   < 10):
+            if(percent_diff   < 20):
                 percent_diff  = 0
             out_hist.SetBinContent(x_bin, y_bin, percent_diff)
     return out_hist
@@ -273,9 +282,9 @@ ROOT.gStyle.SetOptStat("i")
 
 print("\nSelecting Options...\n")
 
-# DC_2D_Bin_Nums = 100
+DC_2D_Bin_Nums = 100
 # DC_2D_Bin_Nums = 160
-DC_2D_Bin_Nums = 320
+# DC_2D_Bin_Nums = 320
 
 # Phi___Bin_Nums =  90
 Phi___Bin_Nums =  72
@@ -291,6 +300,7 @@ DC_Layer_List = ["6", "18", "36"]
 # DC_Layer_List = ["36"]
 Particle_List = ["pip"]
 P_Angle__List = ["pipPhi", "pipth", "elPhi", "elth"]
+P_Angle__List = ["pipPhi", "pipth"]
 # P_Angle__List = ["pipPhi"]
 
 print("\nAdding (Initial) Cuts to RDataFrames...\n")
@@ -305,12 +315,16 @@ print("\nAdding (Test) Cuts to RDataFrames...\n")
 
 rdf_cut_2 = rdf_cut
 mdf_cut_2 = mdf_cut
-# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
-rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
-# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
-# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
-mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
-# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
+
+rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
+# rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# # rdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
+mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=["6", "18"], List_of_Particles=["pip"])
+# mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=["pip"])
+# # mdf_cut_2 = Apply_Test_Fiducial_Cuts(Data_Frame_In=mdf_cut, List_of_Layers=DC_Layer_List, List_of_Particles=Particle_List)
+
+rdf_cut_2 = rdf_cut_2.Filter("pipth > 6 && pipth < 30")
+mdf_cut_2 = mdf_cut_2.Filter("pipth > 6 && pipth < 30")
 
 # Particle = "pip"
 # DC_Layer = 6
@@ -427,6 +441,7 @@ for         DC_Layer       in DC_Layer_List:
             histograms[f"{histo_name_rdf}_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_{particle_angle}"].Clone(f"{histo_name_rdf}_{particle_angle}_ratio")
             histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_{particle_angle}"], -1)
             histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_{particle_angle}"])
+            histograms[f"{histo_name_rdf}_{particle_angle}_ratio"].Scale(100)
             
             
             histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber"] = rdf_cut_2.Histo2D((f"{histo_name_rdf}_After_Cut____Drift_Chamber", f"#splitline{{#splitline{{#scale[2.25]{{Experimental Hits in Drift Chamber}}}}{{#scale[2.25]{{{Particle_Title} Layer {DC_Layer}}}}}}}{{#scale[2]{{AFTER Applying the (New) DC Fiducial Cuts}}}}; {Particle_Title} DC_{{x}} [cm]; {Particle_Title} DC_{{y}} [cm]", DC_2D_Bin_Nums, -400, 400, DC_2D_Bin_Nums, -400, 400), f"{Particle}_x_DC_{DC_Layer}", f"{Particle}_y_DC_{DC_Layer}")
@@ -454,6 +469,7 @@ for         DC_Layer       in DC_Layer_List:
             histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"] = histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"].Clone(f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio")
             histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Add(histograms[f"{histo_name_mdf}_After_Cut_{particle_angle}"], -1)
             histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Divide(histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}"])
+            histograms[f"{histo_name_rdf}_After_Cut_{particle_angle}_ratio"].Scale(100)
             
             
             print("\nCreating TCanvas...\n")
@@ -644,7 +660,21 @@ for         DC_Layer       in DC_Layer_List:
 for canvas_name in canvas:
     if("cd" not in str(canvas_name)):
         Save_Name = f"{canvas_name}.png"
-        Save_Name = str(str(Save_Name).replace("RDF", "New_Fiducial_Cut_Test")).replace("_Main", "")
+        # Save_Name = str(str(Save_Name).replace("RDF", "New_Fiducial_Cut_Test")).replace("_Main", "")
+        Save_Name = str(str(Save_Name).replace("RDF", "New_Theta_Cut_Test")).replace("_Main", "")
         print(f"{color.BBLUE}Saving: {color.END_B}{Save_Name}{color.END}\n")
         canvas[str(canvas_name)].SaveAs(Save_Name)
+
+# End Time
+end_time = datetime.now()
+print(f"\nThe time that this code finished is {color.BOLD}{color.UNDERLINE}{format_time(end_time)}{color.END}")
+# Time Difference
+time_diff = end_time - start_time
+days,  remainder = divmod(time_diff.seconds, 86400)  # 86400 seconds in a day
+hours, remainder = divmod(remainder, 3600)          # 3600 seconds in an hour
+minutes, seconds = divmod(remainder, 60)            # 60 seconds in a minute
+# Print Total Time
+print(f"""\n{color.BGREEN}The total time the code took to run the given files is:{color.END_B}
+    {days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s){color.END}""")
+
 print("\n\nDone")
