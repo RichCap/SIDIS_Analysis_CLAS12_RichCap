@@ -14,8 +14,8 @@ import ROOT
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
 
-# # Turns off the canvases when running in the command line
-# ROOT.gROOT.SetBatch(1)
+# Turns off the canvases when running in the command line
+ROOT.gROOT.SetBatch(1)
 
 import traceback
 # import shutil
@@ -6073,6 +6073,9 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC5_V7_All"
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_V9_All"
 # Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC7_V9_All"
 
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_V11_All"
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V11_All"
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -6717,7 +6720,7 @@ for ii in mdf.GetListOfKeys():
         Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
-        Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
+        # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
         
         # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
@@ -8008,7 +8011,7 @@ Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_
 Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
 Variable_List_Final = ["phi_t"]
 
-# Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
 
 if(run_Sec_Unfold):
     for sec in Sector_List:
@@ -8021,7 +8024,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = not True
+Run_Individual_Bin_Images_Option = True
 Print_Run_Individual_Bin_Option  = True
 
 
@@ -8038,7 +8041,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-# Multi_Dimensional_List = ["Off", "3D"]
+Multi_Dimensional_List = ["Off", "3D"]
 # # Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
