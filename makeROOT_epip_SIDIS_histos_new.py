@@ -337,7 +337,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(".root" in file_num):
         print(f"{color.Error}\nUnique File Name has been given as: {color.UNDERLINE}{file_num}{color.END}\n")
         files_used_for_data_frame = file_num
-        file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/", "")
+        file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/ROOT_Files/From_Pythia_Text_Files/", "")
         rdf = ROOT.RDataFrame("h22", str(files_used_for_data_frame))
     else:
         if(datatype == 'rdf'):

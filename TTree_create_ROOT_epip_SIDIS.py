@@ -337,41 +337,46 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##==================================================================##============================##==================================================================##
     ########################################################################################################################################################################
     
-    
-    if(datatype == 'rdf'):
-        if(str(file_location) in ['all', 'All', 'time']):
-            files_used_for_data_frame =  "Data_sidis_epip_richcap.inb.qa.skim4_00*"                               if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
-            if(Use_New_PF):
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new5.skim4_00")).replace("qa.nSidis_00", "qa.new5.nSidis_00")
-                if(Tag_Proton):
-                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
-            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
-        else:
-            rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-    if(datatype in ['mdf', 'pdf']):
-        if(str(file_location) in ['all', 'All', 'time']):
-            files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                       if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
-            if(Use_New_PF):
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
-                if(Tag_Proton):
-                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
-            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
-        else:
-            rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
-            
-    if(datatype == 'gdf'):
-        if(str(file_location) in ['all', 'All', 'time']):
-            files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
-            if(Use_New_PF):
-                files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
-                if(Tag_Proton):
-                    files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
-            rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/", "" if(not Use_Pass_2) else "Pass2/", str(files_used_for_data_frame)]))
-        else:
-            rdf = ROOT.RDataFrame("h22", str(file_location))
-            files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+    if(".root" in file_num):
+        print(f"{color.Error}\nUnique File Name has been given as: {color.UNDERLINE}{file_num}{color.END}\n")
+        files_used_for_data_frame = file_num
+        file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/ROOT_Files/From_Pythia_Text_Files/", "")
+        rdf = ROOT.RDataFrame("h22", str(files_used_for_data_frame))
+    else:
+        if(datatype == 'rdf'):
+            if(str(file_location) in ['all', 'All', 'time']):
+                files_used_for_data_frame =  "Data_sidis_epip_richcap.inb.qa.skim4_00*"                               if(not Use_Pass_2) else "Data_sidis_epip_richcap.inb.qa.nSidis_00*"
+                if(Use_New_PF):
+                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.skim4_00", "qa.new5.skim4_00")).replace("qa.nSidis_00", "qa.new5.nSidis_00")
+                    if(Tag_Proton):
+                        files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
+                rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
+            else:
+                rdf = ROOT.RDataFrame("h22", str(file_location))
+                files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+        if(datatype in ['mdf', 'pdf']):
+            if(str(file_location) in ['all', 'All', 'time']):
+                files_used_for_data_frame =  "MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*"                       if(not Use_Pass_2) else "MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+                if(Use_New_PF):
+                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
+                    if(Tag_Proton):
+                        files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
+                rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
+            else:
+                rdf = ROOT.RDataFrame("h22", str(file_location))
+                files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+                
+        if(datatype == 'gdf'):
+            if(str(file_location) in ['all', 'All', 'time']):
+                files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
+                if(Use_New_PF):
+                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.inb-clasdis")
+                    if(Tag_Proton):
+                        files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
+                rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/", "" if(not Use_Pass_2) else "Pass2/", str(files_used_for_data_frame)]))
+            else:
+                rdf = ROOT.RDataFrame("h22", str(file_location))
+                files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
             
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
     
