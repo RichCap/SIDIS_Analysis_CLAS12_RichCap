@@ -73,8 +73,8 @@ Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_N
 Tag___Proton_List = ["_Pro",    "_Proton"]
 SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13"]
 
-# output_all_histo_names_Q = "yes"
-output_all_histo_names_Q = "no"
+output_all_histo_names_Q = "yes"
+# output_all_histo_names_Q = "no"
 
 # run_Mom_Cor_Code = "yes"
 run_Mom_Cor_Code = "no"
@@ -248,13 +248,22 @@ del pass_ver
 
 if(output_type == "test"):
     output_all_histo_names_Q = "yes"
-    print("Will be printing the histogram's IDs...")
+    print("Will be printing the TTree Branches' IDs...")
     file_location   = "time"
     output_type     = "time"
+elif("test" in str(datatype)):
+    output_all_histo_names_Q = "yes"
+    print("Will be printing the TTree Branches' IDs...")
+    file_location   = output_type
+    output_type     = "time"
+    print(f"\t{color.BOLD}Still using the given file of {color.BLUE}{color.UNDERLINE}{file_location}{color.END}\n\n")
+    datatype = str(datatype.replace("_test", "")).replace("test_", "")
 elif(output_type   not in ["histo", "data", "tree"]):
     file_location   = output_type
     if(output_type not in ["test", "time"]):
         output_type = "tree"
+    if(output_all_histo_names_Q == "yes"):
+        print("Will be printing the TTree Branches' IDs...")
 
 print(f"The Output type will be: {output_type}")
 print(f"The Data type will be:   {datatype}")
@@ -342,6 +351,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         files_used_for_data_frame = file_num
         file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/ROOT_Files/From_Pythia_Text_Files/", "")
         rdf = ROOT.RDataFrame("h22", str(files_used_for_data_frame))
+        rdf_entry_count = rdf.Count().GetValue()
+        print(f"Number of entries in the RDataFrame: {rdf_entry_count}")
     else:
         if(datatype == 'rdf'):
             if(str(file_location) in ['all', 'All', 'time']):
@@ -773,7 +784,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(datatype in ["gdf"]):
             if("MM" in str(BG_Cut_Function(dataframe="mdf"))):
                 print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
-                rdf = rdf.Filter("MM > 1.5")
+                # rdf = rdf.Filter("MM > 1.5")
+                rdf = rdf.Define("Default_MM_Cut_1_5", "return (MM > 1.5);")
             else:
                 print(f"{color.Error}\n{color.UNDERLINE}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.5 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
                 
@@ -4239,8 +4251,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #################     Final ROOT File     #################
     if((str(file_location) not in ['time', 'test']) and output_type in ["data", "tree"]):
         print(f"\n{color.BOLD}Taking Snapshot of the RDataFrame...{color.END}")
+        rdf_entry_count = rdf.Count().GetValue()
+        print(f"Number of entries in the RDataFrame: {rdf_entry_count}")
         rdf.Snapshot("h22", ROOT_File_Output_Name)
         print(f"{color.BGREEN}Final ROOT file has been created.{color.END}\n")
+        
+        if(output_all_histo_names_Q == "yes"):
+            print(f"{color.BBLUE}Openning the newly created ROOT file to check its contents{color.END}")
+            output_file_check = ROOT.TFile.Open(ROOT_File_Output_Name)
+            # Access the TTree in the file
+            tree_check = output_file_check.Get("h22")
+            # Print the names of the branches in the TTree
+            print(f"{color.BOLD}Branches in TTree 'h22':{color.END}")
+            for ii, branch in enumerate(tree_check.GetListOfBranches()):
+                print(f"\t{str(ii+1).rjust(3)}) {branch.GetName()}")
+            # Close the file
+            output_file_check.Close()
+        
     else:
         print(f"\n{color.RED}Not saving ROOT file...{color.END}\n")
     #################     Final ROOT File     #################
