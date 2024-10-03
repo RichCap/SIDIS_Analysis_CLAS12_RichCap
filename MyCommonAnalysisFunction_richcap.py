@@ -78,6 +78,308 @@ class root_color:
     Line    = '#splitline'
 
 
+###################=========================###################
+##===============##     Variable Titles     ##===============##
+###################=========================###################
+
+def variable_Title_name(variable):
+    smeared_named, bank_named = '', ''
+    if("_smeared" in variable):
+        smeared_named = 'yes'
+        variable = variable.replace("_smeared", "")
+        
+    if("_gen" in variable):
+        bank_named = 'yes'
+        variable = variable.replace("_gen",     "")
+        
+    Extra_Variable_Title     = ""
+    if("Smeared_Effect_on_" in variable):
+        Extra_Variable_Title = "Smeared Effect on "
+        variable = variable.replace("Smeared_Effect_on_", "")
+    if("Smeared_Percent_of_" in variable):
+        Extra_Variable_Title = "Smeared (Percent) Effect on "
+        variable = variable.replace("Smeared_Percent_of_", "")
+    
+    output = 'error'
+
+    if("MultiDim_Q2_y_z_pT_phi_h"      in variable):
+        output  =  "5D Kinematic Bins (Q^{2}+y+z+P_{T}+#phi_{h})"
+    if("MultiDim_z_pT_Bin_Y_bin_phi_t" in variable):
+        output  =  "3D Kinematic Bins (z+P_{T}+#phi_{h})"
+    if(variable in ['Hx', 'Hy']):
+        output  =  str(variable)
+    if(variable == 'Hx_pip'):
+        output  =  "Hx_{#pi^{+}}"
+    if(variable == 'Hy_pip'):
+        output  =  "Hy_{#pi^{+}}"
+    if(variable == 'ele_x_DC'):
+        output  =  "Electron x_{DC}"
+    if(variable == 'ele_y_DC'):
+        output  =  "Electron y_{DC}"
+    if(variable == 'ele_x_DC_rot'):
+        output  =  "Electron x_{DC} (Rotated)"
+    if(variable == 'ele_y_DC_rot'):
+        output  =  "Electron y_{DC} (Rotated)"
+    if(variable == 'pip_x_DC'):
+        output  =  "Pion x_{DC}"
+    if(variable == 'pip_y_DC'):
+        output  =  "Pion y_{DC}"
+    if(variable == 'pip_x_DC_rot'):
+        output  =  "Pion x_{DC} (Rotated)"
+    if(variable == 'pip_y_DC_rot'):
+        output  =  "Pion y_{DC} (Rotated)"
+    if(variable == 'ele_x_DC_6'):
+        output  =  "Electron x_{DC} (Layer 6)"
+    if(variable == 'ele_y_DC_6'):
+        output  =  "Electron y_{DC} (Layer 6)"
+    if(variable == 'ele_x_DC_6_rot'):
+        output  =  "Electron x_{DC} (Rotated - Layer 6)"
+    if(variable == 'ele_y_DC_6_rot'):
+        output  =  "Electron y_{DC} (Rotated - Layer 6)"
+    if(variable == 'pip_x_DC_6'):
+        output  =  "Pion x_{DC} (Layer 6)"
+    if(variable == 'pip_y_DC_6'):
+        output  =  "Pion y_{DC} (Layer 6)"
+    if(variable == 'pip_x_DC_6_rot'):
+        output  =  "Pion x_{DC} (Rotated - Layer 6)"
+    if(variable == 'pip_y_DC_6_rot'):
+        output  =  "Pion y_{DC} (Rotated - Layer 6)"
+    if(variable == 'ele_x_DC_18'):
+        output  =  "Electron x_{DC} (Layer 18)"
+    if(variable == 'ele_y_DC_18'):
+        output  =  "Electron y_{DC} (Layer 18)"
+    if(variable == 'ele_x_DC_18_rot'):
+        output  =  "Electron x_{DC} (Rotated - Layer 18)"
+    if(variable == 'ele_y_DC_18_rot'):
+        output  =  "Electron y_{DC} (Rotated - Layer 18)"
+    if(variable == 'pip_x_DC_18'):
+        output  =  "Pion x_{DC} (Layer 18)"
+    if(variable == 'pip_y_DC_18'):
+        output  =  "Pion y_{DC} (Layer 18)"
+    if(variable == 'pip_x_DC_18_rot'):
+        output  =  "Pion x_{DC} (Rotated - Layer 18)"
+    if(variable == 'pip_y_DC_18_rot'):
+        output  =  "Pion y_{DC} (Rotated - Layer 18)"
+    if(variable == 'ele_x_DC_36'):
+        output  =  "Electron x_{DC} (Layer 36)"
+    if(variable == 'ele_y_DC_36'):
+        output  =  "Electron y_{DC} (Layer 36)"
+    if(variable == 'ele_x_DC_36_rot'):
+        output  =  "Electron x_{DC} (Rotated - Layer 36)"
+    if(variable == 'ele_y_DC_36_rot'):
+        output  =  "Electron y_{DC} (Rotated - Layer 36)"
+    if(variable == 'pip_x_DC_36'):
+        output  =  "Pion x_{DC} (Layer 36)"
+    if(variable == 'pip_y_DC_36'):
+        output  =  "Pion y_{DC} (Layer 36)"
+    if(variable == 'pip_x_DC_36_rot'):
+        output  =  "Pion x_{DC} (Rotated - Layer 36)"
+    if(variable == 'pip_y_DC_36_rot'):
+        output  =  "Pion y_{DC} (Rotated - Layer 36)"
+    if(variable == 'el_E'):
+        output  =  'E_{el}'
+    if(variable == 'pip_E'):
+        output  =  'E_{#pi^{+}}'
+    if(variable == 'el'):
+        output  =  "p_{el}"
+    if(variable == 'pip'):
+        output  =  "p_{#pi^{+}}"
+    if(variable == 'elth'):
+        output  =  "#theta_{el}"
+    if(variable == 'pipth'):
+        output  =  "#theta_{#pi^{+}}"
+    if(variable == 'elPhi'):
+        output  =  "#phi_{el}"
+    if(variable == 'pipPhi'):
+        output  =  "#phi_{#pi^{+}}"
+    if(variable == 'MM'):
+        output  =  "Missing Mass"
+    if(variable == 'MM2'):
+        output  =  "Missing Mass^{2}"
+    if(variable == 'Q2'):
+        output  =  "Q^{2}"
+    if(variable == 'xB'):
+        output  =  "x_{B}"
+    if(variable == 'v'):
+        output  =  "#nu (lepton energy loss)"
+    if(variable == 's'):
+        output  =  "s (CM Energy^{2})"
+    if(variable == 'W'):
+        output  =  "W (Invariant Mass)"
+    if(variable == 'y'):
+        output  =  "y (lepton energy loss fraction)"
+    if(variable == 'z'):
+        output  =  "z"
+    if(variable == 'epsilon'):
+        output  =  "#epsilon"
+    if(variable == 'pT'):
+        output  =  "P_{T}"
+    if(variable in ['phi_t', 'phi_h']):
+        output  =  "#phi_{h}"
+    if(variable == 'xF'):
+        output  =  "x_{F} (Feynman x)"
+    if(variable == 'pipx_CM'):
+        output  =  "CM p_{#pi^{+}} in #hat{x}"
+    if(variable == 'pipy_CM'):
+        output  =  "CM p_{#pi^{+}} in #hat{y}"
+    if(variable == 'pipz_CM'):
+        output  =  "CM p_{#pi^{+}} in #hat{z}"
+    if(variable == 'qx_CM'):
+        output  =  "CM p_{q} in #hat{x}"
+    if(variable == 'qy_CM'):
+        output  =  "CM p_{q} in #hat{y}"
+    if(variable == 'qz_CM'):
+        output  =  "CM p_{q} in #hat{z}"
+    if(variable == 'beamX_CM'):
+        output  =  "CM p_{beam} in #hat{x}"
+    if(variable == 'beamY_CM'):
+        output  =  "CM p_{beam} in #hat{y}"
+    if(variable == 'beamZ_CM'):
+        output  =  "CM p_{beam} in #hat{z}"
+    if(variable == 'eleX_CM'):
+        output  =  "CM p_{el} in #hat{x}"
+    if(variable == 'eleY_CM'):
+        output  =  "CM p_{el} in #hat{y}"
+    if(variable == 'eleZ_CM'):
+        output  =  "CM p_{el} in #hat{z}"
+    if(variable == 'event'):
+        output  =  "Event Number"
+    if(variable == 'runN'):
+        output  =  "Run Number"
+    if(variable == 'ex'):
+        output  =  "Lab p_{el} in #hat{x}"
+    if(variable == 'ey'):
+        output  =  "Lab p_{el} in #hat{y}"
+    if(variable == 'ez'):
+        output  =  "Lab p_{el} in #hat{z}"
+    if(variable == 'px'):
+        output  =  "Lab p_{#pi^{+}} in #hat{x}"
+    if(variable == 'py'):
+        output  =  "Lab p_{#pi^{+}} in #hat{y}"
+    if(variable == 'pz'):
+        output  =  "Lab p_{#pi^{+}} in #hat{z}"
+    if(variable == 'esec'):
+        output  =  "Electron Sector"
+    if(variable == 'pipsec'):
+        output  =  "#pi^{+} Sector"
+    # if(variable == 'esec_a'):
+    if('esec_a' in variable):
+        output = "Electron Sector (Angle Def)"
+    # if(variable == 'pipsec_a'):
+    if('pipsec_a' in variable):
+        output  =  "#pi^{+} Sector (Angle Def)"
+    if(variable == 'Q2_xB_Bin'):
+        output  =  "Q^{2}-x_{B} Bin"
+    if(variable == 'Q2_xB_Bin_2'):
+        output  =  "Q^{2}-x_{B} Bin (New)"
+    if(variable == 'Q2_xB_Bin_Test'):
+        output  =  "Q^{2}-x_{B} Bin (Test)"
+    if(variable == 'Q2_xB_Bin_3'):
+        output  =  "Q^{2}-x_{B} Bin (Square)"
+    if(variable == 'Q2_xB_Bin_Off'):
+        output  =  "Q^{2}-x_{B} Bin (Off)"
+    if(variable == 'Q2_y_Bin'):
+        output  =  "Q^{2}-y Bin"
+    if(variable == 'Q2_Y_Bin'):
+        output  =  "Q^{2}-y Bin (New)"
+    if(variable == 'z_pT_Bin'):
+        output  =  "z-P_{T} Bin"
+    if(variable == 'z_pT_Bin_2'):
+        output  =  "z-P_{T} Bin (New)"
+    if(variable == 'z_pT_Bin_Test'):
+        output  =  "z-P_{T} Bin (Test)"
+    if(variable == 'z_pT_Bin_3'):
+        output  =  "z-P_{T} Bin (Square)"
+    if(variable == 'z_pT_Bin_Off'):
+        output  =  "z-P_{T} Bin (Off)"
+    if(variable == 'z_pT_Bin_y_bin'):
+        output  =  "z-P_{T} Bin (y-binning)"
+    if(variable == 'z_pT_Bin_Y_bin'):
+        output  =  "z-P_{T} Bin (New y-binning - Testing)"
+    if(variable == 'elec_events_found'):
+        output  =  "Number of Electrons Found"
+    if(variable == 'Delta_Smear_El_P'):
+        output  =  "#Delta_{Smeared}p_{el}"
+    if(variable == 'Delta_Smear_El_Th'):
+        output  =  "#Delta_{Smeared}#theta_{el}"
+    if(variable == 'Delta_Smear_El_Phi'):
+        output  =  "#Delta_{Smeared}#phi_{el}"
+    if(variable == 'Delta_Smear_Pip_P'):
+        output  =  "#Delta_{Smeared}p_{#pi^{+}}"
+    if(variable == 'Delta_Smear_Pip_Th'):
+        output  =  "#Delta_{Smeared}#theta_{#pi^{+}}"
+    if(variable == 'Delta_Smear_Pip_Phi'):
+        output  =  "#Delta_{Smeared}#phi_{#pi^{+}}"
+    if(variable == 'Complete_Correction_Factor_Ele'):
+        output  =  "Correction Factor for the Electron Momentum"
+    if(variable == 'Complete_Correction_Factor_Pip'):
+        output  =  "Correction Factor for the #pi^{+} Momentum"
+    if(variable == 'Percent_phi_t'):
+        output  =  "Percent Dif of #phi_{h} from Mom Cors"
+    if(variable == 'Delta_phi_t'):
+        output  =  "#Delta#phi_{h} from Mom Cors"
+    if(variable in ['PID_el',  'PID_el_idx']):
+        output  =  "Electron PID"
+    if(variable in ['PID_pip', 'PID_pip_idx']):
+        output  =  "#pi^{+} Pion PID"
+    if(variable == 'layer_DC'):
+        output  =  "DC Detector Layer"
+    if(variable == 'layer_pip_DC'):
+        output  =  "(Pion) DC Detector Layer"
+    if(variable == 'layer_ele_DC'):
+        output  =  "(Electron) DC Detector Layer"
+    if(variable == 'V_PCal'):
+        output  =  "V_{PCal}"
+    if(variable == 'W_PCal'):
+        output  =  "W_{PCal}"
+    if(variable == 'U_PCal'):
+        output  =  "U_{PCal}"
+    if(variable == 'MM2_pro'):
+        output  =  "Missing Mass^{2} (Proton)"
+    if(variable == 'MM_pro'):
+        output  =  "Missing Mass (Proton)"
+    if(variable == 'pro'):
+        output  =  "p_{pro}"
+    if(variable == 'rad_event'):
+        output  =  "Radiative Event"
+    if(variable == 'EBrems'):
+        output  =  "EBrems"
+    if(variable == 'SigRadCor'):
+        output  =  "SigRadCor"
+    if(variable == 'sigma_rad'):
+        output  =  "#sigma_{Rad}"
+
+    if("Bin_4D" in variable):
+        output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
+    if("Bin_5D" in variable):
+        output = "".join(["Combined 5D Bin",         " (Original)" if("OG" in variable) else ""])
+    if("Bin_Res_4D" in variable):
+        output = "".join(["Q^{2}-x_{B}-z-P_{T} Bin", " (Original)" if("OG" in variable) else ""])
+    if("Combined_" in variable or "Multi_Dim" in variable):
+        output = "".join(["Combined Binning: ", str(variable.replace("Combined_", ""))]).replace("Multi_Dim_", "")
+        
+    if(smeared_named == 'yes'):
+        List_of_non_smearable_variables = ["esec", "pipsec", "prosec", "Hx", "Hy", "Hx_pip", "Hy_pip", "ele_x_DC_6", "ele_x_DC_18", "ele_x_DC_36", "pip_x_DC_6", "pip_x_DC_18", "pip_x_DC_36", "pro", "MM_pro", "V_PCal", "W_PCal", "U_PCal"]
+        if(variable not in List_of_non_smearable_variables):
+            output = "".join([output, " (Smeared)"])
+        
+    if(bank_named == 'yes'):
+        output = "".join([output, " (Generated)"])
+        
+    if(Extra_Variable_Title not in [""]):
+        output = "".join([str(Extra_Variable_Title), str(output)])
+    
+    if('error' in str(output)):
+        print("".join(["A variable name was not recognized.\nPlease assign a new name for variable = ", str(variable)]))
+        output = str(variable)
+
+    return output
+
+###################=========================###################
+##===============##     Variable Titles     ##===============##
+###################=========================###################
+
+
 def Q2_xB_Border_Lines(Q2_xB_Bin_Select):
     # Defining Borders for z and pT Bins (based on 'Q2_xB_Bin')
     # Notation used: points are given by [xB, Q2] in sets of 2 points so they can be used to create the appropriate TLines 
