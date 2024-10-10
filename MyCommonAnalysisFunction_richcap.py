@@ -93,12 +93,16 @@ def variable_Title_name(variable):
         variable = variable.replace("_gen",     "")
         
     Extra_Variable_Title     = ""
-    if("Smeared_Effect_on_" in variable):
+    if("Smeared_Effect_on_"  in variable):
         Extra_Variable_Title = "Smeared Effect on "
         variable = variable.replace("Smeared_Effect_on_", "")
     if("Smeared_Percent_of_" in variable):
         Extra_Variable_Title = "Smeared (Percent) Effect on "
         variable = variable.replace("Smeared_Percent_of_", "")
+    if("true"                in variable):
+        Extra_Variable_Title = "(True Generated) "
+        variable = variable.replace("true", "")
+    
     
     output = 'error'
 
@@ -345,9 +349,26 @@ def variable_Title_name(variable):
     if(variable == 'EBrems'):
         output  =  "EBrems"
     if(variable == 'SigRadCor'):
-        output  =  "SigRadCor"
+        output  =  "RC Factor"
     if(variable == 'sigma_rad'):
         output  =  "#sigma_{Rad}"
+    if(variable == 'Angle_btw_scatt_gamma'):
+        output  =  "#theta_{e-#gamma}"
+    if(variable == 'Angle_btw_beam__gamma'):
+        output  =  "#theta_{beam-#gamma}"
+    if(variable == 'gPhi'):
+        output  =  "#phi_{#gamma}"
+    if(variable == 'gTheta'):
+        output  =  "#theta_{#gamma}"
+    if(variable == 'gPhi_Tsai'):
+        output  =  "#phi_{#gamma} (Tsai-Frame)"
+    if(variable == 'gTheta_Tsai'):
+        output  =  "#theta_{#gamma} (Tsai-Frame)"
+    if(variable == 'photon'):
+        output  =  "p_{#gamma}"
+    if(variable == 'gE'):
+        output  =  "E_{#gamma}"
+
 
     if("Bin_4D" in variable):
         output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
