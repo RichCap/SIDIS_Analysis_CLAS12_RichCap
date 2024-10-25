@@ -257,6 +257,14 @@ except ImportError:
         
 print("\n\n")
 
+# Variable for imposing a minimum acceptance value cut to the unfolded distributions
+Min_Allowed_Acceptance_Cut = 0.015
+
+# 'Acceptance_Cut_Line' will be used to show where the minimum acceptance cut is placed when drawing the Acceptance Plots
+Acceptance_Cut_Line = ROOT.TLine(0, Min_Allowed_Acceptance_Cut, 360, Min_Allowed_Acceptance_Cut)
+Acceptance_Cut_Line.SetLineColor(ROOT.kRed)
+Acceptance_Cut_Line.SetLineWidth(1)
+Acceptance_Cut_Line.SetLineStyle(1) # Solid line (default)
 
 
 ############################################################################################################################################################
@@ -900,9 +908,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Corrected")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             # Bin_Unfolded.Sumw2()
             
-            cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
-            cut_criteria = 0.02
-            cut_criteria = 0
+            # cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
+            # cut_criteria = 0.02
+            # cut_criteria = 0
+            cut_criteria = Min_Allowed_Acceptance_Cut
             
             for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
                 if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
@@ -1069,11 +1078,11 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Acceptance = MC_REC_1D.Clone()
                     Bin_Acceptance.Sumw2()
                     Bin_Acceptance.Divide(MC_GEN_1D)
-                # for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
-                #     if(Bin_Acceptance.GetBinContent(bin_acceptance) < 0.02):
-                #         # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
-                #         Unfolded_Histo.SetBinError(bin_acceptance,   0)
-                #         Unfolded_Histo.SetBinContent(bin_acceptance, 0)
+                for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
+                    if(Bin_Acceptance.GetBinContent(bin_acceptance) < Min_Allowed_Acceptance_Cut):
+                        # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
+                        Unfolded_Histo.SetBinError(bin_acceptance,   0)
+                        Unfolded_Histo.SetBinContent(bin_acceptance, 0)
                         
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
@@ -4029,6 +4038,9 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     UNFOLD_Acceptance.GetXaxis().SetRangeUser(0, 360)
     UNFOLD_Acceptance.GetYaxis().SetTitle("Acceptance")
     UNFOLD_Acceptance.Draw("same E1 H")
+    Acceptance_Cut_Line.Draw()
+    Large_Bin_Canvas.Modified()
+    Large_Bin_Canvas.Update()
     ##=====##=====##      Drawing the Bin Acceptance          ##=====##=====## ################################################################
     ########################################################################## ################################################################
     ########################################################################## ###################################################################################################################################################################################################################################################################################################
@@ -5457,13 +5469,19 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
 
             Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetXaxis().SetRangeUser(0, 360)
-            if(Method not in ["Acceptance"]):
-                Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetMaximumBin())))
-            else:
-                Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.2)
-            
+
+            # if(Method not in ["Acceptance"]):
+            Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetMaximumBin())))
+            # else:
+            #     Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.2)
+            if(Method in ["Acceptance"]):
+                Acceptance_Cut_Line.Draw()
+                All_z_pT_Canvas_cd_1_Lower.Modified()
+                All_z_pT_Canvas_cd_1_Lower.Update()
+                
             if(Fit_Test):
-                if(Method not in ["rdf", "mdf"]):
+                # if(Method not in ["rdf", "mdf"]):
+                if(True):
                     try:
                         statbox_move(Histogram=Histogram_List_All[str(Default_Histo_Name_Any.replace("Data_Type", Method))], Canvas=All_z_pT_Canvas_cd_1_Lower.cd(1), Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
                     except:
@@ -5886,14 +5904,18 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf"))].GetXaxis().SetRangeUser(0, 360)
                 # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf"))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf"))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf"))].GetMaximumBin())))
                 
-                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type",     Method))].SetTitle(str(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
-                # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type",     Method))].Draw("H PL E0 same")
-                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type",     Method))].Draw("H P E0 same")
-                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type",     Method))].GetXaxis().SetRangeUser(0, 360)
-                if(Method not in ["Acceptance"]):
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetMaximumBin())))
-                else:
-                    Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.6)
+                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].SetTitle(str(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", ""))
+                # Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H PL E0 same")
+                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].Draw("H P E0 same")
+                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetXaxis().SetRangeUser(0, 360)
+                # if(Method not in ["Acceptance"]):
+                Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 1.2*(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetBinContent(Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetMaximumBin())))
+                # else:
+                #     Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.6)
+                if(Method in ["Acceptance"]):
+                    Acceptance_Cut_Line.Draw()
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.Modified()
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.Update()
                 
                 if(Fit_Test and (("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE)))):
                     if(Method not in ["rdf", "mdf"]):
@@ -6092,7 +6114,7 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_V9_All"
 
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_V11_All"
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V11_All"
-Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V11_All"
+# Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V11_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
