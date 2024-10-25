@@ -21,7 +21,7 @@ function display_help {
     echo "  --git            Display the 'git' status of the scripts instead of submitting them with sbatch. (Same as using 'git diff' on the file)"
     echo "  --lt             Shows the file location as if using the 'lt' command (basically my version of 'ls -lhtr')"
     echo "  --type <type>    Specify the script type: 'sidis', 'proton', or 'mom'. Default is 'sidis'."
-    echo "  --help           Display this help message and exit."
+    echo "  --help, -h       Display this help message and exit."
     echo
     echo "If no options are provided, the script will submit jobs for rdf, mdf, and gdf files using sbatch."
 }
@@ -49,6 +49,7 @@ while [[ "$#" -gt 0 ]]; do
             fi
             ;;
         --help) display_help; exit 0 ;;
+        -h)     display_help; exit 0 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
     shift
