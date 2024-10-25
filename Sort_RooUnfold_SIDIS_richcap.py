@@ -68,8 +68,8 @@ Common_Name = "Q2_Y_Bins_V2_All"
 Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
 
 # Set up the argument parser
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('Common_Name', type=str, help='A common name to be used in the script')
+parser = argparse.ArgumentParser(description='This script will take the available PNG and text files in the directory it is located in and organize them into a series of folders. When running, the script will ask for confirmation before creating a new folder/moving any files.')
+parser.add_argument('Common_Name', type=str, help='A common name to be used in the script (refers to the name of the folder to be created)')
 
 # Parse the arguments
 args = parser.parse_args()
