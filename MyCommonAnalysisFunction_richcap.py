@@ -368,6 +368,10 @@ def variable_Title_name(variable):
         output  =  "p_{#gamma}"
     if(variable == 'gE'):
         output  =  "E_{#gamma}"
+    if(variable == 'gPhi_Tsai_rad'):
+        output  =  "#phi_{#gamma} (Tsai-Frame) [Radians]"
+    if(variable == 'gTheta_Tsai_rad'):
+        output  =  "#theta_{#gamma} (Tsai-Frame) [Radians]"
 
 
     if("Bin_4D" in variable):
@@ -705,7 +709,7 @@ def Q2_Y_Border_Lines(Bin_In):
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_Q2_Y_Bins(Input_Bin, line_width=3, Binning_Method_Input=Binning_Method):
+def Draw_Q2_Y_Bins(Input_Bin, line_width=3, Binning_Method_Input=Binning_Method, Use_xB=False):
     if("y_bin" in Binning_Method_Input):
         Borders_Q2_y = Q2_y_Border_Lines(Input_Bin)
         Q2_Max       = Borders_Q2_y[0][1][1]
@@ -714,10 +718,23 @@ def Draw_Q2_Y_Bins(Input_Bin, line_width=3, Binning_Method_Input=Binning_Method)
         y_Min        = Borders_Q2_y[1][0][0]
     else:
         Q2_Max, Q2_Min, y_Max, y_Min = Q2_Y_Border_Lines(Input_Bin)
-    TLine_U = ROOT.TLine(y_Min, Q2_Max, y_Max, Q2_Max)
-    TLine_D = ROOT.TLine(y_Min, Q2_Min, y_Max, Q2_Min)
-    TLine_L = ROOT.TLine(y_Min, Q2_Min, y_Min, Q2_Max)
-    TLine_R = ROOT.TLine(y_Max, Q2_Min, y_Max, Q2_Max)
+    if(Use_xB):
+        Constant = 0.5/(0.938272*10.6)
+        # For Max Q2
+        xB_Min_Upper = Constant*(Q2_Max/y_Max)
+        xB_Max_Upper = Constant*(Q2_Max/y_Min)
+        # For Min Q2
+        xB_Min_Lower = Constant*(Q2_Min/y_Max)
+        xB_Max_Lower = Constant*(Q2_Min/y_Min)
+        TLine_U = ROOT.TLine(xB_Min_Upper, Q2_Max, xB_Max_Upper, Q2_Max)
+        TLine_D = ROOT.TLine(xB_Min_Lower, Q2_Min, xB_Max_Lower, Q2_Min)
+        TLine_L = ROOT.TLine(xB_Min_Lower, Q2_Min, xB_Min_Upper, Q2_Max)
+        TLine_R = ROOT.TLine(xB_Max_Lower, Q2_Min, xB_Max_Upper, Q2_Max)
+    else:
+        TLine_U = ROOT.TLine(y_Min, Q2_Max, y_Max, Q2_Max)
+        TLine_D = ROOT.TLine(y_Min, Q2_Min, y_Max, Q2_Min)
+        TLine_L = ROOT.TLine(y_Min, Q2_Min, y_Min, Q2_Max)
+        TLine_R = ROOT.TLine(y_Max, Q2_Min, y_Max, Q2_Max)
     for Line in [TLine_U, TLine_D, TLine_L, TLine_R]:
         Line.SetLineWidth(line_width)
         if(Input_Bin in range(1, 18, 1)):

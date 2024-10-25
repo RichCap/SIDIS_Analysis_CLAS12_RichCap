@@ -2980,27 +2980,32 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     Draw_Canvas(canvas=Canvas_Input_2, cd_num=1, left_add=0.15,  right_add=0.075, up_add=0.1, down_add=0.1)
     Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].Draw("colz")
     Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].SetTitle((Drawing_Histo_Set[str(Q2_xB_Histo_rdf_2D)].GetTitle()).replace("Q^{2}-x_{B} Bin: All" if(("y_bin" not in str(Binning_Method)) and ("Y_bin" not in str(Binning_Method))) else "Q^{2}-y Bin: All", str(Bin_Title)))
-    Q2_xB_borders, line_num = {}, 0
-    for b_lines in Q2_xB_Border_Lines(-1):
-        Q2_xB_borders[line_num] = ROOT.TLine()
-        Q2_xB_borders[line_num].SetLineColor(1)    
-        Q2_xB_borders[line_num].SetLineWidth(2)
-        Q2_xB_borders[line_num].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
-        line_num += 1
-    if((str(Q2_Y_Bin_Input) not in ["All", "0"]) and (("y_bin" not in str(Binning_Method)) and ("Y_bin" not in str(Binning_Method)))):
-        ##=====================================================##
-        ##==========##     Selecting Q2-xB Bin     ##==========##
-        ##=====================================================##
-        line_num_2 = 0
-        for b_lines_2 in Q2_xB_Border_Lines(Q2_Y_Bin_Input):
-            Q2_xB_borders[line_num_2] = ROOT.TLine()
-            Q2_xB_borders[line_num_2].SetLineColor(2)
-            Q2_xB_borders[line_num_2].SetLineWidth(3)
-            Q2_xB_borders[line_num_2].DrawLine(b_lines_2[0][0], b_lines_2[0][1], b_lines_2[1][0], b_lines_2[1][1])
-            line_num_2 += + 1
-        ##=====================================================##
-        ##==========##     Selecting Q2-xB Bin     ##==========##
-        ##=====================================================##
+    # Q2_xB_borders, line_num = {}, 0
+    # for b_lines in Q2_xB_Border_Lines(-1):
+    #     Q2_xB_borders[line_num] = ROOT.TLine()
+    #     Q2_xB_borders[line_num].SetLineColor(1)    
+    #     Q2_xB_borders[line_num].SetLineWidth(2)
+    #     Q2_xB_borders[line_num].DrawLine(b_lines[0][0], b_lines[0][1], b_lines[1][0], b_lines[1][1])
+    #     line_num += 1
+    Q2_xB_borders = {}
+    for Q2_Y_Bin_ii in range(1, 18, 1):
+        Q2_xB_borders[Q2_Y_Bin_ii] = Draw_Q2_Y_Bins(Input_Bin=Q2_Y_Bin_ii, Use_xB=True)
+        for line in Q2_xB_borders[Q2_Y_Bin_ii]:
+            line.DrawClone("same")
+    # if((str(Q2_Y_Bin_Input) not in ["All", "0"]) and (("y_bin" not in str(Binning_Method)) and ("Y_bin" not in str(Binning_Method)))):
+    #     ##=====================================================##
+    #     ##==========##     Selecting Q2-xB Bin     ##==========##
+    #     ##=====================================================##
+    #     line_num_2 = 0
+    #     for b_lines_2 in Q2_xB_Border_Lines(Q2_Y_Bin_Input):
+    #         Q2_xB_borders[line_num_2] = ROOT.TLine()
+    #         Q2_xB_borders[line_num_2].SetLineColor(2)
+    #         Q2_xB_borders[line_num_2].SetLineWidth(3)
+    #         Q2_xB_borders[line_num_2].DrawLine(b_lines_2[0][0], b_lines_2[0][1], b_lines_2[1][0], b_lines_2[1][1])
+    #         line_num_2 += + 1
+    #     ##=====================================================##
+    #     ##==========##     Selecting Q2-xB Bin     ##==========##
+    #     ##=====================================================##
         
     
     # Setting the Q2, y, and z ranges (other variables keep their default ranges)
