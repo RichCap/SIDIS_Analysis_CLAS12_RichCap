@@ -5065,21 +5065,25 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             # MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
             # MC_GEN_1D_Norm.SetTitle(str(MC_GEN_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
             
-            if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
-                Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
-                # print(f"{color.BLUE}Max_Pre_Unfolded = {Max_Pre_Unfolded}{color.END}")
-            else:
-                # print(f"{color.BOLD}ExREAL_1D_Norm = {type(ExREAL_1D_Norm)}\nMC_REC_1D_Norm = {type(MC_REC_1D_Norm)}{color.END}")
-                Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), 0])
-                # print(f"{color.RED}Max_Pre_Unfolded = {Max_Pre_Unfolded}{color.END}")
+            # if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
+            Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
+            #     # print(f"{color.BLUE}Max_Pre_Unfolded = {Max_Pre_Unfolded}{color.END}")
+            # else:
+            #     # print(f"{color.BOLD}ExREAL_1D_Norm = {type(ExREAL_1D_Norm)}\nMC_REC_1D_Norm = {type(MC_REC_1D_Norm)}{color.END}")
+            #     Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), 0])
+            #     # print(f"{color.RED}Max_Pre_Unfolded = {Max_Pre_Unfolded}{color.END}")
             
             ExREAL_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
             MC_REC_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
+            MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
             
             ExREAL_1D_Norm.GetXaxis().SetRangeUser(0, 360)
             MC_REC_1D_Norm.GetXaxis().SetRangeUser(0, 360)
+            MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
 
-            ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            Norm_Data_Title = "".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"])
+
+            ExREAL_1D_Norm.SetTitle(Norm_Data_Title)
             ExREAL_1D_Norm.GetYaxis().SetTitle("Normalized")
             ExREAL_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             ExREAL_1D_Norm.SetLineColor(root_color.Blue)
@@ -5089,7 +5093,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             ExREAL_1D_Norm.SetMarkerSize(1)
             ExREAL_1D_Norm.SetMarkerStyle(21)
             #####==========#####      MC REC Histogram       #####==========##### ################################################################
-            MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
+            MC_REC_1D_Norm.SetTitle(Norm_Data_Title)
             MC_REC_1D_Norm.GetYaxis().SetTitle("Normalized")
             MC_REC_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
             MC_REC_1D_Norm.SetLineColor(root_color.Red)
@@ -5099,24 +5103,26 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             MC_REC_1D_Norm.SetMarkerSize(1)
             MC_REC_1D_Norm.SetMarkerStyle(22)
             #####==========#####      MC GEN Histogram       #####==========##### ################################################################
-            if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
-                MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
-                MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
-                MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(str(Multi_Dim_Option) in ["3D"]) else "3D Unfolding (Old)" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_All_z_pT_Bins), "}}"]))
-                MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
-                MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
-                MC_GEN_1D_Norm.SetLineColor(root_color.Green)
-                MC_GEN_1D_Norm.SetLineWidth(3)
-                MC_GEN_1D_Norm.SetLineStyle(1)
-                MC_GEN_1D_Norm.SetMarkerColor(root_color.Green)
-                MC_GEN_1D_Norm.SetMarkerSize(1)
-                MC_GEN_1D_Norm.SetMarkerStyle(20)
+            # if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
+            MC_GEN_1D_Norm.SetTitle(Norm_Data_Title)
+            MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
+            MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
+            MC_GEN_1D_Norm.SetLineColor(root_color.Green)
+            MC_GEN_1D_Norm.SetLineWidth(3)
+            MC_GEN_1D_Norm.SetLineStyle(1)
+            MC_GEN_1D_Norm.SetMarkerColor(root_color.Green)
+            MC_GEN_1D_Norm.SetMarkerSize(1)
+            MC_GEN_1D_Norm.SetMarkerStyle(20)
+
+            ExREAL_1D_Norm.SetStats(0)
+            MC_REC_1D_Norm.SetStats(0)
+            MC_GEN_1D_Norm.SetStats(0)
             
-            if(Fit_Test):
-                try:
-                    statbox_move(Histogram=MC_GEN_1D_Norm, Canvas=All_z_pT_Canvas_cd_1_Lower.cd(1), Print_Method="off")
-                except:
-                    print("\nMC_GEN_1D IS NOT FITTED\n")
+            # if(Fit_Test):
+            #     try:
+            #         statbox_move(Histogram=MC_GEN_1D_Norm, Canvas=All_z_pT_Canvas_cd_1_Lower.cd(1), Print_Method="off")
+            #     except:
+            #         print("\nMC_GEN_1D IS NOT FITTED\n")
             
         except Exception as e:
             print("".join([color.Error, "ERROR IN 1D (Input) Histograms:\n",        color.END_R, str(traceback.format_exc()), color.END]))
@@ -5537,23 +5543,27 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
                 MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
                 
-                ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
-                MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                # ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                # MC_REC_1D_Norm.SetTitle(str(MC_REC_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
                 
-                if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
-                    MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
-                    MC_GEN_1D_Norm.SetTitle(str(MC_GEN_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
-                    Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
-                else:
-                    Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin())])
+                # if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
+                MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H P E0 same")
+                # MC_GEN_1D_Norm.SetTitle(str(MC_GEN_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
+                Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin()), MC_GEN_1D_Norm.GetBinContent(MC_GEN_1D_Norm.GetMaximumBin())])
+                # else:
+                    # Max_Pre_Unfolded = max([ExREAL_1D_Norm.GetBinContent(ExREAL_1D_Norm.GetMaximumBin()), MC_REC_1D_Norm.GetBinContent(MC_REC_1D_Norm.GetMaximumBin())])
                 
                 ExREAL_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
                 MC_REC_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
+                MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
                 
                 ExREAL_1D_Norm.GetXaxis().SetRangeUser(0, 360)
                 MC_REC_1D_Norm.GetXaxis().SetRangeUser(0, 360)
+                MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
+
+                Norm_Data_Title = "".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"])
                 
-                ExREAL_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                ExREAL_1D_Norm.SetTitle(Norm_Data_Title)
                 ExREAL_1D_Norm.GetYaxis().SetTitle("Normalized")
                 ExREAL_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 ExREAL_1D_Norm.SetLineColor(root_color.Blue)
@@ -5563,7 +5573,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 ExREAL_1D_Norm.SetMarkerSize(1)
                 ExREAL_1D_Norm.SetMarkerStyle(21)
                 #####==========#####      MC REC Histogram       #####==========##### ################################################################
-                MC_REC_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
+                MC_REC_1D_Norm.SetTitle(Norm_Data_Title)
                 MC_REC_1D_Norm.GetYaxis().SetTitle("Normalized")
                 MC_REC_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
                 MC_REC_1D_Norm.SetLineColor(root_color.Red)
@@ -5573,24 +5583,26 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 MC_REC_1D_Norm.SetMarkerSize(1)
                 MC_REC_1D_Norm.SetMarkerStyle(22)
                 #####==========#####      MC GEN Histogram       #####==========##### ################################################################
-                if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
-                    MC_GEN_1D_Norm.GetYaxis().SetRangeUser(0, 1.2*Max_Pre_Unfolded)
-                    MC_GEN_1D_Norm.GetXaxis().SetRangeUser(0, 360)
-                    MC_GEN_1D_Norm.SetTitle("".join(["#splitline{#scale[1.5]{Pre-",  "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(str(Multi_Dim_Option) not in ["Off"]) else "Unfolding", " Distributions of ", str(Variable_Title), "}}{#scale[1.15]{", str(Bin_Title_z_pT_Bin), "}}"]))
-                    MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
-                    MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
-                    MC_GEN_1D_Norm.SetLineColor(root_color.Green)
-                    MC_GEN_1D_Norm.SetLineWidth(3)
-                    MC_GEN_1D_Norm.SetLineStyle(1)
-                    MC_GEN_1D_Norm.SetMarkerColor(root_color.Green)
-                    MC_GEN_1D_Norm.SetMarkerSize(1)
-                    MC_GEN_1D_Norm.SetMarkerStyle(20)
-                    MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
-                    if(Fit_Test):
-                        try:
-                            statbox_move(Histogram=MC_GEN_1D_Norm, Canvas=All_z_pT_Canvas_cd_2_z_pT_Bin.cd(1), Print_Method="off")
-                        except:
-                            print(color.RED, "\nMC_GEN_1D IS NOT FITTED\n", color.END)
+                # if(("phi_t" in str(VARIABLE)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(VARIABLE))):
+                MC_GEN_1D_Norm.SetTitle(Norm_Data_Title)
+                MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
+                MC_GEN_1D_Norm.GetXaxis().SetTitle("".join([str(Variable_Title), "" if("Smear" not in str(Default_Histo_Name)) else " (Smeared)"]))
+                MC_GEN_1D_Norm.SetLineColor(root_color.Green)
+                MC_GEN_1D_Norm.SetLineWidth(3)
+                MC_GEN_1D_Norm.SetLineStyle(1)
+                MC_GEN_1D_Norm.SetMarkerColor(root_color.Green)
+                MC_GEN_1D_Norm.SetMarkerSize(1)
+                MC_GEN_1D_Norm.SetMarkerStyle(20)
+                MC_GEN_1D_Norm.GetYaxis().SetTitle("Normalized")
+                    # if(Fit_Test):
+                    #     try:
+                    #         statbox_move(Histogram=MC_GEN_1D_Norm, Canvas=All_z_pT_Canvas_cd_2_z_pT_Bin.cd(1), Print_Method="off")
+                    #     except:
+                    #         print(color.RED, "\nMC_GEN_1D IS NOT FITTED\n", color.END)
+            
+                ExREAL_1D_Norm.SetStats(0)
+                MC_REC_1D_Norm.SetStats(0)
+                MC_GEN_1D_Norm.SetStats(0)
                 
             except Exception as e:
                 print("".join([color.Error, "ERROR IN (z-pT Bin ", str(z_pT_Bin), ") 1D (Input) Histograms:\n", color.END_B, str(traceback.format_exc()), color.END]))
@@ -6080,6 +6092,7 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_V9_All"
 
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_V11_All"
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V11_All"
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V11_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
