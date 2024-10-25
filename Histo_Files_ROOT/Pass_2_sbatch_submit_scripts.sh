@@ -17,6 +17,9 @@ function display_help {
     echo "  --skip-rdf       Skip submitting jobs for rdf files."
     echo "  --skip-mdf       Skip submitting jobs for mdf files."
     echo "  --skip-gdf       Skip submitting jobs for gdf files."
+    echo "  --only-rdf       Only submitting jobs for rdf files."
+    echo "  --only-mdf       Only submitting jobs for mdf files."
+    echo "  --only-gdf       Only submitting jobs for gdf files."
     echo "  --cat            Display the contents of the scripts instead of submitting them with sbatch."
     echo "  --git            Display the 'git' status of the scripts instead of submitting them with sbatch. (Same as using 'git diff' on the file)"
     echo "  --lt             Shows the file location as if using the 'lt' command (basically my version of 'ls -lhtr')"
@@ -32,6 +35,9 @@ while [[ "$#" -gt 0 ]]; do
         --skip-rdf) skip_rdf=true ;;
         --skip-mdf) skip_mdf=true ;;
         --skip-gdf) skip_gdf=true ;;
+        --only-rdf) skip_mdf=true ; skip_gdf=true ;;
+        --only-mdf) skip_rdf=true ; skip_gdf=true ;;
+        --only-gdf) skip_rdf=true ; skip_mdf=true ;;
         --cat) use_cat=true ;;
         --git) use_git=true ;;
         --lt) use_lt=true ;;
