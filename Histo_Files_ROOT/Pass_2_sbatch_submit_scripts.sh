@@ -79,19 +79,21 @@ fi
 # Submit or cat for mdf files
 if [ "$skip_mdf" = false ]; then
     if [ "$use_lt" = false ]; then
-        echo "Submitting for mdf file in:"
         cd "${DIR_WITH_SCRIPTS}/Matching_REC_MC/"
-        pwd
     else
         echo ""
     fi
     script_path="${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_${script_type}_python_matching_MC_Pass2.sh"
     if [ "$use_cat" = true ]; then
+        echo "Checking for mdf file in:"
+        pwd
         cat "$script_path"
         echo ""
         echo ""
     else
         if [ "$use_git" = true ]; then
+            echo "Checking for mdf file in:"
+            pwd
             git diff "$script_path"
             echo ""
             echo ""
@@ -99,6 +101,8 @@ if [ "$skip_mdf" = false ]; then
             if [ "$use_lt" = true ]; then
                 ls -lhtr "$script_path"
             else
+                echo "Submitting for mdf file in:"
+                pwd
                 # echo "Would sbatch $script_path"
                 sbatch "$script_path"
             fi
@@ -113,19 +117,21 @@ fi
 # Submit or cat for gdf files
 if [ "$skip_gdf" = false ]; then
     if [ "$use_lt" = false ]; then
-        echo "Submitting for gdf file in:"
         cd "${DIR_WITH_SCRIPTS}/GEN_MC/"
-        pwd
     else
         echo ""
     fi
     script_path="${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_${script_type}_python_gen_MC_Pass2.sh"
     if [ "$use_cat" = true ]; then
+        echo "Checking for gdf file in:"
+        pwd
         cat "$script_path"
         echo ""
         echo ""
     else
         if [ "$use_git" = true ]; then
+            echo "Checking for gdf file in:"
+            pwd
             git diff "$script_path"
             echo ""
             echo ""
@@ -133,6 +139,8 @@ if [ "$skip_gdf" = false ]; then
             if [ "$use_lt" = true ];then
                 ls -lhtr "$script_path"
             else
+                echo "Submitting for gdf file in:"
+                pwd
                 # echo "Would sbatch $script_path"
                 sbatch "$script_path"
             fi
@@ -147,19 +155,21 @@ fi
 # Submit or cat for rdf files
 if [ "$skip_rdf" = false ]; then
     if [ "$use_lt" = false ]; then
-        echo "Submitting for rdf file in:"
         cd "${DIR_WITH_SCRIPTS}/REAL_Data/"
-        pwd
     else
         echo ""
     fi
     script_path="${DIR_WITH_SCRIPTS}/REAL_Data/sbatch_${script_type}_python_real_data_Pass2.sh"
     if [ "$use_cat" = true ]; then
+        echo "Checking for rdf file in:"
+        pwd
         cat "$script_path"
         echo ""
         echo ""
     else
         if [ "$use_git" = true ]; then
+            echo "Checking for rdf file in:"
+            pwd
             git diff "$script_path"
             echo ""
             echo ""
@@ -167,6 +177,8 @@ if [ "$skip_rdf" = false ]; then
             if [ "$use_lt" = true ]; then
                 ls -lhtr "$script_path"
             else
+                echo "Submitting for rdf file in:"
+                pwd
                 # echo "Would sbatch $script_path"
                 sbatch "$script_path"
             fi
