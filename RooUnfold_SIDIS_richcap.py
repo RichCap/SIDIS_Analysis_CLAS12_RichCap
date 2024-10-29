@@ -34,6 +34,16 @@ ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
 ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
 ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 
+try:
+    import RooUnfold
+except ImportError:
+    print("".join([color.Error, "ERROR: \n", color.END_R, str(traceback.format_exc()), color.END, "\n"]))
+    # print("Somehow the python module was not found, let's try loading the library by hand...")
+    # try:
+    #     ROOT.gSystem.Load("libRooUnfold.so")
+    # except:
+    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+
 
        
 Saving_Q         = True
@@ -241,24 +251,11 @@ if(datetime_object_full.hour == 0 or  datetime_object_full.hour == 24):
     Date_Time = "".join([Date_Day, color.BOLD, "12:", str(timeMin_full), " a.m.", color.END])
 print(Date_Time, "\n")
 
-
-
-
-try:
-    import RooUnfold
-except ImportError:
-    print("".join([color.Error, "ERROR: \n", color.END_R, str(traceback.format_exc()), color.END, "\n"]))
-    # print("Somehow the python module was not found, let's try loading the library by hand...")
-    # try:
-    #     ROOT.gSystem.Load("libRooUnfold.so")
-    # except:
-    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-        
         
 print("\n\n")
 
 # Variable for imposing a minimum acceptance value cut to the unfolded distributions
-Min_Allowed_Acceptance_Cut = 0.015
+Min_Allowed_Acceptance_Cut = 0.0175
 
 # 'Acceptance_Cut_Line' will be used to show where the minimum acceptance cut is placed when drawing the Acceptance Plots
 Acceptance_Cut_Line = ROOT.TLine(0, Min_Allowed_Acceptance_Cut, 360, Min_Allowed_Acceptance_Cut)
