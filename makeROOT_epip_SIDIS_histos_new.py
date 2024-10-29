@@ -89,7 +89,7 @@ Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 Tag___Proton_List = ["_Pro",    "_Proton"]
-SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13"]
+SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13", "_FC_14"]
 
 
 
@@ -202,6 +202,8 @@ for SkipC         in SkipFiducial_List:
             Skipped_Fiducial_Cuts = ["Hpip", "DC_pip", "Pion"]     # Skipping New Pion Cuts (includes all of Valerii's Electron Cuts and my electron DC refinements)
         if(SkipC  in ["_FC_13"]):
             Skipped_Fiducial_Cuts = ["Hpip", "DC", "Electron"]     # Skipping All Electron DC Fiducial cuts (including Valerii's cuts and my refinements, BUT including my pion DC cuts - Valerii's cuts are also never to be applied to the pion at the point that this option was added)
+        if(SkipC  in ["_FC_14"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip", "Electron"] # Skipping my electron fiducial cuts and not applying any of Valerii's cuts to the pion (Includes all of Valerii's electron cuts and my new pion cuts)
         if(SkipC  in ["_FC7"]):
             Skipped_Fiducial_Cuts = ["Hpip", "DC", "My_Cuts"]      # Skipping all DC cuts (as of 9/3/2024, 'FC7' no longer allows Valerii's PCAL cuts to be applied to the pion - i.e., skipping 'Hpip')
         datatype                  = str(datatype).replace(str(SkipC), "")
@@ -406,7 +408,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
     
     print(f"{color.BOLD}\nDefining pre-made functions to be used within the RDataFrame{color.END}")
-    ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
+    # ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
     ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
     ROOT.gInterpreter.Declare(Correction_Code_Full_In)
     ROOT.gInterpreter.Declare(Rotation_Matrix)
@@ -967,7 +969,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) All phase space plots for electron+pion
         ##### All plots below only run for the 'All' Q2-y bin:
         # 2D) Missing Mass (with Proton) vs proton momentum
-    # Ran Cut_Configuration_Name = "_FC_11" on ...
+    # Ran Cut_Configuration_Name = "_FC7" on 10/25/2024
+
+
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V12_"
+    # Ran on 10/29/2024
+    # Not running 'no_cut' options for 'rdf' or 'mdf' (just 'gdf')
+    # Using the Fiducial Cuts developed in the 'Pion_Test_Fiducial_Cuts_Defs.py' file
+        # No longer using the version of the cuts that require me to declare 'New_Fiducial_DC_Cuts_Functions'
+        # Will be running multiple fiducial cut configurations to fully test all of the cuts/refinements
+        # Configurations include: "FC_11", "_FC_14", and "_FC0"
+            # "FC_11"   --> None of my DC Cuts (just includes all of Valerii's Electron DC Cuts but skips my electron DC refinements/pion cuts)
+            # "FC_14"   --> Skips my electron fiducial cuts and does not apply any of Valerii's cuts to the pion, but includes all of Valerii's electron cuts and my new pion cuts
+            # "FC0"     --> Turns off all new fiducial cuts added since the June 2024 CLAS Collaboration meeting
+    # Added back the sector cuts (using the 2D phi_h vs sector plots)
+    # Still including the 3D unfolding plots
+    # Included 1D/2D/3D Histograms:
+        # 1D) phi_t
+        # 1D) MultiDim_z_pT_Bin_Y_bin_phi_t (for 3D Unfolding)
+        # 2D) Q2 vs y, z vs pT, and Q2 vs xB
+        # 2D) All phase space plots for electron+pion
+        # 2D) phi_t vs esec and phi_t vs pipsec
+        ##### All plots below only run for the 'All' Q2-y bin:
+        # 2D) Missing Mass (with Proton) vs proton momentum
             
             
     if(Run_Small):
@@ -5775,9 +5799,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         # cut_list.append('no_cut_eS5o')
 #         # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
-        # cut_list = ['cut_Complete_SIDIS']
-        cut_list.append('cut_Complete_SIDIS')
-#         cut_list.append('cut_Complete_SIDIS_eS1o')
+        cut_list = ['cut_Complete_SIDIS']
+        # cut_list.append('cut_Complete_SIDIS')
+        cut_list.append('cut_Complete_SIDIS_eS1o')
 #         cut_list.append('cut_Complete_SIDIS_eS2o')
 #         cut_list.append('cut_Complete_SIDIS_eS3o')
 #         cut_list.append('cut_Complete_SIDIS_eS4o')
@@ -6260,7 +6284,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
 #     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
@@ -7413,6 +7437,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     variable = Var_List[0]
                                     if(("smear" in Histo_Smear) and ("mear" not in variable)):
                                         variable = "".join([variable, "_smeared"])
+
+                                    if(("MultiDim" in str(variable)) and ("_SIDIS_eS" in str(Histo_Cut))):
+                                        print(f"{color.Error}Not running 'MultiDim' variables with sector cuts (not using 3D unfolding with sector cuts)...{color.END}")
+                                        continue
 
                                     Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
 
