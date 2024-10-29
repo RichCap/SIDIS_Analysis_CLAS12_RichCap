@@ -1347,11 +1347,11 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                 if(bin_settings.get("B_initial") is not None):
                                     Fitting_Function.SetParameter(1, bin_settings["B_initial"])
                                     if(bin_settings.get("B_limits")):
-                                        Fitting_Function.SetParLimits(1, *bin_settings["B_limits"])
+                                        Fitting_Function.SetParLimits(1, *sorted(bin_settings["B_limits"]))
                                 if(bin_settings.get("C_initial") is not None):
                                     Fitting_Function.SetParameter(2, bin_settings["C_initial"])
                                     if(bin_settings.get("C_limits")):
-                                        Fitting_Function.SetParLimits(2, *bin_settings["C_limits"])
+                                        Fitting_Function.SetParLimits(2, *sorted(bin_settings["C_limits"]))
                                 Allow_Multiple_Fits   = bin_settings.get("Allow_Multiple_Fits",   True)
                                 Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)                        
                     except:
