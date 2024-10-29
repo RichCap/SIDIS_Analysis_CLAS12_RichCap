@@ -1964,40 +1964,36 @@ def BG_Cut_Function(dataframe="mdf"):
 
 # Up-to-date as of: 8/30/2024
     # Note: The Pion cuts are "PRELIMINARY ONLY" - Are to be replaced once the Electron cuts have been applied
-New_Fiducial_DC_Cuts_Functions = """
-auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
-    {"Layer_6__ele", {{-65,  0}, {-65,  -3}, {13,   -41}, {14,   -40}, {19,    0}, {13,  42}, {-65,   2}, {-65,  0}}},
-    {"Layer_18_ele", {{-105, 0}, {-94,  -8}, {15,   -62}, {25,     0}, {15,   63}, {-92,  9}, {-105,  0}}},
-    {"Layer_36_ele", {{-170, 0}, {-169, -5}, {-100, -36}, {5,    -81}, {18,    0}, {5,   85}, {-75,  49}, {-170, 3}, {-170, 0}}},
-    {"Layer_6__pip", {{-86,  0}, {-86,  -6}, {-78,   -6}, {-78,  -10}, {-74, -14}, {14, -58}, {22,  -58}, {22, -46}, {42,   0}, {20, 56}, {-20,  37}, {-60,  18}, {-80,  8}, {-86,   0}}},
-    {"Layer_18_pip", {{-125, 0}, {-125, -7}, {-118,  -8}, {-80,  -32}, {-50, -47}, {0,  -73}, {30,  -89}, {55,   0}, {32,  91}, {0,  74}, {-80,  33}, {-114, 13}, {-119, 8}, {-124,  8}, {-125,  0}}},
-    {"Layer_36_pip", {{-155, 0}, {-150, -6}, {-125, -29}, {-100, -45}, {-50, -71}, {0,  -98}, {74, -140}, {76, -86}, {94,   0}, {76, 96}, {72,  141}, {-10,  96}, {-50, 74}, {-110, 43}, {-142, 16}, {-147, 11}, {-150, 8}, {-154, 6}, {-155, 0}}}
-};
-
-bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
-    double winding_number = 0.0;
-    int num_vertices = polygon.size();
-
-    for (int i = 0; i < num_vertices; ++i) {
-        double x1 = polygon[i].first;
-        double y1 = polygon[i].second;
-        double x2 = polygon[(i + 1) % num_vertices].first;
-        double y2 = polygon[(i + 1) % num_vertices].second;
-
-        double a1 = atan2(y1 - y, x1 - x);
-        double a2 = atan2(y2 - y, x2 - x);
-        double angle_diff = a2 - a1;
-
-        if(angle_diff > 3.1415926){
-            angle_diff -= 2 * 3.1415926;
-        } else if(angle_diff < -3.1415926){
-            angle_diff += 2 * 3.1415926;
-        }
-        winding_number += angle_diff;
-    }
-    return (std::abs(winding_number) > 3.1415926);
-}
-"""
+# New_Fiducial_DC_Cuts_Functions = """
+# auto Polygon_Layers = std::map<std::string, std::vector<std::pair<double, double>>>{
+#     {"Layer_6__ele", {{-65,  0}, {-65,  -3}, {13,   -41}, {14,   -40}, {19,    0}, {13,  42}, {-65,   2}, {-65,  0}}},
+#     {"Layer_18_ele", {{-105, 0}, {-94,  -8}, {15,   -62}, {25,     0}, {15,   63}, {-92,  9}, {-105,  0}}},
+#     {"Layer_36_ele", {{-170, 0}, {-169, -5}, {-100, -36}, {5,    -81}, {18,    0}, {5,   85}, {-75,  49}, {-170, 3}, {-170, 0}}},
+#     {"Layer_6__pip", {{-86,  0}, {-86,  -6}, {-78,   -6}, {-78,  -10}, {-74, -14}, {14, -58}, {22,  -58}, {22, -46}, {42,   0}, {20, 56}, {-20,  37}, {-60,  18}, {-80,  8}, {-86,   0}}},
+#     {"Layer_18_pip", {{-125, 0}, {-125, -7}, {-118,  -8}, {-80,  -32}, {-50, -47}, {0,  -73}, {30,  -89}, {55,   0}, {32,  91}, {0,  74}, {-80,  33}, {-114, 13}, {-119, 8}, {-124,  8}, {-125,  0}}},
+#     {"Layer_36_pip", {{-155, 0}, {-150, -6}, {-125, -29}, {-100, -45}, {-50, -71}, {0,  -98}, {74, -140}, {76, -86}, {94,   0}, {76, 96}, {72,  141}, {-10,  96}, {-50, 74}, {-110, 43}, {-142, 16}, {-147, 11}, {-150, 8}, {-154, 6}, {-155, 0}}}
+# };
+# bool is_point_in_polygon(double x, double y, const std::vector<std::pair<double, double>>& polygon) {
+#     double winding_number = 0.0;
+#     int num_vertices = polygon.size();
+#     for (int i = 0; i < num_vertices; ++i) {
+#         double x1 = polygon[i].first;
+#         double y1 = polygon[i].second;
+#         double x2 = polygon[(i + 1) % num_vertices].first;
+#         double y2 = polygon[(i + 1) % num_vertices].second;
+#         double a1 = atan2(y1 - y, x1 - x);
+#         double a2 = atan2(y2 - y, x2 - x);
+#         double angle_diff = a2 - a1;
+#         if(angle_diff > 3.1415926){
+#             angle_diff -= 2 * 3.1415926;
+#         } else if(angle_diff < -3.1415926){
+#             angle_diff += 2 * 3.1415926;
+#         }
+#         winding_number += angle_diff;
+#     }
+#     return (std::abs(winding_number) > 3.1415926);
+# }
+# """
 
 from MyCommonAnalysisFunction_richcap import color
 
@@ -2122,7 +2118,7 @@ def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False):
     return Data_Frame_Input
     
     
-    
+from Pion_Test_Fiducial_Cuts_Defs import *
 # Function for applying all the Fiducial Cuts above
 def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A", Cut_Flag=False):
     if("All" in Skip_Options):
@@ -2132,24 +2128,28 @@ def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A", Cut_Flag=False
     if(not Cut_Flag):
         if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
             # Applying my (electron) fiducial cuts
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])""")
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])""")
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"])""")
+            Data_Frame_Out = Apply_Test_Fiducial_Cuts(Data_Frame_In=Data_Frame_Out, List_of_Layers=["6", "18", "36"], List_of_Particles=["ele"])
             Failed_Filter  = False
         if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
             # Applying my (pion) fiducial cuts
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])""")
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])""")
-            Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])""")
+            # Data_Frame_Out = Data_Frame_Out.Filter("""is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"])""")
+            Data_Frame_Out = Apply_Test_Fiducial_Cuts(Data_Frame_In=Data_Frame_Out, List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"])
             Failed_Filter  = False
     else:
         if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "esec",   "Electron", "All"])):
             # Applying my (electron) fiducial cuts
-            Data_Frame_Out = Data_Frame_Out.Define("My_ele_DC_Fiducial_Cuts", """(is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])) && (is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])) && (is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"]))""")
+            # Data_Frame_Out = Data_Frame_Out.Define("My_ele_DC_Fiducial_Cuts", """(is_point_in_polygon(ele_x_DC_6_rot,  ele_y_DC_6_rot,  Polygon_Layers["Layer_6__ele"])) && (is_point_in_polygon(ele_x_DC_18_rot, ele_y_DC_18_rot, Polygon_Layers["Layer_18_ele"])) && (is_point_in_polygon(ele_x_DC_36_rot, ele_y_DC_36_rot, Polygon_Layers["Layer_36_ele"]))""")
+            Data_Frame_Out = Apply_Test_Fiducial_Cuts(Data_Frame_In=Data_Frame_Out, List_of_Layers=["6", "18", "36"], List_of_Particles=["ele"], Define_Column=True)
             Failed_Filter  = False
         if(not any(my_cuts   in Skip_Options for my_cuts   in ["My_Fiducial", "My_Cuts", "sector", "pipsec", "Pion",     "All"])):
             # Applying my (pion) fiducial cuts
-            Data_Frame_Out = Data_Frame_Out.Define("My_pip_DC_Fiducial_Cuts", """(is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])) && (is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])) && (is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"]))""")
+            # Data_Frame_Out = Data_Frame_Out.Define("My_pip_DC_Fiducial_Cuts", """(is_point_in_polygon(pip_x_DC_6_rot,  pip_y_DC_6_rot,  Polygon_Layers["Layer_6__pip"])) && (is_point_in_polygon(pip_x_DC_18_rot, pip_y_DC_18_rot, Polygon_Layers["Layer_18_pip"])) && (is_point_in_polygon(pip_x_DC_36_rot, pip_y_DC_36_rot, Polygon_Layers["Layer_36_pip"]))""")
+            Data_Frame_Out = Apply_Test_Fiducial_Cuts(Data_Frame_In=Data_Frame_Out, List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"], Define_Column=True)
             Failed_Filter  = False
     if(not any(DC_cuts   in Skip_Options for DC_cuts   in ["DC", "Sangbaek_and_Valerii_Fiducial_Cuts", "Sangbaek_and_Valerii", "Sangbaek", "Valerii", "DC_ele", "DC_el", "All"])):
         Data_Frame_Out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=Data_Frame_Out, fidlevel='mid', Particle="ele", Cut_Flag=Cut_Flag)
