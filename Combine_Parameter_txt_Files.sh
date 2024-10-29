@@ -2,23 +2,27 @@
 
 # Check if at least one argument was provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 base_name_of_files [Smeared|Unsmeared|TagProton_Unsmeared|TagProton_Smeared|ProtonCut_Unsmeared|ProtonCut_Smeared]"
+    echo "Usage: $0 base_name_of_files [SUFFIX1 SUFFIX2 ...]"
+    echo "Suffix options: Smeared, Unsmeared, TagProton_Unsmeared, TagProton_Smeared, ProtonCut_Unsmeared, ProtonCut_Smeared"
     exit 1
 fi
 
 BASE_NAME="$1"
-SUFFIX=""
-if [ "$#" -eq 2 ]; then
-    # Check if the second argument is either "Smeared" or "Unsmeared"
-    if [ "$2" == "Smeared" ] || [ "$2" == "Unsmeared" ] || [ "$2" == "TagProton_Unsmeared" ] || [ "$2" == "TagProton_Smeared" ] || [ "$2" == "ProtonCut_Unsmeared" ] || [ "$2" == "ProtonCut_Smeared" ]; then
-        SUFFIX="_$2"
-    else
-        echo "Invalid suffix. Only 'Smeared', 'Unsmeared', 'TagProton_Unsmeared', 'TagProton_Smeared', 'ProtonCut_Unsmeared', or 'ProtonCut_Smeared' are accepted."
-        exit 1
-    fi
+shift # Shift to process suffixes as arguments
+
+# Determine if a single suffix was provided
+if [ "$#" -eq 1 ]; then
+    SINGLE_SUFFIX="$1"
+else
+    SINGLE_SUFFIX=""
 fi
 
-output_file="${BASE_NAME}_Combined${SUFFIX}.txt"
+# Initialize the output file name
+if [ -n "$SINGLE_SUFFIX" ]; then
+    output_file="${BASE_NAME}_Combined_${SINGLE_SUFFIX}.txt"
+else
+    output_file="${BASE_NAME}_Combined.txt"
+fi
 
 # Clear the output file in case it already exists
 > "$output_file"
@@ -29,22 +33,31 @@ line_to_remove="Note to Reader: Print the text in this file as a string in Pytho
 # Initialize an array to keep track of the files processed
 declare -a files_to_delete
 
-# Append the content of the all file if it exists
-if [ -f "${BASE_NAME}_All${SUFFIX}.txt" ]; then
-    cat "${BASE_NAME}_All${SUFFIX}.txt" >> "$output_file"
-    files_to_delete+=("${BASE_NAME}_All${SUFFIX}.txt") # Add the file to the list for potential deletion
-fi
-
-# Loop through the files and append their content minus the unwanted line to the output file
-for ii in $(seq 1 17); do
-    file="${BASE_NAME}_${ii}${SUFFIX}.txt"
-    # Check if the file exists before trying to process it
-    if [ -f "$file" ]; then
-        grep -vxF "$line_to_remove" "$file" >> "$output_file"
-        files_to_delete+=("$file") # Add the file to the list for potential deletion
-    else
-        echo "Warning: File $file not found and was skipped."
+# Iterate over each suffix provided in the arguments
+for SUFFIX in "$@"; do
+    if [[ "$SUFFIX" != "Smeared" && "$SUFFIX" != "Unsmeared" && "$SUFFIX" != "TagProton_Unsmeared" && "$SUFFIX" != "TagProton_Smeared" && "$SUFFIX" != "ProtonCut_Unsmeared" && "$SUFFIX" != "ProtonCut_Smeared" ]]; then
+        echo "Invalid suffix: $SUFFIX. Skipping."
+        continue
     fi
+
+    SUFFIX="_$SUFFIX"
+
+    # Append the content of the 'All' file if it exists
+    if [ -f "${BASE_NAME}_All${SUFFIX}.txt" ]; then
+        cat "${BASE_NAME}_All${SUFFIX}.txt" >> "$output_file"
+        files_to_delete+=("${BASE_NAME}_All${SUFFIX}.txt") # Add the file to the list for potential deletion
+    fi
+
+    # Loop through numbered files and append content minus unwanted line
+    for ii in $(seq 1 17); do
+        file="${BASE_NAME}_${ii}${SUFFIX}.txt"
+        if [ -f "$file" ]; then
+            grep -vxF "$line_to_remove" "$file" >> "$output_file"
+            files_to_delete+=("$file") # Add file to the list for potential deletion
+        else
+            echo "Warning: File $file not found and was skipped."
+        fi
+    done
 done
 
 echo "All available files have been combined into $output_file"
