@@ -5786,6 +5786,9 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_V11_All"
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V11_All"
 # Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V11_All"
 
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V12_All"
+
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -8146,10 +8149,12 @@ for ii in Histo_Pars_VS_Z:
         Histo_Pars_VS_Z[ii].Draw("APL same")
         ROOT.gPad.Modified()
         if("Par_B" in str(ii)):
-            Histo_Pars_VS_Z[ii].SetMinimum(-0.9)
+            # Histo_Pars_VS_Z[ii].SetMinimum(-0.9)
+            Histo_Pars_VS_Z[ii].SetMinimum(-1.0)
             Histo_Pars_VS_Z[ii].SetMaximum( 0.2)
         elif("Par_C" in str(ii)):
-            Histo_Pars_VS_Z[ii].SetMinimum(-0.35)
+            # Histo_Pars_VS_Z[ii].SetMinimum(-0.35)
+            Histo_Pars_VS_Z[ii].SetMinimum(-0.45)
             Histo_Pars_VS_Z[ii].SetMaximum( 0.25)
         # if((("Bayesian" in str(ii)) or ("(Bin)" in str(ii))) and ("Multi_Dim" in str(ii))):
         #     if("Par_B" in str(ii)):
