@@ -2389,6 +2389,14 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 if(f"sec'-[{sec}]" in Out_Print_Main):
                     Histo_Name_General = Histo_Name_General.replace("sec)_(phi_t))", f"sec_{sec})_(phi_t)")
                     break
+        if("sec_smeared'-[" in Out_Print_Main):
+            Histo_Name_General = Histo_Name_General.replace("((", "(")
+            for sec in [1, 2, 3, 4, 5, 6]:
+                if(f"sec_smeared'-[{sec}]" in Out_Print_Main):
+                    # print(f"\nBefore: Histo_Name_General = {Histo_Name_General}")
+                    Histo_Name_General = Histo_Name_General.replace("sec_smeared)_(phi_t_smeared))", f"sec_{sec})_(phi_t)")
+                    # print(f"After:  Histo_Name_General = {Histo_Name_General}\n")
+                    break
         ################################################################### ########################################################################################################################################################################################################################################################################################################################
         ###==========###         Normal/1D Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "rdf")).replace("Smear", "''")]            = ExREAL_1D
@@ -4333,7 +4341,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
         if("#phi_{h}" not in Variable_Title):
             for var_error_title in ["{elth}", "{elPhi}", "{pipth}", "{pipPhi}"]:
                 Variable_Title = Variable_Title.replace(var_error_title, "{El}" if("el" in var_error_title) else "{#pi^{+}}")
-    if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in (Default_Histo_Name_Integrated))):
+    if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in str(Default_Histo_Name_Integrated))):
         Variable_Title = f"{Variable_Title} (Smeared)"
             
     z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
@@ -4676,7 +4684,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
         Bin_Title_All_z_pT_Bins = "".join(["#splitline{", str(Bin_Title_All_z_pT_Bins), "}{", str(Standard_Histogram_Title_Addition), "}"])
     if("sec" in str(VARIABLE)):
         Variable_Title = "#phi_{h}"
-        for particle_sec in ["esec", "pipsec"]:
+        for particle_sec in ["esec_smeared", "pipsec_smeared", "esec", "pipsec"]:
             for sec in [1, 2, 3, 4, 5, 6]:
                 if(f"{particle_sec}_{sec}" in VARIABLE):
                     Bin_Title_All_z_pT_Bins = Bin_Title_All_z_pT_Bins.replace("".join(["{", str(Standard_Histogram_Title_Addition), "}"]), "".join(["{", "#pi^{+} Pion" if(particle_sec in ["pipsec"]) else "Electron", " Sector ", str(sec), " #topbar ", str(Standard_Histogram_Title_Addition), "}"]))
@@ -5791,6 +5799,8 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V12_All"
 # Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V12_All"
 # Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V12_All"
 
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V13_All"
+
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -5878,6 +5888,8 @@ else:
             break
         else:
             MC_GEN_File_Name = Common_Name
+    if("Pass_2_New_Fiducial_Cut_Test_V13_All" in MC_GEN_File_Name):
+        MC_GEN_File_Name = "Pass_2_New_Fiducial_Cut_Test_V12_All"
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
@@ -6058,7 +6070,8 @@ run_5D_Unfold  = not True
 if(run_5D_Unfold):
     Num_5D_Increments_Used_to_Slice = 422
     
-run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
+# run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
+run_Sec_Unfold = True
 if(run_Sec_Unfold):
     Sector_List = [1, 2, 3, 4, 5, 6]
 #     Sector_List = [1]
@@ -6217,7 +6230,7 @@ for ii in mdf.GetListOfKeys():
             List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D)
             continue
     elif(any(sector_particle in out_print_main for sector_particle in ["esec", "pipsec"]) and run_Sec_Unfold):
-        if("Var-D2='phi_t'" not in out_print_main):
+        if("Var-D2='phi_t" not in out_print_main):
             # Only running with the 1D Unfolding options at this time
             continue
         ## Correct Q2-y Bin:
@@ -6242,12 +6255,13 @@ for ii in mdf.GetListOfKeys():
         ## Correct Variable(s):
         Particle_Sector = "N/A"
         # Conditions_For_Unfolding.append("Var-D1='esec'"             in str(out_print_main)) # Electron Sector Only
-        if("Var-D1='esec'"   in str(out_print_main)):
+        if("Var-D1='esec"   in str(out_print_main)):
             Particle_Sector = "Electron Sector"
-        Conditions_For_Unfolding.append("Var-D1='pipsec'"           in str(out_print_main)) # Pi+ Pion Sector Only
-        if("Var-D1='pipsec'" in str(out_print_main)):
+        Conditions_For_Unfolding.append("Var-D1='pipsec"           in str(out_print_main)) # Pi+ Pion Sector Only
+        if("Var-D1='pipsec" in str(out_print_main)):
             Particle_Sector = "#pi^{+} Pion Sector"
         ## Correct Smearing:
+        Smear_Found = "(Smear-Type='')" not in str(out_print_main)
         if((Smearing_Options not in ["no_smear", "both"])):
             Conditions_For_Unfolding.append("(Smear-Type='')"   not in str(out_print_main))
         if((Smearing_Options not in ["smear",    "both"])):
@@ -6279,8 +6293,10 @@ for ii in mdf.GetListOfKeys():
             ##=============##    Removing Cuts from the Generated files    ##=============##
             ################################################################################
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("smear", "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear", "")
+            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+            out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
+            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+            out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
             ################################################################################
             
@@ -6335,13 +6351,22 @@ for ii in mdf.GetListOfKeys():
                 if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method)):
                     continue
                 for Sector in Sector_List:
-                    out_print_main_____1D_Sector = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                    out_print_main_rdf_1D_Sector = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                    out_print_main_mdf_1D_Sector = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                    out_print_main_gdf_1D_Sector = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                    if(Sim_Test):
-                        out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                    out_print_main_bdf_1D_Sector = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                    if(Smear_Found):
+                        out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        if(Sim_Test):
+                            out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                    else:
+                        out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                        out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                        out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                        out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                        if(Sim_Test):
+                            out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                        out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")                    
                     
                     New_Bin_Title = "".join(["".join(["}{#splitline{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold), "".join([" #topbar z-P_{T} Bin: ", str(z_pT_Bin_Unfold)]) if(z_pT_Bin_Unfold not in [0]) else "", f" #topbar {Particle_Sector} {Sector}"]) if(str(Q2_xB_Bin_Unfold) not in ["All", "0", 0]) else "".join(["}{#splitline{", Particle_Sector, " ", str(Sector)]),  "}{Pass Version: #color[", str(root_color.Blue), "]{", str(Standard_Histogram_Title_Addition), "}}"])
                     
@@ -7626,8 +7651,9 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("_(rdf)_(SMEAR=" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
-#     if("sec" in str(List_of_All_Histos_For_Unfolding_ii)):
-#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    # if("sec" in str(List_of_All_Histos_For_Unfolding_ii)):
+    #     if("(1D)_(mdf)_" in str(List_of_All_Histos_For_Unfolding_ii)):
+    #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("tdf" not in str(List_of_All_Histos_For_Unfolding_ii)) and ("Fit" not in str(List_of_All_Histos_For_Unfolding_ii))):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("1D)_(mdf" in str(List_of_All_Histos_For_Unfolding_ii)) or ("1D)_(Background" in str(List_of_All_Histos_For_Unfolding_ii)) or ("1D)_(Relative_Background" in str(List_of_All_Histos_For_Unfolding_ii))):
@@ -7641,7 +7667,6 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 # print("\n\n\nList_of_All_Histos_For_Unfolding =\n", List_of_All_Histos_For_Unfolding)
 print("\nFinal Count =", final_count)
 # del final_count
-
 
 
 Smearing_final_list = ["''", "Smear"]
@@ -7696,6 +7721,7 @@ Variable_List = ["phi_t"]
 # Variable_List = ["pipsec_1)_(phi_t"]
 
 if(run_Sec_Unfold):
+    # Variable_List = []
     for sec in Sector_List:
         Variable_List.append(f"pipsec_{sec})_(phi_t")
 
@@ -7727,9 +7753,10 @@ Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_
 Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
 Variable_List_Final = ["phi_t"]
 
-Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+# Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
 
 if(run_Sec_Unfold):
+    # Variable_List_Final = []
     for sec in Sector_List:
         Variable_List_Final.append(f"pipsec_{sec})_(phi_t")
 # Variable_List_Final = ["pipsec_1)_(phi_t"]

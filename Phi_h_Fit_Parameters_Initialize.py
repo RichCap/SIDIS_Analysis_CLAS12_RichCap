@@ -192,8 +192,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("1", "26"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.3,
+        "B_limits":  [-0.2, -0.5],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -360,8 +360,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("2", "17"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.25,
+        "B_limits":  [-0.2, -0.4],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -624,10 +624,10 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("3", "18"): {
-        "B_initial": None,
-        "B_limits":  None,
-        "C_initial": None,
-        "C_limits":  None,
+        "B_initial": -0.4,
+        "B_limits":  [-0.2, -0.5],
+        "C_initial": 0,
+        "C_limits":  [-0.05, 0.1],
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
@@ -712,8 +712,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("3", "29"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.2,
+        "B_limits":  [-0.15, -0.3],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -1616,8 +1616,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("7", "24"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.4,
+        "B_limits":  [-0.2, -0.45],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -2616,8 +2616,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("11", "20"): {
-        "B_initial": -0.2,
-        "B_limits":  [-0.1, -0.3],
+        "B_initial": -0.3,
+        "B_limits":  [-0.1, -0.4],
         "C_initial": -0.05,
         "C_limits":  [0, -0.1],
         "Allow_Multiple_Fits":   True,
@@ -3184,8 +3184,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("14", "18"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.4,
+        "B_limits":  [-0.2, -0.5],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -3440,8 +3440,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("15", "19"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.1,
+        "B_limits":  [0, -0.25],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
