@@ -992,7 +992,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # 2D) phi_t vs esec and phi_t vs pipsec
         ##### All plots below only run for the 'All' Q2-y bin:
         # 2D) Missing Mass (with Proton) vs proton momentum
-            
+
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V13_"
+    # Ran on 11/1/2024
+    # Same as f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V12_" but the 'New_Fiducial_Cuts_Function' function now includes an additional sector-dependent PCal cut
+        # None of the cut configurations were modified as of this version, so rerunning "FC_11" or "FC_14" would change the results, but not "FC0" (would still skip 'All' new cuts)
+        # Reran just the "FC_14" configuration
             
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"

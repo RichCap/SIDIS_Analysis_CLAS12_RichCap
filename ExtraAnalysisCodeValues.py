@@ -2116,6 +2116,31 @@ def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False):
         # Creates a new column to flag the events to cut (rather than cut them right away)
         Data_Frame_Input = Data_Frame_Input.Define("Valerii_PCal_Fiducial_Cuts", "return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));")
     return Data_Frame_Input
+
+
+# Additional Sector-dependent Fiducial Cuts for the electron in the PCal
+    # Up-to-date as of: 10/31/2024
+def Sector_Fiducial_PCal_Cuts(Data_Frame_Input, Cut_Flag=False):
+    # Checking Dataframe for correct columns
+    # PCal_Timothy_Cuts = "return ((esec != 1 && esec != 2 && esec != 3 && esec != 4 && esec != 6) || (esec == 1 && !((W_PCal >  74.2 && W_PCal <  79.6) || (W_PCal >  85.4 && W_PCal <  90.8) || (W_PCal > 213.0 && W_PCal < 218.4) || (W_PCal > 224.1 && W_PCal < 229.5))) || (esec == 2 && !(V_PCal > 102.0 && V_PCal < 113.0)) || (esec == 3 && !(V_PCal > 306.0 && V_PCal < 324.0)) || (esec == 4 && !(V_PCal > 235.0 && V_PCal < 240.0)) || (esec == 5) || (esec == 6 && !((W_PCal > 174.1 && W_PCal < 179.5) || (W_PCal > 185.2 && W_PCal < 190.6))));"
+    # Removing the cut from sector 3:
+    PCal_Timothy_Cuts = "return ((esec != 1 && esec != 2 && esec != 4 && esec != 6) || (esec == 1 && !((W_PCal >  74.2 && W_PCal <  79.6) || (W_PCal >  85.4 && W_PCal <  90.8) || (W_PCal > 213.0 && W_PCal < 218.4) || (W_PCal > 224.1 && W_PCal < 229.5))) || (esec == 2 && !(V_PCal > 102.0 && V_PCal < 113.0)) || (esec == 3) || (esec == 4 && !(V_PCal > 235.0 && V_PCal < 240.0)) || (esec == 5) || (esec == 6 && !((W_PCal > 174.1 && W_PCal < 179.5) || (W_PCal > 185.2 && W_PCal < 190.6))));"
+    if(any(needed_col not in Data_Frame_Input.GetColumnNames()for needed_col in ["V_PCal", "W_PCal", "esec"])):
+        print(f"{color.Error}\nMissing very important variable(s) for the (new) {color.UNDERLINE}Sector-dependent PCal{color.END}{color.Error} fiducial cuts (Inspired by Timothy - Cannot make cuts)\n{color.END}")
+        print(f"{color.BOLD}Variables available:{color.END}")
+        col_num = 1
+        for column_name in Data_Frame_Input.GetColumnNames():
+            print(f"{col_num})\t{column_name}")
+            col_num += 1
+        del col_num
+        return Data_Frame_Input
+    elif(not Cut_Flag):
+        # Applies Cut normally with the Filter() function
+        Data_Frame_Input = Data_Frame_Input.Filter(PCal_Timothy_Cuts)
+    else:
+        # Creates a new column to flag the events to cut (rather than cut them right away)
+        Data_Frame_Input = Data_Frame_Input.Define("Sector_PCal_Fiducial_Cuts", PCal_Timothy_Cuts)
+    return Data_Frame_Input
     
     
 from Pion_Test_Fiducial_Cuts_Defs import *
@@ -2159,6 +2184,9 @@ def New_Fiducial_Cuts_Function(Data_Frame_In, Skip_Options="N/A", Cut_Flag=False
         Failed_Filter  = False
     if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Volume", "Volume", "Valerii", "All"])):
         Data_Frame_Out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=Data_Frame_Out, Cut_Flag=Cut_Flag)
+        Failed_Filter  = False
+    if(not any(PCal_cuts in Skip_Options for PCal_cuts in ["PCal", "PCal_Sector", "Timothy", "All"])):
+        Data_Frame_Out = Sector_Fiducial_PCal_Cuts(Data_Frame_Input=Data_Frame_Out, Cut_Flag=Cut_Flag)
         Failed_Filter  = False
     if(Failed_Filter):
         print(f"{color.Error}\nPossible Error: New_Fiducial_Cuts_Function() did not apply any cuts...{color.END}\n\n")
