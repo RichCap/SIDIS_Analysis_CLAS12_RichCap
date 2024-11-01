@@ -256,6 +256,7 @@ print("\n\n")
 
 # Variable for imposing a minimum acceptance value cut to the unfolded distributions
 Min_Allowed_Acceptance_Cut = 0.0175
+Min_Allowed_Acceptance_Cut = 0.005
 
 # 'Acceptance_Cut_Line' will be used to show where the minimum acceptance cut is placed when drawing the Acceptance Plots
 Acceptance_Cut_Line = ROOT.TLine(0, Min_Allowed_Acceptance_Cut, 360, Min_Allowed_Acceptance_Cut)
@@ -5787,6 +5788,8 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V11_All"
 # Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V11_All"
 
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V12_All"
+# Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_11_V12_All"
+# Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC0_V12_All"
 
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
