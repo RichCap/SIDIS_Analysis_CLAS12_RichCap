@@ -5031,7 +5031,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             print("".join([color.Error, "ERROR IN METHOD = '", str(Method), "':\n", color.END_R, str(traceback.format_exc()), color.END]))
 
     else:
-        Default_Histo_Name_Any     = str(Default_Histo_Name).replace("z_pT_Bin_All", "z_pT_Bin_Integrated" if(str(Method) not in ["Acceptance"]) else "z_pT_Bin_All")
+        Default_Histo_Name_Any     = str(Default_Histo_Name)#.replace("z_pT_Bin_All", "z_pT_Bin_Integrated" if(str(Method) not in ["Acceptance"]) else "z_pT_Bin_All")
         if(Multi_Dim_Option   not in ["Off"]):
             if(Multi_Dim_Option   in ["5D"]):
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
@@ -6464,7 +6464,7 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
         
-        # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+        Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
         # Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
         
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
@@ -7652,7 +7652,7 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #     if("_(rdf)_(SMEAR=" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if("sec" in str(List_of_All_Histos_For_Unfolding_ii)):
-    #     if("(1D)_(mdf)_" in str(List_of_All_Histos_For_Unfolding_ii)):
+    #     if("(1D)_(Bin)_" in str(List_of_All_Histos_For_Unfolding_ii)):
     #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("tdf" not in str(List_of_All_Histos_For_Unfolding_ii)) and ("Fit" not in str(List_of_All_Histos_For_Unfolding_ii))):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
@@ -7784,7 +7784,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-Multi_Dimensional_List = ["Off", "3D"]
+# Multi_Dimensional_List = ["Off", "3D"]
 # # Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
