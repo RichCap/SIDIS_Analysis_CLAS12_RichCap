@@ -26,6 +26,7 @@ class color:
     BBLUE     = '\033[1m\033[94m' # Combines BLUE and BOLD
     BCYAN     = '\033[1m\033[96m' # Combines CYAN and BOLD
     BGREEN    = '\033[1m\033[92m' # Combines GREEN and BOLD
+    BYELLOW   = '\033[1m\033[93m' # Combines YELLOW and BOLD
     END_B     = '\033[0m\033[1m'  # Combines END and BOLD
     END_R     = '\033[0m\033[91m' # Combines END and RED
     END_C     = '\033[0m\033[96m' # Combines END and CYAN
