@@ -6071,10 +6071,10 @@ if(run_5D_Unfold):
     Num_5D_Increments_Used_to_Slice = 422
     
 # run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
-run_Sec_Unfold = True
+run_Sec_Unfold = not True
 if(run_Sec_Unfold):
     Sector_List = [1, 2, 3, 4, 5, 6]
-#     Sector_List = [1]
+    Sector_List = [6]
 
 
 print("".join([color.BBLUE, "\n\nStarting Unfolding Procedures...\n", color.END]))
@@ -6464,7 +6464,7 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
         
-        Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+        # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
         # Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
         
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
@@ -7721,7 +7721,7 @@ Variable_List = ["phi_t"]
 # Variable_List = ["pipsec_1)_(phi_t"]
 
 if(run_Sec_Unfold):
-    # Variable_List = []
+    Variable_List = []
     for sec in Sector_List:
         Variable_List.append(f"pipsec_{sec})_(phi_t")
 
@@ -7753,10 +7753,10 @@ Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_
 Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
 Variable_List_Final = ["phi_t"]
 
-# Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
 
 if(run_Sec_Unfold):
-    # Variable_List_Final = []
+    Variable_List_Final = []
     for sec in Sector_List:
         Variable_List_Final.append(f"pipsec_{sec})_(phi_t")
 # Variable_List_Final = ["pipsec_1)_(phi_t"]
@@ -7784,12 +7784,12 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-# Multi_Dimensional_List = ["Off", "3D"]
-# # Multi_Dimensional_List = ["3D"]
+Multi_Dimensional_List = ["Off", "3D"]
+# Multi_Dimensional_List = ["3D"]
 
-if((not run_5D_Unfold) and ("5D" in Multi_Dimensional_List)):
+if((not run_5D_Unfold) and ("5D"       in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
-if(("phi_t"                          in Variable_List_Final) and ("Off"  not in Multi_Dimensional_List)):
+if(("phi_t"                            in Variable_List_Final) and ("Off"  not in Multi_Dimensional_List)):
     Variable_List_Final.remove("phi_t")
 if((not run_Sec_Unfold) or ("Off"  not in Multi_Dimensional_List)):
     removing_list = []

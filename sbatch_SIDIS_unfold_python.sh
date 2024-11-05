@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_New_Fiducial_Cut_Test_FC_14_V13_11_3_2024_Run2
+#SBATCH --job-name=RooUnfold_New_Fiducial_Cut_Test_FC_14_V13_11_5_2024_Run5
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=18000
+#SBATCH --mem-per-cpu=15000
 #SBATCH --time=1:40:00
 #SBATCH --array=0-17
 
