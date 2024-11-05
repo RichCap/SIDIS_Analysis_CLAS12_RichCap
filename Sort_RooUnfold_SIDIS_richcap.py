@@ -12,71 +12,32 @@ import os
 import argparse
 import sys
 
-# getting current date
+# Capture and print start time
 datetime_object_full = datetime.now()
-# print(datetime_object)
-
-startMin_full = datetime_object_full.minute
-startHr_full  = datetime_object_full.hour
-
-if(datetime_object_full.minute <10):
-    timeMin_full = "".join(["0", str(datetime_object_full.minute)])
-else:
-    timeMin_full = str(datetime_object_full.minute)
-
-    
-Date_Day = "".join(["Started running on ", color.BOLD, str(datetime_object_full.month), "-", str(datetime_object_full.day), "-", str(datetime_object_full.year), color.END, " at "])
-# printing current time
-if(datetime_object_full.hour  > 12 and datetime_object_full.hour < 24):
-    print("".join([Date_Day, color.BOLD, str((datetime_object_full.hour)-12), ":", timeMin_full, " p.m.", color.END]))
-if(datetime_object_full.hour  < 12 and datetime_object_full.hour > 0):
-    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour),      ":", timeMin_full, " a.m.", color.END]))
-if(datetime_object_full.hour == 12):
-    print("".join([Date_Day, color.BOLD, str(datetime_object_full.hour),      ":", timeMin_full, " p.m.", color.END]))
-if(datetime_object_full.hour == 0  or  datetime_object_full.hour == 24):
-    print("".join([Date_Day, color.BOLD, "12:", str(timeMin_full), " a.m.", color.END]))        
-print("")
+time_formatted = datetime_object_full.strftime("%m-%d-%Y at %I:%M %p").lstrip("0").replace(" 0", " ")
+print(f"{color.BOLD}Started running on {time_formatted}{color.END}\n")
 
 
 
 ################################################################################################################################################################
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
-# Common_Name = "Unfolding_Tests_V13_All"
-# Common_Name = "Analysis_Note_Update_V6_All"
-# Common_Name = "Multi_Dimension_Unfold_V3_All"
-# Common_Name = "Multi_Dimension_Unfold_V3_Simulated_Test_All"
-
-# Common_Name = "New_Binning_Schemes_V8_All"
-
-# Common_Name = "Gen_Cuts_V2_Sim_All"
-# Common_Name = "Gen_Cuts_V7_Modulated_All"
-
-
-Common_Name = "Gen_Cuts_V8_All"
-# # Common_Name = "Gen_Cuts_V7_Sim_Modulated_All"
-# Common_Name = "Gen_Cuts_V8_Closure_All"
-# Common_Name = "Gen_Cuts_V8_Sim_All"
-
-# Common_Name = "New_Bin_Tests_V5_All"
-
-Common_Name = "Pass_2_CrossCheck_V3_All"
-
-Common_Name = "CrossCheck_V3_All"
-
-Common_Name = "Q2_Y_Bins_V2_All"
-Common_Name = "Pass_2_New_Q2_Y_Bins_V2_All"
-
 # Set up the argument parser
-parser = argparse.ArgumentParser(description='This script will take the available PNG and text files in the directory it is located in and organize them into a series of folders. When running, the script will ask for confirmation before creating a new folder/moving any files.')
-parser.add_argument('Common_Name', type=str, help='A common name to be used in the script (refers to the name of the folder to be created)')
+parser = argparse.ArgumentParser(description='This script will take the available PNG and text files in the directory it is located in and organize them into a series of folders. When running, the script will ask for confirmation before creating a new folder/moving any files. If --use-existing is specified, files will be sorted into an existing folder without creating a new one.')
+parser.add_argument('Common_Name', type=str,  required=True,       help='Name used for folder creation or folder to sort into if using --use-existing')
+parser.add_argument('-u', '--use-existing',   action='store_true', help='Sort files into an existing folder without creating a new one')
+parser.add_argument('-r', '--auto-replace',   action='store_true', help='If a file already exists in a directory with the same name as the file being moved to that directory, this option will assume that the user will always want to replace the older image')
 
 # Parse the arguments
 args = parser.parse_args()
-
+use_existing = args.use_existing
+auto_replace = args.auto_replace
 # Assign the argument value to the Common_Name variable
 Common_Name = args.Common_Name
 print(f"The provided common name is: {Common_Name}")
+
+if(auto_replace):
+    print(f"\n{color.BOLD}Will automatically replace older images if a newer one with the same name is found.\n{color.END}")
 
 
 
@@ -97,22 +58,33 @@ Binning_Option = "Q2_y_Bin"
 #############################################################################
 #############################################################################
 
-Date_of_Save = "".join([str(datetime_object_full.month), "_", str(datetime_object_full.day), "_", str(datetime_object_full.year)])
+# Date_of_Save = "".join([str(datetime_object_full.month), "_", str(datetime_object_full.day), "_", str(datetime_object_full.year)])
+Date_of_Save = datetime_object_full.strftime("%m_%d_%Y")
 
 
 ##========================================##
 ##=====##   Main Folder Creation   ##=====##
-destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
-version = 2
-while(str(destination).replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/", "") in os.listdir()):
-    print(f"{color.BOLD}Error: {color.END_R}{destination}{color.END_B} already exists...{color.END}\n\tChecking for new version ({version - 1})")
-    destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_V", str(version), "_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
-    version += 1
-    if(version > 11):
-        print("".join([color.Error, "\nWARNING: Many folders are being saved from the same date. This loop is automatically closed after 10 versions for the same folder.\n\n\tPlease overide this decision manually if this many folders are desired...\n\n", color.END]))
-        raise TypeError("Too many folders with the same name/date")
+# destination = "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_From_", str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)])
+destination = f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_From_{Common_Name.replace('_All', '')}_{Date_of_Save}"
+if(use_existing):
+    if(not os.path.exists(destination)):
+        if(not os.path.exists(Common_Name)):
+            print(f"{color.Error}Error: Specified folder {destination} does not exist. Ensure the folder was created in a previous run.{color.END}")
+            sys.exit()
+        else:
+            destination = Common_Name
+    print(f"{color.BBLUE}Using existing directory:\n\t{destination}{color.END}")
+else:
+    version = 2
+    while(destination.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/", "") in os.listdir()):
+        print(f"{color.BOLD}Error: {color.END_R}{destination}{color.END_B} already exists...{color.END}\n\tChecking for new version ({version - 1})")
+        destination = f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/SIDIS_python_Images_V{version}_From_{Common_Name.replace('_All', '')}_{Date_of_Save}"
+        version += 1
+        if(version > 11):
+            print(f"{color.Error}\nWARNING: Too many folders with the same name/date. This loop stops after 10 versions.\n{color.END}")
+            raise TypeError("Too many folders with the same name/date")
+    print(f"\nWill create a new directory called:\n\t{color.BBLUE}{destination}{color.END}")
 
-print(f"\nWill create a new directory called:\n\t{color.BBLUE}{destination}{color.END}")
 user_approval = input("\nDo you approve to continue? (yes/no): ").lower()
 if(user_approval not in ['yes', 'y', 'Yes', 'Y']):
     print(f"{color.Error}User did not approve. Exiting the script.{color.END}\n\n")
@@ -120,46 +92,29 @@ if(user_approval not in ['yes', 'y', 'Yes', 'Y']):
 
 print(f"User approved.\n\n{color.BBLUE}Starting final folder creation/image sorting...{color.END}\n")
         
-
-os.mkdir(destination)
+if(not use_existing):
+    os.mkdir(destination)
 ##=====##   Main Folder Creation   ##=====##
 ##========================================##
 
 ##============================================##
 ##=====##   Category Folder Creation   ##=====##
 destination_main = "".join([str(destination), "/Unfolding_Images"])
-# destination_pars = "".join([str(destination), "/Parameter_Images"])
-# destination_mult = "".join([str(destination), "/Multi_Dim_Histo_Combined"])
-# destination_mult = "".join([str(destination), "/Multi_Dim_Histo"])
 destination_Pars = "".join([str(destination), "/Fit_Pars"])
-# destination_txt  = "".join([str(destination), "/Text_Files"])
 
-os.mkdir(destination_main)
-# os.mkdir(destination_pars)
-# os.mkdir(destination_mult)
-os.mkdir(destination_Pars)
-# os.mkdir(destination_txt)
-
-# destination_mult_Q2_phi_h       = "".join([str(destination_mult), "/Multi_Dim_Q2_phi_h"])
-# destination_mult_Q2_y_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_Q2_y_Bin_phi_h"])
-# destination_mult_z_pT_Bin_phi_h = "".join([str(destination_mult), "/Multi_Dim_z_pT_Bin_phi_h"])
-
-# os.mkdir(destination_mult_Q2_phi_h)
-# os.mkdir(destination_mult_Q2_y_Bin_phi_h)
-# os.mkdir(destination_mult_z_pT_Bin_phi_h)
-
-# os.mkdir("".join([str(destination_mult_Q2_phi_h),       "/Response_Matrix"]))
-# os.mkdir("".join([str(destination_mult_Q2_y_Bin_phi_h), "/Response_Matrix"]))
-# os.mkdir("".join([str(destination_mult_z_pT_Bin_phi_h), "/Response_Matrix"]))
+if(not use_existing):
+    os.mkdir(destination_main)
+    os.mkdir(destination_Pars)
 
 
 # destination_Par_A = "".join([str(destination_Pars), "/Fit_Par_A"])
 destination_Par_B = "".join([str(destination_Pars), "/Fit_Par_B"])
 destination_Par_C = "".join([str(destination_Pars), "/Fit_Par_C"])
 
-# os.mkdir(destination_Par_A)
-os.mkdir(destination_Par_B)
-os.mkdir(destination_Par_C)
+if(not use_existing):
+    # os.mkdir(destination_Par_A)
+    os.mkdir(destination_Par_B)
+    os.mkdir(destination_Par_C)
 
 
 ##=====##   Category Folder Creation   ##=====##
@@ -170,8 +125,9 @@ os.mkdir(destination_Par_C)
 ##=====##   z-pT Unfolding Folders Creation   ##=====##
 destination_z_pT_Bin_All        = "".join([str(destination_main), "/z_pT_Bin_All"])
 destination_z_pT_Bin_Individual = "".join([str(destination_main), "/z_pT_Bin_Individual"])
-os.mkdir(destination_z_pT_Bin_All)
-os.mkdir(destination_z_pT_Bin_Individual)
+if(not use_existing):
+    os.mkdir(destination_z_pT_Bin_All)
+    os.mkdir(destination_z_pT_Bin_Individual)
 ##=====##   z-pT Unfolding Folders Creation   ##=====##
 ##===================================================##
 
@@ -181,23 +137,58 @@ os.mkdir(destination_z_pT_Bin_Individual)
 destination_Smeared                     = "".join([str(destination_main), "/Smeared"])
 destination_Smeared_z_pT_Bin_All        = "".join([str(destination_main), "/Smeared/z_pT_Bin_All"])
 destination_Smeared_z_pT_Bin_Individual = "".join([str(destination_main), "/Smeared/z_pT_Bin_Individual"])
-os.mkdir(destination_Smeared)
-os.mkdir(destination_Smeared_z_pT_Bin_All)
-os.mkdir(destination_Smeared_z_pT_Bin_Individual)
+if(not use_existing):
+    os.mkdir(destination_Smeared)
+    os.mkdir(destination_Smeared_z_pT_Bin_All)
+    os.mkdir(destination_Smeared_z_pT_Bin_Individual)
 ##=====##   z-pT (Smeared) Unfolding Folders Creation   ##=====##
 ##=============================================================##
 
 
 ##=========================================================##
 ##=====##   Q2-xB/Q2-y Unfolding Folders Creation   ##=====##
-# for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_A, destination_Par_B, destination_Par_C]:
-for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_B, destination_Par_C]:
-    for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
-        if((Q2_xB_Bin != 0) or (str(folder) not in [str(destination_Par_A), str(destination_Par_B), str(destination_Par_C)])):
-            os.mkdir("".join([str(folder), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
-
+if(not use_existing):
+    # for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_A, destination_Par_B, destination_Par_C]:
+    for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destination_Smeared_z_pT_Bin_All, destination_Smeared_z_pT_Bin_Individual, destination_Par_B, destination_Par_C]:
+        for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
+            if((Q2_xB_Bin != 0) or (str(folder) not in [str(destination_Par_A), str(destination_Par_B), str(destination_Par_C)])):
+                os.mkdir("".join([str(folder), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
 ##=====##   Q2-xB/Q2-y Unfolding Folders Creation   ##=====##
 ##=========================================================##
+
+
+# Handle file move with overwrite check
+def handle_file_move(src, dest_folder, AUTO=auto_replace):
+    # Construct the full destination path, including the filename
+    dest_file_path = os.path.join(dest_folder, os.path.basename(src))
+    # Check if a file with the same name exists in the destination folder
+    if(os.path.exists(dest_file_path)):
+        print(f"{color.Error}Warning: {dest_file_path} already exists...{color.END}")
+        if(not AUTO):
+            print(f"{color.BOLD}Do you want to overwrite it?{color.END}")
+            choice = input("Type 'yes'|'y'|'replace' to overwrite, 'new'|'rename' to rename, or 'no'|'n'|'skip' to skip: ").strip().lower()
+            print("\n")
+        else:
+            choice = "replace"
+        if(choice in ['yes', 'y', 'replace', '']):
+            shutil.move(src, dest_file_path)
+            print(f"{color.BGREEN}File {src} replaced in {dest_file_path}{color.END}\n")
+        elif(choice in ['new', 'rename']):
+            version = 1
+            new_dest_file_path = dest_file_path
+            # Find a new filename with an incrementing version number
+            while(os.path.exists(new_dest_file_path)):
+                base, ext = os.path.splitext(dest_file_path)
+                new_dest_file_path = f"{base}_V{version}{ext}"
+                version += 1
+            shutil.move(src, new_dest_file_path)
+            print(f"{color.BGREEN}File {src} renamed and moved to {new_dest_file_path}{color.END}\n")
+        elif(choice in ['no', 'n', 'skip']):
+            print(f"{color.Error}Skipping file: {src}{color.END}\n")
+    else:
+        shutil.move(src, dest_file_path)
+        print(f"{color.BGREEN}File {src} moved to {dest_file_path}{color.END}")
+
 
 
 ##=================================##
@@ -205,16 +196,14 @@ for folder in [destination_z_pT_Bin_All, destination_z_pT_Bin_Individual, destin
 for Entry in os.listdir():
     try:
         if('.txt'          in str(Entry)):
-            # shutil.move(Entry, destination_txt)
             if("".join([str(Common_Name).replace("_All", ""), "_", str(Date_of_Save)]) in str(Entry)):
-                shutil.move(Entry, destination)
+                # shutil.move(Entry, destination)
+                handle_file_move(Entry, destination)
         if('.png'          in str(Entry)):
             if("Sim_Test_" in str(Entry)):
                 os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
                 Entry = str(Entry).replace("Sim_Test_", "")
             Moved_Q = False
-            # if("_Pars_" in str(Entry)):
-            #     shutil.move(Entry, destination_pars)
             if("Fit_Par" in str(Entry)):
                 # if("Fit_Par_A" in str(Entry)):
                 #     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
@@ -225,58 +214,67 @@ for Entry in os.listdir():
                 if("Fit_Par_B" in str(Entry)):
                     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
-                            shutil.move(Entry, "".join([str(destination_Par_B), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            # shutil.move(Entry, "".join([str(destination_Par_B), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            handle_file_move(Entry, os.path.join(destination_Par_B, f"{Binning_Option}_{Q2_xB_Bin}"))
                             Moved_Q = True
                             break
                 if("Fit_Par_C" in str(Entry)):
                     for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                         if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"]) in str(Entry)):
-                            shutil.move(Entry, "".join([str(destination_Par_C), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            # shutil.move(Entry, "".join([str(destination_Par_C), "/", str(Binning_Option), "_", str(Q2_xB_Bin)]))
+                            handle_file_move(Entry, os.path.join(destination_Par_C, f"{Binning_Option}_{Q2_xB_Bin}"))
                             Moved_Q = True
                             break
-                shutil.move(Entry, str(destination_Pars))
-                Moved_Q = True
+                if(not Moved_Q):
+                    # shutil.move(Entry, str(destination_Pars))
+                    handle_file_move(Entry, str(destination_Pars))
+                    Moved_Q = True
                 
             if((("Response_Matrix_" in str(Entry)) or ("Kinematic_Comparison_" in str(Entry))) and ("_z_pT_Bin_"   in str(Entry))):
                 for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"])  in str(Entry)):
                         if(("Smear" not in str(Entry))                                           and ("smear"    not in str(Entry))):
                             try:
-                                shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                # shutil.move(Entry, "".join([str(destination_z_pT_Bin_Individual),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                handle_file_move(Entry, os.path.join(destination_z_pT_Bin_Individual, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Unsmeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
                         else:
                             try:
-                                shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                # shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                handle_file_move(Entry, os.path.join(destination_Smeared_z_pT_Bin_Individual, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Smeared 'Response_Matrix': \n",   color.END, str(traceback.format_exc()), "\n"]))
-
             elif(("Unfolded_Histos"      in str(Entry)) and ("_z_pT_Bin_"    not in str(Entry))):
                 for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"])  in str(Entry)):
                         if(("Smear" not in str(Entry))  and ("smear"         not in str(Entry))):
                             try:
-                                shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                # shutil.move(Entry, "".join([str(destination_z_pT_Bin_All),         "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                handle_file_move(Entry, os.path.join(destination_z_pT_Bin_All, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Unsmeared 'Unfolded_Histos': \n", color.END, str(traceback.format_exc()), "\n"]))
                         else:
                             try:
-                                shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                # shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
+                                handle_file_move(Entry, os.path.join(destination_Smeared_z_pT_Bin_All, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
                                 print("".join([color.Error, "ERROR in Smeared 'Unfolded_Histos': \n",   color.END, str(traceback.format_exc()), "\n"]))
-            else:
-                shutil.move(Entry, destination)
+            elif(not Moved_Q):
+                # shutil.move(Entry, destination)
+                handle_file_move(Entry, destination)
                 Moved_Q = True
             if(not Moved_Q):
                 print(f"\nNo folder found to move '{Entry}' to...\n")
-                shutil.move(Entry, destination)
+                # shutil.move(Entry, destination)
+                handle_file_move(Entry, destination)
                 
     except:
-        print("".join([color.Error, "\n\nERROR IN ENTRY OF THE listdir():\n\n", color.END_R, str(traceback.format_exc()), color.END, "\n\n"]))
+        print(f"{color.Error}\n\nERROR IN ENTRY OF THE listdir():\n\n{color.END_R}{str(traceback.format_exc())}{color.END}\n\n")
         
 ##=====##   Image Sorting   ##=====##
 ##=================================##
