@@ -23,8 +23,9 @@ print(f"{color.BOLD}Started running on {time_formatted}{color.END}\n")
 ##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################
 # Set up the argument parser
-parser = argparse.ArgumentParser(description='This script will take the available PNG and text files in the directory it is located in and organize them into a series of folders. When running, the script will ask for confirmation before creating a new folder/moving any files. If --use-existing is specified, files will be sorted into an existing folder without creating a new one.')
-parser.add_argument('Common_Name', type=str,  required=True,       help='Name used for folder creation or folder to sort into if using --use-existing')
+parser = argparse.ArgumentParser(description='This script will take the available PNG and text files in the directory it is located in and organize them into a series of folders.\n\tWhen running, the script will ask for confirmation before creating a new folder/moving any files.\n\tIf --use-existing is specified, files will be sorted into an existing folder without creating a new one.', epilog="""
+    """, formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('Common_Name', type=str,                       help='Name used for folder creation or folder to sort into if using --use-existing')
 parser.add_argument('-u', '--use-existing',   action='store_true', help='Sort files into an existing folder without creating a new one')
 parser.add_argument('-r', '--auto-replace',   action='store_true', help='If a file already exists in a directory with the same name as the file being moved to that directory, this option will assume that the user will always want to replace the older image')
 
