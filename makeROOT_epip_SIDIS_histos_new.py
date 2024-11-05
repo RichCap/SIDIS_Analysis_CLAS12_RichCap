@@ -1067,6 +1067,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Ran on 6/14/2024
         # Same smearing functions as in 'New_Smear_V12_' but with the new sector cuts developed in 'New_Sector_Cut_Test_V10_'
 
+        
+        Extra_Name = "Update_Cors_and_Cuts_V1_"
+        # Ran on 11/4/2024
+        # Same smearing functions as in 'New_Smear_V13_' but cuts and momentum corrections are up-to-date as of Extra_Name = f"New_Fiducial_Cut_Test_FC_14_V13_"
+
         if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
             Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
             # Not applying momentum corrections (despite them being available)
@@ -5806,7 +5811,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         cut_list = ['cut_Complete_SIDIS']
         # cut_list.append('cut_Complete_SIDIS')
-        cut_list.append('cut_Complete_SIDIS_eS1o')
+        # cut_list.append('cut_Complete_SIDIS_eS1o')
 #         cut_list.append('cut_Complete_SIDIS_eS2o')
 #         cut_list.append('cut_Complete_SIDIS_eS3o')
 #         cut_list.append('cut_Complete_SIDIS_eS4o')
