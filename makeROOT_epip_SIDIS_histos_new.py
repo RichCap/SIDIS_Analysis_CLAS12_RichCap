@@ -998,6 +998,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Same as f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V12_" but the 'New_Fiducial_Cuts_Function' function now includes an additional sector-dependent PCal cut
         # None of the cut configurations were modified as of this version, so rerunning "FC_11" or "FC_14" would change the results, but not "FC0" (would still skip 'All' new cuts)
         # Reran just the "FC_14" configuration
+
+
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V14_"
+    # Ran on 11/6/2024
+    # Same as f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V13_" but now there are 'Integrated' cuts added to all datasets
+        # The 'Integrated' cuts restrict the z-pT bins to a range that is covered across all Q2-y bins with the Proton Missing Mass Cuts (made to help with the integrated z-pT bin plots)
+        # Running with just Cut_Configuration_Name = "FC_14"
+
             
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
@@ -5355,7 +5363,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(((Data_Type not in ["mdf", "pdf", "udf"]) and ("miss_idf" not in Data_Type)) and ("smear" in Smearing_Q)):
             return "continue"
         # No Cuts for Monte Carlo Generated events
-        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o"])):
+        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"])):
             return "continue"
         # No PID cuts except for matched MC events
         if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
@@ -5582,6 +5590,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #                         DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
 #             else:
             cutname = "No Cuts"
+
+        if("Integrate" in Cut_Choice):
+            cutname = f"{cutname} (Bins for Integration)"
+            if(Titles_or_DF == 'DF'):
+                DF_Out  = DF_Out.Filter("((Q2_Y_Bin == 1) && ((z_pT_Bin_Y_bin == 15) || (z_pT_Bin_Y_bin == 16) || (z_pT_Bin_Y_bin == 17) || (z_pT_Bin_Y_bin == 22) || (z_pT_Bin_Y_bin == 23) || (z_pT_Bin_Y_bin == 24))) || ((Q2_Y_Bin == 2) && ((z_pT_Bin_Y_bin == 13) || (z_pT_Bin_Y_bin == 14) || (z_pT_Bin_Y_bin == 15) || (z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27))) || ((Q2_Y_Bin == 3) && ((z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27))) || ((Q2_Y_Bin == 5) && ((z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27))) || ((Q2_Y_Bin == 6) && ((z_pT_Bin_Y_bin == 13) || (z_pT_Bin_Y_bin == 14) || (z_pT_Bin_Y_bin == 15) || (z_pT_Bin_Y_bin == 16) || (z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 22) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27) || (z_pT_Bin_Y_bin == 28))) || ((Q2_Y_Bin == 7) && ((z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27) || (z_pT_Bin_Y_bin == 31) || (z_pT_Bin_Y_bin == 32) || (z_pT_Bin_Y_bin == 33))) || ((Q2_Y_Bin == 9) && ((z_pT_Bin_Y_bin == 15) || (z_pT_Bin_Y_bin == 16) || (z_pT_Bin_Y_bin == 17) || (z_pT_Bin_Y_bin == 22) || (z_pT_Bin_Y_bin == 23) || (z_pT_Bin_Y_bin == 24))) || ((Q2_Y_Bin == 10) && ((z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27) || (z_pT_Bin_Y_bin == 31) || (z_pT_Bin_Y_bin == 32) || (z_pT_Bin_Y_bin == 33))) || ((Q2_Y_Bin == 13) && ((z_pT_Bin_Y_bin == 11) || (z_pT_Bin_Y_bin == 12) || (z_pT_Bin_Y_bin == 13) || (z_pT_Bin_Y_bin == 16) || (z_pT_Bin_Y_bin == 17) || (z_pT_Bin_Y_bin == 18) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 22) || (z_pT_Bin_Y_bin == 23))) || ((Q2_Y_Bin == 14) && ((z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21) || (z_pT_Bin_Y_bin == 25) || (z_pT_Bin_Y_bin == 26) || (z_pT_Bin_Y_bin == 27) || (z_pT_Bin_Y_bin == 31) || (z_pT_Bin_Y_bin == 32) || (z_pT_Bin_Y_bin == 33))) || ((Q2_Y_Bin == 16) && ((z_pT_Bin_Y_bin == 13) || (z_pT_Bin_Y_bin == 14) || (z_pT_Bin_Y_bin == 15) || (z_pT_Bin_Y_bin == 19) || (z_pT_Bin_Y_bin == 20) || (z_pT_Bin_Y_bin == 21)))")
         for sec in range(1, 7, 1):
             if("eS" not in Cut_Choice):
                 break
@@ -5794,6 +5807,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # cut_list = ['cut_Complete_SIDIS']
     
     cut_list = ['no_cut']
+    cut_list.append('no_cut_Integrate')
     # cut_list.append('no_cut_eS1o')
     # cut_list.append('no_cut_eS2o')
     # cut_list.append('no_cut_eS3o')
@@ -5810,6 +5824,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
         cut_list = ['cut_Complete_SIDIS']
+        cut_list.append('cut_Complete_SIDIS_Integrate')
         # cut_list.append('cut_Complete_SIDIS')
         # cut_list.append('cut_Complete_SIDIS_eS1o')
 #         cut_list.append('cut_Complete_SIDIS_eS2o')
@@ -5819,6 +5834,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         cut_list.append('cut_Complete_SIDIS_eS6o')
         if(Tag_Proton):
             cut_list.append('cut_Complete_SIDIS_Proton')
+            cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6531,7 +6547,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##     Cut Loop    ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
             for Histo_Cut in cut_list:
 
-                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o"]):
+                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"]):
                     # Do not cut data from the MC GEN files
                     continue
 
