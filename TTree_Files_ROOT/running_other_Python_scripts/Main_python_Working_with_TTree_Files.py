@@ -241,7 +241,180 @@ def set_common_yaxis_range(hist1, hist2, hist3="N/A", hist4="N/A"):
 
 ROOT.gStyle.SetOptStat("i")
 
+# def Draw_V_W_PCal_Cut_Lines(canvas, hist, esec=0, switch_axes=False):
+#     """
+#     Draws cut lines on a 2D ROOT histogram based on the specified sector (esec).
 
+#     Parameters:
+#     - hist: TH2 histogram object, the histogram on which to draw lines.
+#     - canvas: TCanvas object, to control the rendering order of lines.
+#     - esec: int, sector number (1–6, 0, 'All')
+#         * If 0:     Will NOT draw any sector-dependent cuts (produces the same results as esec = 5)
+#         * If 'All': Will draw ALL sector-dependent cuts
+#     - switch_axes: bool, optional, if True, switches V_PCal and W_PCal between x and y axes.
+#     """
+#     # Set the canvas to active
+#     canvas.cd()
+
+#     # Get axis limits from the histogram
+#     x_min = hist.GetXaxis().GetXmin()
+#     x_max = hist.GetXaxis().GetXmax()
+#     y_min = hist.GetYaxis().GetXmin()
+#     y_max = hist.GetYaxis().GetXmax()
+
+#     # Create a TLine array to store and draw lines later
+#     lines = []
+
+#     # Sector-dependent cut conditions
+#     if ((esec == 1) or (esec == "All")):
+#         lines += [(74.2, 79.6, 'W'), (85.4, 90.8, 'W'), (213, 218.4, 'W'), (224.1, 229.5, 'W')]
+#     elif ((esec == 2) or (esec == "All")):
+#         lines += [(102, 113, 'V')]
+#     elif ((esec == 3) or (esec == "All")):
+#         lines += [(306, 324, 'V')]
+#     elif ((esec == 4) or (esec == "All")):
+#         lines += [(235, 240, 'V')]
+#     elif ((esec == 6) or (esec == "All")):
+#         lines += [(174.1, 179.5, 'W'), (185.2, 190.6, 'W')]
+
+#     # Global cut (not dependent on sector)
+#     lines += [(19, None, 'V'), (19, None, 'W')]
+
+#     # Draw the cut lines based on the conditions
+#     for line in lines:
+#         if ((len(line) == 3) and (line[2] == 'V')):  # Vertical line for V_PCal
+#             if switch_axes:
+#                 tline = ROOT.TLine(line[0], y_min, line[0], y_max)  # y-axis line
+#             else:
+#                 tline = ROOT.TLine(x_min, line[0], x_max, line[0])  # x-axis line
+#             tline.SetLineColor(ROOT.kRed)
+#             tline.SetLineStyle(2)
+#             tline.Draw("SAME")
+
+#             if line[1] is not None:
+#                 if switch_axes:
+#                     tline = ROOT.TLine(line[1], y_min, line[1], y_max)
+#                 else:
+#                     tline = ROOT.TLine(x_min, line[1], x_max, line[1])
+#                 tline.SetLineColor(ROOT.kRed)
+#                 tline.SetLineStyle(2)
+#                 tline.Draw("SAME")
+
+#         elif ((len(line) == 3) and (line[2] == 'W')):  # Horizontal line for W_PCal
+#             if switch_axes:
+#                 tline = ROOT.TLine(x_min, line[0], x_max, line[0])  # x-axis line
+#             else:
+#                 tline = ROOT.TLine(line[0], y_min, line[0], y_max)  # y-axis line
+#             tline.SetLineColor(ROOT.kRed)
+#             tline.SetLineStyle(2)
+#             tline.Draw("SAME")
+
+#             if line[1] is not None:
+#                 if switch_axes:
+#                     tline = ROOT.TLine(x_min, line[1], x_max, line[1])
+#                 else:
+#                     tline = ROOT.TLine(line[1], y_min, line[1], y_max)
+#                 tline.SetLineColor(ROOT.kRed)
+#                 tline.SetLineStyle(2)
+#                 tline.Draw("SAME")
+
+#     # Update the canvas to ensure lines are displayed correctly on top
+#     canvas.Modified()
+#     canvas.Update()
+def Draw_V_W_PCal_Cut_Lines(hist, esec=0, switch_axes=False):
+    """
+    Returns a list of TLine objects for cut lines based on the specified sector (esec),
+    adjusted to the histogram's axis limits.
+
+    Parameters:
+    - hist: TH2 histogram object to obtain axis limits
+    - esec: int, sector number (1–6, 0, 'All')
+        * If 0:     Will NOT draw any sector-dependent cuts (produces same results as esec = 5)
+        * If 'All': Will draw ALL sector-dependent cuts
+    - switch_axes: bool, optional, if True, switches V_PCal and W_PCal between x and y axes
+    
+    Returns:
+    - lines: list of ROOT.TLine objects that can be drawn later
+    """
+    # Get axis limits from the histogram
+    x_min = hist.GetXaxis().GetXmin()
+    x_max = hist.GetXaxis().GetXmax()
+    y_min = hist.GetYaxis().GetXmin()
+    y_max = hist.GetYaxis().GetXmax()
+
+    lines = []
+
+    # Sector-dependent cut conditions
+    if(esec in [1, "All"]):
+        lines += [(74.2, 79.6, 'W'), (85.4, 90.8, 'W'), (213, 218.4, 'W'), (224.1, 229.5, 'W')]
+    if(esec in [2, "All"]):
+        lines += [(102, 113, 'V')]
+    # if(esec in [3, "All"]):
+    #     lines += [(306, 324, 'V')]
+    if(esec in [4, "All"]):
+        lines += [(230, 240, 'V')]
+    if(esec in [6, "All"]):
+        lines += [(174.1, 179.5, 'W'), (185.2, 190.6, 'W')]
+
+    # Global cut (not dependent on sector)
+    lines += [(19, None, 'V'), (19, None, 'W')]
+
+    line_width = 3
+    # Create TLine objects based on the conditions
+    tlines = []
+    for line in lines:
+        if((len(line) == 3) and (line[2] == 'V')):  # Vertical line for V_PCal
+            if(switch_axes):
+                tline = ROOT.TLine(line[0], y_min, line[0], y_max)  # Vertical line along y-axis
+                tline.SetLineColor(ROOT.kRed)
+                tline.SetLineStyle(2)
+                tline.SetLineWidth(line_width)
+                tlines.append(tline)
+                if(line[1] is not None):
+                    tline = ROOT.TLine(line[1], y_min, line[1], y_max)
+                    tline.SetLineColor(ROOT.kRed)
+                    tline.SetLineStyle(2)
+                    tline.SetLineWidth(line_width)
+                    tlines.append(tline)
+            else:
+                tline = ROOT.TLine(x_min, line[0], x_max, line[0])  # Horizontal line along x-axis
+                tline.SetLineColor(ROOT.kRed)
+                tline.SetLineStyle(2)
+                tline.SetLineWidth(line_width)
+                tlines.append(tline)
+                if(line[1] is not None):
+                    tline = ROOT.TLine(x_min, line[1], x_max, line[1])
+                    tline.SetLineColor(ROOT.kRed)
+                    tline.SetLineStyle(2)
+                    tline.SetLineWidth(line_width)
+                    tlines.append(tline)
+        elif((len(line) == 3) and (line[2] == 'W')):  # Horizontal line for W_PCal
+            if(switch_axes):
+                tline = ROOT.TLine(x_min, line[0], x_max, line[0])  # Horizontal line along x-axis
+                tline.SetLineColor(ROOT.kRed)
+                tline.SetLineStyle(2)
+                tline.SetLineWidth(line_width)
+                tlines.append(tline)
+                if(line[1] is not None):
+                    tline = ROOT.TLine(x_min, line[1], x_max, line[1])
+                    tline.SetLineColor(ROOT.kRed)
+                    tline.SetLineStyle(2)
+                    tline.SetLineWidth(line_width)
+                    tlines.append(tline)
+            else:
+                tline = ROOT.TLine(line[0], y_min, line[0], y_max)  # Vertical line along y-axis
+                tline.SetLineColor(ROOT.kRed)
+                tline.SetLineStyle(2)
+                tline.SetLineWidth(line_width)
+                tlines.append(tline)
+                if(line[1] is not None):
+                    tline = ROOT.TLine(line[1], y_min, line[1], y_max)
+                    tline.SetLineColor(ROOT.kRed)
+                    tline.SetLineStyle(2)
+                    tline.SetLineWidth(line_width)
+                    tlines.append(tline)
+
+    return tlines
 
 # Run Checks:
 if(__name__ == "__main__"):
