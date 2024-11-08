@@ -2255,7 +2255,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 
         #####==========#####      Multi_Dim Histos       #####==========#####
         #####==========##### (3D) Multi_Dim Histos (Old) #####==========#####
-        if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", 0])):
+        if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", "Integrated", -1, 0])):
             # Only the Multi_Dim z-pT Plots should be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
             if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
                 ###=============================================###
@@ -2292,8 +2292,8 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
         #####==========##### (3D) MultiDim Histos (New)  #####==========#####
-        elif(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0])):
-            # The MultiDim_z_pT_Bin z-pT Plots should only be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
+        elif(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", -1, 0])):
+            # The MultiDim_z_pT_Bin z-pT Plots should only be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All", "Integrated", -1 or 0
             if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
                 ###=============================================###
                 ###========###   Before Unfolding    ###========###
@@ -2327,8 +2327,8 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
         #####==========#####   (5D) MultiDim Histos      #####==========#####
-        elif(("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0]) and (Q2_Y_Bin in ["All", 0])):
-            # The 5D MultiDim Histograms should only be able to run if Q2_Y_Bin and Z_PT_Bin are equal to "All" or 0 (all kinematic binning is done through these slices)
+        elif(("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", -1, 0]) and (Q2_Y_Bin in ["All", 0])):
+            # The 5D MultiDim Histograms should only be able to run if Q2_Y_Bin and Z_PT_Bin are equal to "All", "Integrated", -1 or 0 (all kinematic binning is done through these slices)
             ###=============================================###
             ###========###   Before Unfolding    ###========###
             ###=============================================###
@@ -3395,6 +3395,9 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         Default_Histo_Name = Default_Histo_Name.replace("(1D)",    "(MultiDim_3D_Histo)")
     elif((Multi_Dim_Option not in ["Off"]) and (str(Z_PT_Bin) not in ["All", "0"])):
         Default_Histo_Name = Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")
+
+    if(Cut_ProQ):
+        Default_Histo_Name = Default_Histo_Name.replace("(Data_Type)_(SMEAR=", "(Data_Type)_(Proton)_(SMEAR=")
         
     Default_Histo_Name = Default_Histo_Name.replace("(z_pT_Bin_0)", "(z_pT_Bin_All)")
     
@@ -3828,6 +3831,9 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
         Default_Histo_Name = Default_Histo_Name.replace("(1D)", "(Multi-Dim Histo)")
         
     Default_Histo_Name = Default_Histo_Name.replace("(z_pT_Bin_0)", "(z_pT_Bin_All)")
+
+    if(Cut_ProQ):
+        Default_Histo_Name = Default_Histo_Name.replace("(Data_Type)_(SMEAR=", "(Data_Type)_(Proton)_(SMEAR=")
     
     if(Fit_Test):
         fit_function_title         = "Fit Function = A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
@@ -5031,7 +5037,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             print("".join([color.Error, "ERROR IN METHOD = '", str(Method), "':\n", color.END_R, str(traceback.format_exc()), color.END]))
 
     else:
-        Default_Histo_Name_Any     = str(Default_Histo_Name)#.replace("z_pT_Bin_All", "z_pT_Bin_Integrated" if(str(Method) not in ["Acceptance"]) else "z_pT_Bin_All")
+        Default_Histo_Name_Any     = str(Default_Histo_Name).replace("z_pT_Bin_All", "z_pT_Bin_Integrated" if(str(Method) not in ["Acceptance"]) else "z_pT_Bin_All")
         if(Multi_Dim_Option   not in ["Off"]):
             if(Multi_Dim_Option   in ["5D"]):
                 Default_Histo_Name_Any = str(Default_Histo_Name_Any.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
@@ -5801,6 +5807,7 @@ Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V12_All"
 
 Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V13_All"
 
+Common_Name = "Pass_2_New_Fiducial_Cut_Test_FC_14_V14_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -5888,7 +5895,7 @@ else:
             break
         else:
             MC_GEN_File_Name = Common_Name
-    if("Pass_2_New_Fiducial_Cut_Test_V13_All" in MC_GEN_File_Name):
+    if(("Pass_2_New_Fiducial_Cut_Test_V13_All" in MC_GEN_File_Name) and (not Tag_ProQ)):
         MC_GEN_File_Name = "Pass_2_New_Fiducial_Cut_Test_V12_All"
 ####################################
 ##   Generated Monte Carlo Data   ##
@@ -6449,10 +6456,14 @@ for ii in mdf.GetListOfKeys():
         
         # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
         if(Cut_ProQ):
-            Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
+            Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "]))
+            # Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
         else:
             Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
+            Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
 
+        # Require Integrated Bin Cuts
+        Conditions_For_Unfolding.append("Integrate')" in str(out_print_main))
 
         ## Correct Variable(s):
         # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
@@ -6464,7 +6475,7 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
         
-        # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+        Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
         # Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
         
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
@@ -6673,6 +6684,12 @@ for ii in mdf.GetListOfKeys():
                 print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D_initial.GetName())
                 ExREAL_1D_initial.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
                 print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D_initial.GetName())
+
+
+            ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+            MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+            MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+            Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace("with Proton Cuts", ""))
 
             # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
             out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'Response_Matrix_1D'",        "'Background_Response_Matrix_1D'")
@@ -7521,7 +7538,7 @@ else:
     for ii in mdf.GetListOfKeys():
         try:
             out_print_main = str(ii.GetName())
-            if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut", "cut_Complete_SIDIS_Proton"]))):
+            if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut", "cut_Complete_SIDIS_Proton", "no_cut_Integrate", "cut_Complete_SIDIS_Integrate", "cut_Complete_SIDIS_Proton_Integrate"]))):
 #             if("Normal_2D" in out_print_main):
                 mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
                 mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)",           "")
@@ -7535,6 +7552,10 @@ else:
                 for sector_cut_remove in range(1, 6):
                     gdf_print_str = gdf_print_str.replace(f"(gdf)_(eS{sector_cut_remove}o)", "(gdf)")
                 gdf_print_str     = gdf_print_str.replace(f"(gdf)_(Proton)",                 "(gdf)")
+                # gdf_print_str     = gdf_print_str.replace(f"(gdf)_(no_cut_Integrate)",       "(gdf)_(Integrate)")
+                gdf_print_str     = gdf_print_str.replace("(gdf)_(Integrate)",               "(gdf)_(no_cut_Integrate)")
+                gdf_print_str     = gdf_print_str.replace("(gdf)_(Proton_Integrate)",        "(gdf)_(no_cut_Integrate)")
+                # print(f"gdf_print_str = {gdf_print_str}")
                 SEARCH = []
                 for BIN in BIN_SEARCH:
                     SEARCH.append(str(BIN) in str(mdf_print_str))
@@ -7624,6 +7645,9 @@ final_count = 0
 print("\n\nCounting Total Number of collected histograms...")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
     final_count += 1
+    # print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    if(all(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(Fit_Par_", "(Bayesian)", "z_pT_Bin_Integrated"])):
+        print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if("Multi_Dim_z_pT_Bin_Y_bin_phi_t" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
 #     if(("Background" in str(List_of_All_Histos_For_Unfolding_ii)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(List_of_All_Histos_For_Unfolding_ii))):
@@ -7731,8 +7755,10 @@ if(run_Sec_Unfold):
 Cut_Options_List = ["Cut"]
 if(Cut_ProQ):
     Cut_Options_List = ["Proton"]
-# 'Cut'    --> Normal Cuts (Default)
-# 'Proton' --> Normal Cuts + Proton Missing Mass Cuts
+    Cut_Options_List = ["Proton_Integrate"]
+# 'Cut'              --> Normal Cuts (Default)
+# 'Proton'           --> Normal Cuts + Proton Missing Mass Cuts
+# 'Proton_Integrate' --> Normal Cuts + Proton Missing Mass Cuts + Only the bins compatible with z-pT bin integration
 
 
 Orientation_Option_List = ["pT_z", "z_pT"]
@@ -7753,7 +7779,7 @@ Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_Q2_y_
 Variable_List_Final = ["MultiDim_z_pT_Bin_Y_bin_phi_t"]
 Variable_List_Final = ["phi_t"]
 
-Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
+# Variable_List_Final = ["phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t"]
 
 if(run_Sec_Unfold):
     Variable_List_Final = []
@@ -7784,7 +7810,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-Multi_Dimensional_List = ["Off", "3D"]
+# Multi_Dimensional_List = ["Off", "3D"]
 # Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D"       in Multi_Dimensional_List)):
@@ -7816,8 +7842,8 @@ for variable in Variable_List:
         BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
         for smear in Smearing_final_list:
             for Cut in Cut_Options_List:
-                if(Cut in ["Proton"]):
-                    HISTO_NAME = "".join(["(1D)_(Data_Type)_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+                if(Cut in ["Proton", "Proton_Integrate"]):
+                    HISTO_NAME = f"(1D)_(Data_Type)_({Cut})_(SMEAR={str(smear)})_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_({str(variable)})"
                 else:
                     HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
                 for Multi_Dim in Multi_Dimensional_List:
@@ -7882,8 +7908,13 @@ for variable in Variable_List:
                                 if(method in ["gdf", "tdf"]):
                                     continue
                                 HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(SMEAR", "Data_Type)_(Proton)_(SMEAR"))
+                            elif(Cut in ["Proton_Integrate"]):
+                                if(method in ["gdf", "tdf"]):
+                                    continue
+                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(SMEAR", "Data_Type)_(Proton_Integrate)_(SMEAR"))
                             else:
-                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(Proton)_(SMEAR", "Data_Type)_(SMEAR"))
+                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(Proton)_(SMEAR",           "Data_Type)_(SMEAR"))
+                                HISTO_NAME = str(HISTO_NAME.replace("Data_Type)_(Proton_Integrate)_(SMEAR", "Data_Type)_(SMEAR"))
                             for Orientation in Orientation_Option_List:
                                 if((Orientation not in ["z_pT"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or (method in ["Kinematic_Comparison"]))):
                                     # No need to have the flipped plots for the particle kinematic plots or for the kinematic comparisons
@@ -8300,6 +8331,8 @@ if(Create_txt_File):
             if("Y_bin" in Binning_Method):
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[0]
             for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
+            # for z_pT_Bin in range(0 if(Cut_ProQ or Tag_ProQ) else -1, z_pT_Bin_Range + 1, 1):
+            # for z_pT_Bin in range(-1, 1, 1):
                 if(z_pT_Bin in [-1]):
                     z_pT_Bin = "Integrated"
                 if(z_pT_Bin in [0]):
@@ -8321,10 +8354,10 @@ if(Create_txt_File):
                             if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                                 continue
                             Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t - ", f"{Method} Unfolding" if(Method not in ["gdf", "bbb", "Bin", "bay"]) else "Bayesian Unfolding" if(Method not in ["gdf", "bbb", "Bin"]) else "Bin-by-Bin Correction" if(Method not in ["gdf"]) else "Generated Plot", " Fits:", color.END])
-                            PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                            PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                            PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                            PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                            CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
                             PARAMETER_A, PARAMETER_B, PARAMETER_C = "ERROR", "ERROR", "ERROR"
                             ERROR_PAR_A, ERROR_PAR_B, ERROR_PAR_C = "ERROR", "ERROR", "ERROR"
                             Chi_2_Value, NDF_Value = "ERROR", "ERROR"
