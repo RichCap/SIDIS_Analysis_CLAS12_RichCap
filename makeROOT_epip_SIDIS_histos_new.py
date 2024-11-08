@@ -212,7 +212,7 @@ for SkipC         in SkipFiducial_List:
         break
         
 if("gdf" not in str(datatype)):
-    print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")   
+    print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
         
 
         
@@ -1005,8 +1005,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Same as f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V13_" but now there are 'Integrated' cuts added to all datasets
         # The 'Integrated' cuts restrict the z-pT bins to a range that is covered across all Q2-y bins with the Proton Missing Mass Cuts (made to help with the integrated z-pT bin plots)
         # Running with just Cut_Configuration_Name = "FC_14"
+    if(datatype in ['gdf']):
+        # Reran on 11/7/2024 due to time-out issues in the initial run (renaming to potentially preserve the original files in case they turn out to still be usable)
+        Extra_Name = f"New_Fiducial_Cut_Test_FC_14_V14_"
+        # Also turned off the sector vs phi_h plots to save a little bit more time/resources
 
-            
+    
+    Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V15_"
+        # Ran on 11/8/2024
+            # All modifications were made to the Tagged/Cut proton files
+            # Definition of MM_pro has been changed to just include the electron and proton instead of the electron, proton, AND pi+ pion
+            # Added 'RevPro' cuts to invert the proton missing mass cut
+            # Did not need to run with 'gdf' (use Extra_Name = f"New_Fiducial_Cut_Test{Cut_Configuration_Name}_V14_")
+
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
         # Ran on 9/5/2024
@@ -1173,7 +1184,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto ele      = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
         auto pip0     = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
         auto proV     = ROOT::Math::PxPyPzMVector(prox,  proy,  proz,  0.938272);
-        auto MM_pro_V = beam + targ - ele - pip0 - proV;
+        // auto MM_pro_V = beam + targ - ele - pip0 - proV;
+        auto MM_pro_V = beam + targ - ele - proV;
         return MM_pro_V.M2();"""]))
         rdf = rdf.Define("MM_pro", "sqrt(MM2_pro)")
         rdf = rdf.Define("pro",    "sqrt(prox*prox + proy*proy + proz*proz)")
@@ -5542,6 +5554,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     cutname = f"{cutname} (Proton Cut) "
                     if(Titles_or_DF == 'DF'):
                         DF_Out  = DF_Out.Filter("MM_pro > 1.35")
+                if("RevPro" in Cut_Choice):
+                    cutname = f"{cutname} (Inverted Proton Cut) "
+                    if(Titles_or_DF == 'DF'):
+                        DF_Out  = DF_Out.Filter("MM_pro < 1.35")
                 if("Binned"  in Cut_Choice):
                     cutname = "".join([cutname, "(Binned) "])
                     if(Titles_or_DF == 'DF'):
@@ -5712,6 +5728,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             Cut_Name = "".join([str(Cut_Name), " with Kinematic Binning"])
         if("Proton"   in str(Cut_Type)):
             Cut_Name = "".join([str(Cut_Name), " with Proton Cuts"])
+        if("RevPro"   in str(Cut_Type)):
+            Cut_Name = "".join([str(Cut_Name), " with Inverted Proton Cuts"])
         if("Complete" in str(Cut_Type)):
             Cut_Name = "".join(["Complete Set of ", str(Cut_Name)])
         if("eS" in str(Cut_Type)):
@@ -5835,6 +5853,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(Tag_Proton):
             cut_list.append('cut_Complete_SIDIS_Proton')
             cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
+            cut_list.append('cut_Complete_SIDIS_RevPro')
+            cut_list.append('cut_Complete_SIDIS_RevPro_Integrate')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6309,8 +6329,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     
-    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    # if(datatype in ["gdf"]):
+    #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
 #     List_of_Quantities_2D = [[Q2_Binning, y_Binning], [z_Binning, pT_Binning], [Hx_Binning, Hy_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
 
@@ -6420,8 +6442,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     else:
         List_of_Quantities_3D     = []
         
-    if(Tag_Proton):
-        List_of_Quantities_2D.append([["pro", 0, 6, 150], ["MM_pro", 0, 2.5, 100]])
+    # if(Tag_Proton):
+    #     List_of_Quantities_2D.append([["pro", 0, 6, 150], ["MM_pro", 0, 2.5, 100]])
         
     # if((datatype in ["mdf"]) and (not Run_With_Smear) and (not Run_Small)):
     #     # Do not attempt to create the PID plots with using the matched MC data or while smearing (these variables cannot be smeared)

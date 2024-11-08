@@ -71,7 +71,7 @@ Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
 Tag___Proton_List = ["_Pro",    "_Proton"]
-SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13"]
+SkipFiducial_List = ["_FC0",    "_FC1",   "_FC2",      "_FC3",     "_FC4",        "_FC5",   "_FC6",      "_FC7",  "_FC8", "_FC9", "_FC_10", "_FC_11", "_FC_12", "_FC_13", "_FC_14"]
 
 output_all_histo_names_Q = "yes"
 # output_all_histo_names_Q = "no"
@@ -212,13 +212,17 @@ for SkipC         in SkipFiducial_List:
             Skipped_Fiducial_Cuts = ["Hpip", "DC_pip", "Pion"]     # Skipping New Pion Cuts (includes all of Valerii's Electron Cuts and my electron DC refinements)
         if(SkipC  in ["_FC_13"]):
             Skipped_Fiducial_Cuts = ["Hpip", "DC", "Electron"]     # Skipping All Electron DC Fiducial cuts (including Valerii's cuts and my refinements, BUT including my pion DC cuts - Valerii's cuts are also never to be applied to the pion at the point that this option was added)
+        if(SkipC  in ["_FC_14"]):
+            Skipped_Fiducial_Cuts = ["Hpip", "DC_pip", "Electron"] # Skipping my electron fiducial cuts and not applying any of Valerii's cuts to the pion (Includes all of Valerii's electron cuts and my new pion cuts)
         if(SkipC  in ["_FC7"]):
             Skipped_Fiducial_Cuts = ["Hpip", "DC", "My_Cuts"]      # Skipping all DC cuts (as of 9/3/2024, 'FC7' no longer allows Valerii's PCAL cuts to be applied to the pion - i.e., skipping 'Hpip')
         datatype                  = str(datatype).replace(str(SkipC), "")
+        # if("gdf" not in str(datatype)):
+        #     print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
         break
         
 if("gdf" not in str(datatype)):
-    print(f"\n{color.BBLUE}Running without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}{color.END}\n")
+    print(f"\n\033[1m\033[94mRunning without the following Fiducial Cut Options: {Skipped_Fiducial_Cuts}\033[0m\n")
         
 if(Tag_Proton and not Use_New_PF):
     print(f"{color.Error}Cannot Run the Tagged Proton without the newest versions of the Pass 2 root files...\n{color.END}")
@@ -398,7 +402,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
     
     print(f"{color.BOLD}\nDefining pre-made functions to be used within the RDataFrame{color.END}")
-    ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
+    # ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
     ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
     ROOT.gInterpreter.Declare(Correction_Code_Full_In)
     ROOT.gInterpreter.Declare(Rotation_Matrix)
@@ -443,6 +447,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Common_Name = f"New_TTree{Cut_Configuration_Name}_V1_"
     # Ran on 9/10/2024
     # First version of the TTree File Creator
+
+    Common_Name = f"New_TTree{Cut_Configuration_Name}_V2_"
+    # Ran on 11/8/2024
+    # Second version of the TTree File Creator
+        # Modified the Fiducial cut code to no longer need to declare 'New_Fiducial_DC_Cuts_Functions'
     
     if(run_Mom_Cor_Code == "yes"):
         if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Common_Name)):
@@ -535,7 +544,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto ele      = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
         auto pip0     = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
         auto proV     = ROOT::Math::PxPyPzMVector(prox,  proy,  proz,  0.938272);
-        auto MM_pro_V = beam + targ - ele - pip0 - proV;
+        // auto MM_pro_V = beam + targ - ele - pip0 - proV;
+        auto MM_pro_V = beam + targ - ele - proV;
         return MM_pro_V.M2();"""]))
         rdf = rdf.Define("MM_pro", "sqrt(MM2_pro)")
         rdf = rdf.Define("pro",    "sqrt(prox*prox + proy*proy + proz*proz)")

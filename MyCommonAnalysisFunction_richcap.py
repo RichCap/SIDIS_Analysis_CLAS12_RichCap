@@ -342,7 +342,7 @@ def variable_Title_name(variable):
     if(variable == 'MM2_pro'):
         output  =  "Missing Mass^{2} (Proton)"
     if(variable == 'MM_pro'):
-        output  =  "Missing Mass (Proton)"
+        output  =  "Missing Mass_{epX} (Proton)"
     if(variable == 'pro'):
         output  =  "p_{pro}"
     if(variable == 'rad_event'):
@@ -1649,6 +1649,35 @@ def get_fit_parameters_B_and_C(hist):
         return None, None, None, None
 
 
+
+def draw_preliminary_text(pad_or_canvas, x_pos=0.15, y_pos=0.12, text="PRELIMINARY", text_size=0.06, text_color_alpha=(ROOT.kRed, 0.2)):
+    # Draws a TLatex text box on a specified ROOT TCanvas or TPad at the given normalized coordinates.
+    # Parameters:
+    # pad_or_canvas (ROOT.TPad or ROOT.TCanvas): The TPad or TCanvas to draw the text on.
+    # x_pos (float): X position of the text box in normalized device coordinates (0 to 1).
+    # y_pos (float): Y position of the text box in normalized device coordinates (0 to 1).
+    # text (str): The text to display.
+    # text_size (float): Size of the text (0.06 is a typical value for good visibility).
+    # text_color_alpha (tuple): Tuple containing the color and alpha (transparency) of the text.
+    # Returns:
+    # ROOT.TLatex: The TLatex object used for drawing the text (do not need to save).
+    
+    # Make the specified pad or canvas the current one to ensure correct drawing
+    pad_or_canvas.cd()
+
+    # Create a new TLatex object for drawing text
+    latex = ROOT.TLatex()
+
+    # Set the text size and color with alpha transparency
+    latex.SetTextSize(text_size)
+    color, alpha = text_color_alpha
+    latex.SetTextColorAlpha(color, alpha)
+
+    # Draw the text at the specified position using normalized device coordinates (NDC)
+    latex.DrawTextNDC(x_pos, y_pos, text)
+
+    # Return the TLatex object so that it remains associated with the pad/canvas
+    return latex
     
             
 ##=========================================================================================##
