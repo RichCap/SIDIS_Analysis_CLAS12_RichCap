@@ -3,7 +3,7 @@ import ROOT, numpy
 import traceback
 import sys
 # from sys import argv
-# import argparse
+import argparse
 
 # Add the path to sys.path temporarily
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
@@ -24,8 +24,6 @@ ROOT.gStyle.SetTitleOffset(1.3,'y')
 ROOT.gStyle.SetGridColor(17)
 ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
-
-print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis\n{color.END}")
 
 from datetime import datetime
 # Function to format time in 12-hour format with a.m./p.m.
@@ -64,7 +62,7 @@ def FileLocation_Load(FileName, Datatype):
 # Smearing_Options = "no_smear"
 
 Common_Name = "Pass_2_New_TTree_V1_*"
-
+Tag_ProQ = False
 
 # # Cut_Configuration_Name = "_FC_11" # After Valerii's Cuts - Before my Cuts
 # # Cut_Configuration_Name = "_FC_12" # After Valerii's Cuts and my new electron DC refinements - Before my π+ DC Cuts
@@ -72,101 +70,49 @@ Common_Name = "Pass_2_New_TTree_V1_*"
 # # Cut_Configuration_Name = "_FC7" # Before Valerii's Cuts
 # Common_Name = f"Pass_2_New_Fiducial_Cut_Test{Cut_Configuration_Name}_V9_All"
 
-Standard_Histogram_Title_Addition = ""
+def load_rdataframes(Common_Name_In="Pass_2_New_TTree_V1_*", Tag_ProQ_In=False):
+    Standard_Histogram_Title_Addition = ""
+    if(Tag_ProQ_In):
+        Common_Name_In = "Pass_2_New_TTree_V2_*"
+        Common_Name_In = f"Tagged_Proton_{Common_Name_In}"
+        Proton_Type = "Tagged Proton" # if(not Cut_ProQ) else "Cut with Proton Missing Mass"
+        Standard_Histogram_Title_Addition = "".join([Proton_Type, f" - {Standard_Histogram_Title_Addition}" if(Standard_Histogram_Title_Addition not in [""]) else ""])
+        print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}{Proton_Type}{color.END}{color.BBLUE}' Files{color.END}\n")
+        del Proton_Type
+    
+    Pass_Version = "Pass 2" if("Pass_2" in Common_Name_In) else "Pass 1"
+    if(Pass_Version not in [""]):
+        if(Standard_Histogram_Title_Addition not in [""]):
+            Standard_Histogram_Title_Addition = f"{Pass_Version} - {Standard_Histogram_Title_Addition}"
+        else:
+            Standard_Histogram_Title_Addition = Pass_Version
+    
+    print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
+    ################################################################################################################################################################
+    ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
+    ################################################################################################################################################################
+    try:
+        rdf = FileLocation_Load(str(Common_Name_In), "rdf")
+        print("".join(["The (current) total number of columns available for the", color.BLUE,  " Real (Experimental) Data",       color.END, " in       '", color.BOLD, Common_Name_In, color.END, "' is ", color.BOLD, str(len(rdf.GetColumnNames())), color.END]))
+    except:
+        print("".join([color.Error, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+    try:
+        mdf = FileLocation_Load(str(Common_Name_In), "mdf")
+        print("".join(["The (current) total number of columns available for the", color.RED,   " Reconstructed Monte Carlo Data", color.END, " in '",       color.BOLD, Common_Name_In, color.END, "' is ", color.BOLD, str(len(mdf.GetColumnNames())), color.END]))
+    except:
+        print("".join([color.Error, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+    try:
+        gdf = FileLocation_Load(str(Common_Name_In), "gdf")
+        print("".join(["The (current) total number of columns available for the", color.GREEN, " Generated Monte Carlo Data",     color.END, " in     '",   color.BOLD, Common_Name_In, color.END, "' is ", color.BOLD, str(len(gdf.GetColumnNames())), color.END]))
+    except:
+        print("".join([color.Error, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+    ################################################################################################################################################################
+    ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
+    ################################################################################################################################################################
+    
+    print(f"{color.BOLD}\nPass Version in use is:{color.END_b} {Pass_Version}{color.END_B}\n\n\nDone Loading TTree files...\n\n{color.END}")
 
-Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
-if(Pass_Version not in [""]):
-    if(Standard_Histogram_Title_Addition not in [""]):
-        Standard_Histogram_Title_Addition = f"{Pass_Version} - {Standard_Histogram_Title_Addition}"
-    else:
-        Standard_Histogram_Title_Addition = Pass_Version
-
-
-print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
-        
-        
-# Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
-
-##################################
-##   Real (Experimental) Data   ##
-##################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-# if(False):
-    REAL_File_Name = Common_Name
-else:
-    REAL_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if(Pass_Version in ["Pass 2"]) else "5D_Unfold_Test_V7_All"
-    REAL_File_Name = "Pass_2_New_TTree_V1_5164"
-    # REAL_File_Name = "Pass_2_New_TTree_V1_516*"
-##################################
-##   Real (Experimental) Data   ##
-##################################
-
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-# if(False):
-    MC_REC_File_Name = Common_Name
-else:
-    # MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
-    # if(Pass_Version not in ["Pass 2"]):
-    #     MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
-    MC_REC_File_Name = "Pass_2_New_TTree_V1_7901_4"
-    # MC_REC_File_Name = "Pass_2_New_TTree_V1_7901_*"
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
-
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-# if(False):
-    MC_GEN_File_Name = Common_Name
-else:
-    MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
-    MC_GEN_File_Name = "Pass_2_New_Sector_Cut_Test_V9_All"
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
-
-
-################################################################################################################################################################
-##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-################################################################################################################################################################
-
-
-
-
-
-################################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-################################################################################################################################################################
-try:
-    rdf = FileLocation_Load(str(REAL_File_Name), "rdf")
-    print("".join(["The (current) total number of columns available for the", color.BLUE,  " Real (Experimental) Data",       color.END, " in       '", color.BOLD, REAL_File_Name,   color.END, "' is ", color.BOLD, str(len(rdf.GetColumnNames())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-try:
-    mdf = FileLocation_Load(str(MC_REC_File_Name), "mdf")
-    print("".join(["The (current) total number of columns available for the", color.RED,   " Reconstructed Monte Carlo Data", color.END, " in '",       color.BOLD, MC_REC_File_Name, color.END, "' is ", color.BOLD, str(len(mdf.GetColumnNames())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-try:
-    gdf = FileLocation_Load(str(MC_GEN_File_Name), "gdf")
-    print("".join(["The (current) total number of columns available for the", color.GREEN, " Generated Monte Carlo Data",     color.END, " in     '",   color.BOLD, MC_GEN_File_Name, color.END, "' is ", color.BOLD, str(len(gdf.GetColumnNames())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-################################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-################################################################################################################################################################
-
-
-print(f"{color.BOLD}\nPass Version in use is:{color.END_b} {Pass_Version}{color.END_B}\n\n\nDone Loading TTree files...\n\n{color.END}")
-
+    return Common_Name_In, Standard_Histogram_Title_Addition, Pass_Version, rdf, mdf, gdf
 
 ROOT.gStyle.SetTitleOffset(1.5,'y')
 ROOT.gStyle.SetTitleOffset(1.2,'x')
@@ -418,35 +364,73 @@ def Draw_V_W_PCal_Cut_Lines(hist, esec=0, switch_axes=False):
 
 # Run Checks:
 if(__name__ == "__main__"):
+    print("")
+    # Set up argument parsing
+    parser = argparse.ArgumentParser(description=f"{color.BOLD}Loads ROOT data files and sets up RDataFrames for the TTree analysis.{color.END}", 
+                        epilog="If none of the '--check' options are selected, then they will all be run by default.", formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-n", "-name", "--common_name", type=str, default="Pass_2_New_TTree_V1_*", 
+                        help="Specifies the common file name pattern used to load data files. Default: 'Pass_2_New_TTree_V1_*'.")
+    parser.add_argument("-pro", "-proton", "--tag_proq", action="store_true", 
+                        help="Enables tagging of proton events, modifying the common file name to include 'Tagged_Proton'.")
+    parser.add_argument("-rdf", "--check-rdf", action="store_true", 
+                        help="Checks the defined columns of the 'rdf' RDataFrame.")
+    parser.add_argument("-mdf", "--check-mdf", action="store_true", 
+                        help="Checks the defined columns of the 'mdf' RDataFrame.")
+    parser.add_argument("-gdf", "--check-gdf", action="store_true", 
+                        help="Checks the defined columns of the 'gdf' RDataFrame.")
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Set common_name and tag_proq based on arguments
+    Common_Name = args.common_name
+    Tag_ProQ    = args.tag_proq
+
+    if((not args.check_rdf) and (not args.check_mdf) and (not args.check_gdf)):
+        args.check_rdf = True
+        args.check_mdf = True
+        args.check_gdf = True
+        
+
+    Common_Name, Standard_Histogram_Title_Addition, Pass_Version, rdf, mdf, gdf = load_rdataframes(Common_Name_In=Common_Name, Tag_ProQ_In=Tag_ProQ)
+    
     # Check 'rdf':
-    if(True and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(rdf)))):
+    if((args.check_rdf) and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(rdf)))):
         print(f"For {color.BOLD}'rdf'{color.END}:")
         for num, ii in enumerate(rdf.GetColumnNames()):
             print(f"\tColumn {str(num+1).rjust(3)}) {color.BOLD}{str(ii).ljust(40)}{color.END}")
             # print(f"\tColumn {str(num+1).rjust(3)}) {str(ii).ljust(35)} | (type -> {type(ii)})")
     elif("class cppyy.gbl.ROOT.RDataFrame" not in str(type(rdf))):
         print(f"\n{color.Error}ERROR: 'rdf' is NOT an RDataFrame\n{color.END}")
+    elif(not args.check_rdf):
+        print("Not Checking the 'rdf' DataFrame...")
     
     print("\n")
     
     # Check 'mdf':
-    if(True and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(mdf)))):
+    if((args.check_mdf) and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(mdf)))):
         print(f"For {color.BOLD}'mdf'{color.END}:")
         for num, ii in enumerate(mdf.GetColumnNames()):
             print(f"\tColumn {str(num+1).rjust(3)}) {color.BOLD}{str(ii).ljust(40)}{color.END}")
     elif("class cppyy.gbl.ROOT.RDataFrame" not in str(type(mdf))):
         print(f"\n{color.Error}ERROR: 'mdf' is NOT an RDataFrame\n{color.END}")
+    elif(not args.check_mdf):
+        print("Not Checking the 'mdf' DataFrame...")
     
     print("\n")
     
     # Check 'gdf':
-    if(True and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(gdf)))):
+    if((args.check_gdf) and ("class cppyy.gbl.ROOT.RDataFrame" in str(type(gdf)))):
         print(f"For {color.BOLD}'gdf'{color.END}:")
         for num, ii in enumerate(gdf.GetColumnNames()):
             print(f"\tColumn {str(num+1).rjust(3)}) {color.BOLD}{str(ii).ljust(40)}{color.END}")
     elif("class cppyy.gbl.ROOT.RDataFrame" not in str(type(gdf))):
         print(f"\n{color.Error}ERROR: 'gdf' is NOT an RDataFrame\n{color.END}")
+    elif(not args.check_gdf):
+        print("Not Checking the 'gdf' DataFrame...")
     
     print("\n\nDone\n\n")
 else:
+    Common_Name, Standard_Histogram_Title_Addition, Pass_Version, rdf, mdf, gdf = load_rdataframes(Common_Name_In=Common_Name, Tag_ProQ_In=Tag_ProQ)
     print(f"\n{color.BOLD}Not currently checking the RDataFrames' contents\n{color.END}")
+    

@@ -40,6 +40,7 @@ variable_settings = {
     "U_PCal":                    {"bins":  450, "range_min":    0.0, "range_max": 450.0},
     "Hx":                        {"bins":  450, "range_min":    0.0, "range_max": 450.0},
     "Hy":                        {"bins":  200, "range_min": -100.0, "range_max": 100.0},
+    "MM_pro":                    {"bins":  200, "range_min":    0.0, "range_max":   4.0},
 }
 
 # Argument parser setup
@@ -66,24 +67,34 @@ parser.add_argument(
     help="".join(["Maximum range for the histogram (Default: 14.0).\n   Default by Variable:", "".join(f"\n{ii.rjust(25)} -> {str(variable_settings[ii]['range_max']).rjust(8)}" for ii in variable_settings), "\n\n"])
 )
 
-parser.add_argument("-v",    "--variables", nargs='+', required=True,                                                help=f"Variables to plot as a list of strings, or for 2D plots, a list of lists of strings (2D example: 'Q2,y' {color.UNDERLINE}no spaces{color.END})")
-parser.add_argument("-df",   "--rdf_list",  nargs='+', choices=['rdf', 'mdf', 'gdf'], default=['rdf', 'mdf', 'gdf'], help="List of RDataFrames to use (default: all)")
-parser.add_argument("-t",    "--title",                type=str,                                                     help="Optional additional title text to add")
-parser.add_argument('--Q2-y-Bin',           nargs='+', type=int,                                                     help="Cut on Q2_Y_Bin variable")
-parser.add_argument('--z-pT-Bin',           nargs='+', type=int,                                                     help="Cut on z_pT_Bin_Y_bin variable (requires Q2_Y_Bin cut)")
-parser.add_argument("-c",    "--cut",                  type=str,                                                     help="General cut string (SIDIS cuts are already applied automatically by default - this option is just to add additional cuts on top of those)")
-parser.add_argument("-sc",   "--show-cut",             action='store_true',                                          help="Show general cut string in histogram title")
-parser.add_argument("-gc",   "--gdf-special-cut",      type=str,                                                     help="Special cut for the gdf RDataFrame only")
-parser.add_argument("-lr",   "--limit-range",          type=int,                                                     help="Apply limit to the number of events allowed in the RDataFrames (applied to all options)")
-parser.add_argument("-esec", "--esec-cut",             type=int,                                                     help="Automatically applies a sector cut to the electron (To specify 'All' sectors, input -1 - can be used in some specific cases)")
-parser.add_argument("-P", "--Preliminary",             action='store_true',                                          help="Turns on and draws the 'PRELIMINARY' text box in the image.")
-
+parser.add_argument("-v",    "--variables", nargs='+', required=True,                                                     help=f"Variables to plot as a list of strings, or for 2D plots, a list of lists of strings (2D example: 'Q2,y' {color.UNDERLINE}no spaces{color.END})")
+parser.add_argument("-df",   "--rdf_list",  nargs='+', choices=['rdf', 'mdf', 'gdf'], default=['rdf', 'mdf', 'gdf'],      help="List of RDataFrames to use (default: all)")
+parser.add_argument("-t",    "--title",                type=str,                                                          help="Optional additional title text to add")
+parser.add_argument('--Q2-y-Bin',           nargs='+', type=int,                                                          help="Cut on Q2_Y_Bin variable")
+parser.add_argument('--z-pT-Bin',           nargs='+', type=int,                                                          help="Cut on z_pT_Bin_Y_bin variable (requires Q2_Y_Bin cut)")
+parser.add_argument("-c",    "--cut",                  type=str,                                                          help="General cut string (SIDIS cuts are already applied automatically by default - this option is just to add additional cuts on top of those)")
+parser.add_argument("-sc",   "--show-cut",             action='store_true',                                               help="Show general cut string in histogram title")
+parser.add_argument("-gc",   "--gdf-special-cut",      type=str,                                                          help="Special cut for the gdf RDataFrame only")
+parser.add_argument("-lr",   "--limit-range",          type=int,                                                          help="Apply limit to the number of events allowed in the RDataFrames (applied to all options)")
+parser.add_argument("-esec", "--esec-cut",             type=int,                                                          help="Automatically applies a sector cut to the electron (To specify 'All' sectors, input -1 - can be used in some specific cases)")
+parser.add_argument("-P", "--Preliminary",             action='store_true',                                               help="Turns on and draws the 'PRELIMINARY' text box in the image.")
+parser.add_argument("-n",   "-name", "--common_name",  type=str,                      default="Pass_2_New_TTree_V1_*",    help="Specifies the common file name pattern used to load data files. Default: 'Pass_2_New_TTree_V1_*'.")
+parser.add_argument("-pro", "-proton",  "--tag_proq",  action="store_true",                                               help="Enables tagging of proton events, modifying the common file name to include 'Tagged_Proton'.")
 
 
 
 args = parser.parse_args()
 
 from Main_python_Working_with_TTree_Files import *
+
+Tag_ProQ = args.tag_proq
+if((str(args.common_name) not in ["Pass_2_New_TTree_V1_*"]) or Tag_ProQ):
+    print(f"""{color.BGREEN}{color_bg.YELLOW}
+\t                                                               \t   
+\t{color.UNDERLINE}RERUNNIG THE 'load_rdataframes' FUNCTION FOR NEW RDATAFRAMES...{color.END}{color.BGREEN}{color_bg.YELLOW}\t   
+\t                                                               \t   {color.END}""")
+    Common_Name, Standard_Histogram_Title_Addition, Pass_Version, rdf, mdf, gdf = load_rdataframes(Common_Name_In=str(args.common_name), Tag_ProQ_In=Tag_ProQ)
+
 
 ROOT.gROOT.SetBatch(1)
 
@@ -145,13 +156,14 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                         save_suffix = f"{save_suffix}_Cut{save_cut}"
                 
                 if(df_name != "gdf"):
-                    # rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter("Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_DC_Fiducial_Cuts_pip_DC_6 && Valerii_DC_Fiducial_Cuts_pip_DC_18 && Valerii_DC_Fiducial_Cuts_pip_DC_36 && Valerii_OG_Cut && Valerii_PCal_Fiducial_Cuts")
-                    if("U_PCal" in str(variables)):
-                        # rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter("Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_DC_Fiducial_Cuts_pip_DC_6 && Valerii_DC_Fiducial_Cuts_pip_DC_18 && Valerii_DC_Fiducial_Cuts_pip_DC_36 && Valerii_OG_Cut")
-                        rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter("Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_OG_Cut")
-                    else:
-                        # rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter("Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_DC_Fiducial_Cuts_pip_DC_6 && Valerii_DC_Fiducial_Cuts_pip_DC_18 && Valerii_DC_Fiducial_Cuts_pip_DC_36 && Valerii_OG_Cut && Valerii_PCal_Fiducial_Cuts")
-                        rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter("Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_OG_Cut && Valerii_PCal_Fiducial_Cuts")
+                    Default_Cut = "Complete_SIDIS_Cuts && Valerii_DC_Fiducial_Cuts_ele_DC_6 && Valerii_DC_Fiducial_Cuts_ele_DC_18 && Valerii_DC_Fiducial_Cuts_ele_DC_36 && Valerii_OG_Cut"
+                    if("PCal" not in str(variables)):
+                        Default_Cut = f"{Default_Cut} && Valerii_PCal_Fiducial_Cuts"
+                        if(str(Common_Name) not in ["Pass_2_New_TTree_V1_*"]):
+                            Default_Cut = f"{Default_Cut} && Sector_PCal_Fiducial_Cuts"
+                        else:
+                            Default_Cut = f"{Default_Cut} && ((esec != 1 && esec != 2 && esec != 4 && esec != 6) || (esec == 1 && !((W_PCal >  74.2 && W_PCal <  79.6) || (W_PCal >  85.4 && W_PCal <  90.8) || (W_PCal > 213.0 && W_PCal < 218.4) || (W_PCal > 224.1 && W_PCal < 229.5))) || (esec == 2 && !(V_PCal > 102.0 && V_PCal < 113.0)) || (esec == 3) || (esec == 4 && !(V_PCal > 235.0 && V_PCal < 240.0)) || (esec == 5) || (esec == 6 && !((W_PCal > 174.1 && W_PCal < 179.5) || (W_PCal > 185.2 && W_PCal < 190.6))))"
+                    rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter(Default_Cut)
                     rdf_filtered_list[df_name] = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_filtered_list[df_name], List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"])
 
             # Special cut only for "gdf"
@@ -249,6 +261,8 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                                 draw_preliminary_text(pad_or_canvas=canvas, x_pos=0.15, y_pos=0.12, text="PRELIMINARY", text_size=0.06, text_color_alpha=(ROOT.kRed, 0.2))
                             canvas.Update()
                             SaveName = f"Histogram_{y_var}_{x_var}_{df_name}{save_suffix}.png"
+                            if(Tag_ProQ):
+                                SaveName = f"Tagged_Proton_{SaveName}"
                             print(f"{color.BOLD}Saving: {color.BLUE}{SaveName}{color.END}\n")
                             canvas.SaveAs(SaveName)
 
@@ -262,6 +276,8 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                                 draw_preliminary_text(pad_or_canvas=canvas, x_pos=0.15, y_pos=0.12, text="PRELIMINARY", text_size=0.06, text_color_alpha=(ROOT.kRed, 0.2))
                                 canvas.Update()
                             SaveName = f"Histogram_{var}_{df_name}{save_suffix}.png"
+                            if(Tag_ProQ):
+                                SaveName = f"Tagged_Proton_{SaveName}"
                             print(f"{color.BOLD}Saving: {color.BLUE}{SaveName}{color.END}\n")
                             canvas.SaveAs(SaveName)
                         else:  # Multiple RDataFrames, normalize and draw on same canvas
@@ -279,6 +295,8 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                                 draw_preliminary_text(pad_or_canvas=canvas, x_pos=0.15, y_pos=0.12, text="PRELIMINARY", text_size=0.06, text_color_alpha=(ROOT.kRed, 0.2))
                                 canvas.Update()
                             SaveName = f"Histogram_{var}{save_suffix}.png"
+                            if(Tag_ProQ):
+                                SaveName = f"Tagged_Proton_{SaveName}"
                             print(f"{color.BOLD}Saving: {color.BLUE}{SaveName}{color.END}\n")
                             canvas.SaveAs(SaveName)
 
