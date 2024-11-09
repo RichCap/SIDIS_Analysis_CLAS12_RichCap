@@ -1,14 +1,14 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_gdf_SIDIS_11_7_2024_Run2_New_Fiducial_Cut_Test_V14_SIDIS
+#SBATCH --job-name=P2_gdf_SIDIS_11_9_2024_Run1_New_Integrated_Bins_Test_V1_SIDIS
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=5500
-#SBATCH --time=7:00:00
+#SBATCH --mem-per-cpu=6500
+#SBATCH --time=8:00:00
 #SBATCH --array=0-273
 
 
