@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_New_Fiducial_Cut_Test_FC_14_V14_11_7_2024_Run1
+#SBATCH --job-name=RooUnfold_New_Integrated_Bins_Test_FC_14_V1_11_10_2024_Run1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,7 +9,7 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=15000
 #SBATCH --time=1:40:00
-#SBATCH --array=0-2,4-17
+#SBATCH --array=0-17
 
 
 # source /group/clas12/packages/setup.csh
