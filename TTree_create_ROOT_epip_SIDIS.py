@@ -354,6 +354,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         print(f"{color.Error}\nUnique File Name has been given as: {color.UNDERLINE}{file_num}{color.END}\n")
         files_used_for_data_frame = file_num
         file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/ROOT_Files/From_Pythia_Text_Files/", "")
+        file_num = str(file_num.replace("Other_Channels/", ""))
         rdf = ROOT.RDataFrame("h22", str(files_used_for_data_frame))
         rdf_entry_count = rdf.Count().GetValue()
         print(f"Number of entries in the RDataFrame: {rdf_entry_count}")
@@ -406,6 +407,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
     ROOT.gInterpreter.Declare(Correction_Code_Full_In)
     ROOT.gInterpreter.Declare(Rotation_Matrix)
+    ROOT.gInterpreter.Declare(New_Integrated_z_pT_and_MultiDim_Binning_Code)
     
     
     
@@ -532,6 +534,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ######################################################################################
     ##=====##  These calculations may have been made in the groovy code already  ##=====##
     ######################################################################################
+
+    if("beam" not in rdf.GetColumnNames()):
+        if("RadState" not in rdf.GetColumnNames()):
+            rdf = rdf.Define("RadState", "0")
+            rdf = rdf.Define("beam",  f"ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);")
+        else:
+            rdf = rdf.Define("beam",  f"""
+            auto beam_init = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
+            if(RadState == 1){{ // Initial-State Radiation
+                auto rad_photon = ROOT::Math::PxPyPzMVector(gx, gy, gz, sqrt(gE*gE - (gx*gx + gy*gy + gz*gz)));
+                auto beam___rad = beam_init - rad_photon;
+                return beam___rad;
+            }}
+            else{{return beam_init;}} // Final-State/No Radiation (i.e. RadState = 2 or RadState = 0)""")
+            # for var_coordinate in ["x", "y", "z"]:
+            #     rdf = rdf.Define(f"e{var_coordinate}_uncorrected", f"e{var_coordinate}")
+            #     rdf = rdf.Redefine(f"e{var_coordinate}", f"""
+            #     if(RadState == 2){{return (e{var_coordinate} + g{var_coordinate});}} // Final-State Radiation
+            #     else{{return e{var_coordinate};}} // Initial-State/No Radiation (i.e. RadState = 1 or RadState = 0)""")
+        rdf = rdf.Define("beamV", """
+        TLorentzVector beamV_init(beam.Px(), beam.Py(), beam.Pz(), beam.E());
+        return beamV_init;""")
+        
     
     ##=====## The following is for the Tagged Proton files ##=====##
     if(Tag_Proton):
@@ -539,7 +564,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("MM2_pro", "".join(["""
         auto fe       = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip     = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
-        auto beam     = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto targ     = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         auto ele      = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
         auto pip0     = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
@@ -750,7 +774,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto fe      = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip    = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         
-        auto beam    = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto targ    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         
         auto ele     = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
@@ -810,19 +833,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen", "".join(["""
-            auto beam_gen    = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
             auto targ_gen    = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
             auto ele_gen     = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
             auto pip0_gen    = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
 
-            auto epipX_gen   = beam_gen + targ_gen - ele_gen - pip0_gen;
-            auto q_gen       = beam_gen - ele_gen;
+            auto epipX_gen   = beam + targ_gen - ele_gen - pip0_gen;
+            auto q_gen       = beam - ele_gen;
             auto Q2_gen      = - q_gen.M2();
-            auto v_gen       = beam_gen.E() - ele_gen.E();
+            auto v_gen       = beam.E() - ele_gen.E();
             auto xB_gen      = Q2_gen/(2*targ_gen.M()*v_gen);
             auto W2_gen      = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
             auto W_gen       = sqrt(W2_gen);
-            auto y_gen       = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
+            auto y_gen       = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam));
             auto z_gen       = ((pip0_gen.E())/(q_gen.E()));
             auto gamma_gen   = 2*targ_gen.M()*(xB_gen/sqrt(Q2_gen));
             auto epsilon_gen = (1 - y_gen - 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen))/(1 - y_gen + 0.5*(y_gen*y_gen) + 0.25*(gamma_gen*gamma_gen)*(y_gen*y_gen));
@@ -888,21 +910,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((Mom_Correction_Q != "yes") or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     
-    auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
     auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0,       0.938272);
     
     auto eleM   = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
     auto pip0M  = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
     
-    auto lv_qMM = beamM - eleM;
+    auto lv_qMM = beam - eleM;
 
-    TLorentzVector beam(0, 0, """, str(Beam_Energy), """, beamM.E());
     TLorentzVector targ(0, 0, 0, targM.E());
     
     TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,     eleM.E());
     TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
     
-    TLorentzVector lv_q = beam - ele;
+    TLorentzVector lv_q = beamV - ele;
 
     ///////////////     Angles for Rotation     ///////////////
     double Theta_q = lv_q.Theta();
@@ -910,11 +930,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     ///////////////     Rotating to CM Frame     ///////////////
 
-    auto beam_Clone = Rot_Matrix(beam, -1, Theta_q, Phi_el);
-    auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
-    auto ele_Clone  = Rot_Matrix(ele,  -1, Theta_q, Phi_el);
-    auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
-    auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
+    auto beam_Clone = Rot_Matrix(beamV, -1, Theta_q, Phi_el);
+    auto targ_Clone = Rot_Matrix(targ,  -1, Theta_q, Phi_el);
+    auto ele_Clone  = Rot_Matrix(ele,   -1, Theta_q, Phi_el);
+    auto pip0_Clone = Rot_Matrix(pip0,  -1, Theta_q, Phi_el);
+    auto lv_q_Clone = Rot_Matrix(lv_q,  -1, Theta_q, Phi_el);
 
     ///////////////     Saving CM components     ///////////////
 
@@ -1015,14 +1035,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["yes"]) and Run_Uncorrected_phi_t_Info_Q):
         rdf = rdf.Define("Uncorrected_phi_t_Info", "".join(["""
         auto fpip   = (dppC(pipx, pipy, pipz, pipsec, 1, """, "1" if(not Use_Pass_2) else "3", """) + 1)/(Complete_Correction_Factor_Pip);
-        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto eleM   = ROOT::Math::PxPyPzMVector(ex, ey, ez,     0);
         auto pip0M  = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
         auto lv_qMM = beamM - eleM;
-        TLorentzVector beam(0,  0, """, str(Beam_Energy), """, beamM.E());
         TLorentzVector ele(ex, ey, ez,      eleM.E());
         TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
-        TLorentzVector lv_q = beam - ele;
+        TLorentzVector lv_q = beamV - ele;
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
         double Phi_el  = ele.Phi();
@@ -1050,17 +1068,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
-        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
         auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
         auto eleM   = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
         auto pip0M  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-        auto lv_qMM = beamM - eleM;
+        auto lv_qMM = beam - eleM;
 
-        TLorentzVector beam(0, 0, """, str(Beam_Energy), """, beamM.E());
         TLorentzVector targ(0, 0, 0, targM.E());
         TLorentzVector ele(ex_gen, ey_gen, ez_gen, eleM.E());
         TLorentzVector pip0(pipx_gen, pipy_gen, pipz_gen, pip0M.E());
-        TLorentzVector lv_q = beam - ele;
+        TLorentzVector lv_q = beamV - ele;
 
         ///////////////     Angles for Rotation     ///////////////
         double Theta_q = lv_q.Theta();
@@ -1068,11 +1084,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         ///////////////     Rotating to CM Frame     ///////////////
 
-        auto beam_Clone = Rot_Matrix(beam, -1, Theta_q, Phi_el);
-        auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
-        auto ele_Clone  = Rot_Matrix(ele,  -1, Theta_q, Phi_el);
-        auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
-        auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
+        auto beam_Clone = Rot_Matrix(beamV, -1, Theta_q, Phi_el);
+        auto targ_Clone = Rot_Matrix(targ,  -1, Theta_q, Phi_el);
+        auto ele_Clone  = Rot_Matrix(ele,   -1, Theta_q, Phi_el);
+        auto pip0_Clone = Rot_Matrix(pip0,  -1, Theta_q, Phi_el);
+        auto lv_q_Clone = Rot_Matrix(lv_q,  -1, Theta_q, Phi_el);
 
         ///////////////     Saving CM components     ///////////////
 
@@ -1311,12 +1327,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         auto fe    = dppC(ex,   ey,   ez,   esec,   0, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
         auto fpip  = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if(Mom_Correction_Q != "yes") else "2" if(not Use_Pass_2) else "4", """) + 1;
 
-        auto beamM = ROOT::Math::PxPyPzMVector(0,         0,         """, str(Beam_Energy), """,   0);
         auto targM = ROOT::Math::PxPyPzMVector(0,         0,         0,         0.938272);
         auto eleM  = ROOT::Math::PxPyPzMVector(ex*fe,     ey*fe,     ez*fe,     0);
         auto pip0M = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
 
-        TLorentzVector beam(0,         0,         """, str(Beam_Energy), """,      beamM.E());
         TLorentzVector targ(0,         0,         0,            targM.E());
         TLorentzVector ele(ex*fe,      ey*fe,     ez*fe,        eleM.E());
         TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip,    pip0M.E());
@@ -1335,7 +1349,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         //=================//     Vectors have been Smeared     //=================//
         //=========================================================================//
 
-        TLorentzVector lv_q = beam - ele_smeared;
+        TLorentzVector lv_q = beamV - ele_smeared;
 
         auto Delta_Smear_El_P   = abs(ele_smeared.P())        - abs(ele_NO_SMEAR.P());                         // Delta_Smear_El.P();
         auto Delta_Smear_El_Th  = (abs(ele_smeared.Theta())   - abs(ele_NO_SMEAR.Theta()))*TMath::RadToDeg();  // Delta_Smear_El.Theta()*TMath::RadToDeg();
@@ -1347,14 +1361,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         // Rest of calculations are performed as normal from here
 
-        auto epipX         = beam + targ - ele_smeared - pip0_smeared;
-        auto q_smeared     = beam - ele_smeared;
+        auto epipX         = beamV + targ - ele_smeared - pip0_smeared;
+        auto q_smeared     = beamV - ele_smeared;
         auto Q2_smeared    = -q_smeared.M2();
-        auto v_smeared     = beam.E() - ele_smeared.E();
+        auto v_smeared     = beamV.E() - ele_smeared.E();
         auto xB_smeared    = Q2_smeared/(2*targ.M()*v_smeared);
         auto W2_smeared    = targ.M2() + 2*targ.M()*v_smeared - Q2_smeared;
         auto W_smeared     = sqrt(W2_smeared);
-        auto y_smeared     = (targ.Dot(q_smeared))/(targ.Dot(beam));
+        auto y_smeared     = (targ.Dot(q_smeared))/(targ.Dot(beamV));
         auto z_smeared     = ((pip0_smeared.E())/(q_smeared.E()));
         auto gamma_smeared = 2*targ.M()*(xB_smeared/sqrt(Q2_smeared));
         auto epsilon_smeared = (1 - y_smeared - 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared))/(1 - y + 0.5*(y_smeared*y_smeared) + 0.25*(gamma_smeared*gamma_smeared)*(y_smeared*y_smeared));
@@ -1371,15 +1385,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         auto elPhi_smeared = ele_smeared.Phi()*TMath::RadToDeg();
 
-        if(elPhi_smeared < 0){
-            elPhi_smeared += 360;
-        }
+        if(elPhi_smeared < 0){elPhi_smeared += 360;}
 
         auto pipPhi_smeared = pip0_smeared.Phi()*TMath::RadToDeg();
 
-        if(pipPhi_smeared < 0){
-            pipPhi_smeared += 360;
-        }
+        if(pipPhi_smeared < 0){pipPhi_smeared += 360;}
 
         //=================================================================================================================================//
         //==============================================//          Rotation Code          //==============================================//
@@ -1391,11 +1401,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         ///////////////     Rotating to CM Frame     ///////////////
 
-        auto beam_Clone = Rot_Matrix(beam, -1, Theta_q, Phi_el);
-        auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
+        auto beam_Clone = Rot_Matrix(beamV,        -1, Theta_q, Phi_el);
+        auto targ_Clone = Rot_Matrix(targ,         -1, Theta_q, Phi_el);
         auto ele_Clone  = Rot_Matrix(ele_smeared,  -1, Theta_q, Phi_el);
         auto pip0_Clone = Rot_Matrix(pip0_smeared, -1, Theta_q, Phi_el);
-        auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
+        auto lv_q_Clone = Rot_Matrix(lv_q,         -1, Theta_q, Phi_el);
 
         ///////////////     Saving CM components     ///////////////
 
@@ -1464,9 +1474,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         double pT_smeared    = sqrt(pipx_smeared*pipx_smeared + pipy_smeared*pipy_smeared);
         double phi_t_smeared = pip0_Clone.Phi()*TMath::RadToDeg();
 
-        if(phi_t_smeared < 0){
-            phi_t_smeared += 360;
-        }
+        if(phi_t_smeared < 0){phi_t_smeared += 360;}
 
         double Q2_xB_Bin_smeared = 1;
         double z_pT_Bin_smeared  = 1;
@@ -2111,7 +2119,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     def Calculated_Exclusive_Cuts(Smear_Q):
         output = "".join(["""
         """, str(smearing_function), """
-        auto beam = ROOT::Math::PxPyPzMVector(0,    0,    """, str(Beam_Energy), """, 0);
         auto targ = ROOT::Math::PxPyPzMVector(0,    0,    0,       0.938);
         auto ele  = ROOT::Math::PxPyPzMVector(ex,   ey,   ez,      0);
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx, pipy, pipz,    0.13957);
@@ -3206,6 +3213,56 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
+        if(Bin_Version in ["6", "Int_bin", "Int_Bin"]):
+            z_pT_Bin_Standard_Def = "".join(["""
+            double z__event_val = """, "smeared_vals[8]"  if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "z",     "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;   
+            double pT_event_val = """, "smeared_vals[10]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "pT",    "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
+            double phi_t_eventV = """, "smeared_vals[11]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "phi_t", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
+            int Int_z_pT_Bin_event_val = 0;
+            int Int_Phih_Bin_event_val = 0;
+            int Int_MultiDim3D_Bin_val = 0;
+            int Int_MultiDim5D_Bin_val = 0;
+            if(""", Q2_xB_Bin_event_name, """ != 0){
+                if(((z__event_val <   0.34) && (z__event_val >  0.27)) && ((pT_event_val <  0.153) && (pT_event_val >   0.05))){Int_z_pT_Bin_event_val =   1;}
+                if(((z__event_val <   0.34) && (z__event_val >  0.27)) && ((pT_event_val <  0.258) && (pT_event_val >  0.153))){Int_z_pT_Bin_event_val =   2;}
+                if(((z__event_val <   0.34) && (z__event_val >  0.27)) && ((pT_event_val <  0.366) && (pT_event_val >  0.258))){Int_z_pT_Bin_event_val =   3;}
+                if(((z__event_val <   0.34) && (z__event_val >  0.27)) && ((pT_event_val <  0.478) && (pT_event_val >  0.366))){Int_z_pT_Bin_event_val =   4;}
+                if(((z__event_val <   0.34) && (z__event_val >  0.27)) && ((pT_event_val <   0.59) && (pT_event_val >  0.478))){Int_z_pT_Bin_event_val =   5;}
+                if(((z__event_val <  0.415) && (z__event_val >  0.34)) && ((pT_event_val <  0.153) && (pT_event_val >   0.05))){Int_z_pT_Bin_event_val =   6;}
+                if(((z__event_val <  0.415) && (z__event_val >  0.34)) && ((pT_event_val <  0.258) && (pT_event_val >  0.153))){Int_z_pT_Bin_event_val =   7;}
+                if(((z__event_val <  0.415) && (z__event_val >  0.34)) && ((pT_event_val <  0.366) && (pT_event_val >  0.258))){Int_z_pT_Bin_event_val =   8;}
+                if(((z__event_val <  0.415) && (z__event_val >  0.34)) && ((pT_event_val <  0.478) && (pT_event_val >  0.366))){Int_z_pT_Bin_event_val =   9;}
+                if(((z__event_val <  0.415) && (z__event_val >  0.34)) && ((pT_event_val <   0.59) && (pT_event_val >  0.478))){Int_z_pT_Bin_event_val =  10;}
+                if(((z__event_val <  0.492) && (z__event_val > 0.415)) && ((pT_event_val <  0.153) && (pT_event_val >   0.05))){Int_z_pT_Bin_event_val =  11;}
+                if(((z__event_val <  0.492) && (z__event_val > 0.415)) && ((pT_event_val <  0.258) && (pT_event_val >  0.153))){Int_z_pT_Bin_event_val =  12;}
+                if(((z__event_val <  0.492) && (z__event_val > 0.415)) && ((pT_event_val <  0.366) && (pT_event_val >  0.258))){Int_z_pT_Bin_event_val =  13;}
+                if(((z__event_val <  0.492) && (z__event_val > 0.415)) && ((pT_event_val <  0.478) && (pT_event_val >  0.366))){Int_z_pT_Bin_event_val =  14;}
+                if(((z__event_val <  0.492) && (z__event_val > 0.415)) && ((pT_event_val <   0.59) && (pT_event_val >  0.478))){Int_z_pT_Bin_event_val =  15;}
+                if(((z__event_val <  0.578) && (z__event_val > 0.492)) && ((pT_event_val <  0.153) && (pT_event_val >   0.05))){Int_z_pT_Bin_event_val =  16;}
+                if(((z__event_val <  0.578) && (z__event_val > 0.492)) && ((pT_event_val <  0.258) && (pT_event_val >  0.153))){Int_z_pT_Bin_event_val =  17;}
+                if(((z__event_val <  0.578) && (z__event_val > 0.492)) && ((pT_event_val <  0.366) && (pT_event_val >  0.258))){Int_z_pT_Bin_event_val =  18;}
+                if(((z__event_val <  0.578) && (z__event_val > 0.492)) && ((pT_event_val <  0.478) && (pT_event_val >  0.366))){Int_z_pT_Bin_event_val =  19;}
+                if(((z__event_val <  0.578) && (z__event_val > 0.492)) && ((pT_event_val <   0.59) && (pT_event_val >  0.478))){Int_z_pT_Bin_event_val =  20;}
+                if(((z__event_val <  0.665) && (z__event_val > 0.578)) && ((pT_event_val <  0.153) && (pT_event_val >   0.05))){Int_z_pT_Bin_event_val =  21;}
+                if(((z__event_val <  0.665) && (z__event_val > 0.578)) && ((pT_event_val <  0.258) && (pT_event_val >  0.153))){Int_z_pT_Bin_event_val =  22;}
+                if(((z__event_val <  0.665) && (z__event_val > 0.578)) && ((pT_event_val <  0.366) && (pT_event_val >  0.258))){Int_z_pT_Bin_event_val =  23;}
+                if(((z__event_val <  0.665) && (z__event_val > 0.578)) && ((pT_event_val <  0.478) && (pT_event_val >  0.366))){Int_z_pT_Bin_event_val =  24;}
+                if(((z__event_val <  0.665) && (z__event_val > 0.578)) && ((pT_event_val <   0.59) && (pT_event_val >  0.478))){Int_z_pT_Bin_event_val =  25;}
+                if(Int_z_pT_Bin_event_val == 0){Int_MultiDim3D_Bin_val = 0; Int_MultiDim5D_Bin_val = 0;}
+                else{
+                    Phih_Bin_event_val     = Find_phi_h_Bin(1, 1, phi_t_eventV); // The reason to use Q2_xB_Bin_event_name, z_pT_Bin_event_val = 1, 1 is that it avoids the issues of the Find_phi_h_Bin() function accounting for 'migration' bins while this definition of the z-pT bins does not use them
+                    Int_MultiDim3D_Bin_val = Integrate_Phi_h_Bin_Values[""", str(Q2_xB_Bin_event_name), """][Int_z_pT_Bin_event_val][1] + Phih_Bin_event_val;
+                    Int_MultiDim5D_Bin_val = Integrate_Phi_h_Bin_Values[""", str(Q2_xB_Bin_event_name), """][Int_z_pT_Bin_event_val][2] + Phih_Bin_event_val;
+                }
+            }
+            else{Int_z_pT_Bin_event_val = 0; Int_MultiDim3D_Bin_val = 0; Int_MultiDim5D_Bin_val = 0;}
+            std::vector<int> Int_z_pT_and_MultiDim_Bins = {Int_z_pT_Bin_event_val, Int_MultiDim3D_Bin_val, Int_MultiDim5D_Bin_val};
+            return Int_z_pT_and_MultiDim_Bins;"""])
+
+    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+        
         # if(Bin_Version in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]):
         if(Bin_Version in ["4", "y_bin", "y_Bin"]):
             z_pT_Bin_Standard_Def = "".join(["""
@@ -4078,7 +4135,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     # Conditions to make the 5D unfolding plots
-    Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (run_Mom_Cor_Code != "yes")
+    Use_5D_Response_Matrix = (any(option in binning_option_list for option in ["Y_bin", "Int_bin"])) and (run_Mom_Cor_Code != "yes")
     # Use_5D_Response_Matrix = False
     
     if(Use_5D_Response_Matrix):
@@ -4156,12 +4213,34 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if(Use_5D_Response_Matrix):
                     rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h_smeared",            "All_MultiDim_Y_bin_smeared[2]")
                 # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
+    if((any(options in binning_option_list for options in ["6", "Int_bin", "Int_Bin"])) and ("Q2_Y_Bin" not in list(rdf.GetColumnNames()))):
+        print("New Q2-y Binning Scheme/Integrated z-pT bins --> 'Y_bin'/'Int_bin'")
+        rdf = rdf.Define("Q2_Y_Bin",                                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="",      Bin_Version="Y_bin")))
+        rdf = rdf.Define("All_MultiDim_Int_bin",                                    str(z_pT_Bin_Standard_Def_Function(Variable_Type="",       Bin_Version="Int_bin")))
+        rdf = rdf.Define("z_pT_Bin_Int_bin",                                        "All_MultiDim_Int_bin[0]")
+        rdf = rdf.Define("MultiDim_z_pT_Bin_Int_bin_phi_t",                         "All_MultiDim_Int_bin[1]")
+        if(Use_5D_Response_Matrix):
+            rdf = rdf.Define("MultiDim_Int_Q2_y_z_pT_phi_h",                        "All_MultiDim_Int_bin[2]")
+        if(datatype in ["mdf", "pdf"]):
+            rdf = rdf.Define("Q2_Y_Bin_gen",                                        str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="gen",   Bin_Version="Y_bin")))
+            rdf = rdf.Define("All_MultiDim_Int_bin_gen",                            str(z_pT_Bin_Standard_Def_Function(Variable_Type="gen",    Bin_Version="Int_bin")))
+            rdf = rdf.Define("z_pT_Bin_Int_bin_gen",                                "All_MultiDim_Int_bin_gen[0]")
+            rdf = rdf.Define("MultiDim_z_pT_Bin_Int_bin_phi_t_gen",                 "All_MultiDim_Int_bin_gen[1]")
+            if(Use_5D_Response_Matrix):
+                rdf = rdf.Define("MultiDim_Int_Q2_y_z_pT_phi_h_gen",                "All_MultiDim_Int_bin_gen[2]")
+            if(Run_With_Smear):
+                rdf = rdf.Define("Q2_Y_Bin_smeared",                                str(Q2_xB_Bin_Standard_Def_Function(Variable_Type="smear", Bin_Version="Y_bin")))
+                rdf = rdf.Define("All_MultiDim_Int_bin_smeared",                    str(z_pT_Bin_Standard_Def_Function(Variable_Type="smear",  Bin_Version="Int_bin")))
+                rdf = rdf.Define("z_pT_Bin_Int_bin_smeared",                        "All_MultiDim_Int_bin_smeared[0]")
+                rdf = rdf.Define("MultiDim_z_pT_Bin_Int_bin_phi_t_smeared",         "All_MultiDim_Int_bin_smeared[1]")
+                if(Use_5D_Response_Matrix):
+                    rdf = rdf.Define("MultiDim_Int_Q2_y_z_pT_phi_h_smeared",        "All_MultiDim_Int_bin_smeared[2]")
             
             
     
     print("".join([color.BBLUE, "\nBinning Scheme(s) in use: ", color.END]))
     for binning in binning_option_list:
-        print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
+        print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "New Q2-y/Integrated z-pT binning schemes" if(binning in ["6", "Int_bin", "Int_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
     
 
     #####################     Bin Choices     #####################
