@@ -3,44 +3,68 @@
 # Function to display help message
 function display_help {
     echo
-    echo "Usage: $0 <username> <job_id> [output_directory] [test]"
+    echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [--test]"
     echo "       Will merge sets of Monte Carlo HIPO files from a given OSG job into 10 larger files"
     echo
     echo "Arguments:"
-    echo "  username          The username for the job (used to find the input files that will be merged)."
-    echo "  job_id            The job ID to process    (used to find the input files that will be merged)."
-    echo "  output_directory  Optional: The directory where the output will be saved."
-    echo "                              If not specified, the current working directory is used."
+    echo "  username            The username for the job (used to find the input files that will be merged)."
+    echo "  job_id              The job ID to process    (used to find the input files that will be merged)."
     echo
     echo "Options:"
-    echo "  --help            Display this help message and exit."
-    echo "  --test            Optional: If specified, the script will only count and print the number of input files instead of merging them."
+    echo "  -o  Optional: The directory where the output will be saved."
+    echo "                      If not specified, the current working directory is used."
+    echo "  -s Optional: Identifier for input filenames. Defaults to 'inb-clasdis'."
+    echo "  -h, --help          Display this help message and exit."
+    echo "  -t, --test          Optional: If specified, the script will only count and print the number of input files instead of merging them."
     echo
 }
 
 # Check if the first argument is '--help'
-if [ "$1" == "--help" ]; then
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     display_help
     exit 0
 fi
 
 # Check if at least two arguments (username and job_id) are provided
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <username> <job_id> [output_directory] [test]"
+  echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [--test]"
   exit 1
 fi
 
-# Can change if input file names change
-string_identifier="inb-clasdis"
-
-# Assign variables from the input arguments
+# Assign mandatory arguments
 username=$1
 job_id=$2
+shift 2
 
-# Set input_directory based on the first two arguments
+test_mode=false
+output_directory="$(pwd)"
+string_identifier="inb-clasdis"
+
+# Parse optional parameters
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o)
+            output_directory="$2"
+            shift 2
+            ;;
+        -s)
+            string_identifier="$2"
+            shift 2
+            ;;
+        -t|--test)
+            test_mode=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            display_help
+            exit 1
+            ;;
+    esac
+done
+
+# Set input_directory based on username and job_id
 input_directory="/volatile/clas12/osg/$username/job_$job_id/output"
-# Set output_directory to the third argument or default to the current working directory
-output_directory=${3:-$(pwd)}
 
 # Check if input_directory exists
 if [ ! -d "$input_directory" ]; then
@@ -48,22 +72,11 @@ if [ ! -d "$input_directory" ]; then
     exit 1
 fi
 
-
-# Determine if the 'test' mode is active
-test_mode=false
-if [ "$4" == "--test" ] || [ "$3" == "--test" ]; then
-    test_mode=true
-    if [ $# -lt 4 ]; then
-        output_directory=$(pwd)
-    fi
-fi
-
 # Check if output_directory exists
 if [ ! -d "$output_directory" ]; then
     echo "Error: Output directory '$output_directory' does not exist."
     exit 1
 fi
-
 
 # Initialize variables for summing percentages and counting iterations
 total_percent=0
