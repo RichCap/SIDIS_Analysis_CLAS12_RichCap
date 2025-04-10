@@ -112,6 +112,8 @@ def variable_Title_name(variable):
     if("_No_Rad_Cor"         in variable):
         Extra_Variable_Title = "(No Rad Cors) "
         variable = variable.replace("_No_Rad_Cor", "")
+
+
     
     output = 'error'
 
@@ -199,14 +201,20 @@ def variable_Title_name(variable):
         output  =  'E_{#pi^{+}}'
     if(variable == 'el'):
         output  =  "p_{el}"
+    if(variable == 'el_V'):
+        output  =  "p_{el} (at Vertex)"   
     if(variable == 'pip'):
         output  =  "p_{#pi^{+}}"
     if(variable == 'elth'):
         output  =  "#theta_{el}"
+    if(variable == 'elth_V'):
+        output  =  "#theta_{el} (at Vertex)"
     if(variable == 'pipth'):
         output  =  "#theta_{#pi^{+}}"
     if(variable == 'elPhi'):
         output  =  "#phi_{el}"
+    if(variable == 'elPhi_V'):
+        output  =  "#phi_{el} (at Vertex)"        
     if(variable == 'pipPhi'):
         output  =  "#phi_{#pi^{+}}"
     if(variable == 'MM'):
@@ -227,6 +235,8 @@ def variable_Title_name(variable):
         output  =  "y (lepton energy loss fraction)"
     if(variable == 'z'):
         output  =  "z"
+    if(variable == 'v'):
+        output  =  "#nu"
     if(variable == 'epsilon'):
         output  =  "#epsilon"
     if(variable == 'pT'):
@@ -269,6 +279,12 @@ def variable_Title_name(variable):
         output  =  "Lab p_{el} in #hat{y}"
     if(variable == 'ez'):
         output  =  "Lab p_{el} in #hat{z}"
+    if(variable == 'ex_V'):
+        output  =  "Lab p_{el} in #hat{x} (at Vertex)"
+    if(variable == 'ey_V'):
+        output  =  "Lab p_{el} in #hat{y} (at Vertex)"
+    if(variable == 'ez_V'):
+        output  =  "Lab p_{el} in #hat{z} (at Vertex)"
     if(variable == 'px'):
         output  =  "Lab p_{#pi^{+}} in #hat{x}"
     if(variable == 'py'):
@@ -377,18 +393,47 @@ def variable_Title_name(variable):
         output  =  "#phi_{#gamma}"
     if(variable == 'gTheta'):
         output  =  "#theta_{#gamma}"
-    if(variable == 'gPhi_Tsai'):
-        output  =  "#phi_{#gamma} (Tsai-Frame)"
-    if(variable == 'gTheta_Tsai'):
-        output  =  "#theta_{#gamma} (Tsai-Frame)"
     if(variable == 'photon'):
         output  =  "p_{#gamma}"
     if(variable == 'gE'):
         output  =  "E_{#gamma}"
+    if(variable == 'gPhi_Tsai'):
+        output  =  "#phi_{#gamma} (Tsai-Frame)"
     if(variable == 'gPhi_Tsai_rad'):
         output  =  "#phi_{#gamma} (Tsai-Frame) [Radians]"
-    if(variable == 'gTheta_Tsai_rad'):
-        output  =  "#theta_{#gamma} (Tsai-Frame) [Radians]"
+    if('Theta_Tsai' in variable):
+        for par in ["g", "b", "e"]:
+            if(variable in [f'{par}Theta_Tsai', f'{par}Theta_Tsai_rad']):
+                output = ''.join(["#theta_{", "#gamma" if(par == "g") else "Beam" if(par == "b") else "el" if(par == "e") else "ERROR", "} (Tsai-Frame)", " [Radians]" if("Tsai_rad" in variable) else ""])#"#circ]"])
+    # if(variable == 'gTheta_Tsai'):
+    #     output  =  "#theta_{#gamma} (Tsai-Frame)"
+    # if(variable == 'gTheta_Tsai_rad'):
+    #     output  =  "#theta_{#gamma} (Tsai-Frame) [Radians]"
+    if(variable == 'rad_FSR_phi'):
+        output  =  "#phi_{#gamma} (around scattered electron)"
+    if(variable == 'rad_FSR_theta'):
+        output  =  "#theta_{#gamma} (around scattered electron)"
+    if(variable == 'beam_E'):
+        output  =  "Beam Energy"
+    if(variable == 'gR_status'):
+        output  =  "Rad #gamma Status"
+    if(variable == 'diff_in_rad_phi'):
+        output  =  "|#phi_{#gamma} - #phi_{el} (at Vertex)|"
+    if(variable == 'diff_in_rad_theta'):
+        output  =  "#Delta(#theta_{el (at Vertex)} - #theta_{#gamma})"
+    if(variable == 'cos_theta_Tsai'):
+        output  =  "Cos(#theta_{#gamma (Tsai)})"
+    if(variable == 'diff_in_Tsai_beam'):
+        # output  =  "|#theta_{#gamma} - #theta_{beam}| (Tsai-Frame)"
+        output  =  "#theta_{#gamma} - #theta_{beam} (Tsai-Frame)"
+    if(variable == 'diff_in_Tsai_scat'):
+        # output  =  "|#theta_{#gamma} - #theta_{el}| (Tsai-Frame)"
+        output  =  "#theta_{#gamma} - #theta_{el} (Tsai-Frame)"
+    if(variable in ['y_g_Tsai', 'z_g_Tsai']):
+        output  =  f"Rad Photon p_{{{variable.replace('_g_Tsai', '')}}} (Tsai-Frame)"
+
+    
+        
 
 
     if("Bin_4D" in variable):

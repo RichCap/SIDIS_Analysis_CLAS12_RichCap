@@ -412,6 +412,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
     ROOT.gInterpreter.Declare(Correction_Code_Full_In)
     ROOT.gInterpreter.Declare(Rotation_Matrix)
+    ROOT.gInterpreter.Declare(New_Integrated_z_pT_and_MultiDim_Binning_Code)
     
     
     

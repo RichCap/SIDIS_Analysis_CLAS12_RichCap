@@ -3120,16 +3120,16 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("14", "10"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.15,
+        "B_limits":  [-0.2, -0.05],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
     ("14", "11"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.22,
+        "B_limits":  [-0.175, -0.4],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
