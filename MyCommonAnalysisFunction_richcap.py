@@ -1191,13 +1191,19 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False):
+def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False, Select_z_pT_bin=None):
     z_pT_Bins_Borders = {}
     if(Integration_Bins_Q):
         bin_color = root_color.Black
         line_size = 4
         for z_pT in range(1, 26, 1):
             y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In, Integration_Bins_Q=True)
+            if(str(Select_z_pT_bin) == str(z_pT)):
+                bin_color = ROOT.kRed
+                line_size = 6
+            else:
+                bin_color = root_color.Black
+                line_size = 4
             if(Set_Max_Y):
                 if(Set_Max_Y < y_max):
                     y_max = Set_Max_Y
@@ -1231,6 +1237,9 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
             if(bin_color == root_color.Red):
                 break
             line_size =  1 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
+            if(str(Select_z_pT_bin) == str(z_pT)):
+                bin_color = ROOT.kRed
+                line_size = 6
             y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
             if(Set_Max_Y):
                 if(Set_Max_Y < y_max):
@@ -1973,3 +1982,86 @@ def Find_Bins_From_Histo_Name(data_string):
     #     print(f"NumBins: {num_bins}, MinBin: {min_bin}, MaxBin: {max_bin}")
     
     return [num_bins, min_bin, max_bin]
+
+
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+def Point_Already_Present(gr, x_new, tol=1e-8):
+    """Return True if a point with x‑coordinate x_new (±tol) is
+    already stored in the TGraph/TGraphErrors gr."""
+    # n = gr.GetN()                      # number of points in the graph
+    # x = ROOT.Double();  y = ROOT.Double()
+    # for i in range(n):
+    #     gr.GetPoint(i, x, y)           # fills x,y by reference :contentReference[oaicite:0]{index=0}
+    #     if(abs(float(x) - x_new) < tol):
+    #         return True
+    # return False
+    for i in range(gr.GetN()):
+        if(abs(gr.GetPointX(i) - x_new) < tol):   # both are plain Python floats
+            return True
+    return False
+
+
+##=========================================================================================##
+##=========================================================================================##
+##=========================================================================================##
+
+
+# Define annotation sets (dictionary array)
+annotations = [
+    {"text": "PRELIMINARY",
+    "x": 0.155, "y": 0.16,   # NDC coordinates (bottom-left)
+    "color": ROOT.kRed,
+    "alpha": 0.2,
+    "size": 0.085,
+    "align": 11,  # bottom-left
+    },
+    {"text": "Pass 2",
+    "x": 0.845, "y": 0.16,   # NDC coordinates (bottom-right)
+    "color": ROOT.kGray + 2,
+    "alpha": 0.4,
+    "size": 0.055,
+    "align": 31,  # bottom-right
+    }]
+
+# Function to draw annotations
+def draw_annotations(annotations):
+    for ann in annotations:
+        text = ROOT.TLatex()
+        text.SetNDC(True)
+        text.SetTextAlign(ann["align"])
+        text.SetTextColorAlpha(ann["color"], ann.get("alpha", 1.0))
+        text.SetTextSize(ann["size"])
+        text.DrawLatex(ann["x"], ann["y"], ann["text"])
+
+# Persistent list to store lines and prevent them from being garbage collected
+__pad_edge_lines = []
+def draw_border_around_current_pad(color=ROOT.kBlack, width=5):
+    # Draws a black border around the full TPad (edge-to-edge in canvas NDC space).
+    pad = ROOT.gPad
+    if(not pad):
+        print("No current pad selected.")
+        return
+    canvas = pad.GetCanvas()
+    # Get this pad’s position in canvas-NDC space
+    x1 = pad.GetXlowNDC()
+    y1 = pad.GetYlowNDC()
+    x2 = x1 + pad.GetWNDC()
+    y2 = y1 + pad.GetHNDC()
+    # Switch to canvas to draw in global NDC space
+    canvas.cd()
+    # Draw four lines forming the border
+    lines = [ROOT.TLine(x1, y1, x2, y1),  # bottom
+             ROOT.TLine(x2, y1, x2, y2),  # right
+             ROOT.TLine(x2, y2, x1, y2),  # top
+             ROOT.TLine(x1, y2, x1, y1),  # left
+    ]
+    for line in lines:
+        line.SetLineColor(color)
+        line.SetLineWidth(width)
+        line.SetNDC(True)
+        line.Draw("same")
+        __pad_edge_lines.append(line)  # Keep reference
