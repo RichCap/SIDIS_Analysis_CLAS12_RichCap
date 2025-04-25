@@ -1104,27 +1104,41 @@ import ROOT
 # Declare a global variable to track if the functions have been declared
 # fiducial_cuts_declared = False
 ROOT.gInterpreter.Declare(New_Test_Fiducial_DC_Cuts_Functions)
-def Apply_Test_Fiducial_Cuts(Data_Frame_In, List_of_Layers=["6", "18", "36"], List_of_Particles=["ele", "pip"], Define_Column=False):
+def Apply_Test_Fiducial_Cuts(Data_Frame_In, List_of_Layers=["6", "18", "36"], List_of_Particles=["ele", "pip"], Define_Column=False, show_cut_code=False):
     # global fiducial_cuts_declared
     Data_Frame_Out = Data_Frame_In
     # if(not fiducial_cuts_declared): # Only declare the functions once
     #     ROOT.gInterpreter.Declare(New_Test_Fiducial_DC_Cuts_Functions)
     #     fiducial_cuts_declared = True
+    if(show_cut_code):
+        print(f"Code to run Fiducial Cuts from 'Apply_Test_Fiducial_Cuts':\n\n{New_Test_Fiducial_DC_Cuts_Functions}\n\n")
     for layer        in List_of_Layers:
         Polygon_Layer = f"{layer}" if(str(layer) not in ["6"]) else "6_"
         for particle in List_of_Particles:
-            if(not Define_Column):
-                if(particle in ["ele"]):
-                    # As of 9/23/2024, the electron fiducial cuts are only meant for the rotated DC hit variables
-                        # Also uses the inverse condition of the is_point_in_polygon() fuction (i.e., cuts are applied if 'is_point_in_polygon' is 'True' for the electron, but for the pion, they are applied if 'is_point_in_polygon' is False)
-                    Data_Frame_Out = Data_Frame_Out.Filter(f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
-                else:
-                    Data_Frame_Out = Data_Frame_Out.Filter(f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+            if(particle in ["ele"]):
+                # As of 9/23/2024, the electron fiducial cuts are only meant for the rotated DC hit variables
+                    # Also uses the inverse condition of the is_point_in_polygon() fuction (i.e., cuts are applied if 'is_point_in_polygon' is 'True' for the electron, but for the pion, they are applied if 'is_point_in_polygon' is False)
+                cut_code_txt = f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])"""
             else:
-                if(particle in ["ele"]):
-                    Data_Frame_Out = Data_Frame_Out.Define(f"My_{particle}_DC_Fiducial_Cuts_Layer_{layer}", f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
-                else:
-                    Data_Frame_Out = Data_Frame_Out.Define(f"My_{particle}_DC_Fiducial_Cuts_Layer_{layer}", f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+                cut_code_txt = f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])"""
+            if(not Define_Column):
+                Data_Frame_Out = Data_Frame_Out.Filter(cut_code_txt)
+            if(show_cut_code):
+                print(f"Applied Cut:\n{cut_code_txt}\n")
+            else:
+                Data_Frame_Out = Data_Frame_Out.Define(f"My_{particle}_DC_Fiducial_Cuts_Layer_{layer}", cut_code_txt)
+            # if(not Define_Column):
+            #     if(particle in ["ele"]):
+            #         # As of 9/23/2024, the electron fiducial cuts are only meant for the rotated DC hit variables
+            #             # Also uses the inverse condition of the is_point_in_polygon() fuction (i.e., cuts are applied if 'is_point_in_polygon' is 'True' for the electron, but for the pion, they are applied if 'is_point_in_polygon' is False)
+            #         Data_Frame_Out = Data_Frame_Out.Filter(                                                 f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+            #     else:
+            #         Data_Frame_Out = Data_Frame_Out.Filter(                                                 f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+            # else:
+            #     if(particle in ["ele"]):
+            #         Data_Frame_Out = Data_Frame_Out.Define(f"My_{particle}_DC_Fiducial_Cuts_Layer_{layer}", f"""is_point_in_polygon({particle}_x_DC_{layer}_rot,  {particle}_y_DC_{layer}_rot,  Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
+            #     else:
+            #         Data_Frame_Out = Data_Frame_Out.Define(f"My_{particle}_DC_Fiducial_Cuts_Layer_{layer}", f"""! is_point_in_polygon({particle}_x_DC_{layer},    {particle}_y_DC_{layer},      Polygon_Layers["Layer_{Polygon_Layer}_{particle}"])""")
     return Data_Frame_Out
 
 if(__name__ in ["__main__"]):
