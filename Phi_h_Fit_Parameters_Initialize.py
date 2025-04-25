@@ -1,4 +1,140 @@
 special_fit_parameters_set = {
+    ("1", "All"): {
+        "B_initial": -0.05588,
+        "B_limits":  [0, -0.075],
+        "C_initial": 0.02465,
+        "C_limits":  [0, 0.05],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": not True
+    },
+    ("2", "All"): {
+        "B_initial": -0.08714,
+        "B_limits":  [-0.105, -0.06],
+        "C_initial": 0.02002,
+        "C_limits":  [0, 0.05],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("3", "All"): {
+        "B_initial": -0.09365,
+        "B_limits":  [-0.12, -0.06],
+        "C_initial": -0.005016,
+        "C_limits":  [-0.025, 0.025],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("4", "All"): {
+        "B_initial": -0.08944,
+        "B_limits":  [-0.105, -0.06],
+        "C_initial": -0.009253,
+        "C_limits":  [-0.035, 0],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("5", "All"): {
+        "B_initial": -0.06159,
+        "B_limits":  [-0.1,-0.01],
+        "C_initial": 0.01978,
+        "C_limits":  [-0.015, 0.05],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("6", "All"): {
+        "B_initial": -0.08526,
+        "B_limits":  [-0.14, -0.02],
+        "C_initial": -0.003224,
+        "C_limits":  [-0.02, 0.04],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("7", "All"): {
+        "B_initial": -0.08085,
+        "B_limits":  [-0.1, -0.05],
+        "C_initial": -0.007986,
+        "C_limits":  [-0.025, 0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("8", "All"): {
+        "B_initial": -0.09391,
+        "B_limits":  [-0.12, -0.06],
+        "C_initial": -0.03207,
+        "C_limits":  [-0.05, -0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("9", "All"): {
+        "B_initial": -0.09686,
+        "B_limits":  [-0.12, -0.065],
+        "C_initial": -0.001806,
+        "C_limits":  [-0.05, 0.02],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("10", "All"): {
+        "B_initial": -0.09074,
+        "B_limits":  [-0.1, -0.06],
+        "C_initial": -0.02087,
+        "C_limits":  [-0.05, 0],
+        "Allow_Multiple_Fits":   not True,
+        "Allow_Multiple_Fits_C": not True
+    },
+    ("11", "All"): {
+        "B_initial": -0.08114,
+        "B_limits":  [-0.11, -0.05],
+        "C_initial": -0.02216,
+        "C_limits":  [-0.05, -0.005],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("12", "All"): {
+        "B_initial": -0.05476,
+        "B_limits":  [-0.075, -0.025],
+        "C_initial": -0.04945,
+        "C_limits":  [-0.07, -0.03],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("13", "All"): {
+        "B_initial": -0.09028,
+        "B_limits":  [-0.13, -0.06],
+        "C_initial": -0.01376,
+        "C_limits":  [-0.04, -0.005],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("14", "All"): {
+        "B_initial": -0.08461,
+        "B_limits":  [-0.12, -0.06],
+        "C_initial": -0.02939,
+        "C_limits":  [-0.05, -0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("15", "All"): {
+        "B_initial": -0.07801,
+        "B_limits":  [-0.1, -0.05],
+        "C_initial": -0.03144,
+        "C_limits":  [-0.07, -0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("16", "All"): {
+        "B_initial": -0.08305,
+        "B_limits":  [-0.12, -0.05],
+        "C_initial": -0.03288,
+        "C_limits":  [-0.05, -0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
+    ("17", "All"): {
+        "B_initial": -0.07127,
+        "B_limits":  [-0.1, -0.05],
+        "C_initial": -0.0188,
+        "C_limits":  [-0.04, -0.01],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
     ("1", "1"): {
         "B_initial": None,
         "B_limits":  None,
@@ -128,10 +264,10 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("1", "17"): {
-        "B_initial": None,
-        "B_limits":  None,
-        "C_initial": None,
-        "C_limits":  None,
+        "B_initial": -0.13,
+        "B_limits":  [-0.15, -0.05],
+        "C_initial": 0.003,
+        "C_limits":  [0, 0.05],
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
