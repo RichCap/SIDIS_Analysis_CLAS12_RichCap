@@ -26,7 +26,11 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.${outname}.root")
+
+// Updated on 4/16/2025: Running over files with different background merging settings (used 45nA instead of 50nA), so changed names of file outputs (no other changes were made to how the code runs)
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.45nA.${outname}.root")
+
 
 // // Added 'beamCharge' as of 1/29/2024
 // def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:beamCharge')

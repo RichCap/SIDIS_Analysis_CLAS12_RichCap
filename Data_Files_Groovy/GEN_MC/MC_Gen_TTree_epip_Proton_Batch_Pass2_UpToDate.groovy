@@ -11,7 +11,7 @@ import uconn.utils.pid.Candidate.Level
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
 import my.Sugar
-import clasqa.QADB
+// import clasqa.QADB
 
 long StartTime = System.nanoTime()
 
@@ -26,7 +26,11 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.${outname}.root")
+
+// Updated on 4/22/2025: Running over files with different background merging settings (used 45nA instead of 50nA), so changed names of file outputs (no other changes were made to how the code runs)
+    // On 4/23/2025: Also removed the clasqa.QADB to be in line with the other groovy scripts (will add back later when rerunning all files)
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.45nA.${outname}.root")
 
 // Added 'Num_Pions' and Proton info as of 7/29/2024 (as part of version 'wProton.new5' - name used to match the reconstructed files)
 def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:prox:proy:proz:esec/I:pipsec/I:Hx:Hy')
@@ -37,7 +41,7 @@ int Total_Events_Found = 0
 GParsPool.withPool 2,{
     args.eachParallel{fname->
         println(fname)
-        QADB qa = new QADB()
+        // QADB qa = new QADB()
 
         def reader = new HipoReader()
         reader.open(fname)

@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_New_Integrated_Bins_Test_FC_14_V1_11_10_2024_Run1
+#SBATCH --job-name=RooUnfold_P2_Plots_for_Maria_FC_14_V3_R1_Sectors_4_21_2025
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=15000
+#SBATCH --mem-per-cpu=35000
 #SBATCH --time=1:40:00
-#SBATCH --array=0-17
+#SBATCH --array=0,2-17
 
 
 # source /group/clas12/packages/setup.csh
