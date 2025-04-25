@@ -190,6 +190,7 @@ for cut in List_of_Cuts:
     rdf_cut = rdf_cut.Filter(cut)
     mdf_cut = mdf_cut.Filter(cut)
 
+
 rdf_cut = rdf_cut.Filter("Complete_SIDIS_Cuts && Valerii_OG_Cut && Valerii_PCal_Fiducial_Cuts")
 mdf_cut = mdf_cut.Filter("Complete_SIDIS_Cuts && Valerii_OG_Cut && Valerii_PCal_Fiducial_Cuts")
 
@@ -483,6 +484,8 @@ for         DC_Layer       in DC_Layer_List:
                         ROOT.gPad.SetLogz(0)
                     canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd((3 if(Plot_All_Q) else 1)  if((hist_type in ["2D"]) or (not Plot_All_Q)) else 2)
                     histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"].Draw("colz"           if(hist_type  in ["2D"]) else "hist EO same")
+                    if(hist_type in ["2D"]):
+                        palette_move(canvas=canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"], histo=histograms[f"{histo_name_rdf}____Drift_Chamber_ratio"], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
                     ROOT.gPad.SetLogz(1)
                     if((hist_type not in ["2D"]) and Plot_All_Q):
                         canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(3)
@@ -503,6 +506,8 @@ for         DC_Layer       in DC_Layer_List:
                         ROOT.gPad.SetLogz(0)
                     canvas[f"{histo_name_rdf}_cd_After__New_Cuts"].cd((3 if(Plot_All_Q) else 1)  if((hist_type in ["2D"]) or (not Plot_All_Q)) else 2)
                     histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"].Draw("colz" if(hist_type  in ["2D"]) else "hist EO same")
+                    if(hist_type in ["2D"]):
+                        palette_move(canvas=canvas[f"{histo_name_rdf}_cd_After__New_Cuts"], histo=histograms[f"{histo_name_rdf}_After_Cut____Drift_Chamber_ratio"], x_left=0.905, x_right=0.925, y_up=0.9, y_down=0.1)
                     ROOT.gPad.SetLogz(1)
                     if((hist_type not in ["2D"]) and Plot_All_Q):
                         canvas[f"{histo_name_rdf}_cd_Before_New_Cuts"].cd(3)

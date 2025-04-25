@@ -19,8 +19,12 @@ variable_settings = {
     # "Q2":                        {"bins":  100, "range_min":    0.0, "range_max":  12.0},
     # "xB":                        {"bins":  100, "range_min":    0.0, "range_max":   0.9},
     # "y":                         {"bins":  100, "range_min":   0.05, "range_max":   0.9},
-    "z":                         {"bins":  100, "range_min":    0.0, "range_max":   1.2},
-    "pT":                        {"bins":  100, "range_min":    0.0, "range_max":   1.3},
+    # "z":                         {"bins":  100, "range_min":    0.0, "range_max":   1.2},
+    # "pT":                        {"bins":  100, "range_min":    0.0, "range_max":   1.3},
+    # # "z":                         {"bins":  100, "range_min":   0.15, "range_max":  0.85},
+    # # "pT":                        {"bins":  100, "range_min":    0.0, "range_max":  0.65},
+    "z":                         {"bins":   90, "range_min":   0.26, "range_max":  0.71},
+    "pT":                        {"bins":   80, "range_min":   0.05, "range_max":  0.85},
     "W":                         {"bins":  100, "range_min":    1.0, "range_max":   5.0},
     "MM":                        {"bins":  100, "range_min":    0.0, "range_max":   5.0},
     "el":                        {"bins":  100, "range_min":    0.0, "range_max":   9.0},
@@ -67,19 +71,20 @@ parser.add_argument(
     help="".join(["Maximum range for the histogram (Default: 14.0).\n   Default by Variable:", "".join(f"\n{ii.rjust(25)} -> {str(variable_settings[ii]['range_max']).rjust(8)}" for ii in variable_settings), "\n\n"])
 )
 
-parser.add_argument("-v",    "--variables", nargs='+', required=True,                                                     help=f"Variables to plot as a list of strings, or for 2D plots, a list of lists of strings (2D example: 'Q2,y' {color.UNDERLINE}no spaces{color.END})")
-parser.add_argument("-df",   "--rdf_list",  nargs='+', choices=['rdf', 'mdf', 'gdf'], default=['rdf', 'mdf', 'gdf'],      help="List of RDataFrames to use (default: all)")
-parser.add_argument("-t",    "--title",                type=str,                                                          help="Optional additional title text to add")
-parser.add_argument('--Q2-y-Bin',           nargs='+', type=int,                                                          help="Cut on Q2_Y_Bin variable")
-parser.add_argument('--z-pT-Bin',           nargs='+', type=int,                                                          help="Cut on z_pT_Bin_Y_bin variable (requires Q2_Y_Bin cut)")
-parser.add_argument("-c",    "--cut",                  type=str,                                                          help="General cut string (SIDIS cuts are already applied automatically by default - this option is just to add additional cuts on top of those)")
-parser.add_argument("-sc",   "--show-cut",             action='store_true',                                               help="Show general cut string in histogram title")
-parser.add_argument("-gc",   "--gdf-special-cut",      type=str,                                                          help="Special cut for the gdf RDataFrame only")
-parser.add_argument("-lr",   "--limit-range",          type=int,                                                          help="Apply limit to the number of events allowed in the RDataFrames (applied to all options)")
-parser.add_argument("-esec", "--esec-cut",             type=int,                                                          help="Automatically applies a sector cut to the electron (To specify 'All' sectors, input -1 - can be used in some specific cases)")
-parser.add_argument("-P", "--Preliminary",             action='store_true',                                               help="Turns on and draws the 'PRELIMINARY' text box in the image.")
-parser.add_argument("-n",   "-name", "--common_name",  type=str,                      default="Pass_2_New_TTree_V1_*",    help="Specifies the common file name pattern used to load data files. Default: 'Pass_2_New_TTree_V1_*'.")
-parser.add_argument("-pro", "-proton",  "--tag_proq",  action="store_true",                                               help="Enables tagging of proton events, modifying the common file name to include 'Tagged_Proton'.")
+parser.add_argument("-v",    "--variables", nargs='+',      required=True,                                                     help=f"Variables to plot as a list of strings, or for 2D plots, a list of lists of strings (2D example: 'Q2,y' {color.UNDERLINE}no spaces{color.END})")
+parser.add_argument("-df",   "--rdf_list",  nargs='+',      choices=['rdf', 'mdf', 'gdf'], default=['rdf', 'mdf', 'gdf'],      help="List of RDataFrames to use (default: all)")
+parser.add_argument("-t",    "--title",                     type=str,                                                          help="Optional additional title text to add")
+parser.add_argument('--Q2-y-Bin',           nargs='+',      type=int,                                                          help="Cut on Q2_Y_Bin variable")
+parser.add_argument('--z-pT-Bin',           nargs='+',      type=int,                                                          help="Cut on z_pT_Bin_Y_bin variable (requires Q2_Y_Bin cut)")
+parser.add_argument("-c",    "--cut",                       type=str,                                                          help="General cut string (SIDIS cuts are already applied automatically by default - this option is just to add additional cuts on top of those)")
+parser.add_argument("-sc",   "--show-cut",                  action='store_true',                                               help="Show general cut string in histogram title")
+parser.add_argument("-gc",   "--gdf-special-cut",           type=str,                                                          help="Special cut for the gdf RDataFrame only")
+parser.add_argument("-lr",   "--limit-range",               type=int,                                                          help="Apply limit to the number of events allowed in the RDataFrames (applied to all options)")
+parser.add_argument("-esec", "--esec-cut",                  type=int,                                                          help="Automatically applies a sector cut to the electron (To specify 'All' sectors, input -1 - can be used in some specific cases)")
+parser.add_argument("-P", "--Preliminary",                  action='store_true',                                               help="Turns on and draws the 'PRELIMINARY' text box in the image.")
+parser.add_argument("-n",   "-name", "--common_name",       type=str,                      default="Pass_2_New_TTree_V1_*",    help="Specifies the common file name pattern used to load data files. Default: 'Pass_2_New_TTree_V1_*'.")
+parser.add_argument("-pro", "-proton",  "--tag_proq",       action="store_true",                                               help="Enables tagging of proton events, modifying the common file name to include 'Tagged_Proton'.")
+parser.add_argument("-S", "-s", "-save-name", "--save-as",  type=str,                      default="",                         help="Extra string to allow additional notes to be stored in the file(s) SaveName.")
 
 
 
@@ -105,7 +110,7 @@ rdf_labels = {
     'gdf': f"#color[{ROOT.kGreen}]{{Generated Monte Carlo}}"
 }
 
-def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y_bin_cut, general_cut, show_cut, gdf_special_cut, bins, range_min, range_max, limit_range, esec_cut=None, Draw_Prelim=False):
+def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y_bin_cut, general_cut, show_cut, gdf_special_cut, bins, range_min, range_max, limit_range, esec_cut=None, Draw_Prelim=False, Save_As=""):
     # Color mapping for RDataFrames
     color_map = {'rdf': ROOT.kBlue, 'mdf': ROOT.kRed, 'gdf': ROOT.kGreen}
     
@@ -166,6 +171,9 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                     rdf_filtered_list[df_name] = rdf_filtered_list[df_name].Filter(Default_Cut)
                     rdf_filtered_list[df_name] = Apply_Test_Fiducial_Cuts(Data_Frame_In=rdf_filtered_list[df_name], List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"])
 
+            if(Save_As not in [""]):
+                save_suffix = f"{save_suffix}_{Save_As}"
+            
             # Special cut only for "gdf"
             if('gdf' in rdf_filtered_list and gdf_special_cut):
                 rdf_filtered_list['gdf'] = rdf_filtered_list['gdf'].Filter(gdf_special_cut)
@@ -224,13 +232,15 @@ def create_histograms(variables, rdf_list, extra_title, Q2_Y_Bin_cut, z_pT_Bin_Y
                                         line2.SetLineWidth(3)
                                         line2.SetLineColor(ROOT.kRed)
                                         line2.DrawClone("same")
-                                for Q2_y_Bin_list, line_color  in [[[1, 5, 9, 13, 16], ROOT.kOrange], [[2, 6, 10, 14], ROOT.kSpring], [[3, 7], ROOT.kViolet]]:
+                                # Plotting_Fits_with_y__bins = [[[1, 5, 9, 13, 16], ROOT.kOrange], [[2, 6, 10, 14, 17], ROOT.kSpring], [[3, 7, 11, 15],  ROOT.kViolet], [[4, 8, 12],   ROOT.kBlue]]
+                                Plotting_Fits_with_Q2_bins = [[[1, 2, 3, 4],      ROOT.kOrange], [[5, 6, 7, 8],       ROOT.kSpring], [[9, 10, 11, 12], ROOT.kViolet], [[13, 14, 15], ROOT.kBlue], [[16, 17], ROOT.kRed]]
+                                for Q2_y_Bin_list, line_color  in Plotting_Fits_with_Q2_bins:
                                     for Q2_y_Bin_ii in Q2_y_Bin_list:
                                         for line3 in bin_borders[Q2_y_Bin_ii]:
-                                            line3.SetLineWidth(5)
+                                            line3.SetLineWidth(7)
                                             line3.SetLineColor(line_color)
                                             line3.DrawClone("same")
-                            if((var in ["z,pT", "pT,z"]) and (Q2_cut is not None)):
+                            if((var in ["z,pT", "pT,z"]) and (Q2_cut is not None) and False):
                                 if(var in ["z,pT"]):
                                     hist.GetXaxis().SetRangeUser(0, 1.2)
                                     hist.GetYaxis().SetRangeUser(0, 1.1)
@@ -308,6 +318,6 @@ if(__name__ == "__main__"):
     rdf_selected = {df_name: rdf_mapping[df_name] for df_name in args.rdf_list}
 
     # Create histograms based on parsed arguments
-    create_histograms(args.variables, rdf_selected, args.title, args.Q2_y_Bin, args.z_pT_Bin, args.cut, args.show_cut, args.gdf_special_cut, args.bins, args.range_min, args.range_max, args.limit_range, esec_cut=args.esec_cut, Draw_Prelim=args.Preliminary)
+    create_histograms(args.variables, rdf_selected, args.title, args.Q2_y_Bin, args.z_pT_Bin, args.cut, args.show_cut, args.gdf_special_cut, args.bins, args.range_min, args.range_max, args.limit_range, esec_cut=args.esec_cut, Draw_Prelim=args.Preliminary, Save_As=args.save_as)
 
 print("Done")

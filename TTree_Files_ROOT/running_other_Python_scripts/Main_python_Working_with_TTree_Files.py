@@ -127,8 +127,8 @@ def Ratio_of_2D_Histos(out_hist, rdf_hist, mdf_hist):
                 percent_diff = 10000 if(Histo_mdf_value != 0) else 0
             else:
                 percent_diff = (abs(Histo_rdf_value - Histo_mdf_value)/Histo_rdf_value)*100
-            if(percent_diff   < 20):
-                percent_diff  = 0
+            # if(percent_diff   < 20):
+            #     percent_diff  = 0
             out_hist.SetBinContent(x_bin, y_bin, percent_diff)
     return out_hist
 
