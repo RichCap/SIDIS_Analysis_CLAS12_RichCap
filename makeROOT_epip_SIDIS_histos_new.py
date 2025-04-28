@@ -263,8 +263,11 @@ elif(output_type   not in ["histo", "data", "tree"]):
 
 print(f"The Output type will be: {output_type}")
 print(f"The Data type will be:   {datatype}")
+if(file_location not in [datatype, output_type]):
+    print(f"Input File (as given):   {file_location}\n\n\n")
 
 
+# stop
 
 if(datatype in ['gdf']):
     Mom_Correction_Q = "no"
@@ -337,7 +340,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.inb-clasdis-",                                                         "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-",                                                    "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis-",                                                 "")).replace(".hipo.root", "")
-        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.45nA.new5.inb-clasdis-",                                            "")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.45nA.inb-clasdis-",                                            "")).replace(".hipo.root", "")
     # file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/", "")
     
     
@@ -365,9 +368,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data", "/"      if(not Use_Pass_2) else "/Pass2/", str(files_used_for_data_frame)                 if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
             else:
                 rdf = ROOT.RDataFrame("h22", str(file_location))
-                # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-                # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
-                files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+                # # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new2.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+                # # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new4.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+                # files_used_for_data_frame =  "".join(["Data_sidis_epip_richcap.inb.qa", "."                           if(not Use_New_PF) else ".new5.",  "skim4_00"                                     if(not Use_Pass_2) else "nSidis_00", str(file_num), "*"])
+                files_used_for_data_frame = str(file_location)
         if(datatype in ['mdf', 'pdf']):
     #         if(str(file_location) in ['all', 'All', 'time']):
     #             rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matching_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/MC_Matching_sidis_epip_richcap.inb.qa.inb-clasdis_*")
@@ -386,10 +390,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
             else:
                 rdf = ROOT.RDataFrame("h22", str(file_location))
-                # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
-                # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new4.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
-                files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "*inb-clasdis_", str(file_num), "*"])
-                
+                # # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new2.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+                # # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new4.",  "45nA_job_"                                     if(not Use_Pass_2) else "inb-clasdis_", str(file_num), "*"])
+                # files_used_for_data_frame =  "".join(["MC_Matching_sidis_epip_richcap.inb.qa", "."                    if(not Use_New_PF) else ".new5.",  "45nA_job_"                                     if(not Use_Pass_2) else "*inb-clasdis_", str(file_num), "*"])
+                files_used_for_data_frame = str(file_location)
         if(datatype == 'gdf'):
             if(str(file_location) in ['all', 'All', 'time']):
                 # rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
@@ -401,8 +405,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/", "" if(not Use_Pass_2) else "Pass2/", str(files_used_for_data_frame)]))
             else:
                 rdf = ROOT.RDataFrame("h22", str(file_location))
-                files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "*inb-clasdis_", str(file_num), "*"])
-            
+                # files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "*inb-clasdis_", str(file_num), "*"])
+                files_used_for_data_frame = str(file_location)
+                            
     print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
     
     # if(output_all_histo_names_Q == "yes"):
@@ -445,7 +450,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##========================================================================##
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
-    
     
     
     ###########################################################
