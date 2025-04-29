@@ -1052,6 +1052,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Same as f"Plots_for_Maria{Cut_Configuration_Name}_V2_" but ran with the additional MC files with 45nA Background Merging Setting
                 # rdf option was not run - use 'V2' for rdf
 
+    Extra_Name = f"Sector_Integrated_Tests{Cut_Configuration_Name}_V1_"
+        # Ran on 4/28/2025
+            # Running Sector-dependent unfolding with cuts instead of 2D histograms (to allow for Bayesian unfolding)
+                # Turned off the sector vs phi_h 2D plots
+                # Not running sector cuts on the kinematic plots (i.e., particle momentum/angle plots)
+            # Running with Integrate Bins (for Q2/y/xB vs Moments plots) only
+            # Running 3D unfolding via z_pT_phi_h_Binning
+            # gdf option does not include the sector cuts at all (for migrations between sectors)
+
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
         # Ran on 9/5/2024
@@ -5409,7 +5418,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         if(((Data_Type not in ["mdf", "pdf", "udf"]) and ("miss_idf" not in Data_Type)) and ("smear" in Smearing_Q)):
             return "continue"
         # No Cuts for Monte Carlo Generated events
-        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"])):
+        if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in (["no_cut", "cut_Gen", "cut_Exgen", "no_cut_Integrate"] + [f"no_cut{extra}eS{n}{s}" for n in range(1, 7) for s in ("a", "o") for extra in ("_", "_Integrate_")]))):
+        # if((Data_Type in ["gdf", "gen"]) and (Cut_Choice not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"])):
             return "continue"
         # No PID cuts except for matched MC events
         if((Data_Type not in ["pdf", "gen"]) and ("PID" in Cut_Choice)):
@@ -5503,9 +5513,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if('pipsec' in Sec_type):
                     particle_sector = 'Pi+'
                 if('_a' in Sec_type):
-                    particle_sector = ''.join([particle_sector, ' (Angle Def)'])
-
-                Sector_Title_Name = ''.join([particle_sector, ' Sector ', str(Sec_num)])
+                    particle_sector = f"{particle_sector} (Angle Def)"
+                Sector_Title_Name = f"{particle_sector} Sector {Sec_num}"
             else:
                 Sector_Title_Name = ''
         ##===============================================##
@@ -5554,7 +5563,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if("Complete"   in Cut_Choice):
                 cutname     = "Complete Set of "
                 if(("smear" in Smearing_Q)     and (Data_Type != "rdf")):
-                    cutname = "".join([cutname, "(Smeared) "])
+                    cutname = f"{cutname}(Smeared) "
                 if(Titles_or_DF == 'DF'):
                     if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
                         #        DF_Out.Filter("              y < 0.75 &&               xF > 0 &&               W > 2 &&              Q2 > 2 &&              pip > 1.25 &&              pip < 5 && 5 < elth             &&             elth < 35 && 5 < pipth            &&            pipth < 35")
@@ -5826,11 +5835,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 
     if(run_Mom_Cor_Code == "yes"):
-        print("".join([color.BBLUE, "\nRunning Histograms from Momentum Correction/Smearing Code (i.e., Missing Mass and ∆P Histograms)", color.END]))
-        print("".join([color.RED,   "NOT Running Default SIDIS Histograms", color.END]))
+        print(f"{color.BBLUE}\nRunning Histograms from Momentum Correction/Smearing Code (i.e., Missing Mass and ∆P Histograms){color.END}")
+        print(f"{color.RED}NOT Running Default SIDIS Histograms{color.END}")
     else:
-        print("".join([color.RED,   "\nNOT Running Momentum Correction/Smearing Histograms", color.END]))
-        print("".join([color.BBLUE, "Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms)", color.END]))
+        print(f"{color.RED}\nNOT Running Momentum Correction/Smearing Histograms{color.END}")
+        print(f"{color.BBLUE}Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms){color.END}")
 
     
     # # Cut Naming Conventions:
@@ -5877,8 +5886,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         # cut_list.append('no_cut_eS5o')
 #         # cut_list.append('no_cut_eS6o')
     if(datatype not in ["gdf"]):
-        cut_list = ['cut_Complete_SIDIS']
-        # cut_list = []
+        # cut_list = ['cut_Complete_SIDIS']
+        cut_list = []
         cut_list.append('cut_Complete_SIDIS_Integrate')
         # cut_list.append('cut_Complete_SIDIS')
         # cut_list.append('cut_Complete_SIDIS_eS1o')
@@ -5887,11 +5896,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #         cut_list.append('cut_Complete_SIDIS_eS4o')
 #         cut_list.append('cut_Complete_SIDIS_eS5o')
 #         cut_list.append('cut_Complete_SIDIS_eS6o')
+        for sec_cut in [1, 2, 3, 4, 5, 6]:
+            cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
         if(Tag_Proton):
             # cut_list.append('cut_Complete_SIDIS_Proton')
             cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
             # cut_list.append('cut_Complete_SIDIS_RevPro')
             # cut_list.append('cut_Complete_SIDIS_RevPro_Integrate')
+            for sec_cut in [1, 2, 3, 4, 5, 6]:
+                cut_list.append(f'cut_Complete_SIDIS_Proton_Integrate_eS{sec_cut}o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -6335,9 +6348,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     List_of_Quantities_1D = [phi_t_Binning]
     
     
-    # if("Y_bin" in binning_option_list):
-    #     print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
-    #     List_of_Quantities_1D.append(z_pT_phi_h_Binning)
+    if("Y_bin" in binning_option_list):
+        print(f"{color.BBLUE}\nAdding the 3D Unfolding Bins to the 1D list options...\n{color.END}")
+        List_of_Quantities_1D.append(z_pT_phi_h_Binning)
     
         
     
@@ -6367,7 +6380,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning], [["esec", -0.5, 7.5, 8], phi_t_Binning], [["pipsec", -0.5, 7.5, 8], phi_t_Binning]]
-    # List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
+    List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
 
     # if(datatype in ["gdf"]):
     #     List_of_Quantities_2D = [[Q2_Binning, xB_Binning], [Q2_Binning, y_Binning], [z_Binning, pT_Binning], [El_Binning, El_Th_Binning], [El_Binning, El_Phi_Binning], [El_Th_Binning, El_Phi_Binning], [Pip_Binning, Pip_Th_Binning], [Pip_Binning, Pip_Phi_Binning], [Pip_Th_Binning, Pip_Phi_Binning]]
@@ -6607,7 +6620,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 ##======##======##     Cut Loop    ##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##======##
             for Histo_Cut in cut_list:
 
-                if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"]):
+                # if(Histo_Data == "gdf" and Histo_Cut not in ["no_cut", "cut_Gen", "cut_Exgen", "no_cut_eS1a", "no_cut_eS1o", "no_cut_eS2a", "no_cut_eS2o", "no_cut_eS3a", "no_cut_eS3o", "no_cut_eS4a", "no_cut_eS4o", "no_cut_eS5a", "no_cut_eS5o", "no_cut_eS6a", "no_cut_eS6o", "no_cut_Integrate"]):
+                if((Histo_Data == "gdf") and (Histo_Cut not in (["no_cut", "cut_Gen", "cut_Exgen", "no_cut_Integrate"] + [f"no_cut{extra}eS{n}{s}" for n in range(1, 7) for s in ("a", "o") for extra in ("_", "_Integrate_")]))):
                     # Do not cut data from the MC GEN files
                     continue
 
@@ -7121,10 +7135,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 for Vars_2D in Variable_Loop_2D:
 
                                     Histo_Var_D2_Name = Dimension_Name_Function(Histo_Var_D1=Vars_2D[0], Histo_Var_D2=Vars_2D[1], Histo_Var_D3="None")
-                                    if(("SIDIS_eS" in str(Histo_Cut)) and ("esec" in str(Histo_Var_D2_Name))):
+                                    if((("SIDIS_eS" in str(Histo_Cut)) or ("SIDIS_Integrate_eS" in str(Histo_Cut))) and ("esec" in str(Histo_Var_D2_Name))):
                                         # Removing redundant cuts
                                         continue
-                        
+                                    if((("SIDIS_eS" in str(Histo_Cut)) or ("SIDIS_Integrate_eS" in str(Histo_Cut))) and all(var_remove.replace("_smeared", "") not in ["Q2", "xB", "y", "z", "pT", "pipsec", "phi_t"] for var_remove in [Vars_2D[0][0], Vars_2D[1][0]])):
+                                        # Removing unnecessary 2D sector-cut plots
+                                        continue
                                     Normal_rdf        = DF_Filter_Function_Full(DF=rdf, Variables=[Vars_2D[0][0], Vars_2D[1][0]], Titles_or_DF="DF", Q2_xB_Bin_Filter=-1, z_pT_Bin_Filter=-2, Data_Type=Histo_Data, Cut_Choice=Histo_Cut, Smearing_Q=Histo_Smear, Binning_Q=Binning, Sec_type="", Sec_num=-1)
                                     if(Normal_rdf == "continue"):
                                         continue
@@ -7495,7 +7511,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                 
                                 if(Alert_of_Response_Matricies):
                                     if(len(List_of_Quantities_1D) == 0):
-                                        print(color.BBLUE, "\nResponse Matrix Code for Unfolding has been turned off...\n", color.END)
+                                        print(f"{color.BBLUE}\nResponse Matrix Code for Unfolding has been turned off...\n{color.END}")
                                         Res_Var_Add = []
                                     elif(len(Res_Var_Add) == 0):
                                         print(color.BBLUE, "\nOnly running the base 1D options in the Response Matrix Code for Unfolding (i.e., Res_Var_Add is empty)...\n", color.END)
