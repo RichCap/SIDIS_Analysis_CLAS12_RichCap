@@ -275,7 +275,12 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
 
         Moment_Title = f"Cos({'2' if('C' in str(Parameter)) else ''}#phi_{{h}})"
         Multigraph_Title_Line_1 = f"Plot of {Moment_Title} vs {variable_Title_name(Variable_to_plot_against)}"
-        Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+        if("Tagged_Proton" in Save_Name_Extra):
+            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Tagged Proton}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+        elif("ProtonCut"   in Save_Name_Extra):
+            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Cut on Proton MM}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+        else:
+            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2}} #color[{root_color.Blue}]{{{Correction_Type}}}"
         mg[key_names].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
     
         mg[key_names].Draw("A")
@@ -289,63 +294,6 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         latex[key_names].SetTextSize(0.06)
         latex[key_names].SetTextColorAlpha(ROOT.kRed, 0.2)
         latex[key_names].DrawTextNDC(0.15, 0.12, "PRELIMINARY")  # Normalized coordinates
-
-
-# ============================================================================================================================================
-            
-#             x_arr         = array('d', x_values[key_row_names])
-#             x_err_arr     = array('d', x_errs[key_row_names])
-#             y_arr         = array('d', y_values[key_row_names])
-#             y_err_arr     = array('d', y_errs[key_row_names])
-#             y_max_arr     = array('d', y_maxs_collect[key_row_names])
-#             y_max_err_arr = array('d', y_max_errs_collect[key_row_names])
-#             y_min_arr     = array('d', y_mins_collect[key_row_names])
-#             y_min_err_arr = array('d', y_min_errs_collect[key_row_names])
-#             y_err_low     = array('d', [y - ymin      for y,  ymin     in zip(y_arr,      y_min_arr)])
-#             y_err_high    = array('d', [ymax - y      for y,  ymax     in zip(y_arr,      y_max_arr)])
-#             ext_err_low   = array('d', [lo + ymin_err for lo, ymin_err in zip(y_err_low,  y_min_err_arr)])
-#             ext_err_high  = array('d', [hi + ymax_err for hi, ymax_err in zip(y_err_high, y_max_err_arr)])
-#             n = len(x_arr)
-
-#             tgraph_ext_shaded[key_row_names] = ROOT.TGraphAsymmErrors(n, x_arr, y_arr, array('d', [0]*n), array('d', [0]*n), ext_err_low, ext_err_high)
-#             tgraph_ext_shaded[key_row_names] = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), ext_err_low, ext_err_high)
-#             tgraph_shaded[key_row_names]     = ROOT.TGraphAsymmErrors(n, x_arr, y_arr, array('d', [0]*n), array('d', [0]*n), y_err_low, y_err_high)
-#             tgraph_errors[key_row_names]     = ROOT.TGraphAsymmErrors(n, x_arr, y_arr, x_err_arr, x_err_arr, y_err_arr, y_err_arr)
-
-#             row = int(str(group_num).replace("Group_", ""))
-#             tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii - 9, 0.35 - row * 0.01)
-#             tgraph_ext_shaded[key_row_names].GetYaxis().SetRangeUser(-0.9, 0.2)
-#             tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii - 6, 0.35 - row * 0.01)
-#             tgraph_shaded[key_row_names].SetFillStyle(3240 + row * 2)
-
-#             tgraph_errors[key_row_names].SetMarkerStyle(21)
-#             tgraph_errors[key_row_names].SetMarkerSize(1)
-#             tgraph_errors[key_row_names].SetLineColor(color_ii)
-#             tgraph_errors[key_row_names].SetMarkerColor(color_ii)
-
-#             mg[key_names].Add(tgraph_shaded[key_row_names], "A3")
-#             mg[key_names].Add(tgraph_errors[key_row_names], "PL")
-
-#             legend_label = f"{Q2_or_y_Group if(Q2_or_y_Group in ['y']) else 'Q^{{2}}' if(Q2_or_y_Group in ['Q2']) else 'x_{{B}}'} Bins: {Q2_y_bin_values_New(selected_var_group[group_num][0], Q2_or_y_Group)}"
-#             legend[key_names].AddEntry(tgraph_errors[key_row_names],     f"#color[{color_ii}]{{{legend_label}}}", "PL")
-#             if(Use_Sectors_Q):
-#                 legend[key_names].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii - 6}]{{Sector Ranges of {legend_label}}}", "f")
-
-#         canvas[key_names].cd()
-#         Moment_Title = f"Cos({'2' if('C' in str(Parameter)) else ''}#phi_{{h}})"
-#         line_1 = f"Plot of {Moment_Title} vs {variable_Title_name(Variable_to_plot_against)}"
-#         line_2 = f"{root_color.Bold}{{Pass 2}} #color[{root_color.Blue}]{{{Correction_Type}}}"
-#         mg[key_names].SetTitle(f"#splitline{{{line_1}}}{{{line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
-#         mg[key_names].Draw("A")
-#         mg[key_names].GetYaxis().SetRangeUser(-0.15 if("C" in str(Parameter)) else -0.25, 0.1 if("C" in str(Parameter)) else 0.05)
-#         legend[key_names].Draw()
-#         canvas[key_names].Modified()
-#         canvas[key_names].Update()
-
-#         latex[key_names] = ROOT.TLatex()
-#         latex[key_names].SetTextSize(0.06)
-#         latex[key_names].SetTextColorAlpha(ROOT.kRed, 0.2)
-#         latex[key_names].DrawTextNDC(0.15, 0.12, "PRELIMINARY")
 
         Save_Name = "".join([
             f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
@@ -364,7 +312,9 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
     return canvas
 
 
-def Create_Moment_Plots_From_txt_File(file_path, verbose=False, print_file_flag=False, print_table_flag=False, Correction="Both", Parameter_In="Both", Smear_In="Both", HistoType="1D", SectorType="esec", Q2_y_Bin="Default", z_pT_Bin="Default", No_Save=False):
+def Create_Moment_Plots_From_txt_File(file_path, verbose=False, print_file_flag=False, print_table_flag=False, Correction="Both", 
+                                      Parameter_In="Both", Smear_In="Both", HistoType="1D", SectorType="esec", Q2_y_Bin="Default",
+                                      z_pT_Bin="Default", No_Save=False, Use_Sector_Shading=True):
 
 ##################################################################################################################
 ##==========##==========##             Loading File             ##==========##==========##==========##==========##
@@ -602,7 +552,7 @@ Note to Reader: Print the text in this file as a string in Python for the best f
                         continue
                     Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input=Comparison_Output, From_Python_or_Text="Python",
                                                           Q2_or_y_Group=Group_Variable, Variable_to_plot_against=Plot__Variable,
-                                                          Use_Sectors_Q=True, Parameter_List=Parameter_List, 
+                                                          Use_Sectors_Q=Use_Sector_Shading, Parameter_List=Parameter_List, 
                                                           Correction_Type=Correction_Type,
                                                           Sector_Particle=SectorType, Saving_Q=not No_Save,
                                                           Save_Name_Extra="ProtonCut" if(Cut_Proton_Q) else "Tagged_Proton" if(Tagged_Proton_Q) else "")
@@ -627,8 +577,10 @@ if(__name__ == "__main__"):
     parser.add_argument("-q2y", "--Q2_y_Bin",    help="Set individual Q2-y Bin to run (Defaults to running all 17 bins).",                                        default="Default")
     parser.add_argument("-zpT", "--z_pT_Bin",    help="Set individual z-pT Bin to run (Defaults to running all bins, including the 'All'/'Integrated' options).", default="Default")
     parser.add_argument("-nS",  "--no_save",     help="If set, the code will not save any of the images it makes (used for testing).",                            action="store_true")
+    parser.add_argument("-nsec","--no_sectors",  help="If set, the code will not show the sector information when plotting.",                                     action="store_true")
     args = parser.parse_args()
 
+    
     print(f"{color.BOLD}\nStarting Create_Moment_Plots_From_txt_File.py\n{color.END}")
 
     # Run the main file processing function
@@ -636,5 +588,6 @@ if(__name__ == "__main__"):
                                       print_file_flag=args.print_file, print_table_flag=args.print_table,
                                       Correction=args.correction, Parameter_In=args.parameter, 
                                       Smear_In=args.smear, HistoType=args.histogram, 
-                                      SectorType=args.sector, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin, No_Save=args.no_save)
+                                      SectorType=args.sector, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin,
+                                      No_Save=args.no_save, Use_Sector_Shading=args.no_sectors)
     print("\nDone\n")
