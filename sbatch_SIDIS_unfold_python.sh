@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RooUnfold_P2_Plots_for_Maria_FC_14_V3_R1_Sectors_4_21_2025
+#SBATCH --job-name=RooUnfold_P2_Sector_Integrated_Tests_V2_R2_eSectors_5_2_2025
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=35000
+#SBATCH --mem-per-cpu=15000
 #SBATCH --time=1:40:00
-#SBATCH --array=0,2-17
+#SBATCH --array=1-17
 
 
 # source /group/clas12/packages/setup.csh
@@ -19,4 +19,4 @@
 # no_txt request: #SBATCH --mem-per-cpu=9000
 
 srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py    smear_no_stat $SLURM_ARRAY_TASK_ID
-# srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py no_smear_no_stat_TP $SLURM_ARRAY_TASK_ID
+# srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py smear_no_stat_CP $SLURM_ARRAY_TASK_ID

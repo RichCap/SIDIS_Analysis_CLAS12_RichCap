@@ -229,7 +229,7 @@ if(len(sys.argv) > 2):
     
     
 
-print("".join([color.BOLD, "\nStarting RG-A SIDIS Analysis\n", color.END]))
+print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis\n{color.END}")
 
 # # Getting Current Date
 # datetime_object_full = datetime.now()
@@ -264,7 +264,7 @@ print("\n\n")
 Min_Allowed_Acceptance_Cut = 0.0175
 Min_Allowed_Acceptance_Cut = 0.005
 
-Min_Allowed_Acceptance_Cut = 0.0025 # Updated for tests on 5/1/2025
+Min_Allowed_Acceptance_Cut = 0.0045 # Updated for tests on 5/2/2025
 
 # 'Acceptance_Cut_Line' will be used to show where the minimum acceptance cut is placed when drawing the Acceptance Plots
 Acceptance_Cut_Line = ROOT.TLine(0, Min_Allowed_Acceptance_Cut, 360, Min_Allowed_Acceptance_Cut)
@@ -4401,7 +4401,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
     if(str(Method) in ["rdf", "gdf", "tdf"]):
         Default_Histo_Name_Integrated         = str(Default_Histo_Name_Integrated.replace("Smear",  "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear"))
         
-    Allow_Fitting = ("phi" in VARIABLE) and (Fit_Test) and (Method not in ["rdf", "mdf", "Background", "Relative_Background"])
+    Allow_Fitting = ("phi" in VARIABLE) and (Fit_Test) and (Method not in ["rdf", "mdf", "Background", "Relative_Background", "Acceptance"])
         
     if(Allow_Fitting):
         for entry_type in ["1D", "(MultiDim_5D_Histo)", "(MultiDim_3D_Histo)", "(Multi-Dim Histo)"]:
@@ -6318,6 +6318,8 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                 Unfolding_Type = "Bin-by-Bin" if(cor in ["Bin"]) else "Bayesian"
                 for Parameter_Type in ["B", "C"]:
                     Cor_Type_Par = Cor_Type.replace("(1D)", f"(Fit_Par_{Parameter_Type})")
+                    if(Multi_Dim_Option in ["5D", "3D"]):
+                        Cor_Type_Par = Cor_Type_Par.replace(f"(MultiDim_{Multi_Dim_Option}_Histo)", f"(Fit_Par_{Parameter_Type})")
                     key = f"(Bin:{Q2_Y_Bin}-{Z_PT_Bin})_(Unfold_with_{Unfolding_Type})_(Par_{Parameter_Type})_({Sector_Type})"
                     Parameter_Type_Title = "Cos(#phi_{h})" if(Parameter_Type in ["B"]) else "Cos(2#phi_{h})"
                     y_values, y_errors = [], []
@@ -6353,7 +6355,10 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                         sigma_sector  = ROOT.sqrt(sum((v - M_mean)**2 for v in sector_vals)/ (len(sector_vals) - 1))
                         sigma_mean    = ROOT.sqrt(sum(e*e for e in sector_errs)) / len(sector_errs)
                         # compute per‐sector percent differences
-                        percent_errors = [abs(v - M_all) / abs(M_all) * 100 for v in sector_vals]
+                        if(M_all != 0):
+                            percent_errors = [abs(v - M_all) / abs(M_all) * 100 for v in sector_vals]
+                        else:
+                            percent_errors = [100 for v in sector_vals]
                         avg_pct_error  = sum(percent_errors) / len(percent_errors)
                         # --- end stats ---
                     
@@ -6982,7 +6987,7 @@ Common_Name = "Pass_2_Plots_for_Maria_FC_14_V2_All" # Same as V1 above but with 
 Common_Name = "Pass_2_Plots_for_Maria_FC_14_V3_All" # Same as V2 above but with additional MC files (run rdf with V2)
 
 if(not (Tag_ProQ or Cut_ProQ)):
-    Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V1_All"
+    Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
 
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
@@ -7005,8 +7010,8 @@ print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-# if(False):
+    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
+if(False):
     REAL_File_Name = Common_Name
 else:
     # REAL_File_Name = "Unfolding_Tests_V11_All"
@@ -7015,9 +7020,12 @@ else:
     # REAL_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if(Pass_Version in ["Pass 2"]) else "5D_Unfold_Test_V7_All"
     # REAL_File_Name = "Pass_2_New_Sector_Cut_Test_V1_All"
     # REAL_File_Name = "Pass_2_Plots_for_Maria_FC_14_V1_All"
-    REAL_File_Name = "Pass_2_Plots_for_Maria_FC_14_V2_All"
-    if(Pass_Version not in ["Pass 2"]):
-        REAL_File_Name = REAL_File_Name.replace("Pass_2_", "")
+    # REAL_File_Name = "Pass_2_Plots_for_Maria_FC_14_V2_All"
+    # if(Pass_Version not in ["Pass 2"]):
+    #     REAL_File_Name = REAL_File_Name.replace("Pass_2_", "")
+    REAL_File_Name =  Common_Name
+    if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
+        REAL_File_Name = REAL_File_Name.replace("V2_All", "V1_All")
 ##################################
 ##   Real (Experimental) Data   ##
 ##################################
@@ -7078,7 +7086,8 @@ else:
     if(("Pass_2_New_Fiducial_Cut_Test_V15_All" in MC_GEN_File_Name) and (Tag_ProQ)):
         MC_GEN_File_Name = MC_GEN_File_Name.replace("Test_V15", "Test_V14")
     # MC_GEN_File_Name = "Pass_2_Plots_for_Maria_V1_Incomplete_All"
-    #Find Comment
+    if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
+        MC_GEN_File_Name = MC_GEN_File_Name.replace("V2_All", "V1_All")
     
 ####################################
 ##   Generated Monte Carlo Data   ##
@@ -8991,10 +9000,6 @@ Cut_Options_List = ["Cut"]
 Cut_Options_List = ["Integrate"]
 # Cut_Options_List = ["Cut", "Integrate"]
 
-if(run_SecCut_Unfold):
-    for sec in Sector_List:
-        Cut_Options_List.append(f"Integrate_eS{sec}o")
-
 if(Cut_ProQ):
     # Cut_Options_List = ["Proton"]
     Cut_Options_List = ["Proton_Integrate"]
@@ -9002,6 +9007,12 @@ if(Cut_ProQ):
 # 'Proton'           --> Normal Cuts + Proton Missing Mass Cuts
 # 'Proton_Integrate' --> Normal Cuts + Proton Missing Mass Cuts + Only the bins compatible with z-pT bin integration
 
+if(run_SecCut_Unfold):
+    for sec in Sector_List:
+        if(Cut_ProQ):
+            Cut_Options_List.append(f"Proton_Integrate_eS{sec}o")
+        else:
+            Cut_Options_List.append(f"Integrate_eS{sec}o")
 
 Orientation_Option_List = ["pT_z", "z_pT"]
 # Orientation_Option_List = ["pT_z"] # Flipped
@@ -9786,61 +9797,112 @@ if(Create_txt_File):
                     else:
                         Text_Par_Outputs = f"{Text_Par_Outputs}\n======================================================================\nFor {color.UNDERLINE}{color.BOLD}Q2-y Bin {BIN_NUM} - z-PT Bin {z_pT_Bin}{color.END}: "
                     for Variable   in Variable_List_Final:
-                        if(any((("Multi" in ii) or ("sec" in ii)) for ii in Variable_List_Final)):
-                            Sector_txt_Out = "" if("sec" not in Variable) else str(Variable.replace(")_(phi_t", "")).replace("_", " ")
+                        if(run_SecCut_Unfold):
+                            for Cut_Option in Cut_Options_List:
+                                Sector_txt_Out   = f" (esec {m.group(1)})" if (m := re.search(r"_eS(\d)o", Cut_Option)) else ""
+                                Text_Par_Outputs = f"{Text_Par_Outputs}{color.BOLD}\n\t (*) {'3D' if(('Multi_Dim' in Variable) or ('MultiDim_z_pT' in Variable)) else '5D' if('MultiDim' in Variable) else '1D'}{Sector_txt_Out} Histograms:{color.END}"
+                                for Method in Method_Type_List:
+                                    if(str(Method)    in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison", "Background", "Relative_Background"]):
+                                        continue
+                                    if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
+                                        continue
+                                    Text_Par_Outputs = f'{Text_Par_Outputs}{color.BOLD}\n\t - {f"{Method} Unfolding" if(Method not in ["gdf", "bbb", "Bin", "bay"]) else "Bayesian Unfolding" if(Method not in ["gdf", "bbb", "Bin"]) else "Bin-by-Bin Correction" if(Method not in ["gdf"]) else "Generated Plot"} Fits:{color.END}'
+                                    
+                                    PAR_A_NAME = f"(Fit_Par_A)_({  Method})_({Cut_Option})_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_{z_pT_Bin})_({Variable})"
+                                    PAR_B_NAME = f"(Fit_Par_B)_({  Method})_({Cut_Option})_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_{z_pT_Bin})_({Variable})"
+                                    PAR_C_NAME = f"(Fit_Par_C)_({  Method})_({Cut_Option})_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_{z_pT_Bin})_({Variable})"
+                                    CHI_2_NAME = f"(Chi_Squared)_({Method})_({Cut_Option})_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_{z_pT_Bin})_({Variable})"
+                                    PARAMETER_A, PARAMETER_B, PARAMETER_C = "ERROR", "ERROR", "ERROR"
+                                    ERROR_PAR_A, ERROR_PAR_B, ERROR_PAR_C = "ERROR", "ERROR", "ERROR"
+                                    Chi_2_Value, NDF_Value                = "ERROR", "ERROR"
+                                    try:
+                                        PARAMETER_A, ERROR_PAR_A = List_of_All_Histos_For_Unfolding[str(PAR_A_NAME)]
+                                    except:
+                                        print(f"{color.Error}ERROR IN GETTING THE FIT PARAMETER A FOR: {color.END}\n\tPAR_A_NAME = {PAR_A_NAME}")
+                                        # print(f"{color.BOLD}{traceback.format_exc()}{color.END}")
+                                        # continue
+                                    try:
+                                        PARAMETER_B, ERROR_PAR_B = List_of_All_Histos_For_Unfolding[str(PAR_B_NAME)]
+                                    except:
+                                        print(f"{color.Error}ERROR IN GETTING THE FIT PARAMETER B FOR: {color.END}\n\tPAR_B_NAME = {PAR_B_NAME}")
+                                        # print(f"{color.BOLD}{traceback.format_exc()}{color.END}")
+                                        # continue
+                                    try:
+                                        PARAMETER_C, ERROR_PAR_C = List_of_All_Histos_For_Unfolding[str(PAR_C_NAME)]
+                                    except:
+                                        print(f"{color.Error}ERROR IN GETTING THE FIT PARAMETER C FOR: {color.END}\n\tPAR_C_NAME = {PAR_C_NAME}")
+                                        # print(f"{color.BOLD}{traceback.format_exc()}{color.END}")
+                                        # continue
+                                    try:
+                                        Chi_2_Value, NDF_Value = List_of_All_Histos_For_Unfolding[str(CHI_2_NAME)]
+                                    except:
+                                        print(f"{color.Error}ERROR IN GETTING THE FIT Chi^2 FOR: {color.END}\n\tCHI_2_NAME = {CHI_2_NAME}")
+                                        # print(f"{color.BOLD}{traceback.format_exc()}{color.END}")
+                                        # continue
+                                    Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par A    = {PARAMETER_A} ± {ERROR_PAR_A}"
+                                    Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par B    = {PARAMETER_B} ± {ERROR_PAR_B}"
+                                    Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par C    = {PARAMETER_C} ± {ERROR_PAR_C}"
+                                    if((str not in [type(Chi_2_Value), type(NDF_Value)]) and (NDF_Value not in [0])):
+                                        Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = {Chi_2_Value/NDF_Value}"
+                                    else:
+                                        Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = ERROR"
+                                    Text_Par_Outputs = Text_Par_Outputs.replace("\t", "    ")
                         else:
-                            Sector_txt_Out = ""
-                        Text_Par_Outputs   = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t (*) ", "3D" if(("Multi_Dim" in Variable) or ("MultiDim_z_pT" in Variable)) else "5D" if("MultiDim" in Variable) else "1D" if(Sector_txt_Out in [""]) else f"1D ({Sector_txt_Out})", " Histograms:", color.END])
-                        for Method in Method_Type_List:
-                            if(str(Method)   in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison", "Background", "Relative_Background"]):
-                                continue
-                            if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
-                                continue
-                            Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t - ", f"{Method} Unfolding" if(Method not in ["gdf", "bbb", "Bin", "bay"]) else "Bayesian Unfolding" if(Method not in ["gdf", "bbb", "Bin"]) else "Bin-by-Bin Correction" if(Method not in ["gdf"]) else "Generated Plot", " Fits:", color.END])
-                            PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            # #####################################
-                            # PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            # PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            # PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            # CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-                            PARAMETER_A, PARAMETER_B, PARAMETER_C = "ERROR", "ERROR", "ERROR"
-                            ERROR_PAR_A, ERROR_PAR_B, ERROR_PAR_C = "ERROR", "ERROR", "ERROR"
-                            Chi_2_Value, NDF_Value = "ERROR", "ERROR"
-                            try:
-                                PARAMETER_A, ERROR_PAR_A = List_of_All_Histos_For_Unfolding[str(PAR_A_NAME)]
-                            except:
-                                print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER A FOR: ", color.END, "\n\tPAR_A_NAME = ", str(PAR_A_NAME)]))
-                                # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
-                                # continue
-                            try:
-                                PARAMETER_B, ERROR_PAR_B = List_of_All_Histos_For_Unfolding[str(PAR_B_NAME)]
-                            except:
-                                print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER B FOR: ", color.END, "\n\tPAR_B_NAME = ", str(PAR_B_NAME)]))
-                                # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
-                                # continue
-                            try:
-                                PARAMETER_C, ERROR_PAR_C = List_of_All_Histos_For_Unfolding[str(PAR_C_NAME)]
-                            except:
-                                print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER C FOR: ", color.END, "\n\tPAR_C_NAME = ", str(PAR_C_NAME)]))
-                                # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
-                                # continue
-                            try:
-                                Chi_2_Value, NDF_Value = List_of_All_Histos_For_Unfolding[str(CHI_2_NAME)]
-                            except:
-                                print("".join([color.Error, "ERROR IN GETTING THE FIT Chi^2 FOR: ", color.END, "\n\tCHI_2_NAME = ", str(CHI_2_NAME)]))
-                                # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
-                            #     # continue
-                            Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par A    = {PARAMETER_A} ± {ERROR_PAR_A}"
-                            Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par B    = {PARAMETER_B} ± {ERROR_PAR_B}"
-                            Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par C    = {PARAMETER_C} ± {ERROR_PAR_C}"
-                            if((str not in [type(Chi_2_Value), type(NDF_Value)]) and (NDF_Value not in [0])):
-                                Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = {Chi_2_Value/NDF_Value}"
+                            if(any((("Multi" in ii) or ("sec" in ii)) for ii in Variable_List_Final)):
+                                Sector_txt_Out = "" if("sec" not in Variable) else str(Variable.replace(")_(phi_t", "")).replace("_", " ")
                             else:
-                                Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = ERROR"
-                            Text_Par_Outputs = Text_Par_Outputs.replace("\t", "    ")
+                                Sector_txt_Out = ""
+                            Text_Par_Outputs   = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t (*) ", "3D" if(("Multi_Dim" in Variable) or ("MultiDim_z_pT" in Variable)) else "5D" if("MultiDim" in Variable) else "1D" if(Sector_txt_Out in [""]) else f"1D ({Sector_txt_Out})", " Histograms:", color.END])
+                            for Method in Method_Type_List:
+                                if(str(Method)   in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Kinematic_Comparison", "Background", "Relative_Background"]):
+                                    continue
+                                if(((("Multi_Dim" in str(Variable)) or ("MultiDim" in str(Variable))) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
+                                    continue
+                                Text_Par_Outputs = "".join([str(Text_Par_Outputs), color.BOLD, "\n\t - ", f"{Method} Unfolding" if(Method not in ["gdf", "bbb", "Bin", "bay"]) else "Bayesian Unfolding" if(Method not in ["gdf", "bbb", "Bin"]) else "Bin-by-Bin Correction" if(Method not in ["gdf"]) else "Generated Plot", " Fits:", color.END])
+                                PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ) else ")_(Integrate" if("Integrate" in Cut_Options_List) else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                # #####################################
+                                # PAR_A_NAME = "".join(["(Fit_Par_A)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                # PAR_B_NAME = "".join(["(Fit_Par_B)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                # PAR_C_NAME = "".join(["(Fit_Par_C)_(",   str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                # CHI_2_NAME = "".join(["(Chi_Squared)_(", str(Method), ")_(Proton_Integrate" if("Proton_Integrate" in Cut_Options_List) else ")_(Proton" if(Cut_ProQ)                                                         else "", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
+                                PARAMETER_A, PARAMETER_B, PARAMETER_C = "ERROR", "ERROR", "ERROR"
+                                ERROR_PAR_A, ERROR_PAR_B, ERROR_PAR_C = "ERROR", "ERROR", "ERROR"
+                                Chi_2_Value, NDF_Value = "ERROR", "ERROR"
+                                try:
+                                    PARAMETER_A, ERROR_PAR_A = List_of_All_Histos_For_Unfolding[str(PAR_A_NAME)]
+                                except:
+                                    print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER A FOR: ", color.END, "\n\tPAR_A_NAME = ", str(PAR_A_NAME)]))
+                                    # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
+                                    # continue
+                                try:
+                                    PARAMETER_B, ERROR_PAR_B = List_of_All_Histos_For_Unfolding[str(PAR_B_NAME)]
+                                except:
+                                    print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER B FOR: ", color.END, "\n\tPAR_B_NAME = ", str(PAR_B_NAME)]))
+                                    # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
+                                    # continue
+                                try:
+                                    PARAMETER_C, ERROR_PAR_C = List_of_All_Histos_For_Unfolding[str(PAR_C_NAME)]
+                                except:
+                                    print("".join([color.Error, "ERROR IN GETTING THE FIT PARAMETER C FOR: ", color.END, "\n\tPAR_C_NAME = ", str(PAR_C_NAME)]))
+                                    # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
+                                    # continue
+                                try:
+                                    Chi_2_Value, NDF_Value = List_of_All_Histos_For_Unfolding[str(CHI_2_NAME)]
+                                except:
+                                    print("".join([color.Error, "ERROR IN GETTING THE FIT Chi^2 FOR: ", color.END, "\n\tCHI_2_NAME = ", str(CHI_2_NAME)]))
+                                    # print("".join([color.BOLD, str(traceback.format_exc()), color.END]))
+                                #     # continue
+                                Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par A    = {PARAMETER_A} ± {ERROR_PAR_A}"
+                                Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par B    = {PARAMETER_B} ± {ERROR_PAR_B}"
+                                Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t Par C    = {PARAMETER_C} ± {ERROR_PAR_C}"
+                                if((str not in [type(Chi_2_Value), type(NDF_Value)]) and (NDF_Value not in [0])):
+                                    Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = {Chi_2_Value/NDF_Value}"
+                                else:
+                                    Text_Par_Outputs = f"{Text_Par_Outputs}\n\t\t\t chi2/NDF = ERROR"
+                                Text_Par_Outputs = Text_Par_Outputs.replace("\t", "    ")
         # print(f"Text_Par_Outputs = {Text_Par_Outputs}")
         if(os.path.exists(Output_txt_Par_Name)):
             print(color.RED, "Output_txt_Par_Name =", Output_txt_Par_Name, "already is defined...", color.END)
