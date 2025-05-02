@@ -43,3 +43,6 @@ Histo_Files_ROOT/Matching_REC_MC/Text_of_Smearing_Function_and_Momentum_Correcti
 Data_Files_Groovy/GEN_MC/Link_To_Files
 Data_Files_Groovy/GEN_MC/Link_to_claspyth
 Histo_Files_ROOT/GEN_MC/Test_sbatch_Proton_Script.sh
+Parameters_*Pass_2_*_V*_202*_Q2_y_Bins_*.txt
+TTree_Files_ROOT/GEN_MC/claspyth/
+TTree_Files_ROOT/Matching_REC_MC/claspyth/
