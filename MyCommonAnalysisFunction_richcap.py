@@ -75,6 +75,7 @@ class root_color:
     Phi     = '#phi'
     π       = '#pi'
     Degrees = '#circ'
+    Hline   = '#topbar'
     
     Line    = '#splitline'
 
@@ -2025,6 +2026,22 @@ annotations = [
     "alpha": 0.4,
     "size": 0.055,
     "align": 31,  # bottom-right
+    }]
+
+annotations2 = [
+    {"text": "PRELIMINARY",
+    "x": 0.15, "y": 0.12,
+    "color": ROOT.kRed,
+    "alpha": 0.4,
+    "size": 0.06,
+    "align": 11  # bottom-left
+    },
+    {"text": "Pass 2",
+    "x": 0.15, "y": 0.181,  # same x, higher y
+    "color": ROOT.kGray + 2,
+    "alpha": 0.4,
+    "size": 0.05,
+    "align": 11  # match alignment to bottom-left
     }]
 
 # Function to draw annotations

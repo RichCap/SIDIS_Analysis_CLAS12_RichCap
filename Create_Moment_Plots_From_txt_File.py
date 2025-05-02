@@ -101,7 +101,7 @@ def create_legend(x1, y1, x2, y2, nColumns=1, Legend_Title="Bin (Range) Informat
 
 def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_Text="Python", Q2_or_y_Group="y", Variable_to_plot_against="Q2", 
                                           Use_Sectors_Q=True, Parameter_List=["Parameter B", "Parameter C"], Correction_Type="Bin-by-Bin Correction", 
-                                          Sector_Particle="esec", Saving_Q=True, Save_Name_Extra=""):
+                                          Sector_Particle="esec", Saving_Q=True, Save_Name_Extra="", HistoType="1D"):
     latex = {}
     if(Variable_to_plot_against in [Q2_or_y_Group]):
         Variable_to_plot_against = "xB" if(Q2_or_y_Group not in ["xB"]) else "Q2"
@@ -169,7 +169,7 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                 if(From_Python_or_Text in ["Text"]):
                     Fit_Parameter_Key = f"(Bin {Q2_y_Bin}-All)_({Parameter})"
                 else:
-                    Fit_Parameter_Key = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-All')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_1D"
+                    Fit_Parameter_Key = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-All')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_{HistoType}"
                     
                 x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin="All", Variable=f"mean_{Variable_to_plot_against}"), 4))
                 x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin="All", Variable=f"Error_{Variable_to_plot_against}"))
@@ -275,12 +275,20 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
 
         Moment_Title = f"Cos({'2' if('C' in str(Parameter)) else ''}#phi_{{h}})"
         Multigraph_Title_Line_1 = f"Plot of {Moment_Title} vs {variable_Title_name(Variable_to_plot_against)}"
+        # if("Tagged_Proton" in Save_Name_Extra):
+        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Tagged Proton}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
+        # elif("ProtonCut"   in Save_Name_Extra):
+        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Cut on Proton MM}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
+        # else:
+        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
         if("Tagged_Proton" in Save_Name_Extra):
-            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Tagged Proton}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Tagged Proton}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
         elif("ProtonCut"   in Save_Name_Extra):
-            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Cut on Proton MM}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Cut on Proton MM}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
         else:
-            Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2}} #color[{root_color.Blue}]{{{Correction_Type}}}"
+            Multigraph_Title_Line_2 = f"#color[{root_color.Blue}]{{{Correction_Type}}}"
+        if(HistoType in ["3D", "5D"]):
+            Multigraph_Title_Line_2 = Multigraph_Title_Line_2.replace(f"{{{Correction_Type}}}", f"{{Multidimensional {HistoType} {Correction_Type}}}")
         mg[key_names].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
     
         mg[key_names].Draw("A")
@@ -290,10 +298,11 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         legend[key_names].Draw()
         canvas[key_names].Modified()
         canvas[key_names].Update()
-        latex[key_names] = ROOT.TLatex()
-        latex[key_names].SetTextSize(0.06)
-        latex[key_names].SetTextColorAlpha(ROOT.kRed, 0.2)
-        latex[key_names].DrawTextNDC(0.15, 0.12, "PRELIMINARY")  # Normalized coordinates
+        draw_annotations(annotations2)
+        # latex[key_names] = ROOT.TLatex()
+        # latex[key_names].SetTextSize(0.06)
+        # latex[key_names].SetTextColorAlpha(ROOT.kRed, 0.2)
+        # latex[key_names].DrawTextNDC(0.15, 0.12, "PRELIMINARY")  # Normalized coordinates
 
         Save_Name = "".join([
             f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
@@ -544,20 +553,19 @@ Note to Reader: Print the text in this file as a string in Python for the best f
                 if(verbose):
                     print(f"Group_Variable = {Group_Variable}")
                 for Plot__Variable in ["y", "Q2", "xB"]:
-                    if(verbose):
-                        print(f"Plot__Variable = {Plot__Variable}\n")
                     if(Group_Variable == Plot__Variable):
                         continue
                     if((Group_Variable in ["xB"]) and (Plot__Variable not in ["Q2"])):
                         continue
+                    if(verbose):
+                        print(f"Plot__Variable = {Plot__Variable}\n")
                     Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input=Comparison_Output, From_Python_or_Text="Python",
                                                           Q2_or_y_Group=Group_Variable, Variable_to_plot_against=Plot__Variable,
                                                           Use_Sectors_Q=Use_Sector_Shading, Parameter_List=Parameter_List, 
                                                           Correction_Type=Correction_Type,
                                                           Sector_Particle=SectorType, Saving_Q=not No_Save,
-                                                          Save_Name_Extra="ProtonCut" if(Cut_Proton_Q) else "Tagged_Proton" if(Tagged_Proton_Q) else "")
-    
-    print("\n\nDONE\n")
+                                                          Save_Name_Extra="ProtonCut" if(Cut_Proton_Q) else "Tagged_Proton" if(Tagged_Proton_Q) else "",
+                                                          HistoType=HistoType)
     return file_content
 
 
@@ -577,7 +585,7 @@ if(__name__ == "__main__"):
     parser.add_argument("-q2y", "--Q2_y_Bin",    help="Set individual Q2-y Bin to run (Defaults to running all 17 bins).",                                        default="Default")
     parser.add_argument("-zpT", "--z_pT_Bin",    help="Set individual z-pT Bin to run (Defaults to running all bins, including the 'All'/'Integrated' options).", default="Default")
     parser.add_argument("-nS",  "--no_save",     help="If set, the code will not save any of the images it makes (used for testing).",                            action="store_true")
-    parser.add_argument("-nsec","--no_sectors",  help="If set, the code will not show the sector information when plotting.",                                     action="store_true")
+    parser.add_argument("-us", "--use_sectors",  help="If set, the code will show the sector information when plotting.",                                         action="store_true")
     args = parser.parse_args()
 
     
@@ -589,5 +597,7 @@ if(__name__ == "__main__"):
                                       Correction=args.correction, Parameter_In=args.parameter, 
                                       Smear_In=args.smear, HistoType=args.histogram, 
                                       SectorType=args.sector, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin,
-                                      No_Save=args.no_save, Use_Sector_Shading=args.no_sectors)
-    print("\nDone\n")
+                                      No_Save=args.no_save, Use_Sector_Shading=(args.use_sectors))
+    
+    print("\nEnd of Create_Moment_Plots_From_txt_File.py Code\n")
+    
