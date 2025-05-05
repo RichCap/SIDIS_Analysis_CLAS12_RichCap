@@ -22,6 +22,7 @@ ROOT.gStyle.SetTitleOffset(1.75,'y')
 ROOT.gStyle.SetGridColor(17)
 ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
+ROOT.gStyle.SetPadLeftMargin(0.115)   # default is ≃0.10
 
 # Get the code for defining 'Get_Bin_Center_Dictionary' from Get_Bin_Center_of_Kinematic_Bins.ipynb    
 # From REAL_File_Name = Pass_2_Plots_for_Maria_FC_14_V2_All - Defined on: 4-17-2025
@@ -147,6 +148,9 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
     tgraph_ext_shaded, tgraph_shaded, tgraph_errors = {}, {}, {}
     canvas, legend, mg = {}, {}, {}
 
+    # z_pT_Bin_Type = "All"
+    z_pT_Bin_Type = "Integrated"
+
     for Parameter in Parameter_List:
         key_names = f"({Q2_or_y_Group}_Group)_({Parameter})"
         canvas[key_names] = ROOT.TCanvas(f"canvas_{key_names}", "Graph with Extended Shaded Regions", 1200, 1000)
@@ -167,12 +171,12 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                     continue
 
                 if(From_Python_or_Text in ["Text"]):
-                    Fit_Parameter_Key = f"(Bin {Q2_y_Bin}-All)_({Parameter})"
+                    Fit_Parameter_Key = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
                 else:
-                    Fit_Parameter_Key = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-All')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_{HistoType}"
+                    Fit_Parameter_Key = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-{z_pT_Bin_Type}')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_{HistoType}"
                     
-                x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin="All", Variable=f"mean_{Variable_to_plot_against}"), 4))
-                x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin="All", Variable=f"Error_{Variable_to_plot_against}"))
+                x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin=z_pT_Bin_Type, Variable=f"mean_{Variable_to_plot_against}"), 4))
+                x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin,  z_pT_Bin=z_pT_Bin_Type, Variable=f"Error_{Variable_to_plot_against}"))
                 if(From_Python_or_Text in ["Text"]):
                     y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][0])
                     y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][1])
@@ -186,7 +190,7 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                 current_min_err = float("inf")
 
                 if(Use_Sectors_Q):
-                    Fit_Parameter_Key_Sector = f"(Bin {Q2_y_Bin}-All)_({Parameter})"
+                    Fit_Parameter_Key_Sector = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
                     for sec in range(1, 7):
                         if(From_Python_or_Text not in ["Python"]):
                             bounds_upper = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0] + Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
@@ -294,7 +298,8 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         mg[key_names].Draw("A")
         # mg[key_names].GetYaxis().SetRangeUser(-0.35 if("C" in str(Parameter)) else -0.9, 0.25 if("C" in str(Parameter)) else 0.2)
         # mg[key_names].GetYaxis().SetRangeUser(-0.2 if("C" in str(Parameter)) else -0.3, 0.1 if("C" in str(Parameter)) else 0.1)
-        mg[key_names].GetYaxis().SetRangeUser(-0.15 if("C" in str(Parameter)) else -0.25, 0.1 if("C" in str(Parameter)) else 0.05)
+        # mg[key_names].GetYaxis().SetRangeUser(-0.15 if("C" in str(Parameter)) else -0.25, 0.1 if("C" in str(Parameter)) else 0.05)
+        mg[key_names].GetYaxis().SetRangeUser(-0.25, 0.1)
         legend[key_names].Draw()
         canvas[key_names].Modified()
         canvas[key_names].Update()
@@ -306,8 +311,9 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
 
         Save_Name = "".join([
             f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
-            "Plot_of_",
-            "CosPhi" if("B" in Parameter) else "Cos2Phi",
+            f"Plot_of_{HistoType}_",
+            "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_"
+            "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
             f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_Groups",
             f"_{Save_Name_Extra}.png" if(Save_Name_Extra not in [""]) else ".png"])
 
