@@ -5665,19 +5665,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         for sec in range(1, 7, 1):
             if("eS" not in Cut_Choice):
                 break
-            if("".join(["eS", str(sec), "a"]) in Cut_Choice):
-                cutname = "".join([cutname, " (Excluding Sector ", str(sec), " Electrons)"])
+            if(f"eS{sec}a" in Cut_Choice):
+                cutname = f"{cutname} (Excluding Sector {sec} Electrons)"
                 if(Titles_or_DF == 'DF'):
-                    DF_Out  = DF_Out.Filter("".join(["esec != ", str(sec)]))
+                    DF_Out  = DF_Out.Filter(f"esec != {sec}"))
                     if(Data_Type in ["pdf", "gen"]):
-                        DF_Out  = DF_Out.Filter("".join(["esec_gen != ", str(sec)]))
+                        DF_Out  = DF_Out.Filter(f"esec_gen != {sec}"))
                 break
-            if("".join(["eS", str(sec), "o"]) in Cut_Choice):
-                cutname = "".join([cutname, " (Sector ", str(sec), " Electrons Only)"])
+            if(f"eS{sec}o" in Cut_Choice):
+                cutname = f"{cutname} (Sector {sec} Electrons Only)"
                 if(Titles_or_DF == 'DF'):
-                    DF_Out  = DF_Out.Filter("".join(["esec == ", str(sec)]))
+                    DF_Out  = DF_Out.Filter(f"esec == {sec}"))
                     if(Data_Type in ["pdf", "gen"]):
-                        DF_Out  = DF_Out.Filter("".join(["esec_gen == ", str(sec)]))
+                        DF_Out  = DF_Out.Filter(f"esec_gen == {sec}"))
                 break
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
