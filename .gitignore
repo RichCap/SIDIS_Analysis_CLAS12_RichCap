@@ -33,6 +33,7 @@ Untitled*
 *root
 *-Copy1*
 *.png
+*.tar.gz
 Test_python_to_Cpp_Binning_Code.ipynb
 run_and_monitor.sh
 Test_of_Weighing_Histos.ipynb
