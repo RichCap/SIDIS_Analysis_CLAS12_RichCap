@@ -312,7 +312,7 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         Save_Name = "".join([
             f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
             f"Plot_of_{HistoType}_",
-            "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_"
+            "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_",
             "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
             f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_Groups",
             f"_{Save_Name_Extra}.png" if(Save_Name_Extra not in [""]) else ".png"])
