@@ -264,7 +264,7 @@ print("\n\n")
 Min_Allowed_Acceptance_Cut = 0.0175
 Min_Allowed_Acceptance_Cut = 0.005
 
-Min_Allowed_Acceptance_Cut = 0.0045 # Updated for tests on 5/2/2025
+# Min_Allowed_Acceptance_Cut = 0.0045 # Updated for tests on 5/2/2025
 
 # 'Acceptance_Cut_Line' will be used to show where the minimum acceptance cut is placed when drawing the Acceptance Plots
 Acceptance_Cut_Line = ROOT.TLine(0, Min_Allowed_Acceptance_Cut, 360, Min_Allowed_Acceptance_Cut)
@@ -1338,21 +1338,46 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                 if(((Special not in ["Normal"]) and isinstance(Special, list)) and (not Closure_Test)):
                     try:
                         Q2_y_Bin_Special, z_pT_Bin_Special = str(Special[0]), str(Special[1])
-                        if(z_pT_Bin_Special in ["Integrated", "-1"]):
-                            Par_initial_B = -0.05 if(str(Q2_y_Bin_Special) in ["12"]) else -0.1   if(str(Q2_y_Bin_Special) in ["8", "15"]) else -0.12 if(str(Q2_y_Bin_Special) in ["4", "11", "17"]) else -0.14  if(str(Q2_y_Bin_Special) in ["7", "16"]) else -0.155 if(str(Q2_y_Bin_Special) in ["3",  "6", "13", "14"]) else -0.1625 if(str(Q2_y_Bin_Special) in ["12"]) else -0.174
-                            Par_initial_C = -0.05 if(str(Q2_y_Bin_Special) in ["8"])  else -0.075 if(str(Q2_y_Bin_Special) in ["12"])      else -0.04 if(str(Q2_y_Bin_Special) in ["4", "15"])       else -0.029 if(str(Q2_y_Bin_Special) in ["11"])      else -0.021 if(str(Q2_y_Bin_Special) in ["7", "14", "16", "17"]) else -0.01   if(str(Q2_y_Bin_Special) in ["10"]) else -0.006 if(str(Q2_y_Bin_Special) in ["3", "6", "13"]) else 0.0045 if(str(Q2_y_Bin_Special) in ["2"]) else 0.0067 if(str(Q2_y_Bin_Special) in ["9"]) else 0.009
-                            Par__range__B = [0.5*Par_initial_B, 1.5*Par_initial_B]
-                            Par__range__C = [0.5*Par_initial_C, 1.5*Par_initial_C]
-                            # Cos(phi) Moment - B
-                            Fitting_Function.SetParameter(1, Par_initial_B)
-                            Fitting_Function.SetParLimits(1, min(Par__range__B), max(Par__range__B))
-                            # Cos(2*phi) Moment - C
-                            Fitting_Function.SetParameter(2, Par_initial_C)
-                            Fitting_Function.SetParLimits(2, min(Par__range__C), max(Par__range__C))
-                            
-                            fit_range_lower =  45 if(str(Q2_y_Bin_Special) in ["1", "5"]) else  30 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else  15
-                            fit_range_upper = 315 if(str(Q2_y_Bin_Special) in ["1", "5"]) else 330 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else 345
+                        # print(f"Fitting_Phi_Function Special: Q2_y_Bin_Special, z_pT_Bin_Special = {Q2_y_Bin_Special}, {z_pT_Bin_Special}")
+                        if(str(z_pT_Bin_Special) in ["All", "0"]):
+                            print(f"\n\n{color.BBLUE}z_pT_Bin_Special = {z_pT_Bin_Special}{color.END}\n\n\n")
+                        if(str(z_pT_Bin_Special) in ["Integrated", "All", "-1", "0"]):
+                            if((Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted") in special_fit_parameters_set):
+                                bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted")]
+                                fit_range_lower = bin_ranges.get("fit_range_lower")
+                                fit_range_upper = bin_ranges.get("fit_range_upper")
+                            elif((Q2_y_Bin_Special, "All", "Trusted") in special_fit_parameters_set):
+                                bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, "All", "Trusted")]
+                                fit_range_lower = bin_ranges.get("fit_range_lower")
+                                fit_range_upper = bin_ranges.get("fit_range_upper")
+                            else:
+                                fit_range_lower =  45 if(str(Q2_y_Bin_Special) in ["1", "5"]) else  30 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else  15
+                                fit_range_upper = 315 if(str(Q2_y_Bin_Special) in ["1", "5"]) else 330 if(str(Q2_y_Bin_Special) in ["2", "3", "6", "9", "10", "13", "16"]) else 345
                             Fitting_Function.SetRange(fit_range_lower, fit_range_upper)
+                        if((z_pT_Bin_Special in ["Integrated", "-1"]) and not ((Q2_y_Bin_Special, z_pT_Bin_Special) in special_fit_parameters_set)):
+                            if((Q2_y_Bin_Special, "All") in special_fit_parameters_set):
+                                bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, "All")]
+                                if(bin_settings.get("B_initial") is not None):
+                                    Fitting_Function.SetParameter(1, bin_settings["B_initial"])
+                                    if(bin_settings.get("B_limits")):
+                                        Fitting_Function.SetParLimits(1, *sorted(bin_settings["B_limits"]))
+                                if(bin_settings.get("C_initial") is not None):
+                                    Fitting_Function.SetParameter(2, bin_settings["C_initial"])
+                                    if(bin_settings.get("C_limits")):
+                                        Fitting_Function.SetParLimits(2, *sorted(bin_settings["C_limits"]))
+                                Allow_Multiple_Fits   = bin_settings.get("Allow_Multiple_Fits",   True)
+                                Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)
+                            else:
+                                Par_initial_B = -0.05 if(str(Q2_y_Bin_Special) in ["12"]) else -0.1   if(str(Q2_y_Bin_Special) in ["8", "15"]) else -0.12 if(str(Q2_y_Bin_Special) in ["4", "11", "17"]) else -0.14  if(str(Q2_y_Bin_Special) in ["7", "16"]) else -0.155 if(str(Q2_y_Bin_Special) in ["3",  "6", "13", "14"]) else -0.1625 if(str(Q2_y_Bin_Special) in ["12"]) else -0.174
+                                Par_initial_C = -0.05 if(str(Q2_y_Bin_Special) in ["8"])  else -0.075 if(str(Q2_y_Bin_Special) in ["12"])      else -0.04 if(str(Q2_y_Bin_Special) in ["4", "15"])       else -0.029 if(str(Q2_y_Bin_Special) in ["11"])      else -0.021 if(str(Q2_y_Bin_Special) in ["7", "14", "16", "17"]) else -0.01   if(str(Q2_y_Bin_Special) in ["10"]) else -0.006 if(str(Q2_y_Bin_Special) in ["3", "6", "13"]) else 0.0045 if(str(Q2_y_Bin_Special) in ["2"]) else 0.0067 if(str(Q2_y_Bin_Special) in ["9"]) else 0.009
+                                Par__range__B = [0.5*Par_initial_B, 1.5*Par_initial_B]
+                                Par__range__C = [0.5*Par_initial_C, 1.5*Par_initial_C]
+                                # Cos(phi) Moment - B
+                                Fitting_Function.SetParameter(1, Par_initial_B)
+                                Fitting_Function.SetParLimits(1, min(Par__range__B), max(Par__range__B))
+                                # Cos(2*phi) Moment - C
+                                Fitting_Function.SetParameter(2, Par_initial_C)
+                                Fitting_Function.SetParLimits(2, min(Par__range__C), max(Par__range__C))
                         elif((Q2_y_Bin_Special, z_pT_Bin_Special) in special_fit_parameters_set):
                                 bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special)]
                                 if(bin_settings.get("B_initial") is not None):
@@ -1367,8 +1392,11 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                 Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)                        
                     except:
                         print(f"{color.Error}\nERROR in Fitting_Phi_Function() for 'Special' arguement...{color.END_B}\nTraceback:\n{str(traceback.format_exc())}{color.END}\n")
+                else:
+                    print(f"\n\n\n{color.RED}Fitting_Phi_Function Not Special{color.END}\n\n\n")
                 Histo_To_Fit.Fit(Fitting_Function, "QRB")
             else:
+                # print(f"{color.RED}Error in A_Unfold, B_Unfold, C_Unfold = {A_Unfold}, {B_Unfold}, {C_Unfold}{color.END}")
                 Histo_To_Fit.Fit(Fitting_Function, "QR")
 
             A_Unfold = Fitting_Function.GetParameter(0)
@@ -4404,7 +4432,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
     Allow_Fitting = ("phi" in VARIABLE) and (Fit_Test) and (Method not in ["rdf", "mdf", "Background", "Relative_Background", "Acceptance"])
         
     if(Allow_Fitting):
-        for entry_type in ["1D", "(MultiDim_5D_Histo)", "(MultiDim_3D_Histo)", "(Multi-Dim Histo)"]:
+        for entry_type in ["1D", "MultiDim_5D_Histo", "MultiDim_3D_Histo", "Multi-Dim Histo"]:
             Integrated_Histo_Fit_Function = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Function"))
             Integrated_Histo__Chi_Squared = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Chi_Squared"))
             Integrated_Histo____Fit_Par_A = str(Default_Histo_Name_Integrated.replace(str(entry_type), "Fit_Par_A"))
@@ -4480,6 +4508,13 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
     try:
         if(Allow_Fitting):
             Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated"])
+            # print(f"""{color.BOLD}Made:
+            # Histogram_List_All[{Default_Histo_Name_Integrated}], 
+            # Histogram_List_All[{Integrated_Histo_Fit_Function}], 
+            # Histogram_List_All[{Integrated_Histo__Chi_Squared}], 
+            # Histogram_List_All[{Integrated_Histo____Fit_Par_A}], 
+            # Histogram_List_All[{Integrated_Histo____Fit_Par_B}], 
+            # Histogram_List_All[{Integrated_Histo____Fit_Par_C}]{color.END}\n\n""")
     except Exception as e:
         print(f"{color.Error}ERROR IN 'Integrated z-pT Bins' METHOD = '{str(Method)}':\n{color.END_R}{str(traceback.format_exc())}{color.END}")
     
@@ -6104,9 +6139,9 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                 Pad_Col2[cor].Divide(1, 2, 0)
     
             Sector_Title_Base = "#pi^{+} Sector !" if(Sector_Type in ["pip"]) else "Electron Sector !"
-            Default_Histo_Name_In = Default_Histo_Name
             graph, line = {}, {}
             if(cor_num == 0):
+                Default_Histo_Name_In = Default_Histo_Name
                 ExREAL_1D, MC_REC_1D, MC_GEN_1D, ExTRUE_1D, UNFOLD_1D = {}, {}, {}, {}, {}
             ##################################################################### ################################################################
             #####==========#####        Legend Setup         #####==========##### ################################################################
@@ -6129,6 +6164,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Sector_Title = Sector_Title_Base.replace("!", str(Sectors))
                     Default_Histo_Name = Default_Histo_Name_In.replace(f"({Sector_Type}sec_SECTOR)_", f"({Sector_Type}sec_{Sectors})_")
                     Default_Histo_Name = Default_Histo_Name.replace(f"_{Sector_Type}S_SECTORo)_",     f"_{Sector_Type}S{Sectors}o)_")
+                # print(f"Default_Histo_Name = {Default_Histo_Name}")
                 if(cor_num == 0):
                     ExREAL_1D_name = str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if(not Sim_Test) else "Smear"))
                     MC_REC_1D_name = str(Default_Histo_Name.replace("Data_Type",     "mdf"))
@@ -6158,6 +6194,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                         ExTRUE_1D[Sectors] = "N/A"
                         
                 UNFOLD_1D[f"{cor}_{Sectors}"] = Histogram_List_All[str(Default_Histo_Name.replace('Data_Type', str(cor)))].Clone(f"{Histogram_List_All[str(Default_Histo_Name.replace('Data_Type', str(cor)))].GetName()}__{cor}_{Sectors}")
+                # print(f"UNFOLD_1D['{cor}_{Sectors}'].GetName() = {UNFOLD_1D[f'{cor}_{Sectors}'].GetName()}")
                 
                 ##################################################################### ################################################################
                 #####==========#####     Setting Axis Range      #####==========##### ################################################################
@@ -6236,11 +6273,11 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                         ExTRUE_1D[Sectors].SetMarkerStyle(20)
                 #####==========#####    Unfolded  Histograms     #####==========##### ################################################################ ################################################################
                 if(cor   in ["Bin"]):
-                    UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR", str(root_color.Brown))).replace("CORRECTION_NAME", "Bin-By-Bin"))
+                    UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR", str(root_color.Brown))).replace("CORRECTION_NAME", f"Multidimensional ({Multi_Dim_Option}) Bin-By-Bin"         if(str(Multi_Dim_Option) in ["5D", "3D"]) else "Bin-By-Bin"))
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetLineColor(root_color.Brown)
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetMarkerColor(root_color.Brown)
                 elif(cor in ["Bayesian"]):
-                    UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR",  str(root_color.Teal))).replace("CORRECTION_NAME", "RooUnfold Bayesian"))
+                    UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR",  str(root_color.Teal))).replace("CORRECTION_NAME", f"Multidimensional ({Multi_Dim_Option}) RooUnfold Bayesian" if(str(Multi_Dim_Option) in ["5D", "3D"]) else "RooUnfold Bayesian"))
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetLineColor(root_color.Teal)
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetMarkerColor(root_color.Teal)
                 else:
@@ -6371,12 +6408,12 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     if("p" in Sector_Type):
                         graph[key].SetTitle(
                             f"#splitline{{#splitline{{Plot of {Parameter_Type_Title} vs #pi^{{+}} Sectors}}"
-                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{Unfolding_Type}}}}};"
+                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
                             f" Pion Sector; {Parameter_Type_Title}")
                     else:
                         graph[key].SetTitle(
                             f"#splitline{{#splitline{{Plot of {Parameter_Type_Title} vs Electron Sectors}}"
-                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{Unfolding_Type}}}}};"
+                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
                             f" Electron Sector; {Parameter_Type_Title}")
                     graph[key].SetMarkerStyle(21)
                     graph[key].SetMarkerColor(root_color.Brown if(cor in ['Bin']) else root_color.Teal)
@@ -6425,7 +6462,8 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                         pad1.cd()
                     graph[key].Draw("APL")
                     graph[key].GetXaxis().SetLimits(-0.5, n_points-0.5)
-                    graph[key].GetYaxis().SetRangeUser(-0.15, 0.1)
+                    # graph[key].GetYaxis().SetRangeUser(-0.15, 0.1)
+                    graph[key].GetYaxis().SetRangeUser(-0.25, 0.1)
                     line[key] = ROOT.TLine(-0.5, 0, n_points-0.5, 0)
                     line[key].SetLineColor(ROOT.kBlack)
                     line[key].Draw()
@@ -6986,8 +7024,8 @@ Common_Name = "Pass_2_Plots_for_Maria_FC_14_V1_All"
 Common_Name = "Pass_2_Plots_for_Maria_FC_14_V2_All" # Same as V1 above but with sector plots and no MM plots
 Common_Name = "Pass_2_Plots_for_Maria_FC_14_V3_All" # Same as V2 above but with additional MC files (run rdf with V2)
 
-if(not (Tag_ProQ or Cut_ProQ)):
-    Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
+# if(not (Tag_ProQ or Cut_ProQ)):
+Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
 
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
@@ -7273,9 +7311,9 @@ run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
 run_Sec_Unfold = not True
 run_SecCut_Unfold = True
 
-if(Tag_ProQ or Cut_ProQ):
-    run_Sec_Unfold = True
-    run_SecCut_Unfold = False
+# if(Tag_ProQ or Cut_ProQ):
+#     run_Sec_Unfold = True
+#     run_SecCut_Unfold = False
 
 if(run_Sec_Unfold or run_SecCut_Unfold):
     Sector_List = [1, 2, 3, 4, 5, 6]
@@ -7666,11 +7704,14 @@ for ii in mdf.GetListOfKeys():
         
         # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
         if(Cut_ProQ):
-            Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "]))
+            Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "] + [f"_Proton_eS{sec}o'), " for sec in range(1, 7)] + [f"_Proton_Integrate_eS{sec}o'), " for sec in range(1, 7)]))
             # Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
         else:
             Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
             Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
+            for sec in range(1, 7):
+                Conditions_For_Unfolding.append(f"_Proton_eS{sec}o'), "          not in str(out_print_main)) # Remove Proton MM Cuts (Sector Cuts)
+                Conditions_For_Unfolding.append(f"_Proton_Integrate_eS{sec}o')"  not in str(out_print_main)) # Remove Proton MM Cuts (with integrated bins - Sector Cuts)
 
         # # Require Integrated Bin Cuts
         # Conditions_For_Unfolding.append("Integrate')"     in str(out_print_main))
@@ -7688,13 +7729,13 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
-        # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
+        Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
 
-        if(not (Tag_ProQ or Cut_ProQ)):
-            # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
-            Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
-        else:
-            Conditions_For_Unfolding.append("Multi" not in str(out_print_main))
+        # if(not (Tag_ProQ or Cut_ProQ)):
+        #     # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+        #     Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
+        # else:
+        #     Conditions_For_Unfolding.append("Multi" not in str(out_print_main))
         
         # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
         # if(Closure_Test):
@@ -9066,8 +9107,8 @@ Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
 # Multi_Dimensional_List = ["Off", "3D"]
-if(not (Tag_ProQ or Cut_ProQ)):
-    Multi_Dimensional_List = ["3D"]
+# if(not (Tag_ProQ or Cut_ProQ)):
+Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D"       in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
@@ -9190,7 +9231,7 @@ if(not True): # Run selected plot manually
             # HISTO_NAME    = f"(1D)_(Data_Type)_(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
             # canvas_manual = Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input=List_of_All_Histos_For_Unfolding, Default_Histo_Name_Input=HISTO_NAME, Data_Type=method, Smear=smear, Variable1=variable1, Variable2=variable2, Q2_Y_Bin_Input=BIN_NUM, Z_PT_Bin_Input=z_PT_BIN_NUM)
 
-            variable1 = "MultiDim_z_pT_Bin_Y_bin_phi_t" if(not (Tag_ProQ or Cut_ProQ)) else "phi_t"
+            variable1 = "MultiDim_z_pT_Bin_Y_bin_phi_t" # if(not (Tag_ProQ or Cut_ProQ)) else "phi_t"
             variable2 = ""
             z_pT_Bin_Range = range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[1] + 1, 1)
             for Cut_Select in ["(Integrate)_", "(Integrate_eS1o)_", "(Integrate_eS2o)_", "(Integrate_eS3o)_", "(Integrate_eS4o)_", "(Integrate_eS5o)_", "(Integrate_eS6o)_"]:
@@ -9200,7 +9241,8 @@ if(not True): # Run selected plot manually
                 else:
                     if(Cut_ProQ):
                         Cut_Select = Cut_Select.replace("(Integrate", "(Proton_Integrate")
-                    HISTO_NAME = f"(1D)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
+                    # HISTO_NAME = f"(1D)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
+                    HISTO_NAME = f"(MultiDim_3D_Histo)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
                 if("_eS" in Cut_Select):
                     continue
                 for z_PT_BIN_NUM in z_pT_Bin_Range:
@@ -9268,12 +9310,13 @@ if(run_SecCut_Unfold and True):
                 HISTO_NAME = f"(1D)_(Data_Type)_(Integrate_eS_SECTORo)_(SMEAR={smear})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_All)_({variable})"
                 if(Cut_ProQ):
                     HISTO_NAME = f"(1D)_(Data_Type)_(Proton_Integrate_eS_SECTORo)_(SMEAR={smear})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_All)_({variable})"
-                # z__pT__Range = [-1, 1]
+                # z__pT__Range = [-1, 0]
+                # z__pT__Range = [0]
                 z__pT__Range = range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1, 1)
                 for z_pT_Bin in z__pT__Range:
                     if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
                         continue
-                    if(z_pT_Bin in [100]):
+                    if(z_pT_Bin in [1000]):
                         print(f"{color.RED}Manual skip of z_pT_Bin = {z_pT_Bin} for Unfolded_Sector_Dependent_Images(...){color.END}")
                         continue
                     # print(f"""\n{color.BOLD}

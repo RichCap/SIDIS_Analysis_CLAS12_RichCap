@@ -1,4 +1,79 @@
 special_fit_parameters_set = {
+    ("1", "All", "Trusted"): {
+        # "fit_range_lower": 45,
+        # "fit_range_upper": 315
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("2", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 45,
+        "fit_range_upper": 330
+    },
+    ("3", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 15,
+        "fit_range_upper": 330
+    },
+    ("4", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("5", "All", "Trusted"): {
+        # "fit_range_lower": 45,
+        # "fit_range_upper": 315
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("6", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("7", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("8", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("9", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 45,
+        "fit_range_upper": 330
+    },
+    ("10", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("11", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("12", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("13", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("14", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("15", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("16", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("17", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
     ("1", "All"): {
         "B_initial": -0.05588,
         "B_limits":  [0, -0.075],
