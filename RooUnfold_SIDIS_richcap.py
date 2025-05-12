@@ -918,6 +918,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             # cut_criteria = 0.02
             # cut_criteria = 0
             cut_criteria = Min_Allowed_Acceptance_Cut
+
+            if(any(Sector_Cut in str(Name_Print) for Sector_Cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"])):
+                print(f"{color.RED}NOTE: Reducing Acceptance Cut criteria by 50% for Sector Cut plots{color.END}")
+                cut_criteria = 0.5*Min_Allowed_Acceptance_Cut
             
             for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
                 if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
@@ -1085,7 +1089,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Acceptance.Sumw2()
                     Bin_Acceptance.Divide(MC_GEN_1D)
                 for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
-                    if(Bin_Acceptance.GetBinContent(bin_acceptance) < Min_Allowed_Acceptance_Cut):
+                    if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*Min_Allowed_Acceptance_Cut)):
+                        # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
                         # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
                         Unfolded_Histo.SetBinError(bin_acceptance,   0)
                         Unfolded_Histo.SetBinContent(bin_acceptance, 0)
@@ -1339,10 +1344,25 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                     try:
                         Q2_y_Bin_Special, z_pT_Bin_Special = str(Special[0]), str(Special[1])
                         # print(f"Fitting_Phi_Function Special: Q2_y_Bin_Special, z_pT_Bin_Special = {Q2_y_Bin_Special}, {z_pT_Bin_Special}")
+                        if(len(Special) > 2):
+                            Sector_Special = str(Special[2])
+                        else:
+                            Sector_Special = "N/A"
                         if(str(z_pT_Bin_Special) in ["All", "0"]):
                             print(f"\n\n{color.BBLUE}z_pT_Bin_Special = {z_pT_Bin_Special}{color.END}\n\n\n")
                         if(str(z_pT_Bin_Special) in ["Integrated", "All", "-1", "0"]):
-                            if((Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted") in special_fit_parameters_set):
+                            if(Sector_Special not in ["N/A"]):
+                                if((Q2_y_Bin_Special, z_pT_Bin_Special, "Sectors", "Trusted") in special_fit_parameters_set):
+                                    bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "Sectors", "Trusted")]
+                                    print(f"\n{color.ERROR}Using Sector Fit Ranges\n{color.END}")
+                                    fit_range_lower = bin_ranges.get("fit_range_lower")
+                                    fit_range_upper = bin_ranges.get("fit_range_upper")
+                                elif((Q2_y_Bin_Special, "All", "Sectors", "Trusted") in special_fit_parameters_set):
+                                    bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, "All", "Sectors", "Trusted")]
+                                    print(f"\n{color.ERROR}Using Sector Fit Ranges\n{color.END}")
+                                    fit_range_lower = bin_ranges.get("fit_range_lower")
+                                    fit_range_upper = bin_ranges.get("fit_range_upper")
+                            elif((Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted") in special_fit_parameters_set):
                                 bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted")]
                                 fit_range_lower = bin_ranges.get("fit_range_lower")
                                 fit_range_upper = bin_ranges.get("fit_range_upper")
@@ -4412,6 +4432,10 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
 #             Area_of_z_pT_Bins[f"{Q2_y_Bin}_{z_pT_Bin}"] = round(abs((z_Max - z_Min)*(pTMax - pTMin)), 6)
 #     Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = round(Area_of_z_pT_Bins[f"{Q2_y_Bin}"], 6)
 # print(f"Area_of_z_pT_Bins = {Area_of_z_pT_Bins}")
+
+
+
+
 Area_of_z_pT_Bins = {'1': 0.4741, '1_1': 0.0527, '1_2': 0.031, '1_3': 0.031, '1_4': 0.031, '1_5': 0.0341, '1_6': 0.0372, '1_7': 0.0744, '1_8': 0.0187, '1_9': 0.011, '1_10': 0.011, '1_11': 0.011, '1_12': 0.0121, '1_13': 0.0132, '1_14': 0.0264, '1_15': 0.0102, '1_16': 0.006, '1_17': 0.006, '1_18': 0.006, '1_19': 0.0066, '1_20': 0.0072, '1_22': 0.0068, '1_23': 0.004, '1_24': 0.004, '1_25': 0.004, '1_26': 0.0044, '1_29': 0.0051, '1_30': 0.003, '1_31': 0.003, '1_32': 0.003, '2': 0.4564, '2_1': 0.05, '2_2': 0.025, '2_3': 0.025, '2_4': 0.0225, '2_5': 0.0325, '2_6': 0.065, '2_7': 0.024, '2_8': 0.012, '2_9': 0.012, '2_10': 0.0108, '2_11': 0.0156, '2_12': 0.0312, '2_13': 0.014, '2_14': 0.007, '2_15': 0.007, '2_16': 0.0063, '2_17': 0.0091, '2_18': 0.0182, '2_19': 0.01, '2_20': 0.005, '2_21': 0.005, '2_22': 0.0045, '2_23': 0.0065, '2_25': 0.006, '2_26': 0.003, '2_27': 0.003, '2_28': 0.0027, '2_29': 0.0039, '2_31': 0.008, '2_32': 0.004, '2_33': 0.004, '2_34': 0.0036, '3': 0.3661, '3_1': 0.0285, '3_2': 0.019, '3_3': 0.0171, '3_4': 0.019, '3_5': 0.019, '3_6': 0.0323, '3_7': 0.0225, '3_8': 0.015, '3_9': 0.0135, '3_10': 0.015, '3_11': 0.015, '3_12': 0.0255, '3_13': 0.012, '3_14': 0.008, '3_15': 0.0072, '3_16': 0.008, '3_17': 0.008, '3_18': 0.0136, '3_19': 0.0075, '3_20': 0.005, '3_21': 0.0045, '3_22': 0.005, '3_23': 0.005, '3_24': 0.0085, '3_25': 0.009, '3_26': 0.006, '3_27': 0.0054, '3_28': 0.006, '3_29': 0.006, '4': 0.3024, '4_1': 0.018, '4_2': 0.0108, '4_3': 0.0108, '4_4': 0.012, '4_5': 0.0156, '4_7': 0.0135, '4_8': 0.0081, '4_9': 0.0081, '4_10': 0.009, '4_11': 0.0117, '4_12': 0.0216, '4_13': 0.0105, '4_14': 0.0063, '4_15': 0.0063, '4_16': 0.007, '4_17': 0.0091, '4_18': 0.0168, '4_19': 0.0075, '4_20': 0.0045, '4_21': 0.0045, '4_22': 0.005, '4_23': 0.0065, '4_24': 0.012, '4_25': 0.0075, '4_26': 0.0045, '4_27': 0.0045, '4_28': 0.005, '4_29': 0.0065, '4_31': 0.0105, '4_32': 0.0063, '4_33': 0.0063, '4_34': 0.007, '4_35': 0.0091, '5': 0.469, '5_1': 0.0391, '5_2': 0.023, '5_3': 0.0207, '5_4': 0.023, '5_5': 0.0322, '5_6': 0.0759, '5_7': 0.0187, '5_8': 0.011, '5_9': 0.0099, '5_10': 0.011, '5_11': 0.0154, '5_12': 0.0363, '5_13': 0.0136, '5_14': 0.008, '5_15': 0.0072, '5_16': 0.008, '5_17': 0.0112, '5_18': 0.0264, '5_19': 0.0102, '5_20': 0.006, '5_21': 0.0054, '5_22': 0.006, '5_23': 0.0084, '5_25': 0.0068, '5_26': 0.004, '5_27': 0.0036, '5_28': 0.004, '5_29': 0.0056, '5_31': 0.0068, '5_32': 0.004, '5_33': 0.0036, '5_34': 0.004, '6': 0.4465, '6_1': 0.0459, '6_2': 0.027, '6_3': 0.0243, '6_4': 0.027, '6_5': 0.0378, '6_6': 0.0945, '6_7': 0.017, '6_8': 0.01, '6_9': 0.009, '6_10': 0.01, '6_11': 0.014, '6_12': 0.035, '6_13': 0.0119, '6_14': 0.007, '6_15': 0.0063, '6_16': 0.007, '6_17': 0.0098, '6_19': 0.0085, '6_20': 0.005, '6_21': 0.0045, '6_22': 0.005, '6_23': 0.007, '6_25': 0.0085, '6_26': 0.005, '6_27': 0.0045, '6_28': 0.005, '7': 0.3646, '7_1': 0.0285, '7_2': 0.0171, '7_3': 0.0171, '7_4': 0.019, '7_5': 0.0228, '7_7': 0.0195, '7_8': 0.0117, '7_9': 0.0117, '7_10': 0.013, '7_11': 0.0156, '7_12': 0.0299, '7_13': 0.012, '7_14': 0.0072, '7_15': 0.0072, '7_16': 0.008, '7_17': 0.0096, '7_18': 0.0184, '7_19': 0.009, '7_20': 0.0054, '7_21': 0.0054, '7_22': 0.006, '7_23': 0.0072, '7_24': 0.0138, '7_25': 0.006, '7_26': 0.0036, '7_27': 0.0036, '7_28': 0.004, '7_29': 0.0048, '7_31': 0.0075, '7_32': 0.0045, '7_33': 0.0045, '7_34': 0.005, '7_35': 0.006, '8': 0.2281, '8_1': 0.021, '8_2': 0.0126, '8_3': 0.0112, '8_4': 0.0126, '8_5': 0.0196, '8_6': 0.0105, '8_7': 0.0063, '8_8': 0.0056, '8_9': 0.0063, '8_10': 0.0098, '8_11': 0.0075, '8_12': 0.0045, '8_13': 0.004, '8_14': 0.0045, '8_15': 0.007, '8_16': 0.0075, '8_17': 0.0045, '8_18': 0.004, '8_19': 0.0045, '8_20': 0.007, '8_21': 0.0045, '8_22': 0.0027, '8_23': 0.0024, '8_24': 0.0027, '8_25': 0.0042, '8_26': 0.0045, '8_27': 0.0027, '8_28': 0.0024, '8_29': 0.0027, '8_30': 0.0042, '8_31': 0.009, '8_32': 0.0054, '8_33': 0.0048, '8_34': 0.0054, '9': 0.439, '9_1': 0.0476, '9_2': 0.0224, '9_3': 0.0224, '9_4': 0.0224, '9_5': 0.0336, '9_6': 0.0448, '9_7': 0.0588, '9_8': 0.0204, '9_9': 0.0096, '9_10': 0.0096, '9_11': 0.0096, '9_12': 0.0144, '9_13': 0.0192, '9_14': 0.0252, '9_15': 0.0102, '9_16': 0.0048, '9_17': 0.0048, '9_18': 0.0048, '9_19': 0.0072, '9_20': 0.0096, '9_22': 0.0068, '9_23': 0.0032, '9_24': 0.0032, '9_25': 0.0032, '9_26': 0.0048, '9_29': 0.0068, '9_30': 0.0032, '9_31': 0.0032, '9_32': 0.0032, '10': 0.4111, '10_1': 0.0352, '10_2': 0.022, '10_3': 0.0198, '10_4': 0.022, '10_5': 0.0308, '10_6': 0.0572, '10_7': 0.016, '10_8': 0.01, '10_9': 0.009, '10_10': 0.01, '10_11': 0.014, '10_12': 0.026, '10_13': 0.0128, '10_14': 0.008, '10_15': 0.0072, '10_16': 0.008, '10_17': 0.0112, '10_18': 0.0208, '10_19': 0.0096, '10_20': 0.006, '10_21': 0.0054, '10_22': 0.006, '10_23': 0.0084, '10_25': 0.0048, '10_26': 0.003, '10_27': 0.0027, '10_28': 0.003, '10_29': 0.0042, '10_31': 0.0064, '10_32': 0.004, '10_33': 0.0036, '10_34': 0.004, '11': 0.3184, '11_1': 0.0315, '11_2': 0.021, '11_3': 0.021, '11_4': 0.0273, '11_5': 0.0336, '11_6': 0.0195, '11_7': 0.013, '11_8': 0.013, '11_9': 0.0169, '11_10': 0.0208, '11_11': 0.0105, '11_12': 0.007, '11_13': 0.007, '11_14': 0.0091, '11_15': 0.0112, '11_16': 0.0075, '11_17': 0.005, '11_18': 0.005, '11_19': 0.0065, '11_20': 0.008, '11_21': 0.0075, '11_22': 0.005, '11_23': 0.005, '11_24': 0.0065, '12': 0.199, '12_1': 0.0285, '12_2': 0.0152, '12_3': 0.0152, '12_4': 0.0171, '12_6': 0.012, '12_7': 0.0064, '12_8': 0.0064, '12_9': 0.0072, '12_10': 0.012, '12_11': 0.009, '12_12': 0.0048, '12_13': 0.0048, '12_14': 0.0054, '12_15': 0.009, '12_16': 0.006, '12_17': 0.0032, '12_18': 0.0032, '12_19': 0.0036, '12_20': 0.006, '12_21': 0.009, '12_22': 0.0048, '12_23': 0.0048, '12_24': 0.0054, '13': 0.4288, '13_1': 0.0442, '13_2': 0.0312, '13_3': 0.026, '13_4': 0.0364, '13_5': 0.0832, '13_6': 0.0187, '13_7': 0.0132, '13_8': 0.011, '13_9': 0.0154, '13_10': 0.0352, '13_11': 0.0102, '13_12': 0.0072, '13_13': 0.006, '13_14': 0.0084, '13_15': 0.0192, '13_16': 0.0085, '13_17': 0.006, '13_18': 0.005, '13_19': 0.007, '13_21': 0.0068, '13_22': 0.0048, '13_23': 0.004, '13_24': 0.0056, '13_26': 0.0068, '13_27': 0.0048, '13_28': 0.004, '14': 0.4026, '14_1': 0.0336, '14_2': 0.021, '14_3': 0.0189, '14_4': 0.021, '14_5': 0.0294, '14_6': 0.0546, '14_7': 0.0176, '14_8': 0.011, '14_9': 0.0099, '14_10': 0.011, '14_11': 0.0154, '14_12': 0.0286, '14_13': 0.0112, '14_14': 0.007, '14_15': 0.0063, '14_16': 0.007, '14_17': 0.0098, '14_18': 0.0182, '14_19': 0.008, '14_20': 0.005, '14_21': 0.0045, '14_22': 0.005, '14_23': 0.007, '14_25': 0.0064, '14_26': 0.004, '14_27': 0.0036, '14_28': 0.004, '14_29': 0.0056, '14_31': 0.0064, '14_32': 0.004, '14_33': 0.0036, '14_34': 0.004, '15': 0.2975, '15_1': 0.0408, '15_2': 0.024, '15_3': 0.024, '15_4': 0.0312, '15_6': 0.0153, '15_7': 0.009, '15_8': 0.009, '15_9': 0.0117, '15_10': 0.0225, '15_11': 0.0136, '15_12': 0.008, '15_13': 0.008, '15_14': 0.0104, '15_15': 0.02, '15_16': 0.0085, '15_17': 0.005, '15_18': 0.005, '15_19': 0.0065, '15_21': 0.0085, '15_22': 0.005, '15_23': 0.005, '15_24': 0.0065, '16': 0.3823, '16_1': 0.0425, '16_2': 0.025, '16_3': 0.025, '16_4': 0.025, '16_5': 0.035, '16_6': 0.06, '16_7': 0.0187, '16_8': 0.011, '16_9': 0.011, '16_10': 0.011, '16_11': 0.0154, '16_12': 0.0264, '16_13': 0.0119, '16_14': 0.007, '16_15': 0.007, '16_16': 0.007, '16_17': 0.0098, '16_19': 0.0068, '16_20': 0.004, '16_21': 0.004, '16_22': 0.004, '16_25': 0.0068, '16_26': 0.004, '16_27': 0.004, '17': 0.313, '17_1': 0.0336, '17_2': 0.0216, '17_3': 0.0216, '17_4': 0.0192, '17_5': 0.024, '17_6': 0.0432, '17_7': 0.014, '17_8': 0.009, '17_9': 0.009, '17_10': 0.008, '17_11': 0.01, '17_12': 0.018, '17_13': 0.0084, '17_14': 0.0054, '17_15': 0.0054, '17_16': 0.0048, '17_17': 0.006, '17_18': 0.0108, '17_19': 0.007, '17_20': 0.0045, '17_21': 0.0045, '17_22': 0.004, '17_23': 0.005, '17_25': 0.0056, '17_26': 0.0036, '17_27': 0.0036, '17_28': 0.0032}
 
 def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t)", Method="rdf", Q2_Y_Bin=1, Multi_Dim_Option="Off"):
@@ -4507,7 +4531,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             
     try:
         if(Allow_Fitting):
-            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated"])
+            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated", Particle_Sector])
             # print(f"""{color.BOLD}Made:
             # Histogram_List_All[{Default_Histo_Name_Integrated}], 
             # Histogram_List_All[{Integrated_Histo_Fit_Function}], 
@@ -6008,7 +6032,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
         # Sector_Bin_Canvas = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", f"CANVAS_{Sector_Type}_Sector_Unfolding"), Num_Columns=4 if(Fit_Test) else 2, Num_Rows=1, Size_X=7800 if(Fit_Test) else 2500, Size_Y=4350 if(Fit_Test) else 2000, cd_Space=0)
         Sector_Bin_Canvas, Pad_Col0, Pad_Col1, Pad_Col2 = {}, {}, {}, {}
         for cor_num, cor in enumerate(Unfolding_Methods):
-            Sector_Bin_Canvas[cor] = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", f"CANVAS_{Sector_Type}_Sector_{cor}_Unfolding"), Num_Columns=3 if(Fit_Test) else 2, Num_Rows=1, Size_X=4*1008, Size_Y=4*576, cd_Space=0)
+            Sector_Bin_Canvas[cor] = Canvas_Create(Name=Default_Histo_Name.replace("Data_Type", f"CANVAS_{Sector_Type}_Sector_{cor}_Unfolding"), Num_Columns=3 if(Fit_Test and (cor not in ["Acceptance"])) else 2, Num_Rows=1, Size_X=4*1008, Size_Y=4*576, cd_Space=0)
             ################################################################################################################################################################################################################################################################################################################################################################################################################
             ##===============##     2D Histos     ##===============## ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
             Pad_Col0[cor] = Sector_Bin_Canvas[cor].cd(1)              ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -6132,7 +6156,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                 else:
                     Pad_Col1_rows[str(sec)].Divide(2, 1, 0)
     
-            if(Fit_Test):
+            if(Fit_Test and (cor not in ["Acceptance"])):
                 # Access and subdivide the second column into 2 rows
                 Pad_Col2[cor] = Sector_Bin_Canvas[cor].cd(3)
                 Pad_Col2[cor].SetPad(0.55,  1.1*Pad_Col2[cor].GetY1(), 1.00, 0.9*Pad_Col2[cor].GetY2())
@@ -6280,6 +6304,10 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR",  str(root_color.Teal))).replace("CORRECTION_NAME", f"Multidimensional ({Multi_Dim_Option}) RooUnfold Bayesian" if(str(Multi_Dim_Option) in ["5D", "3D"]) else "RooUnfold Bayesian"))
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetLineColor(root_color.Teal)
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetMarkerColor(root_color.Teal)
+                elif(cor in ["Acceptance"]):
+                    UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR",  str(root_color.Black))).replace("CORRECTION_NAME", f"Multidimensional ({Multi_Dim_Option}) Acceptance"        if(str(Multi_Dim_Option) in ["5D", "3D"]) else "Acceptance"))
+                    UNFOLD_1D[f"{cor}_{Sectors}"].SetLineColor(root_color.Black)
+                    UNFOLD_1D[f"{cor}_{Sectors}"].SetMarkerColor(root_color.Black)
                 else:
                     UNFOLD_1D[f"{cor}_{Sectors}"].SetTitle(str(Default___Corrected_Titles.replace("ROOT_COLOR",  str(root_color.Pink))).replace("CORRECTION_NAME", f"Unrecognized Correction Input: {cor}"))
                 UNFOLD_1D[f"{cor}_{Sectors}"].SetLineWidth(2)
@@ -6329,6 +6357,8 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                 Draw_Canvas(Pad_Col1_rows[Sectors], 2, 0.15)
                 UNFOLD_1D[f"{cor}_{Sectors}"].Draw("H P E0")
                 UNFOLD_1D[f"{cor}_{Sectors}"].GetYaxis().SetRangeUser(0, Y_axis_range*(UNFOLD_1D[f"{cor}_{Sectors}"].GetBinContent(UNFOLD_1D[f"{cor}_{Sectors}"].GetMaximumBin())))
+                if(cor in ["Acceptance"]):
+                    Acceptance_Cut_Line.Draw("same")
                 configure_stat_box(hist=UNFOLD_1D[f"{cor}_{Sectors}"], show_entries=True, canvas=Pad_Col1_rows[Sectors])
                 statbox_move(Histogram=UNFOLD_1D[f"{cor}_{Sectors}"],  Canvas=Pad_Col1_rows[Sectors], Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
                 draw_annotations(annotations)
@@ -6350,7 +6380,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
             #############################################################################################################################
             ##==========##==========##==========##           Drawing Moments vs Sector Plots       ##==========##==========##==========##
             #############################################################################################################################
-            if(Fit_Test):
+            if(Fit_Test and (cor not in ["Acceptance"])):
                 Cor_Type = str(Default_Histo_Name_In.replace('Data_Type', str(cor)))
                 Unfolding_Type = "Bin-by-Bin" if(cor in ["Bin"]) else "Bayesian"
                 for Parameter_Type in ["B", "C"]:
@@ -9327,10 +9357,17 @@ if(run_SecCut_Unfold and True):
                     # Sector_Ranges = {["All"]+Sector_List}
                     # {color.END}""")
                     try:
+                        # Unfolded_Sector_Dependent_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, 
+                        #                                  Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated",
+                        #                                  Multi_Dim_Option="3D" if(variable in ["MultiDim_z_pT_Bin_Y_bin_phi_t"]) else "Off",
+                        #                                  Sector_Ranges=["All"]+Sector_List,
+                        #                                  Cut_or_Hist="Cut")
                         Unfolded_Sector_Dependent_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, 
                                                          Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated",
                                                          Multi_Dim_Option="3D" if(variable in ["MultiDim_z_pT_Bin_Y_bin_phi_t"]) else "Off",
-                                                         Sector_Ranges=["All"]+Sector_List, Cut_or_Hist="Cut")
+                                                         Sector_Ranges=["All"]+Sector_List,
+                                                         Unfolding_Methods=["Bin", "Bayesian", "Acceptance"], Show_text=True,
+                                                         Cut_or_Hist="Cut")
                         to_be_saved_count += 1
                     except:
                         print(f"""{color.Error}
