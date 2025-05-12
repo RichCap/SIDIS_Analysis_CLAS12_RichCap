@@ -45,7 +45,9 @@ except ImportError:
     #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
 
 
-       
+# if Common_Int_Bins = True, then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins)
+                # if = False, then the code will run normally and include all z-pT bins for the given Q2-y bin
+Common_Int_Bins  = True
 Saving_Q         = True
 Sim_Test         = False
 Mod_Test         = False
@@ -227,7 +229,10 @@ if(len(sys.argv) > 2):
         appended_0 = False
     print(str(("".join(["\nRunning for Q2-xB/Q2-y Bins: ", str(Q2_xB_Bin_List)]).replace("[", "")).replace("]", "")))
     
-    
+
+
+if(Common_Int_Bins):
+    print(f"\n\n{color.BGREEN}Will ONLY be running the z-pT Bins that have been selected as per the 'Commom Integration Region' given by 'Common_Ranges_for_Integrating_z_pT_Bins'{color.END}\n\n")
 
 print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis\n{color.END}")
 
@@ -239,7 +244,7 @@ startHr_full  = datetime_object_full.hour
 startDay_full = datetime_object_full.day
 
 if(datetime_object_full.minute < 10):
-    timeMin_full = "".join(["0", str(datetime_object_full.minute)])
+    timeMin_full = f"0{datetime_object_full.minute}"
 else:
     timeMin_full = str(datetime_object_full.minute)
 
@@ -1836,10 +1841,11 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             else:
                 z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Select)[1]
                 for z_pT in range(0, z_pT_Range+1):
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
                     Name_Out  = str(Name.replace("MultiDim_3D_z_pT_Bin_Info", str(z_pT) if(str(z_pT) not in ["0", "All"]) else "All"))
                     Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
+                    Bin_Title = Bin_Title.replace("Common_Int", "Integrated (Over Common Range)")
                     Title_Out = str(Title.replace("MultiDim_3D_Var_Info", Bin_Title))
                     if(z_pT not in [0]):
                         if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT}", End_Bins_Name="3D_Bins")):
@@ -1849,7 +1855,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                             End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT+1}",     End_Bins_Name="3D_Bins")
                             if(End___phi_h_bin in ["ERROR"]):
                                 End___phi_h_bin = Start_phi_h_bin + phi_h_Binning[2]
-                            if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                            if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=Common_Int_Bins)):
                                 continue
                     else:
                         Name_All                = Name_Out
@@ -2313,7 +2319,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 
         #####==========#####      Multi_Dim Histos       #####==========#####
         #####==========##### (3D) Multi_Dim Histos (Old) #####==========#####
-        if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", "Integrated", -1, 0])):
+        if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", "Integrated", "Common_Int", -2, -1, 0])):
             # Only the Multi_Dim z-pT Plots should be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
             if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
                 ###=============================================###
@@ -2350,7 +2356,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
         #####==========##### (3D) MultiDim Histos (New)  #####==========#####
-        elif(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", -1, 0])):
+        elif(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", "Common_Int", -2, -1, 0])):
             # The MultiDim_z_pT_Bin z-pT Plots should only be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All", "Integrated", -1 or 0
             if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
                 ###=============================================###
@@ -2385,7 +2391,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
         #####==========#####   (5D) MultiDim Histos      #####==========#####
-        elif(("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", -1, 0]) and (Q2_Y_Bin in ["All", 0])):
+        elif(("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", "Common_Int", -2, -1, 0]) and (Q2_Y_Bin in ["All", 0])):
             # The 5D MultiDim Histograms should only be able to run if Q2_Y_Bin and Z_PT_Bin are equal to "All", "Integrated", -1 or 0 (all kinematic binning is done through these slices)
             ###=============================================###
             ###========###   Before Unfolding    ###========###
@@ -2620,6 +2626,7 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
     pipPhi_Histo_mdf_Initial = Histogram_List_All_Input[str(pipPhi_Histo_mdf_Initial_Name)]
     
     Bin_Title     = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events" if(str(Q2_Y_Bin_Input) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin_Input), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(Z_PT_Bin_Input) if(str(Z_PT_Bin_Input) not in ["All", "0"]) else "All"]), "}}}"])
+    Bin_Title     = Bin_Title.replace("Common_Int", "Integrated (Over Common Range)")
     if(Standard_Histogram_Title_Addition not in [""]):
         Bin_Title = "".join(["#splitline{", str(Bin_Title), "}{", str(Standard_Histogram_Title_Addition), "}"])
     
@@ -3940,6 +3947,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     else:
         fit_function_title = ""
     Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(Z_PT_Bin) if(str(Z_PT_Bin) not in ["0"]) else "All", "}"]), "}}"])
+    Bin_Title = Bin_Title.replace("Common_Int", "Integrated (Over Common Range)")
     if(Standard_Histogram_Title_Addition not in [""]):
         Bin_Title = "".join(["#splitline{", str(Bin_Title), "}{", str(Standard_Histogram_Title_Addition), "}"])
     Sector_Title, Sector__Save = "", ""
@@ -4488,59 +4496,74 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
         Variable_Title = f"{Variable_Title} (Smeared)"
             
     z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
-    for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+    for Bin_Type in ["Integrated", "Common_Int"]:
+        if(Common_Int_Bins and (Bin_Type not in ["Common_Int"])):
+            print(f"{color.RED}Not Running Full z-pT Intergration (i.e., select region only){color.END}")
             continue
-        Default_Histo_Name_z_pT_Bin = str(str(Default_Histo_Name_Integrated.replace("z_pT_Bin_All", "".join(["z_pT_Bin_", str(z_pT_Bin)]))).replace("z_pT_Bin_Integrated", "".join(["z_pT_Bin_", str(z_pT_Bin)])))
-        
-        try:
-            if("1D" in str(type(Histogram_List_All[Default_Histo_Name_Integrated]))):
-                # Histogram_List_All[str(Default_Histo_Name_Integrated)] Already Exists...
-                hist_clone = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone()
-                # hist_clone.Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
-                Histogram_List_All[Default_Histo_Name_Integrated].Add(hist_clone)
-                hist_clone = None  # Explicitly drop the reference, allowing Python to clean up
-            else:
-                raise TypeError(f"{Default_Histo_Name_Integrated} is NOT a 1D histogram")
-        except KeyError:
-            # print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}] from the initial z-pT Bin (Bin {z_pT_Bin})...{color.END}")
-            print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}]...{color.END}")
-            Histogram_List_All[Default_Histo_Name_Integrated] = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone(Default_Histo_Name_Integrated)
-            Bin_Title_Integrated_z_pT_Bins = str(Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()).replace("z-P_{T} Bin: 1}", "z-P_{T} Bin: Integrated}")
-            Histogram_List_All[Default_Histo_Name_Integrated].SetTitle(f"{Bin_Title_Integrated_z_pT_Bins};{Variable_Title}")
-            # print(f"Final Title   = {Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()}")
-            # Histogram_List_All[Default_Histo_Name_Integrated].Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
-            ##################################################################### ################################################################
-            #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineStyle(1)
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1)
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(2)
-            # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1 if(str(Method) not in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else 1.5)
-            # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(3  if(str(Method)     in ["gdf", "Background", "Relative_Background", "tdf"]) else 2)
-            Set_Color       = root_color.Blue if(str(Method) in ["rdf", "Acceptance"]) else root_color.Red if(str(Method) in ["mdf"])                                             else root_color.Green if(str(Method) in ["gdf"]) else root_color.Black if(str(Method) in ["Background", "Relative_Background"]) else root_color.Cyan  if(str(Method) in ["tdf"]) else root_color.Brown if(str(Method) in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else root_color.Teal  if(str(Method) in ["Bayesian", "Bayes"]) else root_color.Pink  if(str(Method) in ["SVD"]) else "ERROR"
-            Set_MarkerStyle = 21              if(str(Method) in ["mdf"])               else 20             if(str(Method) in ["gdf", "tdf", "Background", "Relative_Background"]) else 21
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineColor(Set_Color)
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerColor(Set_Color)
-            Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerStyle(Set_MarkerStyle)
-            #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
-            ##################################################################### ################################################################
-        except Exception as e:
-            # Re-raise any other unexpected exceptions
-            print(f"Unexpected error occurred: {e}")
-            raise
-            
-    try:
+        Default_Histo_Name_Integrated     = str(str(Default_Histo_Name_Integrated.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
         if(Allow_Fitting):
-            Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated", Particle_Sector])
-            # print(f"""{color.BOLD}Made:
-            # Histogram_List_All[{Default_Histo_Name_Integrated}], 
-            # Histogram_List_All[{Integrated_Histo_Fit_Function}], 
-            # Histogram_List_All[{Integrated_Histo__Chi_Squared}], 
-            # Histogram_List_All[{Integrated_Histo____Fit_Par_A}], 
-            # Histogram_List_All[{Integrated_Histo____Fit_Par_B}], 
-            # Histogram_List_All[{Integrated_Histo____Fit_Par_C}]{color.END}\n\n""")
-    except Exception as e:
-        print(f"{color.Error}ERROR IN 'Integrated z-pT Bins' METHOD = '{str(Method)}':\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+            Integrated_Histo_Fit_Function = str(str(Integrated_Histo_Fit_Function.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
+            Integrated_Histo__Chi_Squared = str(str(Integrated_Histo__Chi_Squared.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
+            Integrated_Histo____Fit_Par_A = str(str(Integrated_Histo____Fit_Par_A.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
+            Integrated_Histo____Fit_Par_B = str(str(Integrated_Histo____Fit_Par_B.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
+            Integrated_Histo____Fit_Par_C = str(str(Integrated_Histo____Fit_Par_C.replace("z_pT_Bin_All", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Integrated", f"z_pT_Bin_{Bin_Type}")).replace("z_pT_Bin_Common_Int", f"z_pT_Bin_{Bin_Type}")
+        
+        for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=((Bin_Type in ["Common_Int"]) or Common_Int_Bins))):
+                continue
+            Default_Histo_Name_z_pT_Bin = str(Default_Histo_Name_Integrated.replace(f"z_pT_Bin_{Bin_Type}", f"z_pT_Bin_{z_pT_Bin}"))
+            
+            try:
+                if("1D" in str(type(Histogram_List_All[Default_Histo_Name_Integrated]))):
+                    # Histogram_List_All[str(Default_Histo_Name_Integrated)] Already Exists...
+                    hist_clone = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone()
+                    # hist_clone.Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+                    Histogram_List_All[Default_Histo_Name_Integrated].Add(hist_clone)
+                    hist_clone = None  # Explicitly drop the reference, allowing Python to clean up
+                else:
+                    raise TypeError(f"{Default_Histo_Name_Integrated} is NOT a 1D histogram")
+            except KeyError:
+                # print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}] from the initial z-pT Bin (Bin {z_pT_Bin})...{color.END}")
+                print(f"{color.BOLD}Making Histogram_List_All[{color.UNDERLINE}{Default_Histo_Name_Integrated}{color.END_B}]...{color.END}")
+                Histogram_List_All[Default_Histo_Name_Integrated] = Histogram_List_All[Default_Histo_Name_z_pT_Bin].Clone(Default_Histo_Name_Integrated)
+                if(Bin_Type in ["Common_Int"]):
+                    Bin_Title_Integrated_z_pT_Bins = str(Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()).replace("z-P_{T} Bin: 1}", "z-P_{T} Bin: Integrated (Over Common Range)}")
+                else:
+                    Bin_Title_Integrated_z_pT_Bins = str(Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()).replace("z-P_{T} Bin: 1}", "z-P_{T} Bin: Integrated}")
+                Bin_Title_Integrated_z_pT_Bins 
+                Histogram_List_All[Default_Histo_Name_Integrated].SetTitle(f"{Bin_Title_Integrated_z_pT_Bins};{Variable_Title}")
+                # print(f"Final Title   = {Histogram_List_All[Default_Histo_Name_Integrated].GetTitle()}")
+                # Histogram_List_All[Default_Histo_Name_Integrated].Scale(Area_of_z_pT_Bins[f"{Q2_Y_Bin}_{z_pT_Bin}"]/Area_of_z_pT_Bins[f"{Q2_Y_Bin}"])
+                ##################################################################### ################################################################
+                #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineStyle(1)
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1)
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(2)
+                # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerSize(1 if(str(Method) not in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else 1.5)
+                # Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineWidth(3  if(str(Method)     in ["gdf", "Background", "Relative_Background", "tdf"]) else 2)
+                Set_Color       = root_color.Blue if(str(Method) in ["rdf", "Acceptance"]) else root_color.Red if(str(Method) in ["mdf"])                                             else root_color.Green if(str(Method) in ["gdf"]) else root_color.Black if(str(Method) in ["Background", "Relative_Background"]) else root_color.Cyan  if(str(Method) in ["tdf"]) else root_color.Brown if(str(Method) in ["Bin", "bbb", "bin", "Bin-by-Bin", "Bin-By-Bin", "Bin-by-bin", "bin-by-bin"]) else root_color.Teal  if(str(Method) in ["Bayesian", "Bayes"]) else root_color.Pink  if(str(Method) in ["SVD"]) else "ERROR"
+                Set_MarkerStyle = 21              if(str(Method) in ["mdf"])               else 20             if(str(Method) in ["gdf", "tdf", "Background", "Relative_Background"]) else 21
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetLineColor(Set_Color)
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerColor(Set_Color)
+                Histogram_List_All[str(Default_Histo_Name_Integrated)].SetMarkerStyle(Set_MarkerStyle)
+                #####==========#####  Setting Histogram Colors   #####==========##### ################################################################
+                ##################################################################### ################################################################
+            except Exception as e:
+                # Re-raise any other unexpected exceptions
+                print(f"Unexpected error occurred: {e}")
+                raise
+        try:
+            if(Allow_Fitting):
+                Histogram_List_All[str(Default_Histo_Name_Integrated)], Histogram_List_All[str(Integrated_Histo_Fit_Function)], Histogram_List_All[str(Integrated_Histo__Chi_Squared)], Histogram_List_All[str(Integrated_Histo____Fit_Par_A)], Histogram_List_All[str(Integrated_Histo____Fit_Par_B)], Histogram_List_All[str(Integrated_Histo____Fit_Par_C)] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_Integrated)], Method=Method, Special=[int(Q2_Y_Bin), "Integrated", Particle_Sector])
+                # print(f"""{color.BOLD}Made:
+                # Histogram_List_All[{Default_Histo_Name_Integrated}], 
+                # Histogram_List_All[{Integrated_Histo_Fit_Function}], 
+                # Histogram_List_All[{Integrated_Histo__Chi_Squared}], 
+                # Histogram_List_All[{Integrated_Histo____Fit_Par_A}], 
+                # Histogram_List_All[{Integrated_Histo____Fit_Par_B}], 
+                # Histogram_List_All[{Integrated_Histo____Fit_Par_C}]{color.END}\n\n""")
+        except Exception as e:
+            print(f"{color.Error}ERROR IN 'Integrated z-pT Bins' METHOD = '{str(Method)}':\n{color.END_R}{str(traceback.format_exc())}{color.END}")
     
     return Histogram_List_All
     
@@ -5390,10 +5413,10 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
         # if("Y_bin" not in Binning_Method):
         #     if(((Q2_Y_Bin in [1]) and (z_pT_Bin in [28, 34, 35])) or ((Q2_Y_Bin in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or (Q2_Y_Bin in [3] and z_pT_Bin in [28, 35]) or (Q2_Y_Bin in [4] and z_pT_Bin in [6, 36]) or (Q2_Y_Bin in [5] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [6] and z_pT_Bin in [30]) or (Q2_Y_Bin in [7] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [9] and z_pT_Bin in [36]) or (Q2_Y_Bin in [10] and z_pT_Bin in [30, 36]) or (Q2_Y_Bin in [11] and z_pT_Bin in [24, 30]) or (Q2_Y_Bin in [13, 14] and z_pT_Bin in [25]) or (Q2_Y_Bin in [15, 16, 17] and z_pT_Bin in [20])):
         #         continue
-        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
             continue
         
-        Bin_Title_z_pT_Bin              = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(str(z_pT_Bin) not in ["0"]) else "All"]), "}}}"])
+        Bin_Title_z_pT_Bin              = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin) if(str(z_pT_Bin) not in ["0", "-1", "-2"]) else "All" if(str(z_pT_Bin) in ["0"]) else f"Integrated{'' if(str(z_pT_Bin) in ['-1']) else ' (Over Common Range)'}"]), "}}}"])
         Default_Histo_Name_z_pT_Bin     = str(Default_Histo_Name.replace("z_pT_Bin_All",     "".join(["z_pT_Bin_", str(z_pT_Bin)])))
         if((Multi_Dim_Option   not in ["Off"]) and ("Response" not in str(Method))):
             if(Multi_Dim_Option    in ["5D"]):
@@ -6025,7 +6048,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     fit_function_title = "".join(["#splitline{Fitted Multidimensionally with: A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}) + D Cos(3#phi_{h}))}{", "Q^{2}-y-#phi_{h} Unfolding" if((Multi_Dim_Option in ["Q2_y"]) or ((str(Z_PT_Bin) in ["All", "0"]) and (Multi_Dim_Option not in ["z_pT"]))) else "z-P_{T}-#phi_{h} Unfolding", "}"])
         else:
             fit_function_title = ""
-        Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(Z_PT_Bin) if(str(Z_PT_Bin) not in ["-1", "0"]) else "All" if(str(Z_PT_Bin) not in ["-1"]) else "Integrated", "}"]), "}}"])
+        Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{", "All Binned Events}" if(str(Q2_Y_Bin) in ["All", "0"]) else "".join(["Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(Z_PT_Bin) if(str(Z_PT_Bin) not in ["-2", "-1", "0", "Common_Int"]) else "All" if(str(Z_PT_Bin) in ["0"]) else "Integrated" if(str(Z_PT_Bin) in ["-1"]) else "Integrated (Over Common Range)", "}"]), "}}"])
         if(Standard_Histogram_Title_Addition not in [""]):
             Bin_Title = f"#splitline{{{Bin_Title}}}{{{Standard_Histogram_Title_Addition}}}"
             
@@ -6046,7 +6069,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
             ######################################################### ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
             ##===============##     3D Slices     ##===============## ############ ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
                 if("3D" in str(type(Q2_y_Histo_rdf_Initial))):
-                    if(str(Z_PT_Bin) in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         bin_Histo_2D_0, bin_Histo_2D_1 = Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(1), Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Q2_y_Histo_rdf_Initial.GetNbinsX())
                     else:
                         bin_Histo_2D_0, bin_Histo_2D_1 = Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin), Q2_y_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin)
@@ -6056,7 +6079,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Drawing_Histo_Set[Q2_y_Name].SetName(Q2_y_Name)
                     Drawing_Histo_Title = (str(Drawing_Histo_Set[Q2_y_Name].GetTitle()).replace("yz projection", "")).replace(f"Q^{{2}}-y Bin: {Q2_Y_Bin}", "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: All}}}"]))
                     Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
-                    if(str(Z_PT_Bin) not in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) not in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         Drawing_Histo_Title = Drawing_Histo_Title.replace("z-P_{T} Bin: All", f"z-P_{{T}} Bin: {Z_PT_Bin}")
                     Drawing_Histo_Set[Q2_y_Name].SetTitle(Drawing_Histo_Title)
                 else:
@@ -6064,7 +6087,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Drawing_Histo_Set[Q2_y_Name] = Q2_y_Histo_rdf_Initial
                     print("Using Q2_y_Histo_rdf_Initial =", str(Q2_y_Histo_rdf_Initial))
                 if("3D" in str(type(Q2xB_Histo_rdf_Initial))):
-                    if(str(Z_PT_Bin) in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         bin_Histo_2D_0, bin_Histo_2D_1 = Q2xB_Histo_rdf_Initial.GetXaxis().FindBin(1), Q2xB_Histo_rdf_Initial.GetXaxis().FindBin(Q2xB_Histo_rdf_Initial.GetNbinsX())
                     else:
                         bin_Histo_2D_0, bin_Histo_2D_1 = Q2xB_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin), Q2xB_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin)
@@ -6074,7 +6097,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Drawing_Histo_Set[Q2xB_Name].SetName(Q2xB_Name)
                     Drawing_Histo_Title = (str(Drawing_Histo_Set[Q2xB_Name].GetTitle()).replace("yz projection", "")).replace(f"Q^{{2}}-y Bin: {Q2_Y_Bin}", "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: All}}}"]))
                     Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
-                    if(str(Z_PT_Bin) not in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) not in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         Drawing_Histo_Title = Drawing_Histo_Title.replace("z-P_{T} Bin: All", f"z-P_{{T}} Bin: {Z_PT_Bin}")
                     Drawing_Histo_Set[Q2xB_Name].SetTitle(Drawing_Histo_Title)
                 else:
@@ -6082,7 +6105,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Drawing_Histo_Set[Q2xB_Name] = Q2xB_Histo_rdf_Initial
                     print("Using Q2xB_Histo_rdf_Initial =", str(Q2xB_Histo_rdf_Initial))
                 if("3D" in str(type(z_pT_Histo_rdf_Initial))):
-                    if(str(Z_PT_Bin) in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         bin_Histo_2D_0, bin_Histo_2D_1 = z_pT_Histo_rdf_Initial.GetXaxis().FindBin(1), z_pT_Histo_rdf_Initial.GetXaxis().FindBin(z_pT_Histo_rdf_Initial.GetNbinsX())
                     else:
                         bin_Histo_2D_0, bin_Histo_2D_1 = z_pT_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin), z_pT_Histo_rdf_Initial.GetXaxis().FindBin(Z_PT_Bin)
@@ -6092,7 +6115,7 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     Drawing_Histo_Set[z_pT_Name].SetName(z_pT_Name)
                     Drawing_Histo_Title = (str(Drawing_Histo_Set[z_pT_Name].GetTitle()).replace("yz projection", "")).replace(f"Q^{{2}}-y Bin: {Q2_Y_Bin}", "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_Y_Bin), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: All}}}"]))
                     Drawing_Histo_Title = str(Drawing_Histo_Title).replace("Cut: Complete Set of SIDIS Cuts", "")
-                    if(str(Z_PT_Bin) not in ["All", "Integrated", "0", "-1"]):
+                    if(str(Z_PT_Bin) not in ["All", "Integrated", "Common_Int", "0", "-1", "-2"]):
                         Drawing_Histo_Title = Drawing_Histo_Title.replace("z-P_{T} Bin: All", f"z-P_{{T}} Bin: {Z_PT_Bin}")
                     Drawing_Histo_Set[z_pT_Name].SetTitle(Drawing_Histo_Title)
                 else:
@@ -6438,12 +6461,12 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                     if("p" in Sector_Type):
                         graph[key].SetTitle(
                             f"#splitline{{#splitline{{Plot of {Parameter_Type_Title} vs #pi^{{+}} Sectors}}"
-                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
+                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{str(Z_PT_Bin).replace('Common_Int', 'Integrated (Over Common Range)')}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
                             f" Pion Sector; {Parameter_Type_Title}")
                     else:
                         graph[key].SetTitle(
                             f"#splitline{{#splitline{{Plot of {Parameter_Type_Title} vs Electron Sectors}}"
-                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{Z_PT_Bin}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
+                            f"{{Q^{{2}}-y-z-P_{{T}} Bin: {Q2_Y_Bin}-{str(Z_PT_Bin).replace('Common_Int', 'Integrated (Over Common Range)')}}}}}{{Correction Method: #color[{root_color.Brown if(cor in ['Bin']) else root_color.Teal}]{{{f'{Multi_Dim_Option} ' if(Multi_Dim_Option in ['5D', '3D']) else ''}{Unfolding_Type}}}}};"
                             f" Electron Sector; {Parameter_Type_Title}")
                     graph[key].SetMarkerStyle(21)
                     graph[key].SetMarkerColor(root_color.Brown if(cor in ['Bin']) else root_color.Teal)
@@ -6708,7 +6731,7 @@ def Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input, Default_Histo_N
                 bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(1), Drawing_Histo_Found.GetXaxis().FindBin(Drawing_Histo_Found.GetNbinsX())
                 Drawing_Histo_Found.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
             else:
-                bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0", "Integrated"]) else 1), Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0"]) else Drawing_Histo_Found.GetNbinsX())
+                bin_Histo_2D_0, bin_Histo_2D_1 = Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0", "Integrated", "-1", "Common_Int", "-2"]) else 1), Drawing_Histo_Found.GetXaxis().FindBin(Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0", "Integrated", "-1", "Common_Int", "-2"]) else Drawing_Histo_Found.GetNbinsX())
                 if(str(Z_PT_Bin_Input) not in ["All", "0"]):
                     Drawing_Histo_Found.GetXaxis().SetRange(bin_Histo_2D_0, bin_Histo_2D_1)
             New_Name = str(Drawing_Histo_Name).replace("z_pT_Bin_All", "".join(["z_pT_Bin_", "All_1D"  if(str(Z_PT_Bin_Input)     in ["All", "0"]) else str(Z_PT_Bin_Input)]))
@@ -6825,7 +6848,7 @@ def Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input, Default_Histo_N
                             z_pT_borders[pTline].DrawLine(pTline, Min_z, pTline, Max_z)
                 else:
                     Drawing_Histo_Set[Drawing_Histo].GetXaxis().SetRangeUser(0, 1.2)
-                    Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=Q2_Y_Bin_Input, Set_Max_Y=1.2, Set_Max_X=1.2, Select_z_pT_bin=Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0", "Integrated"]) else None)
+                    Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=Q2_Y_Bin_Input, Set_Max_Y=1.2, Set_Max_X=1.2, Select_z_pT_bin=Z_PT_Bin_Input if(str(Z_PT_Bin_Input) not in ["All", "0", "Integrated", "-1", "Common_Int", "-2"]) else None)
             # -------------------------------------------------------------
             # 5.2.1) Drawing Missing Mass Cuts on z vs pT plot
             # -------------------------------------------------------------
@@ -7633,7 +7656,7 @@ for ii in mdf.GetListOfKeys():
                 
             z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
             for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
-                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method)):
+                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                     continue
                 for Sector in Sector_List:
                     if(Smear_Found):
@@ -9136,7 +9159,7 @@ Multi_Dimensional_List = ["Off", "Only", "3D", "5D"]
 Multi_Dimensional_List = ["Off", "3D", "5D"]
 
 Multi_Dimensional_List = ["Off"]
-# Multi_Dimensional_List = ["Off", "3D"]
+Multi_Dimensional_List = ["Off", "3D"]
 # if(not (Tag_ProQ or Cut_ProQ)):
 Multi_Dimensional_List = ["3D"]
 
@@ -9161,7 +9184,7 @@ if(("MultiDim_z_pT_Bin_Y_bin_phi_t"  in Variable_List_Final) and ("3D"   not in 
     Variable_List_Final.remove("MultiDim_z_pT_Bin_Y_bin_phi_t")
 
 
-print("")
+print(f"\n{color.BOLD}About to run 'Integrate_z_pT_Bins(...)' to get the Integrated z-pT bin plots...{color.END}")
 for variable in Variable_List:
     # if((variable not in ["phi_t", "MM"]) or ("sec" in variable)):
     #     continue
@@ -9192,12 +9215,14 @@ for variable in Variable_List:
                             if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold"])):
                                 continue
                             if(method in ["Data"]):
-                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                # List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="mdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                 final_count += 2
+                                if("mdf" not in Method_Type_List):
+                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="mdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    final_count += 1
                             else:
-                                List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                 final_count += 1
 
 print("\n(Extra) Final Count =", final_count, "\n")
@@ -9208,6 +9233,7 @@ to_be_saved_count = 0
 
 # Individual (Manual) Run(s) of specific histograms
 if(not True): # Run from list
+    print(f"{color.BOLD}Running Individual (Manual) Images using 'Draw_Histogram_With_Kinematic_Bins'...{color.END}")
     for method in Method_Type_List:
         if(method not in ["rdf", "mdf", "gdf", "Bin", "Bayesian", "Acceptance", "bbb"]):
             continue
@@ -9239,6 +9265,7 @@ if(not True): # Run from list
 
 if(not True): # Run selected plot manually
     # Can control Q2_xB_Bin_List and Smearing_final_list from commandline
+    print(f"{color.BOLD}Running Individual (Manual) Images using 'Draw_Histogram_With_Kinematic_Bins'...{color.END}")
     for BIN in Q2_xB_Bin_List:
         if(str(BIN) in ['0', 'All']):
             continue
@@ -9262,24 +9289,29 @@ if(not True): # Run selected plot manually
             # canvas_manual = Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input=List_of_All_Histos_For_Unfolding, Default_Histo_Name_Input=HISTO_NAME, Data_Type=method, Smear=smear, Variable1=variable1, Variable2=variable2, Q2_Y_Bin_Input=BIN_NUM, Z_PT_Bin_Input=z_PT_BIN_NUM)
 
             variable1 = "MultiDim_z_pT_Bin_Y_bin_phi_t" # if(not (Tag_ProQ or Cut_ProQ)) else "phi_t"
+            variable1 = "phi_t"
             variable2 = ""
-            z_pT_Bin_Range = range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[1] + 1, 1)
-            for Cut_Select in ["(Integrate)_", "(Integrate_eS1o)_", "(Integrate_eS2o)_", "(Integrate_eS3o)_", "(Integrate_eS4o)_", "(Integrate_eS5o)_", "(Integrate_eS6o)_"]:
-                method     = "Acceptance"
+            z_pT_Bin_Range = range(-2, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[1] + 1, 1)
+            # for Cut_Select in ["(Integrate)_", "(Integrate_eS1o)_", "(Integrate_eS2o)_", "(Integrate_eS3o)_", "(Integrate_eS4o)_", "(Integrate_eS5o)_", "(Integrate_eS6o)_"]:
+            for Cut_Select in ["(Integrate)_"]:
+                # method     = "Acceptance"
+                method     = "mdf"
                 if(not (Tag_ProQ or Cut_ProQ)):
                     HISTO_NAME = f"(MultiDim_3D_Histo)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
                 else:
                     if(Cut_ProQ):
                         Cut_Select = Cut_Select.replace("(Integrate", "(Proton_Integrate")
-                    # HISTO_NAME = f"(1D)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
+                    # HISTO_NAME =                f"(1D)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
                     HISTO_NAME = f"(MultiDim_3D_Histo)_(Data_Type)_{Cut_Select}(SMEAR=SMEAR_OPTION)_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_(VARIABLE)"
+                if("MultiDim" not in variable1):
+                    HISTO_NAME = HISTO_NAME.replace("(MultiDim_3D_Histo)", "(1D)")
                 if("_eS" in Cut_Select):
                     continue
                 for z_PT_BIN_NUM in z_pT_Bin_Range:
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_PT_BIN_NUM, BINNING_METHOD=Binning_Method)):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_PT_BIN_NUM, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
                     if(z_PT_BIN_NUM < 1):
-                        z_PT_BIN_NUM = "All" if(z_PT_BIN_NUM == 0) else "Integrated" if(z_PT_BIN_NUM == -1) else z_PT_BIN_NUM
+                        z_PT_BIN_NUM = "All" if(z_PT_BIN_NUM == 0) else "Integrated" if(z_PT_BIN_NUM == -1) else "Common_Int" if(z_PT_BIN_NUM == -2) else z_PT_BIN_NUM
                     canvas_manual = Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input=List_of_All_Histos_For_Unfolding, Default_Histo_Name_Input=HISTO_NAME, Data_Type=method, Smear=smear, Variable1=variable1, Variable2=variable2, Q2_Y_Bin_Input=BIN_NUM, Z_PT_Bin_Input=z_PT_BIN_NUM)
                     to_be_saved_count += 1
                 # z_PT_BIN_NUM  = "All"
@@ -9293,6 +9325,7 @@ if(not True): # Run selected plot manually
 
 
 if(run_Sec_Unfold and True):
+    print(f"{color.BOLD}Running Sector (Histo) Unfolded Images using 'Unfolded_Sector_Dependent_Images'...{color.END}")
     Variable_List = []
     for smear in Smearing_final_list:
         for Cut_Option in Cut_Options_List:
@@ -9304,12 +9337,12 @@ if(run_Sec_Unfold and True):
                     HISTO_NAME = f"(1D)_(Data_Type)_(Proton_Integrate)_(SMEAR={smear})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_All)_(esec_SECTOR)_(phi_t)"
                 if(Cut_Option not in ["", "Cut"]):
                     HISTO_NAME = HISTO_NAME.replace("(Data_Type)_(SMEAR", f"(Data_Type)_({Cut_Option})_(SMEAR")
-                z__pT__Range = range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1, 1)
+                z__pT__Range = range(-2, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1, 1)
                 # z__pT__Range = [-1, 1]
                 for z_pT_Bin in z__pT__Range:
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
-                    if(z_pT_Bin in [1000]):
+                    if(z_pT_Bin in [0]):
                         print(f"{color.RED}Manual skip of z_pT_Bin = {z_pT_Bin} for Unfolded_Sector_Dependent_Images(...){color.END}")
                         continue
                     # print(f"""\n{color.BOLD}
@@ -9321,32 +9354,35 @@ if(run_Sec_Unfold and True):
                     # {color.END}""")
                     try:
                         Unfolded_Sector_Dependent_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,
-                                                         Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated",
+                                                         Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int",
                                                          Multi_Dim_Option="Off", Sector_Ranges=["All"]+Sector_List)
                         to_be_saved_count += 1
                     except:
                         print(f"""{color.Error}
                         Error in Unfolded_Sector_Dependent_Images(...) with Inputs:{color.END_B}
                         HISTO_NAME           = {HISTO_NAME}
-                        (Q2_Y_Bin, Z_PT_Bin) = ({Q2_y_BIN_NUM}, {z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated"}){color.END}""")
+                        (Q2_Y_Bin, Z_PT_Bin) = ({Q2_y_BIN_NUM}, {z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}){color.END}""")
                         print(f"""                        Traceback:\n{traceback.format_exc()}\n""")
 
 if(run_SecCut_Unfold and True):
+    print(f"{color.BOLD}Running Sector (Cut) Unfolded Images using 'Unfolded_Sector_Dependent_Images'...{color.END}")
     Variable_List = []
     for smear in Smearing_final_list:
         for variable in Variable_List_Final:
             for Q2_y_BIN in Q2_xB_Bin_List:
                 Q2_y_BIN_NUM = int(Q2_y_BIN) if(str(Q2_y_BIN) not in ["0"]) else "All"
+                if(Q2_y_BIN_NUM in ["0", "All"]):
+                    continue
                 HISTO_NAME = f"(1D)_(Data_Type)_(Integrate_eS_SECTORo)_(SMEAR={smear})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_All)_({variable})"
                 if(Cut_ProQ):
                     HISTO_NAME = f"(1D)_(Data_Type)_(Proton_Integrate_eS_SECTORo)_(SMEAR={smear})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_All)_({variable})"
                 # z__pT__Range = [-1, 0]
                 # z__pT__Range = [0]
-                z__pT__Range = range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1, 1)
+                z__pT__Range = range(-2, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1, 1)
                 for z_pT_Bin in z__pT__Range:
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
-                    if(z_pT_Bin in [1000]):
+                    if(z_pT_Bin in [0]):
                         print(f"{color.RED}Manual skip of z_pT_Bin = {z_pT_Bin} for Unfolded_Sector_Dependent_Images(...){color.END}")
                         continue
                     # print(f"""\n{color.BOLD}
@@ -9363,7 +9399,7 @@ if(run_SecCut_Unfold and True):
                         #                                  Sector_Ranges=["All"]+Sector_List,
                         #                                  Cut_or_Hist="Cut")
                         Unfolded_Sector_Dependent_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, 
-                                                         Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated",
+                                                         Q2_Y_Bin=Q2_y_BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int",
                                                          Multi_Dim_Option="3D" if(variable in ["MultiDim_z_pT_Bin_Y_bin_phi_t"]) else "Off",
                                                          Sector_Ranges=["All"]+Sector_List,
                                                          Unfolding_Methods=["Bin", "Bayesian", "Acceptance"], Show_text=True,
@@ -9373,7 +9409,7 @@ if(run_SecCut_Unfold and True):
                         print(f"""{color.Error}
                         Error in Unfolded_Sector_Dependent_Images(...) with Inputs:{color.END_B}
                         HISTO_NAME           = {HISTO_NAME}
-                        (Q2_Y_Bin, Z_PT_Bin) = ({Q2_y_BIN_NUM}, {z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated"}){color.END}""")
+                        (Q2_Y_Bin, Z_PT_Bin) = ({Q2_y_BIN_NUM}, {z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}){color.END}""")
                         print(f"""                        Traceback:\n{traceback.format_exc()}\n""")
 
 
@@ -9390,7 +9426,7 @@ for variable in Variable_List:
         z_pT_Bin_Range = 0
         print(f"{color.Error}Setting z_pT_Bin_Range = 0 (just doing 'Integrated' and 'All' z-pT bins - must reset later){color.END}")
         for smear in Smearing_final_list:
-            HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+            HISTO_NAME = f"(1D)_(Data_Type)_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_All)_({variable})"
             for Multi_Dim in Multi_Dimensional_List:
                 if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
                     continue
@@ -9443,8 +9479,8 @@ for variable in Variable_List:
                 if(variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi", "MM"]):
                     continue
                 # continue # This is to skip everything that isn't the z_pT_Images_Together() images
-                for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                for z_pT_Bin in range(-2, z_pT_Bin_Range + 1, 1):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
                     # if("Y_bin" not in Binning_Method):
                     #     if(((BIN_NUM in [1]) and (z_pT_Bin in [28, 34, 35])) or ((BIN_NUM in [2]) and (z_pT_Bin in [28, 35, 41, 42])) or ((BIN_NUM in [3]) and (z_pT_Bin in [28, 35])) or ((BIN_NUM in [4]) and (z_pT_Bin in [6, 36])) or ((BIN_NUM in [5]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [6]) and (z_pT_Bin in [30])) or ((BIN_NUM in [7]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [9]) and (z_pT_Bin in [36])) or ((BIN_NUM in [10]) and (z_pT_Bin in [30, 36])) or ((BIN_NUM in [11]) and (z_pT_Bin in [24, 30])) or ((BIN_NUM in [13, 14]) and (z_pT_Bin in [25])) or ((BIN_NUM in [15, 16, 17]) and (z_pT_Bin in [20]))):
@@ -9470,7 +9506,7 @@ for variable in Variable_List:
                         # if(z_pT_Bin not in [0]):
                         if((z_pT_Bin not in [0]) and ("sec" not in variable)):
                             try:
-                                String_For_Output_txt  = Large_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim, String_Input=String_For_Output_txt)
+                                String_For_Output_txt  = Large_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int", Multi_Dim_Option=Multi_Dim, String_Input=String_For_Output_txt)
                                 if(str(Multi_Dim) in ["Off"]):
                                     to_be_saved_count += 2
                                 else:
@@ -9480,7 +9516,7 @@ for variable in Variable_List:
                         # if(str(variable) in ["phi_t"]):
                         if("phi_t" in str(variable)):
                             try:
-                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                       Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-1, 0]) else "All" if(z_pT_Bin not in [0]) else "Integrated", Multi_Dim_Option=Multi_Dim)
+                                Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                       Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int", Multi_Dim_Option=Multi_Dim)
                                 to_be_saved_count += 1
                             except Exception as e:
                                 print("".join([color.Error, "ERROR IN Unfolded_Individual_Bin_Images():\n", color.END_R, str(traceback.format_exc()), color.END]))
@@ -9540,7 +9576,7 @@ for variable in Variable_List:
                                     Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
 
                                 for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method)):
+                                    if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                                         continue
                                     if(Cut in ["Proton"]):
                                         PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(Proton)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
@@ -9865,11 +9901,13 @@ if(Create_txt_File):
             for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
             # for z_pT_Bin in range(0 if(Cut_ProQ or Tag_ProQ) else -1, z_pT_Bin_Range + 1, 1):
             # for z_pT_Bin in range(-1, 1, 1):
+                if(z_pT_Bin in [-2]):
+                    z_pT_Bin = "Common_Int"
                 if(z_pT_Bin in [-1]):
                     z_pT_Bin = "Integrated"
                 if(z_pT_Bin in [0]):
                     z_pT_Bin = "All"
-                if((z_pT_Bin not in [0, "0", "All", "Integrated"]) and (skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method))):
+                if((z_pT_Bin not in [-2, -1, 0, "-2", "-1", "0", "All", "Integrated", "Common_Int"]) and (skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method))):
                     continue
                 for smear in Smearing_final_list:
                     if(smear not in ["''"]):
