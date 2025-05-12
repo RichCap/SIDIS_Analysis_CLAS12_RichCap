@@ -24,6 +24,9 @@ ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
 ROOT.gStyle.SetPadLeftMargin(0.115)   # default is ≃0.10
 
+
+ROOT.gROOT.SetBatch(1)
+
 # Get the code for defining 'Get_Bin_Center_Dictionary' from Get_Bin_Center_of_Kinematic_Bins.ipynb    
 # From REAL_File_Name = Pass_2_Plots_for_Maria_FC_14_V2_All - Defined on: 4-17-2025
     # Ran with Cut_Type = cut_Complete_SIDIS_Integrate
@@ -102,7 +105,8 @@ def create_legend(x1, y1, x2, y2, nColumns=1, Legend_Title="Bin (Range) Informat
 
 def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_Text="Python", Q2_or_y_Group="y", Variable_to_plot_against="Q2", 
                                           Use_Sectors_Q=True, Parameter_List=["Parameter B", "Parameter C"], Correction_Type="Bin-by-Bin Correction", 
-                                          Sector_Particle="esec", Saving_Q=True, Save_Name_Extra="", HistoType="1D"):
+                                          Sector_Particle="esec", Saving_Q=True, Save_Name_Extra="", HistoType="1D", Comparison_Info=[1, False, False],
+                                          Group_Images_Q=False):
     latex = {}
     if(Variable_to_plot_against in [Q2_or_y_Group]):
         Variable_to_plot_against = "xB" if(Q2_or_y_Group not in ["xB"]) else "Q2"
@@ -148,132 +152,176 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
     tgraph_ext_shaded, tgraph_shaded, tgraph_errors = {}, {}, {}
     canvas, legend, mg = {}, {}, {}
 
+    list_to_finish_drawing = []
+    
     # z_pT_Bin_Type = "All"
     z_pT_Bin_Type = "Integrated"
 
+    if(Comparison_Info[0] != 1):
+        Comparison_Type = "Tagged_Proton_Comparison" if(Comparison_Info[1]) else "Proton_Cut_Comparison" if(Comparison_Info[2]) else "Other_File_Comparison"
+        print(f"{color.BOLD}Running {Comparison_Type.replace('_', ' ')}{color.END}")
+        File_Lists = [1, 2]
+    else:
+        File_Lists = [1]
+        Comparison_Type = ""
+                
     for Parameter in Parameter_List:
         key_names = f"({Q2_or_y_Group}_Group)_({Parameter})"
         canvas[key_names] = ROOT.TCanvas(f"canvas_{key_names}", "Graph with Extended Shaded Regions", 1200, 1000)
         legend[key_names] = ROOT.TLegend(0.9, 0.1, 0.49, 0.4)
+        if(Comparison_Type not in [""]):
+            legend[key_names].SetHeader(f"Dotted Lines are for {Comparison_Type.replace('_', ' ')}", "C")
         mg[key_names] = ROOT.TMultiGraph()
         mg[key_names].SetName(key_names)
+        # Initialize group-specific canvases for Group_Images_Q
+        if(Group_Images_Q):
+            for group_num    in selected_var_group:
+                key_row_base = f"{key_names}_({group_num})"
+                list_to_finish_drawing.append([key_row_base, group_num])
+                canvas[key_row_base] = ROOT.TCanvas(f"canvas_{key_row_base}", "Graph with Extended Shaded Regions", 1200, 1000)
+                legend[key_row_base] = ROOT.TLegend(0.9, 0.1, 0.49, 0.4)
+                if(Comparison_Type not in [""]):
+                    legend[key_row_base].SetHeader(f"Dotted Lines are for {Comparison_Type.replace('_', ' ')}", "C")
+                mg[key_row_base] = ROOT.TMultiGraph()
+                mg[key_row_base].SetName(key_row_base)
 
         for group_num in selected_var_group:
             color_ii = ROOT.kOrange if("1" in str(group_num)) else ROOT.kSpring if("2" in str(group_num)) else ROOT.kViolet if("3" in str(group_num)) else ROOT.kAzure if("4" in str(group_num)) else ROOT.kPink
-            key_row_names = f"{key_names}_({group_num})"
-
-            x_values[key_row_names], x_errs[key_row_names] = [], []
-            y_values[key_row_names], y_errs[key_row_names] = [], []
-            y_maxs_collect[key_row_names], y_max_errs_collect[key_row_names], y_mins_collect[key_row_names], y_min_errs_collect[key_row_names] = [], [], [], []
-
-            for Q2_y_Bin in selected_var_group[group_num]:
-                if(Q2_y_Bin in ['']):
-                    continue
-
-                if(From_Python_or_Text in ["Text"]):
-                    Fit_Parameter_Key = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
-                else:
-                    Fit_Parameter_Key = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-{z_pT_Bin_Type}')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_{HistoType}"
-                    
-                x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin=z_pT_Bin_Type, Variable=f"mean_{Variable_to_plot_against}"), 4))
-                x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin,  z_pT_Bin=z_pT_Bin_Type, Variable=f"Error_{Variable_to_plot_against}"))
-                if(From_Python_or_Text in ["Text"]):
-                    y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][0])
-                    y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][1])
-                else:
-                    y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0])
-                    y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][1])
-
-                current_max_val = -float("inf")
-                current_max_err = -float("inf")
-                current_min_val = float("inf")
-                current_min_err = float("inf")
-
-                if(Use_Sectors_Q):
-                    Fit_Parameter_Key_Sector = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
-                    for sec in range(1, 7):
-                        if(From_Python_or_Text not in ["Python"]):
-                            bounds_upper = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0] + Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
-                            bounds_lower = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0] - Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
-                            center_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0][0]
-                            center_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0][1]
-                            if(not (((center_val + center_err) < bounds_upper) and ((center_val - center_err) > bounds_lower))):
-                                if(((center_val + center_err) < Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]) and (current_max_val < Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0])):
-                                    current_max_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]
-                                    current_max_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
-                                if(((center_val + center_err) > Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]) and (current_min_val > Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0])):
-                                    current_min_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]
-                                    current_min_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
-                        else:
-                            Fit_Parameter_Key_Sector = f"{Fit_Parameter_Key}_({Sector_Particle}_{sec})"
-                            # print(f"Fit_Parameters_Input[{Fit_Parameter_Key_Sector}] = {Fit_Parameters_Input[Fit_Parameter_Key_Sector]}")
-                            bounds_upper = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0] + Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
-                            bounds_lower = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0] - Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
-                            center_val   = Fit_Parameters_Input[Fit_Parameter_Key][0]
-                            center_err   = Fit_Parameters_Input[Fit_Parameter_Key][1]
-                            if(not (((center_val + center_err) < bounds_upper) and ((center_val - center_err) > bounds_lower))):
-                                if(((center_val + center_err) < Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]) and (current_max_val < Fit_Parameters_Input[Fit_Parameter_Key_Sector][0])):
-                                    current_max_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]
-                                    current_max_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
-                                if(((center_val + center_err) > Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]) and (current_min_val > Fit_Parameters_Input[Fit_Parameter_Key_Sector][0])):
-                                    current_min_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]
-                                    current_min_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
-                if(current_max_val in [-float("inf")]):
-                    current_max_val = Fit_Parameters_Input[Fit_Parameter_Key][0]
-                    current_max_err = Fit_Parameters_Input[Fit_Parameter_Key][1]
-                if(current_min_val in [float("inf")]):
-                    current_min_val = Fit_Parameters_Input[Fit_Parameter_Key][0]
-                    current_min_err = Fit_Parameters_Input[Fit_Parameter_Key][1]
-
-                y_maxs_collect[key_row_names].append(current_max_val)
-                y_max_errs_collect[key_row_names].append(current_max_err)
-                y_mins_collect[key_row_names].append(current_min_val)
-                y_min_errs_collect[key_row_names].append(current_min_err)
-
-            x_values_main = array('d', x_values[key_row_names])
-            x_errs_main   = array('d', x_errs[key_row_names])
-            y_values_main = array('d', y_values[key_row_names])
-            y_errs_main   = array('d', y_errs[key_row_names])
-            y_maxs        = array('d', y_maxs_collect[key_row_names])
-            y_max_errs    = array('d', y_max_errs_collect[key_row_names])
-            y_mins        = array('d', y_mins_collect[key_row_names])
-            y_min_errs    = array('d', y_min_errs_collect[key_row_names])
-            y_err_low     = array('d', [y - min_val   for y,   min_val in zip(y_values_main,   y_mins)])
-            y_err_high    = array('d', [max_val - y   for y,   max_val in zip(y_values_main,   y_maxs)])
-            ext_err_low   = array('d', [err + min_err for err, min_err in zip(y_err_low,   y_min_errs)])
-            ext_err_high  = array('d', [err + max_err for err, max_err in zip(y_err_high,  y_max_errs)])
-            n_points = len(x_values_main)
-
-            canvas[key_names].Draw()
-            tgraph_ext_shaded[key_row_names] = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), ext_err_low, ext_err_high)
-            tgraph_ext_shaded[key_row_names].SetName(f"tgraph_ext_shaded_{key_row_names}")
-            tgraph_shaded[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), y_err_low,   y_err_high)
-            tgraph_shaded[key_row_names].SetName(f"tgraph_shaded_{key_row_names}")
-            tgraph_errors[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, x_errs_main, x_errs_main, y_errs_main, y_errs_main)
-            tgraph_errors[key_row_names].SetName(f"tgraph_errors_{key_row_names}")
-
-            row = int(str(group_num).replace("Group_", ""))
-            tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii-9, 0.35-(row*0.01))
-
-            tgraph_ext_shaded[key_row_names].GetYaxis().SetRangeUser(-0.9, 0.2)
-        
-            tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii-6, 0.35-(row*0.01))
-            tgraph_shaded[key_row_names].SetFillStyle(3240+(row*2))
+            key_row_base = f"{key_names}_({group_num})"
+            
+            for File_Num in File_Lists:
+                key_row_names = key_row_base if(File_Num == 1) else f"(File_{File_Num})_{key_row_base}"
     
-            tgraph_errors[key_row_names].SetMarkerStyle(21)
-            tgraph_errors[key_row_names].SetMarkerSize(1)
-            tgraph_errors[key_row_names].SetLineColor(color_ii)
-            tgraph_errors[key_row_names].SetMarkerColor(color_ii)
+                x_values[key_row_names], x_errs[key_row_names] = [], []
+                y_values[key_row_names], y_errs[key_row_names] = [], []
+                y_maxs_collect[key_row_names], y_max_errs_collect[key_row_names], y_mins_collect[key_row_names], y_min_errs_collect[key_row_names] = [], [], [], []
+    
+                for Q2_y_Bin in selected_var_group[group_num]:
+                    if(Q2_y_Bin in ['']):
+                        continue
+    
+                    if(From_Python_or_Text in ["Text"]):
+                        Fit_Parameter_Key     = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
+                    else:
+                        Fit_Parameter_Key     = f"(Q2-y-z-pT Bin '{Q2_y_Bin}-{z_pT_Bin_Type}')_({Parameter})_(Correction '{'Bin' if('Bin' in Correction_Type) else 'Bayes'}')_{HistoType}"
+                        if(File_Num != 1):
+                            Fit_Parameter_Key = f"(File_{File_Num})_{Fit_Parameter_Key}"
+                        
+                    x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin=z_pT_Bin_Type, Variable=f"mean_{Variable_to_plot_against}"), 4))
+                    x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin,  z_pT_Bin=z_pT_Bin_Type, Variable=f"Error_{Variable_to_plot_against}"))
+                    if(From_Python_or_Text in ["Text"]):
+                        y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][0])
+                        y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][1])
+                    else:
+                        y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0])
+                        y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][1])
+    
+                    current_max_val = -float("inf")
+                    current_max_err = -float("inf")
+                    current_min_val =  float("inf")
+                    current_min_err =  float("inf")
+    
+                    if(Use_Sectors_Q):
+                        Fit_Parameter_Key_Sector = f"(Bin {Q2_y_Bin}-{z_pT_Bin_Type})_({Parameter})"
+                        for sec in range(1, 7):
+                            if(From_Python_or_Text not in ["Python"]):
+                                bounds_upper = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0] + Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
+                                bounds_lower = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0] - Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
+                                center_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0][0]
+                                center_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0][1]
+                                if(not (((center_val + center_err) < bounds_upper) and ((center_val - center_err) > bounds_lower))):
+                                    if(((center_val + center_err) < Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]) and (current_max_val < Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0])):
+                                        current_max_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]
+                                        current_max_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
+                                    if(((center_val + center_err) > Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]) and (current_min_val > Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0])):
+                                        current_min_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][0]
+                                        current_min_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][sec][1]
+                            else:
+                                Fit_Parameter_Key_Sector = f"{Fit_Parameter_Key}_({Sector_Particle}_{sec})"
+                                # print(f"Fit_Parameters_Input[{Fit_Parameter_Key_Sector}] = {Fit_Parameters_Input[Fit_Parameter_Key_Sector]}")
+                                bounds_upper = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0] + Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
+                                bounds_lower = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0] - Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
+                                center_val   = Fit_Parameters_Input[Fit_Parameter_Key][0]
+                                center_err   = Fit_Parameters_Input[Fit_Parameter_Key][1]
+                                if(not (((center_val + center_err) < bounds_upper) and ((center_val - center_err) > bounds_lower))):
+                                    if(((center_val + center_err) < Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]) and (current_max_val < Fit_Parameters_Input[Fit_Parameter_Key_Sector][0])):
+                                        current_max_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]
+                                        current_max_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
+                                    if(((center_val + center_err) > Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]) and (current_min_val > Fit_Parameters_Input[Fit_Parameter_Key_Sector][0])):
+                                        current_min_val = Fit_Parameters_Input[Fit_Parameter_Key_Sector][0]
+                                        current_min_err = Fit_Parameters_Input[Fit_Parameter_Key_Sector][1]
+                    if(current_max_val in [-float("inf")]):
+                        current_max_val = Fit_Parameters_Input[Fit_Parameter_Key][0]
+                        current_max_err = Fit_Parameters_Input[Fit_Parameter_Key][1]
+                    if(current_min_val in [float("inf")]):
+                        current_min_val = Fit_Parameters_Input[Fit_Parameter_Key][0]
+                        current_min_err = Fit_Parameters_Input[Fit_Parameter_Key][1]
+    
+                    y_maxs_collect[key_row_names].append(current_max_val)
+                    y_max_errs_collect[key_row_names].append(current_max_err)
+                    y_mins_collect[key_row_names].append(current_min_val)
+                    y_min_errs_collect[key_row_names].append(current_min_err)
+    
+                x_values_main = array('d', x_values[key_row_names])
+                x_errs_main   = array('d', x_errs[key_row_names])
+                y_values_main = array('d', y_values[key_row_names])
+                y_errs_main   = array('d', y_errs[key_row_names])
+                y_maxs        = array('d', y_maxs_collect[key_row_names])
+                y_max_errs    = array('d', y_max_errs_collect[key_row_names])
+                y_mins        = array('d', y_mins_collect[key_row_names])
+                y_min_errs    = array('d', y_min_errs_collect[key_row_names])
+                y_err_low     = array('d', [y - min_val   for y,   min_val in zip(y_values_main,   y_mins)])
+                y_err_high    = array('d', [max_val - y   for y,   max_val in zip(y_values_main,   y_maxs)])
+                ext_err_low   = array('d', [err + min_err for err, min_err in zip(y_err_low,   y_min_errs)])
+                ext_err_high  = array('d', [err + max_err for err, max_err in zip(y_err_high,  y_max_errs)])
+                n_points = len(x_values_main)
+    
+                canvas[key_names].Draw()
+                tgraph_ext_shaded[key_row_names] = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), ext_err_low, ext_err_high)
+                tgraph_ext_shaded[key_row_names].SetName(f"tgraph_ext_shaded_{key_row_names}")
+                tgraph_shaded[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), y_err_low,   y_err_high)
+                tgraph_shaded[key_row_names].SetName(f"tgraph_shaded_{key_row_names}")
+                tgraph_errors[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, x_errs_main, x_errs_main, y_errs_main, y_errs_main)
+                tgraph_errors[key_row_names].SetName(f"tgraph_errors_{key_row_names}")
+    
+                row = int(str(group_num).replace("Group_", ""))
+                # tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii-9, 0.35-(row*0.01))
+                tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii-(10-File_Num), 0.35-(row*0.01))
+    
+                tgraph_ext_shaded[key_row_names].GetYaxis().SetRangeUser(-0.9, 0.2)
+            
+                # tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii-6, 0.35-(row*0.01))
+                tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii-(7-File_Num), 0.35-(row*0.01))
+                tgraph_shaded[key_row_names].SetFillStyle(3240+(row*2))
+        
+                tgraph_errors[key_row_names].SetMarkerStyle(21)
+                tgraph_errors[key_row_names].SetMarkerSize(1)
+                tgraph_errors[key_row_names].SetLineColor(color_ii)
+                tgraph_errors[key_row_names].SetMarkerColor(color_ii)
 
-            mg[key_names].Add(tgraph_shaded[key_row_names], "A3")
-            mg[key_names].Add(tgraph_errors[key_row_names], "PL")
+                tgraph_errors[key_row_names].SetLineWidth(File_Num)
+                tgraph_errors[key_row_names].SetLineStyle(File_Num)
+                
+    
+                mg[key_names].Add(tgraph_shaded[key_row_names], "A3")
+                mg[key_names].Add(tgraph_errors[key_row_names], "PL")
 
-            Legend_Titles_str = f"{Q2_or_y_Group if(Q2_or_y_Group not in ['Q2']) else 'Q^{2}'} Bins: {Q2_y_bin_values_New(selected_var_group[group_num][0], Q2_or_y_Group)}"
-            legend[key_names].AddEntry(tgraph_errors[key_row_names], f"#color[{color_ii}]{{{Legend_Titles_str}}}", "PL")
-            if(Use_Sectors_Q):
-                legend[key_names].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
-            canvas[key_names].Modified()
-            canvas[key_names].Update()
+                if(File_Num == 1):
+                    Legend_Titles_str = f"{Q2_or_y_Group if(Q2_or_y_Group not in ['Q2']) else 'Q^{2}'} Bins: {Q2_y_bin_values_New(selected_var_group[group_num][0], Q2_or_y_Group)}"
+                    legend[key_names].AddEntry(tgraph_errors[key_row_names], f"#color[{color_ii}]{{{Legend_Titles_str}}}", "PL")
+                    if(Use_Sectors_Q):
+                        legend[key_names].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
+                canvas[key_names].Modified()
+                canvas[key_names].Update()
+                
+                if(Group_Images_Q):
+                    # canvas[key_row_base].Draw()
+                    mg[key_row_base].Add(tgraph_shaded[key_row_names], "A3")
+                    mg[key_row_base].Add(tgraph_errors[key_row_names], "PL")
+                    if(File_Num == 1):
+                        legend[key_row_base].AddEntry(tgraph_errors[key_row_names],     f"#color[{color_ii}]{{{Legend_Titles_str}}}", "PL")
+                        if(Use_Sectors_Q):
+                            legend[key_row_base].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
     
         canvas[key_names].Draw()
 
@@ -293,7 +341,10 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
             Multigraph_Title_Line_2 = f"#color[{root_color.Blue}]{{{Correction_Type}}}"
         if(HistoType in ["3D", "5D"]):
             Multigraph_Title_Line_2 = Multigraph_Title_Line_2.replace(f"{{{Correction_Type}}}", f"{{Multidimensional {HistoType} {Correction_Type}}}")
-        mg[key_names].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+        if(Comparison_Type in [""]):
+            mg[key_names].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+        else:
+            mg[key_names].SetTitle(f"#splitline{{#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}}}{{{Comparison_Type.replace('_', ' ')}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
     
         mg[key_names].Draw("A")
         # mg[key_names].GetYaxis().SetRangeUser(-0.35 if("C" in str(Parameter)) else -0.9, 0.25 if("C" in str(Parameter)) else 0.2)
@@ -315,7 +366,8 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
             "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_",
             "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
             f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_Groups",
-            f"_{Save_Name_Extra}.png" if(Save_Name_Extra not in [""]) else ".png"])
+            f"_{Save_Name_Extra}"     if(Save_Name_Extra not in [""]) else "",
+            f"_{Comparison_Type}.png" if(Comparison_Type not in [""]) else ".png"])
 
         if(Saving_Q):
             canvas[key_names].SaveAs(Save_Name)
@@ -323,13 +375,39 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         else:
             print(f"\n{color.RED}Did NOT save: {color.BOLD}{color.UNDERLINE}{Save_Name}{color.END}\n")
 
-    print("Done")
-    return canvas
+    if(Group_Images_Q):
+        for individual, group_NUM in list_to_finish_drawing:
+            if(Comparison_Type in [""]):
+                mg[individual].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+            else:
+                mg[individual].SetTitle(f"#splitline{{#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}}}{{{Comparison_Type.replace('_', ' ')}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+            mg[individual].Draw("A")
+            mg[individual].GetYaxis().SetRangeUser(-0.25, 0.1)
+            legend[individual].Draw()
+            canvas[individual].Modified()
+            canvas[individual].Update()
+            draw_annotations(annotations2)
+            Save_Name = "".join([
+                f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
+                f"Plot_of_{HistoType}_",
+                "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_",
+                "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
+                f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_{group_NUM}",
+                f"_{Save_Name_Extra}"     if(Save_Name_Extra not in [""]) else "",
+                f"_{Comparison_Type}.png" if(Comparison_Type not in [""]) else ".png"])
+            if(Saving_Q):
+                canvas[individual].SaveAs(Save_Name)
+                print(f"\n{color.BBLUE}Saved: {color.UNDERLINE}{Save_Name}{color.END}\n")
+            else:
+                print(f"\n{color.RED}Did NOT save: {color.BOLD}{color.UNDERLINE}{Save_Name}{color.END}\n")
+
+    print("Done running Plot_Fit_Parameter_ShadedSectorGraphs(...)\n")
+    return [canvas, mg, legend]
 
 
 def Create_Moment_Plots_From_txt_File(file_path, verbose=False, print_file_flag=False, print_table_flag=False, Correction="Both", 
                                       Parameter_In="Both", Smear_In="Both", HistoType="1D", SectorType="esec", Q2_y_Bin="Default",
-                                      z_pT_Bin="Default", No_Save=False, Use_Sector_Shading=True):
+                                      z_pT_Bin="Default", No_Save=False, Use_Sector_Shading=True, file_path_compare=None, Group_Images=False):
 
 ##################################################################################################################
 ##==========##==========##             Loading File             ##==========##==========##==========##==========##
@@ -351,7 +429,7 @@ def Create_Moment_Plots_From_txt_File(file_path, verbose=False, print_file_flag=
     if(any(tag in str(file_path) for tag in ["Pass_2", "P2"])):
         Pass_Version = "Pass 2"
 
-    file_name = file_path.split("/")[1] if "/" in file_path else file_path
+    file_name = file_path.split("/")[1] if("/" in file_path) else file_path
     Cut_Proton_Q    = ("_ProtonCut" in file_name)
     Tagged_Proton_Q = ("Tagged_Proton" in file_name) and not Cut_Proton_Q
 
@@ -362,11 +440,42 @@ Note to Reader: Print the text in this file as a string in Python for the best f
 
 """, "")
 
+    file_content_compare = ""
+    if(file_path_compare):
+        matched_files_compare = glob.glob(file_path_compare)
+        if(not matched_files_compare):
+            print(f"{color.Error}Error: No files found matching the compare path: {file_path_compare}{color.END}")
+            sys.exit(1)
+    
+        for files_path in matched_files_compare:
+            with open(files_path, 'r') as file:
+                file_content_compare += file.read()
+                if(verbose):
+                    print(f"{color.BOLD}File: {color.BLUE}{files_path}{color.END_B} has been found (and added to comparison)...{color.END}")
+    
+        file_name_compare = file_path_compare.split("/")[1] if("/" in file_path_compare) else file_path_compare
+        Cut_Proton_C    = ("_ProtonCut"    in file_name_compare)
+        Tagged_Proton_C = ("Tagged_Proton" in file_name_compare) and not Cut_Proton_C
+    
+        file_content_compare = file_content_compare.replace(f"This information is from {color.BOLD}{Pass_Version}{color.END}", "")
+        file_content_compare = file_content_compare.replace("""
+Note to Reader: Print the text in this file as a string in Python for the best formatting...
+
+
+""", "")
+    else:
+        file_name_compare = ""
+        Cut_Proton_C, Tagged_Proton_C = False, False
+        
+
     if(verbose):
         print(f"\n{color.BOLD}Pass Version in use   = {color.UNDERLINE}{color.BLUE}{Pass_Version}{color.END}\n")
         print(f"{color.BOLD}Using Tagged Proton? -> {color.UNDERLINE}{color.BLUE}{Tagged_Proton_Q}{color.END}\n")
         print(f"{color.BOLD}Using Proton Cut?    -> {color.UNDERLINE}{color.BLUE}{Cut_Proton_Q}{color.END}\n")
         print(f"\n{color.BOLD}'file_content'{color.END} has been updated\n")
+        if(file_path_compare):
+            print(f"{color.BGREEN}Comparing to File: {file_name_compare}{color.END}")
+            print(f"{color.BGREEN}Comparison Type: {color.END_B}To {'Tagged Proton' if(Tagged_Proton_C) else 'Proton Cut' if(Cut_Proton_C) else 'Other File'}{color.END}\n")
 
     if(print_file_flag):
         print("\n\n===== File Content Start =====\n")
@@ -470,11 +579,12 @@ Note to Reader: Print the text in this file as a string in Python for the best f
 ##################################################################################################################
     Q2_y_Bin = int(Q2_y_Bin) if(Q2_y_Bin not in ["Default", "All", "Integrated"]) else Q2_y_Bin
     z_pT_Bin = int(z_pT_Bin) if(z_pT_Bin not in ["Default", "All", "Integrated"]) else z_pT_Bin
-    Q2_y_Bin_Range  = range(1, 18)     if(Q2_y_Bin     in ["Default"]) else [Q2_y_Bin]     if(Q2_y_Bin     in ["All"] + list(range(0, 18))) else "Error"
-    Correction_List = ["Bin", "Bayes"] if(Correction   in ["Both"])    else [Correction]   if(Correction   in ["Bin", "Bayes"])             else "Error"
-    Parameter_List  = ["B", "C"]       if(Parameter_In in ["Both"])    else [Parameter_In] if(Parameter_In in ["B", "C"])                   else "Error"
-    Smear_List      = ["SMEARED ", ""] if(Smear_In     in ["Both"])    else ["SMEARED "]   if(Smear_In     in ["Smear", "smear"])           else [""]    if(Smear_In in ["Unsmeared", "no_smear", "no"]) else "Error"
+    Q2_y_Bin_Range   = range(1, 18)     if(Q2_y_Bin     in ["Default"]) else [Q2_y_Bin]     if(Q2_y_Bin     in ["All"] + list(range(0, 18))) else "Error"
+    Correction_List  = ["Bin", "Bayes"] if(Correction   in ["Both"])    else [Correction]   if(Correction   in ["Bin", "Bayes"])             else "Error"
+    Parameter_List   = ["B", "C"]       if(Parameter_In in ["Both"])    else [Parameter_In] if(Parameter_In in ["B", "C"])                   else "Error"
+    Smear_List       = ["SMEARED ", ""] if(Smear_In     in ["Both"])    else ["SMEARED "]   if(Smear_In     in ["Smear", "smear"])           else [""]    if(Smear_In in ["Unsmeared", "no_smear", "no"]) else "Error"
     Histo_Type_to_Compare = [HistoType]
+    Files_To_Compare = [file_content, file_content_compare] if(file_path_compare) else [file_content]
     for sec in range(1, 7):
         Histo_Type_to_Compare.append(f"{HistoType} ({SectorType} {sec})")
     if(verbose or ("Error" in [Q2_y_Bin_Range, Correction_List, Parameter_List, Smear_List])):
@@ -484,56 +594,67 @@ Note to Reader: Print the text in this file as a string in Python for the best f
             print(f"z-pT Bin        to be run: {z_pT_Bin}")
         print(f"Correction(s)   to be run: {Correction_List}")
         print(f"Parameter(s)    to be run: {Parameter_List}")
-        print(f"Smear Type(s)   to be run: {Smear_List}")    
+        print(f"Smear Type(s)   to be run: {Smear_List}")
         if("Error" not in [Q2_y_Bin_Range, Correction_List, Parameter_List, Smear_List]):
             print(f"Histogram Types to be run: {Histo_Type_to_Compare}")
         else:
             print(f"{color.Error}Error in arguments!{color.END}\n")
             sys.exit(0)
+        print(f"Running {color.BOLD}{len(Files_To_Compare)}{color.END} File(s)")
         print("")
 
     Comparison_Output = {}
-    for Smear_Type                      in Smear_List:
-        for Correction_Type             in Correction_List:
-            Fit___Type                  =  "Bin-by-Bin Correction" if(Correction_Type in ["Bin"]) else "Bayesian Unfolding"
-            if(print_table_flag):
-                Comparison_Output[f"Title_Info_({Correction_Type})_({Smear_Type})"] = f"{Smear_Type}{Fit___Type} Results"
-                if("Title" not in Comparison_Output):
-                    Comparison_Output_Title = ["Q2-y-z-PT Bin", "Fit Parameter"]
-                    for compare in Histo_Type_to_Compare:
-                        Comparison_Output_Title.append(compare)
-                        Comparison_Output_Title.append(f"{compare} Error")
-                    Comparison_Output["Title"] = Comparison_Output_Title
-                    del Comparison_Output_Title
-            for Q2_y_Bin_ii             in Q2_y_Bin_Range:
-                z_pT_Bin_Range          =  range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_ii)[1] + 1) if(z_pT_Bin in ["Default"]) else [z_pT_Bin]
-                for z_pT_Bin_ii         in z_pT_Bin_Range:
-                    if(z_pT_Bin_ii      in [-1]):
-                        z_pT_Bin_ii     =  "Integrated"
-                    elif(z_pT_Bin_ii    in [0]):
-                        z_pT_Bin_ii     =  "All"
-                    elif(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_ii, Z_PT_BIN=z_pT_Bin_ii, BINNING_METHOD="Y_bin")):
-                        continue
-                    Bin___Type          =  f"{Smear_Type}Q2-y Bin {Q2_y_Bin_ii} - z-PT Bin {z_pT_Bin_ii}"
-                    for Par___Type      in Parameter_List:
-                        if(print_table_flag):
-                            Line_to_Add =  [f"Bin {Q2_y_Bin_ii}-{z_pT_Bin_ii}", f"Parameter {Par___Type}"]
-                        for Histo_Type  in Histo_Type_to_Compare:
-                            Moment_Value_val, Moment_Value_err = Full_Search_Parameter(Parameter_File_str=file_content, Bin_Info=Bin___Type, Histogram_Type=Histo_Type, Fit_Type=Fit___Type, Parameter=Par___Type, return_err=True)
-                            if(Moment_Value_val  not in ["ERROR"]):
-                                Moment_Value_val =   round(float(Moment_Value_val), 9)
-                            if(Moment_Value_err  not in ["ERROR"]):
-                                Moment_Value_err =   round(float(Moment_Value_err), 9)
-                            Key_For_Compare      = f"(Q2-y-z-pT Bin '{Q2_y_Bin_ii}-{z_pT_Bin_ii}')_(Parameter {Par___Type})_(Correction '{Correction_Type}')_{Histo_Type.replace(' ', '_')}"
-                            # if(verbose):
-                            #     print(f"{Key_For_Compare} -> {Moment_Value_val} ± {Moment_Value_err}")
+    for File_Num, File_Content          in enumerate(Files_To_Compare):
+        for Smear_Type                  in Smear_List:
+            for Correction_Type         in Correction_List:
+                Fit___Type              =  "Bin-by-Bin Correction" if(Correction_Type in ["Bin"]) else "Bayesian Unfolding"
+                if(print_table_flag):
+                    if(File_Num == 0):
+                        Comparison_Output[f"Title_Info_({Correction_Type})_({Smear_Type})"] = f"{Smear_Type}{Fit___Type} Results"
+                    else:
+                        Comparison_Output[f"Title_Info_(File_{File_Num+1})_({Correction_Type})_({Smear_Type})"] = f"{Smear_Type}{Fit___Type} Results (from File {File_Num+1})"
+                    if("Title" not in Comparison_Output):
+                        Comparison_Output_Title = ["Q2-y-z-PT Bin", "Fit Parameter"]
+                        for compare in Histo_Type_to_Compare:
+                            Comparison_Output_Title.append(compare)
+                            Comparison_Output_Title.append(f"{compare} Error")
+                        Comparison_Output["Title"] = Comparison_Output_Title
+                        del Comparison_Output_Title
+                for Q2_y_Bin_ii             in Q2_y_Bin_Range:
+                    z_pT_Bin_Range          =  range(-1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_ii)[1] + 1) if(z_pT_Bin in ["Default"]) else [z_pT_Bin]
+                    for z_pT_Bin_ii         in z_pT_Bin_Range:
+                        if(z_pT_Bin_ii      in [-1]):
+                            z_pT_Bin_ii     =  "Integrated"
+                        elif(z_pT_Bin_ii    in [0]):
+                            z_pT_Bin_ii     =  "All"
+                        elif(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_ii, Z_PT_BIN=z_pT_Bin_ii, BINNING_METHOD="Y_bin")):
+                            continue
+                        Bin___Type          =  f"{Smear_Type}Q2-y Bin {Q2_y_Bin_ii} - z-PT Bin {z_pT_Bin_ii}"
+                        for Par___Type      in Parameter_List:
                             if(print_table_flag):
-                                Line_to_Add.append(Moment_Value_val)
-                                Line_to_Add.append(Moment_Value_err)
-                            else:
-                                Comparison_Output[Key_For_Compare] = [Moment_Value_val, Moment_Value_err]
-                        if(print_table_flag):
-                            Comparison_Output[f"Par {Par___Type} - ({Q2_y_Bin_ii}, {z_pT_Bin_ii})"] = Line_to_Add
+                                Line_to_Add =  [f"Bin {Q2_y_Bin_ii}-{z_pT_Bin_ii}", f"Parameter {Par___Type}"]
+                            for Histo_Type  in Histo_Type_to_Compare:
+                                Moment_Value_val, Moment_Value_err = Full_Search_Parameter(Parameter_File_str=File_Content, Bin_Info=Bin___Type, Histogram_Type=Histo_Type, Fit_Type=Fit___Type, Parameter=Par___Type, return_err=True)
+                                if(Moment_Value_val  not in ["ERROR"]):
+                                    Moment_Value_val =   round(float(Moment_Value_val), 9)
+                                if(Moment_Value_err  not in ["ERROR"]):
+                                    Moment_Value_err =   round(float(Moment_Value_err), 9)
+                                Key_For_Compare      = f"(Q2-y-z-pT Bin '{Q2_y_Bin_ii}-{z_pT_Bin_ii}')_(Parameter {Par___Type})_(Correction '{Correction_Type}')_{Histo_Type.replace(' ', '_')}"
+                                if(File_Num != 0):
+                                    Key_For_Compare  = f"(File_{File_Num+1})_{Key_For_Compare}"
+                                # if(verbose):
+                                #     print(f"{Key_For_Compare} -> {Moment_Value_val} ± {Moment_Value_err}")
+                                if(print_table_flag):
+                                    Line_to_Add.append(Moment_Value_val)
+                                    Line_to_Add.append(Moment_Value_err)
+                                else:
+                                    Comparison_Output[Key_For_Compare] = [Moment_Value_val, Moment_Value_err]
+                            if(print_table_flag):
+                                if(File_Num == 0):
+                                    Comparison_Output[f"Par {Par___Type} - ({Q2_y_Bin_ii}, {z_pT_Bin_ii})"] = Line_to_Add
+                                else:
+                                    Comparison_Output[f"File {File_Num+1} - Par {Par___Type} - ({Q2_y_Bin_ii}, {z_pT_Bin_ii})"] = Line_to_Add
+                                    
     if(print_table_flag):
         for ii in Comparison_Output:
             Line_Info = Comparison_Output[ii]
@@ -549,7 +670,8 @@ Note to Reader: Print the text in this file as a string in Python for the best f
     # elif(verbose):
     #     for ii in Comparison_Output:
     #         print(f"Comparison_Output[{ii}] = {Comparison_Output[ii]}")
-        
+
+    dump_canvas = {}
     if((Q2_y_Bin in ["Default"]) and (Smear_In not in ["Both"])):
         for Fit___Type in Correction_List:
             Correction_Type=  "Bin-by-Bin Correction"       if(Correction_Type in  ["Bin"]) else "Bayesian Unfolding"
@@ -565,45 +687,61 @@ Note to Reader: Print the text in this file as a string in Python for the best f
                         continue
                     if(verbose):
                         print(f"Plot__Variable = {Plot__Variable}\n")
-                    Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input=Comparison_Output, From_Python_or_Text="Python",
-                                                          Q2_or_y_Group=Group_Variable, Variable_to_plot_against=Plot__Variable,
-                                                          Use_Sectors_Q=Use_Sector_Shading, Parameter_List=Parameter_List, 
-                                                          Correction_Type=Correction_Type,
-                                                          Sector_Particle=SectorType, Saving_Q=not No_Save,
-                                                          Save_Name_Extra="ProtonCut" if(Cut_Proton_Q) else "Tagged_Proton" if(Tagged_Proton_Q) else "",
-                                                          HistoType=HistoType)
-    return file_content
+                    dump_canvas[f"{Fit___Type}_{Group_Variable}_{Plot__Variable}"] = Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input=Comparison_Output, 
+                                                                                                                           From_Python_or_Text="Python",
+                                                                                                                           Q2_or_y_Group=Group_Variable,
+                                                                                                                           Variable_to_plot_against=Plot__Variable,
+                                                                                                                           Use_Sectors_Q=Use_Sector_Shading,
+                                                                                                                           Parameter_List=Parameter_List, 
+                                                                                                                           Correction_Type=Correction_Type,
+                                                                                                                           Sector_Particle=SectorType,
+                                                                                                                           Saving_Q=not No_Save,
+                                                                                                                           Save_Name_Extra="ProtonCut" if(Cut_Proton_Q) else "Tagged_Proton" if(Tagged_Proton_Q) else "",
+                                                                                                                           HistoType=HistoType,
+                                                                                                                           Comparison_Info=[len(Files_To_Compare), Tagged_Proton_C, Cut_Proton_C],
+                                                                                                                           Group_Images_Q=Group_Images)
+    return [file_content, dump_canvas]
 
 
 if(__name__ == "__main__"):
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Run SIDIS Analysis Script with configurable options.")
-    parser.add_argument("-i",   "--input",       help="Optional path to input file. If not provided, default path will be used.",                                 default='Parameters_Tagged_Proton_Pass_2_Plots_for_Maria_FC_14_V3_4_30_2025_Q2_y_Bins_Combined_ProtonCut_Smeared.txt')
-    parser.add_argument("-p",   "--print_file",  help="If set, print file content and exit.",                                                                     action="store_true")
-    parser.add_argument("-pt",  "--print_table", help="If set, print file content in a table and exits (output is similar to the Notebook's Cell).",              action="store_true")
-    parser.add_argument("-v",   "--verbose",     help="If NOT set, code will run quietly (does not effect '-p' option).",                                         action="store_true")
-    parser.add_argument("-c",   "--correction",  help="Set Correction Type (Options: 'Bin' and 'Bayes').",                                                        default="Both")
-    parser.add_argument("-par", "--parameter",   help="Set Parameter/Cosine Moment Plots (Options: 'B' for 'Cos(phi)' and 'C' for 'Cos(2phi)').",                 default="Both")
-    # parser.add_argument("-s",   "--smear",       help="Set Smear Type (Options: 'Smear'/'smear' and 'Unsmeared'/'no_smear'/'no').",                               default="Both")
-    parser.add_argument("-s",   "--smear",       help="Set Smear Type (Options: 'Smear'/'smear' and 'Unsmeared'/'no_smear'/'no').",                               default="Smear")
-    parser.add_argument("-hist","--histogram",   help="Set Histogram Type (Options: '1D'/'3D' - Only 1D is set up right now).",                                   default="1D")
-    parser.add_argument("-sec", "--sector",      help="Set Sector Type (Options: 'pipsec' for pion sectors OR 'esec' for electron sectors).",                     default="esec")
-    parser.add_argument("-q2y", "--Q2_y_Bin",    help="Set individual Q2-y Bin to run (Defaults to running all 17 bins).",                                        default="Default")
-    parser.add_argument("-zpT", "--z_pT_Bin",    help="Set individual z-pT Bin to run (Defaults to running all bins, including the 'All'/'Integrated' options).", default="Default")
-    parser.add_argument("-nS",  "--no_save",     help="If set, the code will not save any of the images it makes (used for testing).",                            action="store_true")
-    parser.add_argument("-us", "--use_sectors",  help="If set, the code will show the sector information when plotting.",                                         action="store_true")
+    parser.add_argument("-i",   "--input",         help="Optional path to input file. If not provided, default path will be used.",                                 default='Ran_on_5_8_2025_night/Parameters_Pass_2_Sector_Integrated_Tests_FC_14_V2_5_8_2025_Q2_y_Bins_Combined_Smeared.txt')
+    parser.add_argument("-ic",  "--input_compare", help="Optional path to second input file for comparing to default file.",                                        default=None)
+    parser.add_argument("-p",   "--print_file",    help="If set, print file content and exit.",                                                                     action="store_true")
+    parser.add_argument("-pt",  "--print_table",   help="If set, print file content in a table and exits (output is similar to the Notebook's Cell).",              action="store_true")
+    parser.add_argument("-v",   "--verbose",       help="If NOT set, code will run quietly (does not effect '-p' option).",                                         action="store_true")
+    parser.add_argument("-c",   "--correction",    help="Set Correction Type (Options: 'Bin' and 'Bayes').",                                                        default="Both")
+    parser.add_argument("-par", "--parameter",     help="Set Parameter/Cosine Moment Plots (Options: 'B' for 'Cos(phi)' and 'C' for 'Cos(2phi)').",                 default="Both")
+    # parser.add_argument("-s",   "--smear",         help="Set Smear Type (Options: 'Smear'/'smear' and 'Unsmeared'/'no_smear'/'no').",                               default="Both")
+    parser.add_argument("-s",   "--smear",         help="Set Smear Type (Options: 'Smear'/'smear' and 'Unsmeared'/'no_smear'/'no').",                               default="Smear")
+    parser.add_argument("-hist","--histogram",     help="Set Histogram Type (Options: '1D'/'3D').",                                                                 default="3D")
+    parser.add_argument("-sec", "--sector",        help="Set Sector Type (Options: 'pipsec' for pion sectors OR 'esec' for electron sectors).",                     default="esec")
+    parser.add_argument("-q2y", "--Q2_y_Bin",      help="Set individual Q2-y Bin to run (Defaults to running all 17 bins).",                                        default="Default")
+    parser.add_argument("-zpT", "--z_pT_Bin",      help="Set individual z-pT Bin to run (Defaults to running all bins, including the 'All'/'Integrated' options).", default="Default")
+    parser.add_argument("-nS",  "--no_save",       help="If set, the code will not save any of the images it makes (used for testing).",                            action="store_true")
+    parser.add_argument("-us", "--use_sectors",    help="If set, the code will show the sector information when plotting.",                                         action="store_true")
+    parser.add_argument("-gi", "--group_images",   help="If set, the code will create individual image outputs for each kinematic group added to the main image. (Not currently working)",  action="store_true")
+    
     args = parser.parse_args()
 
     
     print(f"{color.BOLD}\nStarting Create_Moment_Plots_From_txt_File.py\n{color.END}")
 
+    if(args.group_images):
+        print(f"{color.BGREEN}\n\nWILL BE CREATING MULTIPLE IMAGES FOR EACH GROUP{color.END}\n\n")
+
+    
     # Run the main file processing function
-    Create_Moment_Plots_From_txt_File(args.input, verbose=args.verbose,
-                                      print_file_flag=args.print_file, print_table_flag=args.print_table,
-                                      Correction=args.correction, Parameter_In=args.parameter, 
-                                      Smear_In=args.smear, HistoType=args.histogram, 
-                                      SectorType=args.sector, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin,
-                                      No_Save=args.no_save, Use_Sector_Shading=(args.use_sectors))
+    info_returned = Create_Moment_Plots_From_txt_File(args.input, verbose=args.verbose,
+                                                      print_file_flag=args.print_file, print_table_flag=args.print_table,
+                                                      Correction=args.correction, Parameter_In=args.parameter,
+                                                      Smear_In=args.smear, HistoType=args.histogram,
+                                                      SectorType=args.sector, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin,
+                                                      No_Save=args.no_save, Use_Sector_Shading=(args.use_sectors),
+                                                      file_path_compare=args.input_compare,
+                                                      Group_Images=args.group_images)
+    del info_returned
     
     print("\nEnd of Create_Moment_Plots_From_txt_File.py Code\n")
     
