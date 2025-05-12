@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=TP_FC14_rdf_SIDIS_5_1_2025_Run1_Sector_Integrated_Tests_V2
+#SBATCH --job-name=TP_FC14_rdf_SIDIS_5_9_2025_Run1_Sector_Tests_V1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out

@@ -1065,6 +1065,14 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Ran on 5/1/2025
             # Same as V1 but ran with Tagged Proton and Fixed the "Integrate" bin cuts (was not using the smeared bins for mdf files)
 
+
+    Extra_Name = f"Sector_Tests{Cut_Configuration_Name}_V1_"
+        # Ran on 5/9/2025
+            # Similar to as Sector_Integrated_Tests{Cut_Configuration_Name}_V2_ but removed the "Integrate" bin cuts (will move those cuts to a later part of the code for integration after unfolding)
+                # Still using electron sector cuts
+            # Ran with more (and larger) MC files
+            # Planning to run Modulated Closure Test Update 
+
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
         # Ran on 9/5/2024
@@ -1147,17 +1155,15 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Same as the last version of Extra_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
             
     if(Use_Weight):
-        if(not Q4_Weight):
-            # Using the modulations of the Generated Monte Carlo
-            Extra_Name = "".join([Extra_Name, "Modulated_"])
-        else:
-            # Using the Q4 wieghts
-            Extra_Name = "".join([Extra_Name, "Q4_Wieght_"])
+        if(not Q4_Weight): # Using the modulations of the Generated Monte Carlo
+            Extra_Name = f"{Extra_Name}Modulated_"
+        else:              # Using the Q4 wieghts
+            Extra_Name = f"{Extra_Name}Q4_Wieght_"
             
             
     if(Use_Pass_2):
         # Option added with "New_Bin_Tests_V5_" on 1/29/2024
-        Extra_Name = "".join(["Pass_2_", str(Extra_Name)])
+        Extra_Name = f"Pass_2_{Extra_Name}"
         # Ran with "New_Smearing_V7_" on 2/14/2024
             # Ran to test smearing code (smearing function returns unsmeared 4-vector since no smearing function has been run yet)
             # Includes no momentum corrections
@@ -1166,7 +1172,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     if(Tag_Proton):
         # Option added with "New_Fiducial_Cut_Test_V2_" on 7/29/2024
-        Extra_Name = "".join(["Tagged_Proton_", str(Extra_Name)])
+        Extra_Name = f"Tagged_Proton_{Extra_Name}"
         print(f"\n\n\t{color.Error}Tagging Proton{color.END}")
     
     if(datatype == 'rdf'):
@@ -1183,7 +1189,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", "Unsmeared_", str(Extra_Name), str(file_num), ".root"])
         
     if(output_type in ["data", "test"]):
-        ROOT_File_Output_Name = "".join(["DataFrame_", str(ROOT_File_Output_Name)])
+        ROOT_File_Output_Name = f"DataFrame_{ROOT_File_Output_Name}"
     
     print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
     
@@ -5668,16 +5674,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(f"eS{sec}a" in Cut_Choice):
                 cutname = f"{cutname} (Excluding Sector {sec} Electrons)"
                 if(Titles_or_DF == 'DF'):
-                    DF_Out  = DF_Out.Filter(f"esec != {sec}"))
+                    DF_Out  = DF_Out.Filter(f"esec != {sec}")
                     if(Data_Type in ["pdf", "gen"]):
-                        DF_Out  = DF_Out.Filter(f"esec_gen != {sec}"))
+                        DF_Out  = DF_Out.Filter(f"esec_gen != {sec}")
                 break
             if(f"eS{sec}o" in Cut_Choice):
                 cutname = f"{cutname} (Sector {sec} Electrons Only)"
                 if(Titles_or_DF == 'DF'):
-                    DF_Out  = DF_Out.Filter(f"esec == {sec}"))
+                    DF_Out  = DF_Out.Filter(f"esec == {sec}")
                     if(Data_Type in ["pdf", "gen"]):
-                        DF_Out  = DF_Out.Filter(f"esec_gen == {sec}"))
+                        DF_Out  = DF_Out.Filter(f"esec_gen == {sec}")
                 break
         ##################################################
         ##==========##  General Cuts (End)  ##==========##
@@ -5877,7 +5883,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     cut_list = ['no_cut']
     # cut_list = []
-    cut_list.append('no_cut_Integrate')
+    # cut_list.append('no_cut_Integrate')
     # cut_list.append('no_cut_eS1o')
     # cut_list.append('no_cut_eS2o')
     # cut_list.append('no_cut_eS3o')
@@ -5895,23 +5901,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     if(datatype not in ["gdf"]):
         # cut_list = ['cut_Complete_SIDIS']
         cut_list = []
-        cut_list.append('cut_Complete_SIDIS_Integrate')
-        # cut_list.append('cut_Complete_SIDIS')
-        # cut_list.append('cut_Complete_SIDIS_eS1o')
-#         cut_list.append('cut_Complete_SIDIS_eS2o')
-#         cut_list.append('cut_Complete_SIDIS_eS3o')
-#         cut_list.append('cut_Complete_SIDIS_eS4o')
-#         cut_list.append('cut_Complete_SIDIS_eS5o')
-#         cut_list.append('cut_Complete_SIDIS_eS6o')
+        # cut_list.append('cut_Complete_SIDIS_Integrate')
+        cut_list.append('cut_Complete_SIDIS')
         for sec_cut in [1, 2, 3, 4, 5, 6]:
-            cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
+            # cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
+            cut_list.append(f'cut_Complete_SIDIS_eS{sec_cut}o')
         if(Tag_Proton):
-            # cut_list.append('cut_Complete_SIDIS_Proton')
-            cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
+            cut_list.append('cut_Complete_SIDIS_Proton')
+            # cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
             # cut_list.append('cut_Complete_SIDIS_RevPro')
             # cut_list.append('cut_Complete_SIDIS_RevPro_Integrate')
             for sec_cut in [1, 2, 3, 4, 5, 6]:
-                cut_list.append(f'cut_Complete_SIDIS_Proton_Integrate_eS{sec_cut}o')
+                # cut_list.append(f'cut_Complete_SIDIS_Proton_Integrate_eS{sec_cut}o')
+                cut_list.append(f'cut_Complete_SIDIS_Proton_eS{sec_cut}o')
         if(run_Mom_Cor_Code == "yes"):
 #             cut_list = ['cut_Complete_EDIS']
             cut_list.append('cut_Complete_EDIS')
@@ -7547,9 +7549,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                     if(("smear" in Histo_Smear) and ("mear" not in variable)):
                                         variable = "".join([variable, "_smeared"])
 
-                                    if(("MultiDim" in str(variable)) and ("_SIDIS_eS" in str(Histo_Cut))):
-                                        print(f"{color.Error}Not running 'MultiDim' variables with sector cuts (not using 3D unfolding with sector cuts)...{color.END}")
-                                        continue
+                                    # if(("MultiDim" in str(variable)) and ("_SIDIS_eS" in str(Histo_Cut))):
+                                    #     print(f"{color.Error}Not running 'MultiDim' variables with sector cuts (not using 3D unfolding with sector cuts)...{color.END}")
+                                    #     continue
 
                                     Min_range, Max_range, Num_of_Bins = Var_List[1], Var_List[2], Var_List[3]
 
