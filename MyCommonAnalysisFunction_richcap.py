@@ -411,9 +411,17 @@ def variable_Title_name(variable):
     # if(variable == 'gTheta_Tsai_rad'):
     #     output  =  "#theta_{#gamma} (Tsai-Frame) [Radians]"
     if(variable == 'rad_FSR_phi'):
-        output  =  "#phi_{#gamma} (around scattered electron)"
+        output  =  "#phi_{#gamma} (around observed scattered electron)"
     if(variable == 'rad_FSR_theta'):
-        output  =  "#theta_{#gamma} (around scattered electron)"
+        output  =  "#theta_{#gamma} (around observed scattered electron)"
+    if(variable == 'ver_FSR_phi'):
+        output  =  "#phi_{#gamma} (around vertex scattered electron)"
+    if(variable == 'ver_FSR_theta'):
+        output  =  "#theta_{#gamma} (around vertex scattered electron)"
+    if(variable == 'ver_ISR_phi'):
+        output  =  "#phi_{#gamma} (around ISR beam at vertex)"
+    if(variable == 'ver_ISR_theta'):
+        output  =  "#theta_{#gamma} (around ISR beam at vertex)"
     if(variable == 'beam_E'):
         output  =  "Beam Energy"
     if(variable == 'gR_status'):

@@ -90,7 +90,7 @@ for i in $(seq 0 9); do
     if [ "$test_mode" = true ]; then
         # Count the number of input files
         num_files=$(ls $input_files 2>/dev/null | wc -l)
-        percent_F=$(echo "scale=3; ($num_files / 1000) * 100" | bc)
+        percent_F=$(echo "scale=3; ($num_files / 2000) * 100" | bc)
         # percent_F=$(echo $percent_F | awk '{printf "%g", $0}')
         percent_F=$(printf "%.1f" $percent_F)
         # Add the current percent_F to the total_percent
