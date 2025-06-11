@@ -111,7 +111,8 @@ def variable_Title_name(variable):
         Extra_Variable_Title = "(Radiatively Corrected) "
         variable = variable.replace("_Cor_q",      "")
     if("_No_Rad_Cor"         in variable):
-        Extra_Variable_Title = "(No Rad Cors) "
+        # Extra_Variable_Title = "(No Rad Cors) "
+        Extra_Variable_Title = "(Observed) "
         variable = variable.replace("_No_Rad_Cor", "")
 
 
@@ -440,9 +441,15 @@ def variable_Title_name(variable):
         output  =  "#theta_{#gamma} - #theta_{el} (Tsai-Frame)"
     if(variable in ['y_g_Tsai', 'z_g_Tsai']):
         output  =  f"Rad Photon p_{{{variable.replace('_g_Tsai', '')}}} (Tsai-Frame)"
+    if(variable in ['ISR_Check_Tsai', 'FSR_Check_Tsai']):
+        output  =  f"|#theta_{{#gamma}} - #theta_{{{'s' if(variable in ['ISR_Check_Tsai']) else 'p'}}}|_{{Tsai}}"
+    if(variable == "Weight"):
+        output  = "Event Weight"
+    if(variable == "F_UU_cos_phih"):
+        output  = "F_{UU}^{cos#phi_{h}}"
+    if(variable == "F_UU_cos_2phih"):
+        output  = "F_{UU}^{cos2#phi_{h}}"
 
-    
-        
 
 
     if("Bin_4D" in variable):
