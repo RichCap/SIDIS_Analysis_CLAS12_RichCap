@@ -80,6 +80,57 @@ class root_color:
     Line    = '#splitline'
 
 
+from datetime import datetime
+class RuntimeTimer:
+    def __init__(self):
+        self.start_time = None
+        self.end_time = None
+
+    def _format_time(self, dt):
+        hour = dt.hour
+        minute = dt.minute
+        am_pm = 'a.m.' if((hour < 12) or (hour == 0)) else 'p.m.'
+        hour_display = (hour % 12) or 12
+        return f"{hour_display:02}:{minute:02} {am_pm}"
+
+    def start(self):
+        self.start_time = datetime.now()
+        formatted_time = self._format_time(self.start_time)
+        print(f"\nStarted running on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}\n")
+
+    def start_find(self, return_Q=False):
+        formatted_time = self._format_time(self.start_time)
+        if(return_Q):
+            return f"Ran on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}"
+        else:
+            print(f"\nStarted running on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}\n")
+
+    def time_elapsed(self):
+        self.end_time = datetime.now()
+        formatted_time = self._format_time(self.end_time)
+        print(f"\nCurrent Time: {color.BOLD}{formatted_time}{color.END}")
+        delta = self.end_time - self.start_time
+        total_seconds = int(delta.total_seconds())
+        days = delta.days
+        hours, remainder = divmod(total_seconds - days * 86400, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        print(f"Time Elapsed Up To Now:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s).\n")
+    
+    def stop(self, count_label=None, count_value=None):
+        self.end_time = datetime.now()
+        formatted_time = self._format_time(self.end_time)
+        print(f"\nThe time that this code finished is {color.BOLD}{formatted_time}{color.END}")
+        delta = self.end_time - self.start_time
+        total_seconds = int(delta.total_seconds())
+        days = delta.days
+        hours, remainder = divmod(total_seconds - days * 86400, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        print(f"The total time the code took to run is:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s).")
+        if((count_label is not None) and (count_value is not None) and (total_seconds > 0)):
+            rate = count_value / total_seconds
+            print(f"Saved {count_value} {count_label}...\nRate = {rate:.2f} {count_label}/Seconds")
+        print("\n")
+
 ###################=========================###################
 ##===============##     Variable Titles     ##===============##
 ###################=========================###################
