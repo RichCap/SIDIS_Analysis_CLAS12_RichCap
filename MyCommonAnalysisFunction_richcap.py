@@ -103,6 +103,7 @@ def variable_Title_name(variable):
         variable = variable.replace("Smeared_Percent_of_", "")
     if("true"                in variable):
         Extra_Variable_Title = "(True Generated) "
+        variable = variable.replace("_true",       "")
         variable = variable.replace("true",        "")
     if("_Born"               in variable):
         Extra_Variable_Title = "(Born Level) "

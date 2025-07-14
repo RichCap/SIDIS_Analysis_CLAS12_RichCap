@@ -85,7 +85,10 @@ count=0
 # Loop to process the files
 for i in $(seq 0 9); do
     input_files="${input_directory}/${string_identifier}-${job_id}-*${i}.hipo"
-    output_file="${output_directory}/${string_identifier}-${job_id}_${i}.hipo"
+    safe_string_identifier="${string_identifier//\*/}" # Remove '*' from string_identifier only for output_file naming
+    output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
+    # output_file="${output_directory}/${string_identifier}-${job_id}_${i}.hipo"
+
     
     if [ "$test_mode" = true ]; then
         # Count the number of input files
