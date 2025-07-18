@@ -47,7 +47,8 @@ except ImportError:
 
 # if Common_Int_Bins = True, then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins)
                 # if = False, then the code will run normally and include all z-pT bins for the given Q2-y bin
-Common_Int_Bins  = True
+Common_Int_Bins  = not True
+
 Saving_Q         = True
 Sim_Test         = False
 Mod_Test         = False
@@ -8961,7 +8962,7 @@ final_count = 0
 print("\n\nCounting Total Number of collected histograms...")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
     final_count += 1
-    # print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if(any(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)"])):
     #     print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if(all(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(1D)_(", ")_(SMEAR=", "z_pT_Bin_Integrate"])):
@@ -9898,7 +9899,7 @@ if(Create_txt_File):
             z_pT_Bin_Range   = 42       if(str(BIN_NUM) in ["2"]) else  36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
             if("Y_bin" in Binning_Method):
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[0]
-            for z_pT_Bin in range(-1, z_pT_Bin_Range + 1, 1):
+            for z_pT_Bin in range(-2, z_pT_Bin_Range + 1, 1):
             # for z_pT_Bin in range(0 if(Cut_ProQ or Tag_ProQ) else -1, z_pT_Bin_Range + 1, 1):
             # for z_pT_Bin in range(-1, 1, 1):
                 if(z_pT_Bin in [-2]):
