@@ -60,6 +60,12 @@ Create_txt_File  = True
 Create_stat_File = not True
 Cor_Compare      = False
 Smearing_Options = "both"
+
+Use_TTree        = not True # Uses pre-existing unfolded plots stored in a TTree to create the images (skips the rest of the unfolding process)
+if(Use_TTree):
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap.root"
+    
+
 if(len(sys.argv) > 1):
     arg_option_1 = str(sys.argv[1])
     if(arg_option_1 in ["test", "Test", "time", "Time"]):
@@ -7081,6 +7087,8 @@ Common_Name = "Pass_2_Plots_for_Maria_FC_14_V3_All" # Same as V2 above but with 
 # if(not (Tag_ProQ or Cut_ProQ)):
 Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
 
+Common_Name = "Pass_2_Sector_Tests_FC_14_V1_EvGen_All"
+
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -7116,6 +7124,7 @@ else:
     # if(Pass_Version not in ["Pass 2"]):
     #     REAL_File_Name = REAL_File_Name.replace("Pass_2_", "")
     REAL_File_Name =  Common_Name
+    REAL_File_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
     if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
         REAL_File_Name = REAL_File_Name.replace("V2_All", "V1_All")
 ##################################
@@ -7267,6 +7276,7 @@ else:
 ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ###############################################################################################################################################################
 
+
 if(Create_txt_File):
     String_For_Output_txt = "".join([color.BOLD, """
     ######################################################################################################################################################
@@ -7363,7 +7373,7 @@ if(run_5D_Unfold):
     
 run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
 run_Sec_Unfold = not True
-run_SecCut_Unfold = True
+run_SecCut_Unfold = not True
 
 # if(Tag_ProQ or Cut_ProQ):
 #     run_Sec_Unfold = True
@@ -7374,1381 +7384,1291 @@ if(run_Sec_Unfold or run_SecCut_Unfold):
     # Sector_List = [1, 1, 1, 1, 1, 1]
 
 
-print("".join([color.BBLUE, "\n\nStarting Unfolding Procedures...\n", color.END]))
+print(f"{color.BBLUE}\n\nStarting Unfolding Procedures...\n{color.END}")
 # Unfolded_Canvas, Legends, Bin_Unfolded, RooUnfolded_Histos, Bin_Acceptance, Unfolding_Histogram_1_Norm_Clone, Save_Response_Matrix, Parameter_List_Unfold_Methods, Parameter_List_Unfold, Parameter_List_Bin = {}, {}, {}, {}, {}, {}, {}, {}, [], []
 Unfolded_Canvas, Legends, Bin_Unfolded, RooUnfolded_Histos, Bin_Acceptance, Unfolding_Histogram_1_Norm_Clone, Save_Response_Matrix, Parameter_List_Unfold_Methods = {}, {}, {}, {}, {}, {}, {}, {}
 Parameter_List_Unfold_Methods["SVD"], Parameter_List_Unfold_Methods["Bin"], Parameter_List_Unfold_Methods["Bayes"] = [], [], []
 List_of_All_Histos_For_Unfolding = {}
 count, count_failed = 0, 0
-for ii in mdf.GetListOfKeys():
-    if(Cor_Compare):
-        print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include Unfolding/Acceptance Corrections{color.END_R} (as of 4-18-2024){color.END}\n")
-        break
-    out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
 
-    if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
-        continue
-
-    # count += 1
-    # if("pipsec" in out_print_main):
-    #     print(f"out_print_main ({count}):\n{out_print_main}\n")
-    # continue
-    
-    ##========================================================##
-    ##=====##    Conditions for Histogram Selection    ##=====##
-    ##========================================================##
-    
-    Conditions_For_Unfolding = ["DataFrame_Type" in str(out_print_main)]
-    # The histograms for 'out_print_main' will be skipped if any item in the list 'Conditions_For_Unfolding' is 'False'
-    
-    if("5D_Response" in str(out_print_main) and run_5D_Unfold):
-        # Found a Response matrix for 5D unfolding (handles differently to other plots selected below)
-        if(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')" not in str(out_print_main)):
-            # The full 5D Response matrix is split into multiple slices that are rebuilt into a single 2D histogram in this script
-            # For the common key name, only the first slice is needed (not counted as failure)
-            continue
-        elif((f"_Slice_1_" in str(out_print_main)) and (f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')" not in str(out_print_main))):
-            count_failed += 1
-            print(f"{color.RED}Potential Reason for Failure: Incorrect number of increments in:\n\tout_print_main = {color.Error}{out_print_main}{color.END}")
-            print(f"Number Failed: {count_failed}")
-            continue
-        ## Correct Histogram Type:
-        Conditions_For_Unfolding.append(run_5D_Unfold) # Defined above (will not run 5D unfolding plots unless run_5D_Unfold = True)
-        Conditions_For_Unfolding.append("5D_Response_Matrix"        in str(out_print_main))
-        Conditions_For_Unfolding.append("5D_Response_Matrix_1D" not in str(out_print_main))
-        Conditions_For_Unfolding.append("Background"            not in str(out_print_main))
-        ## Correct Cuts:
-        Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
-        Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
-        # Do not include the electron sector cuts here
-        Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS" not in str(out_print_main))
-        # Conditions_For_Unfolding.append("cut_Complete_SIDIS"        in str(out_print_main))
-        Conditions_For_Unfolding.append("no_cut_eS"             not in str(out_print_main))
-        ## Correct Variable(s):
-        Conditions_For_Unfolding.append("MultiDim_Q2_y_z_pT_phi_h"  in str(out_print_main))
-        ## Correct Smearing:
-        if((Smearing_Options not in ["no_smear", "both"])):
-            Conditions_For_Unfolding.append("(Smear-Type='')"   not in str(out_print_main))
-        if((Smearing_Options not in ["smear",    "both"])):
-            Conditions_For_Unfolding.append("(Smear-Type='')"       in str(out_print_main))
-        if(False in Conditions_For_Unfolding):
-            count_failed += 1
-            # print(f"Conditions_For_Unfolding = {Conditions_For_Unfolding}")
-            # print(f"{color.RED}{out_print_main}{color.END}")
-            # print(f"Number Failed: {count_failed}")
-            continue
+if(Use_TTree):
+    print(f"\n{color.Error}Using Existing TTree instead of Creating New Unfolded Histograms{color.END}\n")
+    TTree_Input = ROOT.TFile.Open(TTree_Name, "READ")
+    List_of_All_Histos_For_Unfolding = {}
+    for key in TTree_Input.GetListOfKeys():
+        key_name = key.GetName()
+        if("TList_of_" in key_name):
+            List_of_All_Histos_For_Unfolding[key_name] = [float(str(item.GetString())) for item in TTree_Input.Get(key_name)]
         else:
-            out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
-            if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
-                continue
-            Base_Name             = out_print_main_mdf.replace("_Slice_1_", "_Slice_NUMBER_")
-            Slice_Num, Histo_List = 1, {}
-            while(Slice_Num < 800):
-                histo_sliced = mdf.Get(Base_Name.replace("_Slice_NUMBER_", f"_Slice_{Slice_Num}_"))
-                if(histo_sliced):  # Check if the histogram exists
-                    Histo_List[Base_Name.replace("_Slice_NUMBER_", f"_Slice_{Slice_Num}_")] = histo_sliced
-                    Slice_Num += 1
-                else:
-                    break  # Exit the loop if the histogram does not exist
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
-            ################################################################################
-            ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
-            out_print_main_rdf = out_print_main_rdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
-            out_print_main_gdf = out_print_main_gdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
-            out_print_main_mdf = out_print_main_mdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
-            ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
-            ################################################################################
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-            for sector_cut_remove in range(1, 7):
-                out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-            del sector_cut_remove
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            ################################################################################
-            ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("smear", "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear", "")
-            ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            ################################################################################
-            ##======##    Non-MC_REC Response Matrices (these are not 2D plots)   ##======##
-            out_print_main_rdf    = out_print_main_rdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
-            out_print_main_gdf    = out_print_main_gdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
-            out_print_main_mdf_1D = out_print_main_mdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
-            ##======##    Non-MC_REC Response Matrices (these are not 2D plots)   ##======##
-            ################################################################################
-            
-            if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
-                for ii in mdf.GetListOfKeys():
-                    if(("5D_Response_Matrix_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
-                        print(str(ii.GetName()))
-            if(Sim_Test):
-                out_print_main_rdf = out_print_main_mdf_1D
-                out_print_main_tdf = out_print_main_gdf
-                if(tdf not in ["N/A"]):
-                    if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
-                        continue
-                else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
-            if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
-                continue
-            if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
-                continue
+            List_of_All_Histos_For_Unfolding[key_name] = TTree_Input.Get(key_name)
+    TTree_Input.Close()
+    print(f"{color.BBLUE}Recovered: {color.BGREEN}{len(List_of_All_Histos_For_Unfolding)}{color.END_B} items{color.END}")
+else:
+    for ii in mdf.GetListOfKeys():
+        if(Cor_Compare):
+            print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include Unfolding/Acceptance Corrections{color.END_R} (as of 4-18-2024){color.END}\n")
+            break
+        out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
 
-            count += 1
-            print("".join([color.BGREEN, "\n(5D) Unfolding: ", str(out_print_main), "\n", color.END]))
-            ExREAL_1D   = rdf.Get(out_print_main_rdf)
-            MC_REC_1D   = mdf.Get(out_print_main_mdf_1D)
-            MC_GEN_1D   = gdf.Get(out_print_main_gdf)
-            Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf, Increment=Num_5D_Increments_Used_to_Slice)
-            del Histo_List
-            if(tdf not in ["N/A"]):
-                ExTRUE_1D = tdf.Get(out_print_main_tdf)
-            else:
-                ExTRUE_1D = "N/A"
-            if("mdf" in str(ExREAL_1D.GetName())):
-                print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D.GetName())
-                ExREAL_1D.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
-                print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D.GetName())
-            
-            # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
-            out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'5D_Response_Matrix_1D'", "'Background_5D_Response_Matrix_1D'")
-            if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
-                MC_BGS_1D = mdf.Get(out_print_main_bdf_1D)
-                MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))
-            else:
-                MC_BGS_1D = "None"
-                print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
-                raise TypeError("Missing (5D) Background Histogram")
-            if(Sim_Test and (str(MC_BGS_1D) not in ["None"])):
-                # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
-                ExREAL_1D.Add(MC_BGS_1D)
-            List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D)
-            continue
-    elif(any(sector_particle in out_print_main for sector_particle in ["esec", "pipsec"]) and run_Sec_Unfold):
-        if("Var-D2='phi_t" not in out_print_main):
-            # Only running with the 1D Unfolding options at this time
-            continue
-        ## Correct Q2-y Bin:
-        for Q2_y_bin in Q2_xB_Bin_List:
-            Q2_xB_Bin_Unfold = Q2_y_bin if(str(Q2_y_bin) not in ["All", "0", 0]) else "All"
-            if(f"Q2-y-Bin={Q2_xB_Bin_Unfold}, " in str(out_print_main)):
-                Conditions_For_Unfolding = [True]
-                break
-            else:
-                Conditions_For_Unfolding = [False]
-        ## Correct Histogram Type:
-        Conditions_For_Unfolding.append(run_Sec_Unfold) # Defined above (will not run sector unfolding plots unless run_Sec_Unfold = True)
-        Conditions_For_Unfolding.append("Normal_2D"                 in str(out_print_main))
-        Conditions_For_Unfolding.append("Background"            not in str(out_print_main))
-        ## Correct Cuts:
-        Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
-        Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
-        # Do not include the electron sector cuts here
-        Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS" not in str(out_print_main))
-        # Conditions_For_Unfolding.append("cut_Complete_SIDIS"        in str(out_print_main))
-        Conditions_For_Unfolding.append("no_cut_eS"             not in str(out_print_main))
-        # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
-        if(Cut_ProQ):
-            Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "])) # Require Proton MM Cuts
-        else:
-            Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
-            Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
-        ## Correct Variable(s):
-        Particle_Sector = "N/A"
-        Conditions_For_Unfolding.append("Var-D1='esec"             in str(out_print_main)) # Electron Sector Only
-        if("Var-D1='esec"   in str(out_print_main)):
-            Particle_Sector = "Electron Sector"
-        # Conditions_For_Unfolding.append("Var-D1='pipsec"           in str(out_print_main)) # Pi+ Pion Sector Only
-        if("Var-D1='pipsec" in str(out_print_main)):
-            Particle_Sector = "#pi^{+} Pion Sector"
-        ## Correct Smearing:
-        Smear_Found = "(Smear-Type='')" not in str(out_print_main)
-        if((Smearing_Options not in ["no_smear", "both"])):
-            Conditions_For_Unfolding.append("(Smear-Type='')"   not in str(out_print_main))
-        if((Smearing_Options not in ["smear",    "both"])):
-            Conditions_For_Unfolding.append("(Smear-Type='')"       in str(out_print_main))
-        if(False in Conditions_For_Unfolding):
-            count_failed += 1
-            # print(f"Conditions_For_Unfolding = {Conditions_For_Unfolding}")
-            # print(f"{color.RED}{out_print_main}{color.END}")
-            # print(f"Number Failed: {count_failed}\n\n")
-            continue
-        else:
-            out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
-            
-            ################################################################################
-            ##=============##          Finding MC Backgound Plots          ##=============##
-            out_print_main_bdf = out_print_main_mdf.replace("Normal_2D", "Normal_Background_2D")
-            ##=============##          Finding MC Backgound Plots          ##=============##
-            ################################################################################
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-            for sector_cut_remove in range(1, 7):
-                out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-            del sector_cut_remove
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
-            out_print_main_gdf     = out_print_main_gdf.replace("_Proton",                                    "")
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            ################################################################################
-            ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
-            out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
-            ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            ################################################################################
-            
-            if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
-                for ii in mdf.GetListOfKeys():
-                    if(("Normal_2D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
-                        print(str(ii.GetName()))
-            if(Sim_Test):
-                out_print_main_rdf = out_print_main_mdf
-                out_print_main_tdf = out_print_main_gdf
-                if(tdf not in ["N/A"]):
-                    if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
-                        continue
-                else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
-            if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
-                continue
-            if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
-                continue
-
-            count += 1
-            print("".join([color.BGREEN, "\n(Sector) Unfolding: ", str(out_print_main), "\n", color.END]))
-            ExREAL_3D     = rdf.Get(out_print_main_rdf)
-            MC_REC_3D     = mdf.Get(out_print_main_mdf)
-            MC_GEN_3D     = gdf.Get(out_print_main_gdf)
-            if(Sim_Test):
-                ExTRUE_3D = tdf.Get(out_print_main_tdf)
-            else:
-                ExTRUE_3D = "N/A"
-            if("mdf" in str(ExREAL_3D.GetName())):
-                print("\n    ExREAL_3D.GetName() =", ExREAL_3D.GetName())
-                ExREAL_3D.SetName(str(ExREAL_3D_initial.GetName()).replace("mdf", "rdf"))
-                print("New ExREAL_3D.GetName() =",   ExREAL_3D.GetName())
-            # Getting MC Background Histogram (BGS - stands for BackGroundSubtraction)
-            if((out_print_main_bdf in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf)):
-                MC_BGS_3D = mdf.Get(out_print_main_bdf)
-                MC_BGS_3D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_3D.GetTitle()), "};", str(MC_REC_3D.GetXaxis().GetTitle()), ";", str(MC_REC_3D.GetYaxis().GetTitle())]))
-            else:
-                MC_BGS_3D = "None"
-                print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf}{color.END_R}){color.END}")
-                raise TypeError("Missing (Sector) Background Histogram")
-            if(Sim_Test and (str(MC_BGS_3D) not in ["None"])):
-                # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
-                ExREAL_3D.Add(MC_BGS_3D)
-                
-            z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
-            for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
-                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
-                    continue
-                for Sector in Sector_List:
-                    if(Smear_Found):
-                        out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                        out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                        out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                        out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                        if(Sim_Test):
-                            out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                        out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
-                    else:
-                        out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                        out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                        out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                        out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                        if(Sim_Test):
-                            out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
-                        out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")                    
-                    
-                    New_Bin_Title = "".join(["".join(["}{#splitline{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold), "".join([" #topbar z-P_{T} Bin: ", str(z_pT_Bin_Unfold)]) if(z_pT_Bin_Unfold not in [0]) else "", f" #topbar {Particle_Sector} {Sector}"]) if(str(Q2_xB_Bin_Unfold) not in ["All", "0", 0]) else "".join(["}{#splitline{", Particle_Sector, " ", str(Sector)]),  "}{Pass Version: #color[", str(root_color.Blue), "]{", str(Standard_Histogram_Title_Addition), "}}"])
-                    
-                    ExREAL_1D = ExREAL_3D.Clone(out_print_main_rdf_1D_Sector)
-                    ExREAL_1D_Title = str(ExREAL_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
-                    ExREAL_1D_Title = ExREAL_1D_Title.replace(f"{Particle_Sector} vs. ", "")
-                    MC_REC_1D = MC_REC_3D.Clone(out_print_main_mdf_1D_Sector)
-                    MC_REC_1D_Title = str(MC_REC_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
-                    MC_REC_1D_Title = MC_REC_1D_Title.replace(f"{Particle_Sector} vs. ", "")
-                    MC_GEN_1D = MC_GEN_3D.Clone(out_print_main_gdf_1D_Sector)
-                    MC_GEN_1D_Title = str(MC_GEN_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
-                    MC_GEN_1D_Title = MC_GEN_1D_Title.replace(f"{Particle_Sector} vs. ", "")
-                    if(Sim_Test):
-                        ExTRUE_1D = ExTRUE_3D.Clone(out_print_main_tdf_1D_Sector)
-                        ExTRUE_1D_Title = str(ExTRUE_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
-                        ExTRUE_1D_Title = ExTRUE_1D_Title.replace(f"{Particle_Sector} vs. ", "")
-                    if(MC_BGS_3D not in ["None"]):
-                        MC_BGS_1D = MC_BGS_3D.Clone(out_print_main_bdf_1D_Sector)
-                        MC_BGS_1D_Title = str(MC_BGS_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
-                        MC_BGS_1D_Title = MC_BGS_1D_Title.replace(f"{Particle_Sector} vs. ", "")
-                        
-                    # Setting z-pT Bins
-                    ExREAL_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
-                    MC_REC_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
-                    MC_GEN_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
-                    if(Sim_Test):
-                        ExTRUE_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
-                    if(MC_BGS_3D not in ["None"]):
-                        MC_BGS_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
-                    # Setting Particle Sector
-                    ExREAL_1D.GetYaxis().SetRangeUser(Sector,     Sector)
-                    MC_REC_1D.GetYaxis().SetRangeUser(Sector,     Sector)
-                    # MC_GEN_1D.GetYaxis().SetRangeUser(Sector,     Sector)
-                    MC_GEN_1D.GetYaxis().SetRangeUser(0, 7) # Generated Sector is not useful
-                    if(Sim_Test):
-                        ExTRUE_1D.GetYaxis().SetRangeUser(Sector, Sector)
-                    if(MC_BGS_3D not in ["None"]):
-                        MC_BGS_1D.GetYaxis().SetRangeUser(Sector, Sector)
-                        
-                    ExREAL_1D = ExREAL_1D.Project3D("z")
-                    ExREAL_1D.SetTitle(ExREAL_1D_Title)
-                    MC_REC_1D = MC_REC_1D.Project3D("z")
-                    MC_REC_1D.SetTitle(MC_REC_1D_Title)
-                    MC_GEN_1D = MC_GEN_1D.Project3D("z")
-                    MC_GEN_1D.SetTitle(MC_GEN_1D_Title)
-                    if(Sim_Test):
-                        ExTRUE_1D = ExTRUE_1D.Project3D("z")
-                        ExTRUE_1D.SetTitle(ExTRUE_1D_Title)
-                    else:
-                        ExTRUE_1D = "N/A"
-                    if(MC_BGS_3D not in ["None"]):
-                        MC_BGS_1D = MC_BGS_1D.Project3D("z")
-                        MC_BGS_1D.SetTitle(MC_BGS_1D_Title)
-                
-                    List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main_____1D_Sector, Response_2D="N/A", ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
-        continue
-    else:
+        # if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
+        #     continue
+        # print("test")
+    
+        # count += 1
+        # if("pipsec" in out_print_main):
+        #     print(f"out_print_main ({count}):\n{out_print_main}\n")
         # continue
-        ## Correct Histogram Type:
-        # Conditions_For_Unfolding.append('''"Response_Matrix_Normal" in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Response_Matrix_Normal"    in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"Response_Matrix_Normal_1D" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Response_Matrix_Normal_1D"    not in str(out_print_main))
         
-        Conditions_For_Unfolding.append("5D_Response" not in str(out_print_main))
-
-        ## Correct Cuts:
-        # Conditions_For_Unfolding.append('''"no_cut"                not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("no_cut"                   not in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"cut_Complete_EDIS"     not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("cut_Complete_EDIS"        not in str(out_print_main))
-
-        # Do not include the electron sector cuts here
-        # Conditions_For_Unfolding.append('''"cut_Complete_SIDIS_eS" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
-        # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
-        
-        # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
-        if(Cut_ProQ):
-            Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "] + [f"_Proton_eS{sec}o'), " for sec in range(1, 7)] + [f"_Proton_Integrate_eS{sec}o'), " for sec in range(1, 7)]))
-            # Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
-        else:
-            Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
-            Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
-            for sec in range(1, 7):
-                Conditions_For_Unfolding.append(f"_Proton_eS{sec}o'), "          not in str(out_print_main)) # Remove Proton MM Cuts (Sector Cuts)
-                Conditions_For_Unfolding.append(f"_Proton_Integrate_eS{sec}o')"  not in str(out_print_main)) # Remove Proton MM Cuts (with integrated bins - Sector Cuts)
-
-        # # Require Integrated Bin Cuts
-        # Conditions_For_Unfolding.append("Integrate')"     in str(out_print_main))
-        # # Remove Integrated Bin Cuts
-        # Conditions_For_Unfolding.append("Integrate')" not in str(out_print_main))
-
-        # Remove inverted proton cut
-        Conditions_For_Unfolding.append("RevPro"      not in str(out_print_main))
-
-        ## Correct Variable(s):
-        # # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
-        # Conditions_For_Unfolding.append("phi_t"    in str(out_print_main))
-        # # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
-        Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
-        # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
-        
-        # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
-        Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
-
-        # if(not (Tag_ProQ or Cut_ProQ)):
-        #     # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
-        #     Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
-        # else:
-        #     Conditions_For_Unfolding.append("Multi" not in str(out_print_main))
-        
-        # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
-        # if(Closure_Test):
-        #     Conditions_For_Unfolding.append("'Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main))
-
-        if("y" in Binning_Method):
-            # Conditions_For_Unfolding.append('''("Multi_Dim_z_pT_Bin_y_bin_phi_t"  in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected''')
-            Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_y_bin_phi_t"     in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
-        else:
-            # Conditions_For_Unfolding.append('''("Multi_Dim_z_pT_Bin_Y_bin_phi_t"  in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected''')
-            Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_Y_bin_phi_t"     in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
-
-        # Conditions_For_Unfolding.append('''"Multi_Dim_Q2_phi_t"               not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"                  not in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t"    not in str(out_print_main))
-
-        # Not Tested Yet...
-        # Conditions_For_Unfolding.append('''"Multi_Dim_elth_phi_t"  not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"     not in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"Multi_Dim_pipth_phi_t" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"    not in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"Multi_Dim_elPhi_phi_t" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"    not in str(out_print_main))
-
-        # Conditions_For_Unfolding.append('''"Multi_Dim_pipPhi_phi_t not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"   not in str(out_print_main))
-        # Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
-
-
-        ## Correct Binning:
-        # Conditions_For_Unfolding.append("Q2-xB-Bin=1" in str(out_print_main))
-        # Conditions_For_Unfolding.append("Q2-xB-Bin=All" not in str(out_print_main))
-
-        # Smearing Options:
-        # if((Smearing_Options not in ["no_smear", "both"]) or  (Sim_Test)):
-        if((Smearing_Options not in ["no_smear", "both"])):
-            # Conditions_For_Unfolding.append('''"(Smear-Type='')" not in str(out_print_main)''')
-            Conditions_For_Unfolding.append("(Smear-Type='')"    not in str(out_print_main))
-        # if((Smearing_Options not in ["smear",    "both"]) and (not Sim_Test)):
-        if((Smearing_Options not in ["smear",    "both"])):
-            # Conditions_For_Unfolding.append('''"(Smear-Type='')"     in str(out_print_main)''')
-            Conditions_For_Unfolding.append("(Smear-Type='')"        in str(out_print_main))
-
-
-        # if(False not in Conditions_For_Unfolding):
-        #     print("\nout_print_main =\n  ", out_print_main, "\n")
-        #     print("Conditions_For_Unfolding:")
-        #     for ii in Conditions_For_Unfolding:
-        #         if(type(ii) is str):
-        #             print("".join([str(ii), ":"]))
-        #         else:
-        #             print("".join(["\t", color.GREEN if(ii) else color.Error, str(ii), color.END]))
-        #     stop
-
         ##========================================================##
         ##=====##    Conditions for Histogram Selection    ##=====##
         ##========================================================##
-
-        if(False in Conditions_For_Unfolding):
-            # Conditions for unfolding were not met by 'out_print_main'
-            count_failed += 1
-            # print("Conditions_For_Unfolding =", Conditions_For_Unfolding)
-            # print("".join([color.RED, str(out_print_main), color.END]))
-            # print("".join(["Number Failed: ", str(count_failed)]))
-            continue
-        else:
-            del Conditions_For_Unfolding # Do not need the list of conditions for the rest of this loop
-            
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
-
-            ################################################################################
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-            for sector_cut_remove in range(1, 7):
-                out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-                out_print_main_gdf = out_print_main_gdf.replace(f"Integrate_eS{sector_cut_remove}o",       "Integrate")
-            del sector_cut_remove
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS_Proton",                  "no_cut")
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-            out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
-            ##=============##    Removing Cuts from the Generated files    ##=============##
-            ################################################################################
-
-
-            #############################################################################
-            ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
-            out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear_",   "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
-            ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
-            #############################################################################
-
-
-            ############################################################################
-            ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace(", (Gen_MM_Cut)", "")
-            ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
-            ############################################################################
-
-            #############################################################################
-            ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
-            out_print_main_rdf = out_print_main_rdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
-            out_print_main_gdf = out_print_main_gdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
-            out_print_main_rdf = out_print_main_rdf.replace("'Response_Matrix'",        "'Response_Matrix_1D'")
-            out_print_main_gdf = out_print_main_gdf.replace("'Response_Matrix'",        "'Response_Matrix_1D'")
-            ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
-            #############################################################################
-
-
-            ##########################################################################################
-            ##======##    Fixing potential LACK of z-pT bins in Multi-Dim Response Matix    ##======##
-            # if(Common_Name in ["New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"]):
-            if(Common_Name in ["New_Binning_Schemes_V8_All"]):
-                if(("Var-D2='z_pT_Bin" not in str(out_print_main_rdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_rdf))):
-                    out_print_main_rdf = out_print_main_rdf.replace("))", "".join(["), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
-                if(("Var-D2='z_pT_Bin" not in str(out_print_main_gdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_gdf))):
-                    out_print_main_gdf = out_print_main_gdf.replace("))", "".join(["), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
-            ##======##    Fixing potential LACK of z-pT bins in Multi-Dim Response Matix    ##======##
-            ##########################################################################################
-            # ##########################################################################################
-            # ##======## Fixing potential LACK of (New) z-pT bins in Multi-Dim Response Matix ##======##
-            # if(Common_Name in ["Gen_Cuts_V6_All"]):
-            #     if(("Var-D2='z_pT_Bin" not in str(out_print_main_rdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_rdf))):
-            #         out_print_main_rdf = out_print_main_rdf.replace("))", "), (Var-D2='z_pT_Bin_y_bin'-[NumBins=43, MinBin=-0.5, MaxBin=42.5]))")
-            #     if(("Var-D2='z_pT_Bin" not in str(out_print_main_gdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_gdf))):
-            #         out_print_main_gdf = out_print_main_gdf.replace("))", "), (Var-D2='z_pT_Bin_y_bin'-[NumBins=43, MinBin=-0.5, MaxBin=42.5]))")
-            # ##======## Fixing potential LACK of (New) z-pT bins in Multi-Dim Response Matix ##======##
-            # ##########################################################################################
-
-
-            if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+        
+        Conditions_For_Unfolding = ["DataFrame_Type" in str(out_print_main)]
+        # The histograms for 'out_print_main' will be skipped if any item in the list 'Conditions_For_Unfolding' is 'False'
+        
+        if("5D_Response" in str(out_print_main) and run_5D_Unfold):
+            # Found a Response matrix for 5D unfolding (handles differently to other plots selected below)
+            if(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')" not in str(out_print_main)):
+                # The full 5D Response matrix is split into multiple slices that are rebuilt into a single 2D histogram in this script
+                # For the common key name, only the first slice is needed (not counted as failure)
                 continue
-
-            out_print_main_mdf_1D = out_print_main_mdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
-            if(("".join([", (Var-D2='z_pT_Bin", str(Binning_Method)]) not in out_print_main_mdf_1D) and ("Var-D1='phi_t'" in out_print_main_mdf_1D)):
-                out_print_main_mdf_1D = out_print_main_mdf_1D.replace("]))", "".join(["]), (Var-D2='z_pT_Bin", str(Binning_Method), "" if("smear" not in str(out_print_main_mdf_1D)) else "_smeared", "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
-            if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
-                for ii in mdf.GetListOfKeys():
-                    if(("Response_Matrix_Normal_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
-                        print(str(ii.GetName()))
-
-            if(Sim_Test):
-                out_print_main_rdf = out_print_main_mdf_1D
-                out_print_main_tdf = out_print_main_gdf
-                if(tdf not in ["N/A"]):
-                    if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
-                        continue
-                else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
-            if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
+            elif((f"_Slice_1_" in str(out_print_main)) and (f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')" not in str(out_print_main))):
+                count_failed += 1
+                print(f"{color.RED}Potential Reason for Failure: Incorrect number of increments in:\n\tout_print_main = {color.Error}{out_print_main}{color.END}")
+                print(f"Number Failed: {count_failed}")
                 continue
-            if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+            ## Correct Histogram Type:
+            Conditions_For_Unfolding.append(run_5D_Unfold) # Defined above (will not run 5D unfolding plots unless run_5D_Unfold = True)
+            Conditions_For_Unfolding.append("5D_Response_Matrix"        in str(out_print_main))
+            Conditions_For_Unfolding.append("5D_Response_Matrix_1D" not in str(out_print_main))
+            Conditions_For_Unfolding.append("Background"            not in str(out_print_main))
+            ## Correct Cuts:
+            Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
+            Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
+            # Do not include the electron sector cuts here
+            Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS" not in str(out_print_main))
+            # Conditions_For_Unfolding.append("cut_Complete_SIDIS"        in str(out_print_main))
+            Conditions_For_Unfolding.append("no_cut_eS"             not in str(out_print_main))
+            ## Correct Variable(s):
+            Conditions_For_Unfolding.append("MultiDim_Q2_y_z_pT_phi_h"  in str(out_print_main))
+            ## Correct Smearing:
+            if((Smearing_Options not in ["no_smear", "both"])):
+                Conditions_For_Unfolding.append("(Smear-Type='')"   not in str(out_print_main))
+            if((Smearing_Options not in ["smear",    "both"])):
+                Conditions_For_Unfolding.append("(Smear-Type='')"       in str(out_print_main))
+            if(False in Conditions_For_Unfolding):
+                count_failed += 1
+                # print(f"Conditions_For_Unfolding = {Conditions_For_Unfolding}")
+                # print(f"{color.RED}{out_print_main}{color.END}")
+                # print(f"Number Failed: {count_failed}")
                 continue
-
-
-
-            # Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else 11 if("Q2-xB-Bin=11" in str(out_print_main)) else 12 if("Q2-xB-Bin=12" in str(out_print_main)) else "Undefined..."
-            # Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main) or "Q2-y-Bin=All," in str(out_print_main)) else 1 if("Q2-xB-Bin=1," in str(out_print_main) or "Q2-y-Bin=1," in str(out_print_main)) else 2 if("Q2-xB-Bin=2," in str(out_print_main) or "Q2-y-Bin=2," in str(out_print_main)) else 3 if("Q2-xB-Bin=3," in str(out_print_main) or "Q2-y-Bin=3," in str(out_print_main)) else 4 if("Q2-xB-Bin=4," in str(out_print_main) or "Q2-y-Bin=4," in str(out_print_main)) else 5 if("Q2-xB-Bin=5," in str(out_print_main) or "Q2-y-Bin=5," in str(out_print_main)) else 6 if("Q2-xB-Bin=6," in str(out_print_main) or "Q2-y-Bin=6," in str(out_print_main)) else 7 if("Q2-xB-Bin=7," in str(out_print_main) or "Q2-y-Bin=7," in str(out_print_main)) else 8 if("Q2-xB-Bin=8," in str(out_print_main) or "Q2-y-Bin=8," in str(out_print_main)) else 9 if("Q2-xB-Bin=9," in str(out_print_main) or "Q2-y-Bin=9," in str(out_print_main)) else 10 if("Q2-xB-Bin=10," in str(out_print_main) or "Q2-y-Bin=10," in str(out_print_main)) else 11 if("Q2-xB-Bin=11," in str(out_print_main) or "Q2-y-Bin=11," in str(out_print_main)) else 12 if("Q2-xB-Bin=12," in str(out_print_main) or "Q2-y-Bin=12," in str(out_print_main)) else 13 if("Q2-xB-Bin=13," in str(out_print_main) or "Q2-y-Bin=13," in str(out_print_main)) else 14 if("Q2-xB-Bin=14," in str(out_print_main) or "Q2-y-Bin=14," in str(out_print_main)) else 15 if("Q2-xB-Bin=15," in str(out_print_main) or "Q2-y-Bin=15," in str(out_print_main)) else 16 if("Q2-xB-Bin=16," in str(out_print_main) or "Q2-y-Bin=16," in str(out_print_main)) else 17 if("Q2-xB-Bin=17," in str(out_print_main) or "Q2-y-Bin=17," in str(out_print_main)) else 18 if("Q2-xB-Bin=18," in str(out_print_main) or "Q2-y-Bin=18," in str(out_print_main)) else "Undefined..."
-            if("Q2-xB-Bin=All" in str(out_print_main) or "Q2-y-Bin=All," in str(out_print_main)):
-                Q2_xB_Bin_Unfold = 0
-            elif(any(str(f"{BinType}=-3,") in str(out_print_main) for BinType in ["Q2-xB-Bin", "Q2-y-Bin"])):
-                Q2_xB_Bin_Unfold = -3
             else:
-                for Q2_xB_Bin_Unfold_ii in range(1, 40, 1):
-                    if(any(f"{BinType}={Q2_xB_Bin_Unfold_ii}," in str(out_print_main) for BinType in ["Q2-xB-Bin", "Q2-y-Bin"])):
-                        Q2_xB_Bin_Unfold = Q2_xB_Bin_Unfold_ii
-                        break
+                out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
+                if(out_print_main_mdf not in mdf.GetListOfKeys()):
+                    print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                    continue
+                Base_Name             = out_print_main_mdf.replace("_Slice_1_", "_Slice_NUMBER_")
+                Slice_Num, Histo_List = 1, {}
+                while(Slice_Num < 800):
+                    histo_sliced = mdf.Get(Base_Name.replace("_Slice_NUMBER_", f"_Slice_{Slice_Num}_"))
+                    if(histo_sliced):  # Check if the histogram exists
+                        Histo_List[Base_Name.replace("_Slice_NUMBER_", f"_Slice_{Slice_Num}_")] = histo_sliced
+                        Slice_Num += 1
                     else:
-                        Q2_xB_Bin_Unfold = "Undefined..."
-
-            # print("\n\nQ2_xB_Bin_Unfold =", Q2_xB_Bin_Unfold)
-            # print("out_print_main =", out_print_main, "\n\n")
-
-            if(type(Q2_xB_Bin_Unfold) is str):
-                print("".join([color.Error, "\nERROR - Q2_xB_Bin_Unfold = ", str(Q2_xB_Bin_Unfold), color.END]))
-                print(f"Error is with\n out_print_main = {out_print_main}")
-
-            if((str(Q2_xB_Bin_Unfold) not in Q2_xB_Bin_List) and ("Multi_Dim_Q2_y_Bin_phi_t" not in str(out_print_main))):
-                # print("Skipping unselected Q2-xB Bin...")
-                print("".join(["Bin ", str(Q2_xB_Bin_Unfold), " is not in Q2_xB_Bin_List = ", str(Q2_xB_Bin_List)]))
-                continue
-
-            count += 1
-            print("".join(["\nUnfolding: ", str(out_print_main)]))
-            ExREAL_1D_initial     = rdf.Get(out_print_main_rdf)
-            MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
-            MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
-            Response_2D_initial   = mdf.Get(out_print_main_mdf)
-            if(tdf not in ["N/A"]):
-                ExTRUE_1D_initial = tdf.Get(out_print_main_tdf)
-            if("mdf" in str(ExREAL_1D_initial.GetName())):
-                print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D_initial.GetName())
-                ExREAL_1D_initial.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
-                print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D_initial.GetName())
-
-
-            ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
-            MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
-            MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
-            Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace("with Proton Cuts", ""))
-
-            # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
-            out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'Response_Matrix_1D'",        "'Background_Response_Matrix_1D'")
-            out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
-            # out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_Normal_1D'")
-            if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
-                MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D)
-                # print(f"{color.BLUE}\n\nout_print_main_bdf_1D = {out_print_main_bdf_1D}{color.END}")
-                # print(f"{color.BOLD}\nMC_BGS_1D_initial  -> {MC_BGS_1D_initial.GetName()}{color.END}")
-                # print(f"{color.BOLD}MC_REC_1D_initial  -> {MC_REC_1D_initial.GetName()}{color.END}\n")
-            else:
-                MC_BGS_1D_initial = "None"
-                print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
-                raise TypeError("Missing Background Histogram")
-            if(Sim_Test and (str(MC_BGS_1D_initial) not in ["None"])):
-                # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
-                ExREAL_1D_initial.Add(MC_BGS_1D_initial)
+                        break  # Exit the loop if the histogram does not exist
+                out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+                out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
+                ################################################################################
+                ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
+                out_print_main_rdf = out_print_main_rdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
+                out_print_main_gdf = out_print_main_gdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
+                out_print_main_mdf = out_print_main_mdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
+                ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
+                ################################################################################
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                for sector_cut_remove in range(1, 7):
+                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                del sector_cut_remove
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                ################################################################################
+                ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
+                out_print_main_rdf = out_print_main_rdf.replace("smear", "")
+                out_print_main_gdf = out_print_main_gdf.replace("smear", "")
+                ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
+                ################################################################################
+                ##======##    Non-MC_REC Response Matrices (these are not 2D plots)   ##======##
+                out_print_main_rdf    = out_print_main_rdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
+                out_print_main_gdf    = out_print_main_gdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
+                out_print_main_mdf_1D = out_print_main_mdf.replace("'5D_Response_Matrix'", "'5D_Response_Matrix_1D'")
+                ##======##    Non-MC_REC Response Matrices (these are not 2D plots)   ##======##
+                ################################################################################
                 
-            # Use_Gen_MM_Cut = True
-            Use_Gen_MM_Cut = False
-
-            if(("Gen_MM_Cut" in str(out_print_main_rdf)) or ("Gen_MM_Cut" in str(out_print_main_mdf_1D)) or ("Gen_MM_Cut" in str(out_print_main_gdf))  or ("Gen_MM_Cut" in str(out_print_main_mdf))):
-                if((not Use_Gen_MM_Cut) and (Common_Name not in ["Gen_Cuts_V7_All"])):
-                    print(color.Error, "\nERROR: NOT TRYING TO RUN Gen_MM_Cut\n", color.END)
+                if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
+                    print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
+                    for ii in mdf.GetListOfKeys():
+                        if(("5D_Response_Matrix_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
+                            print(str(ii.GetName()))
+                if(Sim_Test):
+                    out_print_main_rdf = out_print_main_mdf_1D
+                    out_print_main_tdf = out_print_main_gdf
+                    if(tdf not in ["N/A"]):
+                        if(out_print_main_tdf not in tdf.GetListOfKeys()):
+                            print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                            continue
+                    else:
+                        print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                if(out_print_main_rdf not in rdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
                     continue
-                print(color.BBLUE, "INCLUDES Gen_MM_Cut", color.END)
-                # print("out_print_main_rdf    =", out_print_main_rdf)
-                # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
-                # print("out_print_main_gdf    =", out_print_main_gdf)
-                # print("out_print_main_mdf    =", out_print_main_mdf)
-
-                # if(Use_Gen_MM_Cut):
-                if(abs(Response_2D_initial.GetZaxis().GetXmin()) == abs(Response_2D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                    Response_2D_initial = Response_2D_initial.Project3D("yx e")
-                    Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" yx projection", ""))
-                else:
-                    print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END, "\nResponse_2D_initial = ", Response_2D_initial)
-                    raise TypeError("ERROR WITH Gen_MM_Cut Response Matrix")
-
-                if("3D" in str(type(MC_REC_1D_initial))):
-                    if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                        MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
-                        MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
-                    else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
-                        raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
-                else:
-                    if(abs(MC_REC_1D_initial.GetYaxis().GetXmin()) == abs(MC_REC_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
-                        MC_REC_1D_initial = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()), 0, -1, "e")
-                        MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
-                    else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
-                        raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
-
-                if("3D" in str(type(MC_GEN_1D_initial))):
-                    if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                        MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
-                        MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
-                    else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
-                        raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
-                else:
-                    if(abs(MC_GEN_1D_initial.GetYaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
-                        MC_GEN_1D_initial = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()), 0, -1, "e")
-                        MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
-                    else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
-                        raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
-
-                if(tdf not in ["N/A"]):
-                    if("3D" in str(type(ExTRUE_1D_initial))):
-                        if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                            ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
-                            ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
-                        else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
-                            raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
-                    else:
-                        if(abs(ExTRUE_1D_initial.GetYaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
-                            ExTRUE_1D_initial = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()), 0, -1, "e")
-                            ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" x projection", ""))
-                        else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
-                            raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
-
-                if(MC_BGS_1D_initial != "None"):
-                    if("3D" in str(type(MC_BGS_1D_initial))):
-                        if(abs(MC_BGS_1D_initial.GetZaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                            MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
-                            MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
-                        else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
-                            raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
-                    else:
-                        if(abs(MC_BGS_1D_initial.GetYaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
-                            MC_BGS_1D_initial = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()), 0, -1, "e")
-                            MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" x projection", ""))
-                        else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
-                            raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
-
-            elif(Common_Name in ["Gen_Cuts_V7_All"]):
-                if("3D" in str(type(ExREAL_1D_initial))):
-                    # print(color.BBLUE, "\n\n\n\nExREAL_1D_initial.GetZaxis().GetTitle() =", ExREAL_1D_initial.GetZaxis().GetTitle(), color.END)
-                    # print("out_print_main_rdf    =", out_print_main_rdf)
-                    # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
-                    # print("out_print_main_gdf    =", out_print_main_gdf)
-                    # print("out_print_main_mdf    =", out_print_main_mdf)
-                    if(abs(ExREAL_1D_initial.GetZaxis().GetXmin()) == abs(ExREAL_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                        ExREAL_1D_initial = ExREAL_1D_initial.Project3D("yx e")
-                        ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace(" yx projection", ""))
-                if("3D" in str(type(MC_REC_1D_initial))):
-                    # print(color.Error, "\n\n\n\nMC_REC_1D_initial.GetZaxis().GetTitle() =", MC_REC_1D_initial.GetZaxis().GetTitle(), color.END)
-                    # print("out_print_main_rdf    =", out_print_main_rdf)
-                    # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
-                    # print("out_print_main_gdf    =", out_print_main_gdf)
-                    # print("out_print_main_mdf    =", out_print_main_mdf)
-                    if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                        MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
-                        MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
-                    # print("MC_REC_1D_initial.GetTitle() =", MC_REC_1D_initial.GetTitle())
-                if("3D" in str(type(MC_GEN_1D_initial))):
-                    # print(color.BGREEN, "\n\n\n\nMC_GEN_1D_initial.GetZaxis().GetTitle() =", MC_GEN_1D_initial.GetZaxis().GetTitle(), color.END)
-                    # print("out_print_main_rdf    =", out_print_main_rdf)
-                    # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
-                    # print("out_print_main_gdf    =", out_print_main_gdf)
-                    # print("out_print_main_mdf    =", out_print_main_mdf)
-                    if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                        MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
-                        MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
-                    # print("MC_GEN_1D_initial.GetTitle() =", MC_GEN_1D_initial.GetTitle())
-                if(tdf not in ["N/A"]):
-                    if("3D" in str(type(ExTRUE_1D_initial))):
-                        if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                            ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
-                            ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
-
-                if(MC_BGS_1D_initial != "None"):
-                    if("3D" in str(type(MC_BGS_1D_initial))):
-                        if(abs(MC_BGS_1D_initial.GetZaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
-                            MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
-                            MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
-
-            # print("\n\n")
-            # print("".join(["ExREAL_1D_initial[", str(ExREAL_1D_initial.GetName()), "]: \n\t\t", str(type(ExREAL_1D_initial)), "\n"]))
-            # print("".join(["MC_REC_1D_initial[", str(out_print_main_mdf_1D), "]: \n\t\t", str(type(MC_REC_1D_initial)), "\n"]))
-            # print("".join(["MC_GEN_1D_initial[", str(MC_GEN_1D_initial.GetName()), "]: \n\t\t", str(type(MC_GEN_1D_initial)), "\n"]))
-            # print("".join(["Response_2D_initial[", str(Response_2D_initial.GetName()), "]: \n\t\t", str(type(Response_2D_initial)), "\n"]))
-
-
-
-    ###############################################################################################
-    ###############################################################################################
-    ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###
-
-
-            z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All"     in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
-
-            if(any(binning in Binning_Method for binning in ["y"])):
-                z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin_Unfold in [6, 10])       else 25 if(Q2_xB_Bin_Unfold in [13])     else 1
-                z_pT_Bin_Range = 0
-                z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9])         else 30 if(Q2_xB_Bin_Unfold in [6, 10, 11])   else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
-
-                z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [2])          else 36 if(Q2_xB_Bin_Unfold in [4, 5, 9, 10]) else 35 if(Q2_xB_Bin_Unfold in [1, 3])            else 30 if(Q2_xB_Bin_Unfold in [6, 7, 8, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
-
-            if("Y_bin" in Binning_Method):
-                z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
-
-            for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
-                if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                    if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
-                        continue
-                elif(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method)):
+                if(out_print_main_gdf not in gdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
                     continue
-                # elif("Y_bin" not in Binning_Method):
-                #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
-                #     #     # print("Testing z_pT_Bin_Unfold...")
-                #     #     continue
-                #     #
-                #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
-                #     #     continue
-                #     if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [28, 34, 35])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [28, 35, 41, 42])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [28, 35]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [13, 14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
-                #         continue
-
-                # # For Selecting specific z-pT Bins
-                # if(z_pT_Bin_Unfold not in [0, 10]):
-                #     continue
-
-        #########################################################
-        ##===============##     3D Slices     ##===============##
-
-                if("3D" in str(type(Response_2D_initial))):
-                    try:
-                        # bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
-                        bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
-                        if(z_pT_Bin_Unfold != 0):
-                            Response_2D_initial.GetZaxis().SetRange(bin_Response_2D_0, bin_Response_2D_1)
-                        Response_2D           = Response_2D_initial.Project3D('yx e')
-                        Response_2D.SetName(str(Response_2D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])))
-                        if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                            Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        else:
-                            Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        if((Pass_Version not in [""]) and (Pass_Version not in Response_2D_Title_New)):
-                            Response_2D_Title_New = "".join(["#splitline{", str(Response_2D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                        Response_2D.SetTitle(Response_2D_Title_New)
-                        # print(str(Response_2D.GetTitle()))
-                    except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (Response_2D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                else:
-                    Response_2D = Response_2D_initial
-
-        ##===============##     3D Slices     ##===============##
-        #########################################################
-
-
-        #########################################################
-        ##===============##     2D Slices     ##===============##
-                if("2D" in str(type(ExREAL_1D_initial))):
-                    try:
-                        # bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
-                        bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
-                        ExREAL_1D                        = ExREAL_1D_initial.ProjectionX(str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExREAL_1D_0, bin_ExREAL_1D_1, "e")
-                        if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                            ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        else:
-                            ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        if((Pass_Version not in [""]) and (Pass_Version not in ExREAL_1D_Title_New)):
-                            ExREAL_1D_Title_New          = "".join(["#splitline{", str(ExREAL_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                        ExREAL_1D.SetTitle(ExREAL_1D_Title_New)
-                    except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExREAL_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                else:
-                    # print("\nExREAL_1D already is a 1D Histogram...")
-                    ExREAL_1D = ExREAL_1D_initial
-
-                if("2D" in str(type(MC_REC_1D_initial))):
-                    try:
-                        # bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
-                        bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
-                        MC_REC_1D                        = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_REC_1D_0, bin_MC_REC_1D_1, "e")
-                        if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                            MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        else:
-                            MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        if((Pass_Version not in [""]) and (Pass_Version not in MC_REC_1D_Title_New)):
-                            MC_REC_1D_Title_New          = "".join(["#splitline{", str(MC_REC_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                        MC_REC_1D.SetTitle(MC_REC_1D_Title_New)
-                    except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_REC_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                else:
-                    # print("\nMC_REC_1D already is a 1D Histogram...")
-                    MC_REC_1D = MC_REC_1D_initial
-
-
-                if(MC_BGS_1D_initial != "None"):
-                    if("2D" in str(type(MC_BGS_1D_initial))):
-                        try:
-                            # bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
-                            bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
-                            MC_BGS_1D                        = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_BGS_1D_0, bin_MC_BGS_1D_1, "e")
-                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                                MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
-                            else:
-                                MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
-                            if((Pass_Version not in [""]) and (Pass_Version not in MC_BGS_1D_Title_New)):
-                                MC_BGS_1D_Title_New          = "".join(["#splitline{", str(MC_BGS_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                            MC_BGS_1D.SetTitle(MC_BGS_1D_Title_New)
-                        except:
-                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_BGS_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                    else:
-                        # print("\nMC_BGS_1D already is a 1D Histogram...")
-                        MC_BGS_1D = MC_BGS_1D_initial
-                else:
-                    MC_BGS_1D = MC_BGS_1D_initial
-
-
-                if("2D" in str(type(MC_GEN_1D_initial))):
-                    try:
-                        # bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
-                        bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
-                        MC_GEN_1D                        = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_GEN_1D_0, bin_MC_GEN_1D_1, "e")
-                        if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                            MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        else:
-                            MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                        if((Pass_Version not in [""]) and (Pass_Version not in MC_GEN_1D_Title_New)):
-                            MC_GEN_1D_Title_New          = "".join(["#splitline{", str(MC_GEN_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                        MC_GEN_1D.SetTitle(MC_GEN_1D_Title_New)
-                    except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_GEN_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                else:
-                    # print("\nMC_GEN_1D already is a 1D Histogram...")
-                    MC_GEN_1D = MC_GEN_1D_initial
-
+    
+                count += 1
+                print("".join([color.BGREEN, "\n(5D) Unfolding: ", str(out_print_main), "\n", color.END]))
+                ExREAL_1D   = rdf.Get(out_print_main_rdf)
+                MC_REC_1D   = mdf.Get(out_print_main_mdf_1D)
+                MC_GEN_1D   = gdf.Get(out_print_main_gdf)
+                Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf, Increment=Num_5D_Increments_Used_to_Slice)
+                del Histo_List
                 if(tdf not in ["N/A"]):
-                    if("2D" in str(type(ExTRUE_1D_initial))):
-                        try:
-                            # bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
-                            bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
-                            ExTRUE_1D                        = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExTRUE_1D_0, bin_ExTRUE_1D_1, "e")
-                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
-                                ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                            else:
-                                ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
-                            if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
-                                ExTRUE_1D_Title_New          = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                            ExTRUE_1D_Title_New        = str(str(ExTRUE_1D_Title_New.replace("Generated",                  "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
-                            ExTRUE_1D_Title_X_Axis_New = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
-                            ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
-                            ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
-                        except:
-                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExTRUE_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
-                    else:
-                        # print("\nExTRUE_1D already is a 1D Histogram...")
-                        ExTRUE_1D = ExTRUE_1D_initial
-                        ExTRUE_1D_Title_New            = str(str(str(ExTRUE_1D.GetTitle()).replace("Generated",            "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
-                        if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
-                            ExTRUE_1D_Title_New        = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
-                        ExTRUE_1D_Title_X_Axis_New     = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
-                        ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
-                        ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
+                    ExTRUE_1D = tdf.Get(out_print_main_tdf)
                 else:
                     ExTRUE_1D = "N/A"
-        ##===============##     2D Slices     ##===============##
-        #########################################################
-
-
-    ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###
-    ###############################################################################################
-    ###############################################################################################
-
-
-                if((z_pT_Bin_Unfold   != 0)                            and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2"       in out_print_main))):
-                    continue
-                if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("Multi_Dim_z_pT_Bin"         in out_print_main)):
-                    continue
-                if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("MultiDim_z_pT_Bin"          in out_print_main)):
-                    continue
-                if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2_phi_t" in out_print_main))):
-                    continue
-                if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("MultiDim_Q2_y_z_pT_phi_h"  in out_print_main))):
-                    continue
-                # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'Multi_Dim" not in out_print_main)):
-                # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'MM" not in out_print_main) and ("'W" not in out_print_main)):
-                if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main) and ("'Multi_Dim" not in out_print_main) and ("'MultiDim_Q2_y_z_pT_phi_h" not in out_print_main) and ("'MultiDim_z_pT_Bin_Y_bin_phi_t" not in out_print_main)):
-                    print("\nADDING CUTS FOR:", out_print_main, "\n")
-
-                    if("'MM" not in out_print_main):
-                        if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_phi_t" not in out_print_main) and ("Multi_Dim" not in out_print_main))):
-                            # Do not plot other variables that are not phi_t
-                            continue
-
-                        # Extra Y-Bins in 2D Histogram:
-                        for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                            Response_2D.SetBinContent(0, ybin, 0)
-                            if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
-                                Response_2D.SetBinContent(1, ybin, 0)
-
-                        try:
-                            # Extra Bins in 1D Histogram:
-                            ExREAL_1D.SetBinContent(0, 0)
-                            MC_REC_1D.SetBinContent(0, 0)
-                            MC_GEN_1D.SetBinContent(0, 0)
-                            ExREAL_1D.SetBinContent(ExREAL_1D.GetNbinsX() + 1, 0)
-                            MC_REC_1D.SetBinContent(MC_REC_1D.GetNbinsX() + 1, 0)
-                            MC_GEN_1D.SetBinContent(MC_GEN_1D.GetNbinsX() + 1, 0)
-                            if(MC_BGS_1D != "None"):
-                                MC_BGS_1D.SetBinContent(MC_BGS_1D.GetNbinsX() + 1, 0)
-                            if(tdf not in ["N/A"]):
-                                ExTRUE_1D.SetBinContent(ExTRUE_1D.GetNbinsX() + 1, 0)
-                            if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
-                                ExREAL_1D.SetBinContent(1, 0)
-                                MC_REC_1D.SetBinContent(1, 0)
-                                MC_GEN_1D.SetBinContent(1, 0)
-                                if(MC_BGS_1D != "None"):
-                                    MC_BGS_1D.SetBinContent(1, 0)
-                                if(tdf not in ["N/A"]):
-                                    ExTRUE_1D.SetBinContent(1, 0)
-                        except:
-                            print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
-                            print(type(MC_REC_1D))
-
-                    # else:
-                    #     # Missing Mass Cut on Response Matrix (Gen)
-                    #     for xbin in range(0, Response_2D.GetXaxis().GetNbins() + 2, 1):
-                    #         if(Response_2D.GetXaxis().GetBinCenter(xbin) > 1.5):
-                    #             print("Done with MM Cuts...")
-                    #             break
-                    #         for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                    #             Response_2D.SetBinContent(xbin, ybin, 0)
-                    #     # for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
-                    #     #     Response_2D.SetBinContent(Response_2D.GetXaxis().FindBin(3.5) + 1, ybin, 0)
-                    #     # Cut on gdf histogram
-                    #     for xbin in range(0, MC_GEN_1D.GetNbinsX() + 1, 1):
-                    #         if(MC_GEN_1D.GetBinCenter(xbin) > 1.5):
-                    #             print("Done with MM Cuts...")
-                    #             break
-                    #         else:
-                    #             MC_GEN_1D.SetBinContent(xbin, 0)
-                    #     # MC_GEN_1D.SetBinContent(MC_GEN_1D.FindBin(3.5) + 1, 0)
-                    #     # Cut on mdf histogram
-                    #     for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
-                    #         if(MC_REC_1D.GetBinCenter(xbin) > 1.5):
-                    #             print("Done with MM Cuts...")
-                    #             break
-                    #         else:
-                    #             MC_REC_1D.SetBinContent(xbin, 0)
-                    #     # MC_REC_1D.SetBinContent(MC_REC_1D.FindBin(3.5) + 1, 0)
-                    #     # Cut on rdf histogram
-                    #     for xbin in range(0, ExREAL_1D.GetNbinsX() + 1, 1):
-                    #         if(ExREAL_1D.GetBinCenter(xbin) > 1.5):
-                    #             print("Done with MM Cuts...")
-                    #             break
-                    #         else:
-                    #             ExREAL_1D.SetBinContent(xbin, 0)
-                    #     # ExREAL_1D.SetBinContent(ExREAL_1D.FindBin(3.5) + 1, 0)
-
-
-                # if(Sim_Test):
-                #     print(color.BOLD, "\n\nFor 'Sim_Test' of 'out_print_main' =", color.BLUE,  str(out_print_main),        color.END)
-                #     print(color.BOLD, "\t'out_print_main_rdf'    =",              color.GREEN, str(out_print_main_rdf),    color.END)
-                #     print(color.BOLD, "\t'out_print_main_mdf_1D' =",              color.GREEN, str(out_print_main_mdf_1D), color.END)
-                #     print(color.BOLD, "\t'out_print_main_tdf'    =",              color.CYAN,  str(out_print_main_tdf),    color.END)
-                #     for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
-                #         MC_REC_1D_Content = MC_REC_1D.GetBinContent(xbin)
-                #         ExREAL_1D_Content = ExREAL_1D.GetBinContent(xbin)
-                #         if(0 not in [MC_REC_1D_Content, ExREAL_1D_Content, MC_REC_1D_Content - ExREAL_1D_Content]):
-                #             print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(((MC_REC_1D_Content - ExREAL_1D_Content)/ExREAL_1D_Content)*100, 4)), "% of Unsmeared")
-                #         else:
-                #             print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(MC_REC_1D_Content - ExREAL_1D_Content, 4)))
-                #     print("\n\n")
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("Cut: No Cuts",     "")).replace("Cut:  No Cuts", ""))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("Cut: No Cuts", "")).replace("Cut:  No Cuts", ""))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
-
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
-                ExREAL_1D.GetXaxis().SetTitle(str((str(ExREAL_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")).replace(") (", " - ")))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
-                MC_REC_1D.GetXaxis().SetTitle(str((str(MC_REC_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")).replace(") (", " - ")))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
-                MC_GEN_1D.GetXaxis().SetTitle((str(MC_GEN_1D.GetXaxis().GetTitle()).replace("_{t}",                 "_{h}")))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("_{t}",                                   "_{h}")))
-                    ExTRUE_1D.GetXaxis().SetTitle((str(ExTRUE_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("_{t}", "_{h}")))
-                Response_2D.GetXaxis().SetTitle(str((str(Response_2D.GetXaxis().GetTitle()).replace("_{t}",         "_{h}")).replace(") (", " - ")))
-                Response_2D.GetYaxis().SetTitle(str((str(Response_2D.GetYaxis().GetTitle()).replace("_{t}",         "_{h}")).replace(") (", " - ")))
-
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
-
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
-
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("Q2_phi_t",          "#phi_{h}+Q^{2}"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("Q2_phi_t",          "#phi_{h}+Q^{2}"))
-
-
-                ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
-                ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
-                MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
-                MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
-                MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
-                MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
-                    ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
-                Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2",                                "#phi_{h}+Q^{2}"))
-                Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
-                Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
-
-
-                Q2_Bin_Range         = "Range: 1.4805 #rightarrow 11.8705 - Size: 0.5195 per bin"
-                Q2_Bin_Replace_Range = "Range: 1.48 #rightarrow 11.87 GeV^{2} - Size: 0.52 GeV^{2}/bin"
-                # xB_Bin_Range         = "Range: 0.082643 #rightarrow 0.82643 - Size: 0.0368 per bin"
-                # xB_Bin_Replace_Range = "Range: 0.083 #rightarrow 0.83 - Size: 0.0368/bin"
-                xB_Bin_Range         = "Range: 0.08977 #rightarrow 0.82643 - Size: 0.0368 per bin"
-                xB_Bin_Replace_Range = "Range: 0.0898 #rightarrow 0.826 - Size: 0.0368/bin"
-                z_Bin_Range          = "Range: 0.11944 #rightarrow 0.73056 - Size: 0.0306 per bin"
-                z_Bin_Replace_Range  = "Range: 0.12 #rightarrow 0.73 - Size: 0.0306/bin"
-                pT_Bin_Range         = "Range: 0 #rightarrow 1.05 - Size: 0.0525 per bin"
-                pT_Bin_Replace_Range = "Range: 0 #rightarrow 1.05 GeV - Size: 0.0525 GeV/bin"
-
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
-
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
-
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
-
-
-                ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
-                MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
-                MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
-                    ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
-                Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
-
-
-                if("Var-D1='Q2" in out_print_main):
-                    ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
-                    MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
-                    MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
-                    if(tdf not in ["N/A"]):
-                        ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
-                    Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
-                    Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV^{2}]"]))
-
-
-                if("Var-D1='pT" in out_print_main):
-                    ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV]"]))
-                    MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV]"]))
-                    MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV]"]))
-                    if(tdf not in ["N/A"]):
-                        ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV]"]))
-                    Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV]"]))
-                    Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV]"]))
-
-
-                for range_strings in ["Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Range: 0 #rightarrow 4.2 - Size: 0.07 per bin"]:
-                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace(range_strings,     ""))
-                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace(range_strings,     ""))
-                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace(range_strings,     ""))
-                    if(tdf not in ["N/A"]):
-                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace(range_strings, ""))
-                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace(range_strings, ""))
-                if(MC_BGS_1D != "None"):
+                if("mdf" in str(ExREAL_1D.GetName())):
+                    print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D.GetName())
+                    ExREAL_1D.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
+                    print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D.GetName())
+                
+                # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
+                out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'5D_Response_Matrix_1D'", "'Background_5D_Response_Matrix_1D'")
+                if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
+                    MC_BGS_1D = mdf.Get(out_print_main_bdf_1D)
                     MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))
-                    # print(f"{color.BOLD}MC_BGS_1D  -> {MC_BGS_1D.GetName()}{color.END}")
-                    # print(f"{color.BOLD}MC_REC_1D  -> {MC_REC_1D.GetName()}{color.END}")
-
-
-                # continue
-                List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
+                else:
+                    MC_BGS_1D = "None"
+                    print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
+                    raise TypeError("Missing (5D) Background Histogram")
+                if(Sim_Test and (str(MC_BGS_1D) not in ["None"])):
+                    # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
+                    ExREAL_1D.Add(MC_BGS_1D)
+                List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D)
                 continue
-
-
-
-
-##===============##     Unfolding Histogram Procedure     ##===============##
-#############################################################################
-
-
-
-
-print("".join(["Total: ",      str(count)]))
-# print("".join(["Num Failed: ", str(count_failed)]))
-del count
-
-
-
-
-BIN_SEARCH = []
-for BIN in Q2_xB_Bin_List:
-    BIN_SEARCH.append("".join(["Q2_y_Bin_", str(BIN) if(str(BIN) not in ['0', 0]) else "All", ")"]))
-    
-for ii in rdf.GetListOfKeys():
-    out_print_main = str(ii.GetName())
-    if("Normal_2D" in out_print_main):
-        # print("out_print_main =", out_print_main)
-        # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
-        out_print_str     = out_print_str.replace("cut_Complete_SIDIS_",   "")
-        out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
-        out_print_str     = out_print_str.replace("_smeared",              "")
-        out_print_str     = out_print_str.replace("'smear'",               "Smear")
-        SEARCH = []
-        for BIN in BIN_SEARCH:
-            SEARCH.append(str(BIN) in str(out_print_str))
-            if(str(BIN) in str(out_print_str)):
-                break
-        out_print_str     = out_print_str.replace("mdf",                   "rdf")
-        if(True in SEARCH):
-            # List_of_All_Histos_For_Unfolding[out_print_str.replace("mdf", "rdf")] = rdf.Get(out_print_main)
-            List_of_All_Histos_For_Unfolding[out_print_str] = rdf.Get(str(out_print_main))
-            if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
-                for particle in ["el", "pip"]:
-                    if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xy")
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
-                    elif(f"({particle})_({particle}Phi)" in str(out_print_str)):
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
+        elif(any(sector_particle in out_print_main for sector_particle in ["esec", "pipsec"]) and run_Sec_Unfold):
+            if("Var-D2='phi_t" not in out_print_main):
+                # Only running with the 1D Unfolding options at this time
+                continue
+            ## Correct Q2-y Bin:
+            for Q2_y_bin in Q2_xB_Bin_List:
+                Q2_xB_Bin_Unfold = Q2_y_bin if(str(Q2_y_bin) not in ["All", "0", 0]) else "All"
+                if(f"Q2-y-Bin={Q2_xB_Bin_Unfold}, " in str(out_print_main)):
+                    Conditions_For_Unfolding = [True]
+                    break
+                else:
+                    Conditions_For_Unfolding = [False]
+            ## Correct Histogram Type:
+            Conditions_For_Unfolding.append(run_Sec_Unfold) # Defined above (will not run sector unfolding plots unless run_Sec_Unfold = True)
+            Conditions_For_Unfolding.append("Normal_2D"                 in str(out_print_main))
+            Conditions_For_Unfolding.append("Background"            not in str(out_print_main))
+            ## Correct Cuts:
+            Conditions_For_Unfolding.append("no_cut"                not in str(out_print_main))
+            Conditions_For_Unfolding.append("cut_Complete_EDIS"     not in str(out_print_main))
+            # Do not include the electron sector cuts here
+            Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS" not in str(out_print_main))
+            # Conditions_For_Unfolding.append("cut_Complete_SIDIS"        in str(out_print_main))
+            Conditions_For_Unfolding.append("no_cut_eS"             not in str(out_print_main))
+            # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
+            if(Cut_ProQ):
+                Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "])) # Require Proton MM Cuts
+            else:
+                Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
+                Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
+            ## Correct Variable(s):
+            Particle_Sector = "N/A"
+            Conditions_For_Unfolding.append("Var-D1='esec"             in str(out_print_main)) # Electron Sector Only
+            if("Var-D1='esec"   in str(out_print_main)):
+                Particle_Sector = "Electron Sector"
+            # Conditions_For_Unfolding.append("Var-D1='pipsec"           in str(out_print_main)) # Pi+ Pion Sector Only
+            if("Var-D1='pipsec" in str(out_print_main)):
+                Particle_Sector = "#pi^{+} Pion Sector"
+            ## Correct Smearing:
+            Smear_Found = "(Smear-Type='')" not in str(out_print_main)
+            if((Smearing_Options not in ["no_smear", "both"])):
+                Conditions_For_Unfolding.append("(Smear-Type='')"   not in str(out_print_main))
+            if((Smearing_Options not in ["smear",    "both"])):
+                Conditions_For_Unfolding.append("(Smear-Type='')"       in str(out_print_main))
+            if(False in Conditions_For_Unfolding):
+                count_failed += 1
+                # print(f"Conditions_For_Unfolding = {Conditions_For_Unfolding}")
+                # print(f"{color.RED}{out_print_main}{color.END}")
+                # print(f"Number Failed: {count_failed}\n\n")
+                continue
+            else:
+                out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
+                out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+                out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
+                
+                ################################################################################
+                ##=============##          Finding MC Backgound Plots          ##=============##
+                out_print_main_bdf = out_print_main_mdf.replace("Normal_2D", "Normal_Background_2D")
+                ##=============##          Finding MC Backgound Plots          ##=============##
+                ################################################################################
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                for sector_cut_remove in range(1, 7):
+                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                del sector_cut_remove
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                out_print_main_gdf     = out_print_main_gdf.replace("_Proton",                                    "")
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                ################################################################################
+                ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
+                out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+                out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+                out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
+                ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
+                ################################################################################
+                
+                if(out_print_main_mdf not in mdf.GetListOfKeys()):
+                    print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                    for ii in mdf.GetListOfKeys():
+                        if(("Normal_2D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
+                            print(str(ii.GetName()))
+                if(Sim_Test):
+                    out_print_main_rdf = out_print_main_mdf
+                    out_print_main_tdf = out_print_main_gdf
+                    if(tdf not in ["N/A"]):
+                        if(out_print_main_tdf not in tdf.GetListOfKeys()):
+                            print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                            continue
                     else:
-                        continue
-                    num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                    out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                    out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
-                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                    if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                        out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                    else:
-                        out_print_str_1D_Binned_Mom = "N/A"
-                    for ii in range(4, num_z_pT_bins + 1):
-                        z_pT_bin_value = ii - 4
-                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                        List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                        # sum_of_weights = List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")].Integral()
-                        # if(sum_of_weights <= 0):
-                        #     low_edge   = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinLowEdge(ii)
-                        #     high_edge  = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinUpEdge(ii)
-                        #     print(f"{color.Error}Projection of Y-bin {z_pT_bin_value} resulted in 'Sum of weights is null'. Check this bin's range ({low_edge} to {high_edge}) and content ({sum_of_weights}).{color.END}")
-                        if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-            
-for ii in mdf.GetListOfKeys():
-    out_print_main = str(ii.GetName())
-    if(("Normal_2D" in out_print_main) or ("Normal_Background_2D" in out_print_main)):
-        # print("out_print_main =", out_print_main)
-        # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-        out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
-        out_print_str     = out_print_str.replace("cut_Complete_SIDIS_",   "")
-        out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
-        out_print_str     = out_print_str.replace("_smeared",              "")
-        out_print_str     = out_print_str.replace("'smear'",               "Smear")
-        SEARCH = []
-        for BIN in BIN_SEARCH:
-            SEARCH.append(str(BIN) in str(out_print_str))
-            if(str(BIN) in str(out_print_str)):
-                break
-        if(True in SEARCH):
-            List_of_All_Histos_For_Unfolding[out_print_str] = mdf.Get(out_print_main)
-            if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
-                if("Normal_Background_2D" in out_print_main):
+                        print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                if(out_print_main_rdf not in rdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
                     continue
-                for particle in ["el", "pip"]:
-                    if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xy")
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
-                    elif(f"({particle})_({particle}Phi)" in str(out_print_str)):
-                        List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
-                    else:
+                if(out_print_main_gdf not in gdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+                    continue
+    
+                count += 1
+                print("".join([color.BGREEN, "\n(Sector) Unfolding: ", str(out_print_main), "\n", color.END]))
+                ExREAL_3D     = rdf.Get(out_print_main_rdf)
+                MC_REC_3D     = mdf.Get(out_print_main_mdf)
+                MC_GEN_3D     = gdf.Get(out_print_main_gdf)
+                if(Sim_Test):
+                    ExTRUE_3D = tdf.Get(out_print_main_tdf)
+                else:
+                    ExTRUE_3D = "N/A"
+                if("mdf" in str(ExREAL_3D.GetName())):
+                    print("\n    ExREAL_3D.GetName() =", ExREAL_3D.GetName())
+                    ExREAL_3D.SetName(str(ExREAL_3D_initial.GetName()).replace("mdf", "rdf"))
+                    print("New ExREAL_3D.GetName() =",   ExREAL_3D.GetName())
+                # Getting MC Background Histogram (BGS - stands for BackGroundSubtraction)
+                if((out_print_main_bdf in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf)):
+                    MC_BGS_3D = mdf.Get(out_print_main_bdf)
+                    MC_BGS_3D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_3D.GetTitle()), "};", str(MC_REC_3D.GetXaxis().GetTitle()), ";", str(MC_REC_3D.GetYaxis().GetTitle())]))
+                else:
+                    MC_BGS_3D = "None"
+                    print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf}{color.END_R}){color.END}")
+                    raise TypeError("Missing (Sector) Background Histogram")
+                if(Sim_Test and (str(MC_BGS_3D) not in ["None"])):
+                    # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
+                    ExREAL_3D.Add(MC_BGS_3D)
+                    
+                z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
+                for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                         continue
-                    num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                    out_print_str_1D = str(out_print_str.replace("(Normal_2D)",               "(1D)"))
-                    out_print_str_1D = str(out_print_str_1D.replace("(Normal_Background_2D)", "(Background_1D)"))
-                    out_print_str_1D_Binned = out_print_str_1D.replace(f"({particle})_",    "")
-                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                    if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                        out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                    for ii in range(4, num_z_pT_bins + 1):
-                        z_pT_bin_value = ii - 4
-                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                        # print(f"out_print_str_1D_Binned = {out_print_str_1D_Binned}")
-                        List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                        # sum_of_weights = List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")].Integral()
-                        # if(sum_of_weights <= 0):
-                        #     low_edge   = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinLowEdge(ii)
-                        #     high_edge  = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinUpEdge(ii)
-                        #     print(f"{color.Error}Projection of Y-bin {z_pT_bin_value} resulted in 'Sum of weights is null'. Check this bin's range ({low_edge} to {high_edge}) and content ({sum_of_weights}).{color.END}")
-                        if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                    for Sector in Sector_List:
+                        if(Smear_Found):
+                            out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                            out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                            out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                            out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                            if(Sim_Test):
+                                out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                            out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
+                        else:
+                            out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                            out_print_main_rdf_1D_Sector     = str(out_print_main_rdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                            out_print_main_mdf_1D_Sector     = str(out_print_main_mdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                            out_print_main_gdf_1D_Sector     = str(out_print_main_gdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                            if(Sim_Test):
+                                out_print_main_tdf_1D_Sector = str(out_print_main_tdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")
+                            out_print_main_bdf_1D_Sector     = str(out_print_main_bdf.replace("z-PT-Bin=All", "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec'-[{Sector}]")                    
+                        
+                        New_Bin_Title = "".join(["".join(["}{#splitline{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold), "".join([" #topbar z-P_{T} Bin: ", str(z_pT_Bin_Unfold)]) if(z_pT_Bin_Unfold not in [0]) else "", f" #topbar {Particle_Sector} {Sector}"]) if(str(Q2_xB_Bin_Unfold) not in ["All", "0", 0]) else "".join(["}{#splitline{", Particle_Sector, " ", str(Sector)]),  "}{Pass Version: #color[", str(root_color.Blue), "]{", str(Standard_Histogram_Title_Addition), "}}"])
+                        
+                        ExREAL_1D = ExREAL_3D.Clone(out_print_main_rdf_1D_Sector)
+                        ExREAL_1D_Title = str(ExREAL_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
+                        ExREAL_1D_Title = ExREAL_1D_Title.replace(f"{Particle_Sector} vs. ", "")
+                        MC_REC_1D = MC_REC_3D.Clone(out_print_main_mdf_1D_Sector)
+                        MC_REC_1D_Title = str(MC_REC_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
+                        MC_REC_1D_Title = MC_REC_1D_Title.replace(f"{Particle_Sector} vs. ", "")
+                        MC_GEN_1D = MC_GEN_3D.Clone(out_print_main_gdf_1D_Sector)
+                        MC_GEN_1D_Title = str(MC_GEN_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
+                        MC_GEN_1D_Title = MC_GEN_1D_Title.replace(f"{Particle_Sector} vs. ", "")
+                        if(Sim_Test):
+                            ExTRUE_1D = ExTRUE_3D.Clone(out_print_main_tdf_1D_Sector)
+                            ExTRUE_1D_Title = str(ExTRUE_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
+                            ExTRUE_1D_Title = ExTRUE_1D_Title.replace(f"{Particle_Sector} vs. ", "")
+                        if(MC_BGS_3D not in ["None"]):
+                            MC_BGS_1D = MC_BGS_3D.Clone(out_print_main_bdf_1D_Sector)
+                            MC_BGS_1D_Title = str(MC_BGS_3D.GetTitle()).replace("".join(["}{Q^{2}-y Bin: ", str(Q2_xB_Bin_Unfold)]), New_Bin_Title)
+                            MC_BGS_1D_Title = MC_BGS_1D_Title.replace(f"{Particle_Sector} vs. ", "")
+                            
+                        # Setting z-pT Bins
+                        ExREAL_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
+                        MC_REC_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
+                        MC_GEN_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold     if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
+                        if(Sim_Test):
+                            ExTRUE_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
+                        if(MC_BGS_3D not in ["None"]):
+                            MC_BGS_1D.GetXaxis().SetRangeUser(z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else 1, z_pT_Bin_Unfold if(z_pT_Bin_Unfold not in [0]) else (z_pT_Bin_Range + 1))
+                        # Setting Particle Sector
+                        ExREAL_1D.GetYaxis().SetRangeUser(Sector,     Sector)
+                        MC_REC_1D.GetYaxis().SetRangeUser(Sector,     Sector)
+                        # MC_GEN_1D.GetYaxis().SetRangeUser(Sector,     Sector)
+                        MC_GEN_1D.GetYaxis().SetRangeUser(0, 7) # Generated Sector is not useful
+                        if(Sim_Test):
+                            ExTRUE_1D.GetYaxis().SetRangeUser(Sector, Sector)
+                        if(MC_BGS_3D not in ["None"]):
+                            MC_BGS_1D.GetYaxis().SetRangeUser(Sector, Sector)
+                            
+                        ExREAL_1D = ExREAL_1D.Project3D("z")
+                        ExREAL_1D.SetTitle(ExREAL_1D_Title)
+                        MC_REC_1D = MC_REC_1D.Project3D("z")
+                        MC_REC_1D.SetTitle(MC_REC_1D_Title)
+                        MC_GEN_1D = MC_GEN_1D.Project3D("z")
+                        MC_GEN_1D.SetTitle(MC_GEN_1D_Title)
+                        if(Sim_Test):
+                            ExTRUE_1D = ExTRUE_1D.Project3D("z")
+                            ExTRUE_1D.SetTitle(ExTRUE_1D_Title)
+                        else:
+                            ExTRUE_1D = "N/A"
+                        if(MC_BGS_3D not in ["None"]):
+                            MC_BGS_1D = MC_BGS_1D.Project3D("z")
+                            MC_BGS_1D.SetTitle(MC_BGS_1D_Title)
+                    
+                        List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main_____1D_Sector, Response_2D="N/A", ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
+            continue
+        else:
+            # continue
+            ## Correct Histogram Type:
+            # Conditions_For_Unfolding.append('''"Response_Matrix_Normal" in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Response_Matrix_Normal"    in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"Response_Matrix_Normal_1D" not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Response_Matrix_Normal_1D"    not in str(out_print_main))
             
-if(Cor_Compare):
-    print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include the Generated MC Plots{color.END_R} (as of 4-18-2024){color.END}\n")
-else:
-    for ii in gdf.GetListOfKeys():
+            Conditions_For_Unfolding.append("5D_Response" not in str(out_print_main))
+    
+            ## Correct Cuts:
+            # Conditions_For_Unfolding.append('''"no_cut"                not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("no_cut"                   not in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"cut_Complete_EDIS"     not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("cut_Complete_EDIS"        not in str(out_print_main))
+    
+            # Do not include the electron sector cuts here
+            # Conditions_For_Unfolding.append('''"cut_Complete_SIDIS_eS" not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
+            # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
+            
+            # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
+            if(Cut_ProQ):
+                Conditions_For_Unfolding.append(any(proCuts in str(out_print_main) for proCuts in ["_Proton'), ", "_Proton_Integrate'), "] + [f"_Proton_eS{sec}o'), " for sec in range(1, 7)] + [f"_Proton_Integrate_eS{sec}o'), " for sec in range(1, 7)]))
+                # Conditions_For_Unfolding.append("_Proton'), "              in str(out_print_main)) # Require Proton MM Cuts
+            else:
+                Conditions_For_Unfolding.append("_Proton'), "          not in str(out_print_main)) # Remove  Proton MM Cuts
+                Conditions_For_Unfolding.append("_Proton_Integrate')"  not in str(out_print_main)) # Remove  Proton MM Cuts (with integrated bins)
+                for sec in range(1, 7):
+                    Conditions_For_Unfolding.append(f"_Proton_eS{sec}o'), "          not in str(out_print_main)) # Remove Proton MM Cuts (Sector Cuts)
+                    Conditions_For_Unfolding.append(f"_Proton_Integrate_eS{sec}o')"  not in str(out_print_main)) # Remove Proton MM Cuts (with integrated bins - Sector Cuts)
+    
+            # # Require Integrated Bin Cuts
+            # Conditions_For_Unfolding.append("Integrate')"     in str(out_print_main))
+            # # Remove Integrated Bin Cuts
+            # Conditions_For_Unfolding.append("Integrate')" not in str(out_print_main))
+    
+            # Remove inverted proton cut
+            Conditions_For_Unfolding.append("RevPro"      not in str(out_print_main))
+    
+            ## Correct Variable(s):
+            # # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
+            # Conditions_For_Unfolding.append("phi_t"    in str(out_print_main))
+            # # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
+            Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
+            # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
+            
+            # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
+            Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
+    
+            # if(not (Tag_ProQ or Cut_ProQ)):
+            #     # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
+            #     Conditions_For_Unfolding.append("Multi"     in str(out_print_main)) # For running only (3D) Multidimensional Unfolding Plots (Old and New)
+            # else:
+            #     Conditions_For_Unfolding.append("Multi" not in str(out_print_main))
+            
+            # Conditions_For_Unfolding.append("Var-D1='MM"     in str(out_print_main))
+            # if(Closure_Test):
+            #     Conditions_For_Unfolding.append("'Multi_Dim_z_pT_Bin_y_bin_phi_t"      in str(out_print_main))
+    
+            if("y" in Binning_Method):
+                # Conditions_For_Unfolding.append('''("Multi_Dim_z_pT_Bin_y_bin_phi_t"  in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected''')
+                Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_y_bin_phi_t"     in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
+            else:
+                # Conditions_For_Unfolding.append('''("Multi_Dim_z_pT_Bin_Y_bin_phi_t"  in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected''')
+                Conditions_For_Unfolding.append(("Multi_Dim_z_pT_Bin_Y_bin_phi_t"     in str(out_print_main)) or ("Multi_Dim_" not in str(out_print_main))) # Selects only the 3D unfolding (z-pT-phi_t) or the 1D unfolding (assuming that the condition of ("phi_t" in str(out_print_main)) is selected)
+    
+            # Conditions_For_Unfolding.append('''"Multi_Dim_Q2_phi_t"               not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_Q2_phi_t"                  not in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t"    not in str(out_print_main))
+    
+            # Not Tested Yet...
+            # Conditions_For_Unfolding.append('''"Multi_Dim_elth_phi_t"  not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_elth_phi_t"     not in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"Multi_Dim_pipth_phi_t" not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_pipth_phi_t"    not in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"Multi_Dim_elPhi_phi_t" not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_elPhi_phi_t"    not in str(out_print_main))
+    
+            # Conditions_For_Unfolding.append('''"Multi_Dim_pipPhi_phi_t not in str(out_print_main)''')
+            Conditions_For_Unfolding.append("Multi_Dim_pipPhi_phi_t"   not in str(out_print_main))
+            # Conditions_For_Unfolding.append(("Multi_Dim_elth_phi_t" in str(out_print_main)) or ("Multi_Dim_pipth_phi_t" in str(out_print_main)) or ("Multi_Dim_elPhi_phi_t" in str(out_print_main)) or ("Multi_Dim_pipPhi_phi_t" in str(out_print_main)))
+    
+    
+            ## Correct Binning:
+            # Conditions_For_Unfolding.append("Q2-xB-Bin=1" in str(out_print_main))
+            # Conditions_For_Unfolding.append("Q2-xB-Bin=All" not in str(out_print_main))
+    
+            # Smearing Options:
+            # if((Smearing_Options not in ["no_smear", "both"]) or  (Sim_Test)):
+            if((Smearing_Options not in ["no_smear", "both"])):
+                # Conditions_For_Unfolding.append('''"(Smear-Type='')" not in str(out_print_main)''')
+                Conditions_For_Unfolding.append("(Smear-Type='')"    not in str(out_print_main))
+            # if((Smearing_Options not in ["smear",    "both"]) and (not Sim_Test)):
+            if((Smearing_Options not in ["smear",    "both"])):
+                # Conditions_For_Unfolding.append('''"(Smear-Type='')"     in str(out_print_main)''')
+                Conditions_For_Unfolding.append("(Smear-Type='')"        in str(out_print_main))
+    
+    
+            # if(False not in Conditions_For_Unfolding):
+            #     print("\nout_print_main =\n  ", out_print_main, "\n")
+            #     print("Conditions_For_Unfolding:")
+            #     for ii in Conditions_For_Unfolding:
+            #         if(type(ii) is str):
+            #             print("".join([str(ii), ":"]))
+            #         else:
+            #             print("".join(["\t", color.GREEN if(ii) else color.Error, str(ii), color.END]))
+            #     stop
+    
+            ##========================================================##
+            ##=====##    Conditions for Histogram Selection    ##=====##
+            ##========================================================##
+    
+            if(False in Conditions_For_Unfolding):
+                # Conditions for unfolding were not met by 'out_print_main'
+                count_failed += 1
+                # print("Conditions_For_Unfolding =", Conditions_For_Unfolding)
+                # print("".join([color.RED, str(out_print_main), color.END]))
+                # print("".join(["Number Failed: ", str(count_failed)]))
+                continue
+            else:
+                del Conditions_For_Unfolding # Do not need the list of conditions for the rest of this loop
+                
+                out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+                out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
+                out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
+    
+                ################################################################################
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                for sector_cut_remove in range(1, 7):
+                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                    out_print_main_gdf = out_print_main_gdf.replace(f"Integrate_eS{sector_cut_remove}o",       "Integrate")
+                del sector_cut_remove
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS_Proton",                  "no_cut")
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                ##=============##    Removing Cuts from the Generated files    ##=============##
+                ################################################################################
+    
+    
+                #############################################################################
+                ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
+                out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+                out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
+                out_print_main_gdf = out_print_main_gdf.replace("smear_",   "")
+                out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
+                ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
+                #############################################################################
+    
+    
+                ############################################################################
+                ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
+                out_print_main_rdf = out_print_main_rdf.replace(", (Gen_MM_Cut)", "")
+                ##=============##    Removing Gen_MM_Cut from RDF files    ##=============##
+                ############################################################################
+    
+                #############################################################################
+                ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
+                out_print_main_rdf = out_print_main_rdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
+                out_print_main_gdf = out_print_main_gdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
+                out_print_main_rdf = out_print_main_rdf.replace("'Response_Matrix'",        "'Response_Matrix_1D'")
+                out_print_main_gdf = out_print_main_gdf.replace("'Response_Matrix'",        "'Response_Matrix_1D'")
+                ##======##  Non-MC_REC Response Matrices (these are not 2D plots)  ##======##
+                #############################################################################
+    
+    
+                ##########################################################################################
+                ##======##    Fixing potential LACK of z-pT bins in Multi-Dim Response Matix    ##======##
+                # if(Common_Name in ["New_Binning_Schemes_V8_All", "Gen_Cuts_V1_All"]):
+                if(Common_Name in ["New_Binning_Schemes_V8_All"]):
+                    if(("Var-D2='z_pT_Bin" not in str(out_print_main_rdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_rdf))):
+                        out_print_main_rdf = out_print_main_rdf.replace("))", "".join(["), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
+                    if(("Var-D2='z_pT_Bin" not in str(out_print_main_gdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_gdf))):
+                        out_print_main_gdf = out_print_main_gdf.replace("))", "".join(["), (Var-D2='z_pT_Bin", str(Binning_Method), "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
+                ##======##    Fixing potential LACK of z-pT bins in Multi-Dim Response Matix    ##======##
+                ##########################################################################################
+                # ##########################################################################################
+                # ##======## Fixing potential LACK of (New) z-pT bins in Multi-Dim Response Matix ##======##
+                # if(Common_Name in ["Gen_Cuts_V6_All"]):
+                #     if(("Var-D2='z_pT_Bin" not in str(out_print_main_rdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_rdf))):
+                #         out_print_main_rdf = out_print_main_rdf.replace("))", "), (Var-D2='z_pT_Bin_y_bin'-[NumBins=43, MinBin=-0.5, MaxBin=42.5]))")
+                #     if(("Var-D2='z_pT_Bin" not in str(out_print_main_gdf)) and ("Var-D1='Multi_Dim" in str(out_print_main_gdf))):
+                #         out_print_main_gdf = out_print_main_gdf.replace("))", "), (Var-D2='z_pT_Bin_y_bin'-[NumBins=43, MinBin=-0.5, MaxBin=42.5]))")
+                # ##======## Fixing potential LACK of (New) z-pT bins in Multi-Dim Response Matix ##======##
+                # ##########################################################################################
+    
+    
+                if(out_print_main_mdf not in mdf.GetListOfKeys()):
+                    print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                    continue
+    
+                out_print_main_mdf_1D = out_print_main_mdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
+                if(("".join([", (Var-D2='z_pT_Bin", str(Binning_Method)]) not in out_print_main_mdf_1D) and ("Var-D1='phi_t'" in out_print_main_mdf_1D)):
+                    out_print_main_mdf_1D = out_print_main_mdf_1D.replace("]))", "".join(["]), (Var-D2='z_pT_Bin", str(Binning_Method), "" if("smear" not in str(out_print_main_mdf_1D)) else "_smeared", "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
+                if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
+                    print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
+                    for ii in mdf.GetListOfKeys():
+                        if(("Response_Matrix_Normal_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
+                            print(str(ii.GetName()))
+    
+                if(Sim_Test):
+                    out_print_main_rdf = out_print_main_mdf_1D
+                    out_print_main_tdf = out_print_main_gdf
+                    if(tdf not in ["N/A"]):
+                        if(out_print_main_tdf not in tdf.GetListOfKeys()):
+                            print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                            continue
+                    else:
+                        print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                if(out_print_main_rdf not in rdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
+                    continue
+                if(out_print_main_gdf not in gdf.GetListOfKeys()):
+                    print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+                    continue
+    
+    
+    
+                # Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main)) else 1 if("Q2-xB-Bin=1" in str(out_print_main)) else 2 if("Q2-xB-Bin=2" in str(out_print_main)) else 3 if("Q2-xB-Bin=3" in str(out_print_main)) else 4 if("Q2-xB-Bin=4" in str(out_print_main)) else 5 if("Q2-xB-Bin=5" in str(out_print_main)) else 6 if("Q2-xB-Bin=6" in str(out_print_main)) else 7 if("Q2-xB-Bin=7" in str(out_print_main)) else 8 if("Q2-xB-Bin=8" in str(out_print_main)) else 9 if("Q2-xB-Bin=9" in str(out_print_main)) else 10 if("Q2-xB-Bin=10" in str(out_print_main)) else 11 if("Q2-xB-Bin=11" in str(out_print_main)) else 12 if("Q2-xB-Bin=12" in str(out_print_main)) else "Undefined..."
+                # Q2_xB_Bin_Unfold = 0 if("Q2-xB-Bin=All" in str(out_print_main) or "Q2-y-Bin=All," in str(out_print_main)) else 1 if("Q2-xB-Bin=1," in str(out_print_main) or "Q2-y-Bin=1," in str(out_print_main)) else 2 if("Q2-xB-Bin=2," in str(out_print_main) or "Q2-y-Bin=2," in str(out_print_main)) else 3 if("Q2-xB-Bin=3," in str(out_print_main) or "Q2-y-Bin=3," in str(out_print_main)) else 4 if("Q2-xB-Bin=4," in str(out_print_main) or "Q2-y-Bin=4," in str(out_print_main)) else 5 if("Q2-xB-Bin=5," in str(out_print_main) or "Q2-y-Bin=5," in str(out_print_main)) else 6 if("Q2-xB-Bin=6," in str(out_print_main) or "Q2-y-Bin=6," in str(out_print_main)) else 7 if("Q2-xB-Bin=7," in str(out_print_main) or "Q2-y-Bin=7," in str(out_print_main)) else 8 if("Q2-xB-Bin=8," in str(out_print_main) or "Q2-y-Bin=8," in str(out_print_main)) else 9 if("Q2-xB-Bin=9," in str(out_print_main) or "Q2-y-Bin=9," in str(out_print_main)) else 10 if("Q2-xB-Bin=10," in str(out_print_main) or "Q2-y-Bin=10," in str(out_print_main)) else 11 if("Q2-xB-Bin=11," in str(out_print_main) or "Q2-y-Bin=11," in str(out_print_main)) else 12 if("Q2-xB-Bin=12," in str(out_print_main) or "Q2-y-Bin=12," in str(out_print_main)) else 13 if("Q2-xB-Bin=13," in str(out_print_main) or "Q2-y-Bin=13," in str(out_print_main)) else 14 if("Q2-xB-Bin=14," in str(out_print_main) or "Q2-y-Bin=14," in str(out_print_main)) else 15 if("Q2-xB-Bin=15," in str(out_print_main) or "Q2-y-Bin=15," in str(out_print_main)) else 16 if("Q2-xB-Bin=16," in str(out_print_main) or "Q2-y-Bin=16," in str(out_print_main)) else 17 if("Q2-xB-Bin=17," in str(out_print_main) or "Q2-y-Bin=17," in str(out_print_main)) else 18 if("Q2-xB-Bin=18," in str(out_print_main) or "Q2-y-Bin=18," in str(out_print_main)) else "Undefined..."
+                if("Q2-xB-Bin=All" in str(out_print_main) or "Q2-y-Bin=All," in str(out_print_main)):
+                    Q2_xB_Bin_Unfold = 0
+                elif(any(str(f"{BinType}=-3,") in str(out_print_main) for BinType in ["Q2-xB-Bin", "Q2-y-Bin"])):
+                    Q2_xB_Bin_Unfold = -3
+                else:
+                    for Q2_xB_Bin_Unfold_ii in range(1, 40, 1):
+                        if(any(f"{BinType}={Q2_xB_Bin_Unfold_ii}," in str(out_print_main) for BinType in ["Q2-xB-Bin", "Q2-y-Bin"])):
+                            Q2_xB_Bin_Unfold = Q2_xB_Bin_Unfold_ii
+                            break
+                        else:
+                            Q2_xB_Bin_Unfold = "Undefined..."
+    
+                # print("\n\nQ2_xB_Bin_Unfold =", Q2_xB_Bin_Unfold)
+                # print("out_print_main =", out_print_main, "\n\n")
+    
+                if(type(Q2_xB_Bin_Unfold) is str):
+                    print("".join([color.Error, "\nERROR - Q2_xB_Bin_Unfold = ", str(Q2_xB_Bin_Unfold), color.END]))
+                    print(f"Error is with\n out_print_main = {out_print_main}")
+    
+                if((str(Q2_xB_Bin_Unfold) not in Q2_xB_Bin_List) and ("Multi_Dim_Q2_y_Bin_phi_t" not in str(out_print_main))):
+                    # print("Skipping unselected Q2-xB Bin...")
+                    print("".join(["Bin ", str(Q2_xB_Bin_Unfold), " is not in Q2_xB_Bin_List = ", str(Q2_xB_Bin_List)]))
+                    continue
+    
+                count += 1
+                print("".join(["\nUnfolding: ", str(out_print_main)]))
+                ExREAL_1D_initial     = rdf.Get(out_print_main_rdf)
+                MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
+                MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
+                Response_2D_initial   = mdf.Get(out_print_main_mdf)
+                if(tdf not in ["N/A"]):
+                    ExTRUE_1D_initial = tdf.Get(out_print_main_tdf)
+                if("mdf" in str(ExREAL_1D_initial.GetName())):
+                    print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D_initial.GetName())
+                    ExREAL_1D_initial.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
+                    print("New ExREAL_1D_initial.GetName() =",   ExREAL_1D_initial.GetName())
+    
+    
+                ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+                MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+                MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace("with Proton Cuts",     ""))
+                Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace("with Proton Cuts", ""))
+    
+                # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
+                out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'Response_Matrix_1D'",        "'Background_Response_Matrix_1D'")
+                out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
+                # out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_Normal_1D'")
+                if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
+                    MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D)
+                    # print(f"{color.BLUE}\n\nout_print_main_bdf_1D = {out_print_main_bdf_1D}{color.END}")
+                    # print(f"{color.BOLD}\nMC_BGS_1D_initial  -> {MC_BGS_1D_initial.GetName()}{color.END}")
+                    # print(f"{color.BOLD}MC_REC_1D_initial  -> {MC_REC_1D_initial.GetName()}{color.END}\n")
+                else:
+                    MC_BGS_1D_initial = "None"
+                    print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
+                    raise TypeError("Missing Background Histogram")
+                if(Sim_Test and (str(MC_BGS_1D_initial) not in ["None"])):
+                    # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
+                    ExREAL_1D_initial.Add(MC_BGS_1D_initial)
+                    
+                # Use_Gen_MM_Cut = True
+                Use_Gen_MM_Cut = False
+    
+                if(("Gen_MM_Cut" in str(out_print_main_rdf)) or ("Gen_MM_Cut" in str(out_print_main_mdf_1D)) or ("Gen_MM_Cut" in str(out_print_main_gdf))  or ("Gen_MM_Cut" in str(out_print_main_mdf))):
+                    if((not Use_Gen_MM_Cut) and (Common_Name not in ["Gen_Cuts_V7_All"])):
+                        print(color.Error, "\nERROR: NOT TRYING TO RUN Gen_MM_Cut\n", color.END)
+                        continue
+                    print(color.BBLUE, "INCLUDES Gen_MM_Cut", color.END)
+                    # print("out_print_main_rdf    =", out_print_main_rdf)
+                    # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                    # print("out_print_main_gdf    =", out_print_main_gdf)
+                    # print("out_print_main_mdf    =", out_print_main_mdf)
+    
+                    # if(Use_Gen_MM_Cut):
+                    if(abs(Response_2D_initial.GetZaxis().GetXmin()) == abs(Response_2D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                        Response_2D_initial = Response_2D_initial.Project3D("yx e")
+                        Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" yx projection", ""))
+                    else:
+                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END, "\nResponse_2D_initial = ", Response_2D_initial)
+                        raise TypeError("ERROR WITH Gen_MM_Cut Response Matrix")
+    
+                    if("3D" in str(type(MC_REC_1D_initial))):
+                        if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                            MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
+                            MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
+                        else:
+                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                            raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
+                    else:
+                        if(abs(MC_REC_1D_initial.GetYaxis().GetXmin()) == abs(MC_REC_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                            MC_REC_1D_initial = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()), 0, -1, "e")
+                            MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
+                        else:
+                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                            raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
+    
+                    if("3D" in str(type(MC_GEN_1D_initial))):
+                        if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                            MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
+                            MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
+                        else:
+                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                            raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
+                    else:
+                        if(abs(MC_GEN_1D_initial.GetYaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                            MC_GEN_1D_initial = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()), 0, -1, "e")
+                            MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
+                        else:
+                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                            raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
+    
+                    if(tdf not in ["N/A"]):
+                        if("3D" in str(type(ExTRUE_1D_initial))):
+                            if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                                ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
+                                ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
+                            else:
+                                print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                                raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
+                        else:
+                            if(abs(ExTRUE_1D_initial.GetYaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                                ExTRUE_1D_initial = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()), 0, -1, "e")
+                                ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" x projection", ""))
+                            else:
+                                print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                                raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
+    
+                    if(MC_BGS_1D_initial != "None"):
+                        if("3D" in str(type(MC_BGS_1D_initial))):
+                            if(abs(MC_BGS_1D_initial.GetZaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                                MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
+                                MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
+                            else:
+                                print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                                raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
+                        else:
+                            if(abs(MC_BGS_1D_initial.GetYaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
+                                MC_BGS_1D_initial = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()), 0, -1, "e")
+                                MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" x projection", ""))
+                            else:
+                                print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                                raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
+    
+                elif(Common_Name in ["Gen_Cuts_V7_All"]):
+                    if("3D" in str(type(ExREAL_1D_initial))):
+                        # print(color.BBLUE, "\n\n\n\nExREAL_1D_initial.GetZaxis().GetTitle() =", ExREAL_1D_initial.GetZaxis().GetTitle(), color.END)
+                        # print("out_print_main_rdf    =", out_print_main_rdf)
+                        # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                        # print("out_print_main_gdf    =", out_print_main_gdf)
+                        # print("out_print_main_mdf    =", out_print_main_mdf)
+                        if(abs(ExREAL_1D_initial.GetZaxis().GetXmin()) == abs(ExREAL_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                            ExREAL_1D_initial = ExREAL_1D_initial.Project3D("yx e")
+                            ExREAL_1D_initial.SetTitle(str(ExREAL_1D_initial.GetTitle()).replace(" yx projection", ""))
+                    if("3D" in str(type(MC_REC_1D_initial))):
+                        # print(color.Error, "\n\n\n\nMC_REC_1D_initial.GetZaxis().GetTitle() =", MC_REC_1D_initial.GetZaxis().GetTitle(), color.END)
+                        # print("out_print_main_rdf    =", out_print_main_rdf)
+                        # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                        # print("out_print_main_gdf    =", out_print_main_gdf)
+                        # print("out_print_main_mdf    =", out_print_main_mdf)
+                        if(abs(MC_REC_1D_initial.GetZaxis().GetXmin()) == abs(MC_REC_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                            MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
+                            MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
+                        # print("MC_REC_1D_initial.GetTitle() =", MC_REC_1D_initial.GetTitle())
+                    if("3D" in str(type(MC_GEN_1D_initial))):
+                        # print(color.BGREEN, "\n\n\n\nMC_GEN_1D_initial.GetZaxis().GetTitle() =", MC_GEN_1D_initial.GetZaxis().GetTitle(), color.END)
+                        # print("out_print_main_rdf    =", out_print_main_rdf)
+                        # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
+                        # print("out_print_main_gdf    =", out_print_main_gdf)
+                        # print("out_print_main_mdf    =", out_print_main_mdf)
+                        if(abs(MC_GEN_1D_initial.GetZaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                            MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
+                            MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
+                        # print("MC_GEN_1D_initial.GetTitle() =", MC_GEN_1D_initial.GetTitle())
+                    if(tdf not in ["N/A"]):
+                        if("3D" in str(type(ExTRUE_1D_initial))):
+                            if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                                ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
+                                ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
+    
+                    if(MC_BGS_1D_initial != "None"):
+                        if("3D" in str(type(MC_BGS_1D_initial))):
+                            if(abs(MC_BGS_1D_initial.GetZaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
+                                MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
+                                MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
+    
+                # print("\n\n")
+                # print("".join(["ExREAL_1D_initial[", str(ExREAL_1D_initial.GetName()), "]: \n\t\t", str(type(ExREAL_1D_initial)), "\n"]))
+                # print("".join(["MC_REC_1D_initial[", str(out_print_main_mdf_1D), "]: \n\t\t", str(type(MC_REC_1D_initial)), "\n"]))
+                # print("".join(["MC_GEN_1D_initial[", str(MC_GEN_1D_initial.GetName()), "]: \n\t\t", str(type(MC_GEN_1D_initial)), "\n"]))
+                # print("".join(["Response_2D_initial[", str(Response_2D_initial.GetName()), "]: \n\t\t", str(type(Response_2D_initial)), "\n"]))
+    
+    
+    
+        ###############################################################################################
+        ###############################################################################################
+        ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###
+    
+    
+                z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All"     in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3] or ("Binning-Type='3'" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [4]) else 36 if(Q2_xB_Bin_Unfold in [5]) else 25 if(Q2_xB_Bin_Unfold in [6, 7]) else 20 if(Q2_xB_Bin_Unfold in [8]) else 1
+    
+                if(any(binning in Binning_Method for binning in ["y"])):
+                    z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9, 11, 12]) else 30 if(Q2_xB_Bin_Unfold in [6, 10])       else 25 if(Q2_xB_Bin_Unfold in [13])     else 1
+                    z_pT_Bin_Range = 0
+                    z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 49 if(Q2_xB_Bin_Unfold in [1, 2, 3, 7]) else 42 if(Q2_xB_Bin_Unfold in [4])           else 36 if(Q2_xB_Bin_Unfold in [5, 8, 9])         else 30 if(Q2_xB_Bin_Unfold in [6, 10, 11])   else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
+    
+                    z_pT_Bin_Range = 0 if(("Q2-xB-Bin=All" in str(out_print_main)) or ("Q2-y-Bin=All" in str(out_print_main))) else 42 if(Q2_xB_Bin_Unfold in [2])          else 36 if(Q2_xB_Bin_Unfold in [4, 5, 9, 10]) else 35 if(Q2_xB_Bin_Unfold in [1, 3])            else 30 if(Q2_xB_Bin_Unfold in [6, 7, 8, 11]) else 25 if(Q2_xB_Bin_Unfold in [13, 14]) else 20 if(Q2_xB_Bin_Unfold in [12, 15, 16, 17]) else 1
+    
+                if("Y_bin" in Binning_Method):
+                    z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
+    
+                for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
+                    if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                        if(((Q2_xB_Bin_Unfold in [1, 2]) and (z_pT_Bin_Unfold in [49])) or (Q2_xB_Bin_Unfold == 3 and z_pT_Bin_Unfold in [49, 48, 42]) or (Q2_xB_Bin_Unfold in [1, 4] and z_pT_Bin_Unfold in [42]) or (Q2_xB_Bin_Unfold == 5 and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold == 7 and z_pT_Bin_Unfold in [25])):
+                            continue
+                    elif(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method)):
+                        continue
+                    # elif("Y_bin" not in Binning_Method):
+                    #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 7, 14, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 35, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [5, 6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [24, 29, 30]) or (Q2_xB_Bin_Unfold in [11, 12] and z_pT_Bin_Unfold in [30, 35, 36])  or (Q2_xB_Bin_Unfold in [13] and z_pT_Bin_Unfold in [5, 20, 24, 25])):
+                    #     #     # print("Testing z_pT_Bin_Unfold...")
+                    #     #     continue
+                    #     #
+                    #     # if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [42, 48, 49])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [42, 49])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [42, 48, 49]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [7, 28, 35, 41, 42]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [7, 42, 48, 49]) or (Q2_xB_Bin_Unfold in [8] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+                    #     #     continue
+                    #     if(((Q2_xB_Bin_Unfold in [1]) and (z_pT_Bin_Unfold in [28, 34, 35])) or ((Q2_xB_Bin_Unfold in [2]) and (z_pT_Bin_Unfold in [28, 35, 41, 42])) or (Q2_xB_Bin_Unfold in [3] and z_pT_Bin_Unfold in [28, 35]) or (Q2_xB_Bin_Unfold in [4] and z_pT_Bin_Unfold in [6, 36]) or (Q2_xB_Bin_Unfold in [5] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [6] and z_pT_Bin_Unfold in [30]) or (Q2_xB_Bin_Unfold in [7] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [9] and z_pT_Bin_Unfold in [36]) or (Q2_xB_Bin_Unfold in [10] and z_pT_Bin_Unfold in [30, 36]) or (Q2_xB_Bin_Unfold in [11] and z_pT_Bin_Unfold in [24, 30]) or (Q2_xB_Bin_Unfold in [13, 14] and z_pT_Bin_Unfold in [25]) or (Q2_xB_Bin_Unfold in [15, 16, 17] and z_pT_Bin_Unfold in [20])):
+                    #         continue
+    
+                    # # For Selecting specific z-pT Bins
+                    # if(z_pT_Bin_Unfold not in [0, 10]):
+                    #     continue
+    
+            #########################################################
+            ##===============##     3D Slices     ##===============##
+    
+                    if("3D" in str(type(Response_2D_initial))):
+                        try:
+                            # bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
+                            bin_Response_2D_0, bin_Response_2D_1 = Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), Response_2D_initial.GetZaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else Response_2D_initial.GetNbinsZ())
+                            if(z_pT_Bin_Unfold != 0):
+                                Response_2D_initial.GetZaxis().SetRange(bin_Response_2D_0, bin_Response_2D_1)
+                            Response_2D           = Response_2D_initial.Project3D('yx e')
+                            Response_2D.SetName(str(Response_2D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])))
+                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            else:
+                                Response_2D_Title_New = (str(Response_2D.GetTitle()).replace("yx projection", "")).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            if((Pass_Version not in [""]) and (Pass_Version not in Response_2D_Title_New)):
+                                Response_2D_Title_New = "".join(["#splitline{", str(Response_2D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                            Response_2D.SetTitle(Response_2D_Title_New)
+                            # print(str(Response_2D.GetTitle()))
+                        except:
+                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (Response_2D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                    else:
+                        Response_2D = Response_2D_initial
+    
+            ##===============##     3D Slices     ##===============##
+            #########################################################
+    
+    
+            #########################################################
+            ##===============##     2D Slices     ##===============##
+                    if("2D" in str(type(ExREAL_1D_initial))):
+                        try:
+                            # bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
+                            bin_ExREAL_1D_0, bin_ExREAL_1D_1 = ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExREAL_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExREAL_1D_initial.GetNbinsY())
+                            ExREAL_1D                        = ExREAL_1D_initial.ProjectionX(str(ExREAL_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExREAL_1D_0, bin_ExREAL_1D_1, "e")
+                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            else:
+                                ExREAL_1D_Title_New          = str(ExREAL_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            if((Pass_Version not in [""]) and (Pass_Version not in ExREAL_1D_Title_New)):
+                                ExREAL_1D_Title_New          = "".join(["#splitline{", str(ExREAL_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                            ExREAL_1D.SetTitle(ExREAL_1D_Title_New)
+                        except:
+                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExREAL_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                    else:
+                        # print("\nExREAL_1D already is a 1D Histogram...")
+                        ExREAL_1D = ExREAL_1D_initial
+    
+                    if("2D" in str(type(MC_REC_1D_initial))):
+                        try:
+                            # bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
+                            bin_MC_REC_1D_0, bin_MC_REC_1D_1 = MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_REC_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_REC_1D_initial.GetNbinsY())
+                            MC_REC_1D                        = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_REC_1D_0, bin_MC_REC_1D_1, "e")
+                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            else:
+                                MC_REC_1D_Title_New          = str(MC_REC_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            if((Pass_Version not in [""]) and (Pass_Version not in MC_REC_1D_Title_New)):
+                                MC_REC_1D_Title_New          = "".join(["#splitline{", str(MC_REC_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                            MC_REC_1D.SetTitle(MC_REC_1D_Title_New)
+                        except:
+                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_REC_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                    else:
+                        # print("\nMC_REC_1D already is a 1D Histogram...")
+                        MC_REC_1D = MC_REC_1D_initial
+    
+    
+                    if(MC_BGS_1D_initial != "None"):
+                        if("2D" in str(type(MC_BGS_1D_initial))):
+                            try:
+                                # bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
+                                bin_MC_BGS_1D_0, bin_MC_BGS_1D_1 = MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_BGS_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_BGS_1D_initial.GetNbinsY())
+                                MC_BGS_1D                        = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_BGS_1D_0, bin_MC_BGS_1D_1, "e")
+                                if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                    MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
+                                else:
+                                    MC_BGS_1D_Title_New          = "".join(["#splitline{BACKGROUND}{", str(MC_BGS_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}}"]))])
+                                if((Pass_Version not in [""]) and (Pass_Version not in MC_BGS_1D_Title_New)):
+                                    MC_BGS_1D_Title_New          = "".join(["#splitline{", str(MC_BGS_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                                MC_BGS_1D.SetTitle(MC_BGS_1D_Title_New)
+                            except:
+                                print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_BGS_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                        else:
+                            # print("\nMC_BGS_1D already is a 1D Histogram...")
+                            MC_BGS_1D = MC_BGS_1D_initial
+                    else:
+                        MC_BGS_1D = MC_BGS_1D_initial
+    
+    
+                    if("2D" in str(type(MC_GEN_1D_initial))):
+                        try:
+                            # bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
+                            bin_MC_GEN_1D_0, bin_MC_GEN_1D_1 = MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), MC_GEN_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else MC_GEN_1D_initial.GetNbinsY())
+                            MC_GEN_1D                        = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_MC_GEN_1D_0, bin_MC_GEN_1D_1, "e")
+                            if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            else:
+                                MC_GEN_1D_Title_New          = str(MC_GEN_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                            if((Pass_Version not in [""]) and (Pass_Version not in MC_GEN_1D_Title_New)):
+                                MC_GEN_1D_Title_New          = "".join(["#splitline{", str(MC_GEN_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                            MC_GEN_1D.SetTitle(MC_GEN_1D_Title_New)
+                        except:
+                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_GEN_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                    else:
+                        # print("\nMC_GEN_1D already is a 1D Histogram...")
+                        MC_GEN_1D = MC_GEN_1D_initial
+    
+                    if(tdf not in ["N/A"]):
+                        if("2D" in str(type(ExTRUE_1D_initial))):
+                            try:
+                                # bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
+                                bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 1), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
+                                ExTRUE_1D                        = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()).replace("z-PT-Bin=All", "".join(["z-PT-Bin=", "All_1D" if(z_pT_Bin_Unfold == 0) else str(z_pT_Bin_Unfold)])), bin_ExTRUE_1D_0, bin_ExTRUE_1D_1, "e")
+                                if(("y_bin" not in Binning_Method) and ("Y_bin" not in Binning_Method)):
+                                    ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-x_{B} Bin: ", str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                                else:
+                                    ExTRUE_1D_Title_New          = str(ExTRUE_1D.GetTitle()).replace("".join(["Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold)]), "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ",     str(Q2_xB_Bin_Unfold), "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold != 0) else "All", "}}}"]))
+                                if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
+                                    ExTRUE_1D_Title_New          = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                                ExTRUE_1D_Title_New        = str(str(ExTRUE_1D_Title_New.replace("Generated",                  "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
+                                ExTRUE_1D_Title_X_Axis_New = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
+                                ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
+                                ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
+                            except:
+                                print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExTRUE_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                        else:
+                            # print("\nExTRUE_1D already is a 1D Histogram...")
+                            ExTRUE_1D = ExTRUE_1D_initial
+                            ExTRUE_1D_Title_New            = str(str(str(ExTRUE_1D.GetTitle()).replace("Generated",            "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
+                            if((Pass_Version not in [""]) and (Pass_Version not in ExTRUE_1D_Title_New)):
+                                ExTRUE_1D_Title_New        = "".join(["#splitline{", str(ExTRUE_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
+                            ExTRUE_1D_Title_X_Axis_New     = str(str(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Generated", "True Simulated")).replace("Gen", "True")).replace("GEN", "True")
+                            ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
+                            ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
+                    else:
+                        ExTRUE_1D = "N/A"
+            ##===============##     2D Slices     ##===============##
+            #########################################################
+    
+    
+        ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###
+        ###############################################################################################
+        ###############################################################################################
+    
+    
+                    if((z_pT_Bin_Unfold   != 0)                            and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2"       in out_print_main))):
+                        continue
+                    if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("Multi_Dim_z_pT_Bin"         in out_print_main)):
+                        continue
+                    if(((Q2_xB_Bin_Unfold == 0) or (z_pT_Bin_Unfold != 0)) and ("MultiDim_z_pT_Bin"          in out_print_main)):
+                        continue
+                    if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_"                 in out_print_main) or ("Multi_Dim_Q2_phi_t" in out_print_main))):
+                        continue
+                    if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("MultiDim_Q2_y_z_pT_phi_h"  in out_print_main))):
+                        continue
+                    # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'Multi_Dim" not in out_print_main)):
+                    # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'MM" not in out_print_main) and ("'W" not in out_print_main)):
+                    if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main) and ("'Multi_Dim" not in out_print_main) and ("'MultiDim_Q2_y_z_pT_phi_h" not in out_print_main) and ("'MultiDim_z_pT_Bin_Y_bin_phi_t" not in out_print_main)):
+                        print("\nADDING CUTS FOR:", out_print_main, "\n")
+    
+                        if("'MM" not in out_print_main):
+                            if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_phi_t" not in out_print_main) and ("Multi_Dim" not in out_print_main))):
+                                # Do not plot other variables that are not phi_t
+                                continue
+    
+                            # Extra Y-Bins in 2D Histogram:
+                            for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+                                Response_2D.SetBinContent(0, ybin, 0)
+                                if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
+                                    Response_2D.SetBinContent(1, ybin, 0)
+    
+                            try:
+                                # Extra Bins in 1D Histogram:
+                                ExREAL_1D.SetBinContent(0, 0)
+                                MC_REC_1D.SetBinContent(0, 0)
+                                MC_GEN_1D.SetBinContent(0, 0)
+                                ExREAL_1D.SetBinContent(ExREAL_1D.GetNbinsX() + 1, 0)
+                                MC_REC_1D.SetBinContent(MC_REC_1D.GetNbinsX() + 1, 0)
+                                MC_GEN_1D.SetBinContent(MC_GEN_1D.GetNbinsX() + 1, 0)
+                                if(MC_BGS_1D != "None"):
+                                    MC_BGS_1D.SetBinContent(MC_BGS_1D.GetNbinsX() + 1, 0)
+                                if(tdf not in ["N/A"]):
+                                    ExTRUE_1D.SetBinContent(ExTRUE_1D.GetNbinsX() + 1, 0)
+                                if("'pT'" not in out_print_main and "'pT_smeared'" not in out_print_main):
+                                    ExREAL_1D.SetBinContent(1, 0)
+                                    MC_REC_1D.SetBinContent(1, 0)
+                                    MC_GEN_1D.SetBinContent(1, 0)
+                                    if(MC_BGS_1D != "None"):
+                                        MC_BGS_1D.SetBinContent(1, 0)
+                                    if(tdf not in ["N/A"]):
+                                        ExTRUE_1D.SetBinContent(1, 0)
+                            except:
+                                print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
+                                print(type(MC_REC_1D))
+    
+                        # else:
+                        #     # Missing Mass Cut on Response Matrix (Gen)
+                        #     for xbin in range(0, Response_2D.GetXaxis().GetNbins() + 2, 1):
+                        #         if(Response_2D.GetXaxis().GetBinCenter(xbin) > 1.5):
+                        #             print("Done with MM Cuts...")
+                        #             break
+                        #         for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+                        #             Response_2D.SetBinContent(xbin, ybin, 0)
+                        #     # for ybin in range(0, Response_2D.GetYaxis().GetNbins() + 2, 1):
+                        #     #     Response_2D.SetBinContent(Response_2D.GetXaxis().FindBin(3.5) + 1, ybin, 0)
+                        #     # Cut on gdf histogram
+                        #     for xbin in range(0, MC_GEN_1D.GetNbinsX() + 1, 1):
+                        #         if(MC_GEN_1D.GetBinCenter(xbin) > 1.5):
+                        #             print("Done with MM Cuts...")
+                        #             break
+                        #         else:
+                        #             MC_GEN_1D.SetBinContent(xbin, 0)
+                        #     # MC_GEN_1D.SetBinContent(MC_GEN_1D.FindBin(3.5) + 1, 0)
+                        #     # Cut on mdf histogram
+                        #     for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+                        #         if(MC_REC_1D.GetBinCenter(xbin) > 1.5):
+                        #             print("Done with MM Cuts...")
+                        #             break
+                        #         else:
+                        #             MC_REC_1D.SetBinContent(xbin, 0)
+                        #     # MC_REC_1D.SetBinContent(MC_REC_1D.FindBin(3.5) + 1, 0)
+                        #     # Cut on rdf histogram
+                        #     for xbin in range(0, ExREAL_1D.GetNbinsX() + 1, 1):
+                        #         if(ExREAL_1D.GetBinCenter(xbin) > 1.5):
+                        #             print("Done with MM Cuts...")
+                        #             break
+                        #         else:
+                        #             ExREAL_1D.SetBinContent(xbin, 0)
+                        #     # ExREAL_1D.SetBinContent(ExREAL_1D.FindBin(3.5) + 1, 0)
+    
+    
+                    # if(Sim_Test):
+                    #     print(color.BOLD, "\n\nFor 'Sim_Test' of 'out_print_main' =", color.BLUE,  str(out_print_main),        color.END)
+                    #     print(color.BOLD, "\t'out_print_main_rdf'    =",              color.GREEN, str(out_print_main_rdf),    color.END)
+                    #     print(color.BOLD, "\t'out_print_main_mdf_1D' =",              color.GREEN, str(out_print_main_mdf_1D), color.END)
+                    #     print(color.BOLD, "\t'out_print_main_tdf'    =",              color.CYAN,  str(out_print_main_tdf),    color.END)
+                    #     for xbin in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+                    #         MC_REC_1D_Content = MC_REC_1D.GetBinContent(xbin)
+                    #         ExREAL_1D_Content = ExREAL_1D.GetBinContent(xbin)
+                    #         if(0 not in [MC_REC_1D_Content, ExREAL_1D_Content, MC_REC_1D_Content - ExREAL_1D_Content]):
+                    #             print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(((MC_REC_1D_Content - ExREAL_1D_Content)/ExREAL_1D_Content)*100, 4)), "% of Unsmeared")
+                    #         else:
+                    #             print("\t\tDifference (smear - unsmear) in Bin", xbin, " =", str(round(MC_REC_1D_Content - ExREAL_1D_Content, 4)))
+                    #     print("\n\n")
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("Cut: No Cuts",     "")).replace("Cut:  No Cuts", ""))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("Cut: No Cuts", "")).replace("Cut:  No Cuts", ""))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
+    
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
+                    ExREAL_1D.GetXaxis().SetTitle(str((str(ExREAL_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")).replace(") (", " - ")))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
+                    MC_REC_1D.GetXaxis().SetTitle(str((str(MC_REC_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")).replace(") (", " - ")))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
+                    MC_GEN_1D.GetXaxis().SetTitle((str(MC_GEN_1D.GetXaxis().GetTitle()).replace("_{t}",                 "_{h}")))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("_{t}",                                   "_{h}")))
+                        ExTRUE_1D.GetXaxis().SetTitle((str(ExTRUE_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("_{t}", "_{h}")))
+                    Response_2D.GetXaxis().SetTitle(str((str(Response_2D.GetXaxis().GetTitle()).replace("_{t}",         "_{h}")).replace(") (", " - ")))
+                    Response_2D.GetYaxis().SetTitle(str((str(Response_2D.GetYaxis().GetTitle()).replace("_{t}",         "_{h}")).replace(") (", " - ")))
+    
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
+    
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
+    
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
+    
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("Q2_phi_t",          "#phi_{h}+Q^{2}"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("Q2_phi_t",          "#phi_{h}+Q^{2}"))
+    
+    
+                    ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
+                    ExREAL_1D.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
+                    MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
+                    MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
+                    MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
+                    MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
+                        ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
+                    Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2",                                "#phi_{h}+Q^{2}"))
+                    Response_2D.GetXaxis().SetTitle(str(Response_2D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
+                    Response_2D.GetYaxis().SetTitle(str(Response_2D.GetYaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
+    
+    
+                    Q2_Bin_Range         = "Range: 1.4805 #rightarrow 11.8705 - Size: 0.5195 per bin"
+                    Q2_Bin_Replace_Range = "Range: 1.48 #rightarrow 11.87 GeV^{2} - Size: 0.52 GeV^{2}/bin"
+                    # xB_Bin_Range         = "Range: 0.082643 #rightarrow 0.82643 - Size: 0.0368 per bin"
+                    # xB_Bin_Replace_Range = "Range: 0.083 #rightarrow 0.83 - Size: 0.0368/bin"
+                    xB_Bin_Range         = "Range: 0.08977 #rightarrow 0.82643 - Size: 0.0368 per bin"
+                    xB_Bin_Replace_Range = "Range: 0.0898 #rightarrow 0.826 - Size: 0.0368/bin"
+                    z_Bin_Range          = "Range: 0.11944 #rightarrow 0.73056 - Size: 0.0306 per bin"
+                    z_Bin_Replace_Range  = "Range: 0.12 #rightarrow 0.73 - Size: 0.0306/bin"
+                    pT_Bin_Range         = "Range: 0 #rightarrow 1.05 - Size: 0.0525 per bin"
+                    pT_Bin_Replace_Range = "Range: 0 #rightarrow 1.05 GeV - Size: 0.0525 GeV/bin"
+    
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
+    
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
+    
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
+    
+    
+                    ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
+                    MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
+                    MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
+                    if(tdf not in ["N/A"]):
+                        ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
+                    Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
+    
+    
+                    if("Var-D1='Q2" in out_print_main):
+                        ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
+                        MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
+                        MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
+                        if(tdf not in ["N/A"]):
+                            ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
+                        Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
+                        Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV^{2}]"]))
+    
+    
+                    if("Var-D1='pT" in out_print_main):
+                        ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV]"]))
+                        MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV]"]))
+                        MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV]"]))
+                        if(tdf not in ["N/A"]):
+                            ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV]"]))
+                        Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV]"]))
+                        Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV]"]))
+    
+    
+                    for range_strings in ["Range: 0 #rightarrow 360 - Size: 15.0 per bin", "Range: 0 #rightarrow 4.2 - Size: 0.07 per bin"]:
+                        ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace(range_strings,     ""))
+                        MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace(range_strings,     ""))
+                        MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace(range_strings,     ""))
+                        if(tdf not in ["N/A"]):
+                            ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace(range_strings, ""))
+                        Response_2D.SetTitle(str(Response_2D.GetTitle()).replace(range_strings, ""))
+                    if(MC_BGS_1D != "None"):
+                        MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))
+                        # print(f"{color.BOLD}MC_BGS_1D  -> {MC_BGS_1D.GetName()}{color.END}")
+                        # print(f"{color.BOLD}MC_REC_1D  -> {MC_REC_1D.GetName()}{color.END}")
+    
+    
+                    # continue
+                    List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
+                    continue
+    
+    
+    
+    
+    ##===============##     Unfolding Histogram Procedure     ##===============##
+    #############################################################################
+    
+    
+    
+    
+    print(f"Total: {count}")
+    # print(f"Num Failed: {count_failed}")
+    del count
+    
+    
+    
+    
+    BIN_SEARCH = []
+    for BIN in Q2_xB_Bin_List:
+        BIN_SEARCH.append("".join(["Q2_y_Bin_", str(BIN) if(str(BIN) not in ['0', 0]) else "All", ")"]))
+        
+    for ii in rdf.GetListOfKeys():
         out_print_main = str(ii.GetName())
         if("Normal_2D" in out_print_main):
             # print("out_print_main =", out_print_main)
@@ -8764,8 +8684,10 @@ else:
                 SEARCH.append(str(BIN) in str(out_print_str))
                 if(str(BIN) in str(out_print_str)):
                     break
+            out_print_str     = out_print_str.replace("mdf",                   "rdf")
             if(True in SEARCH):
-                List_of_All_Histos_For_Unfolding[out_print_str] = gdf.Get(out_print_main)
+                # List_of_All_Histos_For_Unfolding[out_print_str.replace("mdf", "rdf")] = rdf.Get(out_print_main)
+                List_of_All_Histos_For_Unfolding[out_print_str] = rdf.Get(str(out_print_main))
                 if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
                     for particle in ["el", "pip"]:
                         if(f"({particle})_({particle}th)"    in str(out_print_str)):
@@ -8782,6 +8704,8 @@ else:
                         if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
                             out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
                             List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                        else:
+                            out_print_str_1D_Binned_Mom = "N/A"
                         for ii in range(4, num_z_pT_bins + 1):
                             z_pT_bin_value = ii - 4
                             List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
@@ -8794,28 +8718,28 @@ else:
                             if(f"({particle})_({particle}th)"    in str(out_print_str)):
                                 List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
                                 List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-
-            
-            
-if(tdf not in ["N/A"]):
-    for ii in tdf.GetListOfKeys():
+                
+    for ii in mdf.GetListOfKeys():
         out_print_main = str(ii.GetName())
-        if("Normal_2D" in out_print_main):
+        if(("Normal_2D" in out_print_main) or ("Normal_Background_2D" in out_print_main)):
+            # print("out_print_main =", out_print_main)
             # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-            out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-            out_print_str = out_print_str.replace("_(cut_Complete_SIDIS)", "")
-            out_print_str = out_print_str.replace("cut_Complete_SIDIS_",   "")
-            out_print_str = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
-            out_print_str = out_print_str.replace("_smeared",              "")
-            out_print_str = out_print_str.replace("'smear'",               "Smear")
+            out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+            out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+            out_print_str     = out_print_str.replace("cut_Complete_SIDIS_",   "")
+            out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+            out_print_str     = out_print_str.replace("_smeared",              "")
+            out_print_str     = out_print_str.replace("'smear'",               "Smear")
             SEARCH = []
             for BIN in BIN_SEARCH:
                 SEARCH.append(str(BIN) in str(out_print_str))
                 if(str(BIN) in str(out_print_str)):
                     break
             if(True in SEARCH):
-                List_of_All_Histos_For_Unfolding[out_print_str.replace("gdf", "tdf")] = tdf.Get(out_print_main)
+                List_of_All_Histos_For_Unfolding[out_print_str] = mdf.Get(out_print_main)
                 if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
+                    if("Normal_Background_2D" in out_print_main):
+                        continue
                     for particle in ["el", "pip"]:
                         if(f"({particle})_({particle}th)"    in str(out_print_str)):
                             List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xy")
@@ -8825,8 +8749,9 @@ if(tdf not in ["N/A"]):
                         else:
                             continue
                         num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                        out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                        out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                        out_print_str_1D = str(out_print_str.replace("(Normal_2D)",               "(1D)"))
+                        out_print_str_1D = str(out_print_str_1D.replace("(Normal_Background_2D)", "(Background_1D)"))
+                        out_print_str_1D_Binned = out_print_str_1D.replace(f"({particle})_",    "")
                         List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
                         if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
                             out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
@@ -8834,6 +8759,7 @@ if(tdf not in ["N/A"]):
                         for ii in range(4, num_z_pT_bins + 1):
                             z_pT_bin_value = ii - 4
                             List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                            # print(f"out_print_str_1D_Binned = {out_print_str_1D_Binned}")
                             List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
                             # sum_of_weights = List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")].Integral()
                             # if(sum_of_weights <= 0):
@@ -8843,126 +8769,233 @@ if(tdf not in ["N/A"]):
                             if(f"({particle})_({particle}th)"    in str(out_print_str)):
                                 List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
                                 List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-            
-
-# Bin-by-Bin Acceptance Corrections for 2D Histograms
-if(Cor_Compare):
-    print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include Unfolding/Acceptance Corrections{color.END_R} (as of 4-18-2024){color.END}\n")
-else:
-    for ii in mdf.GetListOfKeys():
-        try:
+                
+    if(Cor_Compare):
+        print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include the Generated MC Plots{color.END_R} (as of 4-18-2024){color.END}\n")
+    else:
+        for ii in gdf.GetListOfKeys():
             out_print_main = str(ii.GetName())
-            if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut", "cut_Complete_SIDIS_Proton", "no_cut_Integrate", "cut_Complete_SIDIS_Integrate", "cut_Complete_SIDIS_Proton_Integrate"]))):
-#             if("Normal_2D" in out_print_main):
-                mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
-                mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)",           "")
-                mdf_print_str     = mdf_print_str.replace("cut_Complete_SIDIS_",             "")
-                mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
-                mdf_print_str     = mdf_print_str.replace("_smeared",                        "")
-                mdf_print_str     = mdf_print_str.replace("'smear'",                         "Smear")
-                rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
-                gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
-                for sector_cut_remove in range(1, 7):
-                    gdf_print_str = gdf_print_str.replace(f"(gdf)_(eS{sector_cut_remove}o)", "(gdf)")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(Proton)",                  "(gdf)")
-                # gdf_print_str     = gdf_print_str.replace(f"(gdf)_(no_cut_Integrate)",       "(gdf)_(Integrate)")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(Integrate)",               "(gdf)_(no_cut_Integrate)")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(Proton_Integrate)",        "(gdf)_(no_cut_Integrate)")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(RevPro)",                  "(gdf)")
-                gdf_print_str     = gdf_print_str.replace("(gdf)_(RevPro_Integrate)",        "(gdf)_(no_cut_Integrate)")
-                # print(f"gdf_print_str = {gdf_print_str}")
+            if("Normal_2D" in out_print_main):
+                # print("out_print_main =", out_print_main)
+                # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+                out_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+                out_print_str     = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+                out_print_str     = out_print_str.replace("cut_Complete_SIDIS_",   "")
+                out_print_str     = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+                out_print_str     = out_print_str.replace("_smeared",              "")
+                out_print_str     = out_print_str.replace("'smear'",               "Smear")
                 SEARCH = []
                 for BIN in BIN_SEARCH:
-                    SEARCH.append(str(BIN) in str(mdf_print_str))
-                    if(str(BIN) in str(mdf_print_str)):
+                    SEARCH.append(str(BIN) in str(out_print_str))
+                    if(str(BIN) in str(out_print_str)):
                         break
                 if(True in SEARCH):
-                    Histo_MDF = List_of_All_Histos_For_Unfolding[mdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[mdf_print_str].GetName()), "_Clone"]))
-                    Histo_RDF = List_of_All_Histos_For_Unfolding[rdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[rdf_print_str].GetName()), "_Clone"]))
-                    Histo_GDF = List_of_All_Histos_For_Unfolding[gdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[gdf_print_str].GetName()), "_Clone"]))
-
-                    Histo_BBB        = Histo_RDF.Clone(str(mdf_print_str).replace("mdf", "bbb"))
-                    Histo_Acceptance = Histo_MDF.Clone(str(mdf_print_str).replace("mdf", "Acceptance"))
-                    Histo_Acceptance.Sumw2()
-
-                    if((Histo_MDF.GetNbinsX() != Histo_GDF.GetNbinsX()) or (Histo_MDF.GetNbinsY() != Histo_GDF.GetNbinsY()) or (Histo_MDF.GetNbinsZ() != Histo_GDF.GetNbinsZ())):
-                        print(color.RED, "Histograms have different binning!", color.END)
-                        print("\nHisto_MDF =",             str(mdf_print_str))
-                        print("\tHisto_MDF (type) =",      str(type(Histo_MDF)))
-                        print("\tHisto_MDF (Title - X) =", str(Histo_MDF.GetXaxis().GetTitle()))
-                        print("\tHisto_MDF (Bin - X) =",   str(Histo_MDF.GetNbinsX()))
-                        print("\tHisto_MDF (Title - Y) =", str(Histo_MDF.GetYaxis().GetTitle()))
-                        print("\tHisto_MDF (Bin - Y) =",   str(Histo_MDF.GetNbinsY()))
-                        print("\tHisto_MDF (Title - Z) =", str(Histo_MDF.GetZaxis().GetTitle()))
-                        print("\tHisto_MDF (Bin - Z) =",   str(Histo_MDF.GetNbinsZ()))
-
-                        print("\nHisto_RDF =",             str(rdf_print_str))
-                        print("\tHisto_RDF (type) =",      str(type(Histo_RDF)))
-                        print("\tHisto_RDF (Title - X) =", str(Histo_RDF.GetXaxis().GetTitle()))
-                        print("\tHisto_RDF (Bin - X) =",   str(Histo_RDF.GetNbinsX()))
-                        print("\tHisto_RDF (Title - Y) =", str(Histo_RDF.GetYaxis().GetTitle()))
-                        print("\tHisto_RDF (Bin - Y) =",   str(Histo_RDF.GetNbinsY()))
-                        print("\tHisto_RDF (Title - Z) =", str(Histo_RDF.GetZaxis().GetTitle()))
-                        print("\tHisto_RDF (Bin - Z) =",   str(Histo_RDF.GetNbinsZ()))
-
-                        print("\nHisto_GDF =",             str(gdf_print_str))
-                        print("\tHisto_GDF (type) =",      str(type(Histo_GDF)))
-                        print("\tHisto_GDF (Title - X) =", str(Histo_GDF.GetXaxis().GetTitle()))
-                        print("\tHisto_GDF (Bin - X) =",   str(Histo_GDF.GetNbinsX()))
-                        print("\tHisto_GDF (Title - Y) =", str(Histo_GDF.GetYaxis().GetTitle()))
-                        print("\tHisto_GDF (Bin - Y) =",   str(Histo_GDF.GetNbinsY()))
-                        print("\tHisto_GDF (Title - Z) =", str(Histo_GDF.GetZaxis().GetTitle()))
-                        print("\tHisto_GDF (Bin - Z) =",   str(Histo_GDF.GetNbinsZ()))
-
-                    Histo_Acceptance.Divide(Histo_GDF)
-                    Histo_BBB.Divide(Histo_Acceptance)
-                    Histo_BBB.SetName(str(mdf_print_str).replace("mdf", "bbb"))
-                    List_of_All_Histos_For_Unfolding[mdf_print_str.replace("mdf", "bbb")] = Histo_BBB
-        except:
-            print(f"{color.Error}ERROR! See:{color.END_B}\n\tBin-by-Bin Acceptance Corrections for 2D Histograms{color.END}")
-            print(f"Traceback:\n{traceback.format_exc()}")
-            
-            
-# Creating set of relative background plots
-temp_list_of_background_histos = {}
-for Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-    Conditions_List = [False]
-    if("_(Background" in str(Histos_For_Unfolding_ii)):
-        Conditions_List = [str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf") in List_of_All_Histos_For_Unfolding]
-        # Conditions_List.append("1D" in str(type(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii])))
-        # Conditions_List.append("1D" in str(type(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])))
-    if("Normal_Background_2D" in str(Histos_For_Unfolding_ii)):
-        Conditions_List = [str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D") in List_of_All_Histos_For_Unfolding]
-    if(False not in Conditions_List):
-        hist_temp = List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].Clone()
-        hist_temp.SetName(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetName()).replace("'Background", "'Relative_Background"))
-        hist_temp.SetTitle(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetTitle()).replace("BACKGROUND", "Relative Background"))
-        if("_(Background" in str(Histos_For_Unfolding_ii)):
-            hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])
-        else:
-            hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D")])
-        if("1D"    in str(type(hist_temp))):
-            hist_temp.GetYaxis().SetTitle("#frac{Background}{MC Reconstructed}")
-        elif("2D" in str(type(hist_temp))):
-            hist_temp.GetZaxis().SetTitle("#frac{Background}{MC Reconstructed}")
-        if("_(Background" in str(Histos_For_Unfolding_ii)):
-            temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("_(Background",         "_(Relative_Background")]         = hist_temp
-        else:
-            temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_Relative_Background_2D")] = hist_temp
-for adding_hist in temp_list_of_background_histos:
-    if(adding_hist not in List_of_All_Histos_For_Unfolding):
-        List_of_All_Histos_For_Unfolding[adding_hist] = temp_list_of_background_histos[adding_hist]
+                    List_of_All_Histos_For_Unfolding[out_print_str] = gdf.Get(out_print_main)
+                    if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
+                        for particle in ["el", "pip"]:
+                            if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xy")
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
+                            elif(f"({particle})_({particle}Phi)" in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
+                            else:
+                                continue
+                            num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                            out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
+                            out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                            if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                                out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                            for ii in range(4, num_z_pT_bins + 1):
+                                z_pT_bin_value = ii - 4
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                                List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                                # sum_of_weights = List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")].Integral()
+                                # if(sum_of_weights <= 0):
+                                #     low_edge   = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinLowEdge(ii)
+                                #     high_edge  = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinUpEdge(ii)
+                                #     print(f"{color.Error}Projection of Y-bin {z_pT_bin_value} resulted in 'Sum of weights is null'. Check this bin's range ({low_edge} to {high_edge}) and content ({sum_of_weights}).{color.END}")
+                                if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                                    List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+    
+                
+                
+    if(tdf not in ["N/A"]):
+        for ii in tdf.GetListOfKeys():
+            out_print_main = str(ii.GetName())
+            if("Normal_2D" in out_print_main):
+                # out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Skip", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+                out_print_str = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+                out_print_str = out_print_str.replace("_(cut_Complete_SIDIS)", "")
+                out_print_str = out_print_str.replace("cut_Complete_SIDIS_",   "")
+                out_print_str = out_print_str.replace("(gdf)_(no_cut)",        "(gdf)")
+                out_print_str = out_print_str.replace("_smeared",              "")
+                out_print_str = out_print_str.replace("'smear'",               "Smear")
+                SEARCH = []
+                for BIN in BIN_SEARCH:
+                    SEARCH.append(str(BIN) in str(out_print_str))
+                    if(str(BIN) in str(out_print_str)):
+                        break
+                if(True in SEARCH):
+                    List_of_All_Histos_For_Unfolding[out_print_str.replace("gdf", "tdf")] = tdf.Get(out_print_main)
+                    if(any(kinematics in str(out_print_str) for kinematics in ["(el)_(elth)", "(el)_(elPhi)", "(pip)_(pipth)", "(pip)_(pipPhi)"])):
+                        for particle in ["el", "pip"]:
+                            if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xy")
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
+                            elif(f"({particle})_({particle}Phi)" in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
+                            else:
+                                continue
+                            num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                            out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
+                            out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                            if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                                out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                            for ii in range(4, num_z_pT_bins + 1):
+                                z_pT_bin_value = ii - 4
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                                List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                                # sum_of_weights = List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")].Integral()
+                                # if(sum_of_weights <= 0):
+                                #     low_edge   = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinLowEdge(ii)
+                                #     high_edge  = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetYaxis().GetBinUpEdge(ii)
+                                #     print(f"{color.Error}Projection of Y-bin {z_pT_bin_value} resulted in 'Sum of weights is null'. Check this bin's range ({low_edge} to {high_edge}) and content ({sum_of_weights}).{color.END}")
+                                if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                                    List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                
+    
+    # Bin-by-Bin Acceptance Corrections for 2D Histograms
+    if(Cor_Compare):
+        print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include Unfolding/Acceptance Corrections{color.END_R} (as of 4-18-2024){color.END}\n")
     else:
-        print(f"{color.ERROR}ERROR:{color.END_R} adding_hist = {adding_hist}{color.ERROR} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
-del temp_list_of_background_histos
+        for ii in mdf.GetListOfKeys():
+            try:
+                out_print_main = str(ii.GetName())
+                if(("Normal_2D" in out_print_main) and (not any(f"{cut}_eS" in out_print_main for cut in ["cut_Complete_SIDIS", "no_cut", "cut_Complete_SIDIS_Proton", "no_cut_Integrate", "cut_Complete_SIDIS_Integrate", "cut_Complete_SIDIS_Proton_Integrate"]))):
+    #             if("Normal_2D" in out_print_main):
+                    mdf_print_str     = str(Histogram_Name_Def(out_print=out_print_main, Histo_General="Find", Data_Type="Find", Cut_Type="Find", Smear_Type="Find", Q2_y_Bin="Find", z_pT_Bin="All", Bin_Extra="Default", Variable="Default"))
+                    mdf_print_str     = mdf_print_str.replace("_(cut_Complete_SIDIS)",           "")
+                    mdf_print_str     = mdf_print_str.replace("cut_Complete_SIDIS_",             "")
+                    mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
+                    mdf_print_str     = mdf_print_str.replace("_smeared",                        "")
+                    mdf_print_str     = mdf_print_str.replace("'smear'",                         "Smear")
+                    rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
+                    gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
+                    for sector_cut_remove in range(1, 7):
+                        gdf_print_str = gdf_print_str.replace(f"(gdf)_(eS{sector_cut_remove}o)", "(gdf)")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(Proton)",                  "(gdf)")
+                    # gdf_print_str     = gdf_print_str.replace(f"(gdf)_(no_cut_Integrate)",       "(gdf)_(Integrate)")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(Integrate)",               "(gdf)_(no_cut_Integrate)")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(Proton_Integrate)",        "(gdf)_(no_cut_Integrate)")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(RevPro)",                  "(gdf)")
+                    gdf_print_str     = gdf_print_str.replace("(gdf)_(RevPro_Integrate)",        "(gdf)_(no_cut_Integrate)")
+                    # print(f"gdf_print_str = {gdf_print_str}")
+                    SEARCH = []
+                    for BIN in BIN_SEARCH:
+                        SEARCH.append(str(BIN) in str(mdf_print_str))
+                        if(str(BIN) in str(mdf_print_str)):
+                            break
+                    if(True in SEARCH):
+                        Histo_MDF = List_of_All_Histos_For_Unfolding[mdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[mdf_print_str].GetName()), "_Clone"]))
+                        Histo_RDF = List_of_All_Histos_For_Unfolding[rdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[rdf_print_str].GetName()), "_Clone"]))
+                        Histo_GDF = List_of_All_Histos_For_Unfolding[gdf_print_str].Clone("".join([str(List_of_All_Histos_For_Unfolding[gdf_print_str].GetName()), "_Clone"]))
+    
+                        Histo_BBB        = Histo_RDF.Clone(str(mdf_print_str).replace("mdf", "bbb"))
+                        Histo_Acceptance = Histo_MDF.Clone(str(mdf_print_str).replace("mdf", "Acceptance"))
+                        Histo_Acceptance.Sumw2()
+    
+                        if((Histo_MDF.GetNbinsX() != Histo_GDF.GetNbinsX()) or (Histo_MDF.GetNbinsY() != Histo_GDF.GetNbinsY()) or (Histo_MDF.GetNbinsZ() != Histo_GDF.GetNbinsZ())):
+                            print(color.RED, "Histograms have different binning!", color.END)
+                            print("\nHisto_MDF =",             str(mdf_print_str))
+                            print("\tHisto_MDF (type) =",      str(type(Histo_MDF)))
+                            print("\tHisto_MDF (Title - X) =", str(Histo_MDF.GetXaxis().GetTitle()))
+                            print("\tHisto_MDF (Bin - X) =",   str(Histo_MDF.GetNbinsX()))
+                            print("\tHisto_MDF (Title - Y) =", str(Histo_MDF.GetYaxis().GetTitle()))
+                            print("\tHisto_MDF (Bin - Y) =",   str(Histo_MDF.GetNbinsY()))
+                            print("\tHisto_MDF (Title - Z) =", str(Histo_MDF.GetZaxis().GetTitle()))
+                            print("\tHisto_MDF (Bin - Z) =",   str(Histo_MDF.GetNbinsZ()))
+    
+                            print("\nHisto_RDF =",             str(rdf_print_str))
+                            print("\tHisto_RDF (type) =",      str(type(Histo_RDF)))
+                            print("\tHisto_RDF (Title - X) =", str(Histo_RDF.GetXaxis().GetTitle()))
+                            print("\tHisto_RDF (Bin - X) =",   str(Histo_RDF.GetNbinsX()))
+                            print("\tHisto_RDF (Title - Y) =", str(Histo_RDF.GetYaxis().GetTitle()))
+                            print("\tHisto_RDF (Bin - Y) =",   str(Histo_RDF.GetNbinsY()))
+                            print("\tHisto_RDF (Title - Z) =", str(Histo_RDF.GetZaxis().GetTitle()))
+                            print("\tHisto_RDF (Bin - Z) =",   str(Histo_RDF.GetNbinsZ()))
+    
+                            print("\nHisto_GDF =",             str(gdf_print_str))
+                            print("\tHisto_GDF (type) =",      str(type(Histo_GDF)))
+                            print("\tHisto_GDF (Title - X) =", str(Histo_GDF.GetXaxis().GetTitle()))
+                            print("\tHisto_GDF (Bin - X) =",   str(Histo_GDF.GetNbinsX()))
+                            print("\tHisto_GDF (Title - Y) =", str(Histo_GDF.GetYaxis().GetTitle()))
+                            print("\tHisto_GDF (Bin - Y) =",   str(Histo_GDF.GetNbinsY()))
+                            print("\tHisto_GDF (Title - Z) =", str(Histo_GDF.GetZaxis().GetTitle()))
+                            print("\tHisto_GDF (Bin - Z) =",   str(Histo_GDF.GetNbinsZ()))
+    
+                        Histo_Acceptance.Divide(Histo_GDF)
+                        Histo_BBB.Divide(Histo_Acceptance)
+                        Histo_BBB.SetName(str(mdf_print_str).replace("mdf", "bbb"))
+                        List_of_All_Histos_For_Unfolding[mdf_print_str.replace("mdf", "bbb")] = Histo_BBB
+            except:
+                print(f"{color.Error}ERROR! See:{color.END_B}\n\tBin-by-Bin Acceptance Corrections for 2D Histograms{color.END}")
+                print(f"Traceback:\n{traceback.format_exc()}")
+                
+                
+    # Creating set of relative background plots
+    temp_list_of_background_histos = {}
+    for Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
+        Conditions_List = [False]
+        if("_(Background" in str(Histos_For_Unfolding_ii)):
+            Conditions_List = [str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf") in List_of_All_Histos_For_Unfolding]
+            # Conditions_List.append("1D" in str(type(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii])))
+            # Conditions_List.append("1D" in str(type(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])))
+        if("Normal_Background_2D" in str(Histos_For_Unfolding_ii)):
+            Conditions_List = [str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D") in List_of_All_Histos_For_Unfolding]
+        if(False not in Conditions_List):
+            hist_temp = List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].Clone()
+            hist_temp.SetName(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetName()).replace("'Background", "'Relative_Background"))
+            hist_temp.SetTitle(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetTitle()).replace("BACKGROUND", "Relative Background"))
+            if("_(Background" in str(Histos_For_Unfolding_ii)):
+                hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])
+            else:
+                hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D")])
+            if("1D"    in str(type(hist_temp))):
+                hist_temp.GetYaxis().SetTitle("#frac{Background}{MC Reconstructed}")
+            elif("2D" in str(type(hist_temp))):
+                hist_temp.GetZaxis().SetTitle("#frac{Background}{MC Reconstructed}")
+            if("_(Background" in str(Histos_For_Unfolding_ii)):
+                temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("_(Background",         "_(Relative_Background")]         = hist_temp
+            else:
+                temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_Relative_Background_2D")] = hist_temp
+    for adding_hist in temp_list_of_background_histos:
+        if(adding_hist not in List_of_All_Histos_For_Unfolding):
+            List_of_All_Histos_For_Unfolding[adding_hist] = temp_list_of_background_histos[adding_hist]
+        else:
+            print(f"{color.ERROR}ERROR:{color.END_R} adding_hist = {adding_hist}{color.ERROR} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
+    del temp_list_of_background_histos
+    
+    final_count = 0
 
-final_count = 0
+
+
+
+
+
+
+
 #Search comment find
 print("\n\nCounting Total Number of collected histograms...")
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
     final_count += 1
-    print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    # print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if(any(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)"])):
     #     print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if(all(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(1D)_(", ")_(SMEAR=", "z_pT_Bin_Integrate"])):
@@ -8998,8 +9031,8 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
 #             print(f"\t{List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]}")
 #     if("Multi_Dim" in str(List_of_All_Histos_For_Unfolding_ii)):
 #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
-#     if("_(rdf)_(SMEAR=" in str(List_of_All_Histos_For_Unfolding_ii)):
-#         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
+    if("(MultiDim_3D_Histo)_(rdf)_(" in str(List_of_All_Histos_For_Unfolding_ii)):
+        print("\n", str(List_of_All_Histos_For_Unfolding_ii))
     # if("sec" in str(List_of_All_Histos_For_Unfolding_ii)):
     #     if("(1D)_(Bin)_" in str(List_of_All_Histos_For_Unfolding_ii)):
     #         print("\n", str(List_of_All_Histos_For_Unfolding_ii))
@@ -9092,7 +9125,7 @@ if(run_Sec_Unfold):
 # Cut_Options_List = ["Cut", "UnCut"]
 # Cut_Options_List = ["Cut", "Proton"]
 Cut_Options_List = ["Cut"]
-Cut_Options_List = ["Integrate"]
+# Cut_Options_List = ["Integrate"]
 # Cut_Options_List = ["Cut", "Integrate"]
 
 if(Cut_ProQ):
@@ -9424,8 +9457,8 @@ for variable in Variable_List:
         z_pT_Bin_Range = 42       if(str(BIN_NUM) in ["2"]) else  36 if(str(BIN_NUM) in ["4", "5", "9", "10"]) else 35 if(str(BIN_NUM) in ["1", "3"]) else 30 if(str(BIN_NUM) in ["6", "7", "8", "11"]) else 25 if(str(BIN_NUM) in ["13", "14"]) else 20 if(str(BIN_NUM) in ["12", "15", "16", "17"]) else 0
         if("Y_bin" in Binning_Method):
             z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=BIN_NUM)[1]
-        z_pT_Bin_Range = 0
-        print(f"{color.Error}Setting z_pT_Bin_Range = 0 (just doing 'Integrated' and 'All' z-pT bins - must reset later){color.END}")
+        # z_pT_Bin_Range = 0
+        # print(f"{color.Error}Setting z_pT_Bin_Range = 0 (just doing 'Integrated' and 'All' z-pT bins - must reset later){color.END}")
         for smear in Smearing_final_list:
             HISTO_NAME = f"(1D)_(Data_Type)_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_All)_({variable})"
             for Multi_Dim in Multi_Dimensional_List:
@@ -9434,9 +9467,9 @@ for variable in Variable_List:
                 if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"]) and ((str(variable) in ["phi_t", "el", "pip", "elth", "pipth", "elPhi", "pipPhi", "MM"]) or ("sec" in variable))):
                 # if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"]) and ((str(variable) in ["phi_t", "el", "pip", "elth", "pipth", "elPhi", "pipPhi", "MM"]) and  ("sec" not in variable))):
                     for method in Method_Type_List:
-                        if(True):
-                            print(f"{color.Error}Skipping z_pT_Images_Together...{color.END}")
-                            continue #Temporary skip
+                        # if(True):
+                        #     print(f"{color.Error}Skipping z_pT_Images_Together...{color.END}")
+                        #     continue #Temporary skip
                         if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background"]) and (Multi_Dim not in ["Off"])):
                             continue
                         if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
@@ -9832,7 +9865,7 @@ for CanvasPar_Name in Pars_Canvas:
 
 
     
-print(color.BGREEN, "\nImages to be saved =", to_be_saved_count, "\n", color.END)
+print(f"{color.BGREEN}\nImages to be saved ={to_be_saved_count}\n{color.END}")
 
 if(appended_0 and ("0" in Q2_xB_Bin_List)):
     print(f"\n{color.BOLD}Removing '0' from Q2-y Bin list{color.END}\n")
@@ -10037,7 +10070,7 @@ if(Create_txt_File):
                     file.write(Text_Par_Outputs)
             print("".join(["\n", "Saved: " if(Saving_Q) else "Would be Saving: ", color.BBLUE, str(Output_txt_Par_Name), color.END, "\n"]))
         else:
-            print(color.Error, "Still failed to get a new name for the .txt file...", color.END)
+            print(f"{color.Error}Still failed to get a new name for the .txt file...{color.END}")
 
 
 
