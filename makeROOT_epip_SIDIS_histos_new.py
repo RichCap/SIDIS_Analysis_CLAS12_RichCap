@@ -1081,6 +1081,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #         # Just plotting MM vs W as a request from group (just done with rdf)
     #         # Turned off all non-standard SIDIS cuts (except for the fiducial ones given by 'Cut_Configuration_Name')
 
+    Extra_Name = f"Sector_Tests{Cut_Configuration_Name}_V2_"
+        # Ran on 7/22/2025 -> with EvGen
+            # Same as f"Sector_Tests{Cut_Configuration_Name}_V1_" but with additional plot of MM vs W
+
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
         # Ran on 9/5/2024
@@ -6528,6 +6532,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         List_of_Quantities_2D.append([['SigRadCor', 0,  45, 100], ['sigma_rad',    0, 1.6, 100]])
 
     # List_of_Quantities_2D = [[['MM', 0, 4.2, 240], ['W', 0.9, 5.1, 224]]]
+    List_of_Quantities_2D.append([['MM', 0, 4.2, 240], ['W', 0.9, 5.1, 224]])
 
     # # # 1D histograms are turned off with this option
     # List_of_Quantities_1D = []

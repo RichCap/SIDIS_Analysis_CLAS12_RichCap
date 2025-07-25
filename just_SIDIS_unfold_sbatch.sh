@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=Just_RooUnfold_Sector_Integrated_Tests_V2_R1_eSectors_7_14_2025
+#SBATCH --job-name=Just_RooUnfold_Sector_Tests_V1_R3_EvGen_7_22_2025
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -18,4 +18,4 @@
 # Normal request: #SBATCH --mem-per-cpu=13000
 # no_txt request: #SBATCH --mem-per-cpu=9000
 
-srun /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Just_RooUnfold_SIDIS_richcap.py -nf -smear $SLURM_ARRAY_TASK_ID
+srun /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Just_RooUnfold_SIDIS_richcap.py -title "Made with EvGen" -r 'Unfolded_EvGen_Histos_From_Just_RooUnfold_SIDIS_richcap.root' -smear $SLURM_ARRAY_TASK_ID
