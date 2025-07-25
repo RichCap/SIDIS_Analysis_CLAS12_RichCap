@@ -132,6 +132,7 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         "Group_4": ["", "", "", "", ""], 
         "Group_5": ["", "", "", ""]}
 
+
     if(Q2_or_y_Group   in ["Q2"]):
         for group in Q2_bin_group_def:
             print(str(f"Q2-y Bins in Q2 Row/{group} = {Q2_bin_group_def[group]}".replace("_", " ")))
@@ -151,8 +152,6 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
     y_mins_collect, y_min_errs_collect = {}, {}
     tgraph_ext_shaded, tgraph_shaded, tgraph_errors = {}, {}, {}
     canvas, legend, mg = {}, {}, {}
-
-    list_to_finish_drawing = []
     
     # z_pT_Bin_Type = "All"
     z_pT_Bin_Type = "Integrated"
@@ -164,7 +163,10 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
     else:
         File_Lists = [1]
         Comparison_Type = ""
-                
+
+    # Keep track of ROOT objects to ensure they stay alive
+    root_objects = ROOT.TList()
+
     for Parameter in Parameter_List:
         key_names = f"({Q2_or_y_Group}_Group)_({Parameter})"
         canvas[key_names] = ROOT.TCanvas(f"canvas_{key_names}", "Graph with Extended Shaded Regions", 1200, 1000)
@@ -173,17 +175,23 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
             legend[key_names].SetHeader(f"Dotted Lines are for {Comparison_Type.replace('_', ' ')}", "C")
         mg[key_names] = ROOT.TMultiGraph()
         mg[key_names].SetName(key_names)
+        root_objects.Add(canvas[key_names])
+        root_objects.Add(legend[key_names])
+        root_objects.Add(mg[key_names])
+
         # Initialize group-specific canvases for Group_Images_Q
         if(Group_Images_Q):
             for group_num    in selected_var_group:
                 key_row_base = f"{key_names}_({group_num})"
-                list_to_finish_drawing.append([key_row_base, group_num])
                 canvas[key_row_base] = ROOT.TCanvas(f"canvas_{key_row_base}", "Graph with Extended Shaded Regions", 1200, 1000)
                 legend[key_row_base] = ROOT.TLegend(0.9, 0.1, 0.49, 0.4)
                 if(Comparison_Type not in [""]):
                     legend[key_row_base].SetHeader(f"Dotted Lines are for {Comparison_Type.replace('_', ' ')}", "C")
                 mg[key_row_base] = ROOT.TMultiGraph()
                 mg[key_row_base].SetName(key_row_base)
+                root_objects.Add(canvas[key_row_base])
+                root_objects.Add(legend[key_row_base])
+                root_objects.Add(mg[key_row_base])
 
         for group_num in selected_var_group:
             color_ii = ROOT.kOrange if("1" in str(group_num)) else ROOT.kSpring if("2" in str(group_num)) else ROOT.kViolet if("3" in str(group_num)) else ROOT.kAzure if("4" in str(group_num)) else ROOT.kPink
@@ -208,7 +216,7 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                             Fit_Parameter_Key = f"(File_{File_Num})_{Fit_Parameter_Key}"
                         
                     x_values[key_row_names].append(round(Get_Bin_Center_Function(Q2_y_Bin, z_pT_Bin=z_pT_Bin_Type, Variable=f"mean_{Variable_to_plot_against}"), 4))
-                    x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin,  z_pT_Bin=z_pT_Bin_Type, Variable=f"Error_{Variable_to_plot_against}"))
+                    x_errs[key_row_names].append(Get_Bin_Center_Function(Q2_y_Bin,         z_pT_Bin=z_pT_Bin_Type, Variable=f"Error_{Variable_to_plot_against}"))
                     if(From_Python_or_Text in ["Text"]):
                         y_values[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][0])
                         y_errs[key_row_names].append(Fit_Parameters_Input[Fit_Parameter_Key][0][1])
@@ -276,20 +284,21 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                 ext_err_high  = array('d', [err + max_err for err, max_err in zip(y_err_high,  y_max_errs)])
                 n_points = len(x_values_main)
     
-                canvas[key_names].Draw()
+                canvas[key_names].cd()
                 tgraph_ext_shaded[key_row_names] = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), ext_err_low, ext_err_high)
                 tgraph_ext_shaded[key_row_names].SetName(f"tgraph_ext_shaded_{key_row_names}")
                 tgraph_shaded[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, array('d', [0]*n_points), array('d', [0]*n_points), y_err_low,   y_err_high)
                 tgraph_shaded[key_row_names].SetName(f"tgraph_shaded_{key_row_names}")
                 tgraph_errors[key_row_names]     = ROOT.TGraphAsymmErrors(n_points, x_values_main, y_values_main, x_errs_main, x_errs_main, y_errs_main, y_errs_main)
                 tgraph_errors[key_row_names].SetName(f"tgraph_errors_{key_row_names}")
+                root_objects.Add(tgraph_ext_shaded[key_row_names])
+                root_objects.Add(tgraph_shaded[key_row_names])
+                root_objects.Add(tgraph_errors[key_row_names])
     
                 row = int(str(group_num).replace("Group_", ""))
                 # tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii-9, 0.35-(row*0.01))
                 tgraph_ext_shaded[key_row_names].SetFillColorAlpha(color_ii-(10-File_Num), 0.35-(row*0.01))
-    
                 tgraph_ext_shaded[key_row_names].GetYaxis().SetRangeUser(-0.9, 0.2)
-            
                 # tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii-6, 0.35-(row*0.01))
                 tgraph_shaded[key_row_names].SetFillColorAlpha(color_ii-(7-File_Num), 0.35-(row*0.01))
                 tgraph_shaded[key_row_names].SetFillStyle(3240+(row*2))
@@ -298,11 +307,10 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                 tgraph_errors[key_row_names].SetMarkerSize(1)
                 tgraph_errors[key_row_names].SetLineColor(color_ii)
                 tgraph_errors[key_row_names].SetMarkerColor(color_ii)
-
                 tgraph_errors[key_row_names].SetLineWidth(File_Num)
                 tgraph_errors[key_row_names].SetLineStyle(File_Num)
                 
-    
+                # Add to main multigraph
                 mg[key_names].Add(tgraph_shaded[key_row_names], "A3")
                 mg[key_names].Add(tgraph_errors[key_row_names], "PL")
 
@@ -313,26 +321,69 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
                         legend[key_names].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
                 canvas[key_names].Modified()
                 canvas[key_names].Update()
-                
-                if(Group_Images_Q):
-                    # canvas[key_row_base].Draw()
-                    mg[key_row_base].Add(tgraph_shaded[key_row_names], "A3")
-                    mg[key_row_base].Add(tgraph_errors[key_row_names], "PL")
-                    if(File_Num == 1):
-                        legend[key_row_base].AddEntry(tgraph_errors[key_row_names],     f"#color[{color_ii}]{{{Legend_Titles_str}}}", "PL")
-                        if(Use_Sectors_Q):
-                            legend[key_row_base].AddEntry(tgraph_shaded[key_row_names], f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
-    
-        canvas[key_names].Draw()
 
+                if(Group_Images_Q):
+                    canvas[key_row_base].cd()
+                    # Clone graphs for group-specific multigraph to avoid ownership issues
+                    tgraph_shaded_clone = ROOT.TGraphAsymmErrors(tgraph_shaded[key_row_names])
+                    tgraph_shaded_clone.SetName(f"tgraph_shaded_clone_{key_row_names}")
+                    tgraph_errors_clone = ROOT.TGraphAsymmErrors(tgraph_errors[key_row_names])
+                    tgraph_errors_clone.SetName(f"tgraph_errors_clone_{key_row_names}")
+                    root_objects.Add(tgraph_shaded_clone)
+                    root_objects.Add(tgraph_errors_clone)
+
+                    tgraph_shaded_clone.SetFillColorAlpha(color_ii-(7-File_Num), 0.35-(row*0.01))
+                    tgraph_shaded_clone.SetFillStyle(3240+(row*2))
+                    tgraph_errors_clone.SetMarkerStyle(21)
+                    tgraph_errors_clone.SetMarkerSize(1)
+                    tgraph_errors_clone.SetLineColor(color_ii)
+                    tgraph_errors_clone.SetMarkerColor(color_ii)
+                    tgraph_errors_clone.SetLineWidth(File_Num)
+                    tgraph_errors_clone.SetLineStyle(File_Num)
+
+                    mg[key_row_base].Add(tgraph_shaded_clone, "A3")
+                    mg[key_row_base].Add(tgraph_errors_clone, "PL")
+                    if(File_Num == 1):
+                        legend[key_row_base].AddEntry(tgraph_errors_clone,     f"#color[{color_ii}]{{{Legend_Titles_str}}}", "PL")
+                        if(Use_Sectors_Q):
+                            legend[key_row_base].AddEntry(tgraph_shaded_clone, f"#color[{color_ii-6}]{{Sector Ranges of {Legend_Titles_str}}}", "f")
+                    Moment_Title = f"Cos({'2' if('C' in str(Parameter)) else ''}#phi_{{h}})"
+                    Multigraph_Title_Line_1 = f"Plot of {Moment_Title} vs {variable_Title_name(Variable_to_plot_against)}"
+                    if("Tagged_Proton" in Save_Name_Extra):
+                        Multigraph_Title_Line_2 = f"{root_color.Bold}{{Tagged Proton}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
+                    elif("ProtonCut"   in Save_Name_Extra):
+                        Multigraph_Title_Line_2 = f"{root_color.Bold}{{Cut on Proton MM}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
+                    else:
+                        Multigraph_Title_Line_2 = f"#color[{root_color.Blue}]{{{Correction_Type}}}"
+                    if(HistoType in ["3D", "5D"]):
+                        Multigraph_Title_Line_2 = Multigraph_Title_Line_2.replace(f"{{{Correction_Type}}}", f"{{Multidimensional {HistoType} {Correction_Type}}}")
+                    if(Comparison_Type in [""]):
+                        mg[key_row_base].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+                    else:
+                        mg[key_row_base].SetTitle(f"#splitline{{#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}}}{{{Comparison_Type.replace('_', ' ')}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
+                    mg[key_row_base].Draw("A")
+                    mg[key_row_base].GetYaxis().SetRangeUser(-0.25, 0.1)
+                    legend[key_row_base].Draw()
+                    canvas[key_row_base].Modified()
+                    canvas[key_row_base].Update()
+                    draw_annotations(annotations2)
+                    Save_Name = "".join([
+                        f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
+                        f"Plot_of_{HistoType}_",
+                        "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_",
+                        "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
+                        f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_{group_num}",
+                        f"_{Save_Name_Extra}"     if(Save_Name_Extra not in [""]) else "",
+                        f"_{Comparison_Type}.png" if(Comparison_Type not in [""]) else ".png"])
+                    if(Saving_Q):
+                        canvas[key_row_base].SaveAs(Save_Name)
+                        print(f"\n{color.BBLUE}Saved: {color.UNDERLINE}{Save_Name}{color.END}\n")
+                    else:
+                        print(f"\n{color.RED}Did NOT save: {color.BOLD}{color.UNDERLINE}{Save_Name}{color.END}\n")
+    
+        canvas[key_names].cd()
         Moment_Title = f"Cos({'2' if('C' in str(Parameter)) else ''}#phi_{{h}})"
         Multigraph_Title_Line_1 = f"Plot of {Moment_Title} vs {variable_Title_name(Variable_to_plot_against)}"
-        # if("Tagged_Proton" in Save_Name_Extra):
-        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Tagged Proton}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
-        # elif("ProtonCut"   in Save_Name_Extra):
-        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2 - Cut on Proton MM}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
-        # else:
-        #     Multigraph_Title_Line_2 = f"{root_color.Bold}{{Pass 2}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
         if("Tagged_Proton" in Save_Name_Extra):
             Multigraph_Title_Line_2 = f"{root_color.Bold}{{Tagged Proton}} #topbar #color[{root_color.Blue}]{{{Correction_Type}}}"
         elif("ProtonCut"   in Save_Name_Extra):
@@ -355,10 +406,6 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         canvas[key_names].Modified()
         canvas[key_names].Update()
         draw_annotations(annotations2)
-        # latex[key_names] = ROOT.TLatex()
-        # latex[key_names].SetTextSize(0.06)
-        # latex[key_names].SetTextColorAlpha(ROOT.kRed, 0.2)
-        # latex[key_names].DrawTextNDC(0.15, 0.12, "PRELIMINARY")  # Normalized coordinates
 
         Save_Name = "".join([
             f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
@@ -375,34 +422,12 @@ def Plot_Fit_Parameter_ShadedSectorGraphs(Fit_Parameters_Input, From_Python_or_T
         else:
             print(f"\n{color.RED}Did NOT save: {color.BOLD}{color.UNDERLINE}{Save_Name}{color.END}\n")
 
-    if(Group_Images_Q):
-        for individual, group_NUM in list_to_finish_drawing:
-            if(Comparison_Type in [""]):
-                mg[individual].SetTitle(f"#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
-            else:
-                mg[individual].SetTitle(f"#splitline{{#splitline{{{Multigraph_Title_Line_1}}}{{{Multigraph_Title_Line_2}}}}}{{{Comparison_Type.replace('_', ' ')}}}; {variable_Title_name(Variable_to_plot_against)}; {Moment_Title}")
-            mg[individual].Draw("A")
-            mg[individual].GetYaxis().SetRangeUser(-0.25, 0.1)
-            legend[individual].Draw()
-            canvas[individual].Modified()
-            canvas[individual].Update()
-            draw_annotations(annotations2)
-            Save_Name = "".join([
-                f"{Sector_Particle.replace('s', 'S')}tor_Dependence_" if(Use_Sectors_Q) else "",
-                f"Plot_of_{HistoType}_",
-                "Bin"    if("Bin" in Correction_Type) else "Bayes", "_Corrected_",
-                "CosPhi" if("B"   in Parameter)       else "Cos2Phi",
-                f"_vs_{Variable_to_plot_against}_in_{Q2_or_y_Group}_Bin_{group_NUM}",
-                f"_{Save_Name_Extra}"     if(Save_Name_Extra not in [""]) else "",
-                f"_{Comparison_Type}.png" if(Comparison_Type not in [""]) else ".png"])
-            if(Saving_Q):
-                canvas[individual].SaveAs(Save_Name)
-                print(f"\n{color.BBLUE}Saved: {color.UNDERLINE}{Save_Name}{color.END}\n")
-            else:
-                print(f"\n{color.RED}Did NOT save: {color.BOLD}{color.UNDERLINE}{Save_Name}{color.END}\n")
-
     print("Done running Plot_Fit_Parameter_ShadedSectorGraphs(...)\n")
-    return [canvas, mg, legend]
+    
+    # Add canvases to ROOT's global list
+    ROOT.gROOT.GetListOfCanvases().AddAll(root_objects)
+    
+    return canvas
 
 
 def Create_Moment_Plots_From_txt_File(file_path, verbose=False, print_file_flag=False, print_table_flag=False, Correction="Both", 
@@ -706,7 +731,7 @@ Note to Reader: Print the text in this file as a string in Python for the best f
 if(__name__ == "__main__"):
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Run SIDIS Analysis Script with configurable options.")
-    parser.add_argument("-i",   "--input",         help="Optional path to input file. If not provided, default path will be used.",                                 default='Ran_on_5_8_2025_night/Parameters_Pass_2_Sector_Integrated_Tests_FC_14_V2_5_8_2025_Q2_y_Bins_Combined_Smeared.txt')
+    parser.add_argument("-i",   "--input",         help="Optional path to input file. If not provided, default path will be used.",                                 default='Parameters_Pass_2_Sector_Integrated_Tests_FC_14_V2_5_12_2025_Q2_y_Bins_Combined_Smeared.txt')
     parser.add_argument("-ic",  "--input_compare", help="Optional path to second input file for comparing to default file.",                                        default=None)
     parser.add_argument("-p",   "--print_file",    help="If set, print file content and exit.",                                                                     action="store_true")
     parser.add_argument("-pt",  "--print_table",   help="If set, print file content in a table and exits (output is similar to the Notebook's Cell).",              action="store_true")
@@ -741,7 +766,9 @@ if(__name__ == "__main__"):
                                                       No_Save=args.no_save, Use_Sector_Shading=(args.use_sectors),
                                                       file_path_compare=args.input_compare,
                                                       Group_Images=args.group_images)
-    del info_returned
+    # del info_returned
     
     print("\nEnd of Create_Moment_Plots_From_txt_File.py Code\n")
+    ROOT.gROOT.GetListOfCanvases().Clear()
+    sys.exit(0)
     
