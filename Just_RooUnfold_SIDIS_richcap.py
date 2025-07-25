@@ -42,7 +42,11 @@ except ImportError:
     # except:
     #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
 
-
+def safe_write(obj, tfile):
+    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
+    if(existing):
+        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+    obj.Write()
 
 import argparse
 
@@ -90,6 +94,12 @@ def parse_args():
     p.add_argument('-cib', '-CIB', '--Common_Int_Bins', action='store_true',
                    help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
 
+    p.add_argument('-bayes-it', '--bayes_iterations', type=int,
+                   help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically)")
+    
+    p.add_argument('-title', '--title', type=str,
+                   help="Adds an extra title to the histograms.")
+
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
                    help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
@@ -131,90 +141,18 @@ if(Cor_Compare):
 Cut_ProQ        = args.cut_proton
 Tag_ProQ        = args.tag_proton or Cut_ProQ
 
-# Saving_Q         = True
-# Sim_Test         = False
-# Mod_Test         = False
-# Tag_ProQ         = False
-# Cut_ProQ         = False
-# Closure_Test     = False
-# Fit_Test         = True
-# Create_txt_File  = True
-# Create_stat_File = not True
-# Cor_Compare      = False
-# Smearing_Options = "both"
-# if(len(sys.argv) > 1):
-#     arg_option_1 = str(sys.argv[1])
-#     if(arg_option_1 in ["test", "Test", "time", "Time"]):
-#         print("\nNOT SAVING\n")
-#         Saving_Q = False
-#     else:
-#         print("".join(["\nOption Selected: ", str(arg_option_1), " (Still Saving...)" if("no_save" not in str(arg_option_1)) else " (NOT SAVING)"]))
-#         Saving_Q         = True  if("no_save" not in str(arg_option_1)) else False
-#         Sim_Test         = True  if(("sim"        in str(arg_option_1)) or ("simulation"    in str(arg_option_1))) else False
-#         Mod_Test         = True  if(("mod"        in str(arg_option_1)) or ("modulation"    in str(arg_option_1))) else False
-#         Closure_Test     = True  if(("close"      in str(arg_option_1)) or ("closure"       in str(arg_option_1))  or ("Closure" in str(arg_option_1)) or ("Closure" in str(arg_option_1))) else False
-#         Fit_Test         = True  if("no_fit"  not in str(arg_option_1)) else False
-#         Create_txt_File  = False if("no_txt"      in str(arg_option_1)) else True if("txt"  in str(arg_option_1)) else Create_txt_File
-#         Create_stat_File = False if("no_stat"     in str(arg_option_1)) else True if("stat" in str(arg_option_1)) else (Create_stat_File and Create_txt_File)
-#         Cor_Compare      = True  if(any(compare   in str(arg_option_1) for compare in ["cor_compare", "Cor_Compare", "CC"])) else False
-#         Cut_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["Cutpro",      "MMproC",      "CP"])) else False
-#         Tag_ProQ         = True  if(any(taggedP   in str(arg_option_1) for taggedP in ["proton",      "tagged",      "TP"])  or Cut_ProQ) else False
-#         if(Closure_Test):
-#             Sim_Test = True
-#             Mod_Test = False
-#         arg_option_1     = arg_option_1.replace("_simulation", "")
-#         arg_option_1     = arg_option_1.replace("_sim",        "")
-#         arg_option_1     = arg_option_1.replace("simulation",  "")
-#         arg_option_1     = arg_option_1.replace("sim",         "")
-#         arg_option_1     = arg_option_1.replace("_modulation", "")
-#         arg_option_1     = arg_option_1.replace("_mod",        "")
-#         arg_option_1     = arg_option_1.replace("modulation",  "")
-#         arg_option_1     = arg_option_1.replace("mod",         "")
-#         arg_option_1     = arg_option_1.replace("_closure",    "")
-#         arg_option_1     = arg_option_1.replace("_close",      "")
-#         arg_option_1     = arg_option_1.replace("closure",     "")
-#         arg_option_1     = arg_option_1.replace("close",       "")
-#         arg_option_1     = arg_option_1.replace("_Closure",    "")
-#         arg_option_1     = arg_option_1.replace("_Close",      "")
-#         arg_option_1     = arg_option_1.replace("Closure",     "")
-#         arg_option_1     = arg_option_1.replace("Close",       "")
-#         arg_option_1     = arg_option_1.replace("_no_fit",     "")
-#         arg_option_1     = arg_option_1.replace("no_fit",      "")
-#         arg_option_1     = arg_option_1.replace("_no_txt",     "")
-#         arg_option_1     = arg_option_1.replace("no_txt",      "")
-#         arg_option_1     = arg_option_1.replace("_txt",        "")
-#         arg_option_1     = arg_option_1.replace("txt",         "")
-#         arg_option_1     = arg_option_1.replace("_no_stat",    "")
-#         arg_option_1     = arg_option_1.replace("no_stat",     "")
-#         arg_option_1     = arg_option_1.replace("_stat",       "")
-#         arg_option_1     = arg_option_1.replace("stat",        "")
-#         for compare in ["cor_compare", "Cor_Compare", "CC"]:
-#             arg_option_1 = arg_option_1.replace(f"_{compare}", "")
-#             arg_option_1 = arg_option_1.replace(f"{compare}",  "")
-#         for taggedP in ["proton", "tagged", "TP", "Cutpro", "MMproC", "CP"]:
-#             arg_option_1 = arg_option_1.replace(f"_{taggedP}", "")
-#             arg_option_1 = arg_option_1.replace(f"{taggedP}",  "")
-#         Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
-#         if(Smearing_Options == ""):
-#             Smearing_Options = "both"
-#         if(("no_smear" in [str(Smearing_Options)]) or ("no_smear" in str(arg_option_1))):
-#             Smearing_Options = "no_smear"
-#         if(Smearing_Options in ["_smear", "Smear", "_Smear"]):
-#             Smearing_Options = "smear"
-# else:
-#     Saving_Q = True
     
 Standard_Histogram_Title_Addition = ""
 if(Closure_Test):
-    print("".join([color.BLUE, "\nRunning Closure Test (Unfolding the Modulated MC using the unweighted response matrices)\n", color.END]))
+    print(f"{color.BLUE}\nRunning Closure Test (Unfolding the Modulated MC using the unweighted response matrices)\n{color.END}")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Modulated Simulation"
 elif(Sim_Test):
-    print("".join([color.BLUE, "\nRunning Simulated Test\n", color.END]))
+    print(f"{color.BLUE}\nRunning Simulated Test\n{color.END}")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
 if(Mod_Test):
-    print("".join([color.BLUE, "\nUsing ", color.BOLD, "Modulated", color.END, color.BLUE, " Monte Carlo Files (to create the response matrices)\n", color.END]))
+    print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
     if(Standard_Histogram_Title_Addition not in [""]):
-        Standard_Histogram_Title_Addition = "".join([str(Standard_Histogram_Title_Addition), " - Using Modulated Response Matrix"])
+        Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
     else:
         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
 
@@ -237,7 +175,15 @@ if(Cor_Compare):
     #     Standard_Histogram_Title_Addition = "".join([str(Standard_Histogram_Title_Addition), " - Kinematic Correction Comparisons"])
     # else:
     #     Standard_Histogram_Title_Addition = "Kinematic Correction Comparisons"
-        
+
+
+if(args.title):
+    if(Standard_Histogram_Title_Addition not in [""]):
+        Standard_Histogram_Title_Addition = f"#splitline{{{Standard_Histogram_Title_Addition}}}{{{args.title}}}"
+    else:
+        Standard_Histogram_Title_Addition = args.title
+    print(f"\nAdding the following extra title to the histograms:\n\t{Standard_Histogram_Title_Addition}\n")
+    
 if(not Fit_Test):
     print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
     
@@ -1059,6 +1005,9 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         # 5D Unfolding
                         bayes_iterations = 4
                         print(f"{color.BOLD}Performing 5D Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
+                    if(args.bayes_iterations):
+                        bayes_iterations = args.bayes_iterations
+                        print(f"{color.BOLD}Using Fixed Number of Iterations for Unfolding (i.e., {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s))...{color.END}")
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -2758,6 +2707,10 @@ Common_Name = "Pass_2_Plots_for_Maria_FC_14_V3_All" # Same as V2 above but with 
 Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
 
 
+Common_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
+# Common_Name = "Pass_2_Sector_Tests_FC_14_V1_EvGen_All"
+
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -2787,6 +2740,7 @@ else:
     # if(Pass_Version not in ["Pass 2"]):
     #     REAL_File_Name = REAL_File_Name.replace("Pass_2_", "")
     REAL_File_Name =  Common_Name
+    REAL_File_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
     if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
         REAL_File_Name = REAL_File_Name.replace("V2_All", "V1_All")
 ##################################
@@ -3046,8 +3000,8 @@ for ii in mdf.GetListOfKeys():
         break
     out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
 
-    if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
-        continue
+    # if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
+    #     continue
 
     # count += 1
     # if("pipsec" in out_print_main):
@@ -3443,7 +3397,7 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
-        Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
+        # Conditions_For_Unfolding.append("MultiDim_"     in str(out_print_main)) # For running only (New 3D) Multidimensional Unfolding Plots
 
         # if(not (Tag_ProQ or Cut_ProQ)):
         #     # Conditions_For_Unfolding.append("Multi" not in str(out_print_main)) # For removing all (3D) Multidimensional Unfolding Plots (Old and New)
@@ -4292,7 +4246,7 @@ for ii in mdf.GetListOfKeys():
 
 
 
-print("".join(["Total: ",      str(count)]))
+print(f"Total: {count}")
 # print("".join(["Num Failed: ", str(count_failed)]))
 del count
 
@@ -4329,22 +4283,22 @@ for ii in rdf.GetListOfKeys():
                         List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
                     else:
                         continue
-                    # num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                    # out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                    # out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
-                    # List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                    # if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                    #     out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                    #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                    # else:
-                    #     out_print_str_1D_Binned_Mom = "N/A"
-                    # for ii in range(4, num_z_pT_bins + 1):
-                    #     z_pT_bin_value = ii - 4
-                    #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                    #     List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                    #     if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                    #         List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                    #         List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                    num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                    out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
+                    out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                    if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                        out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                    else:
+                        out_print_str_1D_Binned_Mom = "N/A"
+                    for ii in range(4, num_z_pT_bins + 1):
+                        z_pT_bin_value = ii - 4
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                        List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                        if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
             
 for ii in mdf.GetListOfKeys():
     out_print_main = str(ii.GetName())
@@ -4373,21 +4327,21 @@ for ii in mdf.GetListOfKeys():
                         List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
                     else:
                         continue
-                    # num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                    # out_print_str_1D = str(out_print_str.replace("(Normal_2D)",               "(1D)"))
-                    # out_print_str_1D = str(out_print_str_1D.replace("(Normal_Background_2D)", "(Background_1D)"))
-                    # out_print_str_1D_Binned = out_print_str_1D.replace(f"({particle})_",    "")
-                    # List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                    # if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                    #     out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                    #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                    # for ii in range(4, num_z_pT_bins + 1):
-                    #     z_pT_bin_value = ii - 4
-                    #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                    #     List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                    #     if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                    #         List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                    #         List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                    num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                    out_print_str_1D = str(out_print_str.replace("(Normal_2D)",               "(1D)"))
+                    out_print_str_1D = str(out_print_str_1D.replace("(Normal_Background_2D)", "(Background_1D)"))
+                    out_print_str_1D_Binned = out_print_str_1D.replace(f"({particle})_",    "")
+                    List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                    if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                        out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                    for ii in range(4, num_z_pT_bins + 1):
+                        z_pT_bin_value = ii - 4
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                        List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                        if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
             
 if(Cor_Compare):
     print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include the Generated MC Plots{color.END_R} (as of 4-18-2024){color.END}\n")
@@ -4417,20 +4371,20 @@ else:
                             List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
                         else:
                             continue
-                        # num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                        # out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                        # out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
-                        # List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                        # if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                        #     out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                        #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                        # for ii in range(4, num_z_pT_bins + 1):
-                        #     z_pT_bin_value = ii - 4
-                        #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                        #     List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                        #     if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                        #         List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                        #         List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                        num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                        out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
+                        out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                        if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                            out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                        for ii in range(4, num_z_pT_bins + 1):
+                            z_pT_bin_value = ii - 4
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                            if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                                List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
 
             
             
@@ -4460,20 +4414,20 @@ if(tdf not in ["N/A"]):
                             List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")] = List_of_All_Histos_For_Unfolding[out_print_str].Project3D("xz")
                         else:
                             continue
-                        # num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
-                        # out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                        # out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
-                        # List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
-                        # if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
-                        #     out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
-                        #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
-                        # for ii in range(4, num_z_pT_bins + 1):
-                        #     z_pT_bin_value = ii - 4
-                        #     List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
-                        #     List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                        #     if(f"({particle})_({particle}th)"    in str(out_print_str)):
-                        #         List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
-                        #         List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                        num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
+                        out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
+                        out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                        List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
+                        if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
+                            out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom] = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"_({particle}th)", "")].ProjectionX(out_print_str_1D_Binned_Mom, 4, num_z_pT_bins)
+                        for ii in range(4, num_z_pT_bins + 1):
+                            z_pT_bin_value = ii - 4
+                            List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned].GetYaxis().SetRange(ii, ii)
+                            List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")]         = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned.replace("(1D)",     "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned).replace("z_pT_Bin_All",     f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
+                            if(f"({particle})_({particle}th)"    in str(out_print_str)):
+                                List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
+                                List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
             
 
 # Bin-by-Bin Acceptance Corrections for 2D Histograms
@@ -4554,36 +4508,36 @@ else:
             print(f"Traceback:\n{traceback.format_exc()}")
             
             
-# Creating set of relative background plots
-temp_list_of_background_histos = {}
-for Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-    Conditions_List = [False]
-    if("_(Background" in str(Histos_For_Unfolding_ii)):
-        Conditions_List = [str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf") in List_of_All_Histos_For_Unfolding]
-    if("Normal_Background_2D" in str(Histos_For_Unfolding_ii)):
-        Conditions_List = [str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D") in List_of_All_Histos_For_Unfolding]
-    if(False not in Conditions_List):
-        hist_temp = List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].Clone()
-        hist_temp.SetName(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetName()).replace("'Background", "'Relative_Background"))
-        hist_temp.SetTitle(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetTitle()).replace("BACKGROUND", "Relative Background"))
-        if("_(Background" in str(Histos_For_Unfolding_ii)):
-            hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])
-        else:
-            hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D")])
-        if("1D"    in str(type(hist_temp))):
-            hist_temp.GetYaxis().SetTitle("#frac{Background}{MC Reconstructed}")
-        elif("2D" in str(type(hist_temp))):
-            hist_temp.GetZaxis().SetTitle("#frac{Background}{MC Reconstructed}")
-        if("_(Background" in str(Histos_For_Unfolding_ii)):
-            temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("_(Background",         "_(Relative_Background")]         = hist_temp
-        else:
-            temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_Relative_Background_2D")] = hist_temp
-for adding_hist in temp_list_of_background_histos:
-    if(adding_hist not in List_of_All_Histos_For_Unfolding):
-        List_of_All_Histos_For_Unfolding[adding_hist] = temp_list_of_background_histos[adding_hist]
-    else:
-        print(f"{color.ERROR}ERROR:{color.END_R} adding_hist = {adding_hist}{color.ERROR} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
-del temp_list_of_background_histos
+# # Creating set of relative background plots
+# temp_list_of_background_histos = {}
+# for Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
+#     Conditions_List = [not False]
+#     if("_(Background" in str(Histos_For_Unfolding_ii)):
+#         Conditions_List = [str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf") in List_of_All_Histos_For_Unfolding]
+#     if("Normal_Background_2D" in str(Histos_For_Unfolding_ii)):
+#         Conditions_List = [str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D") in List_of_All_Histos_For_Unfolding]
+#     if(False not in Conditions_List):
+#         hist_temp = List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].Clone()
+#         hist_temp.SetName(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetName()).replace("'Background", "'Relative_Background"))
+#         hist_temp.SetTitle(str(List_of_All_Histos_For_Unfolding[Histos_For_Unfolding_ii].GetTitle()).replace("BACKGROUND", "Relative Background"))
+#         if("_(Background" in str(Histos_For_Unfolding_ii)):
+#             hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("_(Background", "_(mdf")])
+#         else:
+#             hist_temp.Divide(List_of_All_Histos_For_Unfolding[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_2D")])
+#         if("1D"    in str(type(hist_temp))):
+#             hist_temp.GetYaxis().SetTitle("#frac{Background}{MC Reconstructed}")
+#         elif("2D" in str(type(hist_temp))):
+#             hist_temp.GetZaxis().SetTitle("#frac{Background}{MC Reconstructed}")
+#         if("_(Background" in str(Histos_For_Unfolding_ii)):
+#             temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("_(Background",         "_(Relative_Background")]         = hist_temp
+#         else:
+#             temp_list_of_background_histos[str(Histos_For_Unfolding_ii).replace("Normal_Background_2D", "Normal_Relative_Background_2D")] = hist_temp
+# for adding_hist in temp_list_of_background_histos:
+#     if(adding_hist not in List_of_All_Histos_For_Unfolding):
+#         List_of_All_Histos_For_Unfolding[adding_hist] = temp_list_of_background_histos[adding_hist]
+#     else:
+#         print(f"{color.ERROR}ERROR:{color.END_R} adding_hist = {adding_hist}{color.ERROR} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
+# del temp_list_of_background_histos
 
 final_count = 0
 #Search comment find
@@ -4596,7 +4550,10 @@ if(Saving_Q):
     File_Name_Tlist.SetName("Latest_List_of_File_Names")  # Name in the ROOT file
     for s in File_Name_Lists:
         File_Name_Tlist.Add(ROOT.TObjString(s))
+    safe_write(File_Name_Tlist, output_file)
+    # File_Name_Tlist.Write()
 else:
+    print(f"{color.PINK}Would be saving to: {color.BCYAN}{args.root}{color.END}")
     output_file = None
     
 for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
@@ -4605,9 +4562,23 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
         # if(any(search in str(List_of_All_Histos_For_Unfolding_ii) for search in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)"])):
         #     print("\n", str(List_of_All_Histos_For_Unfolding_ii))
         print(f"\n{List_of_All_Histos_For_Unfolding_ii} --> {type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
+        # if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
+        #     print(f"\n{List_of_All_Histos_For_Unfolding_ii} --> {type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
+        #     # print(f"len  -> {len(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
+        #     # print(f"list -> {List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]}")
+        #     # for ii in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
+        #     #     print(f"{ii} -> {type(ii)}")
+        #     # print("")
     else:
-        List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].Write()
-        
+        if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
+            Temp_Tlist = ROOT.TList()
+            Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}")  # Name in the ROOT file
+            for s in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
+                Temp_Tlist.Add(ROOT.TObjString(str(s)))
+            safe_write(Temp_Tlist, output_file)
+        else:
+            List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii)
+            safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
 if(Saving_Q):
     print(f"{color.BBLUE}Done Saving...{color.END}\n")
     output_file.Close()
