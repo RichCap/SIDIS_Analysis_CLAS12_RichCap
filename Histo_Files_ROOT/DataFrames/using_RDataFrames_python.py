@@ -626,11 +626,11 @@ if(__name__ == "__main__"):
     # gdf_EvGen   = gdf_EvGen.Range(5000)
     # mdf_clasdis = mdf_clasdis.Range(5000)
     # gdf_clasdis = gdf_clasdis.Range(5000)
-    rdf         = rdf.Range(500)
-    mdf_EvGen   = mdf_EvGen.Range(500)
-    gdf_EvGen   = gdf_EvGen.Range(500)
-    mdf_clasdis = mdf_clasdis.Range(500)
-    gdf_clasdis = gdf_clasdis.Range(500)
+    # rdf         = rdf.Range(500)
+    # mdf_EvGen   = mdf_EvGen.Range(500)
+    # gdf_EvGen   = gdf_EvGen.Range(500)
+    # mdf_clasdis = mdf_clasdis.Range(500)
+    # gdf_clasdis = gdf_clasdis.Range(500)
     
     print(f"\n{color.BBLUE}rdf{color.END}:")
     if(verbose or (not True)):
