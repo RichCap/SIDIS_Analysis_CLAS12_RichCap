@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=P2_gdf_EvGen_7_18_2025_Run1_Sector_Tests_V1
+#SBATCH --job-name=gdf_EvGen_8_19_2025_R1_Acceptance_Tests_V1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out

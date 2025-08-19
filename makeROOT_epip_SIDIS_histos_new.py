@@ -242,7 +242,8 @@ del weight_Q
 del pass_ver
 
 
-from MyCommonAnalysisFunction_richcap import color, color_bg, root_color, variable_Title_name
+from MyCommonAnalysisFunction_richcap import color, color_bg, root_color, variable_Title_name, RuntimeTimer
+
 
 if(output_type == "test"):
     output_all_histo_names_Q = "yes"
@@ -410,7 +411,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # files_used_for_data_frame =  "".join(["MC_Gen_sidis_epip_richcap.inb.qa", "."                 if(not Use_New_PF) else ".new5.",  "45nA_job_" if(not Use_Pass_2) else "*inb-clasdis_", str(file_num), "*"])
                 files_used_for_data_frame = str(file_location)
                             
-    print("".join(["\nLoading File(s): ", str(files_used_for_data_frame)]))
+    print(f"\nLoading File(s): {files_used_for_data_frame}")
     
     # if(output_all_histo_names_Q == "yes"):
     #     print(f"{color.BOLD}Columns of the RDataFrame when first loaded:{color.END}")
@@ -432,21 +433,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##========================================================================##
     
     # Getting Current Date
-    datetime_object_full = datetime.now()
-    startMin_full, startHr_full, startDay_full = datetime_object_full.minute, datetime_object_full.hour, datetime_object_full.day
-    if(datetime_object_full.minute < 10):
-        timeMin_full = ''.join(['0', str(datetime_object_full.minute)])
-    else:
-        timeMin_full = str(datetime_object_full.minute)
-    # Printing Current Time
-    if(datetime_object_full.hour >  12 and datetime_object_full.hour <  24):
-        print("".join(["The time that this code started is ", str((datetime_object_full.hour) - 12), ":", timeMin_full, " p.m."]))
-    if(datetime_object_full.hour <  12 and datetime_object_full.hour >   0):
-        print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " a.m."]))
-    if(datetime_object_full.hour == 12):
-        print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " p.m."]))
-    if(datetime_object_full.hour == 0 or   datetime_object_full.hour == 24):
-        print("".join(["The time that this code started is 12:", timeMin_full, " a.m."]))
+    timer = RuntimeTimer()
+    timer.start()
+    # datetime_object_full = datetime.now()
+    # startMin_full, startHr_full, startDay_full = datetime_object_full.minute, datetime_object_full.hour, datetime_object_full.day
+    # if(datetime_object_full.minute < 10):
+    #     timeMin_full = ''.join(['0', str(datetime_object_full.minute)])
+    # else:
+    #     timeMin_full = str(datetime_object_full.minute)
+    # # Printing Current Time
+    # if(datetime_object_full.hour >  12 and datetime_object_full.hour <  24):
+    #     print("".join(["The time that this code started is ", str((datetime_object_full.hour) - 12), ":", timeMin_full, " p.m."]))
+    # if(datetime_object_full.hour <  12 and datetime_object_full.hour >   0):
+    #     print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " a.m."]))
+    # if(datetime_object_full.hour == 12):
+    #     print("".join(["The time that this code started is ", str(datetime_object_full.hour),        ":", timeMin_full, " p.m."]))
+    # if(datetime_object_full.hour == 0 or   datetime_object_full.hour == 24):
+    #     print("".join(["The time that this code started is 12:", timeMin_full, " a.m."]))
     
     
     ##========================================================================##
@@ -1085,6 +1088,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Ran on 7/22/2025 -> with EvGen
             # Same as f"Sector_Tests{Cut_Configuration_Name}_V1_" but with additional plot of MM vs W
 
+    Extra_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V1_"
+        # Ran on 8/19/2025 -> with EvGen
+            # Same as f"Sector_Tests{Cut_Configuration_Name}_V2_" but without the extra electron sector cuts
+            # Also ran with more clasdis MC (hoping to run with more EvGen MC soon too)
+            # EvGen MC should be run without smearing only
+            # Use_5D_Response_Matrix = True (tried to run with 5D unfolding matrix as well)
+
     if(Run_Small):
         Extra_Name = f"Only_Cut_Tests{Cut_Configuration_Name}_V1_"
         # Ran on 9/5/2024
@@ -1115,7 +1125,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q in ["no"])):
-        Extra_Name = "".join(["Uncorrected_", str(Extra_Name)])
+        Extra_Name = f"Uncorrected_{Extra_Name}"
         # Not applying momentum corrections (despite them being available)
     
     
@@ -5836,7 +5846,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             #     print("".join([color.Error, "ERROR IN REMOVING '_smeared' FROM VARIABLE NAME:\n", color.END_R, str(traceback.format_exc()), color.END]))
             
         except:
-            print("".join([color.Error, "ERROR IN DIMENSIONS:\n", color.END_R, str(traceback.format_exc()), color.END]))
+            print(f"{color.Error}ERROR IN DIMENSIONS:\n{color.END_R}{traceback.format_exc()}{color.END}")
 
         return Dimensions_Output
 
@@ -5915,9 +5925,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         cut_list = []
         # cut_list.append('cut_Complete_SIDIS_Integrate')
         cut_list.append('cut_Complete_SIDIS')
-        for sec_cut in [1, 2, 3, 4, 5, 6]:
-            # cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
-            cut_list.append(f'cut_Complete_SIDIS_eS{sec_cut}o')
+        # for sec_cut in [1, 2, 3, 4, 5, 6]:
+        #     # cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
+        #     cut_list.append(f'cut_Complete_SIDIS_eS{sec_cut}o')
         if(Tag_Proton):
             cut_list.append('cut_Complete_SIDIS_Proton')
             # cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
@@ -5952,9 +5962,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # if(Run_Small):
     #     # cut_list = ['no_cut', 'cut_Complete_SIDIS']
     #     cut_list = ['cut_Complete_SIDIS']
-    print("".join([color.BBLUE, "\nCuts in use: ", color.END]))
+    print(f"{color.BBLUE}\nCuts in use: {color.END}")
     for cuts in cut_list:
-        print("".join(["\t(*) ", str(cuts)]))
+        print(f"\t(*) {cuts}")
         
     
     #####################       Cut Choices       #####################
@@ -6034,7 +6044,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (run_Mom_Cor_Code != "yes")
-    Use_5D_Response_Matrix = False
+    # Use_5D_Response_Matrix = False
     
     if(Use_5D_Response_Matrix):
         print(f"{color.BGREEN}\n\n{color.UNDERLINE}Will be making the plots needed for 5D Unfolding{color.END}\n\n")
@@ -8119,7 +8129,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ROOT_File_Output.Close()
         # File has been saved
         
-        print("".join([color.BOLD, "\nTotal Number of Histograms Made: ", str(count_of_histograms), color.END]))
+        print(f"{color.BOLD}\nTotal Number of Histograms Made: {count_of_histograms}{color.END}")
         
         # See beginning of code...
         if(output_all_histo_names_Q == "yes"):
@@ -8138,54 +8148,49 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         print("Done\n\n")
     
     # Getting current date
-    datetime_object_end = datetime.now()
+    # datetime_object_end = datetime.now()
 
-    endMin_full, endHr_full, endDay_full = datetime_object_end.minute, datetime_object_end.hour, datetime_object_end.day
+    # endMin_full, endHr_full, endDay_full = datetime_object_end.minute, datetime_object_end.hour, datetime_object_end.day
 
-    timeMin_end = "".join(["0", str(datetime_object_end.minute)]) if(datetime_object_end.minute < 10) else str(datetime_object_end.minute)
+    # timeMin_end = "".join(["0", str(datetime_object_end.minute)]) if(datetime_object_end.minute < 10) else str(datetime_object_end.minute)
     
-    # Printing current time
-    if(datetime_object_end.hour > 12 and datetime_object_end.hour < 24):
-        print("".join(["The time that this code finished is ", str((datetime_object_end.hour) - 12), ":", str(timeMin_end), " p.m."]))
-    if(datetime_object_end.hour < 12 and datetime_object_end.hour > 0):
-        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " a.m."]))
-    if(datetime_object_end.hour == 12):
-        print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " p.m."]))
-    if(datetime_object_end.hour == 0 or datetime_object_end.hour == 24):
-        print("".join(["The time that this code finished is 12:", str(timeMin_end), " a.m."]))
-        
-    print("".join(["Made ", str(count_of_histograms), " histograms..."]))
-        
-    Num_of_Days, Num_of_Hrs, Num_of_Mins = 0, 0, 0
+    # # Printing current time
+    # if(datetime_object_end.hour > 12 and datetime_object_end.hour < 24):
+    #     print("".join(["The time that this code finished is ", str((datetime_object_end.hour) - 12), ":", str(timeMin_end), " p.m."]))
+    # if(datetime_object_end.hour < 12 and datetime_object_end.hour > 0):
+    #     print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " a.m."]))
+    # if(datetime_object_end.hour == 12):
+    #     print("".join(["The time that this code finished is ", str(datetime_object_end.hour), ":", str(timeMin_end), " p.m."]))
+    # if(datetime_object_end.hour == 0 or datetime_object_end.hour == 24):
+    #     print("".join(["The time that this code finished is 12:", str(timeMin_end), " a.m."]))
     
-    if(startDay_full > endDay_full):
-        Num_of_Days = endDay_full + (30 - startDay_full)
-    else:
-        Num_of_Days = endDay_full - startDay_full
+    # print(f"Made {count_of_histograms} histograms...")
+    # Num_of_Days, Num_of_Hrs, Num_of_Mins = 0, 0, 0
+    # if(startDay_full > endDay_full):
+    #     Num_of_Days = endDay_full + (30 - startDay_full)
+    # else:
+    #     Num_of_Days = endDay_full - startDay_full
+    # if(startHr_full > endHr_full):
+    #     Num_of_Hrs = endHr_full + (24 - startHr_full)
+    # else:
+    #     Num_of_Hrs = endHr_full - startHr_full
+    # if(startMin_full > endMin_full):
+    #     Num_of_Mins = endMin_full + (60 - startMin_full)
+    # else:
+    #     Num_of_Mins = endMin_full - startMin_full
+    # if(Num_of_Hrs > 0 and startMin_full >= endMin_full):
+    #     Num_of_Hrs += -1
+    # if(Num_of_Days > 0 and startHr_full >= endHr_full):
+    #     Num_of_Days += -1
         
-    if(startHr_full > endHr_full):
-        Num_of_Hrs = endHr_full + (24 - startHr_full)
-    else:
-        Num_of_Hrs = endHr_full - startHr_full
-        
-    if(startMin_full > endMin_full):
-        Num_of_Mins = endMin_full + (60 - startMin_full)
-    else:
-        Num_of_Mins = endMin_full - startMin_full
-        
-        
-    if(Num_of_Hrs > 0 and startMin_full >= endMin_full):
-        Num_of_Hrs += -1
-        
-    if(Num_of_Days > 0 and startHr_full >= endHr_full):
-        Num_of_Days += -1
-        
-    print("\nThe total time the code took to run the given files is:")
-    print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
+    # print("\nThe total time the code took to run the given files is:")
+    # print("".join([str(Num_of_Days), " Day(s), ", str(Num_of_Hrs), " Hour(s), and ", str(Num_of_Mins), " Minute(s)."]))
     
-    if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
-        rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
-        print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
+    # if((((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins) != 0):
+    #     rate_of_histos = count_of_histograms/(((Num_of_Days*24) + Num_of_Hrs)*60 + Num_of_Mins)
+    #     print("".join(["Rate of Histos/Minute = ", str(rate_of_histos), " Histos/Min"]))
+
+    timer.stop(count_label="Histograms", count_value=count_of_histograms)
     
     if(str(file_location) in ['time' , 'test']):
         print("".join(["\nEstimated time to run: ", "".join([str(round(count_of_histograms/6, 4)), " mins"]) if(round(count_of_histograms/6, 4) < 60) else  "".join([str(int(round(count_of_histograms/6, 4)/60)), " hrs and ", str(round(((round(count_of_histograms/6, 4)/60)%1)*60, 3)), " mins (Total: ", str(round(count_of_histograms/6, 3)), " mins)"])]))

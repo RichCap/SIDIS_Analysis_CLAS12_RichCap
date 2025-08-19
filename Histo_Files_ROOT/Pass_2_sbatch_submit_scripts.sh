@@ -7,6 +7,7 @@ skip_gdf=false
 use_cat=false
 use_git=false
 use_lt=false
+use_EvGen=false
 script_type="SIDIS"  # Default script type
 
 # Function to display help message
@@ -24,6 +25,7 @@ function display_help {
     echo "  --git            Display the 'git' status of the scripts instead of submitting them with sbatch. (Same as using 'git diff' on the file)"
     echo "  --lt             Shows the file location as if using the 'lt' command (basically my version of 'ls -lhtr')"
     echo "  --type <type>    Specify the script type: 'sidis', 'proton', or 'mom'. Default is 'sidis'."
+    echo "  --EvGen          Use EvGen MCs instead of clasdis files"
     echo "  --help, -h       Display this help message and exit."
     echo
     echo "If no options are provided, the script will submit jobs for rdf, mdf, and gdf files using sbatch."
@@ -54,12 +56,19 @@ while [[ "$#" -gt 0 ]]; do
                 echo "No script type specified"; exit 1
             fi
             ;;
+        --EvGen) use_EvGen=true ;;
         --help) display_help; exit 0 ;;
         -h)     display_help; exit 0 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
     shift
 done
+
+if [ "$use_EvGen" = true ]; then
+    echo ""
+    echo ""
+    echo "Using EvGen Files for MC"
+fi
 
 if [ "$use_cat" = false ] && [ "$use_git" = false ] && [ "$use_lt" = false ]; then
     echo "Submitting jobs for running makeROOT_epip_${script_type}_histos_new.py"
@@ -83,7 +92,11 @@ if [ "$skip_mdf" = false ]; then
     else
         echo ""
     fi
-    script_path="${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_${script_type}_python_matching_MC_Pass2.sh"
+    if [ "$use_EvGen" = false ]; then
+        script_path="${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_${script_type}_python_matching_MC_Pass2.sh"
+    else
+        script_path="${DIR_WITH_SCRIPTS}/Matching_REC_MC/sbatch_${script_type}_EvGen_matching_MC_Pass2.sh"
+    fi
     if [ "$use_cat" = true ]; then
         echo "Checking for mdf file in:"
         pwd
@@ -121,7 +134,11 @@ if [ "$skip_gdf" = false ]; then
     else
         echo ""
     fi
-    script_path="${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_${script_type}_python_gen_MC_Pass2.sh"
+    if [ "$use_EvGen" = false ]; then
+        script_path="${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_${script_type}_python_gen_MC_Pass2.sh"
+    else
+        script_path="${DIR_WITH_SCRIPTS}/GEN_MC/sbatch_${script_type}_EvGen_gen_MC_Pass2.sh"
+    fi
     if [ "$use_cat" = true ]; then
         echo "Checking for gdf file in:"
         pwd
