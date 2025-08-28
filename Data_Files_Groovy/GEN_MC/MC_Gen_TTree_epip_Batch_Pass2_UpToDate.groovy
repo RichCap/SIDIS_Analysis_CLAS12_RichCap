@@ -41,6 +41,12 @@ def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:e
 int Multiple_Pions_Per_Electron = 0
 int Total_Events_Found = 0
 
+def beam = LorentzVector.withPID(11,0,0,10.6041)
+
+def Q2_cut_Count   = 0
+def Q2_nocut_Count = 0
+def Q2_SIDIS_Count = 0
+
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
@@ -68,6 +74,20 @@ args.eachParallel{fname->
             if(pid == 11){ // Is an electron
                 
                 int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+
+                        
+                def ex  = partb.getFloat("px", 0)
+                def ey  = partb.getFloat("py", 0)
+                def ez  = partb.getFloat("pz", 0)
+                def ele = LorentzVector.withPID(pid, ex, ey, ez)
+                def Q2  = -(beam - ele).mass2()
+
+                if(Q2 > 1.5){
+                    Q2_cut_Count += 1;
+                }
+                else{
+                    Q2_nocut_Count += 1;
+                }
                 
                 for(int ipart = 1; ipart < partb.getRows(); ipart++){
                     def pid_pip = partb.getInt("pid", ipart)
@@ -79,11 +99,10 @@ args.eachParallel{fname->
                         if(pionCount != 1){
                             Multiple_Pions_Per_Electron += 1; // Increment "number of double-counted electron" counter
                         }
-                        
-                        def ex = partb.getFloat("px", 0)
-                        def ey = partb.getFloat("py", 0)
-                        def ez = partb.getFloat("pz", 0)
-                        def ele = LorentzVector.withPID(pid, ex, ey, ez)
+
+                        if(Q2 > 1.5){
+                            Q2_SIDIS_Count += 1;
+                        }
                         
                         def px = partb.getFloat("px", ipart)
                         def py = partb.getFloat("py", ipart)
@@ -148,6 +167,10 @@ System.out.println("");
 System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions_Per_Electron);
 System.out.println("");
 
+System.out.println("Total number of generated events found with Q2 > 1.5        = " + Q2_cut_Count);
+System.out.println("Total number of generated events found with Q2 < 1.5        = " + Q2_nocut_Count);
+System.out.println("Total number of   SIDIS   events found with Q2 > 1.5        = " + Q2_SIDIS_Count);
+System.out.println("");
 
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
 

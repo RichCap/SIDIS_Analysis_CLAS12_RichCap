@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=mdf_SIDIS_epip_TTree_8_6_2025_Pass2_New_V5_R1
+#SBATCH --job-name=mdf_SIDIS_epip_TTree_8_26_2025_Pass2_New_V5_R1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -8,8 +8,8 @@
 #SBATCH --partition=production
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=5500
-#SBATCH --time=24:00:00
-#SBATCH --array=0-33
+#SBATCH --time=2:00:00
+#SBATCH --array=0-39
 
 
 # FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/New_MC_hipo/BeamEnergy_1060/inb-clasdis-7975*)
@@ -43,6 +43,6 @@
 # # Above is for #SBATCH --array=0-9
 
 FILES=(/lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/inb-clasdis-*)
-# Above is for #SBATCH --array=0-33
+# Above is for #SBATCH --array=0-39
 
 srun /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/MC_Matched_TTree_epip_Batch.groovy ${FILES[$SLURM_ARRAY_TASK_ID]}
