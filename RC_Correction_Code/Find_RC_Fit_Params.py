@@ -267,10 +267,13 @@ import math
 # Reweights each bin and propagates errors from:
 # - the original bin error, and
 # - parameter uncertainties (diagonal by default, optional full 3×3 covariance).
+# NOTE: RC factor is applied as division: new_content = (content / weight).
 def Apply_RC_Factor_Corrections(hist, Par_A, Par_B, Par_C, use_param_errors=False, Par_A_err=0.0, Par_B_err=0.0, Par_C_err=0.0, param_cov=None):
     nbins = hist.GetNbinsX()
-    if(nbins != 24):
-        print(f"\n{color.Error}[Apply_RC_Factor_Corrections] Warning:{color.END} nbins={nbins}; proceeding with actual nbins.\n")
+
+    if((nbins != 24)):
+        print(f"{color.BYELLOW}[Apply_RC_Factor_Corrections] Notice:{color.END} nbins={nbins}; proceeding with actual nbins.")
+
     xmin = hist.GetXaxis().GetXmin()
     xmax = hist.GetXaxis().GetXmax()
 
@@ -290,6 +293,9 @@ def Apply_RC_Factor_Corrections(hist, Par_A, Par_B, Par_C, use_param_errors=Fals
                    (0.0,                  Par_B_err * Par_B_err, 0.0),
                    (0.0,                  0.0,                  Par_C_err * Par_C_err),
             )
+
+    eps = 1e-12
+
     # Underflow(0) .. overflow(nbins+1), inclusive
     for bin_idx in range(0, (nbins + 1) + 1):
         if((1 <= bin_idx) and (bin_idx <= nbins)):
@@ -297,35 +303,44 @@ def Apply_RC_Factor_Corrections(hist, Par_A, Par_B, Par_C, use_param_errors=Fals
         else:
             x_deg = (xmin if(bin_idx == 0) else xmax)
 
-        cos1    = math.cos(math.radians(x_deg))
-        cos2    = math.cos(math.radians(2.0 * x_deg))
-        weight  = Par_A * (1.0 + (Par_B * cos1) + (Par_C * cos2))
+        cos1   = math.cos(math.radians(x_deg))
+        cos2   = math.cos(math.radians(2.0 * x_deg))
+        weight = Par_A * (1.0 + (Par_B * cos1) + (Par_C * cos2))
 
         content = get_content(bin_idx)
         sigma_c = get_error(bin_idx)
 
-        new_content = (content * weight)
+        if((abs(weight) < eps)):
+            print(f"{color.ERROR}[Apply_RC_Factor_Corrections] ERROR:{color.END} |weight|≈0 at bin={bin_idx}, φ≈{x_deg:.6g}°. Leaving bin unchanged.")
+            set_content(bin_idx, content)
+            set_error(bin_idx, sigma_c)
+            continue
+
+        # RC factor division
+        new_content = (content / weight)
         set_content(bin_idx, new_content)
 
-        # Base variance from original bin error: (|w| * σ_c)^2
-        var_y = ((abs(weight) * sigma_c) ** 2)
+        # Base variance from original bin error: (∂y/∂c · σ_c)^2, with y=c/w ⇒ ∂y/∂c = 1/w
+        var_y = ((sigma_c / weight) ** 2)
 
-        # Add parameter-propagation variance if requested
         if(use_param_errors):
-            # Gradient wrt parameters at this bin:
-            # y = c * w, w = A*(1 + B cosφ + C cos2φ)
-            # ∂y/∂A = c*(1 + B cosφ + C cos2φ)
-            # ∂y/∂B = c*A*cosφ
-            # ∂y/∂C = c*A*cos2φ
-            gA = (content * (1.0 + (Par_B * cos1) + (Par_C * cos2)))
-            gB = (content * Par_A * cos1)
-            gC = (content * Par_A * cos2)
+            # y = c / w, with w = A(1 + B cosφ + C cos2φ)
+            # ∂w/∂A = (1 + B cosφ + C cos2φ)
+            # ∂w/∂B = A cosφ
+            # ∂w/∂C = A cos2φ
+            # ∂y/∂p = -c * (∂w/∂p) / w^2
+            dw_dA = (1.0 + (Par_B * cos1) + (Par_C * cos2))
+            dw_dB = (Par_A * cos1)
+            dw_dC = (Par_A * cos2)
+
+            inv_w2 = (1.0 / (weight * weight))
+            gA = (-(content * dw_dA) * inv_w2)
+            gB = (-(content * dw_dB) * inv_w2)
+            gC = (-(content * dw_dC) * inv_w2)
 
             if(param_cov is None):
-                # Diagonal-only: g^T diag σ^2 g
                 var_params = ((gA * gA) * (Par_A_err * Par_A_err)) + ((gB * gB) * (Par_B_err * Par_B_err)) + ((gC * gC) * (Par_C_err * Par_C_err))
             else:
-                # Full 3×3: g^T Cov g (manual to avoid numpy)
                 h0 = (cov[0][0] * gA) + (cov[0][1] * gB) + (cov[0][2] * gC)
                 h1 = (cov[1][0] * gA) + (cov[1][1] * gB) + (cov[1][2] * gC)
                 h2 = (cov[2][0] * gA) + (cov[2][1] * gB) + (cov[2][2] * gC)
