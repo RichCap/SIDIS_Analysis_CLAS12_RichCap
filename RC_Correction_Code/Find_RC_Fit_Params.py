@@ -17,7 +17,7 @@ import ROOT
 
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import *   # for color + RuntimeTimer
+from MyCommonAnalysisFunction_richcap import color, RuntimeTimer
 sys.path.remove(script_dir)
 del script_dir
 
@@ -261,6 +261,84 @@ def Find_RC_Fit_Params(Q2_y_bin, z_pT_bin, root_in=None, cache_in=None, cache_ou
     params = _fit_phi_h_graph(graph, quiet)
     return params
 
+
+import math
+
+# Reweights each bin and propagates errors from:
+# - the original bin error, and
+# - parameter uncertainties (diagonal by default, optional full 3×3 covariance).
+def Apply_RC_Factor_Corrections(hist, Par_A, Par_B, Par_C, use_param_errors=False, Par_A_err=0.0, Par_B_err=0.0, Par_C_err=0.0, param_cov=None):
+    nbins = hist.GetNbinsX()
+    if(nbins != 24):
+        print(f"\n{color.Error}[Apply_RC_Factor_Corrections] Warning:{color.END} nbins={nbins}; proceeding with actual nbins.\n")
+    xmin = hist.GetXaxis().GetXmin()
+    xmax = hist.GetXaxis().GetXmax()
+
+    get_center  = hist.GetBinCenter
+    get_content = hist.GetBinContent
+    get_error   = hist.GetBinError
+    set_content = hist.SetBinContent
+    set_error   = hist.SetBinError
+
+    # Choose covariance: if(param_cov) use it; else build diagonal from per-parameter errors
+    cov = None
+    if(use_param_errors):
+        if((param_cov is not None) and (len(param_cov) == 3) and (len(param_cov[0]) == 3) and (len(param_cov[1]) == 3) and (len(param_cov[2]) == 3)):
+            cov = param_cov
+        else:
+            cov = ((Par_A_err * Par_A_err, 0.0,                  0.0),
+                   (0.0,                  Par_B_err * Par_B_err, 0.0),
+                   (0.0,                  0.0,                  Par_C_err * Par_C_err),
+            )
+    # Underflow(0) .. overflow(nbins+1), inclusive
+    for bin_idx in range(0, (nbins + 1) + 1):
+        if((1 <= bin_idx) and (bin_idx <= nbins)):
+            x_deg = get_center(bin_idx)
+        else:
+            x_deg = (xmin if(bin_idx == 0) else xmax)
+
+        cos1    = math.cos(math.radians(x_deg))
+        cos2    = math.cos(math.radians(2.0 * x_deg))
+        weight  = Par_A * (1.0 + (Par_B * cos1) + (Par_C * cos2))
+
+        content = get_content(bin_idx)
+        sigma_c = get_error(bin_idx)
+
+        new_content = (content * weight)
+        set_content(bin_idx, new_content)
+
+        # Base variance from original bin error: (|w| * σ_c)^2
+        var_y = ((abs(weight) * sigma_c) ** 2)
+
+        # Add parameter-propagation variance if requested
+        if(use_param_errors):
+            # Gradient wrt parameters at this bin:
+            # y = c * w, w = A*(1 + B cosφ + C cos2φ)
+            # ∂y/∂A = c*(1 + B cosφ + C cos2φ)
+            # ∂y/∂B = c*A*cosφ
+            # ∂y/∂C = c*A*cos2φ
+            gA = (content * (1.0 + (Par_B * cos1) + (Par_C * cos2)))
+            gB = (content * Par_A * cos1)
+            gC = (content * Par_A * cos2)
+
+            if(param_cov is None):
+                # Diagonal-only: g^T diag σ^2 g
+                var_params = ((gA * gA) * (Par_A_err * Par_A_err)) + ((gB * gB) * (Par_B_err * Par_B_err)) + ((gC * gC) * (Par_C_err * Par_C_err))
+            else:
+                # Full 3×3: g^T Cov g (manual to avoid numpy)
+                h0 = (cov[0][0] * gA) + (cov[0][1] * gB) + (cov[0][2] * gC)
+                h1 = (cov[1][0] * gA) + (cov[1][1] * gB) + (cov[1][2] * gC)
+                h2 = (cov[2][0] * gA) + (cov[2][1] * gB) + (cov[2][2] * gC)
+                var_params = (gA * h0) + (gB * h1) + (gC * h2)
+
+            if(var_params > 0.0):
+                var_y += var_params
+
+        new_error = (math.sqrt(var_y) if(var_y > 0.0) else 0.0)
+        set_error(bin_idx, new_error)
+
+    return hist
+
 # -------------------------
 # CLI
 # -------------------------
@@ -271,8 +349,8 @@ def parse_cli():
                    help="Q2-y bin index (int).")
     p.add_argument("-z_pt", "-z_pT", "--z_pT_bin",                       type=int, required=True,
                    help="z-pT bin index (int).")
-    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Testing_V2_MM_Cut.root", 
-                   help="Input ROOT file with the pre-made plots (default: 'Testing_V2_MM_Cut.root' in the EvGen directory - is currently the most UpToDate version of the EvGen RC plot file).")
+    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Testing_V2_MM_Cut_Copy.root", 
+                   help="Input ROOT file with the pre-made plots (default: 'Testing_V2_MM_Cut_Copy.root' in the EvGen directory - is currently the most Up-To-Date version of the EvGen RC plot file).")
     g = p.add_mutually_exclusive_group()
     g.add_argument("-in",            "--cache-in",    dest="cache_in",   type=str,
                    help="Read-only ROOT cache path.")
