@@ -114,7 +114,7 @@ def _write_cache_vector(cache_path, key, params, quiet):
 
 def _build_key_name(plot_choice, q2y_bin, zpt_bin):
     # Exact string you asked for from the original script
-    return f"{plot_choice}_vs_phi_h_Q2_y_Bin_{q2y_bin if(q2y_bin is not None) else 'All'}_z_pT_Bin_{zpt_bin if(zpt_bin is not None) else 'All'}"
+    return f"{plot_choice}_vs_phi_h_Q2_y_Bin_{q2y_bin if(q2y_bin is not None) else 'All'}_z_pT_Bin_{zpt_bin if(zpt_bin is not None) else 'All'}_EvGen_Bin_Center_Cuts"
 
 def _get_graph_from_file(root_path, plot_choice, q2y_bin, zpt_bin, quiet):
     if(not os.path.exists(root_path)):
@@ -222,6 +222,17 @@ def _fit_phi_h_graph(graph, quiet):
 # Public API
 # -------------------------
 
+# Returns the pre-made RC vs φ_h plot (TGraphErrors) from root_in by the canonical key.
+# This is the single source of truth for which plot is used everywhere.
+def Get_RC_Fit_Plot(Q2_y_bin, z_pT_bin, root_in=None, quiet=True, plot_choice="RC_factor"):
+    if(root_in is None):
+        raise ValueError("'root_in' is required (must contain the pre-made TGraph).")
+    _log(f"[plot] Loading plot='{plot_choice}' for (Q2_y_bin, z_pT_bin)=({Q2_y_bin}, {z_pT_bin})", quiet, color.CYAN, color.END)
+    graph = _get_graph_from_file(root_in, plot_choice, Q2_y_bin, z_pT_bin, quiet)
+    _log(f"[plot] Loaded graph: {graph.GetName()} with N={graph.GetN()} points", quiet, color.BBLUE, color.END)
+    return graph
+
+
 def Find_RC_Fit_Params(Q2_y_bin, z_pT_bin, root_in=None, cache_in=None, cache_out=None, quiet=True):
     if((cache_in is not None) and (cache_out is not None)):
         raise ValueError("Use either 'cache_in' (read-only) or 'cache_out' (write-only), not both.")
@@ -239,7 +250,7 @@ def Find_RC_Fit_Params(Q2_y_bin, z_pT_bin, root_in=None, cache_in=None, cache_ou
         if(root_in is None):
             raise FileNotFoundError("Cache miss and no 'root_in' provided to read the graph.")
         _log("[fallback] Cache miss -> reading graph from ROOT (no write).", quiet, color.YELLOW, color.END)
-        graph  = _get_graph_from_file(root_in, plot_choice, Q2_y_bin, z_pT_bin, quiet)
+        graph  = Get_RC_Fit_Plot(Q2_y_bin, z_pT_bin, root_in=root_in, quiet=quiet, plot_choice=plot_choice)
         params = _fit_phi_h_graph(graph, quiet)
         return params
 
@@ -248,7 +259,7 @@ def Find_RC_Fit_Params(Q2_y_bin, z_pT_bin, root_in=None, cache_in=None, cache_ou
         if(root_in is None):
             raise ValueError("'root_in' is required in write-only mode (cache_out).")
         _log("[mode] WRITE-ONLY cache", quiet, color.BBLUE, color.END)
-        graph  = _get_graph_from_file(root_in, plot_choice, Q2_y_bin, z_pT_bin, quiet)
+        graph  = Get_RC_Fit_Plot(Q2_y_bin, z_pT_bin, root_in=root_in, quiet=quiet, plot_choice=plot_choice)
         params = _fit_phi_h_graph(graph, quiet)
         _write_cache_vector(cache_out, key, params, quiet)
         return params
@@ -257,7 +268,7 @@ def Find_RC_Fit_Params(Q2_y_bin, z_pT_bin, root_in=None, cache_in=None, cache_ou
     if(root_in is None):
         raise ValueError("'root_in' is required (must contain the TGraph to fit).")
     _log("[mode] NO-CACHE (read graph, fit, return)", quiet, color.BBLUE, color.END)
-    graph  = _get_graph_from_file(root_in, plot_choice, Q2_y_bin, z_pT_bin, quiet)
+    graph  = Get_RC_Fit_Plot(Q2_y_bin, z_pT_bin, root_in=root_in, quiet=quiet, plot_choice=plot_choice)
     params = _fit_phi_h_graph(graph, quiet)
     return params
 
@@ -352,6 +363,7 @@ def Apply_RC_Factor_Corrections(hist, Par_A, Par_B, Par_C, use_param_errors=Fals
         new_error = (math.sqrt(var_y) if(var_y > 0.0) else 0.0)
         set_error(bin_idx, new_error)
 
+    hist.SetTitle(f"#splitline{{Applied (EvGen) Radiative Corrections}}{{{hist.GetTitle()}}}")
     return hist
 
 # -------------------------
@@ -364,8 +376,8 @@ def parse_cli():
                    help="Q2-y bin index (int).")
     p.add_argument("-z_pt", "-z_pT", "--z_pT_bin",                       type=int, required=True,
                    help="z-pT bin index (int).")
-    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Testing_V2_MM_Cut_Copy.root", 
-                   help="Input ROOT file with the pre-made plots (default: 'Testing_V2_MM_Cut_Copy.root' in the EvGen directory - is currently the most Up-To-Date version of the EvGen RC plot file).")
+    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Testing_V2_MM_Cut.root", 
+                   help="Input ROOT file with the pre-made plots (default: 'Testing_V2_MM_Cut.root' in the EvGen directory - is currently the most Up-To-Date version of the EvGen RC plot file).")
     g = p.add_mutually_exclusive_group()
     g.add_argument("-in",            "--cache-in",    dest="cache_in",   type=str,
                    help="Read-only ROOT cache path.")
