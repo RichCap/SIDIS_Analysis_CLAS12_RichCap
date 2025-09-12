@@ -98,9 +98,11 @@ class RuntimeTimer:
         formatted_time = self._format_time(self.start_time)
         print(f"\nStarted running on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}\n")
 
-    def start_find(self, return_Q=False):
+    def start_find(self, return_Q=False, return_no_time=False):
         formatted_time = self._format_time(self.start_time)
-        if(return_Q):
+        if(return_no_time):
+            return f"Ran on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at "
+        elif(return_Q):
             return f"Ran on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}"
         else:
             print(f"\nStarted running on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}\n")
