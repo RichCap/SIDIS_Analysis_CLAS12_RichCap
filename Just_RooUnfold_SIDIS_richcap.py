@@ -100,6 +100,9 @@ def parse_args():
     p.add_argument('-title', '--title', type=str,
                    help="Adds an extra title to the histograms.")
 
+    p.add_argument('-evgen', '--EvGen', action='store_true',
+                   help="Runs with EvGen instead of clasdis files.")
+
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
                    help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
@@ -199,13 +202,13 @@ else:
 # if(str(Smearing_Options) not in ["both"]):
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
-File_Save_Format = ".png"
-# File_Save_Format = ".root"
-# File_Save_Format = ".pdf"
+# File_Save_Format = ".png"
+# # File_Save_Format = ".root"
+# # File_Save_Format = ".pdf"
 
 
-if((File_Save_Format != ".png") and Saving_Q):
-    print(f"{color.BGREEN}\nSave Option was not set to output .png files. Save format is:{color.END_B}{color.UNDERLINE}{File_Save_Format}{color.END}\n")
+# if((File_Save_Format != ".png") and Saving_Q):
+#     print(f"{color.BGREEN}\nSave Option was not set to output .png files. Save format is:{color.END_B}{color.UNDERLINE}{File_Save_Format}{color.END}\n")
 
 
 
@@ -1063,10 +1066,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
     
 
     else:
-        print("".join(["Procedure for Method '", str(Method), "' has not yet been defined..."]))
+        print(f"Procedure for Method '{Method}' has not yet been defined...")
         return "ERROR"
     
-    print("".join([color.Error, "\nERROR: DID NOT RETURN A HISTOGRAM YET...\n", color.END]))
+    print(f"{color.Error}\nERROR: DID NOT RETURN A HISTOGRAM YET...\n{color.END}")
     return "ERROR"
 
 
@@ -2710,6 +2713,9 @@ Common_Name = "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"
 Common_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
 # Common_Name = "Pass_2_Sector_Tests_FC_14_V1_EvGen_All"
 
+Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_All"
+if(args.EvGen):
+    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_EvGen_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
@@ -2989,11 +2995,58 @@ if(run_Sec_Unfold or run_SecCut_Unfold):
 print(f"{color.BBLUE}\n\nStarting Unfolding Procedures...\n{color.END}")
 
 
-# Unfolded_Canvas, Legends, Bin_Unfolded, RooUnfolded_Histos, Bin_Acceptance, Unfolding_Histogram_1_Norm_Clone, Save_Response_Matrix, Parameter_List_Unfold_Methods, Parameter_List_Unfold, Parameter_List_Bin = {}, {}, {}, {}, {}, {}, {}, {}, [], []
 Unfolded_Canvas, Legends, Bin_Unfolded, RooUnfolded_Histos, Bin_Acceptance, Unfolding_Histogram_1_Norm_Clone, Save_Response_Matrix, Parameter_List_Unfold_Methods = {}, {}, {}, {}, {}, {}, {}, {}
 Parameter_List_Unfold_Methods["SVD"], Parameter_List_Unfold_Methods["Bin"], Parameter_List_Unfold_Methods["Bayes"] = [], [], []
 List_of_All_Histos_For_Unfolding = {}
 count, count_failed = 0, 0
+
+# for Simulation in ["clasdis", "EvGen"]:
+#     if(Simulation == "EvGen"):
+#         if(not args.EvGen):
+#             continue
+#         else:
+#             print(f"\n\n===================================================================================================================================================================================================\n{color.BGREEN}NOW RUNNING WITH {color.END_B}{color.CYAN}{color.UNDERLINE}EvGen{color.END}\n\n")
+#             MC_EvGen_REC_File_Name = MC_REC_File_Name.replace("_All", "_EvGen_All") if("EvGen" not in MC_REC_File_Name) else MC_REC_File_Name
+#             Smearing_Options = "no_smear" # EvGen does not use smearing (as of 9/8/2025)
+#             if("Unsmeared" not in MC_EvGen_REC_File_Name):
+#                 MC_EvGen_REC_File_Name = MC_EvGen_REC_File_Name.replace("Matched_Pass_2", "Matched_Unsmeared_Pass_2")
+#             MC_EvGen_GEN_File_Name = MC_GEN_File_Name.replace("_All", "_EvGen_All") if("EvGen" not in MC_GEN_File_Name) else MC_GEN_File_Name
+#             if(Sim_Test):
+#                 REAL_File_Name = MC_EvGen_REC_File_Name
+#                 TRUE_File_Name = MC_EvGen_GEN_File_Name
+#             if(Closure_Test):
+#                 if("_Modulated" not in str(MC_EvGen_REC_File_Name)):
+#                     REAL_File_Name = str(MC_EvGen_REC_File_Name).replace("_All", "_Modulated_All")
+#                 else:
+#                     REAL_File_Name = MC_EvGen_REC_File_Name
+#                 if("_Modulated" not in str(MC_EvGen_GEN_File_Name)):
+#                     TRUE_File_Name = str(MC_EvGen_GEN_File_Name).replace("_All", "_Modulated_All")
+#                 else:
+#                     TRUE_File_Name = MC_EvGen_GEN_File_Name
+#             if(Sim_Test or Closure_Test):
+#                 try:
+#                     rdf = ROOT.TFile(str(FileLocation(str(REAL_File_Name), "rdf")), "READ")
+#                     print(f"The total number of histograms available for the {color.BLUE}Test Experimental (Simulated) Data {color.END} in '{color.BOLD}{REAL_File_Name}{color.END}' is {color.BOLD}{len(rdf.GetListOfKeys())}{color.END}")
+#                 except:
+#                     print(f"{color.Error}\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
+#                 print("\nWill be using a file as the 'True' distribution (i.e., what 'rdf' should look like after unfolding)")
+#                 try:
+#                     tdf = ROOT.TFile(str(FileLocation(str(TRUE_File_Name), "gdf")), "READ")
+#                     print(f"The total number of histograms available for the{color.CYAN} 'True' Monte Carlo Data   {'     ' if(not Sim_Test) else '         '}{color.END} in '{color.BOLD}{TRUE_File_Name}{color.END}' is {color.BOLD}{len(tdf.GetListOfKeys())}{color.END}")
+#                 except:
+#                     print(f"{color.Error}\nERROR IN GETTING THE 'tdf' DATAFRAME...\nTraceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
+#             try:
+#                 mdf = ROOT.TFile(str(FileLocation(str(MC_EvGen_REC_File_Name), "mdf")), "READ")
+#                 print(f"The total number of histograms available for the{color.RED} Reconstructed Monte Carlo Data{' ' if not Sim_Test else '     '}{color.END} in '{color.BOLD}{MC_EvGen_REC_File_Name}{color.END}' is {color.BOLD}{len(mdf.GetListOfKeys())}{color.END}")
+#             except:
+#                 print(f"{color.Error}\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
+#             try:
+#                 gdf = ROOT.TFile(str(FileLocation(str(MC_EvGen_GEN_File_Name), "gdf")), "READ")
+#                 print(f"The total number of histograms available for the{color.GREEN} Generated Monte Carlo Data{'     ' if not Sim_Test else '         '}{color.END} in '{color.BOLD}{MC_EvGen_GEN_File_Name}{color.END}' is {color.BOLD}{len(gdf.GetListOfKeys())}{color.END}")
+#             except:
+#                 print(f"{color.Error}\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
+#             print(f"\n{color.BOLD}Done loading EvGen Files{color.END}\n")
+
 for ii in mdf.GetListOfKeys():
     if(Cor_Compare):
         print(f"{color.Error}\nCorrection Comparison Plot Option selected does NOT include Unfolding/Acceptance Corrections{color.END_R} (as of 4-18-2024){color.END}\n")
@@ -4572,12 +4625,12 @@ for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
     else:
         if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
             Temp_Tlist = ROOT.TList()
-            Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}")  # Name in the ROOT file
+            Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}" if(not args.EvGen) else f"TList_of_{List_of_All_Histos_For_Unfolding_ii}_EvGen")  # Name in the ROOT file
             for s in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
-                Temp_Tlist.Add(ROOT.TObjString(str(s)))
+                Temp_Tlist.Add(ROOT.TObjString(str(s) if(not args.EvGen) else f"{str(s)}_EvGen"))
             safe_write(Temp_Tlist, output_file)
         else:
-            List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii)
+            List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii if(not args.EvGen) else f"{List_of_All_Histos_For_Unfolding_ii}_EvGen")
             safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
 if(Saving_Q):
     print(f"{color.BBLUE}Done Saving...{color.END}\n")
