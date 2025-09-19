@@ -35,7 +35,7 @@ case "$OPTION" in
     gdf)
         DIRECTORY="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/GEN_MC/"
         FILE_PATTERN="SIDIS_epip_MC_GEN_${VARIABLE_PART}"
-        INPUT_PATTERN="${DIRECTORY}${FILE_PATTERN}_*root"
+        INPUT_PATTERN="${DIRECTORY}${FILE_PATTERN}_[0-9]*root"
         ;;
     *)
         echo "Invalid option: $OPTION. Use rdf, mdf, or gdf."
