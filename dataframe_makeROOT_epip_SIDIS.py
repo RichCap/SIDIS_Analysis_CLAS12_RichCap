@@ -2,6 +2,14 @@
 import sys
 import argparse
 
+PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",   "MultiDim_Q2_y_z_pT_phi_h_gen", "MultiDim_Q2_y_z_pT_phi_h_smeared", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t_gen", "MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "Q2_xB_Bin_smeared",    "z_pT_Bin_smeared"],
+                            "PID":                ["Num_Pions",      "PID_el",   "PID_pip",        "PID_el_idx", "PID_pip_idx"],
+                            "Sector":             ["esec_gen",   "pipsec_gen",   "pipPhi_Local", "elPhi_Local"],
+                            "Cartesian":          ["eE_gen",             "ex",   "ex_gen", "ey",       "ey_gen", "ez", "ez_gen",        "pipE_gen",       "pipx", "pipx_gen", "pipy", "pipy_gen", "pipz",     "pipz_gen"],
+                            "MM2":                ["MM2",           "MM2_gen",   "MM2_smeared"],
+                            "Event":              ["event",            "runN",    "beamCharge"],
+                            "SmearingCorrection": ["DP_el_SF", "DP_el_SF_smeared",  "DP_pip_SF", "DP_pip_SF_smeared", "Dele_SF",  "Delta_Pel_Cors",         "Delta_Pel_Cors_smeared",  "Delta_Ppip_Cors", "Delta_Ppip_Cors_smeared",         "Delta_Theta_el_Cors", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors", "Delta_Theta_pip_Cors_smeared", "Dpip_SF", "Energy_Loss_Cor_Factor"],
+}
 
 parser = argparse.ArgumentParser(description="Make ROOT output from SIDIS RDataFrame: histo/data/tree/test/time")
 # base data type
@@ -35,6 +43,9 @@ parser.add_argument('-e',      '--events',       type=int,
 parser.add_argument('-c',      '--cuts',         type=str,
                     help='String used to add additional cuts that will automatically be applied before the outputs are run')
 parser.add_argument('-cc',     '--count-cuts',   action='store_true', help='Count the number of events before/after applying analysis cuts (the "before" number preceeds any cuts made by the "--cuts" argument)')
+parser.add_argument('-eg', '--exclude-groups',   nargs="+",                  default=[],
+                    help=f"Groups of variables that will be excluded from the Snapshot unless they are included here. Available: 'All' or {list(PREDEFINED_COLUMN_GROUPS.keys())}")
+parser.add_argument('-sn',     '--save_name',    type=str,            help="String that can be added to the output file's name")
 args = parser.parse_args()
 
 
@@ -107,15 +118,15 @@ if(output_type == "test"):
     print("Will be printing the histogram's IDs...")
     file_location   = "time"
     output_type     = "time"
-elif(output_type   not in ["histo", "data", "tree"]):
+elif((output_type  not in ["histo", "data", "tree"]) and (not (args.test and args.file_location))):
     file_location   = output_type
     if(output_type not in ["test", "time"]):
         output_type = "histo"
 
 print(f"The Output type will be: {output_type}")
 print(f"The Data type will be:   {datatype}")
-if(file_location not in [datatype, output_type]):
-    print(f"Input File (as given):   {file_location}\n\n\n")
+# if(file_location not in [datatype, output_type]):
+print(f"Input File (as given):   {file_location}\n\n\n")
 
 if(Use_Pass_2):
     print(f"\n{color.BBLUE}Running the code with Pass 2 Data\n{color.END}")
@@ -130,6 +141,23 @@ Beam_Energy = 10.6041 if((datatype in ['rdf']) or (not Use_Pass_2)) else 10.6
 
 print(f"\n{color.BBLUE}Beam Energy in use is: {color.UNDERLINE}{Beam_Energy} GeV{color.END}\n")
 
+
+# Build the final variable list
+exclude_vars = []
+if("All" not in args.exclude_groups):
+    for group_name, variables in PREDEFINED_COLUMN_GROUPS.items():
+        if(group_name not in args.exclude_groups):
+            exclude_vars.extend(variables)
+    if(len(exclude_vars) != 0):
+        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
+        print(f"\n{color.BYELLOW}{color.UNDERLINE}Will Exclude the following variables from the Snapshot output:{color.END}")
+        for num, ii in enumerate(exclude_vars):
+            print(f"\t{num+1:>3.0f}) {color.BOLD}{ii:>49}{color.END}")
+    else:
+        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
+else:
+    print(f"{color.Error}Not Excluding Any Variables from the Snapshot Output...{color.END}\n\n")
+    
 import ROOT 
 import math
 import array
@@ -168,6 +196,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis-",                               "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.45nA.inb-clasdis-",                          "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC_Test-", "EvGen_")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC-",      "EvGen_")).replace(".hipo.root", "")
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                                                                "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_",                                                                                       "")).replace(".hipo.root", "")
@@ -178,6 +207,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.inb-clasdis-",                                                                          "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.45nA.inb-clasdis-",                                                                     "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC_Test-",                                            "EvGen_")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC-",                                                 "EvGen_")).replace(".hipo.root", "")
     # file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/", "")
     
     
@@ -313,12 +343,29 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         # Ran on 7/22/2025 -> with EvGen
             # Same as f"Sector_Tests{Cut_Configuration_Name}_V1_" but with additional plot of MM vs W
 
+    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V2_"
+        # Ran on 9/18/2025 -> with EvGen
+            # Removed many 'unnecessary' variables (can control with arguments) to make the files smaller and will be running with the new EvGen files (with their proper weights)
+
+    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_"
+        # Ran on 9/18/2025 -> with EvGen
+            # Same as f"Acceptance_Tests{Cut_Configuration_Name}_V2_" but included the sector variables (needed for cuts)
+
     if(datatype in ["gdf"]):
-        Common_Name = f"Sector_Tests_V2_"
+        Common_Name = "Sector_Tests_V2_"
             # Ran on 8/1/2025
                 # Same as Common_Name = f"Sector_Tests{Cut_Configuration_Name}_V2_" but without the 'Cut_Configuration_Name' in name
                 # Removed MM Cuts
                 # Ran with all EvGen files but ONLY /w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9040_7.hipo.root for clasdis
+
+        Common_Name = "Acceptance_Tests_V2_"
+            # Ran on 9/18/2025 -> with EvGen
+                # Same as Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V2_" but without the 'Cut_Configuration_Name' in name
+
+        Common_Name = "Acceptance_Tests_V3_"
+            # Ran on 9/18/2025 -> with EvGen
+                # Same as Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_" but without the 'Cut_Configuration_Name' in name
+    
     
 
     if((datatype in ["rdf"]) and (not Mom_Correction_Q)):
@@ -374,9 +421,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_Only_Matched_",               str(Common_Name), str(file_num), ".root"])
         if((not Run_With_Smear) and (not run_Mom_Cor_Code)):
             ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", "Unsmeared_", str(Common_Name), str(file_num), ".root"])
-        
-    ROOT_File_Output_Name = f"DataFrame_{ROOT_File_Output_Name}"
-    
+
+    if(args.save_name):
+        ROOT_File_Output_Name = f"DataFrame_{args.save_name}_{ROOT_File_Output_Name}"
+    else:
+        ROOT_File_Output_Name = f"DataFrame_{ROOT_File_Output_Name}"
+
     print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
     
     
@@ -4632,7 +4682,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
     for ii in range(0, len(rdf.GetColumnNames()), 1):
         print(f"\t{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-    print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+    print(f"\t{color.BOLD}Total length = {len(rdf.GetColumnNames()):>3.0f}{color.END}")
+    print(f"\t{color.BOLD}Will Remove    {len(exclude_vars):>3.0f} Variables based on the 'exclude' list{color.END}\n\n\n")
     if(args.events):
         rdf_test = rdf.Range(args.events)
     else:
@@ -4640,6 +4691,17 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     count = (rdf_test.Count()).GetValue()
     print(f"Total Number of Events in the RDataFrame to be saved: {count}")
     timer.time_elapsed()
+
+    cols = list(rdf_test.GetColumnNames())
+    cols_final, excl = [], 0
+    for num, ii in enumerate(cols):
+        if(str(ii) in exclude_vars):
+            print(f"\t{color.Error}{0:>3.0f}) {str(ii):>49}{color.END}")
+            excl += 1
+            continue
+        else:
+            print(f"\t{color.BBLUE}{(num+1)-excl:>3.0f}) {str(ii):>49}{color.END}")
+            cols_final.append(ii)
 
     if(args.cuts):
         print(f"\n{color.BBLUE}Applying the following (User) Cuts:\n\t{color.END_B}{args.cuts}{color.END}")
@@ -4658,14 +4720,16 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         timer.time_elapsed()
     elif(output_type not in ["time", "test"]):
-        cols = list(rdf_test.GetColumnNames())
-        rdf_test.Snapshot("h22", ROOT_File_Output_Name, cols)
+        # cols = list(rdf_test.GetColumnNames())
+        # rdf_test.Snapshot("h22", ROOT_File_Output_Name, cols)
+        rdf_test.Snapshot("h22", ROOT_File_Output_Name, cols_final)
         print(f"\n{color.BOLD}Saved File: {color.BGREEN}{ROOT_File_Output_Name}{color.END}")
     else:
         print(f"\n{color.Error}Not Creating ROOT Files{color.END}\n")
         print(f"\n{color.BOLD}Would have saved: {color.CYAN}{ROOT_File_Output_Name}{color.END}")
     print("\n")
-    timer.stop(count_label="Columns", count_value=len(rdf.GetColumnNames()))
+    # timer.stop(count_label="Columns", count_value=len(rdf.GetColumnNames()))
+    timer.stop(count_label="Columns", count_value=len(cols_final))
     timer.stop(count_label="Events",  count_value=count)
     
     ######################################===============================######################################

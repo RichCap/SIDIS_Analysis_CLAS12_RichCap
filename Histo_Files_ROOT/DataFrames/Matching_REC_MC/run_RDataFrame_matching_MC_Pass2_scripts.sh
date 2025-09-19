@@ -7,10 +7,23 @@
 # -------------------------------------------------------------------
 
 # Base job name (change this to suit your naming convention)
-JOB_BASE="FC14_mdf_DF_7_28_2025_Run1_Sector_Tests_V2"
+JOB_BASE="FC14_mdf_DF_9_18_2025_Run1_Acceptance_Tests_V3"
+
+
+EMAIL="richard.capobianco@uconn.edu"
+START_TIME="Started Running at: $(date)"
+# Track processed files for the email
+PROCESSED_FILES=""
 
 # Glob of input files
-FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5*.inb-clasdis*)
+# FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5*.inb-clasdis*)
+FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9107_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9142_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9209_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9434_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9448_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9468_*
+       /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9470_*)
 
 # Path to your Python script
 CMD="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./dataframe_makeROOT_epip_SIDIS.py"
@@ -27,6 +40,9 @@ for idx in "${!FILES[@]}"; do
     
     # Run the command, overwrite any existing logs for this file
     "$CMD" -s mdf -f "$file" > "$LOG_FILE" 2> "$ERR_FILE"
+
+    # Record the completion for this file
+    PROCESSED_FILES+="$file (Done at: $(date))"$'\n'
     
     # Print the entire contents of the logs so you see everything as it happened
     echo "--- stdout ($LOG_FILE) ---"
@@ -36,3 +52,15 @@ for idx in "${!FILES[@]}"; do
     echo ""
 done
 
+# Compose and send the email
+SUBJECT="Finished running $JOB_BASE"
+MESSAGE="The local job ($JOB_BASE) processing RDataframe files has completed at:
+$(date)
+
+$START_TIME
+
+Files processed:
+$PROCESSED_FILES
+"
+
+echo "$MESSAGE" | mail -s "$SUBJECT" "$EMAIL"
