@@ -1273,11 +1273,15 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("5", "3"): {
-        "B_initial": -0.2,
-        "B_limits":  [-0.22, -0.1],
-        "C_initial": 0.009,
-        "C_limits":  [-0.05, 0.02],
-        "Allow_Multiple_Fits":   True,
+        # "B_initial": -0.2,
+        "B_initial": -0.12,
+        "B_limits":  [-0.15, -0.1],
+        # "C_initial": 0.009,
+        # "C_limits":  [-0.05, 0.02],
+        "C_initial": 0.03,
+        "C_limits":  [0.01, 0.02],
+        # "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits":   not True,
         "Allow_Multiple_Fits_C": True
     },
     ("5", "4"): {

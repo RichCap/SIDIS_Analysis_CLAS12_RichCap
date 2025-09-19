@@ -220,6 +220,7 @@ if((File_Save_Format != ".png") and Saving_Q):
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
 # # Binning_Method = "_y_bin" 
 
+    
 Q2_xB_Bin_List = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
 if(any(binning in Binning_Method for binning in ["y_bin", "Y_bin"])):
     # Q2_xB_Bin_List = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13']
@@ -283,6 +284,7 @@ Date_Day = timer.start_find(return_no_time=True)
 # Variable for imposing a minimum acceptance value cut to the unfolded distributions
 Min_Allowed_Acceptance_Cut = 0.0175
 Min_Allowed_Acceptance_Cut = 0.005
+# Min_Allowed_Acceptance_Cut = 0.008 # Updated for tests on 9/14/2025
 
 # Min_Allowed_Acceptance_Cut = 0.0045 # Updated for tests on 5/2/2025
 
@@ -1284,8 +1286,78 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
 ##==========##==========##     Fitting Function For Phi Plots                     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
-def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", Use_Higher_Terms=extra_function_terms, Overwrite_Fit_Test=False):
-    if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian"]) and (Fitting in ["default", "Default"]) and (Fit_Test or Overwrite_Fit_Test)):
+def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", Use_Higher_Terms=extra_function_terms, Overwrite_Fit_Test=False, Text_NDC=None):
+    if((Fitting in ["flat", "Flat", "pol0", "POL0"])):
+        try:
+            fit_range_lower = 0.0
+            fit_range_upper = 360.0
+            n_bins          = Histo_To_Fit.GetNbinsX()
+            for bin_lower in range(1, (n_bins // 2) + 1):
+                if(Histo_To_Fit.GetBinContent(bin_lower) != 0):
+                    fit_range_lower = Histo_To_Fit.GetXaxis().GetBinLowEdge(bin_lower)
+                    break
+            for bin_upper in range(n_bins, (n_bins // 2), -1):
+                if(Histo_To_Fit.GetBinContent(bin_upper) != 0):
+                    fit_range_upper = Histo_To_Fit.GetXaxis().GetBinUpEdge(bin_upper)
+                    break
+
+            # Build a constant function (pol0). This is the pseudo-average line.
+            Flat_Function = ROOT.TF1(f"Flat_Function_of_{Histo_To_Fit.GetName()}_{str(Method).replace(' ', '_')}", "pol0", float(fit_range_lower), float(fit_range_upper))
+            Flat_Function.SetRange(float(fit_range_lower), float(fit_range_upper))
+
+            Flat_Function.SetLineColor(ROOT.kRed)
+            Flat_Function.SetLineStyle(7)
+            Flat_Function.SetLineWidth(2)
+
+            # Perform the fit quietly, draw result on the same pad
+            # "QRB": Q=quiet, R=respect range, B=use bounding for errors
+            Histo_To_Fit.Fit(Flat_Function, "QRB")
+
+            A_Flat        = Flat_Function.GetParameter(0)
+            A_Flat_Error  = Flat_Function.GetParError(0)
+            try:
+                Fit_Chisquared = Flat_Function.GetChisquare()
+                Fit_ndf        = Flat_Function.GetNDF()
+            except:
+                Fit_Chisquared = "Fit_Chisquared"
+                Fit_ndf        = "Fit_ndf"
+
+            if(Text_NDC is None): # Default: bottom-center
+                Text_NDC = [0.33, 0.10, 0.67, 0.24]
+
+            # Build a brief, readable summary
+            # Example:  <flat>  A = 1234 ± 12   χ²/ndf = 45.3/48
+            try:
+                chi2_text = f"{Fit_Chisquared:.3g}/{Fit_ndf}" if(isinstance(Fit_Chisquared, (int, float)) and isinstance(Fit_ndf, (int, float))) else f"{Fit_Chisquared}/{Fit_ndf}"
+            except:
+                chi2_text = f"{Fit_Chisquared}/{Fit_ndf}"
+
+            pave = ROOT.TPaveText(float(Text_NDC[0]), float(Text_NDC[1]),
+                                  float(Text_NDC[2]), float(Text_NDC[3]), "NDC")
+            pave.SetName(f"PaveText_Flat_{Histo_To_Fit.GetName()}_{str(Method).replace(' ', '_')}")
+            pave.SetFillStyle(0)
+            pave.SetBorderSize(0)
+            pave.SetTextAlign(12)         # left-aligned, vertically centered
+            pave.SetTextFont(42)
+            # pave.SetTextSize(0.032)
+            pave.SetTextSize(0.064)
+            pave.SetTextColor(ROOT.kBlack)
+            pave.AddText(f"A = {A_Flat:.6f} +/- {A_Flat_Error:.3f}")
+            pave.AddText(f"chi2/ndf = {chi2_text}")
+            pave.Draw()
+
+            # Return format identical to your default path
+            # For the flat fit, B and C are identically zero.
+            # Out_Put = [Histo_To_Fit, Flat_Function, [Fit_Chisquared, Fit_ndf], [A_Flat, A_Flat_Error], [0.0, 0.0], [0.0, 0.0]]
+            Out_Put = [Histo_To_Fit, pave, [Fit_Chisquared, Fit_ndf], [A_Flat, A_Flat_Error], [0.0, 0.0], [0.0, 0.0]]
+            return Out_Put
+        except:
+            print(f"{color.Error}ERROR IN FLAT FIT:\n{color.END}{str(traceback.format_exc())}\n")
+            # Out_Put = [Histo_To_Fit, "Flat_Function", ["Fit_Chisquared", "Fit_ndf"], ["A_Flat", "A_Flat_Error"], ["B_Flat", "B_Flat_Error"], ["C_Flat", "C_Flat_Error"]]
+            Out_Put = [Histo_To_Fit, "pave", ["Fit_Chisquared", "Fit_ndf"], ["A_Flat", "A_Flat_Error"], ["B_Flat", "B_Flat_Error"], ["C_Flat", "C_Flat_Error"]]
+            return Out_Put
+
+    elif((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian"]) and (Fitting in ["default", "Default"]) and (Fit_Test or Overwrite_Fit_Test)):
         if(not Use_Higher_Terms):
             A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Histo_To_Fit)
             fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
@@ -5907,12 +5979,16 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 #     Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))].GetYaxis().SetRangeUser(0, 0.6)
                 if(Run_Acceptance_EvGen):
                     Histogram_List_All[Acceptance_EvGen_Name].Draw("H P E0 same")
-                if(Method in ["Acceptance"]):
-                    Acceptance_Cut_Line.Draw()
+                if(Method in ["Acceptance", "Acceptance_ratio"]):
+                    if(Method in ["Acceptance"]):
+                        Acceptance_Cut_Line.Draw()
+                    else:
+                        Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))], Flat_Function_pave, [Fit_flat_Chisquared, Fit_flat_ndf], [A_Flat, A_Flat_Error], [B_Flat, B_Flat_Error], [C_Flat, C_Flat_Error] = Fitting_Phi_Function(Histo_To_Fit=Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))], Method=Method, Fitting="flat", Text_NDC=None) # Use default `Text_NDC`
+                        Histogram_List_All[str(Flat_Function_pave.GetName())] = Flat_Function_pave
+                        Histogram_List_All[str(Flat_Function_pave.GetName())].Draw("same")
                     All_z_pT_Canvas_cd_2_z_pT_Bin.Modified()
                     All_z_pT_Canvas_cd_2_z_pT_Bin.Update()
-                
-                if(Fit_Test and (("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE)))):
+                elif(Fit_Test and (("phi_t" not in str(VARIABLE)) and ("MultiDim_Q2_y_z_pT_phi_h" not in str(VARIABLE)))):
                     if(Method not in ["rdf", "mdf"]):
                         try:
                             statbox_move(Histogram=Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", Method))], Canvas=All_z_pT_Canvas_cd_2_z_pT_Bin.cd(1), Default_Stat_Obj="", Y1_add=0.25, Y2_add=0.45, X1_add=0.35, X2_add=0.75)
@@ -9311,6 +9387,10 @@ if(Apply_RC):
     Method_Type_List.append("RC")
     Method_Type_List.append("RC_Bin")
     Method_Type_List.append("RC_Bayesian")
+# Method_Type_List = []
+# Method_Type_List.append("Bayesian")
+# Method_Type_List.append("RC_Bayesian")
+# Method_Type_List.append("Acceptance")
 if(Use_TTree):
     Method_Type_List.append("Acceptance_ratio")
 
@@ -9386,7 +9466,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = not True
+Run_Individual_Bin_Images_Option = True
 Print_Run_Individual_Bin_Option  = True
 
 
@@ -9798,7 +9878,7 @@ for variable in Variable_List:
                                 Z_BIN_COLOR, PT_BIN_COLOR = 1, 1
 
                                 Moment_Title     = "Cos(#phi_{h})" if("Fit_Par_B" in str(Parameter)) else "Cos(2#phi_{h})" if("Fit_Par_C" in str(Parameter)) else "Multiplicity" if("Fit_Par_A" in str(Parameter)) else "".join(["Parameter ", str(Parameter).replace("Fit_Par_", "")])
-                                MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional (Old) " if("Multi_Dim" in str(Variable)) else "3-Dimensional " if("MultiDim_z_pT" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method), " Unfolding"]), "}}}"])
+                                MASTER_TITLE     = "".join(["#splitline{#scale[1.15]{", "3-Dimensional (Old) " if("Multi_Dim" in str(Variable)) else "3-Dimensional " if("MultiDim_z_pT" in str(Variable)) else "5-Dimensional " if("Multi" in str(Variable)) else "", "Plot of ", str(Moment_Title), "}}{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(BIN_NUM), "} ", root_color.Bold, "{#topbar #color[", str(root_color.Blue), "]{Method: ", "Bin-by-Bin" if(Method in ["Bin"]) else "MC Generated" if(Method in ["gdf"]) else "".join([str(Method).replace("RC_", "Radiative Corrections and "), " Unfolding"]), "}}}"])
                                 if((Pass_Version not in [""]) and (Pass_Version not in str(MASTER_TITLE))):
                                     MASTER_TITLE = "".join(["#splitline{", str(MASTER_TITLE), "}{", root_color.Bold, "{#scale[1.05]{", str(Pass_Version), "}}}"])
                                 if((Cut in ["Proton"]) and ("Cut with Proton Missing Mass" not in str(MASTER_TITLE))):
@@ -10050,7 +10130,15 @@ if(True):
             Pars_Canvas[jj] = ROOT.TCanvas(str(jj), str(jj), 1200, 1100)
             # Pars_Canvas[jj].Draw()
             Histo_Pars_VS_PT[jj].Draw("APL same")
+            ROOT.gPad.Modified()
+            if("Par_B" in str(jj)):
+                Histo_Pars_VS_PT[jj].SetMinimum(-1.0)
+                Histo_Pars_VS_PT[jj].SetMaximum( 0.2)
+            elif("Par_C" in str(jj)):
+                Histo_Pars_VS_PT[jj].SetMinimum(-0.45)
+                Histo_Pars_VS_PT[jj].SetMaximum( 0.25)
             Pars_Legends[jj].Draw()
+            Pars_Canvas[jj].Update()
 
 for CanvasPar_Name in Pars_Canvas:
     if("Par_A" not in str(CanvasPar_Name)):
