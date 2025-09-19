@@ -10,22 +10,30 @@ parser.add_argument('-ac', '--acceptance-all',    action='store_true',
                     help='Runs Acceptance Comparisons (no binning)')
 parser.add_argument('-ab', '--acceptance',        action='store_true', 
                     help='Runs Binned Acceptance Comparisons (for all kinematic bins)')
+parser.add_argument('-abr', '--acceptance-ratio', action='store_true', 
+                    help='Similar to "-ab", but plots the ratios of the acceptances to show discrepancies')
+parser.add_argument('-abd', '--acceptance-diff',  action='store_true', 
+                    help='Similar to "-ab" and "-abr", but plots the percent difference between the acceptances to show discrepancies')
 parser.add_argument('-v',  '--verbose',           action='store_true', 
                     help='Prints more info while running')
 parser.add_argument('-c',  '--cut',               type=str,
                     help='Adds additional cuts based on user input (Warning: applies to all datasets)')
-parser.add_argument('-sf', '--File_Save_Format',  type=str, default=".png", choices=['.png', '.pdf'],
+parser.add_argument('-sf', '--File_Save_Format',  type=str,    default=".png", choices=['.png', '.pdf'],
                     help='Save Format of Images')
 parser.add_argument('-n', '--name',               type=str,
                     help='Extra save name that can be added to the saved images')
 parser.add_argument('-t', '--title',              type=str,
                     help='Extra title text that can be added to the default titles')
-parser.add_argument('-nrdf', '--num-rdf-files',   type=int, default=5,
+parser.add_argument('-nrdf', '--num-rdf-files',   type=int,    default=5,
                     help='Number of rdf RDataFrames to be included (Default = 5)')
-parser.add_argument('-nMC', '--num-MC-files',     type=int, default=1,
-                    help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1)')
+parser.add_argument('-nMC', '--num-MC-files',     type=int,    default=1,
+                    help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1) - Can set to -1 to include all available files')
 parser.add_argument('-hMX', '--use_HIGH_MX',       action='store_true',
                     help='Use with "-kc" option to normalize to High-Mx region')
+parser.add_argument('-2D', '--make_2D',            action='store_true',
+                    help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
+parser.add_argument('-minA', '--min-accept-cut',   type=float, default=0.005,
+                    help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0')
 
 args = parser.parse_args()
 
@@ -61,6 +69,40 @@ def find_max_bin(hist):
         if(bin_content > max_content):
             max_content = bin_content
     return max_content
+
+
+# def lumi(charge):
+#     # Calculate the luminosity factor from input charge.
+#     # Parameters
+#     # charge : float
+#     #     Charge delivered, in nanocoulombs (nC).
+#     # Returns
+#     # float
+#     #     The luminosity factor in μb⁻¹ (microbarn⁻¹) units.
+#     # Constants
+#     RD   = 57.1                 # (unused, carried over)
+#     qe   = 1.602177e-19         # electron charge, C
+#     rho  = 0.0701               # density of H2 @20 K, g/cm³
+#     A0   = 6.0221367e23         # Avogadro’s number, mol⁻¹
+#     MH   = 1.00794              # atomic mass of H, g/mol
+#     LT   = 5.0                  # target length, cm
+#     CMB  = 1e30                 # cm² → μbarn
+#     # Convert input from nanocoulombs to coulombs
+#     charge_c = charge / 1e9
+#     # Number of target nuclei per cm²
+#     np_cm2 = LT * rho * A0 / MH
+#     # Number of electrons hitting the target
+#     ne = charge_c / qe
+#     # Luminosity factor in μb⁻¹
+#     factor = (ne * np_cm2) / CMB
+#     return factor
+
+# def Luminosity_Norm(Histo, generator):
+#     # Luminosity = lumi(4.09744e+07) # 4.09744e+07 nC came from /lustre24/expphy/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis/nSidis_* (as of 8/1/2025)
+#     Luminosity = 53555744533.35742
+#     generator_factor = 1
+#     if(generator in ["clasdis"]):
+#         Integrated_cs_from_gen = 6.834e4 # pb
 
 
 ROOT.TH1.AddDirectory(0)
@@ -183,13 +225,12 @@ def DF_Filter_Function_Full(DF_Out, Titles_or_DF="DF", Data_Type="rdf", Cut_Choi
                     DF_Out      = DF_Out.Filter(str(Calculated_Exclusive_Cuts(Smearing_Q)))
             if("SIDIS"  in Cut_Choice):
                 cutname = f"{cutname} SIDIS "
-                # # REMOVED AS A TEST FOR THE COMPARISONS - NOT A PART OF THE ACTUAL ANALYSIS CUTS
-                # if(Titles_or_DF == 'DF'):
-                #     if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
-                #         # DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
-                #         DF_Out  = DF_Out.Filter("sqrt(MM2_smeared) > 1.5")
-                #     else:
-                #         DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                if(Titles_or_DF == 'DF'):
+                    if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
+                        # DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
+                        DF_Out  = DF_Out.Filter("sqrt(MM2_smeared) > 1.5")
+                    else:
+                        DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
             if("Proton" in Cut_Choice):
                 cutname = f"{cutname} (Proton Cut) "
                 if(Titles_or_DF == 'DF'):
@@ -303,11 +344,15 @@ def Create_Binned_Acceptance_Hist(mdf_IN, gdf_IN, source, PHI_T_Binning=['phi_t'
     var, Min_range, Max_range, Num_of_Bins = PHI_T_Binning
     mdf_name = f"{var}_mdf_{source}"
     gdf_name = f"{var}_gdf_{source}"
+    if(source in ["clasdis"]):
+        Q2_Y_Binning, z_pT_Bin_Y_binning = "Q2_Y_Bin_smeared", "z_pT_Bin_Y_bin_smeared"
+    else:
+        Q2_Y_Binning, z_pT_Bin_Y_binning = "Q2_Y_Bin", "z_pT_Bin_Y_bin"
     if(Q2_Y_Bin):
-        mdf_IN_Binned     =        mdf_IN.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}")
+        mdf_IN_Binned     =        mdf_IN.Filter(f"{Q2_Y_Binning} == {Q2_Y_Bin}")
         gdf_IN_Binned     =        gdf_IN.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}")
         if(Z_PT_Bin):
-            mdf_IN_Binned = mdf_IN_Binned.Filter(f"z_pT_Bin_Y_bin == {Z_PT_Bin}")
+            mdf_IN_Binned = mdf_IN_Binned.Filter(f"{z_pT_Bin_Y_binning} == {Z_PT_Bin}")
             gdf_IN_Binned = gdf_IN_Binned.Filter(f"z_pT_Bin_Y_bin == {Z_PT_Bin}")
             mdf_name      = f"{mdf_name} Bin ({Q2_Y_Bin}-{Z_PT_Bin})"
             gdf_name      = f"{gdf_name} Bin ({Q2_Y_Bin}-{Z_PT_Bin})"
@@ -318,8 +363,12 @@ def Create_Binned_Acceptance_Hist(mdf_IN, gdf_IN, source, PHI_T_Binning=['phi_t'
         mdf_IN_Binned     =        mdf_IN
         gdf_IN_Binned     =        gdf_IN
 
-    mdf_hist = mdf_IN_Binned.Histo1D((mdf_name, f"{variable_Title_name_new(var)} from MC REC ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), var if(source not in ["clasdis"]) else f"{var}_smeared")
-    gdf_hist = gdf_IN_Binned.Histo1D((gdf_name, f"{variable_Title_name_new(var)} from MC GEN ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), var)
+    if(source in ["clasdis"]):
+        mdf_hist = mdf_IN_Binned.Histo1D((mdf_name, f"{variable_Title_name_new(var)} from MC REC ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), f"{var}_smeared")
+        gdf_hist = gdf_IN_Binned.Histo1D((gdf_name, f"{variable_Title_name_new(var)} from MC GEN ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), var)
+    else:
+        mdf_hist = mdf_IN_Binned.Histo1D((mdf_name, f"{variable_Title_name_new(var)} from MC REC ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), var, "weight")
+        gdf_hist = gdf_IN_Binned.Histo1D((gdf_name, f"{variable_Title_name_new(var)} from MC GEN ({source}); {variable_Title_name_new(var)}", Num_of_Bins, Min_range, Max_range), var, "weight")
 
     if(source in ["clasdis"]):
         mdf_hist.SetTitle(f"(Smeared) {mdf_hist.GetTitle()}")
@@ -352,6 +401,10 @@ def Create_Binned_Acceptance_Hist(mdf_IN, gdf_IN, source, PHI_T_Binning=['phi_t'
     acc_hist.SetTitle(acc_title)
     acc_hist.GetYaxis().SetTitle("Acceptance")
     acc_hist.SetLineColor(ROOT.kAzure if(source not in ["clasdis"]) else ROOT.kAzure + 10)
+    
+    for ibin in range(1, acc_hist.GetNbinsX() + 1):  # bins are 1-indexed in ROOT
+        if(acc_hist.GetBinContent(ibin) < args.min_accept_cut):
+            acc_hist.SetBinContent(ibin, 0.0)
 
     return mdf_hist, gdf_hist, acc_hist
 
@@ -361,6 +414,10 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
     ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
     # Use above for normal size, use below for 2x size (made with PDFs)
     Save_Name = f"Acceptance_Compare_for_Q2_Y_Bin_{Q2_Y_Bin}"
+    if(args.acceptance_ratio):
+        Save_Name = f"Acceptance_Ratio_for_Q2_Y_Bin_{Q2_Y_Bin}"
+    if(args.acceptance_diff):
+        Save_Name = f"Acceptance_Diff_for_Q2_Y_Bin_{Q2_Y_Bin}"
     # All_z_pT_Canvas = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800*4), Size_Y=int(1500*4), cd_Space=0.01)
     All_z_pT_Canvas = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800*2), Size_Y=int(1500*2), cd_Space=0.01)
     # All_z_pT_Canvas = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800), Size_Y=int(1500), cd_Space=0.01)
@@ -479,22 +536,113 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
     
     Draw_Canvas(All_z_pT_Canvas_cd_1_Lower, 1, 0.15)
     ROOT.gStyle.SetOptStat(0)
-    cd_1_Lower_max = max([find_max_bin(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"]), find_max_bin(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"]), Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]])
-    Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0,   1.2*cd_1_Lower_max)
-    Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0, 1.2*cd_1_Lower_max)
-    Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist")
-    Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist same")
-    
-    legend = ROOT.TLegend(0.65, 0.70, 0.92, 0.88, "", "NDC")
-    legend.SetNColumns(1)  # or 2 for side-by-side entries
-    # legend.SetBorderSize(0)   # no border
-    legend.SetFillStyle(1)    # transparent background
-    legend.SetTextFont(42)
-    legend.SetTextSize(0.035)
-    legend.SetMargin(0.15)    # internal padding
-    legend.AddEntry(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"],   f"#color[{ROOT.kAzure   }]{{Acceptance EvGen}}",   "lep")
-    legend.AddEntry(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"], f"#color[{ROOT.kAzure+10}]{{Acceptance clasdis}}", "lep")
-    legend.Draw()
+    if(not (args.acceptance_ratio or args.acceptance_diff)):
+        cd_1_Lower_max = max([find_max_bin(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"]), find_max_bin(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"]), Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]])
+        Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0,   1.2*cd_1_Lower_max)
+        Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0, 1.2*cd_1_Lower_max)
+        Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist")
+        Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist same")
+        legend = ROOT.TLegend(0.65, 0.70, 0.95, 0.9, "", "NDC")
+        legend.SetNColumns(1)  # or 2 for side-by-side entries
+        # legend.SetBorderSize(0)   # no border
+        legend.SetFillStyle(1)    # transparent background
+        legend.SetTextFont(42)
+        legend.SetTextSize(0.035)
+        legend.SetMargin(0.15)    # internal padding
+        legend.AddEntry(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"],   f"#color[{ROOT.kAzure   }]{{Acceptance EvGen}}",   "lep")
+        legend.AddEntry(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"], f"#color[{ROOT.kAzure+10}]{{Acceptance clasdis}}", "lep")
+        legend.Draw()
+        xmin = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmin()
+        xmax = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmax()
+        Acceptance_Line = ROOT.TLine(xmin, args.min_accept_cut, xmax, args.min_accept_cut)
+        Acceptance_Line.SetLineColor(ROOT.kRed - 9)
+        Acceptance_Line.SetLineWidth(2)
+        Acceptance_Line.SetLineStyle(1)
+        Acceptance_Line.Draw("same")
+        ROOT.gPad.Update()
+    elif(args.acceptance_ratio):
+        Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0, max([1.2, 1.2*find_max_bin(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"])]))
+        Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist")
+        xmin = Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmin()
+        xmax = Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmax()
+        Acceptance_Line = ROOT.TLine(xmin, 1.0, xmax, 1.0)
+        Acceptance_Line.SetLineColor(ROOT.kGray + 3)
+        Acceptance_Line.SetLineWidth(2)
+        Acceptance_Line.SetLineStyle(1)
+        Acceptance_Line.Draw("same")
+        ROOT.gPad.Update()
+        try:
+            if(not hasattr(All_z_pT_Canvas_cd_1_Lower, "AR_fit_store")):
+                All_z_pT_Canvas_cd_1_Lower.AR_fit_store  = {}
+            if(not hasattr(All_z_pT_Canvas_cd_1_Lower, "AR_text_store")):
+                All_z_pT_Canvas_cd_1_Lower.AR_text_store = {}
+            hist_key  = f"ratio Acceptance Bin ({Q2_y_Bin}-All)"
+            fit_range_lower = 0.0
+            fit_range_upper = 360.0
+            n_bins          = Histogram_List_All[hist_key].GetNbinsX()
+            for bin_lower in range(1, (n_bins // 2) + 1):
+                if(Histogram_List_All[hist_key].GetBinContent(bin_lower) != 0):
+                    fit_range_lower = Histogram_List_All[hist_key].GetXaxis().GetBinLowEdge(bin_lower)
+                    break
+            for bin_upper in range(n_bins, (n_bins // 2), -1):
+                if(Histogram_List_All[hist_key].GetBinContent(bin_upper) != 0):
+                    fit_range_upper = Histogram_List_All[hist_key].GetXaxis().GetBinUpEdge(bin_upper)
+                    break
+            func_name  = f"AR_fit_{Q2_y_Bin}-All" # Create or update a unique TF1 for this bin; keep it in a persistent store on the canvas
+            if(func_name not in All_z_pT_Canvas_cd_1_Lower.AR_fit_store):
+                All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name] = ROOT.TF1(func_name, "pol0", fit_range_lower, fit_range_upper)
+            else:
+                All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].SetRange(fit_range_lower, fit_range_upper)
+            fit_result = Histogram_List_All[hist_key].Fit(All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name], "QRB0") # "QRB": Q=quiet, R=respect range, B=use bounding for errors, 0=suppress draw (done below)
+            All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].SetLineColor(ROOT.kRed)
+            All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].SetLineStyle(7)
+            All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].SetLineWidth(2)
+            # Pull results from the TF1 (works regardless of TFitResult validity)
+            p0       = All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].GetParameter(0)
+            p0e      = All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].GetParError(0)
+            try:
+                chi2 = All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].GetChisquare()
+                ndf  = All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].GetNDF()
+            except:
+                chi2, ndf = "Fit_Chisquared", "Fit_ndf"
+            try:
+                chi2_text = f"{chi2:.3g}/{ndf}" if(isinstance(chi2, (int, float)) and isinstance(ndf, (int, float))) else f"{chi2}/{ndf}"
+            except:
+                chi2_text = f"{chi2}/{ndf}"
+            if(func_name not in All_z_pT_Canvas_cd_1_Lower.AR_text_store):
+                # (x1,y1,x2,y2) in NDC; adjust box if it overlaps your legend
+                pv = ROOT.TPaveText(0.33, 0.15, 0.67, 0.29, "NDC")
+                pv.SetFillStyle(0)
+                pv.SetBorderSize(0)
+                pv.SetTextAlign(12)   # left/middle
+                pv.SetTextFont(42)
+                # pv.SetTextSize(0.035)
+                pv.SetTextSize(0.064)
+                pv.SetTextColor(ROOT.kBlack)
+                pv.SetName(f"AR_pave_{func_name}")
+                All_z_pT_Canvas_cd_1_Lower.AR_text_store[func_name] = pv
+            else:
+                pv = All_z_pT_Canvas_cd_1_Lower.AR_text_store[func_name]
+                pv.Clear()
+            pv.AddText(f"A = {p0:.6f} #pm {p0e:.3f}")
+            pv.AddText(f"#chi^{{2}}/ndf = {chi2_text}")
+            All_z_pT_Canvas_cd_1_Lower.AR_fit_store[func_name].Draw("same")
+            pv.Draw("same")
+            ROOT.gPad.Modified()
+            ROOT.gPad.Update()
+        except Exception as fit_err:
+            print(f"{color.Error}Acceptance-ratio constant-fit failed for Bin ({Q2_y_Bin}-All):{color.END_R} {str(fit_err)}{color.END}")
+    else:
+        # Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetRangeUser(0, 1.2*find_max_bin(Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"]))
+        Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].Draw("E0 hist")
+        xmin = Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmin()
+        xmax = Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].GetXaxis().GetXmax()
+        Acceptance_Line = ROOT.TLine(xmin, 0, xmax, 0)
+        Acceptance_Line.SetLineColor(ROOT.kGray + 3)
+        Acceptance_Line.SetLineWidth(2)
+        Acceptance_Line.SetLineStyle(1)
+        Acceptance_Line.Draw("same")
+        ROOT.gPad.Update()
 
     ####  Lower Left - i.e., Integrated z-pT Bin  ######################## ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
     ###################################################################### ################################################################# ################################################################# ################################################################# ################################################################# #################################################################
@@ -507,7 +655,7 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
     for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
         if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=False)):
             continue
-        cd_number_of_z_pT_all_together = z_pT_Bin        
+        cd_number_of_z_pT_all_together = z_pT_Bin
 
         try:
             if(Plot_Orientation in ["z_pT"]):
@@ -528,15 +676,94 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
                 
             Draw_Canvas(All_z_pT_Canvas_cd_2_z_pT_Bin, 1, 0.15)
             ROOT.gStyle.SetOptStat(0)
-            Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0,   1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"])
-            Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0, 1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"])
-            Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist")
-            Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist same")
+
+            # Ensure persistent stores exist on the parent canvas so objects survive the loop
+            if(not hasattr(All_z_pT_Canvas_cd_2, "AR_fit_store")):
+                All_z_pT_Canvas_cd_2.AR_fit_store  = {}
+            if(not hasattr(All_z_pT_Canvas_cd_2, "AR_text_store")):
+                All_z_pT_Canvas_cd_2.AR_text_store = {}
+
+            if(not (args.acceptance_ratio or args.acceptance_diff)):
+                Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0,   1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"])
+                Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0, 1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"])
+                Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist")
+                Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist same")
+                Acceptance_Line.Draw("same")
+                ROOT.gPad.Update()
+            elif(args.acceptance_ratio):
+                # Draw the ratio histogram as before
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0, max([1.2, 1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]]))
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist")
+                Acceptance_Line.Draw("same")
+                ROOT.gPad.Update()
+                try:
+                    hist_key  = f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"
+                    fit_range_lower = 0.0
+                    fit_range_upper = 360.0
+                    n_bins          = Histogram_List_All[hist_key].GetNbinsX()
+                    for bin_lower in range(1, (n_bins // 2) + 1):
+                        if(Histogram_List_All[hist_key].GetBinContent(bin_lower) != 0):
+                            fit_range_lower = Histogram_List_All[hist_key].GetXaxis().GetBinLowEdge(bin_lower)
+                            break
+                    for bin_upper in range(n_bins, (n_bins // 2), -1):
+                        if(Histogram_List_All[hist_key].GetBinContent(bin_upper) != 0):
+                            fit_range_upper = Histogram_List_All[hist_key].GetXaxis().GetBinUpEdge(bin_upper)
+                            break
+                    func_name  = f"AR_fit_{Q2_y_Bin}-{z_pT_Bin}" # Create or update a unique TF1 for this bin; keep it in a persistent store on the canvas
+                    if(func_name not in All_z_pT_Canvas_cd_2.AR_fit_store):
+                        All_z_pT_Canvas_cd_2.AR_fit_store[func_name] = ROOT.TF1(func_name, "pol0", fit_range_lower, fit_range_upper)
+                    else:
+                        All_z_pT_Canvas_cd_2.AR_fit_store[func_name].SetRange(fit_range_lower, fit_range_upper)
+                    fit_result = Histogram_List_All[hist_key].Fit(All_z_pT_Canvas_cd_2.AR_fit_store[func_name], "QRB0") # "QRB": Q=quiet, R=respect range, B=use bounding for errors, 0=suppress draw (done below)
+                    All_z_pT_Canvas_cd_2.AR_fit_store[func_name].SetLineColor(ROOT.kRed)
+                    All_z_pT_Canvas_cd_2.AR_fit_store[func_name].SetLineStyle(7)
+                    All_z_pT_Canvas_cd_2.AR_fit_store[func_name].SetLineWidth(2)
+                    # Pull results from the TF1 (works regardless of TFitResult validity)
+                    p0       = All_z_pT_Canvas_cd_2.AR_fit_store[func_name].GetParameter(0)
+                    p0e      = All_z_pT_Canvas_cd_2.AR_fit_store[func_name].GetParError(0)
+                    try:
+                        chi2 = All_z_pT_Canvas_cd_2.AR_fit_store[func_name].GetChisquare()
+                        ndf  = All_z_pT_Canvas_cd_2.AR_fit_store[func_name].GetNDF()
+                    except:
+                        chi2, ndf = "Fit_Chisquared", "Fit_ndf"
+                    try:
+                        chi2_text = f"{chi2:.3g}/{ndf}" if(isinstance(chi2, (int, float)) and isinstance(ndf, (int, float))) else f"{chi2}/{ndf}"
+                    except:
+                        chi2_text = f"{chi2}/{ndf}"
+                    if(func_name not in All_z_pT_Canvas_cd_2.AR_text_store):
+                        # (x1,y1,x2,y2) in NDC; adjust box if it overlaps your legend
+                        pv = ROOT.TPaveText(0.33, 0.15, 0.67, 0.29, "NDC")
+                        pv.SetFillStyle(0)
+                        pv.SetBorderSize(0)
+                        pv.SetTextAlign(12)   # left/middle
+                        pv.SetTextFont(42)
+                        # pv.SetTextSize(0.035)
+                        pv.SetTextSize(0.064)
+                        pv.SetTextColor(ROOT.kBlack)
+                        pv.SetName(f"AR_pave_{func_name}")
+                        All_z_pT_Canvas_cd_2.AR_text_store[func_name] = pv
+                    else:
+                        pv = All_z_pT_Canvas_cd_2.AR_text_store[func_name]
+                        pv.Clear()
+                    pv.AddText(f"A = {p0:.6f} #pm {p0e:.3f}")
+                    pv.AddText(f"#chi^{{2}}/ndf = {chi2_text}")
+                    All_z_pT_Canvas_cd_2.AR_fit_store[func_name].Draw("same")
+                    pv.Draw("same")
+                    ROOT.gPad.Modified()
+                    ROOT.gPad.Update()
+                except Exception as fit_err:
+                    print(f"{color.Error}Acceptance-ratio constant-fit failed for Bin ({Q2_y_Bin}-{z_pT_Bin}):{color.END_R} {str(fit_err)}{color.END}")
+            else:
+                # Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetRangeUser(0, 1.2*Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"])
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Draw("E0 hist")
+                Acceptance_Line.Draw("same")
+                ROOT.gPad.Update()
         except:
             print(f"{color.Error}Error in Drawing Acceptance Plots for Bin ({Q2_y_Bin}-{z_pT_Bin}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
         
     ####  Filling Canvas (Right) - i.e., Individual z-pT Bins (End)  ###############################################################################################################################################################################################################################################################################################################################################
     ################################################################################################################################################################################################################################################################################################################################################################################################################
+
     
     ##################################################################### ################################################################ ################################################################ ################################################################ #####################
     #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################ ################################################################ #####################
@@ -577,6 +804,10 @@ if(__name__ == "__main__"):
     verbose = args.verbose
     
     for folder in folders:
+        if((args.make_2D) and ("REAL_Data" not in str(folder.name))):
+            print(f"{color.Error}Not running {folder.name} for 2D only plots at this time{color.END}")
+            continue
+            
         # print(str(folder.name))
         array_name = "rdf" if("REAL_Data" in str(folder.name)) else "mdf" if(("Matching_REC_MC" in str(folder.name)) or ("Link_to_Volatile_MC_Matching" in str(folder.name))) else "gdf"
         all_root_files[array_name] = []
@@ -594,25 +825,74 @@ if(__name__ == "__main__"):
         if(verbose):
             print(f"\n{color.BOLD}Files in {color.BLUE}{folder}{color.END_B}:{color.END}")
         for num, f in enumerate(root_files):
+            if(("FC_14" in str(f.name)) and ("GEN_MC" in str(folder.name))):
+                continue
             if(verbose):
                 print(f"\t{num+1:>5.0f}:   {color.CYAN}{f.name}{color.END}")
             if("EvGen" in str(f.name)):
+                if("Acceptance_Tests" not in str(f.name)):
+                    continue
+                if("V3"               not in str(f.name)):
+                    continue
                 all_root_files[array_name].append(f"{str(folder.name)}/{f.name}")
             elif("REAL" in str(folder.name)):
                 if(len(all_root_files[array_name]) < args.num_rdf_files):
                     all_root_files[array_name].append(f"{str(folder.name)}/{f.name}")
             else:
-                if(len(all_root_files[f"{array_name}_clasdis"]) < args.num_MC_files):
-                    if((array_name in ["mdf"]) and (f"{str(folder.name).replace('Matching_REC_MC', 'GEN_MC')}/{str(f.name).replace('DataFrame_SIDIS_epip_MC_Matched', 'DataFrame_SIDIS_epip_MC_GEN')}" not in all_root_files["gdf_clasdis"])):
-                    # if((array_name in ["mdf"]) and (f"{str(folder.name).replace('Link_to_Volatile_MC_Matching', 'GEN_MC')}/{str(f.name).replace('DataFrame_SIDIS_epip_MC_Matched', 'DataFrame_SIDIS_epip_MC_GEN')}" not in all_root_files["gdf_clasdis"])):
-                        continue
-                    all_root_files[f"{array_name}_clasdis"].append(f"{str(folder.name)}/{f.name}")
+                if("Acceptance_Tests" not in str(f.name)):
+                    continue
+                if("V3"               not in str(f.name)):
+                    continue
+                all_root_files[f"{array_name}_clasdis"].append(f"{str(folder.name)}/{f.name}")
+                # if(len(all_root_files[f"{array_name}_clasdis"]) < args.num_MC_files):
+                #     current_name = f"{str(folder.name).replace('Matching_REC_MC', 'GEN_MC')}/{str(f.name).replace('DataFrame_SIDIS_epip_MC_Matched', 'DataFrame_SIDIS_epip_MC_GEN')}"
+                #     if((array_name in ["mdf"]) and ((current_name not in all_root_files["gdf_clasdis"]) and (current_name.replace("_FC_14", "") not in all_root_files["gdf_clasdis"]))):
+                #     # if((array_name in ["mdf"]) and (f"{str(folder.name).replace('Link_to_Volatile_MC_Matching', 'GEN_MC')}/{str(f.name).replace('DataFrame_SIDIS_epip_MC_Matched', 'DataFrame_SIDIS_epip_MC_GEN')}" not in all_root_files["gdf_clasdis"])):
+                #         continue
+                #     all_root_files[f"{array_name}_clasdis"].append(f"{str(folder.name)}/{f.name}")
+
+    if(args.num_MC_files < 0):
+        args.num_MC_files = max([len(all_root_files["gdf_clasdis"]), len(all_root_files["mdf_clasdis"]), len(all_root_files["gdf"]), len(all_root_files["mdf"])])
+    remove_list = []
+    for mc           in ["", "_clasdis"]:
+        all_root_files[f"gdf{mc}"].sort()
+        all_root_files[f"mdf{mc}"].sort()
+        count = 0
+        for gdf_name in all_root_files[f"gdf{mc}"]:
+            mdf_name = gdf_name.replace("GEN_MC/",        "Matching_REC_MC/")
+            mdf_name = mdf_name.replace("MC_GEN_Pass_2_", "MC_Matched_Pass_2_")
+            mdf_name = mdf_name.replace("Tests_V",        "Tests_FC_14_V")
+            if((mdf_name not in all_root_files[f"mdf{mc}"]) or (count > args.num_MC_files)):
+                # print(f"Can't find {[gdf_name, mdf_name]} in 'mdf{mc}'\n")
+                remove_list.append([mc, gdf_name, mdf_name])
+            else:
+                count += 1
+        count = 0
+        for mdf_name in all_root_files[f"mdf{mc}"]:
+            gdf_name = mdf_name.replace("Matching_REC_MC/",   "GEN_MC/")
+            gdf_name = gdf_name.replace("MC_Matched_Pass_2_", "MC_GEN_Pass_2_")
+            gdf_name = gdf_name.replace("FC_14_",             "")
+            if((gdf_name not in all_root_files[f"gdf{mc}"]) or (count > args.num_MC_files)):
+                # print(f"Can't find {[gdf_name, mdf_name]} in 'gdf{mc}'\n")
+                remove_list.append([mc, gdf_name, mdf_name])
+            else:
+                count += 1
+    
+    for ii in remove_list:
+        mc, gdf_name, mdf_name = ii
+        if(gdf_name in all_root_files[f"gdf{mc}"]):
+            # print(f"Removing: {gdf_name}")
+            all_root_files[f"gdf{mc}"].remove(gdf_name)
+        if(mdf_name in all_root_files[f"mdf{mc}"]):
+            # print(f"Removing: {mdf_name}")
+            all_root_files[f"mdf{mc}"].remove(mdf_name)
     
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
+        print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
     
     print(f"\n{color.BOLD}LOADING DATAFRAMES{color.END}")
     
@@ -631,6 +911,28 @@ if(__name__ == "__main__"):
     # gdf_EvGen   = gdf_EvGen.Range(500)
     # mdf_clasdis = mdf_clasdis.Range(500)
     # gdf_clasdis = gdf_clasdis.Range(500)
+
+    if(not rdf.HasColumn("MM2")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'rdf'{color.END}")
+        rdf = rdf.Define("MM2", "MM*MM")
+    if(not mdf_EvGen.HasColumn("MM2")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_EvGen'{color.END}")
+        mdf_EvGen = mdf_EvGen.Define("MM2", "MM*MM")
+    if(not mdf_EvGen.HasColumn("MM2_smeared")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2_smeared'{color.Error} for 'mdf_EvGen'{color.END}")
+        mdf_EvGen = mdf_EvGen.Define("MM2_smeared", "MM_smeared*MM_smeared")
+    if(not gdf_EvGen.HasColumn("MM2")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'gdf_EvGen'{color.END}")
+        gdf_EvGen = gdf_EvGen.Define("MM2", "MM*MM")
+    if(not mdf_clasdis.HasColumn("MM2")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_clasdis'{color.END}")
+        mdf_clasdis = mdf_clasdis.Define("MM2", "MM*MM")
+    if(not mdf_clasdis.HasColumn("MM2_smeared")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2_smeared'{color.Error} for 'mdf_clasdis'{color.END}")
+        mdf_clasdis = mdf_clasdis.Define("MM2_smeared", "MM_smeared*MM_smeared")
+    if(not gdf_clasdis.HasColumn("MM2")):
+        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'gdf_clasdis'{color.END}")
+        gdf_clasdis = gdf_clasdis.Define("MM2", "MM*MM")
     
     print(f"\n{color.BBLUE}rdf{color.END}:")
     if(verbose or (not True)):
@@ -678,11 +980,17 @@ mdf = mdf.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
 gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
 {color.BOLD}Normal Analysis Cuts (See DF_Filter_Function_Full Function){color.END}\n\n""")
     
-    # clasdis Generation Cuts
-    mdf_EvGen   =   mdf_EvGen.Filter("((Q2_gen > 0.85) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
-    gdf_EvGen   =   gdf_EvGen.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
-    mdf_clasdis = mdf_clasdis.Filter("((Q2_gen > 0.85) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
-    gdf_clasdis = gdf_clasdis.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+    # # clasdis Generation Cuts
+    # mdf_EvGen   =   mdf_EvGen.Filter("((Q2_gen > 0.85) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+    # gdf_EvGen   =   gdf_EvGen.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+    # mdf_clasdis = mdf_clasdis.Filter("((Q2_gen > 0.85) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+    # gdf_clasdis = gdf_clasdis.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+
+    # EvGen Generation Cuts
+    mdf_EvGen   =   mdf_EvGen.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+    gdf_EvGen   =   gdf_EvGen.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+    mdf_clasdis = mdf_clasdis.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+    gdf_clasdis = gdf_clasdis.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     
     # clasdis Generation Cuts (y ended at 0.93 apparently?)
     mdf_EvGen   =   mdf_EvGen.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
@@ -695,6 +1003,11 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     gdf_EvGen   =   gdf_EvGen.Filter("((z     > 0.15) && (z     < 0.90))")
     mdf_clasdis = mdf_clasdis.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
     gdf_clasdis = gdf_clasdis.Filter("((z     > 0.15) && (z     < 0.90))")
+
+    if(not args.kinematic_compare):
+        print(f"{color.BGREEN}Adding MM cuts to gdf files for Acceptance Corrections{color.END}\n")
+        gdf_EvGen   =   gdf_EvGen.Filter("MM > 1.5")
+        gdf_clasdis = gdf_clasdis.Filter("MM > 1.5")
     
     
     # Normal Analysis Cuts
@@ -721,79 +1034,93 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     if(args.kinematic_compare):
         if(args.use_HIGH_MX):
             print(f"\n{color.BOLD}CREATING 1D MM HISTOGRAMS FOR HIGH-Mx NORMALIZATION FACTOR\n{color.END}")
-            MM_Binning = ['MM', 2.5, 4.2, 60]
+            MM_Binning = ['MM', 2.5, 4.2, 6]
             histos = {}
             var, Min_range, Max_range, Num_of_Bins = MM_Binning
-            rdf_name = f"{var}_rdf"
-            mclasdis = f"{var}_mdf_clasdis"
-            mdfEvGen = f"{var}_mdf_EvGen"
+            # rdf_name = f"{var}_rdf"
+            # mclasdis = f"{var}_mdf_clasdis"
+            # mdfEvGen = f"{var}_mdf_EvGen"
             gclasdis = f"{var}_gdf_clasdis"
             gdfEvGen = f"{var}_gdf_EvGen"
             Title = f"{variable_Title_name_new(var)} from SOURCE; {variable_Title_name_new(var)}"
             if(args.title):
                 Title = f"#splitline{{{variable_Title_name_new(var)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var)}"
-            histos[rdf_name] =         rdf.Histo1D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue   }]{{Experimental Data}}"),         Num_of_Bins, Min_range, Max_range),    var)
-            histos[mclasdis] = mdf_clasdis.Histo1D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed    }]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins, Min_range, Max_range), f"{var}_smeared")
-            histos[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
+            # histos[rdf_name] =         rdf.Histo1D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue   }]{{Experimental Data}}"),         Num_of_Bins, Min_range, Max_range),    var)
+            # histos[mclasdis] = mdf_clasdis.Histo1D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed    }]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins, Min_range, Max_range), f"{var}_smeared")
+            # histos[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
             histos[gclasdis] = gdf_clasdis.Histo1D((gclasdis, Title.replace("SOURCE", f"#color[{ROOT.kGreen  }]{{MC GEN (clasdis)}}"),          Num_of_Bins, Min_range, Max_range),    var)
-            histos[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
-            histos[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var)} (Smeared)")
-            histos[rdf_name].SetLineColor(ROOT.kBlue)
-            histos[mclasdis].SetLineColor(ROOT.kRed)
-            histos[mdfEvGen].SetLineColor(ROOT.kMagenta)
+            histos[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
+            # histos[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var)} (Smeared)")
+            # histos[rdf_name].SetLineColor(ROOT.kBlue)
+            # histos[mclasdis].SetLineColor(ROOT.kRed)
+            # histos[mdfEvGen].SetLineColor(ROOT.kMagenta)
             histos[gclasdis].SetLineColor(ROOT.kGreen)
             histos[gdfEvGen].SetLineColor(ROOT.kCyan)
-            rdf_name_norm_factor_HIGH_MX = histos[rdf_name].Integral()
-            mclasdis_norm_factor_HIGH_MX = histos[mclasdis].Integral()
-            mdfEvGen_norm_factor_HIGH_MX = histos[mdfEvGen].Integral()
+            # rdf_name_norm_factor_HIGH_MX = histos[rdf_name].Integral()
+            # mclasdis_norm_factor_HIGH_MX = histos[mclasdis].Integral()
+            # mdfEvGen_norm_factor_HIGH_MX = histos[mdfEvGen].Integral()
             gclasdis_norm_factor_HIGH_MX = histos[gclasdis].Integral()
             gdfEvGen_norm_factor_HIGH_MX = histos[gdfEvGen].Integral()
             if(verbose):
-                print(f"rdf_name_norm_factor_HIGH_MX = {rdf_name_norm_factor_HIGH_MX:>20.0f}")
-                print(f"mclasdis_norm_factor_HIGH_MX = {mclasdis_norm_factor_HIGH_MX:>20.0f}")
-                print(f"mdfEvGen_norm_factor_HIGH_MX = {mdfEvGen_norm_factor_HIGH_MX:>20.0f}")
+                # print(f"rdf_name_norm_factor_HIGH_MX = {rdf_name_norm_factor_HIGH_MX:>20.0f}")
+                # print(f"mclasdis_norm_factor_HIGH_MX = {mclasdis_norm_factor_HIGH_MX:>20.0f}")
+                # print(f"mdfEvGen_norm_factor_HIGH_MX = {mdfEvGen_norm_factor_HIGH_MX:>20.0f}")
                 print(f"gclasdis_norm_factor_HIGH_MX = {gclasdis_norm_factor_HIGH_MX:>20.0f}")
                 print(f"gdfEvGen_norm_factor_HIGH_MX = {gdfEvGen_norm_factor_HIGH_MX:>20.0f}")
-            histos[f"norm_{rdf_name}"] = histos[rdf_name].Clone(f"norm_{rdf_name}")
-            histos[f"norm_{mclasdis}"] = histos[mclasdis].Clone(f"norm_{mclasdis}")
-            histos[f"norm_{mdfEvGen}"] = histos[mdfEvGen].Clone(f"norm_{mdfEvGen}")
+            # histos[f"norm_{rdf_name}"] = histos[rdf_name].Clone(f"norm_{rdf_name}")
+            # histos[f"norm_{mclasdis}"] = histos[mclasdis].Clone(f"norm_{mclasdis}")
+            # histos[f"norm_{mdfEvGen}"] = histos[mdfEvGen].Clone(f"norm_{mdfEvGen}")
             histos[f"norm_{gclasdis}"] = histos[gclasdis].Clone(f"norm_{gclasdis}")
             histos[f"norm_{gdfEvGen}"] = histos[gdfEvGen].Clone(f"norm_{gdfEvGen}")
             
-            histos[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor_HIGH_MX) if(rdf_name_norm_factor_HIGH_MX != 0) else 1)
-            histos[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor_HIGH_MX) if(mclasdis_norm_factor_HIGH_MX != 0) else 1)
-            histos[f"norm_{mdfEvGen}"].Scale((1/mdfEvGen_norm_factor_HIGH_MX) if(mdfEvGen_norm_factor_HIGH_MX != 0) else 1)
+            # histos[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor_HIGH_MX) if(rdf_name_norm_factor_HIGH_MX != 0) else 1)
+            # histos[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor_HIGH_MX) if(mclasdis_norm_factor_HIGH_MX != 0) else 1)
+            # histos[f"norm_{mdfEvGen}"].Scale((1/mdfEvGen_norm_factor_HIGH_MX) if(mdfEvGen_norm_factor_HIGH_MX != 0) else 1)
             histos[f"norm_{gclasdis}"].Scale((1/gclasdis_norm_factor_HIGH_MX) if(gclasdis_norm_factor_HIGH_MX != 0) else 1)
             histos[f"norm_{gdfEvGen}"].Scale((1/gdfEvGen_norm_factor_HIGH_MX) if(gdfEvGen_norm_factor_HIGH_MX != 0) else 1)
             
-            histos[f"norm_{rdf_name}"].SetTitle(f"Normalized {histos[rdf_name].GetTitle()}")
-            histos[f"norm_{mclasdis}"].SetTitle(f"Normalized {histos[mclasdis].GetTitle()}")
-            histos[f"norm_{mdfEvGen}"].SetTitle(f"Normalized {histos[mdfEvGen].GetTitle()}")
+            # histos[f"norm_{rdf_name}"].SetTitle(f"Normalized {histos[rdf_name].GetTitle()}")
+            # histos[f"norm_{mclasdis}"].SetTitle(f"Normalized {histos[mclasdis].GetTitle()}")
+            # histos[f"norm_{mdfEvGen}"].SetTitle(f"Normalized {histos[mdfEvGen].GetTitle()}")
             histos[f"norm_{gclasdis}"].SetTitle(f"Normalized {histos[gclasdis].GetTitle()}")
             histos[f"norm_{gdfEvGen}"].SetTitle(f"Normalized {histos[gdfEvGen].GetTitle()}")
             
-            histos[f"norm_{rdf_name}"].GetYaxis().SetTitle("Normalized")
-            histos[f"norm_{mclasdis}"].GetYaxis().SetTitle("Normalized")
-            histos[f"norm_{mdfEvGen}"].GetYaxis().SetTitle("Normalized")
+            # histos[f"norm_{rdf_name}"].GetYaxis().SetTitle("Normalized")
+            # histos[f"norm_{mclasdis}"].GetYaxis().SetTitle("Normalized")
+            # histos[f"norm_{mdfEvGen}"].GetYaxis().SetTitle("Normalized")
             histos[f"norm_{gclasdis}"].GetYaxis().SetTitle("Normalized")
             histos[f"norm_{gdfEvGen}"].GetYaxis().SetTitle("Normalized")
-            
+
+
             canvas = ROOT.TCanvas("MM_Norm_Factor", "My Canvas", int(912*1.55), int(547*1.55))
-            canvas.Divide(6, 2)
-            
-            for cd_num, ii in enumerate([rdf_name, mclasdis, mdfEvGen, gclasdis, gdfEvGen]):
+            canvas.Divide(3, 2)
+            for cd_num, ii in enumerate([gclasdis, gdfEvGen]):
                 canvas.cd(cd_num + 1)
                 histos[ii].GetYaxis().SetRangeUser(0, 1.2*find_max_bin(histos[ii]))
                 histos[ii].Draw("E0 hist same")
-                canvas.cd(cd_num + 7)
+                canvas.cd(cd_num + 4)
                 histos[f"norm_{ii}"].GetYaxis().SetRangeUser(0, 1.2*find_max_bin(histos[f"norm_{ii}"]))
                 histos[f"norm_{ii}"].Draw("E0 hist same")
-            
             # Draw Legend(s)
-            canvas.cd(6)
+            canvas.cd(3)
             ROOT.gPad.Clear()
             ROOT.gPad.SetLeftMargin(0.2)
             ROOT.gPad.SetBottomMargin(0.2)
+            
+            # canvas = ROOT.TCanvas("MM_Norm_Factor", "My Canvas", int(912*1.55), int(547*1.55))
+            # canvas.Divide(6, 2)
+            # for cd_num, ii in enumerate([rdf_name, mclasdis, mdfEvGen, gclasdis, gdfEvGen]):
+            #     canvas.cd(cd_num + 1)
+            #     histos[ii].GetYaxis().SetRangeUser(0, 1.2*find_max_bin(histos[ii]))
+            #     histos[ii].Draw("E0 hist same")
+            #     canvas.cd(cd_num + 7)
+            #     histos[f"norm_{ii}"].GetYaxis().SetRangeUser(0, 1.2*find_max_bin(histos[f"norm_{ii}"]))
+            #     histos[f"norm_{ii}"].Draw("E0 hist same")
+            # # Draw Legend(s)
+            # canvas.cd(6)
+            # ROOT.gPad.Clear()
+            # ROOT.gPad.SetLeftMargin(0.2)
+            # ROOT.gPad.SetBottomMargin(0.2)
             
             group_info = [(ROOT.kBlue,    "Experimental Data"),
                           (ROOT.kRed,     "MC REC - clasdis"),
@@ -823,23 +1150,44 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         else:
             print(f"{color.RED}NOT USING HIGH-Mx NORMALIZATION FACTOR{color.END}")
         print(f"\n{color.BOLD}CREATING 1D HISTOGRAMS/PLOTS\n{color.END}")
+        # phi_t_Binning              = ['phi_t',                            0,      360,    24]
+        # El_Binning                 = ['el',                               0,        8,   200]
+        # El_Th_Binning              = ['elth',                             0,       40,   200]
+        # El_Phi_Binning             = ['elPhi',                            0,      360,   200]
+        # Pip_Binning                = ['pip',                              0,        6,   200]
+        # Pip_Th_Binning             = ['pipth',                            0,       40,   200]
+        # Pip_Phi_Binning            = ['pipPhi',                           0,      360,   200]
+        # Q2_Binning                 = ['Q2',                               0,       14,   280]
+        # y_Binning                  = ['y',                                0,        1,   100]
+        # # y_Binning                  = ['y',                              0.9,        1,   100]
+        # xB_Binning                 = ['xB',                            0.09,    0.826,    50]
+        # z_Binning                  = ['z',                                0,     1.20,   120]
+        # # z_Binning                  = ['z',                                0,     0.20,   120]
+        # # pT_Binning                 = ['pT',                               0,     2.00,   200]
+        # pT_Binning                 = ['pT',                               0,     1.50,   150]
+        # MM_Binning                 = ['MM',                               0,      4.2,    60]
+        # W_Binning                  = ['W',                              0.9,      5.1,    14]
+        # Q2_y_z_pT_Binning          = ['Q2_y_z_pT_4D_Bin',              -0.5,    506.5,   507]
+        # z_pT_phi_h_Binning         = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5,    913.5,   915]
+        # Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h',      -0.5,  11815.5, 11816]
+        # Hx_Binning                 = ['Hx',                            -400,      400,   800]
+        # Hy_Binning                 = ['Hy',                            -400,      400,   800]
+        # z_pT_Bin_Y_Binning         = ['z_pT_Bin_Y_bin',                -2.5,     41.5,    44]
+
         phi_t_Binning              = ['phi_t',                            0,      360,    24]
-        El_Binning                 = ['el',                               0,        8,   200]
-        El_Th_Binning              = ['elth',                             0,       40,   200]
-        El_Phi_Binning             = ['elPhi',                            0,      360,   200]
-        Pip_Binning                = ['pip',                              0,        6,   200]
-        Pip_Th_Binning             = ['pipth',                            0,       40,   200]
-        Pip_Phi_Binning            = ['pipPhi',                           0,      360,   200]
-        Q2_Binning                 = ['Q2',                               0,       14,   280]
-        y_Binning                  = ['y',                                0,        1,   100]
-        # y_Binning                  = ['y',                              0.9,        1,   100]
-        xB_Binning                 = ['xB',                            0.09,    0.826,    50]
-        z_Binning                  = ['z',                                0,     1.20,   120]
-        # z_Binning                  = ['z',                                0,     0.20,   120]
-        # pT_Binning                 = ['pT',                               0,     2.00,   200]
-        pT_Binning                 = ['pT',                               0,     1.50,   150]
-        MM_Binning                 = ['MM',                               0,      4.2,    60]
-        W_Binning                  = ['W',                              0.9,      5.1,    14]
+        El_Binning                 = ['el',                               0,        8,    20]
+        El_Th_Binning              = ['elth',                             0,       40,    20]
+        El_Phi_Binning             = ['elPhi',                            0,      360,    20]
+        Pip_Binning                = ['pip',                              0,        6,    20]
+        Pip_Th_Binning             = ['pipth',                            0,       40,    20]
+        Pip_Phi_Binning            = ['pipPhi',                           0,      360,    20]
+        Q2_Binning                 = ['Q2',                               0,        9,    25]
+        y_Binning                  = ['y',                             0.05,     1.05,    22]
+        xB_Binning                 = ['xB',                               0,      0.7,    25]
+        z_Binning                  = ['z',                                0,     0.95,    25]
+        pT_Binning                 = ['pT',                               0,     1.05,    25]
+        MM_Binning                 = ['MM',                             0.5,      4.5,    25]
+        W_Binning                  = ['W',                             0.99,     4.99,    20]
         Q2_y_z_pT_Binning          = ['Q2_y_z_pT_4D_Bin',              -0.5,    506.5,   507]
         z_pT_phi_h_Binning         = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5,    913.5,   915]
         Q2_y_z_pT_phi_h_5D_Binning = ['MultiDim_Q2_y_z_pT_phi_h',      -0.5,  11815.5, 11816]
@@ -878,9 +1226,9 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 Title = f"#splitline{{Plot of {variable_Title_name_new(var)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var)}"
             histos_compare[rdf_name] =         rdf.Histo1D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue   }]{{Experimental Data}}"),         Num_of_Bins, Min_range, Max_range),    var)
             histos_compare[mclasdis] = mdf_clasdis.Histo1D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed    }]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins, Min_range, Max_range), f"{var}_smeared")
-            histos_compare[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
+            histos_compare[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
             histos_compare[gclasdis] = gdf_clasdis.Histo1D((gclasdis, Title.replace("SOURCE", f"#color[{ROOT.kGreen  }]{{MC GEN (clasdis)}}"),          Num_of_Bins, Min_range, Max_range),    var)
-            histos_compare[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
+            histos_compare[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
             histos_compare[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var)} (Smeared)")
             
             histos_compare[rdf_name].SetLineColor(ROOT.kBlue)
@@ -888,10 +1236,13 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             histos_compare[mdfEvGen].SetLineColor(ROOT.kMagenta)
             histos_compare[gclasdis].SetLineColor(ROOT.kGreen)
             histos_compare[gdfEvGen].SetLineColor(ROOT.kCyan)
-        
-            rdf_name_norm_factor = rdf_name_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[rdf_name].Integral()
-            mclasdis_norm_factor = mclasdis_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[mclasdis].Integral()
-            mdfEvGen_norm_factor = mdfEvGen_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[mdfEvGen].Integral()
+
+            # rdf_name_norm_factor = rdf_name_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[rdf_name].Integral()
+            # mclasdis_norm_factor = mclasdis_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[mclasdis].Integral()
+            # mdfEvGen_norm_factor = mdfEvGen_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[mdfEvGen].Integral()
+            rdf_name_norm_factor = histos_compare[rdf_name].Integral()
+            mclasdis_norm_factor = histos_compare[mclasdis].Integral()
+            mdfEvGen_norm_factor = histos_compare[mdfEvGen].Integral()
             gclasdis_norm_factor = gclasdis_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[gclasdis].Integral()
             gdfEvGen_norm_factor = gdfEvGen_norm_factor_HIGH_MX if(args.use_HIGH_MX) else histos_compare[gdfEvGen].Integral()
         
@@ -947,6 +1298,8 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             if(args.title):
                 gdf_title = f"#splitline{{{gdf_title}}}{{{args.title}}}"
             gdf_title = f"#scale[2]{{{gdf_title}}}"
+            if(args.use_HIGH_MX):
+                gdf_title = f"#splitline{{{gdf_title}}}{{Normalized to High M_{{X}}}}"
             histos_compare[f"norm_{gdfEvGen}"].SetTitle(gdf_title)
             max_cd_2 = max([find_max_bin(histos_compare[f"norm_{gdfEvGen}"]), find_max_bin(histos_compare[f"norm_{gclasdis}"])])
             histos_compare[f"norm_{gdfEvGen}"].GetYaxis().SetRangeUser(0, 1.2*max_cd_2)
@@ -983,27 +1336,41 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             histos_compare[f"norm_{mclasdis}"].Draw("E0 hist same")
             histos_compare[f"norm_{rdf_name}"].Draw("E0 hist same")
         
-            # canvas_compare[var].cd(8)
+            # # canvas_compare[var].cd(8)
+            # histos_compare[f"Diff_in_{rdf_name}"] = histos_compare[f"norm_{rdf_name}"].Clone(f"Diff_in_{rdf_name}")
+            # histos_compare[f"Diff_in_{rdf_name}"].Divide(histos_compare[f"norm_{mdfEvGen}"])
+            # histos_compare[f"Diff_in_{rdf_name}"].SetTitle("#scale[2]{Ratio of Data to EvGen MC above}")
+            # histos_compare[f"Diff_in_{rdf_name}"].GetYaxis().SetTitle("#frac{Data}{EvGen}")
+            # histos_compare[f"Diff_in_{rdf_name}"].SetLineColor(ROOT.kViolet + 1)
             histos_compare[f"Diff_in_{rdf_name}"] = histos_compare[f"norm_{rdf_name}"].Clone(f"Diff_in_{rdf_name}")
+            histos_compare[f"Diff_in_{rdf_name}"].Add(histos_compare[f"norm_{mdfEvGen}"], -1.0)
             histos_compare[f"Diff_in_{rdf_name}"].Divide(histos_compare[f"norm_{mdfEvGen}"])
-            histos_compare[f"Diff_in_{rdf_name}"].SetTitle("#scale[2]{Ratio of Data to EvGen MC above}")
-            histos_compare[f"Diff_in_{rdf_name}"].GetYaxis().SetTitle("#frac{Data}{EvGen}")
+            histos_compare[f"Diff_in_{rdf_name}"].Scale(100.0)
+            histos_compare[f"Diff_in_{rdf_name}"].SetTitle("#scale[2]{Percent Difference of Data from EvGen MC above}")
+            histos_compare[f"Diff_in_{rdf_name}"].GetYaxis().SetTitle("Percent Difference (%)")
             histos_compare[f"Diff_in_{rdf_name}"].SetLineColor(ROOT.kViolet + 1)
-            # canvas_compare[var].cd(9)
+            # # canvas_compare[var].cd(9)
+            # histos_compare[f"Diff_in_{mclasdis}"] = histos_compare[f"norm_{rdf_name}"].Clone(f"Diff_in_{mclasdis}")
+            # histos_compare[f"Diff_in_{mclasdis}"].Divide(histos_compare[f"norm_{mclasdis}"])
+            # histos_compare[f"Diff_in_{mclasdis}"].SetTitle("#scale[2]{Ratio of Data to clasdis MC above}")
+            # histos_compare[f"Diff_in_{mclasdis}"].GetYaxis().SetTitle("#frac{Data}{clasdis}")
+            # histos_compare[f"Diff_in_{mclasdis}"].SetLineColor(ROOT.kBlue + 3)
             histos_compare[f"Diff_in_{mclasdis}"] = histos_compare[f"norm_{rdf_name}"].Clone(f"Diff_in_{mclasdis}")
+            histos_compare[f"Diff_in_{mclasdis}"].Add(histos_compare[f"norm_{mclasdis}"], -1.0)
             histos_compare[f"Diff_in_{mclasdis}"].Divide(histos_compare[f"norm_{mclasdis}"])
-            histos_compare[f"Diff_in_{mclasdis}"].SetTitle("#scale[2]{Ratio of Data to clasdis MC above}")
-            histos_compare[f"Diff_in_{mclasdis}"].GetYaxis().SetTitle("#frac{Data}{clasdis}")
+            histos_compare[f"Diff_in_{mclasdis}"].Scale(100.0)
+            histos_compare[f"Diff_in_{mclasdis}"].SetTitle("#scale[2]{Percent Difference of Data from clasdis MC above}")
+            histos_compare[f"Diff_in_{mclasdis}"].GetYaxis().SetTitle("Percent Difference (%)")
             histos_compare[f"Diff_in_{mclasdis}"].SetLineColor(ROOT.kBlue + 3)
             max_cd_8_9 = max([find_max_bin(histos_compare[f"Diff_in_{rdf_name}"]), find_max_bin(histos_compare[f"Diff_in_{mclasdis}"])])
             
             canvas_compare[var].cd(8)
-            histos_compare[f"Diff_in_{rdf_name}"].GetYaxis().SetRangeUser(0, 1.2*max_cd_8_9)
+            # histos_compare[f"Diff_in_{rdf_name}"].GetYaxis().SetRangeUser(0, 1.2*max_cd_8_9)
             histos_compare[f"Diff_in_{rdf_name}"].Draw("E0 hist same")
             histos_compare[f"line_{mdfEvGen}"].Draw("same")
         
             canvas_compare[var].cd(9)
-            histos_compare[f"Diff_in_{mclasdis}"].GetYaxis().SetRangeUser(0, 1.2*max_cd_8_9)
+            # histos_compare[f"Diff_in_{mclasdis}"].GetYaxis().SetRangeUser(0, 1.2*max_cd_8_9)
             histos_compare[f"Diff_in_{mclasdis}"].Draw("E0 hist same")
             histos_compare[f"line_{mdfEvGen}"].Draw("same")
             
@@ -1038,8 +1405,8 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 save_name = f"Kinematic_Comparison_of_{var}_High_Mx_Norm{args.File_Save_Format}" if(not args.name) else f"Kinematic_Comparison_of_{var}_High_Mx_Norm_{args.name}{args.File_Save_Format}"
             canvas_compare[var].SaveAs(save_name)
             print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
+            timer.time_elapsed()
         print(f"\n{color.BOLD}DONE CREATING 1D HISTOGRAMS\n{color.END}")
-        timer.time_elapsed()
     else:
         print(f"\n{color.Error}Skipping Kinematic Comparison Plots{color.END}")
 
@@ -1077,12 +1444,12 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         List_of_Quantities_1D.append(xB_Binning)
         List_of_Quantities_1D.append(z_Binning)
         List_of_Quantities_1D.append(pT_Binning)
-        List_of_Quantities_1D.append(El_Binning)
-        List_of_Quantities_1D.append(El_Th_Binning)
-        List_of_Quantities_1D.append(El_Phi_Binning)
-        List_of_Quantities_1D.append(Pip_Binning)
-        List_of_Quantities_1D.append(Pip_Th_Binning)
-        List_of_Quantities_1D.append(Pip_Phi_Binning)
+        # List_of_Quantities_1D.append(El_Binning)
+        # List_of_Quantities_1D.append(El_Th_Binning)
+        # List_of_Quantities_1D.append(El_Phi_Binning)
+        # List_of_Quantities_1D.append(Pip_Binning)
+        # List_of_Quantities_1D.append(Pip_Th_Binning)
+        # List_of_Quantities_1D.append(Pip_Phi_Binning)
         
         histos_acceptance, canvas_acceptance = {}, {}
         
@@ -1097,9 +1464,9 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 Title = f"#splitline{{Acceptance Plot of {variable_Title_name_new(var)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var)}"
             
             histos_acceptance[mclasdis] = mdf_clasdis.Histo1D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed    }]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins, Min_range, Max_range), f"{var}_smeared")
-            histos_acceptance[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
+            histos_acceptance[mdfEvGen] =   mdf_EvGen.Histo1D((mdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
             histos_acceptance[gclasdis] = gdf_clasdis.Histo1D((gclasdis, Title.replace("SOURCE", f"#color[{ROOT.kGreen  }]{{MC GEN (clasdis)}}"),          Num_of_Bins, Min_range, Max_range),    var)
-            histos_acceptance[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var)
+            histos_acceptance[gdfEvGen] =   gdf_EvGen.Histo1D((gdfEvGen, Title.replace("SOURCE", f"#color[{ROOT.kCyan   }]{{MC GEN (EvGen)}}"),            Num_of_Bins, Min_range, Max_range),    var, "weight")
             histos_acceptance[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var)} (Smeared)")
             
             histos_acceptance[mclasdis].SetLineColor(ROOT.kRed)
@@ -1192,15 +1559,18 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             save_name = f"Unbinned_Acceptance_Comparison_of_{var}{args.File_Save_Format}" if(not args.name) else f"Unbinned_Acceptance_Comparison_of_{var}_{args.name}{args.File_Save_Format}"
             canvas_acceptance[var].SaveAs(save_name)
             print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
-            
+            timer.time_elapsed()
         print(f"\n{color.BOLD}DONE CREATING 1D (UNBINNED) ACCEPTANCE HISTOGRAMS\n{color.END}")
-        timer.time_elapsed()
     else:
         print(f"\n{color.Error}Skipping (Unbinned) Acceptance Comparison Plots{color.END}")
         
     
-    if(args.acceptance):
-        print(f"\n{color.BOLD}MAKING ACCEPTANCE AS FUNCTION OF phi_h FOR ALL KINEMATIC BINS\n{color.END}")
+    if(args.acceptance or args.acceptance_ratio or args.acceptance_diff):
+        print(f"\n{color.BOLD}MAKING ACCEPTANCE AS FUNCTION OF phi_h FOR ALL KINEMATIC BINS{color.END}")
+        if(args.acceptance_ratio or args.acceptance_diff):
+            print(f"Making the {color.BOLD}{'ratios' if(args.acceptance_ratio) else 'Percent Diff'}{color.END} of the acceptances to show discrepancies...\n")
+        else:
+            print("")
         phi_t_Binning = ['phi_t',  0,   360,    24]
         Q2_Binning    = ['Q2',     0,    14,   280]
         y_Binning     = ['y',      0,     1,   100]
@@ -1208,7 +1578,8 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         pT_Binning    = ['pT',     0,  1.50,   150]
         
         rdf_binned         =         rdf.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
-        mdf_clasdis_binned = mdf_clasdis.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
+        # mdf_clasdis_binned = mdf_clasdis.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
+        mdf_clasdis_binned = mdf_clasdis.Filter("(Q2_Y_Bin_smeared > 0) && (z_pT_Bin_Y_bin_smeared > 0)")
         mdf_EvGen_binned   =   mdf_EvGen.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
         gdf_clasdis_binned = gdf_clasdis.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
         gdf_EvGen_binned   =   gdf_EvGen.Filter("(Q2_Y_Bin > 0) && (z_pT_Bin_Y_bin > 0)")
@@ -1220,6 +1591,23 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             Histogram_List_All[f"z-pT Bin ({Q2_y_Bin}-All)"] = (rdf_binned.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")).Histo2D((f"z-pT Bin ({Q2_y_Bin}-All)", f"#splitline{{z vs P_{{T}} for #color[{ROOT.kBlue}]{{Experimental Data}}}}{{#color[{ROOT.kRed}]{{Q^{{2}}-y Bin {Q2_y_Bin}}}}}; P_{{T}}; z",   pT_Binning[3], pT_Binning[1], pT_Binning[2],  z_Binning[3],  z_Binning[1],  z_Binning[2]), pT_Binning[0],  z_Binning[0])
             _, _, Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"]   = Create_Binned_Acceptance_Hist(mdf_IN=mdf_EvGen_binned,   gdf_IN=gdf_EvGen_binned,   source="EvGen",   PHI_T_Binning=phi_t_Binning, Q2_Y_Bin=Q2_y_Bin, Z_PT_Bin=None)
             _, _, Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"] = Create_Binned_Acceptance_Hist(mdf_IN=mdf_clasdis_binned, gdf_IN=gdf_clasdis_binned, source="clasdis", PHI_T_Binning=phi_t_Binning, Q2_Y_Bin=Q2_y_Bin, Z_PT_Bin=None)
+            if(args.acceptance_ratio):
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"] = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].Clone(f"ratio Acceptance Bin ({Q2_y_Bin}-All)")
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].Divide(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"])
+                # Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].SetTitle(str(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetTitle()).replace("from EvGen", "Ratio (#frac{EvGen}{clasdis})"))
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].SetTitle(str(str(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetTitle()).replace("from EvGen", "")).replace("Acceptance for", "Acceptance Ratio #frac{EvGen}{clasdis} for "))
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetTitle("#frac{EvGen}{clasdis}")
+                Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-All)"].SetLineColor(ROOT.kBlack)
+                count += 1
+            if(args.acceptance_diff):
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"] = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-All)"].Clone(f"diff Acceptance Bin ({Q2_y_Bin}-All)")
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].Add(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"], -1.0)
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].Divide(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-All)"])
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].Scale(100.0)
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].SetTitle(str(Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].GetTitle()).replace("from EvGen", "Percent Diff (#frac{EvGen - clasdis}{clasdis})"))
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].GetYaxis().SetTitle("Percent Difference (%)")
+                Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-All)"].SetLineColor(ROOT.kBlack)
+                count += 1
             count += 8
             Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"] = 0
             z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin)[1]
@@ -1230,8 +1618,30 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 # print(f"{Q2_y_Bin:>2.0f} - {z_pT_Bin:>2.0f} (z-pT Total: {z_pT_Bin_Range}) -- Current Histo Total: {count}")
                 _, _, Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]   = Create_Binned_Acceptance_Hist(mdf_IN=mdf_EvGen_binned,   gdf_IN=gdf_EvGen_binned,   source="EvGen",   PHI_T_Binning=phi_t_Binning, Q2_Y_Bin=Q2_y_Bin, Z_PT_Bin=z_pT_Bin)
                 _, _, Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"] = Create_Binned_Acceptance_Hist(mdf_IN=mdf_clasdis_binned, gdf_IN=gdf_clasdis_binned, source="clasdis", PHI_T_Binning=phi_t_Binning, Q2_Y_Bin=Q2_y_Bin, Z_PT_Bin=z_pT_Bin)
-                Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"] = max([find_max_bin(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]), find_max_bin(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]), Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]])
+                if(args.acceptance_ratio):
+                    Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"] = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Clone(f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})")
+                    Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Divide(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"])
+                    # Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].SetTitle(str(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetTitle()).replace("from EvGen", "Ratio (#frac{EvGen}{clasdis})"))
+                    Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].SetTitle(str(str(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetTitle()).replace("from EvGen", "")).replace("Acceptance for", "Acceptance Ratio #frac{EvGen}{clasdis} for "))
+                    Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetTitle("#frac{EvGen}{clasdis}")
+                    Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].SetLineColor(ROOT.kBlack)
+                    count += 1
+                    Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"] = max([find_max_bin(Histogram_List_All[f"ratio Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]), Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]])
+                elif(args.acceptance_diff):
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"] = Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Clone(f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})")
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Add(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"], -1.0)
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Divide(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"])
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].Scale(100.0)
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].SetTitle(str(Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetTitle()).replace("from EvGen", "Percent Diff (#frac{EvGen - clasdis}{clasdis})"))
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].GetYaxis().SetTitle("Percent Difference (%)")
+                    Histogram_List_All[f"diff Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"].SetLineColor(ROOT.kBlack)
+                    count += 1
+                else:
+                    Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"] = max([find_max_bin(Histogram_List_All[f"EvGen Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]), find_max_bin(Histogram_List_All[f"clasdis Acceptance Bin ({Q2_y_Bin}-{z_pT_Bin})"]), Histogram_List_All[f"Acceptance max for {Q2_y_Bin}"]])
+            print(f"{color.BOLD}Ready to Create Acceptance Image for Q2-y Bin = {Q2_y_Bin}{color.END}")
+            timer.time_elapsed()
             Acceptance_Canvases[f"Acceptance for Q2_y_Bin = {Q2_y_Bin}"] = Acceptance_Compare_z_pT_Images_Together(Histogram_List_All=Histogram_List_All, Q2_Y_Bin=Q2_y_Bin, Plot_Orientation="z_pT", Saving_Q=True, File_Save_Format=args.File_Save_Format)
+            timer.time_elapsed()
         if(verbose):
             print(f"{color.BOLD}Total Histos Made for Binned Acceptance Images = {color.BBLUE}{count}{color.END}")
         print(f"\n{color.BOLD}DONE MAKING BINNED ACCEPTANCE PLOTS\n{color.END}")
