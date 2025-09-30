@@ -376,8 +376,8 @@ def parse_cli():
                    help="Q2-y bin index (int).")
     p.add_argument("-z_pt", "-z_pT", "--z_pT_bin",                       type=int, required=True,
                    help="z-pT bin index (int).")
-    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Testing_V2_MM_Cut.root", 
-                   help="Input ROOT file with the pre-made plots (default: 'Testing_V2_MM_Cut.root' in the EvGen directory - is currently the most Up-To-Date version of the EvGen RC plot file).")
+    p.add_argument("-r",             "--root-in",     dest="root_in",    type=str, default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", 
+                   help="Input ROOT file with the pre-made plots (default: 'RC_Cross_Section_Scan_Outputs_Final.root' in the EvGen directory - is currently the most Up-To-Date version of the EvGen RC plot file).")
     g = p.add_mutually_exclusive_group()
     g.add_argument("-in",            "--cache-in",    dest="cache_in",   type=str,
                    help="Read-only ROOT cache path.")
