@@ -32,16 +32,6 @@ ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
 ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
 ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 
-try:
-    import RooUnfold
-except ImportError:
-    print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
-    # print("Somehow the python module was not found, let's try loading the library by hand...")
-    # try:
-    #     ROOT.gSystem.Load("libRooUnfold.so")
-    # except:
-    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-
 def safe_write(obj, tfile):
     existing = tfile.GetListOfKeys().FindObject(obj.GetName())
     if(existing):
@@ -103,6 +93,9 @@ def parse_args():
     p.add_argument('-evgen', '--EvGen', action='store_true',
                    help="Runs with EvGen instead of clasdis files.")
 
+    p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
+                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Default: 0.005)")
+
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
                    help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
@@ -110,6 +103,18 @@ def parse_args():
     return p.parse_args()
 
 args = parse_args()
+
+
+try:
+    import RooUnfold
+except ImportError:
+    print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
+    # print("Somehow the python module was not found, let's try loading the library by hand...")
+    # try:
+    #     ROOT.gSystem.Load("libRooUnfold.so")
+    # except:
+    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+
 
 # ——— determine all your flags exactly as before ———
 Saving_Q       = not args.test
@@ -262,6 +267,11 @@ timer.time_elapsed()
 # Variable for imposing a minimum acceptance value cut to the unfolded distributions
 Min_Allowed_Acceptance_Cut = 0.0175
 Min_Allowed_Acceptance_Cut = 0.005
+
+Min_Allowed_Acceptance_Cut = 0.0025 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
+Min_Allowed_Acceptance_Cut = 0.0005 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
+
+Min_Allowed_Acceptance_Cut = args.Min_Allowed_Acceptance_Cut # As of 9/21/2025 - Made an agument with the default being 0.005
 
 # Min_Allowed_Acceptance_Cut = 0.0045 # Updated for tests on 5/2/2025
 
@@ -2716,6 +2726,7 @@ Common_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
 Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_All"
 if(args.EvGen):
     Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_EvGen_All"
+    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V2_EvGen_All"
 
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
