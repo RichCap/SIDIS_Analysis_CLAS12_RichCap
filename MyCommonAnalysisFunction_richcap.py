@@ -1261,7 +1261,7 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False, Select_z_pT_bin=None):
+def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False, Select_z_pT_bin=None, Select_color=ROOT.kRed, Select_size=6):
     z_pT_Bins_Borders = {}
     if(Integration_Bins_Q):
         bin_color = root_color.Black
@@ -1269,8 +1269,8 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
         for z_pT in range(1, 26, 1):
             y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In, Integration_Bins_Q=True)
             if(str(Select_z_pT_bin) == str(z_pT)):
-                bin_color = ROOT.kRed
-                line_size = 6
+                bin_color = Select_color
+                line_size = Select_size
             else:
                 bin_color = root_color.Black
                 line_size = 4
@@ -1308,8 +1308,10 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
                 break
             line_size =  1 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
             if(str(Select_z_pT_bin) == str(z_pT)):
-                bin_color = ROOT.kRed
-                line_size = 6
+                bin_color = Select_color
+                line_size = Select_size
+            elif(Select_z_pT_bin is not None):
+                continue
             y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
             if(Set_Max_Y):
                 if(Set_Max_Y < y_max):
