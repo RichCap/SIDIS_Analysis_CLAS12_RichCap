@@ -2,6 +2,7 @@
 import sys
 import argparse
 
+JSON_WEIGHT_FILE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json"
 
 parser = argparse.ArgumentParser(description="Make Comparisons between Data, clasdis MC, and EvGen MC (based on Using_RDataFrames.ipynb)")
 parser.add_argument('-kc', '--kinematic-compare', action='store_true', 
@@ -30,8 +31,12 @@ parser.add_argument('-nMC', '--num-MC-files',     type=int,    default=1,
                     help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1) - Can set to -1 to include all available files')
 parser.add_argument('-hMX', '--use_HIGH_MX',       action='store_true',
                     help='Use with "-kc" option to normalize to High-Mx region')
-parser.add_argument('-2D', '--make_2D',            action='store_true',
-                    help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
+# parser.add_argument('-2D', '--make_2D',            action='store_true',
+#                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
+parser.add_argument('-2Dw', '--make_2D_weight',    action='store_true',
+                    help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
+parser.add_argument('-jsw', '--json_weights',      action='store_true',
+                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight` option as of 10/13/2025)')
 parser.add_argument('-minA', '--min-accept-cut',   type=float, default=0.005,
                     help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0')
 
@@ -804,9 +809,9 @@ if(__name__ == "__main__"):
     verbose = args.verbose
     
     for folder in folders:
-        if((args.make_2D) and ("REAL_Data" not in str(folder.name))):
-            print(f"{color.Error}Not running {folder.name} for 2D only plots at this time{color.END}")
-            continue
+        # if((args.make_2D_weight) and ("REAL_Data" not in str(folder.name))):
+        #     print(f"{color.Error}Not running {folder.name} for 2D only plots at this time{color.END}")
+        #     continue
             
         # print(str(folder.name))
         array_name = "rdf" if("REAL_Data" in str(folder.name)) else "mdf" if(("Matching_REC_MC" in str(folder.name)) or ("Link_to_Volatile_MC_Matching" in str(folder.name))) else "gdf"
@@ -834,6 +839,10 @@ if(__name__ == "__main__"):
                     continue
                 if("V3"               not in str(f.name)):
                     continue
+                if(args.make_2D_weight):
+                    if(verbose):
+                        print(f"\t{color.Error}Not using EvGen files for Acceptance weights{color.END}\n")
+                    continue
                 all_root_files[array_name].append(f"{str(folder.name)}/{f.name}")
             elif("REAL" in str(folder.name)):
                 if(len(all_root_files[array_name]) < args.num_rdf_files):
@@ -855,6 +864,8 @@ if(__name__ == "__main__"):
         args.num_MC_files = max([len(all_root_files["gdf_clasdis"]), len(all_root_files["mdf_clasdis"]), len(all_root_files["gdf"]), len(all_root_files["mdf"])])
     remove_list = []
     for mc           in ["", "_clasdis"]:
+        if(args.make_2D_weight and ("clasdis" not in mc)):
+            continue
         all_root_files[f"gdf{mc}"].sort()
         all_root_files[f"mdf{mc}"].sort()
         count = 0
@@ -896,11 +907,16 @@ if(__name__ == "__main__"):
     
     print(f"\n{color.BOLD}LOADING DATAFRAMES{color.END}")
     
-    rdf         = ROOT.RDataFrame("h22", all_root_files["rdf"])
-    mdf_EvGen   = ROOT.RDataFrame("h22", all_root_files["mdf"])
-    gdf_EvGen   = ROOT.RDataFrame("h22", all_root_files["gdf"])
-    mdf_clasdis = ROOT.RDataFrame("h22", all_root_files["mdf_clasdis"])
-    gdf_clasdis = ROOT.RDataFrame("h22", all_root_files["gdf_clasdis"])
+    rdf           = ROOT.RDataFrame("h22", all_root_files["rdf"])
+    mdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["mdf_clasdis"])
+    gdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["gdf_clasdis"])
+    if(not args.make_2D_weight):
+        mdf_EvGen = ROOT.RDataFrame("h22", all_root_files["mdf"])
+        gdf_EvGen = ROOT.RDataFrame("h22", all_root_files["gdf"])
+    # else:
+    #     rdf         = rdf.Range(50000)
+    #     mdf_clasdis = mdf_clasdis.Range(50000)
+    #     gdf_clasdis = gdf_clasdis.Range(50000)
     # rdf         = rdf.Range(5000)
     # mdf_EvGen   = mdf_EvGen.Range(5000)
     # gdf_EvGen   = gdf_EvGen.Range(5000)
@@ -915,15 +931,16 @@ if(__name__ == "__main__"):
     if(not rdf.HasColumn("MM2")):
         print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'rdf'{color.END}")
         rdf = rdf.Define("MM2", "MM*MM")
-    if(not mdf_EvGen.HasColumn("MM2")):
-        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_EvGen'{color.END}")
-        mdf_EvGen = mdf_EvGen.Define("MM2", "MM*MM")
-    if(not mdf_EvGen.HasColumn("MM2_smeared")):
-        print(f"{color.Error}Need to (re)define {color.END_B}'MM2_smeared'{color.Error} for 'mdf_EvGen'{color.END}")
-        mdf_EvGen = mdf_EvGen.Define("MM2_smeared", "MM_smeared*MM_smeared")
-    if(not gdf_EvGen.HasColumn("MM2")):
-        print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'gdf_EvGen'{color.END}")
-        gdf_EvGen = gdf_EvGen.Define("MM2", "MM*MM")
+    if(not args.make_2D_weight):
+        if(not mdf_EvGen.HasColumn("MM2")):
+            print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_EvGen'{color.END}")
+            mdf_EvGen = mdf_EvGen.Define("MM2", "MM*MM")
+        if(not mdf_EvGen.HasColumn("MM2_smeared")):
+            print(f"{color.Error}Need to (re)define {color.END_B}'MM2_smeared'{color.Error} for 'mdf_EvGen'{color.END}")
+            mdf_EvGen = mdf_EvGen.Define("MM2_smeared", "MM_smeared*MM_smeared")
+        if(not gdf_EvGen.HasColumn("MM2")):
+            print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'gdf_EvGen'{color.END}")
+            gdf_EvGen = gdf_EvGen.Define("MM2", "MM*MM")
     if(not mdf_clasdis.HasColumn("MM2")):
         print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_clasdis'{color.END}")
         mdf_clasdis = mdf_clasdis.Define("MM2", "MM*MM")
@@ -945,24 +962,25 @@ if(__name__ == "__main__"):
         for ii in range(0, len(mdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((mdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_clasdis.GetColumnType(mdf_clasdis.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-    
-    print(f"\n{color.BOLD}{color.PINK}mdf_EvGen{color.END}:")
-    if(verbose or (not True)):
-        for ii in range(0, len(mdf_EvGen.GetColumnNames()), 1):
-            print(f"\t{str((mdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_EvGen.GetColumnType(mdf_EvGen.GetColumnNames()[ii])})")
-    print(f"\tTotal entries in {color.BOLD}{color.PINK}mdf_EvGen{color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
-    
+
     print(f"\n{color.BGREEN}gdf_clasdis{color.END}:")
     if(verbose or (not True)):
         for ii in range(0, len(gdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((gdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_clasdis.GetColumnType(gdf_clasdis.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
     
-    print(f"\n{color.BCYAN}gdf_EvGen{color.END}:")
-    if(verbose or (not True)):
-        for ii in range(0, len(gdf_EvGen.GetColumnNames()), 1):
-            print(f"\t{str((gdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_EvGen.GetColumnType(gdf_EvGen.GetColumnNames()[ii])})")
-    print(f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+    if(not args.make_2D_weight):
+        print(f"\n{color.BOLD}{color.PINK}mdf_EvGen{color.END}:")
+        if(verbose or (not True)):
+            for ii in range(0, len(mdf_EvGen.GetColumnNames()), 1):
+                print(f"\t{str((mdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_EvGen.GetColumnType(mdf_EvGen.GetColumnNames()[ii])})")
+        print(f"\tTotal entries in {color.BOLD}{color.PINK}mdf_EvGen{color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+    
+        print(f"\n{color.BCYAN}gdf_EvGen{color.END}:")
+        if(verbose or (not True)):
+            for ii in range(0, len(gdf_EvGen.GetColumnNames()), 1):
+                print(f"\t{str((gdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_EvGen.GetColumnType(gdf_EvGen.GetColumnNames()[ii])})")
+        print(f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
     
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     timer.time_elapsed()
@@ -987,50 +1005,335 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     # gdf_clasdis = gdf_clasdis.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
 
     # EvGen Generation Cuts
-    mdf_EvGen   =   mdf_EvGen.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
-    gdf_EvGen   =   gdf_EvGen.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
-    mdf_clasdis = mdf_clasdis.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
-    gdf_clasdis = gdf_clasdis.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+    if(not args.make_2D_weight):
+        mdf_EvGen =   mdf_EvGen.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+        gdf_EvGen =   gdf_EvGen.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
+    mdf_clasdis   = mdf_clasdis.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
+    gdf_clasdis   = gdf_clasdis.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     
     # clasdis Generation Cuts (y ended at 0.93 apparently?)
-    mdf_EvGen   =   mdf_EvGen.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
-    gdf_EvGen   =   gdf_EvGen.Filter("((y     > 0.05) && (y     < 0.93))")
-    mdf_clasdis = mdf_clasdis.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
-    gdf_clasdis = gdf_clasdis.Filter("((y     > 0.05) && (y     < 0.93))")
+    if(not args.make_2D_weight):
+        mdf_EvGen =   mdf_EvGen.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
+        gdf_EvGen =   gdf_EvGen.Filter("((y     > 0.05) && (y     < 0.93))")
+    mdf_clasdis   = mdf_clasdis.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
+    gdf_clasdis   = gdf_clasdis.Filter("((y     > 0.05) && (y     < 0.93))")
     
     # EvGen Generation Cuts (OLD)
-    mdf_EvGen   =   mdf_EvGen.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
-    gdf_EvGen   =   gdf_EvGen.Filter("((z     > 0.15) && (z     < 0.90))")
-    mdf_clasdis = mdf_clasdis.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
-    gdf_clasdis = gdf_clasdis.Filter("((z     > 0.15) && (z     < 0.90))")
+    if(not args.make_2D_weight):
+        mdf_EvGen =   mdf_EvGen.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
+        gdf_EvGen =   gdf_EvGen.Filter("((z     > 0.15) && (z     < 0.90))")
+    mdf_clasdis   = mdf_clasdis.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
+    gdf_clasdis   = gdf_clasdis.Filter("((z     > 0.15) && (z     < 0.90))")
 
-    if(not args.kinematic_compare):
+    if(not (args.kinematic_compare or args.make_2D_weight)):
         print(f"{color.BGREEN}Adding MM cuts to gdf files for Acceptance Corrections{color.END}\n")
         gdf_EvGen   =   gdf_EvGen.Filter("MM > 1.5")
         gdf_clasdis = gdf_clasdis.Filter("MM > 1.5")
     
     
     # Normal Analysis Cuts
-    rdf         = DF_Filter_Function_Full(DF_Out=rdf,         Titles_or_DF="DF", Data_Type="rdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
-    mdf_EvGen   = DF_Filter_Function_Full(DF_Out=mdf_EvGen,   Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
-    mdf_clasdis = DF_Filter_Function_Full(DF_Out=mdf_clasdis, Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="smear")
+    rdf           = DF_Filter_Function_Full(DF_Out=rdf,         Titles_or_DF="DF", Data_Type="rdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
+    if(not args.make_2D_weight):
+        mdf_EvGen = DF_Filter_Function_Full(DF_Out=mdf_EvGen,   Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
+    mdf_clasdis   = DF_Filter_Function_Full(DF_Out=mdf_clasdis, Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="smear")
 
     if(args.cut):
         print(f"{color.Error}Applying User Cut: {color.END_B}{args.cut}{color.END}")
-        rdf         =         rdf.Filter(args.cut)
-        mdf_EvGen   =   mdf_EvGen.Filter(args.cut)
-        gdf_EvGen   =   gdf_EvGen.Filter(args.cut)
-        mdf_clasdis = mdf_clasdis.Filter(args.cut)
-        gdf_clasdis = gdf_clasdis.Filter(args.cut)
+        rdf           =         rdf.Filter(args.cut)
+        if(not args.make_2D_weight):
+            mdf_EvGen =   mdf_EvGen.Filter(args.cut)
+            gdf_EvGen =   gdf_EvGen.Filter(args.cut)
+        mdf_clasdis   = mdf_clasdis.Filter(args.cut)
+        gdf_clasdis   = gdf_clasdis.Filter(args.cut)
     
     print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
     print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-    print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
     print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
-    print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+    if(not args.make_2D_weight):
+        print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+        print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
     timer.time_elapsed()
 
+    if(args.make_2D_weight):
+        print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
+        El_Binning                 = ['el',     2.64, 7.88, 524]
+        El_Th_Binning              = ['elth',      5,   35, 300]
+        El_Phi_Binning             = ['elPhi',     0,  360, 720]
+        Pip_Binning                = ['pip',    1.25,    5, 375]
+        Pip_Th_Binning             = ['pipth',     5,   35, 300]
+        Pip_Phi_Binning            = ['pipPhi',    0,  360, 720]
 
+        # El_Binning                 = ['el',      2.6,  7.9, 53]
+        # El_Th_Binning              = ['elth',      5,   35, 30]
+        # El_Phi_Binning             = ['elPhi',     0,  360, 72]
+        # Pip_Binning                = ['pip',     1.2,    5, 38]
+        # Pip_Th_Binning             = ['pipth',     5,   35, 30]
+        # Pip_Phi_Binning            = ['pipPhi',    0,  360, 72]
+        
+        List_of_Quantities_2D = []
+        List_of_Quantities_2D.append([El_Phi_Binning, Pip_Phi_Binning])
+        List_of_Quantities_2D.append([El_Th_Binning,  Pip_Th_Binning])
+        List_of_Quantities_2D.append([El_Binning,     Pip_Binning])
+        
+        histos_data_match = {}
+
+        canvas_data_match = ROOT.TCanvas("canvas_data_match", "My Canvas", int(912*1.55*25), int(547*1.55*25))
+        canvas_data_match.Divide(len(List_of_Quantities_2D), 4)
+
+        # -----------------------------
+        # 1) One-time C++ helpers
+        # -----------------------------
+        One_Time_Cpp_Helpers = r"""
+        #include <vector>
+        #include <algorithm>
+        #include <cmath>
+        #include <string>
+
+        int accw_findBin(const double value, const std::vector<double>& edges){
+            if((value < edges.front()) or (value >= edges.back())){
+                return -1;
+            }
+            auto it = std::upper_bound(edges.begin(), edges.end(), value);
+            int idx = int(it - edges.begin()) - 1;
+            if((idx < 0) or (idx >= int(edges.size()) - 1)){
+                return -1;
+            }
+            return idx;
+        }
+
+        double accw_lookup2D(const double x, const double y,
+                             const std::vector<double>& ex,
+                             const std::vector<double>& ey,
+                             const std::vector<double>& grid){
+            const int nx = int(ex.size()) - 1;
+            const int ny = int(ey.size()) - 1;
+
+            int ix = accw_findBin(x, ex);
+            int iy = accw_findBin(y, ey);
+
+            if((ix < 0) or (iy < 0)){
+                return 1.0; // under/overflow policy
+            }
+
+            const int idx = ix + nx*iy; // row-major (iy outer, ix inner)
+            double w = grid[idx];
+            if(!(w >= 0.0) or (!std::isfinite(w))){
+                return 1.0;
+            }
+            return w;
+        }
+        """
+        ROOT.gInterpreter.Declare(One_Time_Cpp_Helpers)
+
+        # Accumulate generated wrappers to save for later use
+        generated_wrappers_code = []
+        generated_wrappers_code.append("// Auto-generated acceptance weight functions\n")
+        generated_wrappers_code.append("// Includes\n#include <vector>\n#include <algorithm>\n#include <cmath>\n\n")
+        generated_wrappers_code.append("// Helper declarations (duplicate-safe if header is included alone)\n")
+        generated_wrappers_code.append(
+            "int accw_findBin(const double value, const std::vector<double>& edges);\n"
+            "double accw_lookup2D(const double x, const double y,\n"
+            "                     const std::vector<double>& ex,\n"
+            "                     const std::vector<double>& ey,\n"
+            "                     const std::vector<double>& grid);\n\n"
+        )
+
+        def _cpp_list(vals):
+            return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
+
+        if(args.json_weights):
+            import json
+            print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
+            with open(JSON_WEIGHT_FILE) as f:
+                Fit_Pars = json.load(f)
+                # Build the C++ initialization string
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                
+                    // safely retrieve parameters (default = 0)
+                    // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                
+                    return weight;
+                }}
+                """)
+            wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_smeared, z_pT_Bin_Y_bin_smeared, phi_t_smeared)")
+        else:
+            wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
+
+        for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
+            var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
+            var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
+
+            rdf_name        = f"{var_x}_vs_{var_y}_rdf"
+            mclasdis        = f"{var_x}_vs_{var_y}_mdf"
+            data_match_name = f"{var_x}_vs_{var_y}"
+
+            Title = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+            if(args.title):
+                Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+
+            # -----------------------------
+            # 2) Build 2D histos (your original)
+            # -----------------------------
+            histos_data_match[rdf_name] = rdf.Histo2D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),        Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
+            histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+
+            histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
+            histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
+
+            rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
+            mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+
+            histos_data_match[f"norm_{rdf_name}"] = histos_data_match[rdf_name].Clone(f"norm_{rdf_name}")
+            histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
+
+            histos_data_match[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor) if(rdf_name_norm_factor != 0) else 1)
+            histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+
+            histos_data_match[data_match_name] = histos_data_match[f"norm_{rdf_name}"].Clone(data_match_name)
+            histos_data_match[data_match_name].Divide(histos_data_match[f"norm_{mclasdis}"])
+
+            if(args.title):
+                histos_data_match[data_match_name].SetTitle(f"#splitline{{Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}}}{{{args.title}}}")
+            else:
+                histos_data_match[data_match_name].SetTitle(f"Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}")
+
+            # -----------------------------
+            # 3) Extract edges + row-major weights from the ratio
+            # -----------------------------
+            H_w = histos_data_match[data_match_name]
+
+            nx = H_w.GetXaxis().GetNbins()
+            ny = H_w.GetYaxis().GetNbins()
+
+            edges_x = [H_w.GetXaxis().GetBinLowEdge(i) for i in range(1, nx+1)]
+            edges_x.append(H_w.GetXaxis().GetBinUpEdge(nx))
+
+            edges_y = [H_w.GetYaxis().GetBinLowEdge(j) for j in range(1, ny+1)]
+            edges_y.append(H_w.GetYaxis().GetBinUpEdge(ny))
+
+            weights = []
+            for iy in range(1, ny+1):
+                for ix in range(1, nx+1):
+                    val = H_w.GetBinContent(ix, iy)
+                    if((val < 0.0) or (not math.isfinite(val))):
+                        val = 1.0
+                    weights.append(val)
+
+            cpp_edges_x = _cpp_list(edges_x)
+            cpp_edges_y = _cpp_list(edges_y)
+            cpp_weights = _cpp_list(weights)
+
+            # Pick a stable function name for this pair
+            func_name = f"accw_{var_x}_vs_{var_y}"
+
+            # -----------------------------
+            # 4) Generate + declare the concrete C++ wrapper
+            # -----------------------------
+            wrapper_code = f"""
+double {func_name}(const double x, const double y){{
+    static const std::vector<double> EX = {cpp_edges_x};
+    static const std::vector<double> EY = {cpp_edges_y};
+    static const std::vector<double> GRID = {cpp_weights};
+    return accw_lookup2D(x, y, EX, EY, GRID);
+}}
+"""
+            ROOT.gInterpreter.Declare(wrapper_code)
+            generated_wrappers_code.append(wrapper_code)
+
+            # -----------------------------
+            # 5) Apply weight to MC (using smeared cols) to draw the next weighted MC histo
+            # -----------------------------
+            weight_col = f"W_{var_x}_vs_{var_y}"
+            wdf = wdf.Define(weight_col, f"{func_name}({var_x}_smeared, {var_y}_smeared)").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
+
+            # -----------------------------
+            # 6) Draw panels (ratio / data / MC)
+            # -----------------------------
+            cd_num = num + 1
+            canvas_data_match.cd(cd_num)
+            # ROOT.gPad.SetLogz(1)
+            histos_data_match[data_match_name].Draw("colz")
+            canvas_data_match.cd(cd_num +   len(List_of_Quantities_2D))
+            # ROOT.gPad.SetLogz(1)
+            histos_data_match[f"norm_{rdf_name}"].Draw("colz")
+            canvas_data_match.cd(cd_num + 2*len(List_of_Quantities_2D))
+            # ROOT.gPad.SetLogz(1)
+            histos_data_match[f"norm_{mclasdis}"].Draw("colz")
+            histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{#splitline{{Before Applying the Weights in this column}}{{Applied the weights from the columns to the left}}}}}}")
+
+        for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
+            var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
+            var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
+            mclasdis  = f"{var_x}_vs_{var_y}_mdf_Final"
+            Title     = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+            if(args.title):
+                Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+            histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+            histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
+            histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
+            mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+            histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
+            histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            canvas_data_match.cd((num + 1) + 3*len(List_of_Quantities_2D))
+            # ROOT.gPad.SetLogz(1)
+            histos_data_match[f"norm_{mclasdis}"].Draw("colz")
+            histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{After Applying ALL Weights in this image}}}}")
+        # -----------------------------
+        # 7) Save the canvas (ratio / data / weighted-MC)
+        # -----------------------------
+        save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        canvas_data_match.SaveAs(save_name)
+        print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
+
+        # -----------------------------
+        # 8) Emit a reusable header with all functions
+        # -----------------------------
+        header_body = "".join(generated_wrappers_code)
+        header_path = "generated_acceptance_weights.hpp" if(not args.name) else f"generated_acceptance_weights_{args.name}.hpp"
+
+        with open(header_path, "w") as hf:
+            hf.write("// This file was auto-generated by your acceptance-weight script.\n")
+            hf.write("// It contains concrete lookup functions accw_<x>_vs_<y>(x, y).\n\n")
+            hf.write("#pragma once\n\n")
+            hf.write("// Forward declarations for helper symbols (supply your own defs or include where declared):\n")
+            hf.write("int accw_findBin(const double value, const std::vector<double>& edges);\n")
+            hf.write("double accw_lookup2D(const double x, const double y,\n")
+            hf.write("                     const std::vector<double>& ex,\n")
+            hf.write("                     const std::vector<double>& ey,\n")
+            hf.write("                     const std::vector<double>& grid);\n\n")
+            hf.write(header_body)
+
+        print(f"{color.BOLD}Wrote weight functions to: {color.BBLUE}{header_path}{color.END}")
+        print(f"\n{color.BOLD}===== BEGIN GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
+        print(header_body)
+        print(f"\n{color.BOLD}=====  END GENERATED ACCEPTANCE-WEIGHT CODE  ====={color.END}\n")
+        timer.time_elapsed()
+        print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
+    else:
+        print(f"\n{color.Error}Skipping Acceptance Weight Histograms{color.END}")
+    
     if(args.kinematic_compare):
         if(args.use_HIGH_MX):
             print(f"\n{color.BOLD}CREATING 1D MM HISTOGRAMS FOR HIGH-Mx NORMALIZATION FACTOR\n{color.END}")
