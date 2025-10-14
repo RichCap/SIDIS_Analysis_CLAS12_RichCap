@@ -724,21 +724,22 @@ if(extra_function_terms):
 
 
 
-def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Default", MC_BGS_1D="None"):#, Test_Bayes_Iterations=False):
+def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Default", MC_BGS_1D="None"):
     
 ##############################################################################################################
-#####=========================#####========================================#####=========================#####
 #####=====#####=====#####=====#####   Unfolding Method: "SVD" (Original)   #####=====#####=====#####=====#####
-#####=========================#####========================================#####=========================#####
 ##############################################################################################################
     if(Method in ["SVD"]):
-        print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.BLUE, "SVD", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
+        print(f"{color.BOLD}{color.CYAN}Starting {color.UNDERLINE}{color.BLUE}SVD{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
         else:
             Name_Main_Print = str(Name_Main)
-        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")]))
+        # print(f'\t{color.BOLD}Unfolding Histogram:{color.END}\n\t{str(Name_Main_Print).replace("(Data-Type=\'mdf\'), ", "")}')
+        clean_name = str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")
+        print(f"\t{color.BOLD}Unfolding Histogram:{color.END}\n\t{clean_name}")
+        del clean_name
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
@@ -753,26 +754,20 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
         MC_GEN_1D.GetXaxis().SetRange(0,     nBins_CVM)     # MC Generated data (gdf)
         Response_2D.GetXaxis().SetRange(0,   nBins_CVM)     # Response Matrix (X axis --> GEN)
         Response_2D.GetYaxis().SetRange(0,   nBins_CVM)     # Response Matrix (Y axis --> REC)
-                        
-        Covariance_Matrix = ROOT.TH2D("".join(["statcov_", str(Name_Main)]), "".join(["Covariance Matrix for: ", str(Name_Main)]), nBins_CVM, MinBinCVM, MaxBinCVM, nBins_CVM, MinBinCVM, MaxBinCVM)
+        
+        Covariance_Matrix = ROOT.TH2D(f"statcov_{Name_Main}", f"Covariance Matrix for: {Name_Main}", nBins_CVM, MinBinCVM, MaxBinCVM, nBins_CVM, MinBinCVM, MaxBinCVM)
         
         #######################################################################################
         ##==========##==========##   Filling the Covariance Matrix   ##==========##==========##
         #######################################################################################
-        for CVM_Bin in range(0, nBins_CVM, 1):
+        for CVM_Bin in range(0, nBins_CVM):
             Covariance_Matrix.SetBinContent(CVM_Bin, CVM_Bin, ExREAL_1D.GetBinError(CVM_Bin)*ExREAL_1D.GetBinError(CVM_Bin))
         ######################################################################################
         ##==========##==========##   Filled the Covariance Matrix   ##==========##==========##
         ######################################################################################
-             
-        ########################################################
         ##=====##  Unfolding Regularization Parameter  ##=====##
-        ########################################################
         Reg_Par = 13
-        ########################################################
         ##=====##  Unfolding Regularization Parameter  ##=====##
-        ########################################################
-        
         if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D.GetNbinsX() == Response_2D.GetNbinsY()):
             try:
                 Unfold_Obj = ROOT.TSVDUnfold(ExREAL_1D, Covariance_Matrix, MC_REC_1D, MC_GEN_1D, Response_2D)
@@ -802,7 +797,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 
                 # Inverse_CV_Matrix = Unfold_Obj.GetXinv()
 
-                for ii in range(1, Unfolded_Histo.GetNbinsX() + 1, 1):
+                for ii in range(1, Unfolded_Histo.GetNbinsX() + 1):
                     Unfolded_Histo.SetBinError(ii, ROOT.sqrt(Regularized_CV_Matrix.GetBinContent(ii, ii)))
                 
                 Unfolded_Histo.SetTitle(((str(Unfolded_Histo.GetTitle()).replace("Experimental", "SVD Unfolded")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
@@ -814,40 +809,38 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 return List_Of_Outputs
 
             except:
-                print("".join([color.Error, "\nFAILED TO UNFOLD A HISTOGRAM (SVD)...", color.END]))
-                print("".join([color.Error, "ERROR:\n", color.END_R, str(traceback.format_exc()), color.END]))
+                print(f"\n{color.Error}FAILED TO UNFOLD A HISTOGRAM (SVD)...\nERROR:\n{color.END}{traceback.format_exc()}")
+                
                 
         else:
-            print("unequal bins...")
-            print("".join(["nBins_CVM               = ", str(nBins_CVM)]))
-            print("".join(["MC_REC_1D.GetNbinsX()   = ", str(MC_REC_1D.GetNbinsX())]))
-            print("".join(["MC_GEN_1D.GetNbinsX()   = ", str(MC_GEN_1D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsX() = ", str(Response_2D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsY() = ", str(Response_2D.GetNbinsY())]))
+            print(f"{color.RED}Unequal Bins...{color.END}")
+            print(f"nBins_CVM = {nBins_CVM}")
+            print(f"MC_REC_1D.GetNbinsX() = {MC_REC_1D.GetNbinsX()}")
+            print(f"MC_GEN_1D.GetNbinsX() = {MC_GEN_1D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsX() = {Response_2D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsY() = {Response_2D.GetNbinsY()}")
             return "ERROR"
 ####################################################################################################################
-#####=========================#####==============================================#####=========================#####
 #####=====#####=====#####=====#####     End of Method: "SVD" (Original)          #####=====#####=====#####=====#####
-#####=========================#####==============================================#####=========================#####
 ####################################################################################################################
 
 #############################################################################################################################################################################
 #############################################################################################################################################################################
 
 ############################################################################################################
-#####=========================#####======================================#####=========================#####
 #####=====#####=====#####=====#####    Unfolding Method: "Bin-by-Bin"    #####=====#####=====#####=====#####
-#####=========================#####======================================#####=========================#####
 ############################################################################################################
     elif((Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]) or (Response_2D in ["N/A", "None", "Error"])):
-        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
+        print(f"{color.BCYAN}Starting {color.UNDERLINE}{color.PURPLE}Bin-by-Bin{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
         if(Response_2D in ["N/A", "None", "Error"]):
             print(f"{color.Error}WARNING: NOT Using Response Matrix for unfolding{color.END}")
         if((str(MC_REC_1D.GetName()).find("-[NumBins")) != -1):
             Name_Print = str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName()).replace(str(MC_REC_1D.GetName())[:(str(MC_REC_1D.GetName()).find("-[NumBins"))], ""), "))")
         else:
             Name_Print = str(MC_REC_1D.GetName())
-        print("".join([color.BOLD, "\tAcceptance Correction of Histogram:\n\t", color.END, str(Name_Print).replace("(Data-Type='mdf'), ", "")]))
+        clean_name = str(Name_Print).replace("(Data-Type='mdf'), ", "")
+        print(f"\t{color.BOLD}Acceptance Correction of Histogram:{color.END}\n\t{clean_name}")
+        del clean_name
         try:
             Bin_Acceptance = MC_REC_1D.Clone()
             if(MC_BGS_1D not in ["None"]):
@@ -857,8 +850,6 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Bin_Acceptance.Divide(MC_GEN_1D)
             Bin_Acceptance.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental Distribution of", "Bin-by-Bin Acceptance for")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             Bin_Acceptance.SetTitle(str(Bin_Acceptance.GetTitle()).replace("Reconstructed (MC) Distribution of", "Bin-by-Bin Acceptance for"))
-            # print("\n\n\n\n\n\n\n\n\n\nstr(Bin_Acceptance.GetTitle()) =", str(Bin_Acceptance.GetTitle()), "\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-            # Bin_Acceptance.GetYaxis().SetTitle("#frac{Number of REC Events}{Number of GEN Events}")
             Bin_Acceptance.GetYaxis().SetTitle("Acceptance")
             Bin_Acceptance.GetXaxis().SetTitle(str(Bin_Acceptance.GetXaxis().GetTitle()).replace("(REC)", ""))
             
@@ -867,52 +858,47 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Bin_Unfolded.SetTitle(((str(Bin_Unfolded.GetTitle()).replace("Experimental", "Bin-By-Bin Corrected")).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
             # Bin_Unfolded.Sumw2()
             
-            # cut_criteria = (0.01*Bin_Acceptance.GetBinContent(Bin_Acceptance.GetMaximumBin()))
-            # cut_criteria = 0.02
-            # cut_criteria = 0
             cut_criteria = Min_Allowed_Acceptance_Cut
 
             if(any(Sector_Cut in str(Name_Print) for Sector_Cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"])):
                 print(f"{color.RED}NOTE: Reducing Acceptance Cut criteria by 50% for Sector Cut plots{color.END}")
                 cut_criteria = 0.5*Min_Allowed_Acceptance_Cut
             
-            for ii in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
+            for ii in range(0, Bin_Acceptance.GetNbinsX() + 1):
                 if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
                     if(Bin_Acceptance.GetBinContent(ii) != 0):
-                        print("".join([color.RED, "\nBin ", str(ii), " had a very low acceptance...\n\t(cut_criteria = ", str(cut_criteria), ")\n\t(Bin_Content  = ", str(Bin_Acceptance.GetBinContent(ii)), ")", color.END]))
+                        print(f"{color.RED}\nBin {ii} had a very low acceptance...\n\t(cut_criteria = {cut_criteria})\n\t(Bin_Content  = {Bin_Acceptance.GetBinContent(ii)}){color.END}")
                     # Bin_Unfolded.SetBinError(ii,   Bin_Unfolded.GetBinContent(ii) + Bin_Unfolded.GetBinError(ii))
                     Bin_Unfolded.SetBinError(ii,   0)
                     Bin_Unfolded.SetBinContent(ii, 0)
             
-            print("".join([color.BCYAN, "Finished ", color.PURPLE, "Bin-by-Bin", color.END_B, color.CYAN, " Unfolding Procedure.", color.END]))
+            print(f"{color.BCYAN}Finished {color.PURPLE}Bin-by-Bin{color.END_B}{color.CYAN} Unfolding Procedure.{color.END}")
             if(Response_2D in ["N/A", "None", "Error"]):
                 return [Bin_Unfolded, Bin_Acceptance]
         except:
-            print("".join([color.Error, "\nFAILED TO CORRECT A HISTOGRAM (Bin-by-Bin)...", color.END]))
-            print("".join([color.Error, "ERROR:\n", color.END_R, str(traceback.format_exc()), color.END]))
+            print(f"\n{color.Error}FAILED TO CORRECT A HISTOGRAM (Bin-by-Bin)...\nERROR:\n{color.END}{traceback.format_exc()}")
+            
             return "ERROR"
 ############################################################################################################
-#####=========================#####======================================#####=========================#####
 #####=====#####=====#####=====#####     End of Method:  "Bin-by-Bin"     #####=====#####=====#####=====#####
-#####=========================#####======================================#####=========================#####
 ############################################################################################################
 
 #############################################################################################################################################################################
 #############################################################################################################################################################################
 
 ##############################################################################################################
-#####=========================#####========================================#####=========================#####
 #####=====#####=====#####=====#####    Unfolding Method(s): "RooUnfold"    #####=====#####=====#####=====#####
-#####=========================#####========================================#####=========================#####
 ##############################################################################################################
     if((("RooUnfold" in str(Method)) or (str(Method) in ["Default"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])) and (Response_2D not in ["N/A", "None", "Error"])):
-        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))        
+        print(f"{color.BCYAN}Starting {color.UNDERLINE}{color.GREEN}RooUnfold{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
         else:
             Name_Main_Print = str(Name_Main)
-        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")]))
+        clean_name = str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")
+        print(f"\t{color.BOLD}Unfolding Histogram:{color.END}\n\t{clean_name}")
+        del clean_name
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
@@ -931,16 +917,16 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             MC_BGS_1D.GetXaxis().SetRange(0, nBins_CVM)     # MC Background Subtracted Distribution
             
         if(("MultiDim_Q2_y_z_pT_phi_h" not in str(Name_Main)) or ("5D_Unfold_Test_V1_All" in str(MC_REC_File_Name))):
-            Response_2D_Input_Title = "".join([str(Response_2D.GetTitle()), ";", str(Response_2D.GetYaxis().GetTitle()), ";", str(Response_2D.GetXaxis().GetTitle())])
-            Response_2D_Input       = ROOT.TH2D("".join([str(Response_2D.GetName()), "_Flipped"]), str(Response_2D_Input_Title), Response_2D.GetNbinsY(), MinBinCVM, MaxBinCVM, Response_2D.GetNbinsX(), MinBinCVM, MaxBinCVM)
+            Response_2D_Input_Title = f"{Response_2D.GetTitle()};{Response_2D.GetYaxis().GetTitle()};{Response_2D.GetXaxis().GetTitle()}"
+            Response_2D_Input       = ROOT.TH2D(f"{Response_2D.GetName()}_Flipped", str(Response_2D_Input_Title), Response_2D.GetNbinsY(), MinBinCVM, MaxBinCVM, Response_2D.GetNbinsX(), MinBinCVM, MaxBinCVM)
             # Use the following code if the input Response Matrix plots the generated events on the x-axis
             # # The RooUnfold library takes Response Matrices which plot the true/generated events on the y-axis and the measured/reconstructed events on the x-axis
             ##==============##============================================##==============##
             ##==============##=====##     Flipping Response_2D     ##=====##==============##
             ##=========##   Generated Bins       ##=====##
-            for gen_bin in range(0, nBins_CVM + 1, 1):
+            for gen_bin in range(0, nBins_CVM + 1):
                 ##=====##   Reconstructed Bins   ##=====##
-                for rec_bin in range(0, nBins_CVM + 1, 1):
+                for rec_bin in range(0, nBins_CVM + 1):
                     Res_Value = Response_2D.GetBinContent(gen_bin,    rec_bin)
                     Res_Error = Response_2D.GetBinError(gen_bin,      rec_bin)
                     Response_2D_Input.SetBinContent(rec_bin, gen_bin, Res_Value)
@@ -949,64 +935,50 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             ##==============##============================================##==============##
             # Response_2D_Input.Sumw2()
         else:
-            Response_2D_Input_Title = "".join([str(Response_2D.GetTitle()), ";", str(Response_2D.GetXaxis().GetTitle()), ";", str(Response_2D.GetYaxis().GetTitle())])
+            Response_2D_Input_Title = f"{Response_2D.GetTitle()};{Response_2D.GetXaxis().GetTitle()};{Response_2D.GetYaxis().GetTitle()}"
             Response_2D_Input       = Response_2D
         del Response_2D
 
-        
         if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D_Input.GetNbinsX() == Response_2D_Input.GetNbinsY()):
             try:
                 # Response_RooUnfold = ROOT.RooUnfoldResponse(nBins_CVM, MinBinCVM, MaxBinCVM)
-                Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_1D, MC_GEN_1D, Response_2D_Input, "".join([str(Response_2D_Input.GetName()).replace("_Flipped", ""), "_RooUnfoldResponse_Object"]), Response_2D_Input_Title)
-                
+                Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_1D, MC_GEN_1D, Response_2D_Input, f"{str(Response_2D_Input.GetName()).replace('_Flipped', '')}_RooUnfoldResponse_Object", Response_2D_Input_Title)
                 if(MC_BGS_1D != "None"):
                     # Background Subtraction Method 1: Fill the Response_RooUnfold object explicitly with the content of a background histogram with the Fake() function
-                    for rec_bin in range(0, nBins_CVM + 1, 1):
+                    for rec_bin in range(0, nBins_CVM + 1):
                         rec_val = MC_BGS_1D.GetBinCenter(rec_bin)
                         rec_con = MC_BGS_1D.GetBinContent(rec_bin)
                         Response_RooUnfold.Fake(rec_val, w=rec_con)
                     # Background Subtraction Method 2:
                         # Should be possible to add MC_BGS_1D to MC_REC_1D to combine those plots where MC_REC_1D != the projection of Response_2D_Input since MC_REC_1D would (in this case) still contain events which would be identifified as background in MC_BGS_1D
                         # This is likely the better approach computationally, though some testing needs to be done to get the execution working correctly
-                    
-
 ##==============##=======================================================##==============##
 ##==============##=====##      Applying the RooUnfold Method      ##=====##==============##
 ##==============##=======================================================##==============##
                 Unfold_Title = "ERROR"
                 if("svd" in str(Method)):
                     Unfold_Title = "RooUnfold (SVD)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
-
-                    ##################################################
+                    print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
                     ##=====##  SVD Regularization Parameter  ##=====##
-                    ##################################################
                     Reg_Par = 13
-                    ##################################################
                     ##=====##  SVD Regularization Parameter  ##=====##
-                    ##################################################
-
                     Unfolding_Histo = ROOT.RooUnfoldSvd(Response_RooUnfold, ExREAL_1D, Reg_Par, 100)
-
                 elif(("bbb" in str(Method)) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
-
+                    print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
                     Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
-
                 elif("inv" in str(Method)):
                     Unfold_Title = "RooUnfold Inversion (without regulation)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
-
+                    print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
                     Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
-
                 else:
                     Unfold_Title = "RooUnfold (Bayesian)"
                     if(str(Method) not in ["RooUnfold", "RooUnfold_bayes", "Default"]):
-                        print("".join(["\t", color.RED, "Method '",                 color.BOLD,   str(Method),       color.END_R, "' is unknown/undefined...", color.END]))
-                        print("".join(["\t", color.RED, "Defaulting to using the ", color.BGREEN, str(Unfold_Title), color.END_R, " method to unfold...",      color.END]))
+                        print(f"\t{color.RED}Method '{color.BOLD}{Method}{color.END_R}' is unknown/undefined...{color.END}")
+                        print(f"\t{color.RED}Defaulting to using the {color.BGREEN}{Unfold_Title}{color.END_R} method to unfold...{color.END}")
                     else:
-                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END_C, " method to unfold...",      color.END]))
+                        print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} method to unfold...{color.END}")
+
                         
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
@@ -1018,23 +990,24 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         # 5D Unfolding
                         bayes_iterations = 4
                         print(f"{color.BOLD}Performing 5D Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
-                    if(args.bayes_iterations):
-                        bayes_iterations = args.bayes_iterations
-                        print(f"{color.BOLD}Using Fixed Number of Iterations for Unfolding (i.e., {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s))...{color.END}")
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
 
                     Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
-
+                    Unfolding_Histo.SetNToys(500)
 
 ##==============##==============================================================##==============##
 ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
 ##==============##==============================================================##==============##
 
-                Unfolded_Histo = Unfolding_Histo.Hunfold()
+                if(any(method in str(Method) for method in ["bbb", "svd", "inv"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
+                    Unfolded_Histo = Unfolding_Histo.Hunfold()
+                else:
+                    Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovToys)
+
     
-                for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1, 1):
+                for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1):
                     if(MC_REC_1D.GetBinContent(bin_rec) == 0):
                         Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
                         # Unfolded_Histo.SetBinError(bin_rec,          0)
@@ -1044,7 +1017,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Acceptance = MC_REC_1D.Clone()
                     Bin_Acceptance.Sumw2()
                     Bin_Acceptance.Divide(MC_GEN_1D)
-                for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1, 1):
+                for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1):
                     if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*Min_Allowed_Acceptance_Cut)):
                         # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
                         # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
@@ -1054,7 +1027,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
-                print("".join([color.BCYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
+                print(f"{color.BCYAN}Finished {color.GREEN}{Unfold_Title}{color.END_B}{color.CYAN} Unfolding Procedure.\n{color.END}")
                 if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
                     return [Unfolded_Histo, Response_RooUnfold]
                 else:
@@ -1062,25 +1035,24 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 
                         
             except:
-                print("".join([color.Error, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
-                print("".join([color.Error, "ERROR:\n", color.END, str(traceback.format_exc())]))
+                print(f"\n{color.Error}FAILED TO UNFOLD A HISTOGRAM (RooUnfold)...\nERROR:\n{color.END}{traceback.format_exc()}")
                 
         else:
-            print("".join([color.RED, "Unequal Bins...", color.END]))
-            print("".join(["nBins_CVM = ", str(nBins_CVM)]))
-            print("".join(["MC_REC_1D.GetNbinsX() = ",   str(MC_REC_1D.GetNbinsX())]))
-            print("".join(["MC_GEN_1D.GetNbinsX() = ",   str(MC_GEN_1D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsX() = ", str(Response_2D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsY() = ", str(Response_2D.GetNbinsY())]))
+            print(f"{color.RED}Unequal Bins...{color.END}")
+            print(f"nBins_CVM = {nBins_CVM}")
+            print(f"MC_REC_1D.GetNbinsX() = {MC_REC_1D.GetNbinsX()}")
+            print(f"MC_GEN_1D.GetNbinsX() = {MC_GEN_1D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsX() = {Response_2D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsY() = {Response_2D.GetNbinsY()}")
             return "ERROR"
     
-
     else:
         print(f"Procedure for Method '{Method}' has not yet been defined...")
         return "ERROR"
     
-    print(f"{color.Error}\nERROR: DID NOT RETURN A HISTOGRAM YET...\n{color.END}")
+    print(f"\n{color.Error}ERROR: DID NOT RETURN A HISTOGRAM YET...{color.END}\n")
     return "ERROR"
+
 
 
 
