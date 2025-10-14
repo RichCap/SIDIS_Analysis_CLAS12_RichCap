@@ -49,3 +49,5 @@ TTree_Files_ROOT/GEN_MC/claspyth/
 TTree_Files_ROOT/Matching_REC_MC/claspyth/
 Histo_Files_ROOT/DataFrames/*/*.log
 Histo_Files_ROOT/DataFrames/*/*.err
+*.err
+*.log
