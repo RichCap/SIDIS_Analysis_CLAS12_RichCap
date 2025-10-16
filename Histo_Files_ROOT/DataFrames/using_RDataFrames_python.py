@@ -5,39 +5,41 @@ import argparse
 JSON_WEIGHT_FILE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json"
 
 parser = argparse.ArgumentParser(description="Make Comparisons between Data, clasdis MC, and EvGen MC (based on Using_RDataFrames.ipynb)")
-parser.add_argument('-kc', '--kinematic-compare', action='store_true', 
+parser.add_argument('-kc', '--kinematic-compare',      action='store_true', 
                     help='Runs Kinematic Comparisons')
-parser.add_argument('-ac', '--acceptance-all',    action='store_true', 
+parser.add_argument('-ac', '--acceptance-all',         action='store_true', 
                     help='Runs Acceptance Comparisons (no binning)')
-parser.add_argument('-ab', '--acceptance',        action='store_true', 
+parser.add_argument('-ab', '--acceptance',             action='store_true', 
                     help='Runs Binned Acceptance Comparisons (for all kinematic bins)')
-parser.add_argument('-abr', '--acceptance-ratio', action='store_true', 
+parser.add_argument('-abr', '--acceptance-ratio',      action='store_true', 
                     help='Similar to "-ab", but plots the ratios of the acceptances to show discrepancies')
-parser.add_argument('-abd', '--acceptance-diff',  action='store_true', 
+parser.add_argument('-abd', '--acceptance-diff',       action='store_true', 
                     help='Similar to "-ab" and "-abr", but plots the percent difference between the acceptances to show discrepancies')
-parser.add_argument('-v',  '--verbose',           action='store_true', 
+parser.add_argument('-v',  '--verbose',                action='store_true', 
                     help='Prints more info while running')
-parser.add_argument('-c',  '--cut',               type=str,
+parser.add_argument('-c',  '--cut',                    type=str,
                     help='Adds additional cuts based on user input (Warning: applies to all datasets)')
-parser.add_argument('-sf', '--File_Save_Format',  type=str,    default=".png", choices=['.png', '.pdf'],
+parser.add_argument('-sf', '--File_Save_Format',       type=str,    default=".png", choices=['.png', '.pdf'],
                     help='Save Format of Images')
-parser.add_argument('-n', '--name',               type=str,
+parser.add_argument('-n', '--name',                    type=str,
                     help='Extra save name that can be added to the saved images')
-parser.add_argument('-t', '--title',              type=str,
+parser.add_argument('-t', '--title',                   type=str,
                     help='Extra title text that can be added to the default titles')
-parser.add_argument('-nrdf', '--num-rdf-files',   type=int,    default=5,
+parser.add_argument('-nrdf', '--num-rdf-files',        type=int,    default=5,
                     help='Number of rdf RDataFrames to be included (Default = 5)')
-parser.add_argument('-nMC', '--num-MC-files',     type=int,    default=1,
+parser.add_argument('-nMC', '--num-MC-files',          type=int,    default=1,
                     help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1) - Can set to -1 to include all available files')
-parser.add_argument('-hMX', '--use_HIGH_MX',       action='store_true',
+parser.add_argument('-hMX', '--use_HIGH_MX',           action='store_true',
                     help='Use with "-kc" option to normalize to High-Mx region')
-# parser.add_argument('-2D', '--make_2D',            action='store_true',
+# parser.add_argument('-2D', '--make_2D',                action='store_true',
 #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
-parser.add_argument('-2Dw', '--make_2D_weight',    action='store_true',
+parser.add_argument('-2Dw', '--make_2D_weight',        action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
-parser.add_argument('-jsw', '--json_weights',      action='store_true',
-                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight` option as of 10/13/2025)')
-parser.add_argument('-minA', '--min-accept-cut',   type=float, default=0.005,
+parser.add_argument('-2DwC', '--make_2D_weight_check', action='store_true',
+                    help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN — Only uses clasdis files (as of 10/16/2025)')
+parser.add_argument('-jsw', '--json_weights',          action='store_true',
+                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight` and `--make_2D_weight_check` options as of 10/16/2025)')
+parser.add_argument('-minA', '--min-accept-cut',       type=float, default=0.005,
                     help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0')
 
 args = parser.parse_args()
@@ -839,7 +841,7 @@ if(__name__ == "__main__"):
                     continue
                 if("V3"               not in str(f.name)):
                     continue
-                if(args.make_2D_weight):
+                if(args.make_2D_weight or args.make_2D_weight_check):
                     if(verbose):
                         print(f"\t{color.Error}Not using EvGen files for Acceptance weights{color.END}\n")
                     continue
@@ -864,7 +866,7 @@ if(__name__ == "__main__"):
         args.num_MC_files = max([len(all_root_files["gdf_clasdis"]), len(all_root_files["mdf_clasdis"]), len(all_root_files["gdf"]), len(all_root_files["mdf"])])
     remove_list = []
     for mc           in ["", "_clasdis"]:
-        if(args.make_2D_weight and ("clasdis" not in mc)):
+        if((args.make_2D_weight or args.make_2D_weight_check) and ("clasdis" not in mc)):
             continue
         all_root_files[f"gdf{mc}"].sort()
         all_root_files[f"mdf{mc}"].sort()
@@ -910,13 +912,13 @@ if(__name__ == "__main__"):
     rdf           = ROOT.RDataFrame("h22", all_root_files["rdf"])
     mdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["mdf_clasdis"])
     gdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["gdf_clasdis"])
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         mdf_EvGen = ROOT.RDataFrame("h22", all_root_files["mdf"])
         gdf_EvGen = ROOT.RDataFrame("h22", all_root_files["gdf"])
     # else:
     #     rdf         = rdf.Range(50000)
     #     mdf_clasdis = mdf_clasdis.Range(50000)
-    #     gdf_clasdis = gdf_clasdis.Range(50000)
+    #     gdf_clasdis = gdf_clasdis.Range(500000)
     # rdf         = rdf.Range(5000)
     # mdf_EvGen   = mdf_EvGen.Range(5000)
     # gdf_EvGen   = gdf_EvGen.Range(5000)
@@ -931,7 +933,7 @@ if(__name__ == "__main__"):
     if(not rdf.HasColumn("MM2")):
         print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'rdf'{color.END}")
         rdf = rdf.Define("MM2", "MM*MM")
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         if(not mdf_EvGen.HasColumn("MM2")):
             print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_EvGen'{color.END}")
             mdf_EvGen = mdf_EvGen.Define("MM2", "MM*MM")
@@ -969,7 +971,7 @@ if(__name__ == "__main__"):
             print(f"\t{str((gdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_clasdis.GetColumnType(gdf_clasdis.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
     
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         print(f"\n{color.BOLD}{color.PINK}mdf_EvGen{color.END}:")
         if(verbose or (not True)):
             for ii in range(0, len(mdf_EvGen.GetColumnNames()), 1):
@@ -1005,27 +1007,27 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     # gdf_clasdis = gdf_clasdis.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
 
     # EvGen Generation Cuts
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         mdf_EvGen =   mdf_EvGen.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
         gdf_EvGen =   gdf_EvGen.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     mdf_clasdis   = mdf_clasdis.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
     gdf_clasdis   = gdf_clasdis.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     
     # clasdis Generation Cuts (y ended at 0.93 apparently?)
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         mdf_EvGen =   mdf_EvGen.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
         gdf_EvGen =   gdf_EvGen.Filter("((y     > 0.05) && (y     < 0.93))")
     mdf_clasdis   = mdf_clasdis.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
     gdf_clasdis   = gdf_clasdis.Filter("((y     > 0.05) && (y     < 0.93))")
     
     # EvGen Generation Cuts (OLD)
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         mdf_EvGen =   mdf_EvGen.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
         gdf_EvGen =   gdf_EvGen.Filter("((z     > 0.15) && (z     < 0.90))")
     mdf_clasdis   = mdf_clasdis.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
     gdf_clasdis   = gdf_clasdis.Filter("((z     > 0.15) && (z     < 0.90))")
 
-    if(not (args.kinematic_compare or args.make_2D_weight)):
+    if(not (args.kinematic_compare or args.make_2D_weight or args.make_2D_weight_check)):
         print(f"{color.BGREEN}Adding MM cuts to gdf files for Acceptance Corrections{color.END}\n")
         gdf_EvGen   =   gdf_EvGen.Filter("MM > 1.5")
         gdf_clasdis = gdf_clasdis.Filter("MM > 1.5")
@@ -1033,14 +1035,14 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     
     # Normal Analysis Cuts
     rdf           = DF_Filter_Function_Full(DF_Out=rdf,         Titles_or_DF="DF", Data_Type="rdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         mdf_EvGen = DF_Filter_Function_Full(DF_Out=mdf_EvGen,   Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
     mdf_clasdis   = DF_Filter_Function_Full(DF_Out=mdf_clasdis, Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="smear")
 
     if(args.cut):
         print(f"{color.Error}Applying User Cut: {color.END_B}{args.cut}{color.END}")
         rdf           =         rdf.Filter(args.cut)
-        if(not args.make_2D_weight):
+        if(not (args.make_2D_weight or args.make_2D_weight_check)):
             mdf_EvGen =   mdf_EvGen.Filter(args.cut)
             gdf_EvGen =   gdf_EvGen.Filter(args.cut)
         mdf_clasdis   = mdf_clasdis.Filter(args.cut)
@@ -1049,12 +1051,106 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
     print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
     print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
-    if(not args.make_2D_weight):
+    if(not (args.make_2D_weight or args.make_2D_weight_check)):
         print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
         print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
     timer.time_elapsed()
 
-    if(args.make_2D_weight):
+    if(args.make_2D_weight_check):
+        print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h){color.END}\n")
+
+        # 0) Load the self-contained, generated header (helpers + accw_* functions)
+        ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
+        
+        # 1) Define Event_Weight on MC (mdf)
+        if(args.json_weights):
+            # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
+            import json
+            print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
+            with open(JSON_WEIGHT_FILE) as f:
+                Fit_Pars = json.load(f)
+                # Build the C++ initialization string
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                
+                    // safely retrieve parameters (default = 0)
+                    // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                
+                    return weight;
+                }}
+                """)
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
+        else:
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
+            
+        
+        # 2) Book TH1D histograms for phi_t (0..360, 24 bins)
+        Title = "Comparisons of #phi_{h}"
+        if(args.title):
+            Title = f"#splitline{{{Title}}}{{{args.title}}}"
+        h_rdf =         rdf.Histo1D(("h_phi_t_rdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t")
+        h_mdf = mdf_clasdis.Histo1D(("h_phi_t_mdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
+        h_gdf = gdf_clasdis.Histo1D(("h_phi_t_gdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
+        
+        # 3) Set line colors (on the actual TH1 objects)
+        h_rdf.GetValue().SetLineColor(ROOT.kBlue)
+        h_mdf.GetValue().SetLineColor(ROOT.kRed)
+        h_gdf.GetValue().SetLineColor(ROOT.kGreen)
+        
+        # 4) Make normalized clones for maxima AND drawing
+        def _make_norm_clone(hptr, name):
+            h = hptr.GetValue().Clone(name)
+            integral = h.Integral()
+            if((integral != 0.0)):
+                h.Scale(1.0/integral)
+            return h
+        
+        h_rdf_n = _make_norm_clone(h_rdf, "h_phi_t_rdf_norm")
+        h_mdf_n = _make_norm_clone(h_mdf, "h_phi_t_mdf_norm")
+        h_gdf_n = _make_norm_clone(h_gdf, "h_phi_t_gdf_norm")
+        
+        rdf_max = h_rdf_n.GetMaximum()
+        mdf_max = h_mdf_n.GetMaximum()
+        gdf_max = h_gdf_n.GetMaximum()
+        global_max = max([rdf_max, mdf_max, gdf_max, 1e-5])
+        
+        # 5) Draw overlay on one canvas (first drawn sets axes)
+        c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", 900, 600)
+        h_rdf_n.GetYaxis().SetRangeUser(0.0, 1.2*global_max)
+        h_rdf_n.Draw("H P E0")
+        h_mdf_n.Draw("H P E0 same")
+        h_gdf_n.Draw("H P E0 same")
+        c_phi.Update()
+        
+        save_name = f"phi_h_Comparison_with_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        c_phi.SaveAs(save_name)
+        print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
+
+    
+    elif(args.make_2D_weight):
         print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
         El_Binning                 = ['el',     2.64, 7.88, 524]
         El_Th_Binning              = ['elth',      5,   35, 300]
@@ -1084,59 +1180,59 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         # 1) One-time C++ helpers
         # -----------------------------
         One_Time_Cpp_Helpers = r"""
-        #include <vector>
-        #include <algorithm>
-        #include <cmath>
-        #include <string>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <string>
 
-        int accw_findBin(const double value, const std::vector<double>& edges){
-            if((value < edges.front()) or (value >= edges.back())){
-                return -1;
-            }
-            auto it = std::upper_bound(edges.begin(), edges.end(), value);
-            int idx = int(it - edges.begin()) - 1;
-            if((idx < 0) or (idx >= int(edges.size()) - 1)){
-                return -1;
-            }
-            return idx;
-        }
+inline int accw_findBin(const double value, const std::vector<double>& edges){
+    if((value < edges.front()) or (value >= edges.back())){
+        return -1;
+    }
+    auto it = std::upper_bound(edges.begin(), edges.end(), value);
+    int idx = int(it - edges.begin()) - 1;
+    if((idx < 0) or (idx >= int(edges.size()) - 1)){
+        return -1;
+    }
+    return idx;
+}
 
-        double accw_lookup2D(const double x, const double y,
-                             const std::vector<double>& ex,
-                             const std::vector<double>& ey,
-                             const std::vector<double>& grid){
-            const int nx = int(ex.size()) - 1;
-            const int ny = int(ey.size()) - 1;
+inline double accw_lookup2D(const double x, const double y,
+                            const std::vector<double>& ex,
+                            const std::vector<double>& ey,
+                            const std::vector<double>& grid){
+    const int nx = int(ex.size()) - 1;
+    const int ny = int(ey.size()) - 1;
 
-            int ix = accw_findBin(x, ex);
-            int iy = accw_findBin(y, ey);
+    int ix = accw_findBin(x, ex);
+    int iy = accw_findBin(y, ey);
 
-            if((ix < 0) or (iy < 0)){
-                return 1.0; // under/overflow policy
-            }
+    if((ix < 0) or (iy < 0)){
+        return 1.0; // under/overflow policy
+    }
 
-            const int idx = ix + nx*iy; // row-major (iy outer, ix inner)
-            double w = grid[idx];
-            if(!(w >= 0.0) or (!std::isfinite(w))){
-                return 1.0;
-            }
-            return w;
-        }
-        """
+    const int idx = ix + nx*iy; // row-major
+    double w = grid[idx];
+    if(!(w >= 0.0) or (!std::isfinite(w))){
+        return 1.0;
+    }
+    return w;
+}
+"""
         ROOT.gInterpreter.Declare(One_Time_Cpp_Helpers)
 
         # Accumulate generated wrappers to save for later use
         generated_wrappers_code = []
         generated_wrappers_code.append("// Auto-generated acceptance weight functions\n")
-        generated_wrappers_code.append("// Includes\n#include <vector>\n#include <algorithm>\n#include <cmath>\n\n")
-        generated_wrappers_code.append("// Helper declarations (duplicate-safe if header is included alone)\n")
-        generated_wrappers_code.append(
-            "int accw_findBin(const double value, const std::vector<double>& edges);\n"
-            "double accw_lookup2D(const double x, const double y,\n"
-            "                     const std::vector<double>& ex,\n"
-            "                     const std::vector<double>& ey,\n"
-            "                     const std::vector<double>& grid);\n\n"
-        )
+        # generated_wrappers_code.append("// Includes\n#include <vector>\n#include <algorithm>\n#include <cmath>\n\n")
+        # generated_wrappers_code.append("// Helper declarations (duplicate-safe if header is included alone)\n")
+        # generated_wrappers_code.append(
+        #     "int accw_findBin(const double value, const std::vector<double>& edges);\n"
+        #     "double accw_lookup2D(const double x, const double y,\n"
+        #     "                     const std::vector<double>& ex,\n"
+        #     "                     const std::vector<double>& ey,\n"
+        #     "                     const std::vector<double>& grid);\n\n"
+        # )
 
         def _cpp_list(vals):
             return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
@@ -1177,7 +1273,7 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                     return weight;
                 }}
                 """)
-            wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_smeared, z_pT_Bin_Y_bin_smeared, phi_t_smeared)")
+            wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
         else:
             wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
 
@@ -1317,12 +1413,15 @@ double {func_name}(const double x, const double y){{
             hf.write("// This file was auto-generated by your acceptance-weight script.\n")
             hf.write("// It contains concrete lookup functions accw_<x>_vs_<y>(x, y).\n\n")
             hf.write("#pragma once\n\n")
-            hf.write("// Forward declarations for helper symbols (supply your own defs or include where declared):\n")
-            hf.write("int accw_findBin(const double value, const std::vector<double>& edges);\n")
-            hf.write("double accw_lookup2D(const double x, const double y,\n")
-            hf.write("                     const std::vector<double>& ex,\n")
-            hf.write("                     const std::vector<double>& ey,\n")
-            hf.write("                     const std::vector<double>& grid);\n\n")
+            # hf.write("// Forward declarations for helper symbols (supply your own defs or include where declared):\n")
+            # hf.write("int accw_findBin(const double value, const std::vector<double>& edges);\n")
+            # hf.write("double accw_lookup2D(const double x, const double y,\n")
+            # hf.write("                     const std::vector<double>& ex,\n")
+            # hf.write("                     const std::vector<double>& ey,\n")
+            # hf.write("                     const std::vector<double>& grid);\n\n")
+            hf.write("// Embedded helper definitions (self-contained)\n")
+            hf.write(One_Time_Cpp_Helpers)
+            hf.write("\n\n")
             hf.write(header_body)
 
         print(f"{color.BOLD}Wrote weight functions to: {color.BBLUE}{header_path}{color.END}")
