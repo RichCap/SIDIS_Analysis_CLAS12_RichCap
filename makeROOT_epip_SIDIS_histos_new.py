@@ -84,7 +84,7 @@ Tag_Proton = False
 SIDIS_Unfold_List = ["_SIDIS",  "_sidis", "_unfold",   "_Unfold"]
 Momentum_Cor_List = ["_Mom",    "_mom"]
 Use__Mom_Cor_List = ["_UnCor",  "_Uncor", "mdf",       "gdf"]
-Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight", "_Q4"]
+Using_Weight_List = ["_mod",    "_close", "_closure",  "_weighed", "_use_weight", "_Dweight"]
 Smear_Option_List = ["_NSmear", "_NS",    "_no_smear", "rdf",      "gdf"]
 Smear_Factor_List = ["_0.5",    "_0.75",  "_0.7",      "_0.8",     "_0.9",        "_1.0",   "_1.2",      "_1.5", "_1.75", "_2.0", "_FX"]
 Pass_Version_List = ["_P2",     "_Pass2", "_P1",       "_Pass1",   "_NewP2", "_NewPass2", "_NewP1", "_NewPass1"]
@@ -136,12 +136,9 @@ for smear         in Smear_Factor_List:
         
 for weight_Q         in Using_Weight_List:
     if(str(weight_Q) in str(datatype)):
-        Use_Weight       = True
-        if("_Q4"     in str(datatype)):
-            Q4_Weight    = True
-        else:
-            Q4_Weight    = False
-        datatype         = str(datatype).replace(str(weight_Q), "")
+        Use_Weight = True
+        DataWeight = ("_Dweight" in str(datatype))
+        datatype   = str(datatype).replace(str(weight_Q), "")
         break
         
 for tagging_proton         in Tag___Proton_List:
@@ -153,7 +150,7 @@ for tagging_proton         in Tag___Proton_List:
         
 if((run_Mom_Cor_Code in ["yes"]) or ("rdf" in str(datatype))):
     Use_Weight = False
-    Q4_Weight  = False
+    DataWeight = False
     # Do not use the simulated modulations on the momentum correction code or for the experimental data set
     
     
@@ -291,7 +288,7 @@ if(Use_Pass_2):
         
 
 if(Use_New_PF):
-    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (rdf updated as of 7/26/2024 - mdf/gdf updated as of 4/19/2025)\n{color.END}")
+    print(f"\n{color.BGREEN}Running the code with the newer versions of the Data/MC files (rdf updated as of 7/26/2024 - mdf/gdf updated as of 10/16/2025)\n{color.END}")
     
 Beam_Energy = 10.6041 if((datatype in ['rdf']) or (not Use_Pass_2)) else 10.6
 
@@ -341,6 +338,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.wProton.new5.45nA.inb-clasdis-",                          "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC_Test-", "EvGen_")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC-",      "EvGen_")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.nb-clasdis-Q2_1.5-",                            "")).replace(".hipo.root", "")
     if(datatype == "gdf"):
         file_num = str(file_num.replace("/lustre19/expphy/volatile/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                                "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_",                                                                                                "")).replace(".hipo.root", "")
@@ -353,6 +351,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.wProton.new5.45nA.inb-clasdis-",                                                                     "")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC_Test-",                                            "EvGen_")).replace(".hipo.root", "")
         file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC-",                                                 "EvGen_")).replace(".hipo.root", "")
+        file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.nb-clasdis-Q2_1.5-",                                                                       "")).replace(".hipo.root", "")
     # file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/", "")
     
     
@@ -396,7 +395,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if(Use_New_PF):
                     # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new2.45nA_job_")).replace("qa.inb-clasdis_", "qa.new2.inb-clasdis_")
                     # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new4.45nA_job_")).replace("qa.inb-clasdis_", "qa.new4.inb-clasdis_")
-                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.*inb-clasdis")
+                    # files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.*inb-clasdis")
+                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.*nb-clasdis")
                     if(Tag_Proton):
                         files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
                 rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC", "/" if(not Use_Pass_2) else "/With_BeamCharge/Pass2/", str(files_used_for_data_frame) if(not Use_New_PF) else f"More_Cut_Info/{files_used_for_data_frame}"]))
@@ -411,7 +411,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 # rdf = ROOT.RDataFrame("h22", "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*"              if(not Use_Pass_2) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*")
                 files_used_for_data_frame =  "MC_Gen_sidis_epip_richcap.inb.qa.45nA_job_*" if(not Use_Pass_2) else "MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*"
                 if(Use_New_PF):
-                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.*inb-clasdis")
+                    files_used_for_data_frame = str(files_used_for_data_frame.replace("qa.45nA_job_", "qa.new5.45nA_job_")).replace("qa.inb-clasdis_", "qa.new5.*nb-clasdis")
                     if(Tag_Proton):
                         files_used_for_data_frame = str(files_used_for_data_frame).replace("qa.new", "qa.wProton.new")
                 rdf = ROOT.RDataFrame("h22", "".join(["/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/", "" if(not Use_Pass_2) else "Pass2/", str(files_used_for_data_frame)]))
@@ -1103,6 +1103,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Also ran with more clasdis MC (hoping to run with more EvGen MC soon too)
             # EvGen MC should be run without smearing only
             # Use_5D_Response_Matrix = True (tried to run with 5D unfolding matrix as well)
+        # On 10/16/2025:
+            # Ran with the '_Dweight' option to add event weights (to clasdis) based on data measurements
+                # Only works with clasdis right now (did not run with EvGen)
+                # The weights are based on the latest modulation measurements and a comparison of the Data and MC-REC distributions of the particles' lab kinematics (p, theta, and phi)
+            # Removed the MM vs W plots from this version of the file since they were not really going to be used with the current tests
+            # Ran with an additional 130 files (which should also have more events per file than the older versions since these added a generation cut on Q2 < 1.5 — basically no event from below this range was actually migrating into my bins, but they still made up a very large amount of my generated events)
     if(Use_EvGen):
         Extra_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V2_"
             # Ran on 9/12/2025 -> with EvGen
@@ -1190,10 +1196,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             # Same as the last version of Extra_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
             
     if(Use_Weight):
-        if(not Q4_Weight): # Using the modulations of the Generated Monte Carlo
+        if(not DataWeight): # Using the modulations of the Generated Monte Carlo
             Extra_Name = f"{Extra_Name}Modulated_"
-        else:              # Using the Q4 wieghts
-            Extra_Name = f"{Extra_Name}Q4_Wieght_"
+        else:               # Using the Weights from Data measurements
+            Extra_Name = f"{Extra_Name}DataWeight_"
             
             
     if(Use_Pass_2):
@@ -2914,8 +2920,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     
     if(Use_Weight):
-        if(not Q4_Weight):
-            print(color.BGREEN, "".join(["\n", color_bg.BLUE, "Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+        if(not DataWeight):
+            print(f"{color.BGREEN}\n{color_bg.BLUE}Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...{color.END}\n\n")
             ##==========================================================================================================##
             ##------------------------------------##==============================##------------------------------------##
             ##====================================##     Event Weighing Begin     ##====================================##
@@ -2952,26 +2958,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
         else:
-            print(color.BGREEN, "".join(["\n", color_bg.BLUE, "Running 'Q4 Weight' for weighing the Monte Carlo distributions...", color.END, "\n\n"]))
-            ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
-            ##====================================##     Event Weighing Begin     ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
-            ##==========================================================================================================##
-            rdf = rdf.Define('Event_Weight', "".join(["".join(["""
-            auto   Q4           = Q2*Q2;""" if(datatype in ["gdf"]) else """
-            auto   Q4           = Q2_gen*Q2_gen;""", """
-            auto   Event_Weight = Q4;
-            """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
-            return Event_Weight;
-            """]))
-            ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
-            ##====================================##      Event Weighing End      ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
-            ##==========================================================================================================##
+            print(f"{color.BGREEN}\n{color_bg.BLUE}Running 'Data Weights' for weighing the Monte Carlo distributions (must define the Q2-y and z-pT bins first)...{color.END}\n\n")
+            # To find the relevant code that went here, search for 'json'
     elif(datatype in ["mdf", "gdf", "pdf"]):
-        print(color.BOLD,                             "".join(["\nNOT running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...", color.END, "\n\n"]))
+        print(f"\n{color.BOLD}NOT running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...{color.END}\n\n")
     
     
     
@@ -6133,6 +6123,50 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if(Use_5D_Response_Matrix):
                     rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h_smeared",            "All_MultiDim_Y_bin_smeared[2]")
                 # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
+        if(DataWeight):
+            ##====================================##     Data Event Weighing Begin     ##====================================##
+            ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
+            ROOT.gSystem.Load("libPhysics")  # TLorentzVector/TVector3 live here
+            import json
+            with open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json") as f:
+                Fit_Pars = json.load(f)
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                
+                    // safely retrieve parameters (default = 0)
+                    // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                
+                    return weight;
+                }}
+                """)
+                if(datatype in ["gdf"]):
+                    rdf = rdf.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
+                elif(Run_With_Smear):
+                    rdf = rdf.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(smeared_vals[18], smeared_vals[22])) * (accw_elth_vs_pipth(smeared_vals[17], smeared_vals[21])) * (accw_el_vs_pip(smeared_vals[15], smeared_vals[19]))")
+                else:
+                    rdf = rdf.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi, pipPhi)) * (accw_elth_vs_pipth(elth, pipth)) * (accw_el_vs_pip(el, pip))")
+            ##====================================##      Data Event Weighing End      ##====================================##
             
             
     
@@ -6140,7 +6174,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     for binning in binning_option_list:
         print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
         
-    print("".join([color.BBLUE, "\n(Possible) Q2-xB/Q2-y bins in use: ", color.END, str(List_of_Q2_xB_Bins_to_include)]))
+    print(f"\n{color.BBLUE}(Possible) Q2-xB/Q2-y bins in use: {color.END}{List_of_Q2_xB_Bins_to_include}")
+
     
 
     #####################     Bin Choices     #####################
@@ -6555,8 +6590,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         List_of_Quantities_2D.append([['SigRadCor', 0,  45, 100], ['sigma_rad',    0, 1.6, 100]])
 
     # List_of_Quantities_2D = [[['MM', 0, 4.2, 240], ['W', 0.9, 5.1, 224]]]
-    List_of_Quantities_2D.append([['MM', 0, 4.2, 240], ['W', 0.9, 5.1, 224]])
-
+    # List_of_Quantities_2D.append([['MM', 0, 4.2, 240], ['W', 0.9, 5.1, 224]])
+    # List_of_Quantities_2D.append([['elPhi', 0,  360, 720], ['pipPhi', 0, 360, 720]])
+    # List_of_Quantities_2D.append([['elth',  5,   35, 300], ['pipth',  5,  35, 300]])
+    # List_of_Quantities_2D.append([['el', 2.64, 7.88, 524], ['pip', 1.25,   5, 375]])
+    
+    
     # # # 1D histograms are turned off with this option
     # List_of_Quantities_1D = []
 
@@ -7248,7 +7287,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                                         elif(str(Background_Cuts_MC) in ["ERROR"]):
                                             print(f"{color.Error}\n\nERROR IN BG_Cut_Function(dataframe={Histo_Data}).{color.END_R}\n\tCheck ExtraAnalysisCodeValues.py for details\n\n{color.END}")
                                         
-                                        if(Use_Weight):
+                                        if(Use_Weight or DataWeight):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "Event_Weight")
                                         elif(Use_EvGen):
                                             Histograms_All[Histo_Name] = (Normal_rdf.Filter(Bin_Filter)).Histo3D((str(Histo_Name), str(Title_2D_Out), 55, -3.5, 51.5, Vars_2D[0][3], Vars_2D[0][1], Vars_2D[0][2], Vars_2D[1][3], Vars_2D[1][1], Vars_2D[1][2]), str(z_pT_Bin_Filter_str), str(Vars_2D[0][0]), str(Vars_2D[1][0]), "weight")
