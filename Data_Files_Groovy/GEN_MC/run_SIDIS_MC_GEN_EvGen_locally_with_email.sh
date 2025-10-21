@@ -1,7 +1,6 @@
 #!/bin/bash
 
-FILES=(/lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0002*
-       /lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0003*
+FILES=(/lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0003*
        /lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0009*
        /lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0012*
        /lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/EvGen_Files_Not_Added_To_cache_yet/inb-EvGen-LUND_EvGen_richcap_GEMC-0017*
