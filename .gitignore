@@ -39,7 +39,6 @@ run_and_monitor.sh
 Test_of_Weighing_Histos.ipynb
 Images_Made_while_at_CLAS_Collaboration_March_2024/
 Data_Files_Groovy/Link_to_Updated_Files
-Slice_and_Rebuild_MultiDim_Histos.py
 Histo_Files_ROOT/Matching_REC_MC/Text_of_Smearing_Function_and_Momentum_Corrections_Code.txt
 Data_Files_Groovy/GEN_MC/Link_To_Files
 Data_Files_Groovy/GEN_MC/Link_to_claspyth
@@ -51,3 +50,5 @@ Histo_Files_ROOT/DataFrames/*/*.log
 Histo_Files_ROOT/DataFrames/*/*.err
 *.err
 *.log
+Histo_Files_ROOT/DataFrames/Matching_REC_MC/Link_to_Volatile_MC_Matching
+Histo_Files_ROOT/Matching_REC_MC/sbatch_New_SIDIS_python_matching_MC_Pass2.sh
