@@ -70,8 +70,6 @@ if [ ${#file_array[@]} -eq 0 ]; then
 fi
 shopt -u nullglob # Revert nullglob back to its default behavior
 
-# INPUT_FILES=$(ls ${INPUT_PATTERN} | grep -v "${OUTPUT_FILE}")
-# INPUT_FILES=$INPUT_PATTERN
 # Check the action to be performed
 if [ "$ACTION" = "check" ]; then
     # List files and count them
@@ -86,13 +84,15 @@ else
     echo ""
     $ROOTSYS/bin/hadd ${OUTPUT_FILE} ${INPUT_PATTERN}; ls -lhtr ${DIRECTORY}${FILE_PATTERN}*
     echo ""
-    #; ls -lhtr ${DIRECTORY}*All*;echo ""
     echo "Done running the hadd command."
+
+    # Send notification email
+    echo "Finished running hadd_root_files_command.sh to combine these files: ${INPUT_PATTERN}" | mail -s "Finished running hadd_root_files_command.sh for ${OPTION}" richard.capobianco@uconn.edu
+
     # Call cleanup script only if hadd was successful
     if [ $? -eq 0 ]; then
        ./cleanup_root_files.sh "$DIRECTORY" "${INPUT_PATTERN}" "$OUTPUT_FILE"
     fi
     echo ""
 fi
-
 echo "Done"
