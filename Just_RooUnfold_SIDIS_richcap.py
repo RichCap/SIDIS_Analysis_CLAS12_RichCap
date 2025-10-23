@@ -133,9 +133,9 @@ Common_Int_Bins  = args.Common_Int_Bins
 # smear logic
 Smearing_Options = "no_smear" if(args.no_smear) else "smear" if(args.smear) else "both"
 
-# combine with closure/sim override
-if((Closure_Test or Sim_Test) and (Smearing_Options != "no_smear")):
-    Smearing_Options = "no_smear"
+# # combine with closure/sim override
+# if((Closure_Test or Sim_Test) and (Smearing_Options != "no_smear")):
+#     Smearing_Options = "no_smear"
 
 # correlation comparison overrides everything
 Cor_Compare = args.cor_compare
@@ -170,9 +170,9 @@ if(Tag_ProQ):
     print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}{Proton_Type}{color.END}{color.BBLUE}' Files{color.END}\n")
     del Proton_Type
         
-if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
-    print(f"\n{color.BOLD}Unfolding Simulated data for Closure Tests should (probably) not use any additional smearing (forcing choice change)\n{color.END}")
-    Smearing_Options = "no_smear"
+# if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
+#     print(f"\n{color.BOLD}Unfolding Simulated data for Closure Tests should (probably) not use any additional smearing (forcing choice change)\n{color.END}")
+#     Smearing_Options = "no_smear"
         
 if(Cor_Compare):
     Fit_Test         = False
@@ -295,13 +295,13 @@ def Full_Calc_Fit(Histo, version="norm"):
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
         Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
         A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
-    elif(Sim_Test):
-        B, C = 0, 0
-        Histo_max_bin     = Histo.GetMaximumBin()
-        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
-        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
-        A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
-        
+    # elif(Sim_Test):
+    #     B, C = 0, 0
+    #     Histo_max_bin     = Histo.GetMaximumBin()
+    #     Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+    #     Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+    #     A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
+    # # As of 10/23/2025, the Sim_Test includes modulations taken from data
     else:
         Histo_180_bin = Histo.FindBin(155)
         Histo_240_bin = Histo.FindBin(300)
@@ -990,6 +990,9 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         # 5D Unfolding
                         bayes_iterations = 4
                         print(f"{color.BOLD}Performing 5D Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
+                    if(args.bayes_iterations):
+                        bayes_iterations = args.bayes_iterations
+                        print(f"{color.BOLD}Performing Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -1672,16 +1675,16 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
     else:
         Histo_Cut = False
     Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
-    if(str(Method) not in ["rdf", "gdf"]):
+    if((str(Method) not in ["rdf", "gdf"]) or ((str(Method) not in ["gdf"]) and Sim_Test)):
         if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(color.BLUE, "\nRunning Multi3D_Slice(...)\n", color.END)
+            print(f"\n{color.BLUE}Running Multi3D_Slice(...){color.END}\n")
         else:
-            print(color.Error, "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+            print(f"\n\n{color.Error}Wrong Smearing option for Multi3D_Slice(...){color.END}\n\n")
             return "Error"
     elif(Smear in [""]):
-        print(color.BLUE,      "\nRunning Multi3D_Slice(...)\n", color.END)
+        print(f"\n{color.BLUE}Running Multi3D_Slice(...){color.END}\n")
     else:
-        print(color.Error,     "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+        print(f"\n\n{color.Error}Wrong Smearing option for Multi3D_Slice(...){color.END}\n\n")
         return "Error"
     try:
         #######################################################################
@@ -2412,12 +2415,13 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         #         Histogram_List_All[str(Histo_Name_General.replace("METHOD", "SVD")).replace("1D", "Fit_Par_C")]    = SVD_Fit_Par_C
         if(ExTRUE_1D not in ["N/A"]):
             Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf"))]                                   = ExTRUE_1D.Clone(str(Histo_Name_General.replace("METHOD", "tdf")))
-            if(Fit_Test and Allow_Fitting):
+            if((Fit_Test and Allow_Fitting) and (not (("Multi" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0])))):
+                # print(f"\nHisto_Name_General = {Histo_Name_General}\nUnfolded_TDF_Fit_Function = {Unfolded_TDF_Fit_Function}\n")
                 Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Function")] = Unfolded_TDF_Fit_Function.Clone(str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Function"))
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Chi_Squared")]  = Chi_Squared_TDF.Clone(str(Histo_Name_General.replace("METHOD",           "tdf")).replace("1D", "Chi_Squared"))
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_A")]    = TDF_Fit_Par_A.Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_A"))
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_B")]    = TDF_Fit_Par_B.Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_B"))
-                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_C")]    = TDF_Fit_Par_C.Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_C"))
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Chi_Squared")]  = Chi_Squared_TDF # .Clone(str(Histo_Name_General.replace("METHOD",           "tdf")).replace("1D", "Chi_Squared"))
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_A")]    = TDF_Fit_Par_A # .Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_A"))
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_B")]    = TDF_Fit_Par_B # .Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_B"))
+                Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf")).replace("1D", "Fit_Par_C")]    = TDF_Fit_Par_C # .Clone(str(Histo_Name_General.replace("METHOD",             "tdf")).replace("1D", "Fit_Par_C"))
                 
         ###==========###         Normal/1D Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
         ################################################################### ########################################################################################################################################################################################################################################################################################################################
@@ -2445,11 +2449,11 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                             for name in histos_list:
                                 Histogram_List_All[name] = histos_list[name]
                         except:
-                            print("".join([color.Error, "ERROR IN ADDING TO Histogram_List_All (while looping within an item in histos_list):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                            print(f"{color.Error}ERROR IN ADDING TO Histogram_List_All (while looping within an item in histos_list):\n{color.END_R}{traceback.format_exc()}{color.END}")
                             print("histos_list =", histos_list)
                             # print("histos_list_loop =", histos_list_loop)
                 except:
-                    print("".join([color.Error,         "ERROR IN ADDING TO Histogram_List_All (while looping through items in histos_list):\n",  color.END_R, str(traceback.format_exc()), color.END]))
+                    print(f"{color.Error}ERROR IN ADDING TO Histogram_List_All (while looping through items in histos_list):\n{color.END_R}{traceback.format_exc()}{color.END}")
         ###==========###         Multi_Dim Histos          ###==========### #######################################################################################################################################################################################################################################################################################################################
         ################################################################### #######################################################################################################################################################################################################################################################################################################################
         ###==========###         Other Histo Fits          ###==========### #######################################################################################################################################################################################################################################################################################################################
@@ -2720,8 +2724,8 @@ print(f"{color.BBLUE}\nRunning with {Pass_Version} files\n\n{color.END}")
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-if(False):
+#     print(f"\n{color.BOLD}Not using the common file name for the Real (Experimental) Data...{color.END}\n")
+# if(False):
     REAL_File_Name = Common_Name
 else:
     # REAL_File_Name = "Unfolding_Tests_V11_All"
@@ -2739,17 +2743,20 @@ else:
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
-if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-if(False):
-    MC_REC_File_Name = Common_Name
+if(args.mod):
+    MC_REC_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
 else:
-    # MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
-    # MC_REC_File_Name = "Analysis_Note_Update_V6_All"
-    # MC_REC_File_Name = "Unsmeared_Pass_2_New_Sector_Cut_Test_V3_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_New_Sector_Cut_Test_V3_All"
-    MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
-    if(Pass_Version not in ["Pass 2"]):
-        MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
+    if(True):
+        print(f"\n{color.BOLD}Not using the common file name for the Reconstructed Monte Carlo Data...{color.END}\n")
+    if(False):
+        MC_REC_File_Name = Common_Name
+    else:
+        # MC_REC_File_Name = "Unfolding_Tests_V13_Failed_All"
+        # MC_REC_File_Name = "Analysis_Note_Update_V6_All"
+        # MC_REC_File_Name = "Unsmeared_Pass_2_New_Sector_Cut_Test_V3_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_New_Sector_Cut_Test_V3_All"
+        MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
+        if(Pass_Version not in ["Pass 2"]):
+            MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -2757,30 +2764,33 @@ else:
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
-if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-if(False):
-    MC_GEN_File_Name = Common_Name
+if(args.mod):
+    MC_GEN_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
 else:
-#     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
-#     MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
-#     MC_GEN_File_Name = "Pass_2_New_Sector_Cut_Test_V9_All"
-    for ii in range(0, 10, 1):
-        if(Common_Name   not in [str(Common_Name).replace(f"_FC{ii}_",   "_")]):
-            MC_GEN_File_Name   = str(Common_Name).replace(f"_FC{ii}_",   "_")
-            break
-        elif(Common_Name not in [str(Common_Name).replace(f"_FC_1{ii}_", "_")]):
-            MC_GEN_File_Name   = str(Common_Name).replace(f"_FC_1{ii}_", "_")
-            break
-        else:
-            MC_GEN_File_Name = Common_Name
-    if(("Pass_2_New_Fiducial_Cut_Test_V13_All" in MC_GEN_File_Name) and (not Tag_ProQ)):
-        MC_GEN_File_Name = "Pass_2_New_Fiducial_Cut_Test_V12_All"
-    if(("Pass_2_New_Fiducial_Cut_Test_V15_All" in MC_GEN_File_Name) and (Tag_ProQ)):
-        MC_GEN_File_Name = MC_GEN_File_Name.replace("Test_V15", "Test_V14")
-    # MC_GEN_File_Name = "Pass_2_Plots_for_Maria_V1_Incomplete_All"
-    if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
-        MC_GEN_File_Name = MC_GEN_File_Name.replace("V2_All", "V1_All")
+    if(True):
+        print(f"\n{color.BOLD}Not using the common file name for the Generated Monte Carlo Data...{color.END}\n")
+    if(False):
+        MC_GEN_File_Name = Common_Name
+    else:
+    #     MC_GEN_File_Name = "Unfolding_Tests_V11_All"
+    #     MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
+    #     MC_GEN_File_Name = "Pass_2_New_Sector_Cut_Test_V9_All"
+        for ii in range(0, 10, 1):
+            if(Common_Name   not in [str(Common_Name).replace(f"_FC{ii}_",   "_")]):
+                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC{ii}_",   "_")
+                break
+            elif(Common_Name not in [str(Common_Name).replace(f"_FC_1{ii}_", "_")]):
+                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC_1{ii}_", "_")
+                break
+            else:
+                MC_GEN_File_Name = Common_Name
+        if(("Pass_2_New_Fiducial_Cut_Test_V13_All" in MC_GEN_File_Name) and (not Tag_ProQ)):
+            MC_GEN_File_Name = "Pass_2_New_Fiducial_Cut_Test_V12_All"
+        if(("Pass_2_New_Fiducial_Cut_Test_V15_All" in MC_GEN_File_Name) and (Tag_ProQ)):
+            MC_GEN_File_Name = MC_GEN_File_Name.replace("Test_V15", "Test_V14")
+        # MC_GEN_File_Name = "Pass_2_Plots_for_Maria_V1_Incomplete_All"
+        if(Common_Name == "Pass_2_Sector_Integrated_Tests_FC_14_V2_All"):
+            MC_GEN_File_Name = MC_GEN_File_Name.replace("V2_All", "V1_All")
     
 ####################################
 ##   Generated Monte Carlo Data   ##
@@ -2796,21 +2806,23 @@ if("Background_Tests" in str(MC_REC_File_Name)):
     del Background_Type
 
 
-if(Mod_Test and ("Gen_Cuts_V7_All" in str(Common_Name))):
-    MC_REC_File_Name = "Gen_Cuts_V7_Modulated_All"
-    MC_GEN_File_Name = "Gen_Cuts_V7_Modulated_All"
-elif(Mod_Test):
-    if("_Modulated" not in str(MC_REC_File_Name)):
-        MC_REC_File_Name = str(MC_REC_File_Name).replace("_All", "_Modulated_All")
-    if("_Modulated" not in str(MC_GEN_File_Name)):
-        MC_GEN_File_Name = str(MC_GEN_File_Name).replace("_All", "_Modulated_All")
+# if(Mod_Test and ("Gen_Cuts_V7_All" in str(Common_Name))):
+#     MC_REC_File_Name = "Gen_Cuts_V7_Modulated_All"
+#     MC_GEN_File_Name = "Gen_Cuts_V7_Modulated_All"
+# elif(Mod_Test):
+#     if("_Modulated" not in str(MC_REC_File_Name)):
+#         MC_REC_File_Name = str(MC_REC_File_Name).replace("_All", "_Modulated_All")
+#     if("_Modulated" not in str(MC_GEN_File_Name)):
+#         MC_GEN_File_Name = str(MC_GEN_File_Name).replace("_All", "_Modulated_All")
 
         
 # 'TRUE_File_Name' refers to a file which is used in the closure tests where the simulated data is unfolded - corresponds to the distribution that should ideally be returned if the unfolding procedure is working correctly
 TRUE_File_Name = ""
 if(Sim_Test):
-    REAL_File_Name = MC_REC_File_Name
-    TRUE_File_Name = MC_GEN_File_Name
+    # REAL_File_Name = MC_REC_File_Name
+    # TRUE_File_Name = MC_GEN_File_Name
+    REAL_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
+    TRUE_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
     
 if(Closure_Test):
     if("_Modulated" not in str(MC_REC_File_Name)):
@@ -2899,7 +2911,6 @@ print(f"\n\n{color.BOLD}Done Loading RDataFrame files...\n{color.END}")
 ##==========##==========##                            ##==========##==========##==========##==========##==========##==========##==========##==========##
 ########################################################################################################################################################
 ########################################################################################################################################################
-
 
 
 
@@ -3120,8 +3131,9 @@ for ii in mdf.GetListOfKeys():
             ##=============##    Removing Cuts from the Generated files    ##=============##
             ################################################################################
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("smear", "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear", "")
+            if(not Sim_Test):      # Only remove smearing if rdf is supposed to come from the experiment (is not synthetic data)
+                out_print_main_rdf = out_print_main_rdf.replace("smear", "")
+            out_print_main_gdf     = out_print_main_gdf.replace("smear", "")
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
             ################################################################################
             ##======##    Non-MC_REC Response Matrices (these are not 2D plots)   ##======##
@@ -3132,7 +3144,7 @@ for ii in mdf.GetListOfKeys():
             ################################################################################
             
             if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN MDF...\n{color.END_R}Dataframe is missing: {color.BOLD}{out_print_main_mdf_1D}{color.END}\n")
                 for ii in mdf.GetListOfKeys():
                     if(("5D_Response_Matrix_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
                         print(str(ii.GetName()))
@@ -3141,19 +3153,19 @@ for ii in mdf.GetListOfKeys():
                 out_print_main_tdf = out_print_main_gdf
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
                         continue
                 else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                    print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Missing Dataframe...{color.END}\n")
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN RDF...\n{color.END_R}Dataframe is missing: {color.BBLUE}{out_print_main_rdf}{color.END}\n")
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN GDF...\n{color.END_R}Dataframe is missing: {color.BGREEN}{out_print_main_gdf}{color.END}\n")
                 continue
-
+            
             count += 1
-            print("".join([color.BGREEN, "\n(5D) Unfolding: ", str(out_print_main), "\n", color.END]))
+            print(f"\n{color.BGREEN}\n(5D) Unfolding: {out_print_main}){color.END}\n")
             ExREAL_1D   = rdf.Get(out_print_main_rdf)
             MC_REC_1D   = mdf.Get(out_print_main_mdf_1D)
             MC_GEN_1D   = gdf.Get(out_print_main_gdf)
@@ -3170,8 +3182,8 @@ for ii in mdf.GetListOfKeys():
             
             # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
             out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'5D_Response_Matrix_1D'", "'Background_5D_Response_Matrix_1D'")
-            if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
-                MC_BGS_1D = mdf.Get(out_print_main_bdf_1D)
+            if(((out_print_main_bdf_1D in mdf.GetListOfKeys()) or (out_print_main_bdf_1D in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf_1D))):
+                MC_BGS_1D = mdf.Get(out_print_main_bdf_1D) if(not Sim_Test) else rdf.Get(out_print_main_bdf_1D)
                 MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))
             else:
                 MC_BGS_1D = "None"
@@ -3252,10 +3264,11 @@ for ii in mdf.GetListOfKeys():
             ##=============##    Removing Cuts from the Generated files    ##=============##
             ################################################################################
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
-            out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
+            if(not Sim_Test):      # Only remove smearing if rdf is supposed to come from the experiment (is not synthetic data)
+                out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+            out_print_main_gdf     = out_print_main_gdf.replace("_smeared", "")
+            out_print_main_gdf     = out_print_main_gdf.replace("smear",    "")
             ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
             ################################################################################
             
@@ -3269,19 +3282,19 @@ for ii in mdf.GetListOfKeys():
                 out_print_main_tdf = out_print_main_gdf
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
                         continue
                 else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                    print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Missing Dataframe...{color.END}\n")
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN RDF...\n{color.END_R}Dataframe is missing: {color.BBLUE}{out_print_main_rdf}{color.END}\n")
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN GDF...\n{color.END_R}Dataframe is missing: {color.BGREEN}{out_print_main_gdf}{color.END}\n")
                 continue
 
             count += 1
-            print("".join([color.BGREEN, "\n(Sector) Unfolding: ", str(out_print_main), "\n", color.END]))
+            print(f"\n{color.BGREEN}(Sector) Unfolding: {out_print_main}{color.END}\n")
             ExREAL_3D     = rdf.Get(out_print_main_rdf)
             MC_REC_3D     = mdf.Get(out_print_main_mdf)
             MC_GEN_3D     = gdf.Get(out_print_main_gdf)
@@ -3294,7 +3307,8 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_3D.SetName(str(ExREAL_3D_initial.GetName()).replace("mdf", "rdf"))
                 print("New ExREAL_3D.GetName() =",   ExREAL_3D.GetName())
             # Getting MC Background Histogram (BGS - stands for BackGroundSubtraction)
-            if((out_print_main_bdf in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf)):
+            if(((out_print_main_bdf in mdf.GetListOfKeys()) or (out_print_main_bdf in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf))):
+                MC_BGS_3D = mdf.Get(out_print_main_bdf) if(not Sim_Test) else rdf.Get(out_print_main_bdf)
                 MC_BGS_3D = mdf.Get(out_print_main_bdf)
                 MC_BGS_3D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_3D.GetTitle()), "};", str(MC_REC_3D.GetXaxis().GetTitle()), ";", str(MC_REC_3D.GetYaxis().GetTitle())]))
             else:
@@ -3532,12 +3546,13 @@ for ii in mdf.GetListOfKeys():
 
             #############################################################################
             ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
-            out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
-            out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
-            out_print_main_gdf = out_print_main_gdf.replace("_smeared", "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear_",   "")
-            out_print_main_gdf = out_print_main_gdf.replace("smear",    "")
+            if(not Sim_Test):      # Only remove smearing if rdf is supposed to come from the experiment (is not synthetic data)
+                out_print_main_rdf = out_print_main_rdf.replace("_smeared", "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear_",   "")
+                out_print_main_rdf = out_print_main_rdf.replace("smear",    "")
+            out_print_main_gdf     = out_print_main_gdf.replace("_smeared", "")
+            out_print_main_gdf     = out_print_main_gdf.replace("smear_",   "")
+            out_print_main_gdf     = out_print_main_gdf.replace("smear",    "")
             ##=============##  Removing Smearing from Non-MC_REC files  ##=============##
             #############################################################################
 
@@ -3659,8 +3674,8 @@ for ii in mdf.GetListOfKeys():
             out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'Response_Matrix_1D'",        "'Background_Response_Matrix_1D'")
             out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
             # out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_Normal_1D'")
-            if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background") in str(out_print_main_bdf_1D)):
-                MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D)
+            if(((out_print_main_bdf_1D in mdf.GetListOfKeys()) or (out_print_main_bdf_1D in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf_1D))):
+                MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D) if(not Sim_Test) else rdf.Get(out_print_main_bdf_1D)
                 # print(f"{color.BLUE}\n\nout_print_main_bdf_1D = {out_print_main_bdf_1D}{color.END}")
                 # print(f"{color.BOLD}\nMC_BGS_1D_initial  -> {MC_BGS_1D_initial.GetName()}{color.END}")
                 # print(f"{color.BOLD}MC_REC_1D_initial  -> {MC_REC_1D_initial.GetName()}{color.END}\n")
@@ -3679,7 +3694,7 @@ for ii in mdf.GetListOfKeys():
                 if((not Use_Gen_MM_Cut) and (Common_Name not in ["Gen_Cuts_V7_All"])):
                     print(color.Error, "\nERROR: NOT TRYING TO RUN Gen_MM_Cut\n", color.END)
                     continue
-                print(color.BBLUE, "INCLUDES Gen_MM_Cut", color.END)
+                print(f"{color.BBLUE}INCLUDES Gen_MM_Cut{color.END}")
                 # print("out_print_main_rdf    =", out_print_main_rdf)
                 # print("out_print_main_mdf_1D =", out_print_main_mdf_1D)
                 # print("out_print_main_gdf    =", out_print_main_gdf)
@@ -4480,7 +4495,10 @@ else:
                 mdf_print_str     = mdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
                 mdf_print_str     = mdf_print_str.replace("_smeared",                        "")
                 mdf_print_str     = mdf_print_str.replace("'smear'",                         "Smear")
-                rdf_print_str     = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
+                if(not Sim_Test):
+                    rdf_print_str = str(mdf_print_str.replace("mdf", "rdf")).replace("Smear", "''")
+                else:
+                    rdf_print_str = str(mdf_print_str.replace("mdf", "rdf"))
                 gdf_print_str     = str(mdf_print_str.replace("mdf", "gdf")).replace("Smear", "''")
                 gdf_print_str     = gdf_print_str.replace("(gdf)_(no_cut)",                  "(gdf)")
                 for sector_cut_remove in range(1, 7):
