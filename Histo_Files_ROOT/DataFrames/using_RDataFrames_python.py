@@ -1112,13 +1112,18 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         if(args.title):
             Title = f"#splitline{{{Title}}}{{{args.title}}}"
         h_rdf =         rdf.Histo1D(("h_phi_t_rdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t")
-        h_mdf = mdf_clasdis.Histo1D(("h_phi_t_mdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
-        h_gdf = gdf_clasdis.Histo1D(("h_phi_t_gdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
+        h_mdf = mdf_clasdis.Histo1D(("h_phi_t_mdf", "#splitline{Comparisons of #phi_{h}}{Without Reweighted MC}; #phi_{h}; Normalized", 24, 0.0, 360.0), "phi_t_smeared")
+        h_gdf = gdf_clasdis.Histo1D(("h_phi_t_gdf", "#splitline{Comparisons of #phi_{h}}{Without Reweighted MC}; #phi_{h}; Normalized", 24, 0.0, 360.0), "phi_t")
+        w_mdf = mdf_clasdis.Histo1D(("w_phi_t_mdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
+        w_gdf = gdf_clasdis.Histo1D(("w_phi_t_gdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
         
         # 3) Set line colors (on the actual TH1 objects)
         h_rdf.GetValue().SetLineColor(ROOT.kBlue)
         h_mdf.GetValue().SetLineColor(ROOT.kRed)
         h_gdf.GetValue().SetLineColor(ROOT.kGreen)
+
+        w_mdf.GetValue().SetLineColor(ROOT.kPink + 10)
+        w_gdf.GetValue().SetLineColor(ROOT.kCyan)
         
         # 4) Make normalized clones for maxima AND drawing
         def _make_norm_clone(hptr, name):
@@ -1131,21 +1136,125 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         h_rdf_n = _make_norm_clone(h_rdf, "h_phi_t_rdf_norm")
         h_mdf_n = _make_norm_clone(h_mdf, "h_phi_t_mdf_norm")
         h_gdf_n = _make_norm_clone(h_gdf, "h_phi_t_gdf_norm")
+        w_mdf_n = _make_norm_clone(w_mdf, "w_phi_t_mdf_norm")
+        w_gdf_n = _make_norm_clone(w_gdf, "w_phi_t_gdf_norm")
+        
+        comp_wW = w_mdf_n.Clone("w_phi_t_Compare")
+        comp_nW = h_mdf_n.Clone("h_phi_t_Compare")
+
+        comp_wW.Divide(h_rdf_n)
+        comp_nW.Divide(h_rdf_n)
+
+        comp_wW.SetLineColor(ROOT.kBlack)
+        comp_nW.SetLineColor(ROOT.kBlack)
+
+        comp_wW.SetTitle("#scale[1.25]{#splitline{Comparisons of Data and MC}{WITH Reweighted MC}}; #phi_{h}; #frac{MC REC}{Data}")
+        comp_nW.SetTitle("#scale[1.25]{#splitline{Comparisons of Data and MC}{WITHOUT Reweighted MC}}; #phi_{h}; #frac{MC REC}{Data}")
+
+        CwW_max, CwW_min = comp_wW.GetMaximum(), comp_wW.GetMinimum()
+        CnW_max, CnW_min = comp_nW.GetMaximum(), comp_nW.GetMinimum()
+
+        Comp_Max = max([1.3*CwW_max, 1.3*CnW_max, 0.5*CwW_max, 0.5*CnW_max, 1.3])
+        Comp_Min = min([1.3*CwW_max, 1.3*CnW_max, 0.5*CwW_max, 0.5*CnW_max, 0.7])
         
         rdf_max = h_rdf_n.GetMaximum()
-        mdf_max = h_mdf_n.GetMaximum()
-        gdf_max = h_gdf_n.GetMaximum()
+        mdf_max = w_mdf_n.GetMaximum()
+        gdf_max = w_gdf_n.GetMaximum()
         global_max = max([rdf_max, mdf_max, gdf_max, 1e-5])
         
         # 5) Draw overlay on one canvas (first drawn sets axes)
-        c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", 900, 600)
+        # c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", 900, 600)
+        c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", int(912*1.55*25), int(547*1.55*25))
+        c_phi.Divide(2, 2)
+        
+        # ----- Pad 1: Data vs Reweighted MC -----
+        c_phi.cd(1)
         h_rdf_n.GetYaxis().SetRangeUser(0.0, 1.2*global_max)
         h_rdf_n.Draw("H P E0")
-        h_mdf_n.Draw("H P E0 same")
-        h_gdf_n.Draw("H P E0 same")
-        c_phi.Update()
+        w_mdf_n.Draw("H P E0 same")
+        w_gdf_n.Draw("H P E0 same")
         
-        save_name = f"phi_h_Comparison_with_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        # Legend for pad 1
+        # leg1 = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)  # top-right; adjust if needed
+        leg1 = ROOT.TLegend(0.38, 0.12, 0.62, 0.3)  # bottom-center
+        leg1.SetBorderSize(0)
+        leg1.SetFillStyle(0)
+        leg1.SetTextSize(0.04)
+        leg1.AddEntry(h_rdf_n, "Experimental Data", "l")
+        leg1.AddEntry(w_mdf_n, "MC REC (Reweighted)", "l")
+        leg1.AddEntry(w_gdf_n, "MC GEN (Modulated)", "l")
+        leg1.Draw()
+        
+        # ----- Pad 2: Data vs Default MC -----
+        c_phi.cd(2)
+        h_gdf_n.GetYaxis().SetRangeUser(0.0, 1.2*global_max)
+        h_gdf_n.Draw("H P E0")
+        h_rdf_n.Draw("H P E0 same")
+        h_mdf_n.Draw("H P E0 same")
+        
+        # Legend for pad 2
+        leg2 = ROOT.TLegend(0.38, 0.12, 0.62, 0.3)  # bottom-center
+        leg2.SetBorderSize(0)
+        leg2.SetFillStyle(0)
+        leg2.SetTextSize(0.04)
+        leg2.AddEntry(h_rdf_n, "Experimental Data", "l")
+        leg2.AddEntry(h_gdf_n, "MC GEN (Default)", "l")
+        leg2.AddEntry(h_mdf_n, "MC REC (Default)", "l")
+        leg2.Draw()
+        
+        # ----- Pad 3: Ratio WITH reweighting -----
+        c_phi.cd(3)
+        comp_wW.GetYaxis().SetRangeUser(Comp_Min, Comp_Max)
+        comp_wW.Draw("H P E0")
+        l_w = ROOT.TLine(0, 1.0, 360, 1.0)
+        l_w.SetLineStyle(2)
+        l_w.SetLineWidth(2)
+        l_w.SetLineColor(ROOT.kGray)
+        l_w.Draw("same")
+
+        # Compute average bin content (exclude under/overflow)
+        def _avg_bin_content(h):
+            nb = h.GetNbinsX()
+            s = 0.0
+            for i in range(1, nb + 1):
+                s += h.GetBinContent(i)
+            return (s / nb) if(nb > 0) else 0.0
+        
+        avg_w = _avg_bin_content(comp_wW)
+        # Add a small NDC stat box
+        pt3 = ROOT.TPaveText(0.38, 0.6, 0.62, 0.65, "NDC")
+        pt3.SetFillStyle(0)
+        pt3.SetBorderSize(0)
+        pt3.SetTextAlign(12)  # left-adjust text inside box
+        pt3.SetTextSize(0.04)
+        pt3.AddText(f"Average = {avg_w:.4f}")
+        pt3.Draw()
+        
+        # ----- Pad 4: Ratio WITHOUT reweighting -----
+        c_phi.cd(4)
+        comp_nW.GetYaxis().SetRangeUser(Comp_Min, Comp_Max)
+        comp_nW.Draw("H P E0")
+        l_h = ROOT.TLine(0, 1.0, 360, 1.0)
+        l_h.SetLineStyle(2)
+        l_h.SetLineWidth(2)
+        l_h.SetLineColor(ROOT.kGray)
+        l_h.Draw("same")
+        
+        avg_nw = _avg_bin_content(comp_nW)
+        # pt4 = ROOT.TPaveText(0.68, 0.80, 0.94, 0.92, "NDC")
+        pt4 = ROOT.TPaveText(0.38, 0.6, 0.62, 0.65, "NDC")
+        pt4.SetFillStyle(0)
+        pt4.SetBorderSize(0)
+        pt4.SetTextAlign(12)
+        pt4.SetTextSize(0.04)
+        pt4.AddText(f"Average = {avg_nw:.4f}")
+        pt4.Draw()
+        
+        c_phi.Update()
+
+        
+        # save_name = f"phi_h_Comparison_with_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        save_name = f"phi_h_Comparison_with_and_without_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
         c_phi.SaveAs(save_name)
         print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
 
