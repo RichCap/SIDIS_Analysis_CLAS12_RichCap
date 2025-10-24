@@ -96,9 +96,11 @@ def parse_args():
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
                    help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Default: 0.005)")
 
-    # # positional Q2-xB bin arguments
+    # # positional Q2-y bin arguments
     # p.add_argument('bins', nargs='*', metavar='BIN',
-    #                help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
+    #                help="List of Q2-y bin indices to run. '0' means all bins.")
+    p.add_argument("-b", "--bins", nargs="+", type=str,
+                   help="List of Q2-y bin indices to run. Defaults to ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']")
 
     return p.parse_args()
 
@@ -182,17 +184,18 @@ File_Save_Format = ".png"
 # File_Save_Format = ".pdf"
 
 if((File_Save_Format != ".png") and Saving_Q):
-    print(color.BGREEN, "\nSave Option was not set to output .png files. Save format is:", "".join([color.END_B, color.UNDERLINE, str(File_Save_Format), color.END, "\n"]))
+    print(f"\n{color.BGREEN}Save Option was not set to output .png files. Save format is: {color.ERROR}{File_Save_Format}{color.END}\n")
 
 
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
 
-Q2_y_Bin_List = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+Q2_y_Bin_List = args.bins # ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
 
+if(Q2_y_Bin_List != ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']):
+    print(f"\n{color.BOLD}Running with the following Q2-y Bins:\t{color.GREEN}{Q2_y_Bin_List}{color.END}\n")
 
 print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
 
-stop
 
 ################################################################################################################################################################################################################################################
 ##==========##==========##        5D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
@@ -438,7 +441,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         #####==========#####      Returning Outputs       #####==========#####
         ######################################################################
     except:
-        print("".join([color.Error, "Multi5D_Slice(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+        print(f"{color.Error}Multi5D_Slice(...) ERROR:{color.END}\n{traceback.format_exc()}\n")
         return "Error"
 
 ################################################################################################################################################################################################################################################
@@ -454,7 +457,7 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=4, Title="
     Num__Bins, Min_Range, Max_Range = Find_Bins_From_Histo_Name(Standard_Name)
     Slicing_Name = f"{Standard_Name}_Slice_SLICE-NUM_(Increment='{Increment}')"
     # print(f"Slicing_Name = {Slicing_Name}")
-    print("\nRunning Rebuild_Matrix_5D(...)")
+    print(f"\n{color.BBLUE}Running Rebuild_Matrix_5D(...){color.END}\n")
     Num_Slices   = int(Num__Bins/Increment)
     for test in ["1", str(Num_Slices)]:
         if(Slicing_Name.replace("SLICE-NUM", str(test)) not in List_of_Sliced_Histos):
@@ -474,7 +477,7 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=4, Title="
                 bin_error   = Histo_Add.GetBinError(x_bin,   y_bin)
                 for ii in range(1, int(bin_content)+1):
                     Rebuilt_5D_Matrix.Fill(X_Bin_5D-1, y_bin-1)
-    print("Finished running Rebuild_Matrix_5D(...)\n")
+    print(f"\n{color.BGREEN}Finished running Rebuild_Matrix_5D(...){color.END}\n")
     return Rebuilt_5D_Matrix
 
 ################################################################################################################################################################################################################################################
@@ -560,7 +563,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=====#####=====#####=====#####    Unfolding Method(s): "Test"         #####=====#####=====#####=====#####
 ##############################################################################################################
     if("Test" in str(Method)):
-        print("".join([color.Error, "Starting ", color.UNDERLINE, color.BLUE, "TEST", color.END_e, " Procedure (returning all sliced 1D histos)...", color.END]))
+        print(f"{color.Error}Starting {color.UNDERLINE}{color.BLUE}TEST{color.END_e} Procedure (returning all sliced 1D histos)...{color.END}")
         bayes_iterations = 0
         for Histos_for_Slicing, bayes_iterations in [[MC_GEN_1D, 0], [ExREAL_1D, 1], [MC_REC_1D, 2], [MC_BGS_1D, 3]]:
             Sliced_1D = Multi5D_Slice(Histo=Histos_for_Slicing, Title="Title", Name=Histos_for_Slicing.GetName(), Method=Method, Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if("Smear-Type=''" not in MC_REC_1D.GetName()) else "", Out_Option="histo", Fitting_Input="off")[0]
@@ -577,13 +580,13 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=========================#####========================================#####=========================#####
 ##############################################################################################################
     if(("RooUnfold" in str(Method)) or (str(Method) in ["Default"])):
-        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
+        print(f"{color.BCYAN}Starting {color.UNDERLINE}{color.GREEN}RooUnfold{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
         else:
             Name_Main_Print = str(Name_Main)
-        print("".join([color.BOLD, "\tUnfolding Histogram:\n\t", color.END, str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")]))
+        print(f"""\t{color.BOLD}Unfolding Histogram:{color.END}\n\t{str(Name_Main_Print).replace("(Data-Type='mdf'), ", "")}""")
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
@@ -643,24 +646,24 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfold_Title = "ERROR"
                 if("bbb" in str(Method)):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
+                    print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
 
                     Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
 
                 elif("inv" in str(Method)):
                     Unfold_Title = "RooUnfold Inversion (without regulation)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
-
+                    print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
+                    
                     Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
 
                 else:
                     Unfold_Title = "RooUnfold (Bayesian)"
                     if(str(Method) not in ["RooUnfold", "RooUnfold_bayes", "Default"]):
-                        print("".join(["\t", color.RED, "Method '",                 color.BOLD,   str(Method),       color.END_R,           "' is unknown/undefined...", color.END]))
-                        print("".join(["\t", color.RED, "Defaulting to using the ", color.BGREEN, str(Unfold_Title), color.END_R,           " method to unfold...",      color.END]))
+                        print(f"\t{color.RED}Method '{color.BOLD}{Method}{color.END_R}' is unknown/undefined...{color.END}")
+                        print(f"\t{color.RED}Defaulting to using the {color.BGREEN}{Unfold_Title}{color.END_R} method to unfold...{color.END}")
                     else:
-                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END_C,           " method to unfold...",      color.END]))
-                    
+                        print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
+                        
                     if(not Test_Bayes_Iterations):
                         #########################################
                         ##=====##  Bayesian Iterations  ##=====##
@@ -749,27 +752,26 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                     Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
-                    print("".join([color.BCYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
+                    print(f"{color.BCYAN}Finished {color.GREEN}{Unfold_Title}{color.END_B}{color.CYAN} Unfolding Procedure.\n{color.END}")
                     return [Unfolded_Histo, Response_RooUnfold]
                         
             except:
-                print("".join([color.Error, "\nFAILED TO UNFOLD A HISTOGRAM (RooUnfold)...", color.END]))
-                print("".join([color.Error, "ERROR:\n", color.END, str(traceback.format_exc())]))
+                print(f"\n{color.Error}FAILED TO UNFOLD A HISTOGRAM (RooUnfold)...\nERROR:\n{color.END}{traceback.format_exc()}")
                 
         else:
-            print("".join([color.RED, "Unequal Bins...", color.END]))
-            print("".join(["nBins_CVM = ", str(nBins_CVM)]))
-            print("".join(["MC_REC_1D.GetNbinsX() = ",   str(MC_REC_1D.GetNbinsX())]))
-            print("".join(["MC_GEN_1D.GetNbinsX() = ",   str(MC_GEN_1D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsX() = ", str(Response_2D.GetNbinsX())]))
-            print("".join(["Response_2D.GetNbinsY() = ", str(Response_2D.GetNbinsY())]))
+            print(f"{color.RED}Unequal Bins...{color.END}")
+            print(f"nBins_CVM = {nBins_CVM}")
+            print(f"MC_REC_1D.GetNbinsX() = {MC_REC_1D.GetNbinsX()}")
+            print(f"MC_GEN_1D.GetNbinsX() = {MC_GEN_1D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsX() = {Response_2D.GetNbinsX()}")
+            print(f"Response_2D.GetNbinsY() = {Response_2D.GetNbinsY()}")
             return "ERROR"
 
     else:
-        print("".join(["Procedure for Method '", str(Method), "' has not yet been defined..."]))
+        print(f"Procedure for Method '{Method}' has not yet been defined...")
         return "ERROR"
     
-    print("".join([color.Error, "\nERROR: DID NOT RETURN A HISTOGRAM YET...\n", color.END]))
+    print(f"\n{color.Error}ERROR: DID NOT RETURN A HISTOGRAM YET...{color.END}\n")
     return "ERROR"
 
 ##=======================================================================================================================================================================================================##
@@ -966,6 +968,12 @@ def FileLocation(FileName, Datatype):
 Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
 Common_Name = "Pass_2_5D_Unfold_Test_V7_All"
 Common_Name = "5D_Unfold_Test_V7_All"
+
+Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_All"
+if(args.EvGen):
+    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_EvGen_All"
+    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V2_EvGen_All"
+
 Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
 if(Pass_Version not in [""]):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -980,8 +988,8 @@ if(Pass_Version not in [""]):
 ##   Real (Experimental) Data   ##
 ##################################
 if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Real (Experimental) Data...\n", color.END]))
-if(False):
+#     print(f"\n{color.BOLD}Not using the common file name for the Real (Experimental) Data...{color.END}\n")
+# if(False):
     REAL_File_Name = Common_Name
 else:
     REAL_File_Name = "Unfolding_Tests_V11_All"
@@ -996,15 +1004,19 @@ else:
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
-if(True):
-    print("".join([color.BOLD, "\nNot using the common file name for the Reconstructed Monte Carlo Data...\n", color.END]))
-if(False):
-    MC_REC_File_Name = Common_Name
+if(args.mod):
+    MC_REC_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
 else:
-    MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
-    MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V7_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V7_All"
-    if("Pass 2" not in Pass_Version):
-        MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
+    if(True):
+        print(f"\n{color.BOLD}Not using the common file name for the Reconstructed Monte Carlo Data...{color.END}\n")
+    if(False):
+        MC_REC_File_Name = Common_Name
+    else:
+        MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
+        MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V7_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V7_All"
+        MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
+        if(Pass_Version not in ["Pass 2"]):
+            MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
@@ -1012,15 +1024,27 @@ else:
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
-if(True):
-#     print("".join([color.BOLD, "\nNot using the common file name for the Generated Monte Carlo Data...\n", color.END]))
-# if(False):
-    MC_GEN_File_Name = Common_Name
+if(args.mod):
+    MC_GEN_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
 else:
-    MC_GEN_File_Name = "Unfolding_Tests_V11_All"
-    MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
-    MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V4_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V4_All"
-    MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
+    if(True):
+        print(f"\n{color.BOLD}Not using the common file name for the Generated Monte Carlo Data...{color.END}\n")
+    if(False):
+        MC_GEN_File_Name = Common_Name
+    else:
+        MC_GEN_File_Name = "Unfolding_Tests_V11_All"
+        MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
+        MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V4_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V4_All"
+        MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
+        for ii in range(0, 10, 1):
+            if(Common_Name   not in [str(Common_Name).replace(f"_FC{ii}_",   "_")]):
+                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC{ii}_",   "_")
+                break
+            elif(Common_Name not in [str(Common_Name).replace(f"_FC_1{ii}_", "_")]):
+                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC_1{ii}_", "_")
+                break
+            else:
+                MC_GEN_File_Name = Common_Name
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
@@ -1062,7 +1086,7 @@ except:
 ##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ###############################################################################################################################################################
 
-print(f"\n\n{color.BOLD}Done Loading RDataFrame files...\n{color.END}")
+print(f"\n\n{color.BOLD}Done Loading RDataFrame files...{color.END}\n")
 
 
 
@@ -1142,10 +1166,12 @@ Num_5D_Increments_Used_to_Slice = 422
 Histo_List = {}
 for ii in mdf.GetListOfKeys():
     if(mdf_TH2D_Name in str(ii.GetName())):
+        print(f"Grabbing: {ii.GetName()}")
         Histo_List[ii.GetName()] = mdf.Get(ii.GetName())
 Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=mdf_TH2D_Name, Increment=Num_5D_Increments_Used_to_Slice)
 del Histo_List
 
+timer.time_elapsed()
 
 # Response_2D.GetXaxis().SetTitleOffset(1.2)
 # Response_2D.GetYaxis().SetTitleOffset(1.4)
@@ -1182,8 +1208,10 @@ del gdf
 # No longer need the root files #
 
 
-Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="RooUnfold", MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
-# Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="Test",      MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
+# Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="RooUnfold", MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
+Unfold_1D = Unfold_Function(Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, Method="Test",      MC_BGS_1D=MC_BGS_1D, Test_Bayes_Iterations=True)
+
+timer.time_elapsed()
 
 # print(type(Unfold_1D))
 print("Content of Unfold_1D:")
@@ -1219,15 +1247,15 @@ for Q2_y in Q2_y_Bin_List:
     # canvas[Q2_y] = z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z")
     # canvas[Q2_y] = z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT")
     
-    # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q)
-    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Default")
-    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Diff")
-    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Error")
+    # # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q)
+    # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Default")
+    # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Diff")
+    # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="bayes", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Error")
     
-#     # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q)
-#     z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Default")
-#     z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Diff")
-#     z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Error")
+    # z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q)
+    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Default")
+    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Diff")
+    z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test",  Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT", Saving_Q=Saving_Q, Compare_Type="Error")
     
 
     # canvas[Q2_y].Draw()
