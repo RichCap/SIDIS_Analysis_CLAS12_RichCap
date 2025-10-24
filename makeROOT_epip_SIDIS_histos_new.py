@@ -1530,7 +1530,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
                 rdf = rdf.Filter("MM > 1.5")
             else:
-                print(f"{color.Error}\n{color.UNDERLINE}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.5 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
+                print(f"\n{color.ERROR}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.5 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
                 
         if(datatype in ["mdf"]):
             BG_string = BG_Cut_Function(dataframe="mdf")

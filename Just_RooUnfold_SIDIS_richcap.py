@@ -730,7 +730,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=====#####=====#####=====#####   Unfolding Method: "SVD" (Original)   #####=====#####=====#####=====#####
 ##############################################################################################################
     if(Method in ["SVD"]):
-        print(f"{color.BOLD}{color.CYAN}Starting {color.UNDERLINE}{color.BLUE}SVD{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
+        print(f"{color.BCYAN}Starting {color.UNDERLINE}{color.BLUE}SVD{color.END_B}{color.CYAN} Unfolding Procedure...{color.END}")
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
@@ -1285,12 +1285,12 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                             if(Sector_Special not in ["N/A"]):
                                 if((Q2_y_Bin_Special, z_pT_Bin_Special, "Sectors", "Trusted") in special_fit_parameters_set):
                                     bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "Sectors", "Trusted")]
-                                    print(f"\n{color.ERROR}Using Sector Fit Ranges\n{color.END}")
+                                    print(f"\n{color.Error}Using Sector Fit Ranges\n{color.END}")
                                     fit_range_lower = bin_ranges.get("fit_range_lower")
                                     fit_range_upper = bin_ranges.get("fit_range_upper")
                                 elif((Q2_y_Bin_Special, "All", "Sectors", "Trusted") in special_fit_parameters_set):
                                     bin_ranges = special_fit_parameters_set[(Q2_y_Bin_Special, "All", "Sectors", "Trusted")]
-                                    print(f"\n{color.ERROR}Using Sector Fit Ranges\n{color.END}")
+                                    print(f"\n{color.Error}Using Sector Fit Ranges\n{color.END}")
                                     fit_range_lower = bin_ranges.get("fit_range_lower")
                                     fit_range_upper = bin_ranges.get("fit_range_upper")
                             elif((Q2_y_Bin_Special, z_pT_Bin_Special, "Trusted") in special_fit_parameters_set):
@@ -3705,7 +3705,7 @@ for ii in mdf.GetListOfKeys():
                     Response_2D_initial = Response_2D_initial.Project3D("yx e")
                     Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" yx projection", ""))
                 else:
-                    print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END, "\nResponse_2D_initial = ", Response_2D_initial)
+                    print(color.Error, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END, "\nResponse_2D_initial = ", Response_2D_initial)
                     raise TypeError("ERROR WITH Gen_MM_Cut Response Matrix")
 
                 if("3D" in str(type(MC_REC_1D_initial))):
@@ -3713,14 +3713,14 @@ for ii in mdf.GetListOfKeys():
                         MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
                         MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
                     else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
                         raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
                 else:
                     if(abs(MC_REC_1D_initial.GetYaxis().GetXmin()) == abs(MC_REC_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                         MC_REC_1D_initial = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()), 0, -1, "e")
                         MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
                     else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
                         raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
 
                 if("3D" in str(type(MC_GEN_1D_initial))):
@@ -3728,14 +3728,14 @@ for ii in mdf.GetListOfKeys():
                         MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
                         MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
                     else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
                         raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
                 else:
                     if(abs(MC_GEN_1D_initial.GetYaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                         MC_GEN_1D_initial = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()), 0, -1, "e")
                         MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
                     else:
-                        print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
                         raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
 
                 if(tdf not in ["N/A"]):
@@ -3744,14 +3744,14 @@ for ii in mdf.GetListOfKeys():
                             ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
                             ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
                         else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
                             raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
                     else:
                         if(abs(ExTRUE_1D_initial.GetYaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                             ExTRUE_1D_initial = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()), 0, -1, "e")
                             ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" x projection", ""))
                         else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
                             raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
 
                 if(MC_BGS_1D_initial != "None"):
@@ -3760,14 +3760,14 @@ for ii in mdf.GetListOfKeys():
                             MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
                             MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
                         else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
                             raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
                     else:
                         if(abs(MC_BGS_1D_initial.GetYaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                             MC_BGS_1D_initial = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()), 0, -1, "e")
                             MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" x projection", ""))
                         else:
-                            print(color.ERROR, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
                             raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
 
             elif(Common_Name in ["Gen_Cuts_V7_All"]):
@@ -4590,7 +4590,7 @@ else:
 #     if(adding_hist not in List_of_All_Histos_For_Unfolding):
 #         List_of_All_Histos_For_Unfolding[adding_hist] = temp_list_of_background_histos[adding_hist]
 #     else:
-#         print(f"{color.ERROR}ERROR:{color.END_R} adding_hist = {adding_hist}{color.ERROR} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
+#         print(f"{color.Error}ERROR:{color.END_R} adding_hist = {adding_hist}{color.Error} is already in 'List_of_All_Histos_For_Unfolding'{color.END}")
 # del temp_list_of_background_histos
 
 final_count = 0

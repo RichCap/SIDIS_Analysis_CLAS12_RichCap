@@ -560,7 +560,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=====#####=====#####=====#####    Unfolding Method(s): "Test"         #####=====#####=====#####=====#####
 ##############################################################################################################
     if("Test" in str(Method)):
-        print("".join([color.ERROR, "Starting ", color.UNDERLINE, color.BLUE, "TEST", color.END_B, color.RED, " Procedure (returning all sliced 1D histos)...", color.END]))
+        print("".join([color.Error, "Starting ", color.UNDERLINE, color.BLUE, "TEST", color.END_e, " Procedure (returning all sliced 1D histos)...", color.END]))
         bayes_iterations = 0
         for Histos_for_Slicing, bayes_iterations in [[MC_GEN_1D, 0], [ExREAL_1D, 1], [MC_REC_1D, 2], [MC_BGS_1D, 3]]:
             Sliced_1D = Multi5D_Slice(Histo=Histos_for_Slicing, Title="Title", Name=Histos_for_Slicing.GetName(), Method=Method, Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if("Smear-Type=''" not in MC_REC_1D.GetName()) else "", Out_Option="histo", Fitting_Input="off")[0]
@@ -577,7 +577,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
 #####=========================#####========================================#####=========================#####
 ##############################################################################################################
     if(("RooUnfold" in str(Method)) or (str(Method) in ["Default"])):
-        print("".join([color.BOLD, color.CYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
+        print("".join([color.BCYAN, "Starting ", color.UNDERLINE, color.GREEN, "RooUnfold", color.END_B, color.CYAN, " Unfolding Procedure...", color.END]))
         Name_Main = Response_2D.GetName()
         if((str(Name_Main).find("-[NumBins")) != -1):
             Name_Main_Print = str(Name_Main).replace(str(Name_Main).replace(str(Name_Main)[:(str(Name_Main).find("-[NumBins"))], ""), "))")
@@ -643,13 +643,13 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 Unfold_Title = "ERROR"
                 if("bbb" in str(Method)):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
 
                     Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
 
                 elif("inv" in str(Method)):
                     Unfold_Title = "RooUnfold Inversion (without regulation)"
-                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " Unfolding Procedure...", color.END]))
+                    print("".join(["\t", color.CYAN, "Using ", color.BGREEN, str(Unfold_Title), color.END_C, " Unfolding Procedure...", color.END]))
 
                     Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
 
@@ -659,7 +659,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         print("".join(["\t", color.RED, "Method '",                 color.BOLD,   str(Method),       color.END_R,           "' is unknown/undefined...", color.END]))
                         print("".join(["\t", color.RED, "Defaulting to using the ", color.BGREEN, str(Unfold_Title), color.END_R,           " method to unfold...",      color.END]))
                     else:
-                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END, color.CYAN, " method to unfold...",      color.END]))
+                        print("".join(["\t", color.CYAN, "Using ",                  color.BGREEN, str(Unfold_Title), color.END_C,           " method to unfold...",      color.END]))
                     
                     if(not Test_Bayes_Iterations):
                         #########################################
@@ -749,7 +749,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                     Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
 
-                    print("".join([color.BOLD, color.CYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
+                    print("".join([color.BCYAN, "Finished ", color.GREEN, str(Unfold_Title), color.END_B, color.CYAN, " Unfolding Procedure.\n", color.END]))
                     return [Unfolded_Histo, Response_RooUnfold]
                         
             except:

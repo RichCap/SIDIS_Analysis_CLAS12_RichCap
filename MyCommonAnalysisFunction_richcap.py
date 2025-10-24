@@ -21,17 +21,19 @@ class color:
     BLINK     = '\033[5m'
     DELTA     = '\u0394' # symbol
     END       = '\033[0m'
-    ERROR     = '\033[91m\033[1m' # Combines RED and BOLD
-    Error     = '\033[91m\033[1m' # Same as ERROR
-    BBLUE     = '\033[1m\033[94m' # Combines BLUE and BOLD
-    BCYAN     = '\033[1m\033[96m' # Combines CYAN and BOLD
-    BGREEN    = '\033[1m\033[92m' # Combines GREEN and BOLD
-    BYELLOW   = '\033[1m\033[93m' # Combines YELLOW and BOLD
-    END_B     = '\033[0m\033[1m'  # Combines END and BOLD
-    END_R     = '\033[0m\033[91m' # Combines END and RED
-    END_C     = '\033[0m\033[96m' # Combines END and CYAN
-    END_G     = '\033[0m\033[92m' # Combines END and GREEN
-    END_b     = '\033[0m\033[94m' # Combines END and BLUE
+    ERROR     = '\033[91m\033[1m\033[4m'        # Combines RED, BOLD, and UNDERLINE
+    Error     = '\033[91m\033[1m'               # Same as ERROR but without UNDERLINE
+    BBLUE     = '\033[1m\033[94m'               # Combines BLUE and BOLD
+    BCYAN     = '\033[1m\033[96m'               # Combines CYAN and BOLD
+    BGREEN    = '\033[1m\033[92m'               # Combines GREEN and BOLD
+    BYELLOW   = '\033[1m\033[93m'               # Combines YELLOW and BOLD
+    END_B     = '\033[0m\033[1m'                # Combines END and BOLD
+    END_R     = '\033[0m\033[91m'               # Combines END and RED
+    END_C     = '\033[0m\033[96m'               # Combines END and CYAN
+    END_G     = '\033[0m\033[92m'               # Combines END and GREEN
+    END_b     = '\033[0m\033[94m'               # Combines END and BLUE
+    END_E     = '\033[0m\033[91m\033[1m\033[4m' # Combines END and ERROR
+    END_e     = '\033[0m\033[91m\033[1m'        # Combines END and Error
     
 class color_bg:
     BLACK   = '\033[40m'
