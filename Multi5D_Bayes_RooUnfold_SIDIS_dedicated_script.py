@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
 import sys
-
-# from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 import math
 
-# # Turns off the canvases when running in the command line
-# ROOT.gROOT.SetBatch(1)
+# Turns off the canvases when running in the command line
+ROOT.gROOT.SetBatch(1)
 
 import traceback
-# import shutil
-# import os
+import os
 # import re
 
 from MyCommonAnalysisFunction_richcap    import *
 from Convert_MultiDim_Kinematic_Bins     import *
 from Fit_Related_Functions_For_RooUnfold import *
+
 
 timer = RuntimeTimer()
 timer.start()
@@ -29,112 +27,172 @@ ROOT.gStyle.SetGridColor(17)
 ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
 
+# Set up global style
+ROOT.gStyle.SetStatX(0.80)  # Set the right edge of the stat box (NDC)
+ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
+ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
+ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
+
+def safe_write(obj, tfile):
+    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
+    if(existing):
+        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+    obj.Write()
+
+import argparse
+
+def parse_args():
+    p = argparse.ArgumentParser(description="Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py analysis script:\n\tMeant for JUST doing the 5D (Bayesian) Unfolding Procedure before saving outputs to a ROOT file.",
+                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    # saving / test modes
+    p.add_argument('-t', '-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
+                   help="Run full code but without saving any files.")
+    p.add_argument('-r', '--root', type=str, default="Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap.root",
+                   help="Name of ROOT output file to be saved.")
+
+    # # smearing selection
+    # grp_smear = p.add_mutually_exclusive_group()
+    # grp_smear.add_argument('-smear',    '--smear',    action='store_true',
+    #                        help="Unfold with smeared Monte Carlo only")
+    # grp_smear.add_argument('-no-smear', '--no-smear', action='store_true',
+    p.add_argument('-no-smear', '--no-smear', action='store_true',
+                   help="Unfold with unsmeared Monte Carlo only (Defaults to just using Smearing only).")
+
+    # simulation / modulation / closure
+    p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
+                   help="Use reconstructed MC instead of experimental data.")
+    p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
+                   help="Use modulated MC files to create response matrices.")
+    # p.add_argument('-close', '--closure',  action='store_true', dest='closure',
+    #                help="Run Closure Test (unfold modulated MC with unweighted matrices).")
+
+    # # fitting / output control
+    # p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
+    #                help="Disable fitting of plots.")
+    # p.add_argument('-txt', '--txt',   action='store_true', dest='txt',
+    #                help="Create a txt output file.")
+    # p.add_argument('-stat', '--stat', action='store_true', dest='stat',
+    #                help="Create a (stats) txt output file.")
+
+    # # kinematic comparison & proton modes
+    # p.add_argument('-tp', '--tag-proton',  action='store_true', dest='tag_proton',
+    #                help="Use 'Tagged Proton' files.")
+    # p.add_argument('-cp', '--cut-proton',  action='store_true', dest='cut_proton',
+    #                help="Use 'Cut with Proton Missing Mass' files.")
+
+    # p.add_argument('-cib', '-CIB', '--Common_Int_Bins', action='store_true',
+    #                help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
+
+    p.add_argument('-bayes-it', '--bayes_iterations', type=int,
+                   help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically)")
+    
+    p.add_argument('-title', '--title', type=str,
+                   help="Adds an extra title to the histograms.")
+
+    p.add_argument('-evgen', '--EvGen', action='store_true',
+                   help="Runs with EvGen instead of clasdis files.")
+
+    p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
+                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Default: 0.005)")
+
+    # # positional Q2-xB bin arguments
+    # p.add_argument('bins', nargs='*', metavar='BIN',
+    #                help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
+
+    return p.parse_args()
+
+args = parse_args()
+
+
+def silence_root_import():
+    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    # Save original file descriptors
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+
+    try:
+        # Redirect stdout and stderr to /dev/null at the OS level
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+
+        # Perform the noisy import
+        import RooUnfold
+
+    finally:
+        # Restore the original file descriptors
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+
+# Use it like this:
+silence_root_import()
+# print("\nImported RooUnfold...\n")
+
+# try:
+#     import RooUnfold
+# except ImportError:
+#     print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
+
        
-Saving_Q         = True
-Fit_Test         = True
-Sim_Test         = False
-Smearing_Options = "both"
-if(len(sys.argv) > 1):
-    arg_option_1 = str(sys.argv[1])
-    if(arg_option_1 in ["test", "Test", "time", "Time"]):
-        print("\nNOT SAVING\n")
-        Saving_Q = False
-    else:
-        print("".join(["\nOption Selected: ", str(arg_option_1), " (Still Saving...)" if("no_save" not in str(arg_option_1)) else " (NOT SAVING)"]))
-        Saving_Q         = True  if("no_save" not in str(arg_option_1)) else False
-        Fit_Test         = True  if("no_fit"  not in str(arg_option_1)) else False
-        arg_option_1     = arg_option_1.replace("_no_fit",     "")
-        arg_option_1     = arg_option_1.replace("no_fit",      "")
-        Smearing_Options = str((arg_option_1).replace("_no_save", "")).replace("no_save", "") if(str(arg_option_1) not in ["save", ""]) else "both"
-        if(Smearing_Options == ""):
-            Smearing_Options = "both"
-        if(("no_smear" in [str(Smearing_Options)]) or ("no_smear" in str(arg_option_1))):
-            Smearing_Options = "no_smear"
-        if(Smearing_Options in ["_smear", "Smear", "_Smear"]):
-            Smearing_Options = "smear"
+Saving_Q         = not args.test
+Fit_Test         = False
+Sim_Test         = args.sim
+Mod_Test         = args.mod
+Smearing_Options = "no_smear" if(args.no_smear) else "smear"
+
+
+if(Saving_Q):
+    print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
 else:
-    Saving_Q = True
-    
+    print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
+
+
 Standard_Histogram_Title_Addition = ""
-        
-if(not Fit_Test):
-    print("\n")
-    print("".join([color.BBLUE, color_bg.RED, """\n\n    Not Fitting Plots    \n""", color.END, "\n\n"]))
-    
+if(Sim_Test):
+    print(f"{color.BLUE}\nRunning Simulated Test\n{color.END}")
+    Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
+if(Mod_Test):
+    print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
+    if(Standard_Histogram_Title_Addition not in [""]):
+        Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
+    else:
+        Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
 
+if(args.title):
+    if(Standard_Histogram_Title_Addition not in [""]):
+        Standard_Histogram_Title_Addition = f"#splitline{{{Standard_Histogram_Title_Addition}}}{{{args.title}}}"
+    else:
+        Standard_Histogram_Title_Addition = args.title
+    print(f"\nAdding the following extra title to the histograms:\n\t{Standard_Histogram_Title_Addition}\n")
     
+# if(not Fit_Test):
+#     print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
 
-if(str(Smearing_Options) in ["both"]):
-    Smearing_Options = "smear"
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
 File_Save_Format = ".png"
 # File_Save_Format = ".root"
 # File_Save_Format = ".pdf"
 
-
 if((File_Save_Format != ".png") and Saving_Q):
     print(color.BGREEN, "\nSave Option was not set to output .png files. Save format is:", "".join([color.END_B, color.UNDERLINE, str(File_Save_Format), color.END, "\n"]))
 
-    
-# # How to run code in the commandline:
-# # # Step 1) Run these commands before running this code:
-#         source /group/clas12/packages/setup.csh
-#         source /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build/setup.sh
-# # # Step 2) Run this code with the following command (optional inputs are in []): 
-#         python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py [saving/smearing options] [list of Q2-xB bins to run]
-
-# # # Possible input options for the above command:
-# # # # "saving/smearing" options (include as one word without spaces - use '_' when combining options):
-#     1) save                     -->   default option of code - will save all histograms (without options 4 or 5 below, this option will unfold with the smeared monte carlo AND the unsmeared monte carlo)
-#     2) test, Test, time, Time   -->   simple options to run full code but without saving any images (do not combine with other options - all of these do the same thing)
-#     3) no_save                  -->   same as the above option(s) but can can be added to the end of other options to prevent saving (include as the last part of the option with '_no_save')
-#     4) smear                    -->   will unfold with smeared monte carlo files only
-#     5) no_smear                 -->   will unfold with normal (unsmeared) monte carlo files only
-# # # # "list of Q2-xB bins to run" options (notes):
-#     (*) Can select bins numbered 0-17 (0 is for 'All Bins' histograms) - Order does not matter
-#         * Separate each bin choice with a space and just use interger numbers
-#     (*) Must specify an input for "saving/smearing" (see above) to use these options
-#         * Takes from the 2nd arguement and on only (will never take from the 1st arguement after 'RooUnfold_SIDIS_richcap.py')
-#     (*) Default option is to run all bins in sequential order
-    
-    
-# # Test code with the command:
-# # # python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RooUnfold_SIDIS_richcap.py test [list of Q2-xB bins to run]
-
 
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
-# # Binning_Method = "_y_bin" 
 
-Q2_xB_Bin_List = ['1', '2', '3', '4', '5', '6', '7', '8']
-if(any(binning in Binning_Method for binning in ["y_bin", "Y_bin"])):
-    # Q2_xB_Bin_List = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13']
-    Q2_xB_Bin_List = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
-
-if(len(sys.argv) > 2):
-    Q2_xB_Bin_List = []
-    for ii_bin in range(2, len(sys.argv), 1):
-        Q2_xB_Bin_List.append(sys.argv[ii_bin])
-    if(Q2_xB_Bin_List == []):
-        print("Error")
-        Q2_xB_Bin_List = ['1']
-    print(str(("".join(["\nRunning for Q2-xB/Q2-y Bins: ", str(Q2_xB_Bin_List)]).replace("[", "")).replace("]", "")))
-    
-    
-
-print("".join([color.BOLD, "\nStarting RG-A SIDIS Analysis\n", color.END]))
+Q2_y_Bin_List = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
 
 
-try:
-    import RooUnfold
-except ImportError:
-    print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
-        
-        
-print("\n\n")
+print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
 
-
-
+stop
 
 ################################################################################################################################################################################################################################################
 ##==========##==========##        5D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
@@ -148,14 +206,14 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
     Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
     if(str(Method) not in ["rdf", "gdf"]):
         if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(color.BLUE, "\nRunning Multi5D_Slice(...)\n", color.END)
+            print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
         else:
-            print(color.Error, "\n\nWrong Smearing option for Multi5D_Slice(...)\n\n", color.END)
+            print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
             return "Error"
     elif(Smear in [""]):
-        print(color.BLUE,      "\nRunning Multi5D_Slice(...)\n", color.END)
+        print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
     else:
-        print(color.Error,     "\n\nWrong Smearing option for Multi5D_Slice(...)\n\n", color.END)
+        print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
         return "Error"
     try:
         #######################################################################
@@ -165,10 +223,10 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             if(Name in ["histo", "Histo", "input", "default"]):
                 Name = Histo.GetName()
             if("MultiDim_Q2_y_z_pT_phi_h" not in str(Name)):
-                print(color.RED, "ERROR: WRONG TYPE OF HISTOGRAM\nName =", color.END, Name, "\nMulti5D_Slice() should be used on the histograms with the 'MultiDim_Q2_y_z_pT_phi_h' bin variable\n\n")
+                print(f"{color.RED}ERROR: WRONG TYPE OF HISTOGRAM\nName = {color.END}{Name}\nMulti5D_Slice() should be used on the histograms with the 'MultiDim_Q2_y_z_pT_phi_h' bin variable\n\n")
                 return "Error"
         if(str(Variable).replace("_smeared", "") not in ["MultiDim_Q2_y_z_pT_phi_h"]):
-            print(color.RED, "ERROR in Multi5D_Slice(): Not set up for other variables (yet)", color.END, "\nVariable =", Variable, "\n\n")
+            print(f"{color.RED}ERROR in Multi5D_Slice(): Not set up for other variables (yet)\n{color.END}Variable = {Variable}\n\n")
             return "Error"
         if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
             Variable = "".join([Variable,  "_smeared"])
@@ -236,7 +294,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                 Name = Name.replace("gdf", "tdf")
             # else:
             #     print("".join([color.BBLUE, color_bg.CYAN, "\nMaking a Multi-Dim Histo for '", str(Method), "' distribution\n", color.END, "\nName =", str(Name), "\n"]))
-        for Q2_y in Q2_xB_Bin_List:
+        for Q2_y in Q2_y_Bin_List:
             if(Q2_y not in ["0", "All"]):
                 if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")):
                     break
@@ -1027,7 +1085,7 @@ print(f"\n\n{color.BOLD}Done Loading RDataFrame files...\n{color.END}")
 # #     else:
 # #         print(f"{color.ERROR}{ii}{color.END}")
 
-# for Q2_y_bin in Q2_xB_Bin_List:
+# for Q2_y_bin in Q2_y_Bin_List:
 #     mdf_TH2D_Name = "".join(["((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'),", " (Smear-Type='smear')," if(Smearing_Options == "smear") else " (Smear-Type=''),", " (Binning-Type='Y_bin'-[Q2-y-Bin=", str(Q2_y_bin), ", z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='", "z_pT_Bin_Y_bin_smeared" if(Smearing_Options == "smear") else "z_pT_Bin_Y_bin", "'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))"])
 #     Response_2D = mdf.Get(mdf_TH2D_Name)
 #     Response_2D.GetXaxis().SetTitleOffset(1.2)
@@ -1135,7 +1193,7 @@ for ii in Unfold_1D:
 
 sys.stdout.flush()
 
-# for     Q2_y in Q2_xB_Bin_List:
+# for     Q2_y in Q2_y_Bin_List:
 #     for z_pT in range(0, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=int(Q2_y))[1]+1):
 #         if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y, Z_PT_BIN=z_pT, BINNING_METHOD=Binning_Method)):
 #             print(f"{color.RED}{z_pT}{color.END}")
@@ -1157,7 +1215,7 @@ Default_Histo_Name_Test = "".join(["(MultiDim_5D_Histo)_(Data_Type)_(SMEAR=", "S
 
 print(f"{color.BGREEN}\nDefault_Histo_Name_Test = {Default_Histo_Name_Test}\n{color.END}")
 
-for Q2_y in Q2_xB_Bin_List:
+for Q2_y in Q2_y_Bin_List:
     # canvas[Q2_y] = z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test", Q2_Y_Bin=1, Multi_Dim_Option="Off", Plot_Orientation="pT_z")
     # canvas[Q2_y] = z_pT_Images_Together_For_Iteration_Test(Histogram_List_All=Unfold_1D, Default_Histo_Name=Default_Histo_Name_Test, Method="Test", Q2_Y_Bin=int(Q2_y), Multi_Dim_Option="Off", Plot_Orientation="z_pT")
     
