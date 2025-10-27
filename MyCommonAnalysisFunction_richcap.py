@@ -109,31 +109,40 @@ class RuntimeTimer:
         else:
             print(f"\nStarted running on {color.BOLD}{self.start_time.month}-{self.start_time.day}-{self.start_time.year}{color.END} at {color.BOLD}{formatted_time}{color.END}\n")
 
-    def time_elapsed(self):
+    def time_elapsed(self, return_Q=False):
         self.end_time = datetime.now()
         formatted_time = self._format_time(self.end_time)
-        print(f"\nCurrent Time: {color.BOLD}{formatted_time}{color.END}")
+        current_time = f"\nCurrent Time: {color.BOLD}{formatted_time}{color.END}"
+        print()
         delta = self.end_time - self.start_time
         total_seconds = int(delta.total_seconds())
         days = delta.days
         hours, remainder = divmod(total_seconds - days * 86400, 3600)
         minutes, seconds = divmod(remainder, 60)
-        print(f"Time Elapsed Up To Now:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s).\n")
+        elapse_time = f"Time Elapsed Up To Now:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s).\n"
+        if(return_Q):
+            return current_time, elapse_time
+        else:
+            print(f"{current_time}\n{elapse_time}")
     
-    def stop(self, count_label=None, count_value=None):
+    def stop(self, count_label=None, count_value=None, return_Q=False):
         self.end_time = datetime.now()
         formatted_time = self._format_time(self.end_time)
-        print(f"\nThe time that this code finished is {color.BOLD}{formatted_time}{color.END}")
+        end_time = f"\nThe time that this code finished is {color.BOLD}{formatted_time}{color.END}"
         delta = self.end_time - self.start_time
         total_seconds = int(delta.total_seconds())
         days = delta.days
         hours, remainder = divmod(total_seconds - days * 86400, 3600)
         minutes, seconds = divmod(remainder, 60)
-        print(f"The total time the code took to run is:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s).")
+        total_time = f"The total time the code took to run is:\n{days} Day(s), {hours} Hour(s), {minutes} Minute(s), and {seconds} Second(s)."
+        rate_line  = ""
         if((count_label is not None) and (count_value is not None) and (total_seconds > 0)):
             rate = count_value / total_seconds
-            print(f"Saved {count_value} {count_label}...\nRate = {rate:.2f} {count_label}/Seconds")
-        print("\n")
+            rate_line = f"Saved {count_value} {count_label}...\nRate = {rate:.2f} {count_label}/Seconds"
+        if(return_Q):
+            return end_time, total_time, rate_line
+        else:
+            print(f"{end_time}\n{total_time}\n{rate_line}\n\n")
 
 ###################=========================###################
 ##===============##     Variable Titles     ##===============##

@@ -1008,8 +1008,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Unfolded_Histo = Unfolding_Histo.Hunfold()
                 else:
                     Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovToys)
-
-    
+                    
                 for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1):
                     if(MC_REC_1D.GetBinContent(bin_rec) == 0):
                         Unfolded_Histo.SetBinError(bin_rec,          Unfolded_Histo.GetBinContent(bin_rec)        + Unfolded_Histo.GetBinError(bin_rec))
@@ -1035,8 +1034,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     return [Unfolded_Histo, Response_RooUnfold]
                 else:
                     return [Unfolded_Histo, Bin_Acceptance]
-
-                        
+                    
             except:
                 print(f"\n{color.Error}FAILED TO UNFOLD A HISTOGRAM (RooUnfold)...\nERROR:\n{color.END}{traceback.format_exc()}")
                 
