@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from MyCommonAnalysisFunction_richcap import color, color_bg
-print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis (File Sorting)\n{color.END}")
+print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis (File Sorting){color.END}\n")
 
 import traceback
 from datetime import datetime
@@ -201,9 +201,9 @@ for Entry in os.listdir():
                 # shutil.move(Entry, destination)
                 handle_file_move(Entry, destination)
         if('.png'          in str(Entry)):
-            if("Sim_Test_" in str(Entry)):
-                os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
-                Entry = str(Entry).replace("Sim_Test_", "")
+            # if("Sim_Test_" in str(Entry)):
+            #     os.rename(Entry, str(Entry).replace("Sim_Test_", ""))
+            #     Entry = str(Entry).replace("Sim_Test_", "")
             Moved_Q = False
             if("Fit_Par" in str(Entry)):
                 # if("Fit_Par_A" in str(Entry)):
@@ -240,14 +240,14 @@ for Entry in os.listdir():
                                 handle_file_move(Entry, os.path.join(destination_z_pT_Bin_Individual, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
-                                print("".join([color.Error, "ERROR in Unsmeared 'Response_Matrix': \n", color.END, str(traceback.format_exc()), "\n"]))
+                                print(f"{color.Error}ERROR in Unsmeared 'Response_Matrix': {color.END}\n{traceback.format_exc()}\n")
                         else:
                             try:
                                 # shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_Individual), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                                 handle_file_move(Entry, os.path.join(destination_Smeared_z_pT_Bin_Individual, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
-                                print("".join([color.Error, "ERROR in Smeared 'Response_Matrix': \n",   color.END, str(traceback.format_exc()), "\n"]))
+                                print(f"{color.Error}ERROR in Smeared 'Response_Matrix': {color.END}\n{traceback.format_exc()}\n")
             elif(("Unfolded_Histos"      in str(Entry)) and ("_z_pT_Bin_"    not in str(Entry))):
                 for Q2_xB_Bin in range(9 if("xB" in Binning_Option) else 17, 0, -1):
                     if("".join([str(Binning_Option), "_", str(Q2_xB_Bin), "_"])  in str(Entry)):
@@ -257,14 +257,15 @@ for Entry in os.listdir():
                                 handle_file_move(Entry, os.path.join(destination_z_pT_Bin_All, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
-                                print("".join([color.Error, "ERROR in Unsmeared 'Unfolded_Histos': \n", color.END, str(traceback.format_exc()), "\n"]))
+                                print(f"{color.Error}ERROR in Unsmeared 'Unfolded_Histos': {color.END}\n{traceback.format_exc()}\n")
                         else:
                             try:
                                 # shutil.move(Entry, "".join([str(destination_Smeared_z_pT_Bin_All), "/", str(Binning_Option), "_", str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else "All"]))
                                 handle_file_move(Entry, os.path.join(destination_Smeared_z_pT_Bin_All, f"{str(Binning_Option)}_{str(Q2_xB_Bin) if(Q2_xB_Bin != 0) else 'All'}"))
                                 Moved_Q = True
                             except:
-                                print("".join([color.Error, "ERROR in Smeared 'Unfolded_Histos': \n",   color.END, str(traceback.format_exc()), "\n"]))
+                                print(f"{color.Error}ERROR in Smeared 'Unfolded_Histos': {color.END}\n{traceback.format_exc()}\n")
+                                
             elif(not Moved_Q):
                 # shutil.move(Entry, destination)
                 handle_file_move(Entry, destination)
@@ -275,7 +276,7 @@ for Entry in os.listdir():
                 handle_file_move(Entry, destination)
                 
     except:
-        print(f"{color.Error}\n\nERROR IN ENTRY OF THE listdir():\n\n{color.END_R}{str(traceback.format_exc())}{color.END}\n\n")
+        print(f"\n\n{color.Error}ERROR IN ENTRY OF THE listdir():{color.END_R}\n\n{str(traceback.format_exc())}{color.END}\n\n")
         
 ##=====##   Image Sorting   ##=====##
 ##=================================##
@@ -290,11 +291,11 @@ for Entry in os.listdir():
 #############################################################################
     
 
-print("".join([color.BGREEN, color_bg.YELLOW, """
+print(f"""\n\n{color.BGREEN}{color_bg.YELLOW}
 \t                                   \t   
 \t                                   \t   
 \tThis code has now finished running.\t   
 \t                                   \t   
 \t                                   \t   
-""", color.END]))
+{color.END}""")
 
