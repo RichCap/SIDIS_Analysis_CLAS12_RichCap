@@ -2,6 +2,7 @@
 
 import sys
 
+
 print("Starting...\n")
 
 from datetime import datetime
@@ -10,6 +11,12 @@ from datetime import datetime
 # from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 # import math
+
+
+import faulthandler
+faulthandler.enable(all_threads=True)
+print("faulthandler enabled:", faulthandler.is_enabled())
+
 
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
@@ -139,13 +146,13 @@ else:
     
 Standard_Histogram_Title_Addition = ""
 if(Closure_Test):
-    print("".join([color.BLUE, "\nRunning Closure Test (Unfolding the Modulated MC using the unweighted response matrices)\n", color.END]))
+    print(f"\n{color.BLUE}Running Closure Test (Unfolding the Modulated MC using the unweighted response matrices){color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Modulated Simulation"
 elif(Sim_Test):
-    print("".join([color.BLUE, "\nRunning Simulated Test\n", color.END]))
+    print(f"\n{color.BLUE}Running Simulated Test{color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
 if(Mod_Test):
-    print("".join([color.BLUE, "\nUsing ", color.BOLD, "Modulated", color.END_b, " Monte Carlo Files (to create the response matrices)\n", color.END]))
+    print(f"\n{color.BLUE}Using {color.BOLD}Modulated{color.END_b} Monte Carlo Files (to create the response matrices){color.END}\n")
     if(Standard_Histogram_Title_Addition not in [""]):
         Standard_Histogram_Title_Addition = "".join([str(Standard_Histogram_Title_Addition), " - Using Modulated Response Matrix"])
     else:
@@ -157,7 +164,8 @@ if(Tag_ProQ):
     print(f"\n{color.BBLUE}Running with the '{color.UNDERLINE}{Proton_Type}{color.END}{color.BBLUE}' Files{color.END}\n")
     del Proton_Type
         
-if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
+# if((Closure_Test or Sim_Test) and (str(Smearing_Options) not in ["no_smear"])):
+if(Closure_Test and (str(Smearing_Options) not in ["no_smear"])):
     print(f"\n{color.BOLD}Unfolding Simulated data for Closure Tests should (probably) not use any additional smearing (forcing choice change)\n{color.END}")
     Smearing_Options = "no_smear"
         
@@ -194,7 +202,13 @@ if(Create_txt_File):
 else:
     print(f"{color.RED}\nWill {color.BOLD}NOT{color.END_R} create a txt output file\n{color.END}")
     
-    
+
+if(Use_TTree and (Sim_Test or Mod_Test)):
+    if(Sim_Test):
+        TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
+    elif(Mod_Test):
+        TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root"
+
 # if(str(Smearing_Options) not in ["both"]):
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
@@ -328,13 +342,12 @@ def Full_Calc_Fit(Histo, version="norm"):
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
         Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
         A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
-    elif(Sim_Test):
-        B, C = 0, 0
-        Histo_max_bin     = Histo.GetMaximumBin()
-        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
-        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
-        A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
-        
+    # elif(Sim_Test):
+    #     B, C = 0, 0
+    #     Histo_max_bin     = Histo.GetMaximumBin()
+    #     Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+    #     Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+    #     A    = (Histo_max_bin_num)/((1 + B*ROOT.cos(Histo_max_bin_phi) + C*ROOT.cos(2*Histo_max_bin_phi)))
     else:
         Histo_180_bin = Histo.FindBin(155)
         Histo_240_bin = Histo.FindBin(300)
@@ -656,12 +669,12 @@ def Full_Calc_Fit(Histo):
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
         Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
         A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
-    elif(Sim_Test):
-        B_opt, C_opt = 0, 0
-        Histo_max_bin     = Histo.GetMaximumBin()
-        Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
-        Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
-        A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
+    # elif(Sim_Test):
+    #     B_opt, C_opt = 0, 0
+    #     Histo_max_bin     = Histo.GetMaximumBin()
+    #     Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
+    #     Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
+    #     A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
     else:
         x_data, y_data = [], []
         try:
@@ -1646,14 +1659,14 @@ def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Mu
     Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}
     if(str(Method) not in ["rdf", "gdf"]):
         if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(color.BLUE, "\nRunning MultiD_Slice(...)\n", color.END)
+            print(f"\n{color.BLUE}Running MultiD_Slice(...){color.END}\n")
         else:
-            print(color.Error, "\n\nWrong Smearing option for MultiD_Slice(...)\n\n", color.END)
+            print(f"\n\n{color.Error}Wrong Smearing option for MultiD_Slice(...){color.END}\n\n")
             return "Error"
     elif(Smear in [""]):
-        print(color.BLUE, "\nRunning MultiD_Slice(...)\n", color.END)
+        print(f"\n{color.BLUE}Running MultiD_Slice(...){color.END}\n")
     else:
-        print(color.Error, "\n\nWrong Smearing option for MultiD_Slice(...)\n\n", color.END)
+        print(f"\n\n{color.Error}Wrong Smearing option for MultiD_Slice(...){color.END}\n\n")
         return "Error"
     try:
         Output_Histos = {}
@@ -1899,15 +1912,17 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
     Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
     if(str(Method) not in ["rdf", "gdf"]):
         if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(color.BLUE, "\nRunning Multi3D_Slice(...)\n", color.END)
+            print(f"\n{color.BLUE}Running Multi3D_Slice(...){color.END}\n")
         else:
-            print(color.Error, "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+            print(f"\n\n{color.Error}Wrong Smearing option for Multi3D_Slice(...){color.END}\n\n")
             return "Error"
     elif(Smear in [""]):
-        print(color.BLUE,      "\nRunning Multi3D_Slice(...)\n", color.END)
-    else:
-        print(color.Error,     "\n\nWrong Smearing option for Multi3D_Slice(...)\n\n", color.END)
+        print(f"\n{color.BLUE}Running Multi3D_Slice(...){color.END}\n")
+    elif((not Sim_Test) or (str(Method) in ["gdf"])):
+        print(f"\n\n{color.Error}Wrong Smearing option for Multi3D_Slice(...){color.END}\n\n")
         return "Error"
+    else:
+        print(f"\n{color.BLUE}Running Multi3D_Slice(...) {color.RED}(with Method = '{Method}' and Smear = '{Smear}' — Sim_Test = '{Sim_Test}'){color.END}\n")
     try:
         #######################################################################
         #####==========#####     Catching Input Errors     #####==========#####
@@ -1916,13 +1931,13 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             if(Name in ["histo", "Histo", "input", "default"]):
                 Name = Histo.GetName()
             if("MultiDim_z_pT_Bin_Y_bin_phi_t" not in str(Name)):
-                print(color.RED, "ERROR: WRONG TYPE OF HISTOGRAM\nName =", color.END, Name, "\nMulti3D_Slice() should be used on the histograms with the 'MultiDim_z_pT_Bin_Y_bin_phi_t' bin variable\n\n")
+                print(f"{color.RED}ERROR: WRONG TYPE OF HISTOGRAM\nName = {color.END}{Name}\nMulti3D_Slice() should be used on the histograms with the 'MultiDim_z_pT_Bin_Y_bin_phi_t' bin variable\n\n")
                 return "Error"
         if(str(Variable).replace("_smeared", "") not in ["MultiDim_z_pT_Bin_Y_bin_phi_t"]):
-            print(color.RED, "ERROR in Multi3D_Slice(): Not set up for other variables (yet)", color.END, "\nVariable =", Variable, "\n\n")
+            print(f"{color.RED}ERROR in Multi3D_Slice(): Not set up for other variables (yet)\n{color.END}Variable = {Variable}\n\n")
             return "Error"
         if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
-            Variable = "".join([Variable,  "_smeared"])
+            Variable = f"{Variable}_smeared"
         if(("mear" not in str(Smear)) and ("_smeared"     in str(Variable))):
             Smear = "Smear"
         ########################################################################
@@ -2109,7 +2124,7 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         #####==========#####      Returning Outputs       #####==========#####
         ######################################################################
     except:
-        print("".join([color.Error, "Multi3D_Slice(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+        print(f"{color.Error}Multi3D_Slice(...) ERROR:{color.END}\n{traceback.format_exc()}\n")
         return "Error"
 
 ################################################################################################################################################################################################################################################
@@ -2130,15 +2145,17 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
     Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
     if(str(Method) not in ["rdf", "gdf"]):
         if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(color.BLUE, "\nRunning Multi5D_Slice(...)\n", color.END)
+            print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
         else:
-            print(color.Error, "\n\nWrong Smearing option for Multi5D_Slice(...)\n\n", color.END)
+            print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
             return "Error"
     elif(Smear in [""]):
-        print(color.BLUE,      "\nRunning Multi5D_Slice(...)\n", color.END)
-    else:
-        print(color.Error,     "\n\nWrong Smearing option for Multi5D_Slice(...)\n\n", color.END)
+        print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
+    elif((not Sim_Test) or (str(Method) in ["gdf"])):
+        print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
         return "Error"
+    else:
+        print(f"\n{color.BLUE}Running Multi5D_Slice(...) {color.RED}(with Method = '{Method}' and Smear = '{Smear}' — Sim_Test = '{Sim_Test}'){color.END}\n")
     try:
         #######################################################################
         #####==========#####     Catching Input Errors     #####==========#####
@@ -2147,10 +2164,10 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             if(Name in ["histo", "Histo", "input", "default"]):
                 Name = Histo.GetName()
             if("MultiDim_Q2_y_z_pT_phi_h" not in str(Name)):
-                print(color.RED, "ERROR: WRONG TYPE OF HISTOGRAM\nName =", color.END, Name, "\nMulti5D_Slice() should be used on the histograms with the 'MultiDim_Q2_y_z_pT_phi_h' bin variable\n\n")
+                print(f"{color.RED}ERROR: WRONG TYPE OF HISTOGRAM\nName = {color.END}{Name}\nMulti5D_Slice() should be used on the histograms with the 'MultiDim_Q2_y_z_pT_phi_h' bin variable\n\n")
                 return "Error"
         if(str(Variable).replace("_smeared", "") not in ["MultiDim_Q2_y_z_pT_phi_h"]):
-            print(color.RED, "ERROR in Multi5D_Slice(): Not set up for other variables (yet)", color.END, "\nVariable =", Variable, "\n\n")
+            print(f"{color.RED}ERROR in Multi5D_Slice(): Not set up for other variables (yet)\n{color.END}Variable = {Variable}\n\n")
             return "Error"
         if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
             Variable = "".join([Variable,  "_smeared"])
@@ -2362,7 +2379,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         #####==========#####      Returning Outputs       #####==========#####
         ######################################################################
     except:
-        print("".join([color.Error, "Multi5D_Slice(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+        print(f"{color.Error}Multi5D_Slice(...) ERROR:{color.END}\n{traceback.format_exc()}\n")
         return "Error"
 
 ################################################################################################################################################################################################################################################
@@ -2416,17 +2433,17 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         #####==========#####  Checking Inputs for Errors   #####==========#####
         #######################################################################
         if("Response" not in str(Out_Print_Main) and (Response_2D not in ["N/A", "None", "Error"])):
-            print(color.Error, "\n\n\nERROR IN New_Version_of_File_Creation()...\nThis function is meant to just handle the 'Response_Matrix' Histograms (for Unfolding)\nFlawed Input was:", str(Out_Print_Main), color.END, "\n\n")
+            print(f"\n\n\n{color.Error}ERROR IN New_Version_of_File_Creation()...\nThis function is meant to just handle the 'Response_Matrix' Histograms (for Unfolding)\nFlawed Input was: {Out_Print_Main}{color.END}\n\n")
             return Histogram_List_All
         if(type(Histogram_List_All) is not dict):
-            print(color.Error, "\n\n\nERROR IN New_Version_of_File_Creation()...\nThis function requires that 'Histogram_List_All' be set as a dict to properly handle the outputs\nFlawed Input was:\nHistogram_List_All =", str(Histogram_List_All), color.END, "\n\n")
+            print(f"\n\n\n{color.Error}ERROR IN New_Version_of_File_Creation()...\nThis function requires that 'Histogram_List_All' be set as a dict to properly handle the outputs\nFlawed Input was:\nHistogram_List_All = {Histogram_List_All}{color.END}\n\n")
             return Histogram_List_All
         #######################################################################
         #####==========#####  Checking Inputs for Errors   #####==========#####
         #######################################################################
 
         Variable_Input = Histogram_Name_Def(Out_Print_Main, Variable="FindAll")
-        print("Variable_Input =", Variable_Input)
+        print(f"Variable_Input = {Variable_Input}")
         Allow_Fitting  = ("phi_t" in str(Variable_Input)) or ("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input))
 
         #####################################################################
@@ -2436,7 +2453,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
             Bin_Method_Histograms        = Unfold_Function(Response_2D,  ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Bin",             MC_BGS_1D=MC_BGS_1D)
             Bin_Unfolded, Bin_Acceptance = Bin_Method_Histograms
         except:
-            print("".join([color.Error, "ERROR IN BIN UNFOLDING ('Bin_Method_Histograms'):\n", color.END_R, str(traceback.format_exc()), color.END]))
+            print(f"{color.Error}ERROR IN BIN UNFOLDING ('Bin_Method_Histograms'):\n{color.END_R}{traceback.format_exc()}{color.END}")
 
         if(("sec" not in Variable_Input) or (Response_2D not in ["N/A", "None", "Error"])):
             try:
@@ -2446,7 +2463,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 else:
                     RooUnfolded_Bayes_Histos = (Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="RooUnfold_bayes", MC_BGS_1D=MC_BGS_1D))[0]
             except:
-                print("".join([color.Error, "ERROR IN RooUnfold Bayesian METHOD:\n",           color.END_R, str(traceback.format_exc()), color.END]))
+                print(f"{color.Error}ERROR IN RooUnfold Bayesian METHOD:\n{color.END_R}{traceback.format_exc()}{color.END}")
         else:
             print(f"\n{color.Error}Not running bayesian unfolding method...{color.END}\n")
             RooUnfolded_Bayes_Histos = Bin_Method_Histograms[0]
@@ -2611,12 +2628,15 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                     break
         ################################################################### ########################################################################################################################################################################################################################################################################################################################
         ###==========###         Normal/1D Histos          ###==========### ########################################################################################################################################################################################################################################################################################################################
-        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "rdf")).replace("Smear", "''")]               = ExREAL_1D.Clone(str(Histo_Name_General.replace("METHOD",   "rdf")).replace("Smear", "''"))
+        if(not Sim_Test):
+            Histogram_List_All[str(Histo_Name_General.replace("METHOD", "rdf")).replace("Smear", "''")]               = ExREAL_1D.Clone(str(Histo_Name_General.replace("METHOD",   "rdf")).replace("Smear", "''"))
+        else:
+            Histogram_List_All[str(Histo_Name_General.replace("METHOD", "rdf"))]                                      = ExREAL_1D.Clone(str(Histo_Name_General.replace("METHOD",   "rdf")))
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "mdf"))]                                      = MC_REC_1D.Clone(str(Histo_Name_General.replace("METHOD",   "mdf")))
         if(hasattr(Response_2D, 'Clone') and callable(getattr(Response_2D, 'Clone'))):
-            Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "mdf")).replace("1D", "Response_Matrix")] = Response_2D.Clone(str(Histo_Name_General.replace("METHOD", "mdf")).replace("1D",    "Response_Matrix"))
+            Histogram_List_All[str(Histo_Name_General.replace("METHOD", "mdf")).replace("1D", "Response_Matrix")]     = Response_2D.Clone(str(Histo_Name_General.replace("METHOD", "mdf")).replace("1D",    "Response_Matrix"))
         else:
-            Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "mdf")).replace("1D", "Response_Matrix")] = Response_2D
+            Histogram_List_All[str(Histo_Name_General.replace("METHOD", "mdf")).replace("1D", "Response_Matrix")]     = Response_2D
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "gdf")).replace("Smear", "''")]               = MC_GEN_1D.Clone(str(Histo_Name_General.replace("METHOD",   "gdf")).replace("Smear", "''"))
         if(MC_BGS_1D not in ["None"]):
             Histogram_List_All[str(Histo_Name_General.replace("METHOD", "Background"))]                               = MC_BGS_1D.Clone(str(Histo_Name_General.replace("METHOD",   "Background")))
@@ -3550,11 +3570,13 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
 
             Save_Name     = "".join(["Kinematic_Comparison_Q2_y_Bin_", str(Q2_Y_Bin_Input) if(str(Q2_Y_Bin_Input) not in ["0"]) else "All", "_z_pT_Bin_", str(Z_PT_Bin_Input) if(str(Z_PT_Bin_Input) not in ["0"]) else "All", "".join(["_Smeared", str(File_Save_Format)]) if("Smear" in Default_Histo_Name_Input) else str(File_Save_Format)])    
             if(Name_Uses_MultiDim):
-                Save_Name = "".join(["Multi_Unfold_", str(Save_Name)])
+                Save_Name = f"Multi_Unfold_{Save_Name}"
             if(Sim_Test):
-                Save_Name = "".join(["Sim_Test_",     str(Save_Name)])
+                Save_Name = f"Sim_Test_{Save_Name}"
+            if(Mod_Test):
+                Save_Name = f"Mod_Test_{Save_Name}"
             if(not any(binning in Binning_Method for binning in ["y", "Y"])):
-                print(color.Error, "\n\nUsing Old Binning Scheme (i.e., Binning_Method = ", str(Binning_Method), ")", color.END, "\n\n")
+                print(f"\n\n{color.Error}Using Old Binning Scheme (i.e., Binning_Method = {Binning_Method}){color.END}\n\n")
                 Save_Name = Save_Name.replace("_Q2_y_Bin_", "_Q2_xB_Bin_")
             Save_Name = Save_Name.replace("__", "_")
             if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
@@ -3571,7 +3593,7 @@ def Draw_2D_Histograms_Simple_New(Histogram_List_All_Input, Canvas_Input=[], Def
             return String_Output
 
         except:
-            print(color.Error, "\n\nERROR IN 'Large_Bin_Canvas_Compare'...\nTraceback:\n", color.END_B, str(traceback.format_exc()), color.END, "\n")
+            print(f"\n\n{color.Error}ERROR IN 'Large_Bin_Canvas_Compare'...\nTraceback:\n{color.END_B}{traceback.format_exc()}{color.END}\n")
             return String_Output
     else:
         print("\nDo not run kinematic comparisons for Multidimensional unfolding histograms...\n")
@@ -3626,11 +3648,16 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     Large_Bin_Canvas_Row_2.Divide(4, 1, 0, 0)
     Large_Bin_Canvas_Row_3.Divide(4, 2, 0, 0)
     Large_Bin_Canvas_Row_4.Divide(1, 3, 0, 0)
-    
-    ExREAL_1D     = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if(not Sim_Test) else "Smear"))]
+
+    if("(1D)" in str(Default_Histo_Name)):
+        ExREAL_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''"))]
+    else:
+        ExREAL_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if(not Sim_Test) else "Smear"))]
     MC_REC_1D     = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "mdf")))]
     MC_GEN_1D     = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "gdf")).replace("Smear", "''"))]
-    if(Sim_Test):
+    if(Sim_Test and ("(1D)" in str(Default_Histo_Name))):
+        ExTRUE_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "tdf")))]
+    elif(Sim_Test):
         ExTRUE_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "tdf")).replace("Smear", "''"))]
     else:
         ExTRUE_1D = "N/A"
@@ -3641,7 +3668,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         if((("(MultiDim_Q2_y_z_pT_phi_h)" in Default_Response_Matrix_Name) or ("(Multi_Dim_Q2_y_Bin_phi_t)" in Default_Response_Matrix_Name) or ("(Multi_Dim_Q2_Y_Bin_phi_t)" in Default_Response_Matrix_Name)) and (str(Q2_Y_Bin) not in ["All", "0"])):
             Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(Q2_y_Bin_", str(Q2_Y_Bin), ")"]), "(Q2_y_Bin_All)")
             Default_Response_Matrix_Name = Default_Response_Matrix_Name.replace("".join(["(Q2_Y_Bin_", str(Q2_Y_Bin), ")"]), "(Q2_Y_Bin_All)")
-        
+
     Response_2D       = Histogram_List_All[Default_Response_Matrix_Name]
     
     UNFOLD_Bin        = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "Bin")))]
@@ -3673,8 +3700,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
         UNFOLD_Acceptance.GetXaxis().SetRange(1, UNFOLD_Acceptance.GetXaxis().GetNbins() + 1)
         UNFOLD_Bay.GetXaxis().SetRange(1,        UNFOLD_Bay.GetXaxis().GetNbins()        + 1)
     except:
-        print("".join([color.Error, "\nERROR IN Axis Ranges...", color.END]))
-        print("".join([color.Error,   "ERROR:\n",                color.END_R, str(traceback.format_exc()), color.END]))
+        print(f"\n{color.Error}ERROR IN Axis Ranges...\nERROR:{color.END_R}\n{traceback.format_exc()}{color.END}")
     ##################################################################### ################################################################
     #####==========#####     Setting Axis Range      #####==========##### ################################################################
     ##################################################################### ################################################################
@@ -3769,7 +3795,7 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     ###==============###   Openning Canvas Pads to Draw Histograms    ###==============###
     ###==============###==============================================###==============###
     ######################################################################################
-    
+
     
     ########################################################################## ################################################################
     ##==========##==========##     Row 1 - CD 3     ##==========##==========## ################################################################
@@ -3990,14 +4016,15 @@ def Large_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_Bin
     if(any(binning in Binning_Method for binning in ["y", "Y"])):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
     if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
-        Save_Name = "".join(["Multi_Unfold_",    str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name =    f"Multi_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Multi_Dim_Option     in ["5D"]):
-        Save_Name = "".join(["Multi_5D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name = f"Multi_5D_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Multi_Dim_Option     in ["3D"]):
-        Save_Name = "".join(["Multi_3D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name = f"Multi_3D_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Sim_Test):
-        Save_Name = "".join(["Sim_Test_", Save_Name])
-        
+        Save_Name = f"Sim_Test_{Save_Name}"
+    if(Mod_Test):
+        Save_Name = f"Mod_Test_{Save_Name}"
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_Response_Matrix_Normal", "Multi_5D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_Response_Matrix_Normal", "Multi_3D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                            "Q2_y_phi_h")
@@ -4120,13 +4147,13 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     Small_Bin_Canvas_Row_2.Divide(2, 1, 0)
 
     if("z_pT_Bin_Integrated" not in Default_Histo_Name):
-        ExREAL_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if(not Sim_Test) else "Smear"))]
+        ExREAL_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if((not Sim_Test) or ("(1D)" in str(Default_Histo_Name))) else "Smear"))]
         MC_REC_1D = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type",     "mdf"))]
         MC_GEN_1D = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type",     "gdf")).replace("Smear", "''")]
     else:
-        ExREAL_1D_name = str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''" if(not Sim_Test) else "Smear"))
-        MC_REC_1D_name = str(Default_Histo_Name.replace("Data_Type",     "mdf"))
-        MC_GEN_1D_name = str(Default_Histo_Name.replace("Data_Type",     "gdf")).replace("Smear", "''")
+        ExREAL_1D_name = str(str(Default_Histo_Name.replace("Data_Type",               "rdf")).replace("Smear", "''" if((not Sim_Test) or ("(1D)" in str(Default_Histo_Name))) else "Smear"))
+        MC_REC_1D_name = str(Default_Histo_Name.replace("Data_Type",                   "mdf"))
+        MC_GEN_1D_name = str(Default_Histo_Name.replace("Data_Type",                   "gdf")).replace("Smear", "''")
         for names in [ExREAL_1D_name, MC_REC_1D_name, MC_GEN_1D_name]:
             if(names not in Histogram_List_All):
                 if(names == ExREAL_1D_name):
@@ -4144,7 +4171,10 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     
     if(Sim_Test):
         # ExREAL_1D = MC_REC_1D
-        ExTRUE_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "tdf")).replace("Smear", "''"))]
+        if("(1D)" in str(Default_Histo_Name)):
+            ExTRUE_1D = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type",     "tdf"))]
+        else:
+            ExTRUE_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "tdf")).replace("Smear", "''"))]
     else:
         # ExREAL_1D = Histogram_List_All[str(str(Default_Histo_Name.replace("Data_Type", "rdf")).replace("Smear", "''"))]
         ExTRUE_1D = "N/A"
@@ -4530,13 +4560,15 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     if(any(binning in Binning_Method for binning in ["y", "Y"])):
         Save_Name = Save_Name.replace("_Q2_xB_Bin_", "_Q2_y_Bin_")
     if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
-        Save_Name = "".join(["Multi_Unfold_",    str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name =    f"Multi_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Multi_Dim_Option     in ["5D"]):
-        Save_Name = "".join(["Multi_5D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name = f"Multi_5D_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Multi_Dim_Option     in ["3D"]):
-        Save_Name = "".join(["Multi_3D_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
+        Save_Name = f"Multi_3D_Unfold_{Multi_Dim_Option}_{Save_Name}"
     if(Sim_Test):
-        Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
+        Save_Name = f"Sim_Test_{Save_Name}"
+    if(Mod_Test):
+        Save_Name = f"Mod_Test_{Save_Name}"
     if(Sector__Save not in [""]):
         Save_Name = Save_Name.replace(str(File_Save_Format), f"_{Sector__Save}{File_Save_Format}")
         
@@ -4547,7 +4579,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_Response_Matrix_Normal", "Multi_5D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_MultiDim_3D",            "Multi_3D_Unfold")
     Save_Name = Save_Name.replace("Multi_3D_Unfold_3D_Response_Matrix_Normal", "Multi_3D_Unfold_Response_Matrix_Normal")
-    Save_Name = Save_Name.replace("".join(["_", str(File_Save_Format)]),       str(File_Save_Format))
+    Save_Name = Save_Name.replace(f"_{File_Save_Format}",                      str(File_Save_Format))
     Save_Name = Save_Name.replace("__",                                        "_")
     if(Cut_ProQ   and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name))):
         Save_Name = Save_Name.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
@@ -4557,7 +4589,7 @@ def Unfolded_Individual_Bin_Images(Histogram_List_All, Default_Histo_Name, Q2_Y_
         if("root" in str(File_Save_Format)):
             Small_Bin_Canvas.SetName(Save_Name.replace(".root", ""))
         Small_Bin_Canvas.SaveAs(Save_Name)
-        del Small_Bin_Canvas
+        # del Small_Bin_Canvas
     print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BBLUE, str(Save_Name), color.END]))
     ##################################################################### ################################################################ ################################################################ ################################################################ #####################
     #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################ ################################################################ #####################
@@ -4607,7 +4639,8 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             else:
                 Default_Histo_Name_Integrated = str(Default_Histo_Name_Integrated.replace(VARIABLE, "(Multi_Dim_z_pT_Bin_Y_bin_phi_t)")).replace("(1D)", "(Multi-Dim Histo)")
     if(str(Method) in ["rdf", "gdf", "tdf"]):
-        Default_Histo_Name_Integrated         = str(Default_Histo_Name_Integrated.replace("Smear",  "''" if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear"))
+        if(not (Sim_Test and (((Multi_Dim_Option in ["3D", "5D"]) and (str(Method) in ["rdf"])) or (((Multi_Dim_Option in ["1D", "Off"]) and (str(Method) in ["tdf"])))))):
+            Default_Histo_Name_Integrated = str(Default_Histo_Name_Integrated.replace("Smear",  "''"))# if((not Sim_Test) or (str(Method) in ["gdf", "tdf"])) else "Smear"))
         
     Allow_Fitting = ("phi" in VARIABLE) and (Fit_Test) and (Method not in ["rdf", "mdf", "Background", "Relative_Background", "Acceptance"])
         
@@ -4640,7 +4673,7 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
             if("#phi_{h}" not in Variable_Title):
                 for var_error_title in ["{elth}", "{elPhi}", "{pipth}", "{pipPhi}"]:
                     Variable_Title = Variable_Title.replace(var_error_title, "{El}" if("el" in var_error_title) else "{#pi^{+}}")
-    if((str(Method) not in ["rdf", "gdf", "tdf"]) and ("Smear" in str(Default_Histo_Name_Integrated))):
+    if(((str(Method) not in ["rdf", "gdf", "tdf"]) or (Sim_Test and (str(Method) not in ["gdf", "tdf"]))) and ("Smear" in str(Default_Histo_Name_Integrated))):
         Variable_Title = f"{Variable_Title} (Smeared)"
             
     z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
@@ -5077,10 +5110,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 # MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "mdf"))].DrawNormalized("H PL E0 same")
                 # MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
                 # ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf" if(not Sim_Test) else "mdf")].DrawNormalized("H P E0 same")
-                ExREAL_1D_Norm     = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf") ].DrawNormalized("H P E0 same")
-                MC_REC_1D_Norm     = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type",                                                           "mdf"))].DrawNormalized("H P E0 same")
+                # ExREAL_1D_Norm     = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf") ].DrawNormalized("H P E0 same")
+                ExREAL_1D_Norm     = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type",                                     "rdf") ].DrawNormalized("H P E0 same")
+                MC_REC_1D_Norm     = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type",                                                                 "mdf"))].DrawNormalized("H P E0 same")
                 if(any(Accepted_Vars in str(VARIABLE) for Accepted_Vars in ["phi_t", "MM"])):
-                    MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type",                               "gdf") ].DrawNormalized("H P E0 same")
+                    MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name.replace("Smear",     "''")).replace("Data_Type",                                     "gdf") ].DrawNormalized("H P E0 same")
             elif(Multi_Dim_Option in ["5D"]):
                 Default_Histo_Name_Multi_Dim = str(Default_Histo_Name.replace("(1D)", "(MultiDim_5D_Histo)")).replace("(phi_t)", "(MultiDim_Q2_y_z_pT_phi_h)")
                 ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_Multi_Dim.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf") ].DrawNormalized("H P E0 same")
@@ -5218,7 +5252,7 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
             # Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "Kinematic_Comparison_1D_All"))].Draw("H P E0 same")
 
         except Exception as e:
-            print("".join([color.Error, "ERROR IN (z-pT Bin All) 1D (Input) Histograms:\n", color.END_B, str(traceback.format_exc()), color.END, "\nException = ", str(e)]))
+            print(f"{color.Error}ERROR IN (z-pT Bin All) 1D (Input) Histograms:{color.END_B}\n{traceback.format_exc()}\n{color.END}Exception = {e}")
     elif("Unfold" in str(Method)):
         try:
             Max_Unfolded, Min_Unfolded = 1, 0
@@ -5232,7 +5266,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 MC_GEN_1D_Unfold     = Histogram_List_All[str(Default_Histo_Name.replace("Smear",      "''")).replace("Data_Type", "gdf")]
                 # MC_GEN_1D_Unfold.Draw("H P E0 same")
                 if(tdf not in ["N/A"]):
-                    ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name.replace("Smear",      "''")).replace("Data_Type", "tdf")]
+                    # ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name.replace("Smear",      "''")).replace("Data_Type", "tdf")]
+                    ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name.replace("Data_Type", "tdf"))]
                     ExTRUE_1D_Unfold.Draw("H P E0 same")
                     # Max_Unfolded     = max([1, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMaximumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMaximumBin()), SVD_Histo_Unfold.GetBinContent(SVD_Histo_Unfold.GetMaximumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMaximumBin()), ExTRUE_1D_Unfold.GetBinContent(ExTRUE_1D_Unfold.GetMaximumBin())])
                     # Min_Unfolded     = min([0, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMinimumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMinimumBin()), SVD_Histo_Unfold.GetBinContent(SVD_Histo_Unfold.GetMinimumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMinimumBin()), ExTRUE_1D_Unfold.GetBinContent(ExTRUE_1D_Unfold.GetMinimumBin())])
@@ -5623,7 +5658,11 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                 # MC_GEN_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''")).replace("Data_Type", "gdf")].DrawNormalized("H PL E0 same")
                 
                 # ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf" if(not Sim_Test) else "mdf")].DrawNormalized("H P E0 same")
-                ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",     "''" if(not Sim_Test) else "Smear")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
+                if(("(1D)" in str(Default_Histo_Name_z_pT_Bin)) or (not Sim_Test)):
+                    ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",      "''")).replace("Data_Type", "rdf")].DrawNormalized("H P E0 same")
+                else:
+                    ExREAL_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "rdf"))].DrawNormalized("H P E0 same")
+                    
                 MC_REC_1D_Norm = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Data_Type", "mdf"))].DrawNormalized("H P E0 same")
                 
                 # ExREAL_1D_Norm.SetTitle(str(ExREAL_1D_Norm.GetTitle()).replace("Range: 0 #rightarrow 360 - Size: 15.0 per bin", "5D Unfolding" if(str(Multi_Dim_Option) in ["5D"]) else "3D Unfolding" if(Multi_Dim_Option in ["3D"]) else "(Old) 3D Unfolding" if(Multi_Dim_Option in ["Only"]) else ""))
@@ -5752,7 +5791,8 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
                     MC_GEN_1D_Unfold     = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",      "''")).replace("Data_Type", "gdf")]
                     # MC_GEN_1D_Unfold.Draw("H P E0 same")
                     if(tdf not in ["N/A"]):
-                        ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",      "''")).replace("Data_Type", "tdf")]
+                        # ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin.replace("Smear",      "''")).replace("Data_Type", "tdf")]
+                        ExTRUE_1D_Unfold = Histogram_List_All[str(Default_Histo_Name_z_pT_Bin).replace("Data_Type", "tdf")]
                         ExTRUE_1D_Unfold.Draw("H P E0 same")
                         # Max_Unfolded     = max([1, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMaximumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMaximumBin()), SVD_Histo_Unfold.GetBinContent(SVD_Histo_Unfold.GetMaximumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMaximumBin()), ExTRUE_1D_Unfold.GetBinContent(ExTRUE_1D_Unfold.GetMaximumBin())])
                         # Min_Unfolded     = min([0, BAY_Histo_Unfold.GetBinContent(BAY_Histo_Unfold.GetMinimumBin()), BIN_Histo_Unfold.GetBinContent(BIN_Histo_Unfold.GetMinimumBin()), SVD_Histo_Unfold.GetBinContent(SVD_Histo_Unfold.GetMinimumBin()), MC_GEN_1D_Unfold.GetBinContent(MC_GEN_1D_Unfold.GetMinimumBin()), ExTRUE_1D_Unfold.GetBinContent(ExTRUE_1D_Unfold.GetMinimumBin())])
@@ -6113,8 +6153,9 @@ def z_pT_Images_Together(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_
     if(Multi_Dim_Option not in ["Off", "5D", "3D"]):
         Save_Name = "".join(["Multi_Unfold_", str(Multi_Dim_Option), "_", str(Save_Name)])
     if(Sim_Test):
-        Save_Name = "".join(["Sim_Test_",  str(Save_Name)])
-        
+        Save_Name = f"Sim_Test_{Save_Name}"
+    if(Mod_Test):
+        Save_Name = f"Mod_Test_{Save_Name}"
         
     Save_Name = Save_Name.replace("Multi_5D_Unfold_5D_Response_Matrix_Normal", "Multi_5D_Unfold_Response_Matrix_Normal")
     Save_Name = Save_Name.replace("Q2_y_Bin_phi_h",                            "Q2_y_phi_h")
@@ -6761,6 +6802,8 @@ def Unfolded_Sector_Dependent_Images(Histogram_List_All, Default_Histo_Name, Q2_
                 Save_Name = f"Multi_{Multi_Dim_Option}_Unfold_{Save_Name}"
             if(Sim_Test):
                 Save_Name = f"Sim_Test_{Save_Name}"
+            if(Mod_Test):
+                Save_Name = f"Mod_Test_{Save_Name}"
             if(Cut_ProQ and f"_ProtonCut{File_Save_Format}" not in Save_Name):
                 Save_Name = Save_Name.replace(File_Save_Format, f"_ProtonCut{File_Save_Format}")
             elif(Tag_ProQ and all(tag not in Save_Name for tag in [f"_TagProton{File_Save_Format}", f"_ProtonCut{File_Save_Format}"])):
@@ -6961,7 +7004,9 @@ def Draw_Histogram_With_Kinematic_Bins(Histogram_List_All_Input, Default_Histo_N
     if(Name_Uses_MultiDim):
         Save_Name = "".join(["Multi_Unfold_", str(Save_Name)])
     if(Sim_Test):
-        Save_Name = "".join(["Sim_Test_",     str(Save_Name)])
+        Save_Name = f"Sim_Test_{Save_Name}"
+    if(Mod_Test):
+        Save_Name = f"Mod_Test_{Save_Name}"
     if(not any(binning in Binning_Method for binning in ["y", "Y"])):
         print(f"{color.Error}\n\nUsing Old Binning Scheme (i.e., Binning_Method = {str(Binning_Method)}){color.END}\n\n")
         Save_Name = Save_Name.replace("_Q2_y_Bin_", "_Q2_xB_Bin_")
@@ -7631,7 +7676,8 @@ if(Use_TTree):
         else:
             List_of_All_Histos_For_Unfolding[key_name] = TTree_Input.Get(key_name)
     TTree_Input.Close()
-    print(f"{color.BBLUE}Recovered: {color.BGREEN}{len(List_of_All_Histos_For_Unfolding)}{color.END_B}{color.BLUE} items{color.END}")
+    print(f"{color.BBLUE}Recovered: {color.BGREEN}{len(List_of_All_Histos_For_Unfolding)}{color.END_B}{color.BLUE} items{color.END}\n")
+    timer.time_elapsed()
 else:
     for ii in mdf.GetListOfKeys():
         if(Cor_Compare):
@@ -9447,6 +9493,10 @@ if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in 
     JSON_Name = f"Fit_Pars_from_{'3D' if(Var_Type == 'MultiDim_z_pT_Bin_Y_bin_phi_t') else '1D'}_{Cor_Type}.json"
     if("_with_kCovToy" in TTree_Name):
         JSON_Name = JSON_Name.replace(f"{Cor_Type}.json", f"{Cor_Type}_with_Toys.json")
+    if(Sim_Test):
+        JSON_Name = f"Sim_Test_{JSON_Name}"
+    if(Mod_Test):
+        JSON_Name = f"Mod_Test_{JSON_Name}"
     Fit_Pars_JSON = {}
     for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
         if(all(search in str(List_of_All_Histos_For_Unfolding_ii) for search in [f"({Cor_Type})", f"({Var_Type})", "Fit_Par"])):
@@ -9505,14 +9555,12 @@ Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "Unfold", "rdf", "mdf
 
 Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "Unfold", "rdf", "mdf", "gdf", "Acceptance", "Background"]
 
-
-if(tdf not in ["N/A"]):
-    Method_Type_List.append("tdf")
     
 if("''" not in Smearing_final_list):
     for method in Method_Type_List:
         if(method in ["rdf", "gdf"]):
-            Method_Type_List.remove(method)
+            if((method in ["gdf"]) or (not Sim_Test)):
+                Method_Type_List.remove(method)
     
     
 # Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "SVD", "Unfold"]
@@ -9533,7 +9581,10 @@ if("''" not in Smearing_final_list):
 # Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold", "mdf"]
 # Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold", "mdf", "Acceptance"]
 Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold"]
+Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "Unfold"]
 
+if((tdf not in ["N/A"]) or Sim_Test):
+    Method_Type_List.append("tdf")
 
 if(Apply_RC):
     # Method_Type_List = []
@@ -9545,8 +9596,8 @@ if(Apply_RC):
 # Method_Type_List.append("Bayesian")
 # Method_Type_List.append("RC_Bayesian")
 # Method_Type_List.append("Acceptance")
-if(Use_TTree):
-    Method_Type_List.append("Acceptance_ratio")
+# if(Use_TTree):
+#     Method_Type_List.append("Acceptance_ratio")
 
 
 # Method_Type_List = ["mdf", "Background", "Relative_Background"]
@@ -9628,6 +9679,9 @@ if(Cor_Compare):
 Run_Individual_Bin_Images_Option = True
 Print_Run_Individual_Bin_Option  = True
 
+if((not Fit_Test) and Run_Individual_Bin_Images_Option):
+    print(f"\n\n{color.ERROR}WARNING FOR (POTENTIAL) SEGMENTATION FAULT:\n\t{color.END_R}An error was observed when running individual bin images without fitting. I don't know why this error exists now, but the code will now default to setting `Run_Individual_Bin_Images_Option = False` unless you run again with `Fit_Test = True`.{color.END}\n\n")
+    Run_Individual_Bin_Images_Option = False
 
 # Multi_Dimensional_List = ["Off", "Only", "Q2_y", "z_pT"]
 # Multi_Dimensional_List = ["Off", "Only"]
@@ -9701,17 +9755,22 @@ for variable in Variable_List:
                             if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "RC", "RC_Bin", "RC_Bayesian", "Acceptance_ratio"])):
                                 continue
                             if(method in ["Data"]):
-                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                if(Sim_Test):
+                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="tdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    final_count += 1
+                                else:
+                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                 final_count += 2
                                 if("mdf" not in Method_Type_List):
                                     List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="mdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                     final_count += 1
                             else:
-                                List_of_All_Histos_For_Unfolding =     Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                 final_count += 1
 
-print("\n(Extra) Final Count =", final_count, "\n")
+print(f"\n(Extra) Final Count = {final_count}\n")
 del final_count
 
 to_be_saved_count = 0
@@ -9994,6 +10053,7 @@ for variable in Variable_List:
                         # if(z_pT_Bin not in [0, "Integrated"]):
                         # if(z_pT_Bin not in [0]):
                         if((z_pT_Bin not in [0]) and ("sec" not in variable)):
+                            print(f"""\nRunning {color.PINK}Large_Individual_Bin_Images(Histogram_List_All=..., Default_Histo_Name={HISTO_NAME}, Q2_Y_Bin={BIN_NUM}, Z_PT_Bin={z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}, Multi_Dim_Option={Multi_Dim}, String_Input=...){color.END}""")
                             try:
                                 String_For_Output_txt  = Large_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int", Multi_Dim_Option=Multi_Dim, String_Input=String_For_Output_txt)
                                 if(str(Multi_Dim) in ["Off"]):
@@ -10001,18 +10061,23 @@ for variable in Variable_List:
                                 else:
                                     to_be_saved_count += 1
                             except Exception as e:
-                                print("".join([color.Error, "ERROR IN Large_Individual_Bin_Images():\n",    color.END_R, str(traceback.format_exc()), color.END]))
+                                print(f"{color.Error}ERROR IN Large_Individual_Bin_Images():{color.END_R}\n{traceback.format_exc()}{color.END}")
+                            # print(f"""Finished {color.CYAN}Large_Individual_Bin_Images(Histogram_List_All=..., Default_Histo_Name={HISTO_NAME}, Q2_Y_Bin={BIN_NUM}, Z_PT_Bin={z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}, Multi_Dim_Option={Multi_Dim}, String_Input=...){color.END}
+                            # """)
                         # if(str(variable) in ["phi_t"]):
                         if("phi_t" in str(variable)):
+                            print(f"""\nRunning {color.PINK}Unfolded_Individual_Bin_Images(Histogram_List_All=..., Default_Histo_Name={HISTO_NAME}, Q2_Y_Bin={BIN_NUM}, Z_PT_Bin={z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}, Multi_Dim_Option={Multi_Dim}){color.END}""")
                             try:
                                 Unfolded_Individual_Bin_Images(Histogram_List_All=List_of_All_Histos_For_Unfolding,                       Default_Histo_Name=HISTO_NAME, Q2_Y_Bin=BIN_NUM, Z_PT_Bin=z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int", Multi_Dim_Option=Multi_Dim)
                                 to_be_saved_count += 1
                             except Exception as e:
-                                print("".join([color.Error, "ERROR IN Unfolded_Individual_Bin_Images():\n", color.END_R, str(traceback.format_exc()), color.END]))
+                                print(f"{color.Error}ERROR IN Unfolded_Individual_Bin_Images():{color.END_R}\n{traceback.format_exc()}{color.END}")
+                            # print(f"""Finished {color.CYAN}Unfolded_Individual_Bin_Images(Histogram_List_All=..., Default_Histo_Name={HISTO_NAME}, Q2_Y_Bin={BIN_NUM}, Z_PT_Bin={z_pT_Bin if(z_pT_Bin not in [-2, -1, 0]) else "All" if(z_pT_Bin in [0]) else "Integrated" if(z_pT_Bin in [-1]) else "Common_Int"}, Multi_Dim_Option={Multi_Dim}){color.END}
+                            # """)
                         else:
                             continue
                     elif(Print_Run_Individual_Bin_Option):
-                        print(color.BOLD, "\n\n\n\nNOT MAKING INDIVIDUAL BIN IMAGES AT THIS TIME",          color.END, "\n\tMust set Run_Individual_Bin_Images_Option = True\n\n\n\n")
+                        print(f"\n\n\n\n{color.BOLD}NOT MAKING INDIVIDUAL BIN IMAGES AT THIS TIME{color.END}\n\tMust set Run_Individual_Bin_Images_Option = True\n\n\n\n")
                         Print_Run_Individual_Bin_Option = False
 
             # continue
@@ -10021,13 +10086,13 @@ for variable in Variable_List:
                 # for Variable       in ["phi_t",     "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_z_pT_Bin_y_bin_phi_t"]:
                 for Variable       in Variable_List_Final:
                     if("phi_t" not in Variable):
-                        print(f"{color.RED}\nNot Running Moment fit plots for variable: {Variable}{color.END}\n")
+                        print(f"\n{color.RED}Not Running Moment fit plots for variable: {Variable}{color.END}\n")
                         continue
                     # for Parameter  in ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]:
                     for Parameter  in ["Fit_Par_B", "Fit_Par_C"]:
                     # for Parameter  in ["Fit_Par_A"]:
                         for Method in Method_Type_List:
-                            if(str(Method) in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Acceptance_ratio", "Kinematic_Comparison", "Background", "Relative_Background", "gdf"]):
+                            if(str(Method) in ["rdf", "mdf", "Response", "Data", "Unfold", "Acceptance", "Acceptance_ratio", "Kinematic_Comparison", "Background", "Relative_Background", "gdf", "tdf", "RC"]):
                                 continue
                             if((("Multi" in str(Variable)) and (str(Method) in ["SVD"])) or (("Smear" in str(smear)) and ("gdf" in str(Method)))):
                                 continue
@@ -10324,11 +10389,15 @@ for CanvasPar_Name in Pars_Canvas:
         Save_Name_Pars = Save_Name_Pars.replace(str(File_Save_Format), f"_ProtonCut{File_Save_Format}")
     elif(Tag_ProQ and (f"_TagProton{File_Save_Format}" not in str(Save_Name_Pars)) and (f"_ProtonCut{File_Save_Format}" not in str(Save_Name_Pars))):
         Save_Name_Pars = Save_Name_Pars.replace(str(File_Save_Format), f"_TagProton{File_Save_Format}")
+    if(Sim_Test):
+        Save_Name_Pars = f"Sim_Test_{Save_Name_Pars}"
+    if(Mod_Test):
+        Save_Name_Pars = f"Mod_Test_{Save_Name_Pars}"
     if(Saving_Q):
         if("root" in str(File_Save_Format)):
             Pars_Canvas[CanvasPar_Name].SetName(Save_Name_Pars.replace(".root", ""))
         Pars_Canvas[CanvasPar_Name].SaveAs(Save_Name_Pars)
-    print("".join(["Saved: " if(Saving_Q) else "Would be Saving: ", color.BBLUE, str(Save_Name_Pars), color.END]))
+    print(f"{'Saved: ' if(Saving_Q) else 'Would be Saving: '}{color.BBLUE}{Save_Name_Pars}{color.END}")
     to_be_saved_count += 1
 
 
@@ -10361,12 +10430,12 @@ if(Create_txt_File):
     elif(Smearing_Options   in ["smear"]):
         Output_txt_Name     = Output_txt_Name.replace(".txt", "_Smeared.txt")
     if(Closure_Test):
-        Output_txt_Name     = "".join(["Closure_",  str(Output_txt_Name)])
+        Output_txt_Name = f"Closure_{Output_txt_Name}"
     else:
         if(Sim_Test):
-            Output_txt_Name = "".join(["Sim_Test_", str(Output_txt_Name)])
+            Output_txt_Name = f"Sim_Test_{Output_txt_Name}"
         if(Mod_Test):
-            Output_txt_Name = "".join(["Mod_Test_", str(Output_txt_Name)])
+            Output_txt_Name = f"Mod_Test_{Output_txt_Name}"
         
     Output_txt_Name = str(Output_txt_Name.replace(" ", "_")).replace("__", "_")
     # print(Output_txt_Name)
