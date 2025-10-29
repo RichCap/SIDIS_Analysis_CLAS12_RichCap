@@ -27,6 +27,8 @@ class color:
     BCYAN     = '\033[1m\033[96m'               # Combines CYAN and BOLD
     BGREEN    = '\033[1m\033[92m'               # Combines GREEN and BOLD
     BYELLOW   = '\033[1m\033[93m'               # Combines YELLOW and BOLD
+    BPINK     = '\033[1m\033[35m'               # Combines PINK and BOLD
+    BPURPLE   = '\033[1m\033[95m'               # Combines PINK and BOLD
     END_B     = '\033[0m\033[1m'                # Combines END and BOLD
     END_R     = '\033[0m\033[91m'               # Combines END and RED
     END_C     = '\033[0m\033[96m'               # Combines END and CYAN
@@ -34,7 +36,8 @@ class color:
     END_b     = '\033[0m\033[94m'               # Combines END and BLUE
     END_E     = '\033[0m\033[91m\033[1m\033[4m' # Combines END and ERROR
     END_e     = '\033[0m\033[91m\033[1m'        # Combines END and Error
-    
+
+
 class color_bg:
     BLACK   = '\033[40m'
     RED     = '\033[41m'

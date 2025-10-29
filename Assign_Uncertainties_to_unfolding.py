@@ -105,42 +105,20 @@ def parse_args():
     p.add_argument('-e', '--email', action='store_true',
                    help="Sends an email when the script is done running (if selected).")
 
+    p.add_argument('-ue',  '--use_errors', action='store_true',
+                   help="Applies uncertainties to the baseline histograms based on their differences to their comparisons. (Calculated during comparisons — will update later to use the output files too)")
+
+    p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json", 
+                   help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
+    
     return p.parse_args()
 
 args = parse_args()
 
 
-# def silence_root_import():
-#     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-#     sys.stdout.flush()
-#     sys.stderr.flush()
-#     # Save original file descriptors
-#     old_stdout = os.dup(1)
-#     old_stderr = os.dup(2)
-#     try:
-#         # Redirect stdout and stderr to /dev/null at the OS level
-#         devnull = os.open(os.devnull, os.O_WRONLY)
-#         os.dup2(devnull, 1)
-#         os.dup2(devnull, 2)
-#         os.close(devnull)
-#         # Perform the noisy import
-#         import RooUnfold
-#     finally:
-#         # Restore the original file descriptors
-#         os.dup2(old_stdout, 1)
-#         os.dup2(old_stderr, 2)
-#         os.close(old_stdout)
-#         os.close(old_stderr)
-# silence_root_import()
-
        
 Saving_Q         = not args.test
 Fit_Test         = not args.no_fit
-
-# if(Saving_Q):
-#     print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
-# else:
-#     print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
 
 
 Standard_Histogram_Title_Addition = ""
@@ -148,12 +126,7 @@ if(args.sim):
     print(f"{color.BLUE}\nRunning Simulated Test\n{color.END}")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
     args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
-# if(args.mod):
-#     print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
-#     if(Standard_Histogram_Title_Addition not in [""]):
-#         Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
-#     else:
-#         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
+
 
 if(args.title):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -165,14 +138,8 @@ if(args.title):
 if(not Fit_Test):
     print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
 
-# File_Save_Format = ".png"
-# File_Save_Format = ".root"
-# File_Save_Format = ".pdf"
-File_Save_Format = args.file_format
-
-if((File_Save_Format != ".png") and Saving_Q):
-    print(f"\n{color.BGREEN}Save Option was not set to output .png files. Save format is: {color.ERROR}{File_Save_Format}{color.END}\n")
-
+if((args.file_format != ".png") and Saving_Q):
+    print(f"\n{color.BGREEN}Save Option was not set to output .png files. Save format is: {color.ERROR}{args.file_format}{color.END}\n")
 
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
 
@@ -181,7 +148,105 @@ Q2_y_Bin_List = args.bins
 if(Q2_y_Bin_List != ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']):
     print(f"\n{color.BOLD}Running with the following Q2-y Bins:\t{color.GREEN}{Q2_y_Bin_List}{color.END}\n")
 
+if(args.use_errors):
+    print(f"\n{color.BOLD}Applying the additional uncertainties to the baseline histograms{color.END}\n")
+
 print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
+
+import json
+def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin, z_pT_Bin, Uncertainty_File_In=args.use_errors_json):
+    # Modify the bin uncertainties of a histogram using precomputed values
+    # from a JSON file. If any condition fails, return the unmodified histogram.
+    if(Uncertainty_File_In is None):
+        return Histo_In
+    # Check histogram validity
+    if((not Histo_In) or (not Histo_In.InheritsFrom("TH1"))):
+        print(f"{color.Error}Error:{color.END}\n\t{Histo_In} is an invalid histogram that was passed to Apply_PreBin_Uncertainties()")
+        return Histo_In
+    # Load the JSON file
+    with open(Uncertainty_File_In, "r") as jf:
+        data = json.load(jf)
+    # Construct key based on cosmetic naming convention
+    key = f"{Q2_y_Bin}_{z_pT_Bin}"
+    if(key not in data):
+        print(f"{color.RED}Error:{color.END} Key '{key}' not found in {Uncertainty_File_In}")
+        return Histo_In
+    bin_data = data[key]
+    # Check number of bins
+    n_bins_hist = Histo_In.GetNbinsX()
+    n_bins_data = len(bin_data)
+    if(n_bins_data != n_bins_hist):
+        print(f"{color.Error}Error:{color.END} Bin count mismatch (JSON={n_bins_data}, Histo={n_bins_hist}). Aborting modification.")
+        return Histo_In
+    # Apply new errors to each bin
+    for i, entry in enumerate(bin_data, start=1):
+        diff_val = entry.get("diff", 0.0)
+        err_val  = entry.get("err", 0.0)
+        current_err = Histo_In.GetBinError(i)
+        new_err = ROOT.sqrt(current_err**2 + (diff_val + err_val)**2)
+        Histo_In.SetBinError(i, new_err)
+    return Histo_In
+
+
+def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=False, name_suffix="_NormShared"):
+    # Returns two cloned histograms scaled so that the sum over shared bins equals 1 for each.
+    # A "shared" bin is one where both histograms have content strictly greater than 'threshold'.
+    # Errors scale automatically via TH1::Scale.
+
+    # Basic checks
+    if((not histo1) or (not histo2)):
+        print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): one or both histograms are None.")
+        return histo1, histo2, []
+
+    if((not histo1.InheritsFrom("TH1D")) or (not histo2.InheritsFrom("TH1D"))):
+        print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): both inputs must be TH1D.")
+        return histo1, histo2, []
+
+    if(histo1.GetNbinsX() != histo2.GetNbinsX()):
+        print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): different binning (NbinsX mismatch).")
+        return histo1, histo2, []
+
+    # Determine bin range
+    first_bin = 0 if(include_under_over) else 1
+    last_bin  = histo1.GetNbinsX() + 1 if(include_under_over) else histo1.GetNbinsX()
+
+    # Find shared bins (both contents > threshold)
+    shared_bins = []
+    for ib in range(first_bin, last_bin + 1):
+        c1 = histo1.GetBinContent(ib)
+        c2 = histo2.GetBinContent(ib)
+        if((c1 > threshold) and (c2 > threshold)):
+            shared_bins.append(ib)
+
+    if(len(shared_bins) == 0):
+        print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): no shared bins found with threshold={threshold}.")
+        return histo1, histo2, []
+
+    # Compute integrals over shared bins
+    sum1 = 0.0
+    sum2 = 0.0
+    for ib in shared_bins:
+        sum1 += histo1.GetBinContent(ib)
+        sum2 += histo2.GetBinContent(ib)
+
+    if((sum1 <= 0.0) or (sum2 <= 0.0)):
+        print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): non-positive shared integral (sum1={sum1}, sum2={sum2}).")
+        return histo1, histo2, shared_bins
+
+    # Clone and scale (shape-only normalization on shared support)
+    h1n = histo1.Clone(histo1.GetName() + name_suffix)
+    h2n = histo2.Clone(histo2.GetName() + name_suffix)
+    h1n.Scale(1.0 / sum1)
+    h2n.Scale(1.0 / sum2)
+
+    # Cosmetic: ensure stats boxes are off for clean overlays
+    h1n.SetStats(0)
+    h2n.SetStats(0)
+
+    if(args.verbose):
+        print(f"{color.BGREEN}Normalized to shared bins:{color.END} {len(shared_bins)} bins; thresholds > {threshold}")
+    return h1n, h2n, shared_bins
+
 
 
 def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="", TITLE=Standard_Histogram_Title_Addition):
@@ -190,22 +255,18 @@ def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, S
     if(not histo):
         print(f"Histogram '{HISTO_NAME_In}' not found in file '{ROOT_In.GetName()}'")
         return False
-
     # Create a canvas
     canvas_name = f"c_{HISTO_NAME_In}"
     c = ROOT.TCanvas(canvas_name, canvas_name, 800, 700)
     c.cd()
-
     if(("Pass 2" in histo.GetTitle()) and (TITLE not in histo.GetTitle())):
         histo.SetTitle(str(histo.GetTitle()).replace("Pass 2", TITLE))
     elif(TITLE not in histo.GetTitle()):
         histo.SetTitle(f"#splitline{{{histo.GetTitle()}}}{{{TITLE}}}")
-
     # Turn off stat box
     histo.SetStats(0)
     # Draw histogram
     histo.Draw("COLZ" if("TH2" in histo.ClassName()) else "H P E0 same")
-
     # Set output file name
     Save_Name = f"{SAVE_prefix}{HISTO_NAME_In}_{SAVE}{Format}"
     for replace in ["(", ")", "'", '"', "'"]:
@@ -214,11 +275,10 @@ def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, S
     Save_Name = Save_Name.replace("SMEAR=_", "")
     Save_Name = Save_Name.replace("__", "_")
     Save_Name = Save_Name.replace("_.", ".")
-    
     c.SaveAs(str(Save_Name))
-
     print(f"Saved histogram '{HISTO_NAME_In}' as: {Save_Name}")
     return True
+
 
 Unfolding_Diff_Data = {}
 def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, legend_labels=("Histogram 1", "Histogram 2"), output_prefix="Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str="1", zPT_str="1", Unfolding_Diff_Data_In=Unfolding_Diff_Data):
@@ -227,17 +287,19 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     histo2 = ROOT_In_2.Get(HISTO_NAME_2)
     histo1.SetStats(0)
     histo2.SetStats(0)
-
     # Ensure both exist
     if((not histo1) or (not histo2)):
         print(f"{color.Error}ERROR:{color.END} Could not retrieve one or both histograms.")
         return False, Unfolding_Diff_Data_In
-
     # Ensure both are TH1D
     if((not histo1.InheritsFrom("TH1D")) or (not histo2.InheritsFrom("TH1D"))):
         print(f"{color.Error}ERROR:{color.END} Both histograms must be TH1D.")
         return False, Unfolding_Diff_Data_In
-
+    
+    if(args.use_errors and (not args.mod)):
+        histo1 = Apply_PreBin_Uncertainties(Histo_In=histo1, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, Uncertainty_File_In=args.use_errors_json)
+    if(args.sim):
+        histo1, histo2, _ = Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=False, name_suffix="_NormShared")
     
     if(("Pass 2" in histo1.GetTitle()) and ((TITLE not in histo1.GetTitle()) and (TITLE not in histo2.GetTitle()))):
         histo1.SetTitle(str(histo1.GetTitle()).replace("Pass 2", TITLE))
@@ -250,24 +312,29 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     h_diff.SetStats(0)
 
     histo_key = f"{Q2y_str}_{zPT_str}"
-
     # Initialize the dictionary entry if it doesn't exist
     if(histo_key not in Unfolding_Diff_Data_In):
         Unfolding_Diff_Data_In[histo_key] = []
     max_content = 0
+    max_cd_1    = 0
     # Fill it with |bin1 - bin2|
     for bin_idx in range(1, histo1.GetNbinsX() + 1):
         val1 = histo1.GetBinContent(bin_idx)
         val2 = histo2.GetBinContent(bin_idx)
         err1 = histo1.GetBinError(bin_idx)
         err2 = histo2.GetBinError(bin_idx)
+        max_cd_1 = max([max_cd_1, val1 + err1, val2 + err2])
         diff = abs(val1 - val2)
         err  = math.sqrt(err1**2 + err2**2)
         max_content = max([max_content, diff + err])
         h_diff.SetBinContent(bin_idx, diff)
         h_diff.SetBinError(bin_idx, err)
         Unfolding_Diff_Data_In[histo_key].append({"phi_bin": bin_idx, "diff": diff, "err": err})
+        if(args.use_errors and args.mod):
+            histo1.SetBinError(bin_idx, math.sqrt(err1**2 + (diff + err)**2))
     h_diff.GetYaxis().SetRangeUser(0, 1.2*max_content)
+    histo1.GetYaxis().SetRangeUser(0, 1.2*max_cd_1)
+    histo2.GetYaxis().SetRangeUser(0, 1.2*max_cd_1)
 
     # Create canvas
     canvas_name = f"c_{output_prefix}{HISTO_NAME_1}_vs_{HISTO_NAME_2}"
@@ -278,14 +345,14 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     c.cd(1)
     if(histo1.GetLineColor() == histo2.GetLineColor()):
         histo2.SetLineColor(histo2.GetLineColor() + 2)
-    histo1.SetLineWidth(2)
+    histo1.SetLineWidth(3)
     histo2.SetLineWidth(2)
 
     histo1.Draw("HIST E")
     histo2.Draw("HIST E SAME")
 
     # Add legend
-    legend = ROOT.TLegend(0.45, 0.15, 0.65, 0.35)
+    legend = ROOT.TLegend(0.45, 0.15, 0.7, 0.35)
     legend.SetBorderSize(1)
     legend.SetFillStyle(0)
     legend.AddEntry(histo1, f"#scale[1.75]{{{legend_labels[0]}}}", "APL E")
@@ -297,6 +364,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     h_diff.SetLineColor(ROOT.kBlack)
     h_diff.SetLineWidth(2)
     h_diff.SetTitle(f"#splitline{{Absolute Bin Content Differences between}}{{{root_color.Bold}{{{legend_labels[0]}}} and {root_color.Bold}{{{legend_labels[1]}}}}}")
+    if(args.use_errors and args.mod):
+        h_diff.SetTitle(f"#splitline{{{h_diff.GetTitle()}}}{{#scale[1.25]{{#splitline{{These differences have been added to}}{{the uncertainties of {root_color.Bold}{{{legend_labels[0]}}}}}}}}}")
     h_diff.GetYaxis().SetTitle("#Delta Bin Contents")
     h_diff.Draw("HIST E")
 
@@ -310,16 +379,11 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     Save_Name = Save_Name.replace("__", "_")
     Save_Name = Save_Name.replace("_.", ".")
     c.SaveAs(Save_Name)
-
     print(f"Saved comparison as: {Save_Name}")
-
     return True, Unfolding_Diff_Data_In
 
 
 to_be_saved_count = 0
-
-# args.unfold     = "tdf"
-
 if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])):
     args.smearing_option = "''"
 
@@ -354,6 +418,20 @@ for BIN in Q2_y_Bin_List:
                     if(not Saved_Q):
                         continue
                 to_be_saved_count += 1
+        elif(args.sim):
+            HISTO_True     = "ERROR"
+            if(args.dimensions   in ["1D"]):
+                HISTO_True = f"(1D)_(tdf)_(SMEAR=Smear)_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(phi_t)"
+            elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
+                HISTO_True = f"(MultiDim_3D_Histo)_(tdf)_(SMEAR='')_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
+            if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO_True in ROOT_Input.GetListOfKeys())):
+                if(args.verbose):
+                    print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.BGREEN} and {color.END_b}{HISTO_True}{color.END}")
+                if(Saving_Q):
+                    Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Input, HISTO_NAME_2=HISTO_True, legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
+                    if(not Saved_Q):
+                        continue
+                to_be_saved_count += 1
         elif(HISTO_NAME in ROOT_Input.GetListOfKeys()):
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END}")
@@ -368,10 +446,9 @@ for BIN in Q2_y_Bin_List:
         print("")
 
 json_output_name = None
-if(args.mod):
-    json_output_name = f"Mod_Test_Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
-    if(Saving_Q):
-        import json
+if(args.mod or args.sim):
+    json_output_name = f"{'Mod_Test' if(args.mod) else 'Sim_Test' if(args.sim) else 'ERROR'}_Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
+    if(Saving_Q and ("ERROR" not in json_output_name)):
         # Save all differences to JSON for later uncertainty mapping
         with open(json_output_name, "w") as json_file:
             json.dump(Unfolding_Diff_Data, json_file, indent=4)

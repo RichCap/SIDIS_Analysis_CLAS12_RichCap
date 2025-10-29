@@ -80,7 +80,6 @@ if(Use_TTree):
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
 
-    
 
 if(len(sys.argv) > 1):
     arg_option_1 = str(sys.argv[1])
@@ -209,6 +208,15 @@ if(Use_TTree and (Sim_Test or Mod_Test)):
     elif(Mod_Test):
         TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root"
 
+Add_Uncertainties = True and ((Fit_Test and Use_TTree) or Apply_RC) and (not Mod_Test)
+Uncertainty_File  = None
+if(Add_Uncertainties):
+    Uncertainty_File = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json"
+    print(f"\n{color.BPINK}Will add Uncertianties to the unfolded results based on this file:{color.END_B}\n\t{Uncertainty_File}{color.END}\n")
+else:
+    print("\nWill be using standard histogram uncertianties\n")
+    
+    
 # if(str(Smearing_Options) not in ["both"]):
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
@@ -780,8 +788,39 @@ if(extra_function_terms):
 
 
 
-
-
+import json
+def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin, z_pT_Bin, Uncertainty_File_In=Uncertainty_File):
+    # Modify the bin uncertainties of a histogram using precomputed values
+    # from a JSON file. If any condition fails, return the unmodified histogram.
+    if(Uncertainty_File_In is None):
+        return Histo_In
+    # Check histogram validity
+    if((not Histo_In) or (not Histo_In.InheritsFrom("TH1"))):
+        print(f"{color.Error}Error:{color.END}\n\t{Histo_In} is an invalid histogram that was passed to Apply_PreBin_Uncertainties()")
+        return Histo_In
+    # Load the JSON file
+    with open(Uncertainty_File_In, "r") as jf:
+        data = json.load(jf)
+    # Construct key based on cosmetic naming convention
+    key = f"{Q2_y_Bin}_{z_pT_Bin}"
+    if(key not in data):
+        print(f"{color.RED}Error:{color.END} Key '{key}' not found in {Uncertainty_File_In}")
+        return Histo_In
+    bin_data = data[key]
+    # Check number of bins
+    n_bins_hist = Histo_In.GetNbinsX()
+    n_bins_data = len(bin_data)
+    if(n_bins_data != n_bins_hist):
+        print(f"{color.Error}Error:{color.END} Bin count mismatch (JSON={n_bins_data}, Histo={n_bins_hist}). Aborting modification.")
+        return Histo_In
+    # Apply new errors to each bin
+    for i, entry in enumerate(bin_data, start=1):
+        diff_val = entry.get("diff", 0.0)
+        err_val  = entry.get("err", 0.0)
+        current_err = Histo_In.GetBinError(i)
+        new_err = ROOT.sqrt(current_err**2 + (diff_val + err_val)**2)
+        Histo_In.SetBinError(i, new_err)
+    return Histo_In
 
 
 
@@ -9364,6 +9403,8 @@ if((Fit_Test and Use_TTree) or Apply_RC):
             if(str(Q2_Y_Bin_Fitting) not in Q2_xB_Bin_List):
                 # print(f"\n{color.RED}Not Using Histograms from Q2-y Bin {color.UNDERLINE}{Q2_Y_Bin_Fitting}{color.END}")
                 continue
+            if(Add_Uncertainties):
+                Histo_Original = Apply_PreBin_Uncertainties(Histo_In=Histo_Original, Q2_y_Bin=Q2_Y_Bin_Fitting, z_pT_Bin=Z_PT_Bin_Fitting, Uncertainty_File_In=Uncertainty_File)
             Dimensions_Original = "1D" if("1D" in Histo_Name_General) else "MultiDim_3D_Histo" if("MultiDim_3D_Histo" in Histo_Name_General) else "MultiDim_5D_Histo" if("MultiDim_5D_Histo" in Histo_Name_General) else "Error"
             if(Dimensions_Original == "Error"):
                 print(f"\n{color.Error}Error: Could not find unfolding dimensions for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
@@ -9484,8 +9525,7 @@ print(f"\nFinal Count = {final_count}")
 # del final_count
 
 
-if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and True):
-    import json
+if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and not True):
     print(f"\n{color.BBLUE}Will be saving the Modulations now (for iterative modulations){color.END}\n")
     Cor_Type  = "Bayesian"
     # Var_Type  = "phi_t"                         # --> 1D Unfolding
@@ -9581,14 +9621,14 @@ if("''" not in Smearing_final_list):
 # Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold", "mdf"]
 # Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold", "mdf", "Acceptance"]
 Method_Type_List = ["Data", "Bin", "Bayesian", "Unfold"]
-Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "Unfold"]
+# Method_Type_List = ["Data", "Response", "Bin", "Bayesian", "Unfold"]
 
 if((tdf not in ["N/A"]) or Sim_Test):
     Method_Type_List.append("tdf")
 
 if(Apply_RC):
     # Method_Type_List = []
-    Method_Type_List.append("RC")
+    # Method_Type_List.append("RC")
     # Method_Type_List.remove("Bin")
     # Method_Type_List.append("RC_Bin")
     Method_Type_List.append("RC_Bayesian")
@@ -9676,7 +9716,7 @@ if(Cor_Compare):
     Variable_List       = ["Complete_Correction_Factor_Ele"]
     Variable_List_Final = []
 
-Run_Individual_Bin_Images_Option = True
+Run_Individual_Bin_Images_Option = not True
 Print_Run_Individual_Bin_Option  = True
 
 if((not Fit_Test) and Run_Individual_Bin_Images_Option):
@@ -9698,7 +9738,7 @@ Multi_Dimensional_List = ["Off", "3D", "5D"]
 Multi_Dimensional_List = ["Off"]
 Multi_Dimensional_List = ["Off", "3D"]
 # # if(not (Tag_ProQ or Cut_ProQ)):
-# Multi_Dimensional_List = ["3D"]
+Multi_Dimensional_List = ["3D"]
 
 if((not run_5D_Unfold) and ("5D"       in Multi_Dimensional_List)):
     Multi_Dimensional_List.remove("5D")
