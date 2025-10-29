@@ -44,25 +44,28 @@ def send_email(subject, body, recipient):
     # Send an email via the system mail command.
     subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
 
+import ROOT
+
+
 import argparse
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py analysis script:\n\tMeant for JUST doing the 5D (Bayesian) Unfolding Procedure before saving outputs to a ROOT file.",
-                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p = argparse.ArgumentParser(description=f"""{color.BOLD}Assign_Uncertainties_to_unfolding.py analysis script:{color.END}
+    Meant for looking at the histograms in the output ROOT files from 'Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py' and 'Just_RooUnfold_SIDIS_richcap.py'.
+    The primary purpose will be to assign uncertainties by comparing the baseline results to the unfolding tests.
+""", formatter_class=argparse.RawTextHelpFormatter)#formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # saving / test modes
-    p.add_argument('-t', '-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
+    p.add_argument('-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
                    help="Run full code but without saving any files.")
-    p.add_argument('-r', '--root', type=str, default="Unfolded_5D_Histos_From_Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.root",
-                   help="Name of ROOT output file to be saved.")
-    # # smearing selection
-    # grp_smear = p.add_mutually_exclusive_group()
-    # grp_smear.add_argument('-smear',    '--smear',    action='store_true',
-    #                        help="Unfold with smeared Monte Carlo only")
-    # grp_smear.add_argument('-no-smear', '--no-smear', action='store_true',
-    p.add_argument('-no-smear', '--no-smear', action='store_true',
-                   help="Unfold with unsmeared Monte Carlo only (Defaults to just using Smearing only).")
+    p.add_argument('-r', '--root', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root",
+                   help="Name of ROOT input file. (Current Default: 'Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root')")
+    p.add_argument('-ff', '--file_format', type=str, default=".png", choices=['.png', '.pdf', '.root'],
+                   help="Output File Formats. (Defaults to PNG)")
 
+    p.add_argument('-so', '--smearing_option', type=str, default="Smear", choices=["Smear", "''"],
+                  help="Smearing options for unfolding. Defaults to 'Smear' whenever hardcoded not to.")
+    
     # simulation / modulation / closure
     p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
                    help="Use reconstructed MC instead of experimental data.")
@@ -72,107 +75,85 @@ def parse_args():
     #                help="Run Closure Test (unfold modulated MC with unweighted matrices).")
 
     # # fitting / output control
-    # p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
-    #                help="Disable fitting of plots.")
-    # p.add_argument('-txt', '--txt',   action='store_true', dest='txt',
-    #                help="Create a txt output file.")
-    # p.add_argument('-stat', '--stat', action='store_true', dest='stat',
-    #                help="Create a (stats) txt output file.")
-
-    # # kinematic comparison & proton modes
-    # p.add_argument('-tp', '--tag-proton',  action='store_true', dest='tag_proton',
-    #                help="Use 'Tagged Proton' files.")
-    # p.add_argument('-cp', '--cut-proton',  action='store_true', dest='cut_proton',
-    #                help="Use 'Cut with Proton Missing Mass' files.")
-
-    # p.add_argument('-cib', '-CIB', '--Common_Int_Bins', action='store_true',
-    #                help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
-
-    p.add_argument('-bi', '-bayes-it', '--bayes_iterations', type=int, default=4,
-                   help="Number of Bayesian Iterations performed while Unfolding (Must use to change the number of iterations).")
+    p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
+                   help="Disable fitting of plots.")
     
-    p.add_argument('-title', '--title', type=str,
+    p.add_argument('-t', '--title', type=str,
                    help="Adds an extra title to the histograms.")
+
+    p.add_argument('-sn', '--save_name', type=str, default="",
+                   help="Adds an extra string to the end of the file names that the images will be saved as.")
 
     p.add_argument('-evgen', '--EvGen', action='store_true',
                    help="Runs with EvGen instead of clasdis files.")
 
-    p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
-                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding).")
+    p.add_argument('-u', '--unfold', type=str, default="Bayesian", 
+                   help="Histogram type option. (Default: 'Bayesian')")
 
-    # # positional Q2-y bin arguments
-    # p.add_argument('bins', nargs='*', metavar='BIN',
-    #                help="List of Q2-y bin indices to run. '0' means all bins.")
-    p.add_argument('-b', '--bins', nargs="+", type=str, default=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'],
+    p.add_argument('-d', '--dimensions', type=str, default="3D", 
+                   help="Unfolding Dimensions option. (Default: '3D')")
+
+    p.add_argument('-b', '-q2_y', '--bins', nargs="+", type=str, default=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'],
                    help="List of Q2-y bin indices to run.")
+
+    p.add_argument('-z_pt', '--z_pt', nargs="+", type=int, 
+                   help="List of z-pT bin indices to run. (Will run all z-pT bins if select ones are not given)")
 
     p.add_argument('-v', '--verbose', action='store_true',
                    help="Prints each Histogram name to be saved.")
+
+    p.add_argument('-e', '--email', action='store_true',
+                   help="Sends an email when the script is done running (if selected).")
 
     return p.parse_args()
 
 args = parse_args()
 
 
-def silence_root_import():
-    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-    # Save original file descriptors
-    old_stdout = os.dup(1)
-    old_stderr = os.dup(2)
-
-    try:
-        # Redirect stdout and stderr to /dev/null at the OS level
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-
-        # Perform the noisy import
-        import RooUnfold
-
-    finally:
-        # Restore the original file descriptors
-        os.dup2(old_stdout, 1)
-        os.dup2(old_stderr, 2)
-        os.close(old_stdout)
-        os.close(old_stderr)
-
-# Use it like this:
-silence_root_import()
-# print("\nImported RooUnfold...\n")
-
-# try:
-#     import RooUnfold
-# except ImportError:
-#     print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
+# def silence_root_import():
+#     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+#     sys.stdout.flush()
+#     sys.stderr.flush()
+#     # Save original file descriptors
+#     old_stdout = os.dup(1)
+#     old_stderr = os.dup(2)
+#     try:
+#         # Redirect stdout and stderr to /dev/null at the OS level
+#         devnull = os.open(os.devnull, os.O_WRONLY)
+#         os.dup2(devnull, 1)
+#         os.dup2(devnull, 2)
+#         os.close(devnull)
+#         # Perform the noisy import
+#         import RooUnfold
+#     finally:
+#         # Restore the original file descriptors
+#         os.dup2(old_stdout, 1)
+#         os.dup2(old_stderr, 2)
+#         os.close(old_stdout)
+#         os.close(old_stderr)
+# silence_root_import()
 
        
 Saving_Q         = not args.test
-Fit_Test         = False
-Sim_Test         = args.sim
-Mod_Test         = args.mod
-Smearing_Options = "no_smear" if(args.no_smear) else "smear"
+Fit_Test         = not args.no_fit
 
-
-if(Saving_Q):
-    print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
-else:
-    print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
+# if(Saving_Q):
+#     print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
+# else:
+#     print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
 
 
 Standard_Histogram_Title_Addition = ""
-if(Sim_Test):
+if(args.sim):
     print(f"{color.BLUE}\nRunning Simulated Test\n{color.END}")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
-if(Mod_Test):
-    print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
-    if(Standard_Histogram_Title_Addition not in [""]):
-        Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
-    else:
-        Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
+    args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
+# if(args.mod):
+#     print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
+#     if(Standard_Histogram_Title_Addition not in [""]):
+#         Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
+#     else:
+#         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
 
 if(args.title):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -181,14 +162,13 @@ if(args.title):
         Standard_Histogram_Title_Addition = args.title
     print(f"\nAdding the following extra title to the histograms:\n\t{Standard_Histogram_Title_Addition}\n")
     
-# if(not Fit_Test):
-#     print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
+if(not Fit_Test):
+    print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
 
-print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
-
-File_Save_Format = ".png"
+# File_Save_Format = ".png"
 # File_Save_Format = ".root"
 # File_Save_Format = ".pdf"
+File_Save_Format = args.file_format
 
 if((File_Save_Format != ".png") and Saving_Q):
     print(f"\n{color.BGREEN}Save Option was not set to output .png files. Save format is: {color.ERROR}{File_Save_Format}{color.END}\n")
@@ -196,7 +176,7 @@ if((File_Save_Format != ".png") and Saving_Q):
 
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
 
-Q2_y_Bin_List = args.bins # ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+Q2_y_Bin_List = args.bins
 
 if(Q2_y_Bin_List != ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']):
     print(f"\n{color.BOLD}Running with the following Q2-y Bins:\t{color.GREEN}{Q2_y_Bin_List}{color.END}\n")
@@ -204,177 +184,208 @@ if(Q2_y_Bin_List != ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '1
 print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
 
 
+def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="", TITLE=Standard_Histogram_Title_Addition):
+    # Retrieve histogram from ROOT file
+    histo = ROOT_In.Get(HISTO_NAME_In)
+    if(not histo):
+        print(f"Histogram '{HISTO_NAME_In}' not found in file '{ROOT_In.GetName()}'")
+        return False
 
+    # Create a canvas
+    canvas_name = f"c_{HISTO_NAME_In}"
+    c = ROOT.TCanvas(canvas_name, canvas_name, 800, 700)
+    c.cd()
 
-########################################################################################################################################################
-########################################################################################################################################################
-##==========##==========##                            ##==========##==========##==========##==========##==========##==========##==========##==========##
-##==========##==========##     Loading Data Files     ##==========##==========##==========##==========##==========##==========##==========##==========##
-##==========##==========##                            ##==========##==========##==========##==========##==========##==========##==========##==========##
-########################################################################################################################################################
-########################################################################################################################################################
+    if(("Pass 2" in histo.GetTitle()) and (TITLE not in histo.GetTitle())):
+        histo.SetTitle(str(histo.GetTitle()).replace("Pass 2", TITLE))
+    elif(TITLE not in histo.GetTitle()):
+        histo.SetTitle(f"#splitline{{{histo.GetTitle()}}}{{{TITLE}}}")
 
+    # Turn off stat box
+    histo.SetStats(0)
+    # Draw histogram
+    histo.Draw("COLZ" if("TH2" in histo.ClassName()) else "H P E0 same")
 
-
-def FileLocation(FileName, Datatype):
-    # location = "Histo_Files_ROOT/"
-    location = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/"
-
-    if(str(Datatype) == 'rdf'):
-        file = "".join(["REAL_Data/SIDIS_epip_Data_REC_",         str(FileName), ".root"])
-    if(str(Datatype) == 'mdf'):
-        file = "".join(["Matching_REC_MC/SIDIS_epip_MC_Matched_", str(FileName), ".root"])
-    if(str(Datatype) == 'gdf'):
-        file = "".join(["GEN_MC/SIDIS_epip_MC_GEN_",              str(FileName), ".root"])
-        
-    loading = "".join([location, file])
+    # Set output file name
+    Save_Name = f"{SAVE_prefix}{HISTO_NAME_In}_{SAVE}{Format}"
+    for replace in ["(", ")", "'", '"', "'"]:
+        Save_Name = Save_Name.replace(replace, "")
+    Save_Name = Save_Name.replace("SMEAR=Smear", "Smeared")
+    Save_Name = Save_Name.replace("SMEAR=_", "")
+    Save_Name = Save_Name.replace("__", "_")
+    Save_Name = Save_Name.replace("_.", ".")
     
-    return loading
+    c.SaveAs(str(Save_Name))
 
+    print(f"Saved histogram '{HISTO_NAME_In}' as: {Save_Name}")
+    return True
 
+Unfolding_Diff_Data = {}
+def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, legend_labels=("Histogram 1", "Histogram 2"), output_prefix="Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str="1", zPT_str="1", Unfolding_Diff_Data_In=Unfolding_Diff_Data):
+    # Retrieve histograms
+    histo1 = ROOT_In_1.Get(HISTO_NAME_1)
+    histo2 = ROOT_In_2.Get(HISTO_NAME_2)
+    histo1.SetStats(0)
+    histo2.SetStats(0)
 
-################################################################################################################################################################
-##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-################################################################################################################################################################
-Common_Name = "Pass_2_5D_Unfold_Test_V6_All"
-Common_Name = "Pass_2_5D_Unfold_Test_V7_All"
-Common_Name = "5D_Unfold_Test_V7_All"
+    # Ensure both exist
+    if((not histo1) or (not histo2)):
+        print(f"{color.Error}ERROR:{color.END} Could not retrieve one or both histograms.")
+        return False, Unfolding_Diff_Data_In
 
-Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_All"
-if(args.EvGen):
-    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_EvGen_All"
-    Common_Name = "Pass_2_Acceptance_Tests_FC_14_V2_EvGen_All"
+    # Ensure both are TH1D
+    if((not histo1.InheritsFrom("TH1D")) or (not histo2.InheritsFrom("TH1D"))):
+        print(f"{color.Error}ERROR:{color.END} Both histograms must be TH1D.")
+        return False, Unfolding_Diff_Data_In
 
-Pass_Version = "Pass 2" if("Pass_2" in Common_Name) else "Pass 1"
-if(Pass_Version not in [""]):
-    if(Standard_Histogram_Title_Addition not in [""]):
-        Standard_Histogram_Title_Addition = f"{Pass_Version} - {Standard_Histogram_Title_Addition}"
-    else:
-        Standard_Histogram_Title_Addition = Pass_Version
-
-
-# Use unique file(s) for one of datatypes? (If so, set the following if(...) conditions to 'False')
-
-##################################
-##   Real (Experimental) Data   ##
-##################################
-if(True):
-#     print(f"\n{color.BOLD}Not using the common file name for the Real (Experimental) Data...{color.END}\n")
-# if(False):
-    REAL_File_Name = Common_Name
-else:
-    REAL_File_Name = "Unfolding_Tests_V11_All"
-    REAL_File_Name = "Pass_2_Correction_Effects_V1_5197"
-    REAL_File_Name = "Pass_2_5D_Unfold_Test_V3_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V3_All"
-    REAL_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
     
-##################################
-##   Real (Experimental) Data   ##
-##################################
+    if(("Pass 2" in histo1.GetTitle()) and ((TITLE not in histo1.GetTitle()) and (TITLE not in histo2.GetTitle()))):
+        histo1.SetTitle(str(histo1.GetTitle()).replace("Pass 2", TITLE))
+    elif((TITLE not in histo1.GetTitle()) and (TITLE not in histo2.GetTitle())):
+        histo1.SetTitle(f"#splitline{{{histo1.GetTitle()}}}{{{TITLE}}}")
+    
+    # Clone one histogram to create the difference histogram
+    h_diff = histo1.Clone(f"{HISTO_NAME_1}_vs_{HISTO_NAME_2}_absdiff")
+    h_diff.Reset("ICES")  # clear contents, keep errors and structure
+    h_diff.SetStats(0)
 
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
-if(args.mod):
-    MC_REC_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
-else:
-    if(True):
-        print(f"\n{color.BOLD}Not using the common file name for the Reconstructed Monte Carlo Data...{color.END}\n")
-    if(False):
-        MC_REC_File_Name = Common_Name
-    else:
-        MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V5_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V5_All"
-        MC_REC_File_Name = "Unsmeared_Pass_2_5D_Unfold_Test_V7_All" if(Smearing_Options in ["no_smear"]) else "Pass_2_5D_Unfold_Test_V7_All"
-        MC_REC_File_Name = f"Unsmeared_{Common_Name}" if(Smearing_Options in ["no_smear"]) else Common_Name
-        if(Pass_Version not in ["Pass 2"]):
-            MC_REC_File_Name = MC_REC_File_Name.replace("Pass_2_", "")
-########################################
-##   Reconstructed Monte Carlo Data   ##
-########################################
+    histo_key = f"{Q2y_str}_{zPT_str}"
 
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
-if(args.mod):
-    MC_GEN_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
-else:
-    if(True):
-        print(f"\n{color.BOLD}Not using the common file name for the Generated Monte Carlo Data...{color.END}\n")
-    if(False):
-        MC_GEN_File_Name = Common_Name
-    else:
-        MC_GEN_File_Name = "Unfolding_Tests_V11_All"
-        MC_GEN_File_Name = "Gen_Cuts_V2_Fixed_All"
-        MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V4_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V4_All"
-        MC_GEN_File_Name = "Pass_2_5D_Unfold_Test_V7_All" if("Pass 2" in Pass_Version) else "5D_Unfold_Test_V7_All"
-        for ii in range(0, 10, 1):
-            if(Common_Name   not in [str(Common_Name).replace(f"_FC{ii}_",   "_")]):
-                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC{ii}_",   "_")
-                break
-            elif(Common_Name not in [str(Common_Name).replace(f"_FC_1{ii}_", "_")]):
-                MC_GEN_File_Name   = str(Common_Name).replace(f"_FC_1{ii}_", "_")
-                break
-            else:
-                MC_GEN_File_Name = Common_Name
-####################################
-##   Generated Monte Carlo Data   ##
-####################################
+    # Initialize the dictionary entry if it doesn't exist
+    if(histo_key not in Unfolding_Diff_Data_In):
+        Unfolding_Diff_Data_In[histo_key] = []
+    max_content = 0
+    # Fill it with |bin1 - bin2|
+    for bin_idx in range(1, histo1.GetNbinsX() + 1):
+        val1 = histo1.GetBinContent(bin_idx)
+        val2 = histo2.GetBinContent(bin_idx)
+        err1 = histo1.GetBinError(bin_idx)
+        err2 = histo2.GetBinError(bin_idx)
+        diff = abs(val1 - val2)
+        err  = math.sqrt(err1**2 + err2**2)
+        max_content = max([max_content, diff + err])
+        h_diff.SetBinContent(bin_idx, diff)
+        h_diff.SetBinError(bin_idx, err)
+        Unfolding_Diff_Data_In[histo_key].append({"phi_bin": bin_idx, "diff": diff, "err": err})
+    h_diff.GetYaxis().SetRangeUser(0, 1.2*max_content)
 
+    # Create canvas
+    canvas_name = f"c_{output_prefix}{HISTO_NAME_1}_vs_{HISTO_NAME_2}"
+    c = ROOT.TCanvas(canvas_name, canvas_name, 1600, 700)
+    c.Divide(2, 1)
 
+    # Pad 1: Overlay the two histograms
+    c.cd(1)
+    if(histo1.GetLineColor() == histo2.GetLineColor()):
+        histo2.SetLineColor(histo2.GetLineColor() + 2)
+    histo1.SetLineWidth(2)
+    histo2.SetLineWidth(2)
 
-################################################################################################################################################################
-##==========##==========##     Names of Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-################################################################################################################################################################
+    histo1.Draw("HIST E")
+    histo2.Draw("HIST E SAME")
 
+    # Add legend
+    legend = ROOT.TLegend(0.45, 0.15, 0.65, 0.35)
+    legend.SetBorderSize(1)
+    legend.SetFillStyle(0)
+    legend.AddEntry(histo1, f"#scale[1.75]{{{legend_labels[0]}}}", "APL E")
+    legend.AddEntry(histo2, f"#scale[1.75]{{{legend_labels[1]}}}", "APL E")
+    legend.Draw()
 
+    # Pad 2: Draw the absolute difference
+    c.cd(2)
+    h_diff.SetLineColor(ROOT.kBlack)
+    h_diff.SetLineWidth(2)
+    h_diff.SetTitle(f"#splitline{{Absolute Bin Content Differences between}}{{{root_color.Bold}{{{legend_labels[0]}}} and {root_color.Bold}{{{legend_labels[1]}}}}}")
+    h_diff.GetYaxis().SetTitle("#Delta Bin Contents")
+    h_diff.Draw("HIST E")
 
+    # Save
+    Save_Name = f"{output_prefix}{HISTO_NAME_1}{SAVE}{Format}"
+    for replace in ["(", ")", "'", '"', "'"]:
+        Save_Name = Save_Name.replace(replace, "")
+    Save_Name = Save_Name.replace("__", "_")
+    Save_Name = Save_Name.replace("SMEAR=Smear", "Smeared")
+    Save_Name = Save_Name.replace("SMEAR=_", "")
+    Save_Name = Save_Name.replace("__", "_")
+    Save_Name = Save_Name.replace("_.", ".")
+    c.SaveAs(Save_Name)
 
+    print(f"Saved comparison as: {Save_Name}")
 
-
-
-
-
-
-###############################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-###############################################################################################################################################################
-try:
-    rdf = ROOT.TFile(str(FileLocation(str(REAL_File_Name), "rdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.BLUE,  " Real (Experimental) Data       ", color.END, " in '", color.BOLD, REAL_File_Name,   color.END, "' is ", color.BOLD, str(len(rdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-try:
-    mdf = ROOT.TFile(str(FileLocation(str(MC_REC_File_Name), "mdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.RED,   " Reconstructed Monte Carlo Data ", color.END, " in '", color.BOLD, MC_REC_File_Name, color.END, "' is ", color.BOLD, str(len(mdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-try:
-    gdf = ROOT.TFile(str(FileLocation(str(MC_GEN_File_Name), "gdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.GREEN, " Generated Monte Carlo Data     ", color.END, " in '", color.BOLD, MC_GEN_File_Name, color.END, "' is ", color.BOLD, str(len(gdf.GetListOfKeys())), color.END]))
-except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-###############################################################################################################################################################
-##==========##==========##     Loading Requested File(s)     ##==========##==========##==========##==========##==========##==========##==========##==========##
-###############################################################################################################################################################
-
-print(f"\n\n{color.BOLD}Done Loading RDataFrame files...{color.END}\n")
-
-
-
-########################################################################################################################################################
-########################################################################################################################################################
-##==========##==========##                            ##==========##==========##==========##==========##==========##==========##==========##==========##
-##==========##==========##     Loaded Data Files      ##==========##==========##==========##==========##==========##==========##==========##==========##
-##==========##==========##                            ##==========##==========##==========##==========##==========##==========##==========##==========##
-########################################################################################################################################################
-########################################################################################################################################################
-
+    return True, Unfolding_Diff_Data_In
 
 
 to_be_saved_count = 0
 
+# args.unfold     = "tdf"
+
+if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])):
+    args.smearing_option = "''"
+
+ROOT_Input = ROOT.TFile.Open(args.root, "READ")
+if(args.mod):
+    ROOT_Mod = ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root", "READ")
+else:
+    ROOT_Mod = None
+for BIN in Q2_y_Bin_List:
+    Q2_y_BIN_NUM       = int(BIN) if(str(BIN) not in ["0"]) else "All"
+    if(args.z_pt):
+        z_pT_Bin_Range = args.z_pt
+    else:
+        z_pT_Bin_Range = range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_BIN_NUM)[1] + 1)
+    for z_PT_BIN_NUM  in z_pT_Bin_Range:
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_BIN_NUM, Z_PT_BIN=z_PT_BIN_NUM, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=False)):
+            if(args.z_pt):
+                print(f"{color.Error}WARNING{color.END_e}: The selected (Q2-y)-(z-pT) Bin ({Q2_y_BIN_NUM}-{z_PT_BIN_NUM}) does not exist...{color.END}")
+            continue
+        HISTO_NAME = f"\n{color.ERROR}ERROR{color.END}\n"
+        if(args.dimensions   in ["1D"]):
+            HISTO_NAME = f"(1D)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(phi_t)"
+        elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
+            HISTO_NAME = f"(MultiDim_3D_Histo)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
+
+        if(args.mod):
+            if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO_NAME in ROOT_Mod.GetListOfKeys())):
+                if(args.verbose):
+                    print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END}")
+                if(Saving_Q):
+                    Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Mod, HISTO_NAME_2=HISTO_NAME, legend_labels=("Unfolded with Normal MC", "Unfolded with Modulated MC"), output_prefix="Mod_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
+                    if(not Saved_Q):
+                        continue
+                to_be_saved_count += 1
+        elif(HISTO_NAME in ROOT_Input.GetListOfKeys()):
+            if(args.verbose):
+                print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END}")
+            if(Saving_Q):
+                Saved_Q = Save_Histograms_As_Images(ROOT_In=ROOT_Input, HISTO_NAME_In=HISTO_NAME, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "", TITLE=Standard_Histogram_Title_Addition)
+                if(not Saved_Q):
+                    continue
+            to_be_saved_count += 1
+        else:
+            print(f"\n{color.Error}MISSING: {HISTO_NAME}{color.END}\n")
+    if(args.verbose):
+        print("")
+
+json_output_name = None
+if(args.mod):
+    json_output_name = f"Mod_Test_Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
+    if(Saving_Q):
+        import json
+        # Save all differences to JSON for later uncertainty mapping
+        with open(json_output_name, "w") as json_file:
+            json.dump(Unfolding_Diff_Data, json_file, indent=4)
+        print(f"\n{color.BBLUE}Saved all bin-by-bin differences to:{color.END_B} {json_output_name}{color.END}\n")
+    else:
+        print(f"\n{color.BCYAN}Would have saved all bin-by-bin differences to:{color.END_B} {json_output_name}{color.END}\n")
+
+
 start_time = timer.start_find(return_Q=True)
 start_time = start_time.replace("Ran", "Started running")
+
+import time
+time.sleep(1)
+
 end_time, total_time, rate_line = timer.stop(count_label="Histograms", count_value=to_be_saved_count, return_Q=True)
 
 email_body = f"""
@@ -382,32 +393,46 @@ The 'Assign_Uncertainties_to_unfolding.py' script has finished running.
 {start_time}
 
 Ran with the following options:
-Common_Name      = {Common_Name}
-REAL_File_Name   = {REAL_File_Name}
-MC_REC_File_Name = {MC_REC_File_Name}
-MC_GEN_File_Name = {MC_GEN_File_Name}
 
+Input File(s):
+    {args.root}
 Arguments:
 --test                         --> {args.test}
---root (Output File Name)      --> {args.root}
---no-smear                     --> {args.no_smear}
+--unfold                       --> {args.unfold}
+--dimensions                   --> {args.dimensions}
+--smearing_option              --> {args.smearing_option}
 --simulation (synthetic data?) --> {args.sim}
 --modulation (added to MC?)    --> {args.mod}
---bayes_iterations             --> {args.bayes_iterations}
 --title  (added title)         --> {args.title}
+--save_name                    --> {args.save_name if(args.save_name not in ['']) else None}
 --EvGen                        --> {args.EvGen}
---Min_Allowed_Acceptance_Cut   --> {args.Min_Allowed_Acceptance_Cut}
---bins   (Q2-y Bins)           --> {args.bins}
+--q2_y   (Q2-y Bins)           --> {args.bins}
+--z_pt   (z-pT Bins)           --> {args.z_pt}
+--file_format                  --> {args.file_format}
 --verbose                      --> {args.verbose}
+"""
+if(json_output_name):
+    email_body = f"""{email_body}
+    
+JSON File Output:
+    {json_output_name}
 
+"""
+else:
+    email_body = f"""{email_body}
+
+"""
+
+email_body = f"""{email_body}
 {end_time}
 {total_time}
 {rate_line}
 """
-# send_email(subject="Finished Running 5D Unfolding Code", body=email_body, recipient="richard.capobianco@uconn.edu")
-print(email_body)
 
-timer.stop(count_label="Histos", count_value=to_be_saved_count)
+if(args.email):
+    send_email(subject="Finished Running the 'Assign_Uncertainties_to_unfolding.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
+else:
+    print(email_body)
 
 
 print(f"""{color.BGREEN}{color_bg.YELLOW}
