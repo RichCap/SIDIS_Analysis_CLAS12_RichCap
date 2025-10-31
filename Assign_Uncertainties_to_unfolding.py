@@ -320,7 +320,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         if(not Return_Histos):
             return False, Unfolding_Diff_Data_In
         else:
-            return histo1, histo2, None, Unfolding_Diff_Data_In
+            return histo1, histo2, None, None, Unfolding_Diff_Data_In
     
     # if(args.use_errors and (not args.mod)):
     #     histo1 = Apply_PreBin_Uncertainties(Histo_In=histo1, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, Uncertainty_File_In=args.use_errors_json)
@@ -339,6 +339,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     h_diff.SetStats(0)
 
     h_uncertainty = h_diff.Clone(f"{HISTO_NAME_1}_Modeled_Uncertainty")
+    h_uncertainty.Reset("ICES")  # clear contents, keep errors and structure
     h_uncertainty.SetStats(0)
 
     histo_key = f"{Q2y_str}_{zPT_str}"
@@ -364,6 +365,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         h_diff.SetBinContent(bin_idx,           diff)
         h_diff.SetBinError(bin_idx,              err)
         h_uncertainty.SetBinContent(bin_idx, M_uncer)
+        h_uncertainty.SetBinError(bin_idx,       0.0)
         Unfolding_Diff_Data_In[histo_key].append({"phi_bin": bin_idx, "diff": diff, "err": err, "uncertainty": M_uncer})
         # if(args.use_errors and args.mod):
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + (diff + err)**2))
@@ -389,11 +391,11 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     #     h_diff.SetTitle(f"#splitline{{{h_diff.GetTitle()}}}{{#scale[1.25]{{#splitline{{These differences have been added to}}{{the uncertainties of {root_color.Bold}{{{legend_labels[0]}}}}}}}}}")
     h_diff.GetYaxis().SetTitle("#Delta Bin Contents")
 
-    h_uncertainty.SetLineColor(ROOT.kGray + 1)
+    h_uncertainty.SetLineColor(ROOT.kOrange + 2)
     h_uncertainty.SetLineWidth(2)
     h_uncertainty.SetTitle(f"#splitline{{Modeled Uncertainty between}}{{{root_color.Bold}{{{legend_labels[0]}}} and {root_color.Bold}{{{legend_labels[1]}}}}}")
     if(args.use_errors):
-        h_uncertainty.SetTitle(f"#splitline{{{h_diff.GetTitle()}}}{{#scale[1.25]{{#splitline{{These uncertainties have been propagated to}}{{{root_color.Bold}{{{legend_labels[0]}}}}}}}}}")
+        h_uncertainty.SetTitle(f"#splitline{{{h_uncertainty.GetTitle()}}}{{#scale[1.25]{{#splitline{{These uncertainties have been propagated to}}{{{root_color.Bold}{{{legend_labels[0]}}}}}}}}}")
     h_uncertainty.GetYaxis().SetTitle("Model Uncertainty")
 
     if(Return_Histos):
@@ -406,8 +408,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     
         # Pad 1: Overlay the two histograms
         c.cd(1)
-        histo1.Draw("HIST P E0")
-        histo2.Draw("HIST P E0 SAME")
+        histo1.Draw("H P E0")
+        histo2.Draw("H P E0 SAME")
     
         # Add legend
         legend = ROOT.TLegend(0.45, 0.15, 0.7, 0.35)
@@ -416,14 +418,14 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         legend.AddEntry(histo1, f"#scale[1.75]{{{legend_labels[0]}}}", "APL E")
         legend.AddEntry(histo2, f"#scale[1.75]{{{legend_labels[1]}}}", "APL E")
         legend.Draw()
-    
-        # Pad 2: Draw the absolute difference
-        c.cd(2)
-        h_diff.Draw("HIST P E0")
 
-        # Pad 3: Draw the Model Uncertainties
+        # Pad 2: Draw the Model Uncertainties
+        c.cd(2)
+        h_uncertainty.Draw("H P E0")
+        
+        # Pad 3: Draw the absolute difference
         c.cd(3)
-        h_uncertainty.Draw("HIST P E0")
+        h_diff.Draw("H P E0")
     
         # Save
         Save_Name = f"{output_prefix}{HISTO_NAME_1}{SAVE}{Format}"
@@ -692,7 +694,7 @@ start_time = start_time.replace("Ran", "Started running")
 import time
 time.sleep(1)
 
-end_time, total_time, rate_line = timer.stop(count_label="Histograms", count_value=to_be_saved_count, return_Q=True)
+end_time, total_time, rate_line = timer.stop(count_label="Images", count_value=to_be_saved_count, return_Q=True)
 
 email_body = f"""
 The 'Assign_Uncertainties_to_unfolding.py' script has finished running.
