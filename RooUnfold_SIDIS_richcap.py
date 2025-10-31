@@ -41,15 +41,40 @@ ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
 ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
 ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 
-try:
-    import RooUnfold
-except ImportError:
-    print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
-    # print("Somehow the python module was not found, let's try loading the library by hand...")
-    # try:
-    #     ROOT.gSystem.Load("libRooUnfold.so")
-    # except:
-    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+def silence_root_import():
+    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Save original file descriptors
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+    try:
+        # Redirect stdout and stderr to /dev/null at the OS level
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+        # Perform the noisy import
+        import RooUnfold
+    finally:
+        # Restore the original file descriptors
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+
+# Use it like this:
+silence_root_import()
+
+# try:
+#     import RooUnfold
+# except ImportError:
+#     print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
+#     # print("Somehow the python module was not found, let's try loading the library by hand...")
+#     # try:
+#     #     ROOT.gSystem.Load("libRooUnfold.so")
+#     # except:
+#     #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
 
 
 # if Common_Int_Bins = True, then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins)

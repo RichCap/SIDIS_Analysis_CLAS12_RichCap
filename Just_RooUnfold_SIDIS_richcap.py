@@ -38,6 +38,11 @@ def safe_write(obj, tfile):
         tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
     obj.Write()
 
+import subprocess
+def send_email(subject, body, recipient):
+    # Send an email via the system mail command.
+    subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
+
 import argparse
 
 def parse_args():
@@ -63,11 +68,12 @@ def parse_args():
     p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
                    help="Use modulated MC files to create response matrices.")
     p.add_argument('-close', '--closure',  action='store_true', dest='closure',
-                   help="Run Closure Test (unfold modulated MC with unweighted matrices).")
+                   help="Run Closure Test (unfold modulated MC with itself).")
+                   # help="Run Closure Test (unfold modulated MC with unweighted matrices).")
 
     # fitting / output control
-    p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
-                   help="Disable fitting of plots.")
+    p.add_argument('-fit', '--fit', action='store_true', dest='fit',
+                   help="Enable fitting of plots. (Defaults to no fits)")
     p.add_argument('-txt', '--txt',   action='store_true', dest='txt',
                    help="Create a txt output file.")
     p.add_argument('-stat', '--stat', action='store_true', dest='stat',
@@ -84,9 +90,12 @@ def parse_args():
     p.add_argument('-cib', '-CIB', '--Common_Int_Bins', action='store_true',
                    help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
 
-    p.add_argument('-bayes-it', '--bayes_iterations', type=int,
+    p.add_argument('-bi', '-bayes-it', '--bayes_iterations', type=int,
                    help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically)")
-    
+
+    p.add_argument('-nt', '-ntoys', '--Num_Toys', type=int, default=500,
+                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...))")
+                   
     p.add_argument('-title', '--title', type=str,
                    help="Adds an extra title to the histograms.")
 
@@ -95,6 +104,12 @@ def parse_args():
 
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
                    help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Default: 0.005)")
+
+    p.add_argument('-e', '--email', action='store_true',
+                   help="Sends an email to user when done running.")
+    
+    p.add_argument('-em', '--email_message', type=str, default=None,
+                   help="Extra email message to be added when given (use with `--email`)")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
@@ -105,15 +120,41 @@ def parse_args():
 args = parse_args()
 
 
-try:
-    import RooUnfold
-except ImportError:
-    print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
-    # print("Somehow the python module was not found, let's try loading the library by hand...")
-    # try:
-    #     ROOT.gSystem.Load("libRooUnfold.so")
-    # except:
-    #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+def silence_root_import():
+    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Save original file descriptors
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+    try:
+        # Redirect stdout and stderr to /dev/null at the OS level
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+        # Perform the noisy import
+        import RooUnfold
+    finally:
+        # Restore the original file descriptors
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+
+# Use it like this:
+silence_root_import()
+# print("\nImported RooUnfold...\n")
+
+# try:
+#     import RooUnfold
+# except ImportError:
+#     print(f"{color.Error}ERROR: \n{color.END_R}{traceback.format_exc()}{color.END}\n")
+#     # print("Somehow the python module was not found, let's try loading the library by hand...")
+#     # try:
+#     #     ROOT.gSystem.Load("libRooUnfold.so")
+#     # except:
+#     #     print("".join([color.Error, "\nERROR IN IMPORTING RooUnfold...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
 
 
 # ——— determine all your flags exactly as before ———
@@ -122,7 +163,7 @@ Closure_Test   = args.closure
 # closure implies sim and no mod
 Sim_Test       = ((args.closure) or (args.sim))
 Mod_Test       = ((not args.closure) and args.mod)
-Fit_Test       = not args.no_fit
+Fit_Test       = args.fit
 
 # txt/stat file logic (preserve original defaults)
 Create_txt_File  = args.txt
@@ -152,13 +193,14 @@ Tag_ProQ        = args.tag_proton or Cut_ProQ
     
 Standard_Histogram_Title_Addition = ""
 if(Closure_Test):
-    print(f"{color.BLUE}\nRunning Closure Test (Unfolding the Modulated MC using the unweighted response matrices)\n{color.END}")
-    Standard_Histogram_Title_Addition = "Closure Test - Unfolding Modulated Simulation"
+    print(f"\n{color.BLUE}Running Closure Test (Unfolding the Modulated MC using the unweighted response matrices){color.END}\n")
+    # Standard_Histogram_Title_Addition = "Closure Test - Unfolding Modulated Simulation"
+    Standard_Histogram_Title_Addition = "Closure Test - Unfolding Modulated Simulation with itself"
 elif(Sim_Test):
-    print(f"{color.BLUE}\nRunning Simulated Test\n{color.END}")
+    print(f"\n{color.BLUE}Running Simulated Test{color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
 if(Mod_Test):
-    print(f"{color.BLUE}\nUsing {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices)\n {color.END}")
+    print(f"\n{color.BLUE}Using {color.BOLD}Modulated {color.END_b} Monte Carlo Files (to create the response matrices){color.END}\n")
     if(Standard_Histogram_Title_Addition not in [""]):
         Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
     else:
@@ -192,8 +234,8 @@ if(args.title):
         Standard_Histogram_Title_Addition = args.title
     print(f"\nAdding the following extra title to the histograms:\n\t{Standard_Histogram_Title_Addition}\n")
     
-if(not Fit_Test):
-    print(f"\n\n{color.BBLUE}{color_bg.RED}\n\n    Not Fitting Plots    \n{color.END}\n\n")
+if(Fit_Test):
+    print(f"\n\n{color.BGREEN}{color_bg.YELLOW}\n\n    Will be Fitting Plots    \n{color.END}\n\n")
     
 if(Create_txt_File):
     print(f"{color.BBLUE}\nWill create a txt output file{color.END}")
@@ -201,7 +243,7 @@ if(Create_txt_File):
         print(f"{color.RED}Will {color.BOLD}NOT{color.END_R} create a (stats) txt output file{color.END}")
     print("")
 else:
-    print(f"{color.RED}\nWill {color.BOLD}NOT{color.END_R} create a txt output file\n{color.END}")
+    print(f"\n{color.RED}Will {color.BOLD}NOT{color.END_R} create a txt output file{color.END}\n")
     
     
 # if(str(Smearing_Options) not in ["both"]):
@@ -264,12 +306,12 @@ print(f"{color.BOLD}\nStarting RG-A SIDIS Analysis\n{color.END}")
 # Getting Current Date/Time
 timer.time_elapsed()
 
-# Variable for imposing a minimum acceptance value cut to the unfolded distributions
-Min_Allowed_Acceptance_Cut = 0.0175
-Min_Allowed_Acceptance_Cut = 0.005
+# # Variable for imposing a minimum acceptance value cut to the unfolded distributions
+# Min_Allowed_Acceptance_Cut = 0.0175
+# Min_Allowed_Acceptance_Cut = 0.005
 
-Min_Allowed_Acceptance_Cut = 0.0025 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
-Min_Allowed_Acceptance_Cut = 0.0005 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
+# Min_Allowed_Acceptance_Cut = 0.0025 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
+# Min_Allowed_Acceptance_Cut = 0.0005 # Updated for tests on 9/21/2025 --> Wanted to see if Acceptance cut could be lowered
 
 Min_Allowed_Acceptance_Cut = args.Min_Allowed_Acceptance_Cut # As of 9/21/2025 - Made an agument with the default being 0.005
 
@@ -289,7 +331,7 @@ Acceptance_Cut_Line.SetLineStyle(1) # Solid line (default)
 def Full_Calc_Fit(Histo, version="norm"):
     
     # Helping the closure tests with known values of B and C
-    if(Closure_Test):
+    if(Closure_Test and False): # On 10/30/2025 -> Changed closure test to use default data fitting
         B, C = -0.500, 0.025
         Histo_max_bin     = Histo.GetMaximumBin()
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
@@ -331,7 +373,7 @@ def Full_Calc_Fit(Histo, version="norm"):
             # C = ((Histo_240_bin_x - A) + (Histo_180_bin_x - A)*(Histo_240_bin_Cos_phi/Histo_180_bin_Cos_phi))/((Histo_240_bin_Cos_2_phi + (Histo_180_bin_Cos_2_phi*Histo_240_bin_Cos_phi)/Histo_180_bin_Cos_phi))
             # B = (Histo_max_bin - A - C*Histo_max_bin_Cos_2_phi)/(Histo_max_bin_Cos_phi)
         except:
-            print("".join([color.Error, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
+            print(f"{color.Error}Full_Calc_Fit(...) ERROR:\n{color.END}{traceback.format_exc()}\n")
             A, B, C = "Error", "Error", "Error"
 
         try:
@@ -349,7 +391,7 @@ def Full_Calc_Fit(Histo, version="norm"):
             Phi_max_bin = Histo.GetMaximumBin()
 
             if(Phi_max_bin in [Phi_low_bin, Phi_mid_bin, Phi_low_bin - 1, Phi_mid_bin - 1, Phi_low_bin - 2, Phi_mid_bin - 2, Phi_low_bin + 1, Phi_mid_bin + 1, Phi_low_bin + 2, Phi_mid_bin + 2]):
-                print("".join([color.RED, "(Minor) Error in 'Full_Calc_Fit': Same bin used in fits", color.END]))
+                print(f"{color.RED}(Minor) Error in 'Full_Calc_Fit': Same bin used in fits{color.END}")
                 # Phi_max_bin = Histo.FindBin(187.5)
                 Phi_max_bin = Histo.FindBin(262.5)
 
@@ -561,13 +603,13 @@ def nelder_mead(func, x0, args=(), max_iter=1000, tol=1e-6):
 
 def Full_Calc_Fit(Histo):
     # Helping the closure tests with known values of B and C
-    if(Closure_Test):
+    if(Closure_Test and False):
         B_opt, C_opt = -0.500, 0.025
         Histo_max_bin     = Histo.GetMaximumBin()
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
         Histo_max_bin_num = Histo.GetBinContent(Histo_max_bin)
         A_opt    = (Histo_max_bin_num)/((1 + B_opt*ROOT.cos(Histo_max_bin_phi) + C_opt*ROOT.cos(2*Histo_max_bin_phi)))
-    elif(Sim_Test):
+    elif(Sim_Test and False):
         B_opt, C_opt = 0, 0
         Histo_max_bin     = Histo.GetMaximumBin()
         Histo_max_bin_phi = (3.1415926/180)*Histo.GetBinCenter(Histo_max_bin)
@@ -595,10 +637,7 @@ def Full_Calc_Fit(Histo):
             A_opt, B_opt, C_opt = optim_params
 
         except:
-            print("".join([color.Error, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
-
-            print(color.Error, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
-
+            print(f"{color.Error}Full_Calc_Fit(...) ERROR:{color.END}\n{traceback.format_exc()}\n\n{color.Error}ERROR is with 'Histo' = {Histo}\n{color.END}")
             A_opt, B_opt, C_opt = "Error", "Error", "Error"
         
     return [A_opt, B_opt, C_opt]
@@ -998,7 +1037,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     #########################################
 
                     Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
-                    Unfolding_Histo.SetNToys(500)
+                    Unfolding_Histo.SetNToys(args.Num_Toys)
 
 ##==============##==============================================================##==============##
 ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
@@ -1269,7 +1308,8 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                     except:
                         print(f"{color.Error}Fitting_Function ERROR:\n{color.END}{str(traceback.format_exc())}\n")
 
-                if(((Special not in ["Normal"]) and isinstance(Special, list)) and (not Closure_Test)):
+                # if(((Special not in ["Normal"]) and isinstance(Special, list)) and (not Closure_Test)):
+                if((Special not in ["Normal"]) and isinstance(Special, list)):
                     try:
                         Q2_y_Bin_Special, z_pT_Bin_Special = str(Special[0]), str(Special[1])
                         # print(f"Fitting_Phi_Function Special: Q2_y_Bin_Special, z_pT_Bin_Special = {Q2_y_Bin_Special}, {z_pT_Bin_Special}")
@@ -2741,7 +2781,7 @@ else:
 ########################################
 ##   Reconstructed Monte Carlo Data   ##
 ########################################
-if(args.mod):
+if(args.mod or args.closure):
     MC_REC_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
 else:
     if(True):
@@ -2762,7 +2802,7 @@ else:
 ####################################
 ##   Generated Monte Carlo Data   ##
 ####################################
-if(args.mod):
+if(args.mod or args.closure):
     MC_GEN_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
 else:
     if(True):
@@ -2816,21 +2856,21 @@ if("Background_Tests" in str(MC_REC_File_Name)):
         
 # 'TRUE_File_Name' refers to a file which is used in the closure tests where the simulated data is unfolded - corresponds to the distribution that should ideally be returned if the unfolding procedure is working correctly
 TRUE_File_Name = ""
-if(Sim_Test):
+if(Sim_Test or args.closure):
     # REAL_File_Name = MC_REC_File_Name
     # TRUE_File_Name = MC_GEN_File_Name
     REAL_File_Name = "Pass_2_Acceptance_Tests_FC_14_V1_DataWeight_All"
     TRUE_File_Name = "Pass_2_Acceptance_Tests_V1_DataWeight_All"
     
-if(Closure_Test):
-    if("_Modulated" not in str(MC_REC_File_Name)):
-        REAL_File_Name = str(MC_REC_File_Name).replace("_All", "_Modulated_All")
-    else:
-        REAL_File_Name = MC_REC_File_Name
-    if("_Modulated" not in str(MC_GEN_File_Name)):
-        TRUE_File_Name = str(MC_GEN_File_Name).replace("_All", "_Modulated_All")
-    else:
-        TRUE_File_Name = MC_GEN_File_Name
+# if(Closure_Test):
+#     if("_Modulated" not in str(MC_REC_File_Name)):
+#         REAL_File_Name = str(MC_REC_File_Name).replace("_All", "_Modulated_All")
+#     else:
+#         REAL_File_Name = MC_REC_File_Name
+#     if("_Modulated" not in str(MC_GEN_File_Name)):
+#         TRUE_File_Name = str(MC_GEN_File_Name).replace("_All", "_Modulated_All")
+#     else:
+#         TRUE_File_Name = MC_GEN_File_Name
 
 
 ################################################################################################################################################################
@@ -2851,27 +2891,29 @@ if(Closure_Test):
 ###############################################################################################################################################################
 try:
     rdf = ROOT.TFile(str(FileLocation(str(REAL_File_Name), "rdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.BLUE,  " Real (Experimental) Data" if(not Sim_Test) else " Test Experimental (Simulated) Data", " " if(Sim_Test) else "       ", color.END, " in '", color.BOLD, REAL_File_Name,   color.END, "' is ", color.BOLD, str(len(rdf.GetListOfKeys())), color.END]))
+    print(f"The total number of histograms available for the{color.BLUE}{' Real (Experimental) Data' if(not (Sim_Test or args.closure)) else ' Test Experimental (Simulated) Data'}{' ' if(Sim_Test) else '       '}{color.END} in '{color.BOLD}{REAL_File_Name}{  color.END}' is {color.BOLD}{len(rdf.GetListOfKeys())}{color.END}")
 except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'rdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+    print(f"\n{color.Error}ERROR IN GETTING THE 'rdf' DATAFRAME...\n{color.END}Traceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
 try:
     mdf = ROOT.TFile(str(FileLocation(str(MC_REC_File_Name), "mdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.RED,   " Reconstructed Monte Carlo Data", " " if(not Sim_Test) else "     ",                                                     color.END, " in '", color.BOLD, MC_REC_File_Name, color.END, "' is ", color.BOLD, str(len(mdf.GetListOfKeys())), color.END]))
+    print(f"The total number of histograms available for the{color.RED} Reconstructed Monte Carlo Data{' ' if(not (Sim_Test or args.closure)) else '     '}{                                                         color.END} in '{color.BOLD}{MC_REC_File_Name}{color.END}' is {color.BOLD}{len(mdf.GetListOfKeys())}{color.END}")
+
 except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'mdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+    print(f"\n{color.Error}ERROR IN GETTING THE 'mdf' DATAFRAME...\n{color.END}Traceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
 try:
     gdf = ROOT.TFile(str(FileLocation(str(MC_GEN_File_Name), "gdf")), "READ")
-    print("".join(["The total number of histograms available for the", color.GREEN, " Generated Monte Carlo Data", "     " if(not Sim_Test) else "         ",                                                 color.END, " in '", color.BOLD, MC_GEN_File_Name, color.END, "' is ", color.BOLD, str(len(gdf.GetListOfKeys())), color.END]))
+    print(f"The total number of histograms available for the{color.GREEN} Generated Monte Carlo Data{'     ' if(not (Sim_Test or args.closure)) else '         '}{                                                   color.END} in '{color.BOLD}{MC_GEN_File_Name}{color.END}' is {color.BOLD}{len(gdf.GetListOfKeys())}{color.END}")
 except:
-    print("".join([color.Error, "\nERROR IN GETTING THE 'gdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
-    
+    print(f"\n{color.Error}ERROR IN GETTING THE 'gdf' DATAFRAME...\n{color.END}Traceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
 if((Sim_Test) or (Closure_Test) or (TRUE_File_Name not in [""])):
     print("\nWill be using a file as the 'True' distribution (i.e., what 'rdf' should look like after unfolding)")
     try:
         tdf = ROOT.TFile(str(FileLocation(str(TRUE_File_Name), "gdf")), "READ")
-        print("".join(["The total number of histograms available for the", color.CYAN, " 'True' Monte Carlo Data   ", "     " if(not Sim_Test) else "         ",                                              color.END, " in '", color.BOLD, TRUE_File_Name,   color.END, "' is ", color.BOLD, str(len(tdf.GetListOfKeys())), color.END]))
+        print(f"The total number of histograms available for the{color.CYAN} 'True' Monte Carlo Data   {'     ' if(not (Sim_Test or args.closure)) else '         '}{                                                 color.END} in '{color.BOLD}{TRUE_File_Name}{color.END}' is {color.BOLD}{len(tdf.GetListOfKeys())}{color.END}")
+        
     except:
-        print("".join([color.Error, "\nERROR IN GETTING THE 'tdf' DATAFRAME...\nTraceback:\n", color.END_R, str(traceback.format_exc()), color.END]))
+        print(f"\n{color.Error}ERROR IN GETTING THE 'tdf' DATAFRAME...\n{color.END}Traceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
+
 else:
     tdf = "N/A"
 ###############################################################################################################################################################
@@ -4639,7 +4681,64 @@ print(f"\nFinal Count = {final_count}")
 # del final_count
 
     
-timer.stop(count_label="Histos", count_value=final_count)
+# timer.stop(count_label="Histos", count_value=final_count)
+
+start_time = timer.start_find(return_Q=True)
+start_time = start_time.replace("Ran", "Started running")
+end_time, total_time, rate_line = timer.stop(count_label="Histograms", count_value=final_count, return_Q=True)
+
+email_body = f"""
+The 'Just_RooUnfold_SIDIS_richcap.py' script has finished running.
+{start_time}
+
+Ran with the following options:
+
+Output File:
+    {args.root}
+    
+Arguments:
+--test                                         --> {args.test}
+--bayes_iterations                             --> {args.bayes_iterations}
+--Num_Toys                                     --> {args.Num_Toys}
+--Min_Allowed_Acceptance_Cut                   --> {args.Min_Allowed_Acceptance_Cut}
+--bins   (Q2-y Bins)                           --> {Q2_xB_Bin_List}
+--title    (added title)                       --> {args.title}
+--EvGen                                        --> {args.EvGen}
+--smear                                        --> {args.smear}
+--no-smear                                     --> {args.no_smear}
+--simulation (unfolding synthetic data)        --> {args.sim}
+--modulation (data unfolded with modulated MC) --> {args.mod}
+--closure  (modulated MC unfolded with itself) --> {args.closure}
+--fit                                          --> {args.fit}
+--txt                                          --> {args.txt}
+--stat                                         --> {args.stat}
+--cor-compare                                  --> {args.cor_compare}
+--tag-proton                                   --> {args.tag_proton}
+--cut-proton                                   --> {args.cut_proton}
+--Common_Int_Bins                              --> {args.Common_Int_Bins}
+"""
+if(args.email_message):
+    email_body = f"""{email_body}
+Extra Message:
+    {args.email_message}
+
+"""
+else:
+    email_body = f"""{email_body}
+
+"""
+
+email_body = f"""{email_body}
+{end_time}
+{total_time}
+{rate_line}
+"""
+
+if(args.email):
+    send_email(subject="Finished Running the 'Just_RooUnfold_SIDIS_richcap.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
+
+print(email_body)
+
 
 print(f"""{color.BGREEN}{color_bg.YELLOW}
 \t                                   \t   
