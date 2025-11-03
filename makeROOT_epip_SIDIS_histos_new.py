@@ -133,7 +133,8 @@ for smear         in Smear_Factor_List:
         smear_factor     = str(smear).replace("_", "")
         datatype         = str(datatype).replace(str(smear), "")
         break
-        
+
+DataWeight = False
 for weight_Q         in Using_Weight_List:
     if(str(weight_Q) in str(datatype)):
         Use_Weight = True
