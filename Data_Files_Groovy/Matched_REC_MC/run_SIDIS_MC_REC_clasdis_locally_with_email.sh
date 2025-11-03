@@ -28,6 +28,7 @@ START_TIME="Started Running at: $(date)"
 # Run the Groovy script on each file
 for FILE in "${FILES[@]}"; do
     echo "Processing file: $FILE"
+    echo "(Done at: $(date))"
     run-groovy "$SCRIPT_PATH" "$FILE"
     PROCESSED_FILES+="$FILE (Done at: $(date))"$'\n'
 done
@@ -51,5 +52,7 @@ $PROCESSED_FILES
 
 # Send the email
 echo "$MESSAGE" | mail -s "$SUBJECT" "$EMAIL"
+
+echo "$START_TIME"
 
 echo "Done"

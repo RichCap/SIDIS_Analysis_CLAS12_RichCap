@@ -53,4 +53,6 @@ $PROCESSED_FILES
 # Send the email
 echo "$MESSAGE" | mail -s "$SUBJECT" "$EMAIL"
 
+echo "$START_TIME"
+
 echo "Done"
