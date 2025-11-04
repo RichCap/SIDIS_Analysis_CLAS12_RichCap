@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=rdf_SIDIS_8_28_2025_R2_FC14_Acceptance_Tests_V1
+#SBATCH --job-name=rdf_SIDIS_11_3_2025_R1_FC14_Acceptance_Tests_V3
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,7 +9,7 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=3500
 #SBATCH --time=12:00:00
-#SBATCH --array=0-14,31-35
+#SBATCH --array=0-170
 
 
 # FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/Data_sidis_epip_richcap.inb.qa.nSidis_005*)

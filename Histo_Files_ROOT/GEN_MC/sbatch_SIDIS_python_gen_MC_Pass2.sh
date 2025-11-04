@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=DW_gdf_SIDIS_10_16_2025_R1_Acceptance_Tests_V1
+#SBATCH --job-name=gdf_SIDIS_11_3_2025_R1_Acceptance_Tests_V3
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu 
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,7 +9,7 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=6500
 #SBATCH --time=24:00:00
-#SBATCH --array=0-685
+#SBATCH --array=0-855
 
 
 # FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.inb-clasdis_*)
@@ -29,5 +29,7 @@
 
 FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5*nb-clasdis*)
 # Above is for (gdf_NewP2 - As of 10/16/2025) #SBATCH --array=0-685
+# Above is for (gdf_NewP2 - As of 11/3/2025) #SBATCH --array=0-855
 
-srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py gdf_sidis_NewP2_Dweight ${FILES[$SLURM_ARRAY_TASK_ID]}
+srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py gdf_sidis_NewP2 ${FILES[$SLURM_ARRAY_TASK_ID]}
+# srun python3 /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/makeROOT_epip_SIDIS_histos_new.py gdf_sidis_NewP2_Dweight ${FILES[$SLURM_ARRAY_TASK_ID]}
