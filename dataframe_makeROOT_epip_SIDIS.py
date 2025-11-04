@@ -167,6 +167,34 @@ import os
 
 from ExtraAnalysisCodeValues import *
 
+def silence_root_import():
+    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    # Save original file descriptors
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+
+    try:
+        # Redirect stdout and stderr to /dev/null at the OS level
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+
+        # Perform the noisy import
+        import RooUnfold
+
+    finally:
+        # Restore the original file descriptors
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+
+silence_root_import()
+
 if(str(file_location) == 'all'):
     print("\nRunning all files together...\n")
 if(str(file_location) == 'time'):
@@ -218,7 +246,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ########################################################################################################################################################################
     
     if(".root" in file_num):
-        print(f"{color.Error}\nUnique File Name has been given as: {color.UNDERLINE}{file_num}{color.END}\n")
+        print(f"\n{color.Error}Unique File Name has been given as: {color.UNDERLINE}{file_num}{color.END}\n")
         files_used_for_data_frame = file_num
         file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/ROOT_Files/From_Pythia_Text_Files/", "")
         rdf = ROOT.RDataFrame("h22", str(files_used_for_data_frame))
@@ -445,9 +473,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # Correction_Code_Full_In = """ See ExtraAnalysisCodeValues.py for details
     
     if(not Mom_Correction_Q):
-        print("".join([color.Error if(datatype in ["rdf"]) else color.RED, "\n\nNot running with Momentum Corrections\n", color.END]))
+        print(f"\n\n{color.Error if(datatype in ['rdf']) else color.RED}Not running with Momentum Corrections{color.END}\n")
     else:
-        print("".join([color.BBLUE,                                        "\n\nRunning with Momentum Corrections\n",     color.END]))
+        print(f"\n\n{color.BBLUE}Running with Momentum Corrections{color.END}\n")
+
         
         
     ###################################################################################################################################################################

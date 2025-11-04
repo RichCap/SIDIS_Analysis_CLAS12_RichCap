@@ -68,13 +68,17 @@ done
 
 # Compose and send the email
 SUBJECT="Finished running $JOB_BASE"
-MESSAGE="The local job ($JOB_BASE) processing RDataframe files has completed at:
-$(date)
+MESSAGE="The local job ($JOB_BASE) processing RDataframe files has finished running.
 
 $START_TIME
+Finished Running at: $(date)
 
 Files processed:
 $PROCESSED_FILES
 "
 
 echo "$MESSAGE" | mail -s "$SUBJECT" "$EMAIL"
+
+echo "$START_TIME"
+echo "Finished Running at: $(date)"
+
