@@ -5,42 +5,44 @@ import argparse
 JSON_WEIGHT_FILE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json"
 
 parser = argparse.ArgumentParser(description="Make Comparisons between Data, clasdis MC, and EvGen MC (based on Using_RDataFrames.ipynb)")
-parser.add_argument('-kc', '--kinematic-compare',      action='store_true', 
+parser.add_argument('-kc', '--kinematic-compare',              action='store_true', 
                     help='Runs Kinematic Comparisons')
-parser.add_argument('-ac', '--acceptance-all',         action='store_true', 
+parser.add_argument('-ac', '--acceptance-all',                 action='store_true', 
                     help='Runs Acceptance Comparisons (no binning)')
-parser.add_argument('-ab', '--acceptance',             action='store_true', 
+parser.add_argument('-ab', '--acceptance',                     action='store_true', 
                     help='Runs Binned Acceptance Comparisons (for all kinematic bins)')
-parser.add_argument('-abr', '--acceptance-ratio',      action='store_true', 
+parser.add_argument('-abr', '--acceptance-ratio',              action='store_true', 
                     help='Similar to "-ab", but plots the ratios of the acceptances to show discrepancies')
-parser.add_argument('-abd', '--acceptance-diff',       action='store_true', 
+parser.add_argument('-abd', '--acceptance-diff',               action='store_true', 
                     help='Similar to "-ab" and "-abr", but plots the percent difference between the acceptances to show discrepancies')
-parser.add_argument('-v',  '--verbose',                action='store_true', 
+parser.add_argument('-v',  '--verbose',                        action='store_true', 
                     help='Prints more info while running')
-parser.add_argument('-c',  '--cut',                    type=str,
+parser.add_argument('-c',  '--cut',                            type=str,
                     help='Adds additional cuts based on user input (Warning: applies to all datasets)')
-parser.add_argument('-sf', '--File_Save_Format',       type=str,    default=".png", choices=['.png', '.pdf'],
+parser.add_argument('-sf', '--File_Save_Format',               type=str,    default=".png", choices=['.png', '.pdf'],
                     help='Save Format of Images')
-parser.add_argument('-n', '--name',                    type=str,
+parser.add_argument('-n', '--name',                            type=str,
                     help='Extra save name that can be added to the saved images')
-parser.add_argument('-t', '--title',                   type=str,
+parser.add_argument('-t', '--title',                           type=str,
                     help='Extra title text that can be added to the default titles')
-parser.add_argument('-nrdf', '--num-rdf-files',        type=int,    default=5,
+parser.add_argument('-nrdf', '--num-rdf-files',                type=int,    default=5,
                     help='Number of rdf RDataFrames to be included (Default = 5)')
-parser.add_argument('-nMC', '--num-MC-files',          type=int,    default=1,
+parser.add_argument('-nMC', '--num-MC-files',                  type=int,    default=1,
                     help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1) - Can set to -1 to include all available files')
-parser.add_argument('-hMX', '--use_HIGH_MX',           action='store_true',
+parser.add_argument('-hMX', '--use_HIGH_MX',                   action='store_true',
                     help='Use with "-kc" option to normalize to High-Mx region')
-# parser.add_argument('-2D', '--make_2D',                action='store_true',
+# parser.add_argument('-2D', '--make_2D',                        action='store_true',
 #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
-parser.add_argument('-2Dw', '--make_2D_weight',        action='store_true',
+parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
-parser.add_argument('-2DwC', '--make_2D_weight_check', action='store_true',
+parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_true',
                     help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN — Only uses clasdis files (as of 10/16/2025)')
-parser.add_argument('-jsw', '--json_weights',          action='store_true',
-                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight` and `--make_2D_weight_check` options as of 10/16/2025)')
-parser.add_argument('-minA', '--min-accept-cut',       type=float, default=0.005,
-                    help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0')
+parser.add_argument('-2DwBC', '--make_2D_weight_binned_check', action='store_true',
+                    help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN in all the Q2-y-z-pT Bins — Also tests 1D Bin-by-Bin Corrections with these weights — Only uses clasdis files (as of 11/4/2025)')
+parser.add_argument('-jsw', '--json_weights',                  action='store_true',
+                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight`, `--make_2D_weight_check`, and `--make_2D_weight_binned_check` options as of 11/4/2025)')
+parser.add_argument('-minA', '--min-accept-cut',               type=float, default=0.005,
+                    help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
 
 args = parser.parse_args()
 
@@ -791,6 +793,218 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
 
 
 
+
+def DrawNormalizedHistos(histos_in, TPad_draw, Normalize_Q=True):
+    # Draws a list of TH1 histograms normalized to unit area and automatically 
+    # adjusts the y-axis to go from 0 to 1.2 × the maximum normalized bin height.
+    if(not histos):
+        print(f"{color.Error}Warning: empty histogram list passed to DrawNormalizedHistos(){color.END}")
+        return
+
+    if(not TPad_draw):
+        print(f"{color.Error}Warning: Did not pass a TPad to DrawNormalizedHistos() to draw in{color.END}")
+        return
+
+    # Compute the largest normalized bin content among all histograms
+    max_val = 0.0
+    for h in histos:
+        if(Normalize_Q):
+            if(h and (h.Integral() != 0)):
+                norm_max = h.GetMaximum() / h.Integral()
+                if(norm_max > max_val):
+                    max_val = norm_max
+        else:
+            max_val = max([max_val, h.GetMaximum()])
+
+    y_max = (1.2 * max_val) if(max_val > 0) else 1.0
+    
+    Draw_Canvas(TPad_draw, 1, 0.15)
+    # Draw all histograms normalized
+    first = True
+    for h in histos:
+        if((not h) or (h.Integral() == 0)):
+            continue
+        h.GetYaxis().SetRangeUser(0, y_max)
+        if(Normalize_Q):
+            h.DrawNormalized("H P E0" if(first) else "H P E0 same")
+        else:
+            h.Draw("H P E0" if(first) else "H P E0 same")
+        first = False
+
+
+def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT"):
+    import gc
+    Saved_Histos, All_z_pT_Canvas, All_z_pT_Canvas_cd_1, All_z_pT_Canvas_cd_1_Upper, All_z_pT_Canvas_cd_1_Lower, All_z_pT_Canvas_cd_2, All_z_pT_Canvas_cd_2_cols, legend = {}, {}, {}, {}, {}, {}, {}, {}
+    for Q2_Y_Bin in Q2_Y_Bin_List:
+        # --- Cache one dataset group at a time (so only one big table lives in RAM)
+        rdf_cached = rdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
+        mdf_cached = mdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
+        gdf_cached = gdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
+        Canvases_to_Make = [f"Uncorrected_Modulation_Comparisons_Q2_y_Bin_{Q2_Y_Bin}", f"Bin_by_Bin_Comparisons_of_Weights_Q2_y_Bin_{Q2_Y_Bin}", f"Weighed_Acceptance_Comparisons_Q2_y_Bin_{Q2_Y_Bin}"]
+        ##############################################################################################################################################################################################################################################################################################################################################################################################################
+        ####  Histogram Creations     #########################################################################################################################################################################
+        z_pT_Bin_Range = range(0, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1] + 1)
+        for z_PT_BIN_NUM  in z_pT_Bin_Range:
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_PT_BIN_NUM, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=False)):
+                continue
+            Binning_Title = f"{root_color.Bold}{{Q^{{2}}-y Bin {Q2_Y_Bin} #topbar z-P_{{T}} Bin {z_PT_BIN_NUM if(z_PT_BIN_NUM != 0) else 'All'}}}"
+            if(args.title):
+                Binning_Title = f"#splitline{{{Binning_Title}}}{{{args.title}}}"
+            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"]     = (rdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"rdf_(z_pT_Bin_{z_PT_BIN_NUM})",         f"#splitline{{Experimental Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = (mdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared")
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = (gdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = (mdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = (gdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
+    
+            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].SetLineColor(ROOT.kRed)
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].SetLineColor(ROOT.kBlue)
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].SetLineColor(ROOT.kGreen)
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].SetLineColor(ROOT.kViolet)
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].SetLineColor(ROOT.kTeal)
+            for cor_W in ["_NoW", "_AcW"]:
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"] = Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Clone(f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}")
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Divide(Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"])
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetTitle(f"#splitline{{{'Unweighed' if(cor_W == '_NoW') else 'Weighed'} MC Acceptance}}{{{Binning_Title}}}")
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(ROOT.kBlack if(cor_W == '_NoW') else (ROOT.kGray + 2))
+                
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"] = Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].Clone(f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}")
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Divide(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"])
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetTitle(f"#splitline{{Bin-by-Bin Corrected Data (Using {'Unweighed' if(cor_W == '_NoW') else 'Weighed'} MC Acceptance)}}{{{Binning_Title}}}")
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(28 if(cor_W == '_NoW') else (ROOT.kOrange + 1))
+    
+            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"] = Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].Clone(f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic")
+            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].Divide(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"])
+            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].SetTitle(f"#splitline{{Bin-by-Bin Corrected Synthetic Data (Using Unweighed MC to Correct the Weighed MC)}}{{{Binning_Title}}}")
+            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].SetLineColor(ROOT.kOrange - 1)
+                
+        ####  Histogram Creations     #########################################################################################################################################################################
+        #######################################################################################################################################################################################################
+        ####  Canvas (Main) Creation  #########################################################################################################################################################################
+        for canvas_num, Canvas_Name in enumerate(Canvases_to_Make):
+            All_z_pT_Canvas[Canvas_Name] = Canvas_Create(Name=Canvas_Name, Num_Columns=2, Num_Rows=1, Size_X=3900, Size_Y=2175, cd_Space=0.01)
+            All_z_pT_Canvas[Canvas_Name].SetFillColor(root_color.LGrey)
+            All_z_pT_Canvas_cd_1[Canvas_Name]       = All_z_pT_Canvas[Canvas_Name].cd(1)
+            All_z_pT_Canvas_cd_1[Canvas_Name].SetFillColor(root_color.LGrey)
+            All_z_pT_Canvas_cd_1[Canvas_Name].SetPad(xlow=0.005, ylow=0.015, xup=0.27, yup=0.985)
+            All_z_pT_Canvas_cd_1[Canvas_Name].Divide(1, 2, 0, 0)
+            All_z_pT_Canvas_cd_1_Upper[Canvas_Name] = All_z_pT_Canvas_cd_1[Canvas_Name].cd(1)
+            All_z_pT_Canvas_cd_1_Upper[Canvas_Name].SetPad(xlow=0, ylow=0.425, xup=1, yup=1)
+            All_z_pT_Canvas_cd_1_Upper[Canvas_Name].Divide(1, 1, 0, 0)
+            All_z_pT_Canvas_cd_1_Lower[Canvas_Name] = All_z_pT_Canvas_cd_1[Canvas_Name].cd(2)
+            All_z_pT_Canvas_cd_1_Lower[Canvas_Name].SetPad(xlow=0, ylow=0, xup=1, yup=0.42)
+            All_z_pT_Canvas_cd_1_Lower[Canvas_Name].Divide(1, 1, 0, 0)
+            All_z_pT_Canvas_cd_1_Lower[Canvas_Name].cd(1).SetPad(xlow=0.035, ylow=0.025, xup=0.95, yup=0.975)
+            All_z_pT_Canvas_cd_2[Canvas_Name]       = All_z_pT_Canvas[Canvas_Name].cd(2)
+            All_z_pT_Canvas_cd_2[Canvas_Name].SetPad(xlow=0.28, ylow=0.015, xup=0.995, yup=0.9975)
+            All_z_pT_Canvas_cd_2[Canvas_Name].SetFillColor(root_color.LGrey)
+            if(Plot_Orientation in ["z_pT"]):
+                number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+                All_z_pT_Canvas_cd_2[Canvas_Name].Divide(number_of_cols, number_of_rows, 0.0001, 0.0001)
+            else:
+                number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+                All_z_pT_Canvas_cd_2[Canvas_Name].Divide(1, number_of_cols, 0.0001, 0.0001)
+                for ii in range(1, number_of_cols + 1, 1):
+                    All_z_pT_Canvas_cd_2_cols[Canvas_Name] = All_z_pT_Canvas_cd_2[Canvas_Name].cd(ii)
+                    All_z_pT_Canvas_cd_2_cols[Canvas_Name].Divide(number_of_rows, 1, 0.0001, 0.0001)
+        ####  Canvas (Main) Creation End ######################################################################################################################################################################
+        #######################################################################################################################################################################################################
+            legend[Canvas_Name] = ROOT.TLegend(0.01, 0.01, 0.99, 0.99)
+            Legend_Header = f"#splitline{{#scale[2]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}{{#scale[1.5]{{Plots Shown}}}}"
+            if("Uncorrected_Modulation_Comparisons"  in Canvas_Name):
+                legend[Canvas_Name].SetHeader(f"#splitline{{Uncorrected Distributions for}}{{{Legend_Header}}}", "C")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)"],         "Experimental Distribution", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], "Unweighed MC REC Distribution", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], "Unweighed MC GEN Distribution", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"],   "Weighed MC REC Distribution", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"],   "Weighed MC GEN Distribution", "lep")
+            elif("Bin_by_Bin_Comparisons_of_Weights" in Canvas_Name):
+                legend[Canvas_Name].SetHeader(f"#splitline{{Bin-by-Bin Corrected Distributions for}}{{{Legend_Header}}}", "C")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"],                                                    "Data Corrected with Unweighed MC REC", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"],                                                      "Data Corrected with Weighed MC REC", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_Synthetic"], "#splitline{Corrected Synthetic Data}{Used Unweighed MC to Correct the Weighed MC}", "lep")
+            elif("Weighed_Acceptance_Comparisons"    in Canvas_Name):
+                legend[Canvas_Name].SetHeader(f"#splitline{{Bin-by-Bin Acceptances Distributions for}}{{{Legend_Header}}}", "C")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], "Unweighed MC REC", "lep")
+                legend[Canvas_Name].AddEntry(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"],   "Weighed MC REC", "lep")
+            else:
+                legend[Canvas_Name].SetHeader("Unknown Option", "C")
+                
+            Draw_Canvas(All_z_pT_Canvas_cd_1_Upper[Canvas_Name], 1, 0.15)
+            Blank = Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)"].Clone("EMPTY")
+            Blank.SetTitle("")
+            Blank.Draw("H P E0")
+            legend[Canvas_Name].DrawClone()
+            ROOT.gPad.Update()
+            All_z_pT_Canvas[Canvas_Name].Update()
+            Binning_Title = f"{root_color.Bold}{{Q^{{2}}-y Bin {Q2_Y_Bin} #topbar z-P_{{T}} Bin All}}"
+            if(args.title):
+                Binning_Title = f"#splitline{{{Binning_Title}}}{{{args.title}}}"
+            if("Uncorrected_Modulation_Comparisons"  in Canvas_Name):
+                Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)"].SetTitle(Binning_Title)
+                DrawNormalizedHistos(histos_in=[Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)"],     Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"]], TPad_draw=All_z_pT_Canvas_cd_1_Lower[Canvas_Name], Normalize_Q=True)
+            elif("Bin_by_Bin_Comparisons_of_Weights" in Canvas_Name):
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"].SetTitle(Binning_Title)
+                DrawNormalizedHistos(histos_in=[Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_Synthetic"]],                                                                                                                     TPad_draw=All_z_pT_Canvas_cd_1_Lower[Canvas_Name], Normalize_Q=False)
+            elif("Weighed_Acceptance_Comparisons"    in Canvas_Name):
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"].SetTitle(Binning_Title)
+                DrawNormalizedHistos(histos_in=[Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_NoW"], Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_0)_AcW"]],                                                                                                                                                                                        TPad_draw=All_z_pT_Canvas_cd_1_Lower[Canvas_Name], Normalize_Q=False)
+            All_z_pT_Canvas[Canvas_Name].Update()
+    
+            for z_pT in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=int(Q2_Y_Bin))[1]+1):
+                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT, BINNING_METHOD=Binning_Method)):
+                    continue
+                cd_number_of_z_pT_all_together = z_pT
+                if(Plot_Orientation in ["z_pT"]):
+                    All_z_pT_Canvas_cd_2_z_pT_Bin = All_z_pT_Canvas_cd_2[Canvas_Name].cd(cd_number_of_z_pT_all_together)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.SetFillColor(root_color.LGrey)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
+                else:
+                    cd_row = int(cd_number_of_z_pT_all_together/number_of_cols) + 1
+                    if(0  ==    (cd_number_of_z_pT_all_together%number_of_cols)):
+                        cd_row += -1
+                    cd_col =     cd_number_of_z_pT_all_together - ((cd_row - 1)*number_of_cols)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin_Row = All_z_pT_Canvas_cd_2[Canvas_Name].cd((number_of_cols - cd_col) + 1)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin     = All_z_pT_Canvas_cd_2_z_pT_Bin_Row.cd((number_of_rows + 1) - cd_row)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.SetFillColor(root_color.LGrey)
+                    All_z_pT_Canvas_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
+    
+                Binning_Title = f"{root_color.Bold}{{Q^{{2}}-y Bin {Q2_Y_Bin} #topbar z-P_{{T}} Bin {z_pT}}}"
+                if(args.title):
+                    Binning_Title = f"#splitline{{{Binning_Title}}}{{{args.title}}}"
+                if("Uncorrected_Modulation_Comparisons"  in Canvas_Name):
+                    Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})"].SetTitle(Binning_Title)
+                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})"],     Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]], TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=True)
+                elif("Bin_by_Bin_Comparisons_of_Weights" in Canvas_Name):
+                    Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"].SetTitle(Binning_Title)
+                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_Synthetic"]],                                                                                                                               TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+                elif("Weighed_Acceptance_Comparisons"    in Canvas_Name):
+                    Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"].SetTitle(Binning_Title)
+                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]],                                                                                                                                                                                                       TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+    
+                ROOT.gPad.Update()
+                All_z_pT_Canvas[Canvas_Name].Update()
+                    
+            ##################################################################### ################################################################ ################################################################
+            #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################
+            ##################################################################### ################################################################ ################################################################
+            Save_Name = f"{Canvas_Name}_{args.name}{args.File_Save_Format}"
+            if(Plot_Orientation != "z_pT"):
+                Save_Name = Save_Name.replace(f"{args.name}{args.File_Save_Format}", f"{args.name}_Flipped{args.File_Save_Format}")
+            for replace in ["(", ")", "'", '"', "'"]:
+                Save_Name = Save_Name.replace(replace, "")
+            Save_Name = Save_Name.replace("__", "_")
+            Save_Name = Save_Name.replace("_.", ".")
+            All_z_pT_Canvas[Canvas_Name].SaveAs(Save_Name)
+            print(f"{color.BGREEN}Saved Image: {color.BBLUE}{Save_Name}{color.END}")
+            timer.time_elapsed()
+            ##################################################################### ################################################################ ################################################################
+            #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################
+            ##################################################################### ################################################################ ################################################################
+        # After all canvases for this Q2_Y_Bin are saved:
+        del rdf_cached, mdf_cached, gdf_cached
+        gc.collect()  # explicitly release cached memory
+
+
 from pathlib import Path
 
 if(__name__ == "__main__"):
@@ -916,8 +1130,8 @@ if(__name__ == "__main__"):
         mdf_EvGen = ROOT.RDataFrame("h22", all_root_files["mdf"])
         gdf_EvGen = ROOT.RDataFrame("h22", all_root_files["gdf"])
     # else:
-    #     rdf         = rdf.Range(50000)
-    #     mdf_clasdis = mdf_clasdis.Range(50000)
+    #     rdf         = rdf.Range(500000)
+    #     mdf_clasdis = mdf_clasdis.Range(500000)
     #     gdf_clasdis = gdf_clasdis.Range(500000)
     # rdf         = rdf.Range(5000)
     # mdf_EvGen   = mdf_EvGen.Range(5000)
@@ -1056,8 +1270,78 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
     timer.time_elapsed()
 
-    if(args.make_2D_weight_check):
-        print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h){color.END}\n")
+    if(args.make_2D_weight_binned_check):
+        print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h in every individual Q2-y-z-pT bin){color.END}\n")
+        # 0) Load the self-contained, generated header (helpers + accw_* functions)
+        ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
+        
+        # 1) Define Event_Weight on MC (mdf)
+        if(args.json_weights):
+            # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
+            import json
+            print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
+            with open(JSON_WEIGHT_FILE) as f:
+                Fit_Pars = json.load(f)
+                # Build the C++ initialization string
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                
+                    // safely retrieve parameters (default = 0)
+                    // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                
+                    return weight;
+                }}
+                """)
+                
+            # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
+            mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+        else:
+            # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
+            mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
+            pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
+
+        print(f"\n{color.BOLD}About to start running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
+        timer.time_elapsed()
+        z_pT_Images_Together_For_Comparisons(rdf_in=rdf, mdf_in=mdf_clasdis, gdf_in=gdf_clasdis, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT")
+
+        print(f"\n{color.BGREEN}Done Running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
+        
+    elif(args.make_2D_weight_check):
+        print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h){color.END}\n")
 
         # 0) Load the self-contained, generated header (helpers + accw_* functions)
         ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
@@ -1100,11 +1384,26 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                     return weight;
                 }}
                 """)
-            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+                
+            # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
+            mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
         else:
-            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
+            mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
+            pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
             
         
         # 2) Book TH1D histograms for phi_t (0..360, 24 bins)
@@ -1261,12 +1560,12 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     
     elif(args.make_2D_weight):
         print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
-        El_Binning                 = ['el',     2.64, 7.88, 524]
-        El_Th_Binning              = ['elth',      5,   35, 300]
-        El_Phi_Binning             = ['elPhi',     0,  360, 720]
-        Pip_Binning                = ['pip',    1.25,    5, 375]
-        Pip_Th_Binning             = ['pipth',     5,   35, 300]
-        Pip_Phi_Binning            = ['pipPhi',    0,  360, 720]
+        # El_Binning                 = ['el',     2.64, 7.88, 524]
+        # El_Th_Binning              = ['elth',      5,   35, 300]
+        # El_Phi_Binning             = ['elPhi',     0,  360, 720]
+        # Pip_Binning                = ['pip',    1.25,    5, 375]
+        # Pip_Th_Binning             = ['pipth',     5,   35, 300]
+        # Pip_Phi_Binning            = ['pipPhi',    0,  360, 720]
 
         # El_Binning                 = ['el',      2.6,  7.9, 53]
         # El_Th_Binning              = ['elth',      5,   35, 30]
@@ -1274,6 +1573,13 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         # Pip_Binning                = ['pip',     1.2,    5, 38]
         # Pip_Th_Binning             = ['pipth',     5,   35, 30]
         # Pip_Phi_Binning            = ['pipPhi',    0,  360, 72]
+
+        El_Binning                 = ['el',      2.5,  8.0, 11]
+        El_Th_Binning              = ['elth',    7.5, 35.5, 14]
+        El_Phi_Binning             = ['elPhi',     0,  360, 36]
+        Pip_Binning                = ['pip',     1.0,    5,  8]
+        Pip_Th_Binning             = ['pipth',   7.5, 35.5, 14]
+        Pip_Phi_Binning            = ['pipPhi',    0,  360, 36]
         
         List_of_Quantities_2D = []
         List_of_Quantities_2D.append([El_Phi_Binning, Pip_Phi_Binning])
@@ -1333,15 +1639,6 @@ inline double accw_lookup2D(const double x, const double y,
         # Accumulate generated wrappers to save for later use
         generated_wrappers_code = []
         generated_wrappers_code.append("// Auto-generated acceptance weight functions\n")
-        # generated_wrappers_code.append("// Includes\n#include <vector>\n#include <algorithm>\n#include <cmath>\n\n")
-        # generated_wrappers_code.append("// Helper declarations (duplicate-safe if header is included alone)\n")
-        # generated_wrappers_code.append(
-        #     "int accw_findBin(const double value, const std::vector<double>& edges);\n"
-        #     "double accw_lookup2D(const double x, const double y,\n"
-        #     "                     const std::vector<double>& ex,\n"
-        #     "                     const std::vector<double>& ey,\n"
-        #     "                     const std::vector<double>& grid);\n\n"
-        # )
 
         def _cpp_list(vals):
             return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
@@ -1399,7 +1696,7 @@ inline double accw_lookup2D(const double x, const double y,
                 Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
 
             # -----------------------------
-            # 2) Build 2D histos (your original)
+            # 2) Build 2D histos
             # -----------------------------
             histos_data_match[rdf_name] = rdf.Histo2D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),        Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
             histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
@@ -1407,14 +1704,14 @@ inline double accw_lookup2D(const double x, const double y,
             histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
             histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
 
-            rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
-            mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+            # rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
+            # mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
 
             histos_data_match[f"norm_{rdf_name}"] = histos_data_match[rdf_name].Clone(f"norm_{rdf_name}")
             histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
 
-            histos_data_match[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor) if(rdf_name_norm_factor != 0) else 1)
-            histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            # histos_data_match[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor) if(rdf_name_norm_factor != 0) else 1)
+            # histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
 
             histos_data_match[data_match_name] = histos_data_match[f"norm_{rdf_name}"].Clone(data_match_name)
             histos_data_match[data_match_name].Divide(histos_data_match[f"norm_{mclasdis}"])
@@ -1442,6 +1739,8 @@ inline double accw_lookup2D(const double x, const double y,
             for iy in range(1, ny+1):
                 for ix in range(1, nx+1):
                     val = H_w.GetBinContent(ix, iy)
+                    # exp = histos_data_match[f"norm_{rdf_name}"].GetBinContent(ix, iy)
+                    # if((val < 0.0) or (not math.isfinite(val)) or (exp == 0)):
                     if((val < 0.0) or (not math.isfinite(val))):
                         val = 1.0
                     weights.append(val)
@@ -1471,7 +1770,12 @@ double {func_name}(const double x, const double y){{
             # 5) Apply weight to MC (using smeared cols) to draw the next weighted MC histo
             # -----------------------------
             weight_col = f"W_{var_x}_vs_{var_y}"
+            # Preserve the current total effective weight, then apply this pair's weight and renormalize
+            pre_sum = wdf.Sum("ACC_Weight_Product").GetValue()
             wdf = wdf.Define(weight_col, f"{func_name}({var_x}_smeared, {var_y}_smeared)").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
+            post_sum = wdf.Sum("ACC_Weight_Product").GetValue()
+            scale = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            wdf = wdf.Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({scale})")
 
             # -----------------------------
             # 6) Draw panels (ratio / data / MC)
@@ -1500,7 +1804,7 @@ double {func_name}(const double x, const double y){{
             histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
             mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
             histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
-            histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            # histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
             canvas_data_match.cd((num + 1) + 3*len(List_of_Quantities_2D))
             # ROOT.gPad.SetLogz(1)
             histos_data_match[f"norm_{mclasdis}"].Draw("colz")
@@ -1522,12 +1826,6 @@ double {func_name}(const double x, const double y){{
             hf.write("// This file was auto-generated by your acceptance-weight script.\n")
             hf.write("// It contains concrete lookup functions accw_<x>_vs_<y>(x, y).\n\n")
             hf.write("#pragma once\n\n")
-            # hf.write("// Forward declarations for helper symbols (supply your own defs or include where declared):\n")
-            # hf.write("int accw_findBin(const double value, const std::vector<double>& edges);\n")
-            # hf.write("double accw_lookup2D(const double x, const double y,\n")
-            # hf.write("                     const std::vector<double>& ex,\n")
-            # hf.write("                     const std::vector<double>& ey,\n")
-            # hf.write("                     const std::vector<double>& grid);\n\n")
             hf.write("// Embedded helper definitions (self-contained)\n")
             hf.write(One_Time_Cpp_Helpers)
             hf.write("\n\n")
@@ -1539,6 +1837,7 @@ double {func_name}(const double x, const double y){{
         print(f"\n{color.BOLD}=====  END GENERATED ACCEPTANCE-WEIGHT CODE  ====={color.END}\n")
         timer.time_elapsed()
         print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
+
     else:
         print(f"\n{color.Error}Skipping Acceptance Weight Histograms{color.END}")
     
