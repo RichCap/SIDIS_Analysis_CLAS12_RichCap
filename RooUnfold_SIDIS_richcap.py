@@ -13,9 +13,9 @@ import ROOT
 # import math
 
 
-import faulthandler
-faulthandler.enable(all_threads=True)
-print("faulthandler enabled:", faulthandler.is_enabled())
+# import faulthandler
+# faulthandler.enable(all_threads=True)
+# print("faulthandler enabled:", faulthandler.is_enabled())
 
 
 from MyCommonAnalysisFunction_richcap import *
@@ -93,7 +93,7 @@ Create_stat_File = not True
 Cor_Compare      = False
 Smearing_Options = "both"
 
-Apply_RC = True
+Apply_RC = not True
 if(Apply_RC):
     print(f"\n{color.BYELLOW}Running with RC Corrections (from EvGen){color.END}\n")
 
@@ -233,7 +233,7 @@ if(Use_TTree and (Sim_Test or Mod_Test)):
     elif(Mod_Test):
         TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root"
 
-Add_Uncertainties = True and ((Fit_Test and Use_TTree) or Apply_RC) and (not Mod_Test)
+Add_Uncertainties = (not True) and ((Fit_Test and Use_TTree) or Apply_RC) and (not Mod_Test)
 Uncertainty_File  = None
 if(Add_Uncertainties):
     Uncertainty_File = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json"
@@ -9550,7 +9550,7 @@ print(f"\nFinal Count = {final_count}")
 # del final_count
 
 
-if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and not True):
+if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and True):
     print(f"\n{color.BBLUE}Will be saving the Modulations now (for iterative modulations){color.END}\n")
     Cor_Type  = "Bayesian"
     # Var_Type  = "phi_t"                         # --> 1D Unfolding
@@ -9667,6 +9667,7 @@ if(Apply_RC):
 
 # Method_Type_List = ["mdf", "Background", "Relative_Background"]
 # Method_Type_List = ["RC"]
+Method_Type_List = ["Bayesian"]
 
 
 # Method_Type_List = ["Data", "Bin", "rdf", "mdf", "gdf", "Acceptance"]

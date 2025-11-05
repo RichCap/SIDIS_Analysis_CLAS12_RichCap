@@ -561,8 +561,10 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("2", "7"): {
-        "B_initial": -0.3,
-        "B_limits":  [-0.4, -0.275],
+        # "B_initial": -0.3,
+        # "B_limits":  [-0.4, -0.275],
+        "B_initial": -0.03,
+        "B_limits":  [-0.048, -0.028],
         "C_initial": 0.1,
         "C_limits":  [0.06, 0.2],
         "Allow_Multiple_Fits":   True,
