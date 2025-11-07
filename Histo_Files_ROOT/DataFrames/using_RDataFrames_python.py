@@ -2,9 +2,7 @@
 import sys
 import argparse
 
-JSON_WEIGHT_FILE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json"
-
-parser = argparse.ArgumentParser(description="Make Comparisons between Data, clasdis MC, and EvGen MC (based on Using_RDataFrames.ipynb)")
+parser = argparse.ArgumentParser(description="Make Comparisons between Data, clasdis MC, and EvGen MC (based on Using_RDataFrames.ipynb)", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-kc', '--kinematic-compare',              action='store_true', 
                     help='Runs Kinematic Comparisons')
 parser.add_argument('-ac', '--acceptance-all',                 action='store_true', 
@@ -26,13 +24,19 @@ parser.add_argument('-n', '--name',                            type=str,
 parser.add_argument('-t', '--title',                           type=str,
                     help='Extra title text that can be added to the default titles')
 parser.add_argument('-nrdf', '--num-rdf-files',                type=int,    default=5,
-                    help='Number of rdf RDataFrames to be included (Default = 5)')
+                    help='Number of rdf RDataFrames to be included')
 parser.add_argument('-nMC', '--num-MC-files',                  type=int,    default=1,
-                    help='Number of MC RDataFrames (MC REC and MC GEN) to be included (Default = 1) - Can set to -1 to include all available files')
+                    help='Number of MC RDataFrames (MC REC and MC GEN) to be included — Can set to -1 to include all available files')
+parser.add_argument('-evnL', '--event_limit',                  type=int,
+                    help="Event limit for all datasets (will set df.Range(...) based on this value, so only use if you don't want/need the full event statistics from the files — i.e., use for testing only)")
+parser.add_argument('-NoEvGen', '--Do_not_use_EvGen',          action='store_true', 
+                    help="Automatically turns off EvGen files (may cause some hard coded options to fail)")
 parser.add_argument('-hMX', '--use_HIGH_MX',                   action='store_true',
                     help='Use with "-kc" option to normalize to High-Mx region')
 # parser.add_argument('-2D', '--make_2D',                        action='store_true',
 #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
+parser.add_argument('-minA', '--min-accept-cut',               type=float, default=0.005,
+                    help='Minimum Acceptance Cut. Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
 parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
 parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_true',
@@ -40,11 +44,23 @@ parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_tru
 parser.add_argument('-2DwBC', '--make_2D_weight_binned_check', action='store_true',
                     help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN in all the Q2-y-z-pT Bins — Also tests 1D Bin-by-Bin Corrections with these weights — Only uses clasdis files (as of 11/4/2025)')
 parser.add_argument('-jsw', '--json_weights',                  action='store_true',
-                    help=f'Use the json weights given by the file: {JSON_WEIGHT_FILE} (only works with the `--make_2D_weight`, `--make_2D_weight_check`, and `--make_2D_weight_binned_check` options as of 11/4/2025)')
-parser.add_argument('-minA', '--min-accept-cut',               type=float, default=0.005,
-                    help='Minimum Acceptance Cut (default: 0.005). Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
+                    help='Use the json weights (for physics injections) given by the `--json_file` argument (only works with the `--make_2D_weight`, `--make_2D_weight_check`, and `--make_2D_weight_binned_check` options as of 11/4/2025)')
+parser.add_argument('-jsf', '--json_file',                     type=str,   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json", 
+                    help='JSON file path for using `json_weights`')
+parser.add_argument('-hpp', '--hpp_input_file',                type=str,   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp", 
+                    help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options")
+parser.add_argument('-hppOut', '--hpp_output_file',            type=str,   default="generated_acceptance_weights.hpp", 
+                    help="Name of the hpp file to be outputted by the '--make_2D_weight' option (will still append the string from '--name' just before the '.hpp' of this argument's value)")
+parser.add_argument('-e', '--email',                           action='store_true',
+                    help="Sends an email when the script is done running (if selected).")
+parser.add_argument('-em', '--email_message',                  type=str,   default="", 
+                    help="Adds an extra user-defined message to emails sent with the `--email` option.")
 
 args = parser.parse_args()
+
+if(".hpp" not in args.hpp_output_file):
+    print(f"\n'--hpp_output_file' was set to {args.hpp_output_file}\n")
+    raise ValueError("Invalid '--hpp_output_file' argument (the string must end with '.hpp')")
 
 import ROOT, numpy, re
 import traceback
@@ -61,6 +77,44 @@ del script_dir
 import math
 import array
 import copy
+
+
+args.Do_not_use_EvGen = (args.Do_not_use_EvGen or (args.make_2D_weight or args.make_2D_weight_check or args.make_2D_weight_binned_check))
+if(args.Do_not_use_EvGen):
+    print(f"\n{color.BOLD}Will NOT use EvGen Files at all{color.END}\n")
+
+JSON_WEIGHT_FILE = args.json_file
+# Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
+ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+
+def safe_write(obj, tfile):
+    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
+    if(existing):
+        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+    obj.Write()
+
+import subprocess
+def ansi_to_html(text):
+    # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
+    # Map ANSI codes to HTML spans
+    ansi_html_map = { # Styles
+                    '\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",
+                      # Colors
+                    '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "",
+                      # Reset (closes span)
+                    '\033[0m': "",
+                    }
+    sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
+    for code in sorted_codes:
+        text = text.replace(code, ansi_html_map[code])
+    # Remove any stray/unsupported ANSI codes that might remain
+    text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', text)
+    return text
+
+def send_email(subject, body, recipient):
+    # Send an email via the system mail command.
+    html_body = ansi_to_html(body)
+    subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
 
 
 def variable_Title_name_new(variable_in):
@@ -797,49 +851,67 @@ def Acceptance_Compare_z_pT_Images_Together(Histogram_List_All, Q2_Y_Bin, Plot_O
 def DrawNormalizedHistos(histos_in, TPad_draw, Normalize_Q=True):
     # Draws a list of TH1 histograms normalized to unit area and automatically 
     # adjusts the y-axis to go from 0 to 1.2 × the maximum normalized bin height.
-    if(not histos):
+    if(not histos_in):
         print(f"{color.Error}Warning: empty histogram list passed to DrawNormalizedHistos(){color.END}")
         return
-
     if(not TPad_draw):
         print(f"{color.Error}Warning: Did not pass a TPad to DrawNormalizedHistos() to draw in{color.END}")
         return
-
     # Compute the largest normalized bin content among all histograms
     max_val = 0.0
-    for h in histos:
+    for h in histos_in:
         if(Normalize_Q):
             if(h and (h.Integral() != 0)):
-                norm_max = h.GetMaximum() / h.Integral()
-                if(norm_max > max_val):
-                    max_val = norm_max
+                max_val = max([max_val, h.GetMaximum() / h.Integral()])
         else:
             max_val = max([max_val, h.GetMaximum()])
-
     y_max = (1.2 * max_val) if(max_val > 0) else 1.0
-    
+
     Draw_Canvas(TPad_draw, 1, 0.15)
     # Draw all histograms normalized
     first = True
-    for h in histos:
+    for h in histos_in:
         if((not h) or (h.Integral() == 0)):
             continue
-        h.GetYaxis().SetRangeUser(0, y_max)
         if(Normalize_Q):
-            h.DrawNormalized("H P E0" if(first) else "H P E0 same")
+            # Force same normalization factor for all histograms
+            h.DrawNormalized("H P E0" if(first) else "H P E0 same", 1.0)
         else:
             h.Draw("H P E0" if(first) else "H P E0 same")
+        h.GetYaxis().SetRangeUser(0, y_max)
         first = False
 
-
-def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT"):
+import json
+def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT", Nrdf="?", Nmdf="?"):
     import gc
     Saved_Histos, All_z_pT_Canvas, All_z_pT_Canvas_cd_1, All_z_pT_Canvas_cd_1_Upper, All_z_pT_Canvas_cd_1_Lower, All_z_pT_Canvas_cd_2, All_z_pT_Canvas_cd_2_cols, legend = {}, {}, {}, {}, {}, {}, {}, {}
+    Uncertainty_Output = {}
+    if(args.title):
+        Uncertainty_Output["Info"] = f"""
+JSON_WEIGHT_FILE = {JSON_WEIGHT_FILE}
+Number of (requested) rdf Files (-nrdf) = {args.num_rdf_files}
+    Number actually available: {Nrdf}
+Number of (requested) mdf Files (-nMC)  = {args.num_MC_files}
+    Number actually available: {Nmdf}
+Extra Title(s):
+{args.title}
+"""
+    else:
+        Uncertainty_Output["Info"] = f"""
+JSON_WEIGHT_FILE = {JSON_WEIGHT_FILE}
+Number of (requested) rdf Files (-nrdf) = {args.num_rdf_files}
+    Number actually available: {Nrdf}
+Number of (requested) mdf Files (-nMC)  = {args.num_MC_files}
+    Number actually available: {Nmdf}
+Extra Title(s): N/A
+"""
     for Q2_Y_Bin in Q2_Y_Bin_List:
+        print(f"\n{color.BOLD}Starting Q2-y Bin {Q2_Y_Bin}{color.END}\n")
+        timer.time_elapsed()
         # --- Cache one dataset group at a time (so only one big table lives in RAM)
         rdf_cached = rdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
-        mdf_cached = mdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
         gdf_cached = gdf_in.Filter(f"Q2_Y_Bin == {Q2_Y_Bin}").Cache()
+        mdf_cached = mdf_in.Filter(f"Q2_Y_Bin_smeared == {Q2_Y_Bin}").Cache()
         Canvases_to_Make = [f"Uncorrected_Modulation_Comparisons_Q2_y_Bin_{Q2_Y_Bin}", f"Bin_by_Bin_Comparisons_of_Weights_Q2_y_Bin_{Q2_Y_Bin}", f"Weighed_Acceptance_Comparisons_Q2_y_Bin_{Q2_Y_Bin}"]
         ##############################################################################################################################################################################################################################################################################################################################################################################################################
         ####  Histogram Creations     #########################################################################################################################################################################
@@ -850,14 +922,19 @@ def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, 
             Binning_Title = f"{root_color.Bold}{{Q^{{2}}-y Bin {Q2_Y_Bin} #topbar z-P_{{T}} Bin {z_PT_BIN_NUM if(z_PT_BIN_NUM != 0) else 'All'}}}"
             if(args.title):
                 Binning_Title = f"#splitline{{{Binning_Title}}}{{{args.title}}}"
-            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"]     = (rdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"rdf_(z_pT_Bin_{z_PT_BIN_NUM})",         f"#splitline{{Experimental Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")
-            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = (mdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared")
-            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = (gdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")
-            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = (mdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
-            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = (gdf_cached.Filter(f"z_pT_Bin_Y_bin {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
-    
-            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].SetLineColor(ROOT.kRed)
-            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].SetLineColor(ROOT.kBlue)
+            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"]     = ((rdf_cached.Filter(f"z_pT_Bin_Y_bin {'=='         if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})",         f"#splitline{{Experimental Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")).GetValue()
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = ((mdf_cached.Filter(f"z_pT_Bin_Y_bin_smeared {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared")).GetValue()
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"] = ((gdf_cached.Filter(f"z_pT_Bin_Y_bin {'=='         if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW", f"#splitline{{Unweighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t")).GetValue()
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = ((mdf_cached.Filter(f"z_pT_Bin_Y_bin_smeared {'==' if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC REC Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")).GetValue()
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"] = ((gdf_cached.Filter(f"z_pT_Bin_Y_bin {'=='         if(z_PT_BIN_NUM != 0) else '!='} {z_PT_BIN_NUM}")).Histo1D((f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW",   f"#splitline{{Weighed MC GEN Distribution of #phi_{{h}}}}{{{Binning_Title}}}; #phi_{{h}}", 24, 0.0, 360.0), "phi_t",         "Event_Weight")).GetValue()
+
+            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].Sumw2()
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].Sumw2()
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].Sumw2()
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].Sumw2()
+            Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].Sumw2()
+            Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].SetLineColor(ROOT.kBlue)
+            Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].SetLineColor(ROOT.kRed)
             Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].SetLineColor(ROOT.kGreen)
             Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].SetLineColor(ROOT.kViolet)
             Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].SetLineColor(ROOT.kTeal)
@@ -865,18 +942,43 @@ def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, 
                 Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"] = Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Clone(f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}")
                 Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Divide(Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"])
                 Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetTitle(f"#splitline{{{'Unweighed' if(cor_W == '_NoW') else 'Weighed'} MC Acceptance}}{{{Binning_Title}}}")
-                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(ROOT.kBlack if(cor_W == '_NoW') else (ROOT.kGray + 2))
+                Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(ROOT.kBlack if(cor_W == '_NoW') else (ROOT.kGray + 1))
                 
                 Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"] = Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})"].Clone(f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}")
                 Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].Divide(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"])
                 Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetTitle(f"#splitline{{Bin-by-Bin Corrected Data (Using {'Unweighed' if(cor_W == '_NoW') else 'Weighed'} MC Acceptance)}}{{{Binning_Title}}}")
-                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(28 if(cor_W == '_NoW') else (ROOT.kOrange + 1))
+                Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM}){cor_W}"].SetLineColor(28 if(cor_W == '_NoW') else (ROOT.kOrange))
     
             Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"] = Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].Clone(f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic")
             Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].Divide(Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"])
             Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].SetTitle(f"#splitline{{Bin-by-Bin Corrected Synthetic Data (Using Unweighed MC to Correct the Weighed MC)}}{{{Binning_Title}}}")
-            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].SetLineColor(ROOT.kOrange - 1)
+            Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].SetLineColor(ROOT.kGreen + 2)
+
+            for bin_idx in range(1, Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].GetNbinsX() + 1):
+                val1 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].GetBinContent(bin_idx)
+                err1 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_NoW"].GetBinError(bin_idx)
+                val2 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].GetBinContent(bin_idx)
+                err2 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].GetBinError(bin_idx)
+                val3 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].GetBinContent(bin_idx)
+                err3 = Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_Synthetic"].GetBinError(bin_idx)
+                val4 = Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].GetBinContent(bin_idx)
+                err4 = Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_PT_BIN_NUM})_AcW"].GetBinError(bin_idx)
                 
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"] = {}
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["phi_bin"] = bin_idx
+                # The 'normal_bbb' means that the experimental data (rdf) was corrected with the normal (unmodulated) MC
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["content_normal_bbb"] = val1
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["error_normal_bbb"]   = err1
+                # The 'MOD_bbb' means that the experimental data (rdf) was corrected with the modulated MC
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["content_MOD_bbb"]    = val2
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["error_MOD_bbb"]      = err2
+                # The 'SIM_bbb' means that the synthetic data (modulated MC) was corrected with the normal MC
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["content_SIM_bbb"]    = val3
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["error_SIM_bbb"]      = err3
+                # The 'SIM_gdf' means that the 'true' generated distribution of the synthetic data (modulated MC) that should converge with 'SIM_bbb'
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["content_SIM_gdf"]    = val4
+                Uncertainty_Output[f"{Q2_Y_Bin}_{z_PT_BIN_NUM}_{bin_idx}"]["error_SIM_gdf"]      = err4
+            
         ####  Histogram Creations     #########################################################################################################################################################################
         #######################################################################################################################################################################################################
         ####  Canvas (Main) Creation  #########################################################################################################################################################################
@@ -993,6 +1095,7 @@ def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, 
             for replace in ["(", ")", "'", '"', "'"]:
                 Save_Name = Save_Name.replace(replace, "")
             Save_Name = Save_Name.replace("__", "_")
+            Save_Name = Save_Name.replace("_None.", ".")
             Save_Name = Save_Name.replace("_.", ".")
             All_z_pT_Canvas[Canvas_Name].SaveAs(Save_Name)
             print(f"{color.BGREEN}Saved Image: {color.BBLUE}{Save_Name}{color.END}")
@@ -1004,6 +1107,14 @@ def z_pT_Images_Together_For_Comparisons(rdf_in=None, mdf_in=None, gdf_in=None, 
         del rdf_cached, mdf_cached, gdf_cached
         gc.collect()  # explicitly release cached memory
 
+    json_output_name = f"Bin_by_Bin_Acceptance_Weight_Uncertainty_Differences{f'_{args.name}' if(args.name not in ['']) else ''}.json"
+    print(f"{color.BOLD}Saving new JSON file {color.END}({color.PINK}{json_output_name}{color.END})")
+    # Save all differences to JSON for later uncertainty mapping
+    with open(json_output_name, "w") as json_file:
+        json.dump(Uncertainty_Output, json_file, indent=4)
+    print(f"\n{color.BBLUE}Saved all bin-by-bin differences to: {color.BGREEN}{json_output_name}{color.END}\n")
+    timer.time_elapsed()
+    
 
 from pathlib import Path
 
@@ -1055,7 +1166,7 @@ if(__name__ == "__main__"):
                     continue
                 if("V3"               not in str(f.name)):
                     continue
-                if(args.make_2D_weight or args.make_2D_weight_check):
+                if(args.Do_not_use_EvGen):
                     if(verbose):
                         print(f"\t{color.Error}Not using EvGen files for Acceptance weights{color.END}\n")
                     continue
@@ -1080,7 +1191,7 @@ if(__name__ == "__main__"):
         args.num_MC_files = max([len(all_root_files["gdf_clasdis"]), len(all_root_files["mdf_clasdis"]), len(all_root_files["gdf"]), len(all_root_files["mdf"])])
     remove_list = []
     for mc           in ["", "_clasdis"]:
-        if((args.make_2D_weight or args.make_2D_weight_check) and ("clasdis" not in mc)):
+        if(args.Do_not_use_EvGen and ("clasdis" not in mc)):
             continue
         all_root_files[f"gdf{mc}"].sort()
         all_root_files[f"mdf{mc}"].sort()
@@ -1126,7 +1237,7 @@ if(__name__ == "__main__"):
     rdf           = ROOT.RDataFrame("h22", all_root_files["rdf"])
     mdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["mdf_clasdis"])
     gdf_clasdis   = ROOT.RDataFrame("h22", all_root_files["gdf_clasdis"])
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         mdf_EvGen = ROOT.RDataFrame("h22", all_root_files["mdf"])
         gdf_EvGen = ROOT.RDataFrame("h22", all_root_files["gdf"])
     # else:
@@ -1143,11 +1254,18 @@ if(__name__ == "__main__"):
     # gdf_EvGen   = gdf_EvGen.Range(500)
     # mdf_clasdis = mdf_clasdis.Range(500)
     # gdf_clasdis = gdf_clasdis.Range(500)
+    if(args.event_limit):
+        rdf           = rdf.Range(args.event_limit)
+        mdf_clasdis   = mdf_clasdis.Range(args.event_limit)
+        gdf_clasdis   = gdf_clasdis.Range(args.event_limit)
+        if(not args.Do_not_use_EvGen):
+            mdf_EvGen = mdf_EvGen.Range(args.event_limit)
+            gdf_EvGen = gdf_EvGen.Range(args.event_limit)
 
     if(not rdf.HasColumn("MM2")):
         print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'rdf'{color.END}")
         rdf = rdf.Define("MM2", "MM*MM")
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         if(not mdf_EvGen.HasColumn("MM2")):
             print(f"{color.Error}Need to (re)define {color.END_B}'MM2'{color.Error} for 'mdf_EvGen'{color.END}")
             mdf_EvGen = mdf_EvGen.Define("MM2", "MM*MM")
@@ -1172,31 +1290,37 @@ if(__name__ == "__main__"):
         for ii in range(0, len(rdf.GetColumnNames()), 1):
             print(f"\t{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.BBLUE}rdf{color.END} files: \n{rdf.Count().GetValue():>20.0f}")
+    timer.time_elapsed()
     
     print(f"\n{color.Error}mdf_clasdis{color.END}:")
     if(verbose or (not True)):
         for ii in range(0, len(mdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((mdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_clasdis.GetColumnType(mdf_clasdis.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-
+    timer.time_elapsed()
+    
     print(f"\n{color.BGREEN}gdf_clasdis{color.END}:")
     if(verbose or (not True)):
         for ii in range(0, len(gdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((gdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_clasdis.GetColumnType(gdf_clasdis.GetColumnNames()[ii])})")
     print(f"\tTotal entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
+    timer.time_elapsed()
     
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         print(f"\n{color.BOLD}{color.PINK}mdf_EvGen{color.END}:")
         if(verbose or (not True)):
             for ii in range(0, len(mdf_EvGen.GetColumnNames()), 1):
                 print(f"\t{str((mdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_EvGen.GetColumnType(mdf_EvGen.GetColumnNames()[ii])})")
         print(f"\tTotal entries in {color.BOLD}{color.PINK}mdf_EvGen{color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
-    
+        timer.time_elapsed()
+        
         print(f"\n{color.BCYAN}gdf_EvGen{color.END}:")
         if(verbose or (not True)):
             for ii in range(0, len(gdf_EvGen.GetColumnNames()), 1):
                 print(f"\t{str((gdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_EvGen.GetColumnType(gdf_EvGen.GetColumnNames()[ii])})")
         print(f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+        
     
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     timer.time_elapsed()
@@ -1221,27 +1345,27 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     # gdf_clasdis = gdf_clasdis.Filter("((Q2     > 0.85) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
 
     # EvGen Generation Cuts
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         mdf_EvGen =   mdf_EvGen.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
         gdf_EvGen =   gdf_EvGen.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     mdf_clasdis   = mdf_clasdis.Filter("((Q2_gen > 1.5) && (Q2_gen < 20.0)) && ((xB_gen > 0.05) && (xB_gen < 0.95)) && ((y_gen > 0.05) && (y_gen < 0.95)) && ((z_gen > 0.01) && (z_gen < 0.95)) && (((W_gen*W_gen) > 4.0) && ((W_gen*W_gen) < 50.0))")
     gdf_clasdis   = gdf_clasdis.Filter("((Q2     > 1.5) && (Q2     < 20.0)) && ((xB     > 0.05) && (xB     < 0.95)) && ((y     > 0.05) && (y     < 0.95)) && ((z     > 0.01) && (z     < 0.95)) && (((W    *    W) > 4.0) && ((W    *    W) < 50.0))")
     
     # clasdis Generation Cuts (y ended at 0.93 apparently?)
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         mdf_EvGen =   mdf_EvGen.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
         gdf_EvGen =   gdf_EvGen.Filter("((y     > 0.05) && (y     < 0.93))")
     mdf_clasdis   = mdf_clasdis.Filter("((y_gen > 0.05) && (y_gen < 0.93))")
     gdf_clasdis   = gdf_clasdis.Filter("((y     > 0.05) && (y     < 0.93))")
     
     # EvGen Generation Cuts (OLD)
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         mdf_EvGen =   mdf_EvGen.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
         gdf_EvGen =   gdf_EvGen.Filter("((z     > 0.15) && (z     < 0.90))")
     mdf_clasdis   = mdf_clasdis.Filter("((z_gen > 0.15) && (z_gen < 0.90))")
     gdf_clasdis   = gdf_clasdis.Filter("((z     > 0.15) && (z     < 0.90))")
 
-    if(not (args.kinematic_compare or args.make_2D_weight or args.make_2D_weight_check)):
+    if(not (args.kinematic_compare or args.Do_not_use_EvGen)):
         print(f"{color.BGREEN}Adding MM cuts to gdf files for Acceptance Corrections{color.END}\n")
         gdf_EvGen   =   gdf_EvGen.Filter("MM > 1.5")
         gdf_clasdis = gdf_clasdis.Filter("MM > 1.5")
@@ -1249,36 +1373,37 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
     
     # Normal Analysis Cuts
     rdf           = DF_Filter_Function_Full(DF_Out=rdf,         Titles_or_DF="DF", Data_Type="rdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
+    if(not args.Do_not_use_EvGen):
         mdf_EvGen = DF_Filter_Function_Full(DF_Out=mdf_EvGen,   Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="")
     mdf_clasdis   = DF_Filter_Function_Full(DF_Out=mdf_clasdis, Titles_or_DF="DF", Data_Type="mdf", Cut_Choice="cut_Complete_SIDIS", Smearing_Q="smear")
 
     if(args.cut):
         print(f"{color.Error}Applying User Cut: {color.END_B}{args.cut}{color.END}")
         rdf           =         rdf.Filter(args.cut)
-        if(not (args.make_2D_weight or args.make_2D_weight_check)):
+        if(not args.Do_not_use_EvGen):
             mdf_EvGen =   mdf_EvGen.Filter(args.cut)
             gdf_EvGen =   gdf_EvGen.Filter(args.cut)
         mdf_clasdis   = mdf_clasdis.Filter(args.cut)
         gdf_clasdis   = gdf_clasdis.Filter(args.cut)
     
     print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
-    print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-    print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
-    if(not (args.make_2D_weight or args.make_2D_weight_check)):
-        print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
-        print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
     timer.time_elapsed()
+    print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
+    timer.time_elapsed()
+    print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
+    timer.time_elapsed()
+    if(not args.Do_not_use_EvGen):
+        print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+        print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
 
     if(args.make_2D_weight_binned_check):
         print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h in every individual Q2-y-z-pT bin){color.END}\n")
-        # 0) Load the self-contained, generated header (helpers + accw_* functions)
-        ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
         
         # 1) Define Event_Weight on MC (mdf)
         if(args.json_weights):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
-            import json
             print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
             with open(JSON_WEIGHT_FILE) as f:
                 Fit_Pars = json.load(f)
@@ -1336,20 +1461,16 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
 
         print(f"\n{color.BOLD}About to start running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
         timer.time_elapsed()
-        z_pT_Images_Together_For_Comparisons(rdf_in=rdf, mdf_in=mdf_clasdis, gdf_in=gdf_clasdis, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT")
+        z_pT_Images_Together_For_Comparisons(rdf_in=rdf, mdf_in=mdf_clasdis, gdf_in=gdf_clasdis, Q2_Y_Bin_List=range(1, 18), Plot_Orientation="z_pT", Nrdf=len(all_root_files["rdf"]), Nmdf=len(all_root_files["mdf_clasdis"]))
 
         print(f"\n{color.BGREEN}Done Running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
         
     elif(args.make_2D_weight_check):
         print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h){color.END}\n")
-
-        # 0) Load the self-contained, generated header (helpers + accw_* functions)
-        ROOT.gInterpreter.Declare('#include "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"')
         
         # 1) Define Event_Weight on MC (mdf)
         if(args.json_weights):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
-            import json
             print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
             with open(JSON_WEIGHT_FILE) as f:
                 Fit_Pars = json.load(f)
@@ -1404,7 +1525,9 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
             scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
             mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
-            
+
+        print(f"\n{color.BOLD}Done defining the Event Weights{color.END}\n")
+        timer.time_elapsed()
         
         # 2) Book TH1D histograms for phi_t (0..360, 24 bins)
         Title = "Comparisons of #phi_{h}"
@@ -1644,7 +1767,6 @@ inline double accw_lookup2D(const double x, const double y,
             return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
 
         if(args.json_weights):
-            import json
             print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
             with open(JSON_WEIGHT_FILE) as f:
                 Fit_Pars = json.load(f)
@@ -1683,6 +1805,9 @@ inline double accw_lookup2D(const double x, const double y,
         else:
             wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
 
+        print(f"\n{color.BOLD}Starting 2D Histogram Loops{color.END}\n")
+        timer.time_elapsed()
+
         for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
             var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
             var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
@@ -1690,6 +1815,9 @@ inline double accw_lookup2D(const double x, const double y,
             rdf_name        = f"{var_x}_vs_{var_y}_rdf"
             mclasdis        = f"{var_x}_vs_{var_y}_mdf"
             data_match_name = f"{var_x}_vs_{var_y}"
+
+            print(f"\n{color.BOLD}Starting '{data_match_name}' Histograms{color.END}\n")
+            timer.time_elapsed()
 
             Title = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
             if(args.title):
@@ -1791,7 +1919,9 @@ double {func_name}(const double x, const double y){{
             # ROOT.gPad.SetLogz(1)
             histos_data_match[f"norm_{mclasdis}"].Draw("colz")
             histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{#splitline{{Before Applying the Weights in this column}}{{Applied the weights from the columns to the left}}}}}}")
-
+            
+        print(f"\n{color.BOLD}Done Creating the Histograms for getting the new event weights{color.END}\n")
+        timer.time_elapsed()
         for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
             var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
             var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
@@ -1820,7 +1950,9 @@ double {func_name}(const double x, const double y){{
         # 8) Emit a reusable header with all functions
         # -----------------------------
         header_body = "".join(generated_wrappers_code)
-        header_path = "generated_acceptance_weights.hpp" if(not args.name) else f"generated_acceptance_weights_{args.name}.hpp"
+        header_path = args.hpp_output_file
+        if(args.name):
+            header_path = header_path.replace(".hpp", f"_{args.name}.hpp") if(args.name not in str(header_path)) else header_path
 
         with open(header_path, "w") as hf:
             hf.write("// This file was auto-generated by your acceptance-weight script.\n")
@@ -1832,9 +1964,9 @@ double {func_name}(const double x, const double y){{
             hf.write(header_body)
 
         print(f"{color.BOLD}Wrote weight functions to: {color.BBLUE}{header_path}{color.END}")
-        print(f"\n{color.BOLD}===== BEGIN GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
+        print(f"\n{color.BOLD}===== BEGINNING OF GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
         print(header_body)
-        print(f"\n{color.BOLD}=====  END GENERATED ACCEPTANCE-WEIGHT CODE  ====={color.END}\n")
+        print(f"\n{color.BOLD}=====    END OF GENERATED ACCEPTANCE-WEIGHT CODE    ====={color.END}\n")
         timer.time_elapsed()
         print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
 
@@ -2459,7 +2591,53 @@ double {func_name}(const double x, const double y){{
     else:
         print(f"\n{color.Error}Skipping Binned Acceptance Comparison Plots{color.END}")
 
+    start_time = timer.start_find(return_Q=True)
+    start_time = start_time.replace("Ran", "Started running")
+    end_time, total_time, rate_line = timer.stop(return_Q=True)
+
+    email_body = f"""
+The 'using_RDataFrames_python.py' script has finished running.
+{start_time}
+
+{args.email_message}
+
+Ran with the following arguments:
+--kinematic-compare             --> {args.kinematic_compare}
+--acceptance-all                --> {args.acceptance_all}
+--acceptance                    --> {args.acceptance}
+--acceptance-ratio              --> {args.acceptance_ratio}
+--acceptance-diff               --> {args.acceptance_diff}
+--verbose                       --> {args.verbose}
+--cut                           --> {args.cut}
+--File_Save_Format              --> {args.File_Save_Format}
+--name                          --> {args.name}
+--title                         --> {args.title}
+--num-rdf-files                 --> {args.num_rdf_files}
+--num-MC-files                  --> {args.num_MC_files}
+--event_limit                   --> {args.event_limit}
+--Do_not_use_EvGen              --> {args.Do_not_use_EvGen}
+--use_HIGH_MX                   --> {args.use_HIGH_MX}
+--min-accept-cut                --> {args.min_accept_cut}
+--make_2D_weight                --> {args.make_2D_weight}
+--make_2D_weight_check          --> {args.make_2D_weight_check}
+--make_2D_weight_binned_check   --> {args.make_2D_weight_binned_check}
+--json_weights                  --> {args.json_weights}
+--json_file                     --> {args.json_file}
+--hpp_input_file                --> {args.hpp_input_file}
+--hpp_output_file               --> {args.hpp_output_file}
+
+{end_time}
+{total_time}
+{rate_line}
+    """
     
-    timer.stop()
-    print(f"{color.BBLUE}Done Running 'using_RDataFrames_python.py'\n{color.END}")
-        
+    if(args.email):
+        send_email(subject="Finished Running the 'using_RDataFrames_python.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
+    print(email_body)
+    
+    print(f"""{color.BGREEN}{color_bg.YELLOW}
+    \t                                   \t   
+    \tThis code has now finished running.\t   
+    \t                                   \t   
+    {color.END}""")
+    
