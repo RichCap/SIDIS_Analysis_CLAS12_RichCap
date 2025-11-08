@@ -9,7 +9,7 @@ ROOT.gROOT.SetBatch(1)
 
 import traceback
 import os
-# import re
+import re
 
 from MyCommonAnalysisFunction_richcap    import *
 from Convert_MultiDim_Kinematic_Bins     import *
@@ -39,14 +39,72 @@ def safe_write(obj, tfile):
         tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
     obj.Write()
 
+
 import subprocess
+def ansi_to_html(text):
+    # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
+    # Map ANSI codes to HTML spans
+    # ansi_html_map = {
+    #     # Styles
+    #     '\033[1m': '<span style="font-weight:bold;">',           # BOLD
+    #     '\033[2m': '<span style="opacity:0.7;">',                # LIGHT (dim)
+    #     '\033[3m': '<span style="font-style:italic;">',          # ITALIC
+    #     '\033[4m': '<span style="text-decoration:underline;">',  # UNDERLINE
+    #     '\033[5m': '<span style="text-decoration:blink;">',      # BLINK
+    #     # Colors
+    #     '\033[91m': '<span style="color:red;">',                 # RED
+    #     '\033[92m': '<span style="color:limegreen;">',           # GREEN
+    #     '\033[93m': '<span style="color:gold;">',                # YELLOW
+    #     '\033[94m': '<span style="color:dodgerblue;">',          # BLUE
+    #     '\033[95m': '<span style="color:orchid;">',              # PURPLE
+    #     '\033[96m': '<span style="color:cyan;">',                # CYAN
+    #     '\033[36m': '<span style="color:darkcyan;">',            # DARKCYAN
+    #     '\033[35m': '<span style="color:violet;">',              # PINK (same code as purple but okay)
+    #     # Reset (closes span)
+    #     '\033[0m': '</span>',
+    # }
+    ansi_html_map = {
+        # Styles
+        '\033[1m': "",
+        '\033[2m': "",
+        '\033[3m': "",
+        '\033[4m': "",
+        '\033[5m': "",
+        # Colors
+        '\033[91m': "",
+        '\033[92m': "",
+        '\033[93m': "",
+        '\033[94m': "",
+        '\033[95m': "",
+        '\033[96m': "",
+        '\033[36m': "",
+        '\033[35m': "",
+        # Reset (closes span)
+        '\033[0m': "",
+    }
+    # Replacing combinations of `color` codes (like color.Error) in a way that HTML nesting works correctly (example: \033[91m\033[1m -> red + bold)
+    sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
+    for code in sorted_codes:
+        text = text.replace(code, ansi_html_map[code])
+    # Remove any stray/unsupported ANSI codes that might remain
+    text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', text)
+    # # Optional: replace newlines with <br> for HTML emails
+    # text = text.replace('\n', '<br>\n')
+    return text
+
+# def send_email(subject, body, recipient):
+#     # Send an email via the system mail command.
+#     subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
+
 def send_email(subject, body, recipient):
     # Send an email via the system mail command.
-    subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
+    html_body = ansi_to_html(body)
+    subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
+    # subprocess.run(["mail", "--append-header", "Content-Type: text/html", "-s", subject, recipient], input=html_body.encode(), check=False)
+
+
 
 import ROOT
-
-
 import argparse
 
 def parse_args():
@@ -73,6 +131,11 @@ def parse_args():
                    help="Use modulated MC files to create response matrices.")
     p.add_argument('-close', '--closure',  action='store_true', dest='closure',
                    help="Run Closure Test (unfold modulated MC with itself).")
+    p.add_argument('-data', '--data_compare',  action='store_true', dest='data',
+                   help="Compares Data distributions to MC (can run with `-mod` to modify the MC with the injected modulations and acceptance weights).")
+
+    p.add_argument('-rb', '--remake_bin_by_bin',  action='store_true', dest='remake',
+                   help="Remakes bin-by-bin acceptance corrections for 'Mod_Test' and 'Sim_Test' while weighing the modulated MC to the same statistics as the normal MC.")
 
     # # fitting / output control
     p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
@@ -107,6 +170,9 @@ def parse_args():
 
     p.add_argument('-e', '--email', action='store_true',
                    help="Sends an email when the script is done running (if selected).")
+    
+    p.add_argument('-em', '--email_message', type=str, default="", 
+                   help="Adds an extra user-defined message to emails sent with the `--email` option.")
 
     p.add_argument('-n', '--normalize', action='store_true',
                    help="Forces Comparison plots to be normalized using 'Normalize_To_Shared_Bins'. (Only used with `-sim` and `-mod`)")
@@ -126,6 +192,10 @@ args = parse_args()
 Saving_Q = not args.test
 Fit_Test = not args.no_fit
 
+if(args.remake and (args.unfold not in ["Bin"])):
+    print(f"{color.RED}Option to use '--remake_bin_by_bin' requires Bin-by-Bin corrections to be selected.{color.END}")
+    args.unfold = "Bin"
+
 
 Standard_Histogram_Title_Addition = ""
 if(args.sim):
@@ -136,7 +206,7 @@ if(args.sim):
 if(args.closure):
     print(f"\n{color.BLUE}Running Closure Test{color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation with itself"
-    args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fast_Closure_Test.root"
+    args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Closure_Test_with_kCovToy.root"
 
 if(args.title):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -213,15 +283,15 @@ def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=F
     # Basic checks
     if((not histo1) or (not histo2)):
         print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): one or both histograms are None.")
-        return histo1, histo2, []
+        return histo1, histo2, [], None, None
 
     if((not histo1.InheritsFrom("TH1D")) or (not histo2.InheritsFrom("TH1D"))):
         print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): both inputs must be TH1D.")
-        return histo1, histo2, []
+        return histo1, histo2, [], None, None
 
     if(histo1.GetNbinsX() != histo2.GetNbinsX()):
         print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): different binning (NbinsX mismatch).")
-        return histo1, histo2, []
+        return histo1, histo2, [], None, None
 
     # Determine bin range
     first_bin = 0 if(include_under_over) else 1
@@ -237,7 +307,7 @@ def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=F
 
     if(len(shared_bins) == 0):
         print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): no shared bins found with threshold={threshold}.")
-        return histo1, histo2, []
+        return histo1, histo2, [], None, None
 
     # Compute integrals over shared bins
     sum1 = 0.0
@@ -262,7 +332,7 @@ def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=F
 
     if(args.verbose):
         print(f"{color.BGREEN}Normalized to shared bins:{color.END} {len(shared_bins)} bins; thresholds > {threshold}")
-    return h1n, h2n, shared_bins
+    return h1n, h2n, shared_bins, sum1, sum2
 
 
 
@@ -300,11 +370,180 @@ def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, S
         return True
 
 
+def Make_New_BbB_Mod(ROOT_IN_NORMAL, ROOT_IN_MODULATED, HISTO_NAME_INPUT):
+    # Retrieve the unmodulated (baseline) histograms
+    rdf_histo_norm =    ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(rdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    gdf_histo_norm =    ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    mdf_histo_norm =    ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
+
+    # Retrieve the modulated MC histograms
+    gdf_histo__mod = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    mdf_histo__mod = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
+
+    # Validate input histograms
+    if((not rdf_histo_norm) or (not gdf_histo_norm) or (not mdf_histo_norm) or (not gdf_histo__mod) or (not mdf_histo__mod)):
+        print(f"{color.Error}ERROR:{color.END} Missing one or more histograms in Make_New_BbB_Mod().")
+        return None, None
+
+    # Clone RDF
+    bbb_norm_cor = rdf_histo_norm.Clone(f"{HISTO_NAME_INPUT}_Updated_Norm")
+    bbb__mod_cor = rdf_histo_norm.Clone(f"{HISTO_NAME_INPUT}_Updated__Mod")
+
+    # Normalize modulated MC REC to the total MC yield of the normal sample
+    norm_mdf_norm = mdf_histo_norm.Integral()
+    norm_mdf_mod  = mdf_histo__mod.Integral()
+    if(norm_mdf_mod <= 0):
+        print(f"{color.Error}ERROR:{color.END} Modulated reconstructed MC has zero or negative integral — cannot normalize.")
+        return bbb_norm_cor, bbb__mod_cor
+    scale_factor_mdf = norm_mdf_norm / norm_mdf_mod
+    mdf_histo__mod.Scale(scale_factor_mdf)
+    if(args.verbose):
+        print(f"{color.BGREEN}Scaled modulated MC REC by factor {scale_factor_mdf:.4f}{color.END}")
+        
+    # Normalize modulated MC GEN to the total MC yield of the normal sample
+    norm_gdf_norm = gdf_histo_norm.Integral()
+    norm_gdf_mod  = gdf_histo__mod.Integral()
+    if(norm_gdf_mod <= 0):
+        print(f"{color.Error}ERROR:{color.END} Modulated generated MC has zero or negative integral — cannot normalize.")
+        return bbb_norm_cor, bbb__mod_cor
+    scale_factor_gdf = norm_gdf_norm / norm_gdf_mod
+    gdf_histo__mod.Scale(scale_factor_gdf)
+    if(args.verbose):
+        print(f"{color.BGREEN}Scaled modulated MC GEN by factor {scale_factor_gdf:.4f}{color.END}")
+        
+    # Recompute Acceptance: ratio (mdf/gdf) using the *unmodulated* (normal) histograms
+    adf_histo_norm = mdf_histo_norm.Clone(f"""{HISTO_NAME_INPUT.replace(f"({args.unfold})", "(Acceptance)")}_Updated_Norm""")
+    adf_histo_norm.Divide(gdf_histo_norm)
+    # Recompute Acceptance: ratio (mdf/gdf) using the *modulated* histograms
+    adf_histo__mod = mdf_histo__mod.Clone(f"""{HISTO_NAME_INPUT.replace(f"({args.unfold})", "(Acceptance)")}_Updated__Mod""")
+    adf_histo__mod.Divide(gdf_histo__mod)
+
+    bbb_norm_cor.Divide(adf_histo_norm)
+    bbb__mod_cor.Divide(adf_histo__mod)
+    
+    # Cosmetic cleanup
+    Original_Title_Norm = (ROOT_IN_NORMAL.Get(HISTO_NAME_INPUT)).GetTitle()
+    if("Pass 2" in Original_Title_Norm):
+        Original_Title_Norm = Original_Title_Norm.replace("Pass 2", "Remade these plots after the acceptance weights were already applied")
+    else:
+        Original_Title_Norm = f"#splitline{{{Original_Title_Norm}}}{{Remade these plots after the acceptance weights were already applied}}"
+    Original_Title__Mod = (ROOT_IN_MODULATED.Get(HISTO_NAME_INPUT)).GetTitle()
+    if("Pass 2" in Original_Title__Mod):
+        Original_Title__Mod = Original_Title__Mod.replace("Pass 2", "Remade these plots after the acceptance weights were already applied")
+    else:
+        Original_Title__Mod = f"#splitline{{{Original_Title__Mod}}}{{Remade these plots after the acceptance weights were already applied}}"
+        
+    bbb_norm_cor.SetTitle(Original_Title_Norm)
+    bbb__mod_cor.SetTitle(Original_Title__Mod)
+    bbb_norm_cor.SetLineColor(28)
+    bbb_norm_cor.SetMarkerColor(28)
+    bbb__mod_cor.SetLineColor(ROOT.kGreen + 2)
+    bbb__mod_cor.SetMarkerColor(ROOT.kGreen + 2)
+
+    if(args.verbose):
+        print(f"{color.BOLD}Created corrected histograms:{color.END}\n\t{bbb_norm_cor.GetName()}\nand\n\t{bbb__mod_cor.GetName()}")
+
+    return bbb_norm_cor, bbb__mod_cor
+
+
+def Make_New_BbB_Sim(ROOT_IN_MODULATED, HISTO_NAME_INPUT):
+    # The unmodulated (baseline) ROOT file is not loaded by default for `Sim_Test` -> Loading now
+    ROOT_IN_NORMAL = ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root", "READ")
+    
+    # Retrieve the unmodulated (baseline) histograms
+    gdf_histo_norm     = ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    mdf_histo_norm     = ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
+    # Retrieve the modulated MC histograms
+    try:
+        rdf_histo__sim = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(rdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+        if((not rdf_histo__sim)):
+            raise ValueError("Synthetic rdf without smearing is missing")
+    except:
+        rdf_histo__sim = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(rdf)")))
+    try:
+        tdf_histo__sim = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(tdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+        if((not tdf_histo__sim)):
+            raise ValueError("True (modulated) tdf without smearing is missing")
+    except:
+        tdf_histo__sim = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(tdf)")))
+    gdf_histo__mod     = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    mdf_histo__mod     = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
+
+    # # Validate input histograms
+    # if((not rdf_histo__sim) or (not gdf_histo_norm) or (not mdf_histo_norm) or (not gdf_histo__mod) or (not mdf_histo__mod)):
+    #     print(f"{color.Error}ERROR:{color.END} Missing one or more histograms in Make_New_BbB_Mod().")
+    #     return None, None
+
+    # Normalize modulated MC REC to the total MC yield of the normal sample
+    norm_mdf_norm    = mdf_histo_norm.Integral()
+    for verbose_name, rec_Normalizing in [["Synthetic", rdf_histo__sim], ["Modulated", mdf_histo__mod]]:
+        norm_mdf_mod = rec_Normalizing.Integral()
+        # if(norm_mdf_mod <= 0):
+        #     print(f"{color.Error}ERROR:{color.END} Modulated reconstructed MC has zero or negative integral — cannot normalize.")
+        #     return bbb_norm_cor, bbb__mod_cor
+        scale_factor_mdf = norm_mdf_norm / norm_mdf_mod
+        rec_Normalizing.Scale(scale_factor_mdf)
+        if(args.verbose):
+            print(f"{color.BGREEN}Scaled {verbose_name} MC REC by factor {scale_factor_mdf:.4f}{color.END}")
+            
+    # Clone RDF
+    bbb_sim_cor = rdf_histo__sim.Clone(f"{HISTO_NAME_INPUT}_Updated_Sim")
+        
+    # Normalize modulated MC GEN to the total MC yield of the normal sample
+    norm_gdf_norm    = gdf_histo_norm.Integral()
+    for verbose_name, gen_Normalizing in [["True", tdf_histo__sim], ["Modulated", gdf_histo__mod]]:
+        norm_gdf_mod = gen_Normalizing.Integral()
+        # if(norm_gdf_mod <= 0):
+        #     print(f"{color.Error}ERROR:{color.END} Modulated generated MC has zero or negative integral — cannot normalize.")
+        #     return bbb_norm_cor, bbb__mod_cor
+        scale_factor_gdf = norm_gdf_norm / norm_gdf_mod
+        gen_Normalizing.Scale(scale_factor_gdf)
+        if(args.verbose):
+            print(f"{color.BGREEN}Scaled {verbose_name} MC GEN by factor {scale_factor_gdf:.4f}{color.END}")
+            
+        
+    # Recompute Acceptance: ratio (mdf/gdf) using the *unmodulated* (normal) histograms
+    adf_histo_norm = mdf_histo_norm.Clone(f"""{HISTO_NAME_INPUT.replace(f"({args.unfold})", "(Acceptance)")}_Updated_Norm""")
+    adf_histo_norm.Divide(gdf_histo_norm)
+
+
+    bbb_sim_cor.Divide(adf_histo_norm)
+    Original_Title_bbb = (ROOT_IN_MODULATED.Get(HISTO_NAME_INPUT)).GetTitle()
+    if("Pass 2" in Original_Title_bbb):
+        Original_Title_bbb = Original_Title_bbb.replace("Pass 2", "Remade these plots after the acceptance weights were already applied")
+    else:
+        Original_Title_bbb = f"#splitline{{{Original_Title_bbb}}}{{Remade these plots after the acceptance weights were already applied}}"
+    bbb_sim_cor.SetTitle(Original_Title_bbb)
+    tdf_histo__sim.SetTitle(f"#splitline{{{tdf_histo__sim.GetTitle()}}}{{Scaled to Normal Generated MC}}")
+
+    bbb_sim_cor.SetLineColor(28)
+    bbb_sim_cor.SetMarkerColor(28)
+    
+    if(args.verbose):
+        print(f"{color.BOLD}Created/scaled histograms:{color.END}\n\t{bbb_sim_cor.GetName()}\nand\n\t{tdf_histo__sim.GetName()}")
+
+    return bbb_sim_cor, tdf_histo__sim
+
+
+
+
+
 Unfolding_Diff_Data = {}
 def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, legend_labels=("Histogram 1", "Histogram 2"), output_prefix="Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str="1", zPT_str="1", Unfolding_Diff_Data_In=Unfolding_Diff_Data, Return_Histos=False):
     # Retrieve histograms
-    histo1 = ROOT_In_1.Get(HISTO_NAME_1)
-    histo2 = ROOT_In_2.Get(HISTO_NAME_2)
+    if(args.remake and (args.mod or args.sim)):
+        output_prefix = f"Resummed_Weights_{output_prefix}"
+        if(args.mod):
+            histo1, histo2 = Make_New_BbB_Mod(ROOT_IN_NORMAL=ROOT_In_1, ROOT_IN_MODULATED=ROOT_In_2, HISTO_NAME_INPUT=HISTO_NAME_1)
+        elif(args.sim):
+            histo1, histo2 = Make_New_BbB_Sim(ROOT_IN_MODULATED=ROOT_In_1, HISTO_NAME_INPUT=HISTO_NAME_1)
+        else:
+            print(f"{color.Error}ERROR:{color.END} Could not remake the histograms for the test requested.\n\t{color.BOLD}Returning default outputs")
+            histo1 = ROOT_In_1.Get(HISTO_NAME_1)
+            histo2 = ROOT_In_2.Get(HISTO_NAME_2)
+    else:
+        histo1 = ROOT_In_1.Get(HISTO_NAME_1)
+        histo2 = ROOT_In_2.Get(HISTO_NAME_2)
     histo1.SetStats(0)
     histo2.SetStats(0)
     # Ensure both exist
@@ -325,8 +564,9 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     # if(args.use_errors and (not args.mod)):
     #     histo1 = Apply_PreBin_Uncertainties(Histo_In=histo1, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, Uncertainty_File_In=args.use_errors_json)
     # if(args.sim):
+    normalization_to_histo1, normalization_to_histo2 = 1.0, 1.0
     if(args.normalize):
-        histo1, histo2, _ = Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=False, name_suffix="_NormShared")
+        histo1, histo2, _, normalization_to_histo1, normalization_to_histo2 = Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=False, name_suffix="_NormShared")
     
     if(("Pass 2" in histo1.GetTitle()) and ((TITLE not in histo1.GetTitle()) and (TITLE not in histo2.GetTitle()))):
         histo1.SetTitle(str(histo1.GetTitle()).replace("Pass 2", TITLE))
@@ -358,7 +598,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         max_cd_1    = max([max_cd_1, val1 + err1, val2 + err2])
         diff        = abs(val1 - val2)
         err         = math.sqrt(err1**2 + err2**2)
-        M_uncer     = math.sqrt(max([0, (val2 - val1)**2 - err**2]))
+        # M_uncer     = math.sqrt(max([0, (val2 - val1)**2 - err**2]))
+        M_uncer     = diff
         max_content = max([max_content, diff])
         max_M_uncer = max([max_M_uncer, M_uncer])
         # max_content = max([max_content, diff + err])
@@ -366,7 +607,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         h_diff.SetBinError(bin_idx,              err)
         h_uncertainty.SetBinContent(bin_idx, M_uncer)
         h_uncertainty.SetBinError(bin_idx,       0.0)
-        Unfolding_Diff_Data_In[histo_key].append({"phi_bin": bin_idx, "diff": diff, "err": err, "uncertainty": M_uncer})
+        Unfolding_Diff_Data_In[histo_key].append({"phi_bin": bin_idx, f"{legend_labels[0]} — Value": val1, f"{legend_labels[0]} — Error": err1, f"{legend_labels[1]} — Value": val2, f"{legend_labels[1]} — Error": err2, "diff": diff, "err": err, "uncertainty": M_uncer, "scale_to_nominal": normalization_to_histo1, "scale_to_variation": normalization_to_histo2})
         # if(args.use_errors and args.mod):
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + (diff + err)**2))
         # if(args.use_errors):
@@ -379,7 +620,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     histo2.GetYaxis().SetRangeUser(0,        1.2*max_cd_1)
 
     if(histo1.GetLineColor() == histo2.GetLineColor()):
-        histo2.SetLineColor(histo2.GetLineColor() + 2)
+        histo2.SetLineColor((histo2.GetLineColor() + 2) if(histo2.GetLineColor() != 28) else 26)
     histo1.SetLineWidth(3)
     histo2.SetLineWidth(2)
     
@@ -593,6 +834,8 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             Save_Name = Save_Name.replace(f"{args.save_name}{args.file_format}", f"{args.save_name}_Flipped{args.file_format}")
         for replace in ["(", ")", "'", '"', "'"]:
             Save_Name = Save_Name.replace(replace, "")
+        if(args.remake):
+            Save_Name = f"Remade_with_normalization_weights_{Save_Name}"
         Save_Name = Save_Name.replace("__", "_")
         Save_Name = Save_Name.replace("SMEAR=Smear", "Smeared")
         Save_Name = Save_Name.replace("SMEAR=_", "")
@@ -611,6 +854,9 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
 
 
 to_be_saved_count = 0
+if(args.data and (args.unfold not in ["rdf"])):
+    print(f"{color.Error}Setting 'unfold' argument to 'rdf' for Data to MC comparison.{color.END}\n")
+    args.unfold = "rdf"
 if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])):
     args.smearing_option = "''"
 
@@ -640,7 +886,25 @@ for BIN in Q2_y_Bin_List:
         elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
             HISTO_NAME = f"(MultiDim_3D_Histo)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
 
-        if(args.mod):
+        if(args.data):
+            HISTO__mdf = HISTO_NAME.replace(f"({args.unfold})", "(mdf)")
+            HISTO_NAME = HISTO_NAME.replace("(SMEAR=Smear)", "(SMEAR='')")
+            if(args.mod):
+                if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO__mdf in ROOT_Mod.GetListOfKeys())):
+                    if(args.verbose):
+                        print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END_G} and {color.END_b}{HISTO__mdf}{color.END}")
+                    Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Mod, HISTO_NAME_2=HISTO__mdf, legend_labels=("Experimental Data", "Modulated MC"), output_prefix="Mod_Test_Data_Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
+                    if(not Saved_Q):
+                        continue
+                    to_be_saved_count += 1
+            elif((HISTO_NAME   in ROOT_Input.GetListOfKeys()) and (HISTO__mdf in ROOT_Input.GetListOfKeys())):
+                if(args.verbose):
+                    print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END_G} and {color.END_b}{HISTO__mdf}{color.END}")
+                Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Input, HISTO_NAME_2=HISTO__mdf, legend_labels=("Experimental Data", "Normal MC"), output_prefix="Data_Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
+                if(not Saved_Q):
+                    continue
+                to_be_saved_count += 1
+        elif(args.mod):
             if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO_NAME in ROOT_Mod.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END}")
@@ -677,7 +941,7 @@ for BIN in Q2_y_Bin_List:
         print("")
 
 json_output_name = None
-if(args.mod or args.sim):
+if((args.mod or args.sim) and (not args.data)):
     json_output_name = f"{'Mod_Test' if(args.mod) else 'Sim_Test' if(args.sim) else 'ERROR'}_Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
     if(Saving_Q and ("ERROR" not in json_output_name)):
         # Save all differences to JSON for later uncertainty mapping
@@ -699,6 +963,8 @@ end_time, total_time, rate_line = timer.stop(count_label="Images", count_value=t
 email_body = f"""
 The 'Assign_Uncertainties_to_unfolding.py' script has finished running.
 {start_time}
+
+{args.email_message}
 
 Ran with the following options:
 
