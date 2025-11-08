@@ -51,16 +51,21 @@ parser.add_argument('-hpp', '--hpp_input_file',                type=str,   defau
                     help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options")
 parser.add_argument('-hppOut', '--hpp_output_file',            type=str,   default="generated_acceptance_weights.hpp", 
                     help="Name of the hpp file to be outputted by the '--make_2D_weight' option (will still append the string from '--name' just before the '.hpp' of this argument's value)")
+parser.add_argument('-f', '--fast',                            action='store_true',
+                    help="Tries to run the code faster by skipping some printed outputs that take more time to run")
 parser.add_argument('-e', '--email',                           action='store_true',
-                    help="Sends an email when the script is done running (if selected).")
+                    help="Sends an email when the script is done running (if selected)")
 parser.add_argument('-em', '--email_message',                  type=str,   default="", 
-                    help="Adds an extra user-defined message to emails sent with the `--email` option.")
+                    help="Adds an extra user-defined message to emails sent with the `--email` option")
 
 args = parser.parse_args()
 
 if(".hpp" not in args.hpp_output_file):
     print(f"\n'--hpp_output_file' was set to {args.hpp_output_file}\n")
     raise ValueError("Invalid '--hpp_output_file' argument (the string must end with '.hpp')")
+
+if(args.name):
+    args.hpp_output_file = str(args.hpp_output_file).replace(".hpp", f"_{args.name}.hpp") if(args.name not in str(args.hpp_output_file)) else str(args.hpp_output_file)
 
 import ROOT, numpy, re
 import traceback
@@ -81,17 +86,20 @@ import copy
 
 args.Do_not_use_EvGen = (args.Do_not_use_EvGen or (args.make_2D_weight or args.make_2D_weight_check or args.make_2D_weight_binned_check))
 if(args.Do_not_use_EvGen):
-    print(f"\n{color.BOLD}Will NOT use EvGen Files at all{color.END}\n")
+    print(f"\n{color.RED}Will NOT use EvGen Files at all{color.END}\n")
 
 JSON_WEIGHT_FILE = args.json_file
-# Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
-ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
 
-def safe_write(obj, tfile):
-    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
-    if(existing):
-        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
-    obj.Write()
+if(not args.make_2D_weight):
+    # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
+    print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
+    ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+
+# def safe_write(obj, tfile):
+#     existing = tfile.GetListOfKeys().FindObject(obj.GetName())
+#     if(existing):
+#         tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+#     obj.Write()
 
 import subprocess
 def ansi_to_html(text):
@@ -1289,37 +1297,52 @@ if(__name__ == "__main__"):
     if(verbose or (not True)):
         for ii in range(0, len(rdf.GetColumnNames()), 1):
             print(f"\t{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-    print(f"\tTotal entries in {color.BBLUE}rdf{color.END} files: \n{rdf.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
+    if(not args.fast):
+        print(f"\tTotal entries in {color.BBLUE}rdf{color.END} files: \n{rdf.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+    else:
+        print("Fast Load...")
     
     print(f"\n{color.Error}mdf_clasdis{color.END}:")
     if(verbose or (not True)):
         for ii in range(0, len(mdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((mdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_clasdis.GetColumnType(mdf_clasdis.GetColumnNames()[ii])})")
-    print(f"\tTotal entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
+    if(not args.fast):
+        print(f"\tTotal entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+    else:
+        print("Fast Load...")
     
     print(f"\n{color.BGREEN}gdf_clasdis{color.END}:")
     if(verbose or (not True)):
         for ii in range(0, len(gdf_clasdis.GetColumnNames()), 1):
             print(f"\t{str((gdf_clasdis.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_clasdis.GetColumnType(gdf_clasdis.GetColumnNames()[ii])})")
-    print(f"\tTotal entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
+    if(not args.fast):
+        print(f"\tTotal entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+    else:
+        print("Fast Load...")
     
     if(not args.Do_not_use_EvGen):
         print(f"\n{color.BOLD}{color.PINK}mdf_EvGen{color.END}:")
         if(verbose or (not True)):
             for ii in range(0, len(mdf_EvGen.GetColumnNames()), 1):
                 print(f"\t{str((mdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {mdf_EvGen.GetColumnType(mdf_EvGen.GetColumnNames()[ii])})")
-        print(f"\tTotal entries in {color.BOLD}{color.PINK}mdf_EvGen{color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
-        timer.time_elapsed()
+        if(not args.fast):
+            print(f"\tTotal entries in {color.BOLD}{color.PINK}mdf_EvGen{color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+            timer.time_elapsed()
+        else:
+            print("Fast Load...")
         
         print(f"\n{color.BCYAN}gdf_EvGen{color.END}:")
         if(verbose or (not True)):
             for ii in range(0, len(gdf_EvGen.GetColumnNames()), 1):
                 print(f"\t{str((gdf_EvGen.GetColumnNames())[ii]).ljust(38)} (type -> {gdf_EvGen.GetColumnType(gdf_EvGen.GetColumnNames()[ii])})")
-        print(f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
-        timer.time_elapsed()
+        if(not args.fast):
+            print(f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+            timer.time_elapsed()
+        else:
+            print("Fast Load...")
         
     
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
@@ -1385,18 +1408,21 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
             gdf_EvGen =   gdf_EvGen.Filter(args.cut)
         mdf_clasdis   = mdf_clasdis.Filter(args.cut)
         gdf_clasdis   = gdf_clasdis.Filter(args.cut)
-    
-    print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
-    print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
-    print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
-    timer.time_elapsed()
-    if(not args.Do_not_use_EvGen):
-        print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+
+    if(not args.fast):
+        print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
         timer.time_elapsed()
-        print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+        print(f"\t(New) Total entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
         timer.time_elapsed()
+        print(f"\t(New) Total entries in {color.BGREEN}gdf_clasdis{color.END} files: \n{gdf_clasdis.Count().GetValue():>20.0f}")
+        timer.time_elapsed()
+        if(not args.Do_not_use_EvGen):
+            print(f"\t(New) Total entries in {color.BOLD}{color.PINK}mdf_EvGen  {color.END} files: \n{mdf_EvGen.Count().GetValue():>20.0f}")
+            timer.time_elapsed()
+            print(f"\t(New) Total entries in {color.BCYAN}gdf_EvGen  {color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}")
+            timer.time_elapsed()
+    else:
+        print(f"\n{color.BGREEN}Done with Cuts {color.END_B}(Ran with 'fast' setting to skip the statistics change){color.END}\n")
 
     if(args.make_2D_weight_binned_check):
         print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h in every individual Q2-y-z-pT bin){color.END}\n")
@@ -1697,12 +1723,19 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         # Pip_Th_Binning             = ['pipth',     5,   35, 30]
         # Pip_Phi_Binning            = ['pipPhi',    0,  360, 72]
 
-        El_Binning                 = ['el',      2.5,  8.0, 11]
-        El_Th_Binning              = ['elth',    7.5, 35.5, 14]
-        El_Phi_Binning             = ['elPhi',     0,  360, 36]
-        Pip_Binning                = ['pip',     1.0,    5,  8]
-        Pip_Th_Binning             = ['pipth',   7.5, 35.5, 14]
-        Pip_Phi_Binning            = ['pipPhi',    0,  360, 36]
+        # El_Binning                 = ['el',      2.5,  8.0, 11]
+        # El_Th_Binning              = ['elth',    7.5, 35.5, 14]
+        # El_Phi_Binning             = ['elPhi',     0,  360, 36]
+        # Pip_Binning                = ['pip',     1.0,    5,  8]
+        # Pip_Th_Binning             = ['pipth',   7.5, 35.5, 14]
+        # Pip_Phi_Binning            = ['pipPhi',    0,  360, 36]
+
+        El_Binning                 = ['el',      2.5,  8.0,  44]
+        El_Th_Binning              = ['elth',    7.5, 35.5,  56]
+        El_Phi_Binning             = ['elPhi',     0,  360, 144]
+        Pip_Binning                = ['pip',     1.0,    5,  32]
+        Pip_Th_Binning             = ['pipth',   4.5, 35.5,  62]
+        Pip_Phi_Binning            = ['pipPhi',    0,  360, 144]
         
         List_of_Quantities_2D = []
         List_of_Quantities_2D.append([El_Phi_Binning, Pip_Phi_Binning])
@@ -1712,7 +1745,7 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         histos_data_match = {}
 
         canvas_data_match = ROOT.TCanvas("canvas_data_match", "My Canvas", int(912*1.55*25), int(547*1.55*25))
-        canvas_data_match.Divide(len(List_of_Quantities_2D), 4)
+        canvas_data_match.Divide(len(List_of_Quantities_2D), 5)
 
         # -----------------------------
         # 1) One-time C++ helpers
@@ -1816,9 +1849,8 @@ inline double accw_lookup2D(const double x, const double y,
             mclasdis        = f"{var_x}_vs_{var_y}_mdf"
             data_match_name = f"{var_x}_vs_{var_y}"
 
-            print(f"\n{color.BOLD}Starting '{data_match_name}' Histograms{color.END}\n")
-            timer.time_elapsed()
-
+            print(f"\n{color.BOLD}Starting '{data_match_name}' Histograms{color.END}")
+            
             Title = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
             if(args.title):
                 Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
@@ -1826,28 +1858,37 @@ inline double accw_lookup2D(const double x, const double y,
             # -----------------------------
             # 2) Build 2D histos
             # -----------------------------
-            histos_data_match[rdf_name] = rdf.Histo2D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),        Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
-            histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+            histos_data_match[rdf_name]                = rdf.Histo2D((rdf_name,                Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),               Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
+            histos_data_match[mclasdis]                = wdf.Histo2D((mclasdis,                Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),         Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+            histos_data_match[f"{mclasdis}_no_weight"] = wdf.Histo2D((f"{mclasdis}_no_weight", Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared")
 
             histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
             histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
+            histos_data_match[f"{mclasdis}_no_weight"].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
+            histos_data_match[f"{mclasdis}_no_weight"].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
 
-            # rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
-            # mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+            rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
+            mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+            mclasdis_NoWn_factor = histos_data_match[f"{mclasdis}_no_weight"].Integral()
 
-            histos_data_match[f"norm_{rdf_name}"] = histos_data_match[rdf_name].Clone(f"norm_{rdf_name}")
-            histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
+            histos_data_match[f"norm_{rdf_name}"]           = histos_data_match[rdf_name].Clone(f"norm_{rdf_name}")
+            histos_data_match[f"norm_{mclasdis}"]           = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
+            histos_data_match[f"norm_{mclasdis}_no_weight"] = histos_data_match[f"{mclasdis}_no_weight"].Clone(f"norm_{mclasdis}_no_weight")
 
-            # histos_data_match[f"norm_{rdf_name}"].Scale((1/rdf_name_norm_factor) if(rdf_name_norm_factor != 0) else 1)
-            # histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            histos_data_match[f"norm_{rdf_name}"].Scale(          (1/rdf_name_norm_factor) if(rdf_name_norm_factor != 0) else 1)
+            histos_data_match[f"norm_{mclasdis}"].Scale(          (1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            histos_data_match[f"norm_{mclasdis}_no_weight"].Scale((1/mclasdis_NoWn_factor) if(mclasdis_NoWn_factor != 0) else 1)
 
             histos_data_match[data_match_name] = histos_data_match[f"norm_{rdf_name}"].Clone(data_match_name)
             histos_data_match[data_match_name].Divide(histos_data_match[f"norm_{mclasdis}"])
-
+            data_match_norm_factor = histos_data_match[data_match_name].Integral()
+            histos_data_match[data_match_name].Scale((1/data_match_norm_factor) if(data_match_norm_factor != 0) else 1)
+            
             if(args.title):
                 histos_data_match[data_match_name].SetTitle(f"#splitline{{Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}}}{{{args.title}}}")
             else:
                 histos_data_match[data_match_name].SetTitle(f"Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}")
+            histos_data_match[data_match_name].SetTitle(f"#splitline{{{histos_data_match[data_match_name].GetTitle()}}}{{Ratio is Normalized to 1}}")
 
             # -----------------------------
             # 3) Extract edges + row-major weights from the ratio
@@ -1898,12 +1939,12 @@ double {func_name}(const double x, const double y){{
             # 5) Apply weight to MC (using smeared cols) to draw the next weighted MC histo
             # -----------------------------
             weight_col = f"W_{var_x}_vs_{var_y}"
-            # Preserve the current total effective weight, then apply this pair's weight and renormalize
-            pre_sum = wdf.Sum("ACC_Weight_Product").GetValue()
+            # # Preserve the current total effective weight, then apply this pair's weight and renormalize
+            # pre_sum = wdf.Sum("ACC_Weight_Product").GetValue()
             wdf = wdf.Define(weight_col, f"{func_name}({var_x}_smeared, {var_y}_smeared)").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
-            post_sum = wdf.Sum("ACC_Weight_Product").GetValue()
-            scale = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-            wdf = wdf.Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({scale})")
+            # post_sum = wdf.Sum("ACC_Weight_Product").GetValue()
+            # scale = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            # wdf = wdf.Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({scale})")
 
             # -----------------------------
             # 6) Draw panels (ratio / data / MC)
@@ -1917,8 +1958,14 @@ double {func_name}(const double x, const double y){{
             histos_data_match[f"norm_{rdf_name}"].Draw("colz")
             canvas_data_match.cd(cd_num + 2*len(List_of_Quantities_2D))
             # ROOT.gPad.SetLogz(1)
+            histos_data_match[f"norm_{mclasdis}_no_weight"].Draw("colz")
+            canvas_data_match.cd(cd_num + 3*len(List_of_Quantities_2D))
+            # ROOT.gPad.SetLogz(1)
             histos_data_match[f"norm_{mclasdis}"].Draw("colz")
             histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{#splitline{{Before Applying the Weights in this column}}{{Applied the weights from the columns to the left}}}}}}")
+            print(f"{color.BOLD}Finished '{data_match_name}' Histograms{color.END}")
+            timer.time_elapsed()
+            
             
         print(f"\n{color.BOLD}Done Creating the Histograms for getting the new event weights{color.END}\n")
         timer.time_elapsed()
@@ -1934,8 +1981,8 @@ double {func_name}(const double x, const double y){{
             histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
             mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
             histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
-            # histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
-            canvas_data_match.cd((num + 1) + 3*len(List_of_Quantities_2D))
+            histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
+            canvas_data_match.cd((num + 1) + 4*len(List_of_Quantities_2D))
             # ROOT.gPad.SetLogz(1)
             histos_data_match[f"norm_{mclasdis}"].Draw("colz")
             histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{After Applying ALL Weights in this image}}}}")
@@ -2625,6 +2672,7 @@ Ran with the following arguments:
 --json_file                     --> {args.json_file}
 --hpp_input_file                --> {args.hpp_input_file}
 --hpp_output_file               --> {args.hpp_output_file}
+--fast                          --> {args.fast}
 
 {end_time}
 {total_time}
@@ -2638,6 +2686,7 @@ Ran with the following arguments:
     print(f"""{color.BGREEN}{color_bg.YELLOW}
     \t                                   \t   
     \tThis code has now finished running.\t   
-    \t                                   \t   
-    {color.END}""")
+    \t                                   \t   {color.END}
+    
+    """)
     
