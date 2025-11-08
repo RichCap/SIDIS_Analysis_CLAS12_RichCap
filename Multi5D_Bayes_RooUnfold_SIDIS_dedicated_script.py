@@ -90,6 +90,9 @@ def parse_args():
 
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations', type=int, default=4,
                    help="Number of Bayesian Iterations performed while Unfolding (Must use to change the number of iterations).")
+
+    p.add_argument('-nt', '-ntoys', '--Num_Toys', type=int, default=10,
+                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...))")
     
     p.add_argument('-title', '--title', type=str,
                    help="Adds an extra title to the histograms.")
@@ -679,7 +682,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         ##=====##  Bayesian Iterations  ##=====##
                         #########################################
                         Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
-                        Unfolding_Histo.SetNToys(5 if(not Saving_Q) else 50 if("MultiDim_Q2_y_z_pT_phi_h" in str(Name_Main)) else 500)
+                        # Unfolding_Histo.SetNToys(5 if(not Saving_Q) else 50 if("MultiDim_Q2_y_z_pT_phi_h" in str(Name_Main)) else 500)
+                        Unfolding_Histo.SetNToys(5 if(not Saving_Q) else args.Num_Toys)
                     else:
                         Bin_Acceptance = MC_REC_1D.Clone()
                         # Bin_Acceptance.Sumw2()
@@ -1241,6 +1245,7 @@ Arguments:
 --simulation (synthetic data?) --> {args.sim}
 --modulation (added to MC?)    --> {args.mod}
 --bayes_iterations             --> {args.bayes_iterations}
+--Num_Toys                     --> {args.Num_Toys}
 --title  (added title)         --> {args.title}
 --EvGen                        --> {args.EvGen}
 --Min_Allowed_Acceptance_Cut   --> {args.Min_Allowed_Acceptance_Cut}
