@@ -1239,6 +1239,9 @@ if(__name__ == "__main__"):
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
         print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
+        
+    args.num_rdf_files = len(all_root_files["rdf"])
+    args.num_MC_files  = len(all_root_files["mdf_clasdis"])
     
     print(f"\n{color.BOLD}LOADING DATAFRAMES{color.END}")
     
