@@ -37,6 +37,8 @@ parser.add_argument('-hMX', '--use_HIGH_MX',                   action='store_tru
 #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished')
 parser.add_argument('-minA', '--min-accept-cut',               type=float, default=0.005,
                     help='Minimum Acceptance Cut. Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
+parser.add_argument('-MR', '--make_root',                      action='store_true',
+                    help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update the old file if path is not updated — in testing phase as of 11/10/2025)")
 parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
 parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_true',
@@ -2641,6 +2643,13 @@ double {func_name}(const double x, const double y){{
     else:
         print(f"\n{color.Error}Skipping Binned Acceptance Comparison Plots{color.END}")
 
+    if(args.make_root):
+        print(f"\n{color.BOLD}Making ROOT Output File{color.END}")
+        from helper_functions_for_using_RDataFrames_python import *
+        print("Done")
+    else:
+        print(f"\n{color.Error}Skipping ROOT Output File{color.END}")
+        
     start_time = timer.start_find(return_Q=True)
     start_time = start_time.replace("Ran", "Started running")
     end_time, total_time, rate_line = timer.stop(return_Q=True)
@@ -2668,6 +2677,7 @@ Ran with the following arguments:
 --Do_not_use_EvGen              --> {args.Do_not_use_EvGen}
 --use_HIGH_MX                   --> {args.use_HIGH_MX}
 --min-accept-cut                --> {args.min_accept_cut}
+--make_root                     --> {args.make_root}
 --make_2D_weight                --> {args.make_2D_weight}
 --make_2D_weight_check          --> {args.make_2D_weight_check}
 --make_2D_weight_binned_check   --> {args.make_2D_weight_binned_check}
