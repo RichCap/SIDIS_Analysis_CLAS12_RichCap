@@ -38,7 +38,9 @@ parser.add_argument('-hMX', '--use_HIGH_MX',                   action='store_tru
 parser.add_argument('-minA', '--min-accept-cut',               type=float, default=0.005,
                     help='Minimum Acceptance Cut. Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
 parser.add_argument('-MR', '--make_root',                      action='store_true',
-                    help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update the old file if path is not updated — in testing phase as of 11/10/2025)")
+                    help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists — in testing phase as of 11/10/2025)")
+parser.add_argument('-r', '--root',                            type=str,   default="SIDIS_epip_All_File_Types_from_RDataFrames.root", 
+                    help="Name of the ROOT file to be outputted by the '--make_root' option (will still append the string from '--name' just before the '.root' of this argument's value)")
 parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
 parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_true',
@@ -66,8 +68,13 @@ if(".hpp" not in args.hpp_output_file):
     print(f"\n'--hpp_output_file' was set to {args.hpp_output_file}\n")
     raise ValueError("Invalid '--hpp_output_file' argument (the string must end with '.hpp')")
 
+if(".root" not in args.root):
+    print(f"\n'--root' was set to {args.root}\n")
+    raise ValueError("Invalid '--root' argument (the string must end with '.root')")
+
 if(args.name):
     args.hpp_output_file = str(args.hpp_output_file).replace(".hpp", f"_{args.name}.hpp") if(args.name not in str(args.hpp_output_file)) else str(args.hpp_output_file)
+    args.root = str(args.root).replace(".root", f"_{args.name}.root") if(args.name not in str(args.root)) else str(args.root)
 
 import ROOT, numpy, re
 import traceback
@@ -97,11 +104,6 @@ if(not args.make_2D_weight):
     print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
     ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
 
-# def safe_write(obj, tfile):
-#     existing = tfile.GetListOfKeys().FindObject(obj.GetName())
-#     if(existing):
-#         tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
-#     obj.Write()
 
 import subprocess
 def ansi_to_html(text):
@@ -1088,10 +1090,12 @@ Extra Title(s): N/A
                     DrawNormalizedHistos(histos_in=[Saved_Histos[f"rdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})"],     Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"mdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"gdf_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]], TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=True)
                 elif("Bin_by_Bin_Comparisons_of_Weights" in Canvas_Name):
                     Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"].SetTitle(Binning_Title)
-                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_Synthetic"]],                                                                                                                               TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+                    # DrawNormalizedHistos(histos_in=[Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_Synthetic"]],                                                                                                                               TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"], Saved_Histos[f"bbb_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_Synthetic"]],                                                                                                                               TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=True)
                 elif("Weighed_Acceptance_Comparisons"    in Canvas_Name):
                     Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"].SetTitle(Binning_Title)
-                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]],                                                                                                                                                                                                       TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+                    # DrawNormalizedHistos(histos_in=[Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]],                                                                                                                                                                                                       TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=False)
+                    DrawNormalizedHistos(histos_in=[Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_NoW"], Saved_Histos[f"acc_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_{z_pT})_AcW"]],                                                                                                                                                                                                       TPad_draw=All_z_pT_Canvas_cd_2_z_pT_Bin, Normalize_Q=True)
     
                 ROOT.gPad.Update()
                 All_z_pT_Canvas[Canvas_Name].Update()
@@ -1472,23 +1476,27 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 
             # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
-            mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
-            pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
-            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
-            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
-            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
-            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-            mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+            mdf_clasdis = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "W_pre * W_acc")
+            # mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            # pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
+            # mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            # mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
+            # post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            # scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            # mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
         else:
             # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
-            mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
-            pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
-            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
-            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
-            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
-            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-            mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
+            # mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
+            # pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
+            # mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            # mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
+            # post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            # scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            # mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
 
         print(f"\n{color.BOLD}About to start running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
         timer.time_elapsed()
@@ -2646,7 +2654,176 @@ double {func_name}(const double x, const double y){{
     if(args.make_root):
         print(f"\n{color.BOLD}Making ROOT Output File{color.END}")
         from helper_functions_for_using_RDataFrames_python import *
-        print("Done")
+
+        # if(not rdf.HasColumn("PID_pip")):
+        #     print(f"\t{color.Error}WARNING:         'rdf' is missing 'PID_pip' — artifically defining as 211){color.END}")
+        #     rdf = rdf.Define("PID_pip", "211")
+        # if(not rdf.HasColumn("PID_el")):
+        #     print(f"\t{color.Error}WARNING:         'rdf' is missing 'PID_el'  — artifically defining as 11){color.END}")
+        #     rdf = rdf.Define("PID_el", "11")
+        if(not rdf.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t")):
+            print(f"\t{color.Error}WARNING:         'rdf' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t'){color.END}")
+            rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
+        if(not rdf.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
+            print(f"\t{color.Error}WARNING:         'rdf' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
+            rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+
+        if(not mdf_clasdis.HasColumn("PID_pip")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("PID_pip", "211")
+        if(not mdf_clasdis.HasColumn("PID_el")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'PID_el'  — artifically defining as 11){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("PID_el", "11")
+        if(not mdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
+        if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+
+        if(not mdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_gen")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_gen'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="3D"))
+        if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D"))
+
+        if(not mdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_smeared'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="3D"))
+        if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D"))
+
+
+        if(not gdf_clasdis.HasColumn("PID_pip")):
+            print(f"\t{color.RED}WARNING: 'gdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
+            gdf_clasdis = gdf_clasdis.Define("PID_pip", "211")
+        if(not gdf_clasdis.HasColumn("PID_el")):
+            print(f"\t{color.RED}WARNING: 'gdf_clasdis' is missing 'PID_el'  — artifically defining as 11){color.END}")
+            gdf_clasdis = gdf_clasdis.Define("PID_el", "11")
+        if(not gdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t")):
+            print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t'){color.END}")
+            gdf_clasdis = gdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
+        if(not gdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
+            print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
+            gdf_clasdis = gdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+
+        if(not args.Do_not_use_EvGen):
+	        if(not mdf_EvGen.HasColumn("PID_pip")):
+	            print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'PID_pip' — artifically defining as 211){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("PID_pip", "211")
+	        if(not mdf_EvGen.HasColumn("PID_el")):
+	            print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'PID_el'  — artifically defining as 11){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("PID_el", "11")
+	        if(not mdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
+	        if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+
+	        if(not mdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_gen")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_gen'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="3D"))
+	        if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D"))
+
+	        if(not mdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_smeared'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="3D"))
+	        if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
+	            # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
+	            mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D"))
+
+            
+	        if(not gdf_EvGen.HasColumn("PID_pip")):
+	            print(f"\t{color.RED}WARNING:   'gdf_EvGen' is missing 'PID_pip' — artifically defining as 211){color.END}")
+	            gdf_EvGen = gdf_EvGen.Define("PID_pip", "211")
+	        if(not gdf_EvGen.HasColumn("PID_el")):
+	            print(f"\t{color.RED}WARNING:   'gdf_EvGen' is missing 'PID_el'  — artifically defining as 11){color.END}")
+	            gdf_EvGen = gdf_EvGen.Define("PID_el", "11")
+	        if(not gdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t")):
+	            # print(f"\t{color.Error}WARNING:   'gdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t'){color.END}")
+	            gdf_EvGen = gdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
+	        if(not gdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
+	            # print(f"\t{color.Error}WARNING:   'gdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
+	            gdf_EvGen = gdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+
+
+        if(args.json_weights):
+            # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
+            print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file (clasdis Only).{color.END}\n")
+            with open(JSON_WEIGHT_FILE) as f:
+                Fit_Pars = json.load(f)
+                # Build the C++ initialization string
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                
+                    // safely retrieve parameters (default = 0)
+                    // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                
+                    return weight;
+                }}
+                """)
+                
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen) * (accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
+            # mdf_clasdis = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            # mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            # mdf_clasdis = mdf_clasdis.Define("Event_Weight", "W_pre * W_acc")
+        else:
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            
+        print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
+        output_file = ROOT.TFile(args.root, "UPDATE")
+
+        Res_Binning_2D_z_pT_In = ["z_pT_Bin_Y_bin_smeared", -0.5, 37.5, 38]
+        z_pT_phi_h_Binning     = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, 913.5, 915]
+        for Q2_y_Bins in range(1, 18):
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
+            make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False,             Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            timer.time_elapsed()
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
+            make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            timer.time_elapsed()
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
+            make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights, Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            timer.time_elapsed()
+            # if(not args.Do_not_use_EvGen):
+            #     print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
+            #     make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            #     timer.time_elapsed()
+            #     print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
+            #     make_rm_single(sdf=gdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+            #     timer.time_elapsed()
+        
+        print(f"{color.BBLUE}Done Saving...{color.END}\n")
+        output_file.Close()
     else:
         print(f"\n{color.Error}Skipping ROOT Output File{color.END}")
         
@@ -2685,6 +2862,7 @@ Ran with the following arguments:
 --json_file                     --> {args.json_file}
 --hpp_input_file                --> {args.hpp_input_file}
 --hpp_output_file               --> {args.hpp_output_file}
+--root                          --> {args.root}
 --fast                          --> {args.fast}
 
 {end_time}
