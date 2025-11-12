@@ -39,9 +39,38 @@ def safe_write(obj, tfile):
     obj.Write()
 
 import subprocess
+# def send_email(subject, body, recipient):
+#     # Send an email via the system mail command.
+#     subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
+
+def ansi_to_html(text):
+    # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
+    # Map ANSI codes to HTML spans
+    ansi_html_map = { # Styles
+                    '\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",
+                      # Colors
+                    '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "",
+                      # Reset (closes span)
+                    '\033[0m': "",
+                    }
+    sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
+    for code in sorted_codes:
+        text = text.replace(code, ansi_html_map[code])
+    # Remove any stray/unsupported ANSI codes that might remain
+    text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', text)
+    count = 0
+    while("  " in str(text)):
+        count += 1
+        text = text.replace("  ", " ")
+        if(count == 150):
+            break
+    text = text.replace(" --> ", ":\n\t")
+    return text
+
 def send_email(subject, body, recipient):
     # Send an email via the system mail command.
-    subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
+    html_body = ansi_to_html(body)
+    subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
 
 import argparse
 
@@ -58,7 +87,7 @@ def parse_args():
     # smearing selection
     grp_smear = p.add_mutually_exclusive_group()
     grp_smear.add_argument('-smear',    '--smear',    action='store_true',
-                           help="Unfold with smeared Monte Carlo only")
+                           help="Unfold with smeared Monte Carlo only.")
     grp_smear.add_argument('-no-smear', '--no-smear', action='store_true',
                            help="Unfold with unsmeared Monte Carlo only.")
 
@@ -91,10 +120,10 @@ def parse_args():
                    help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
 
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations', type=int,
-                   help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically)")
+                   help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically).")
 
     p.add_argument('-nt', '-ntoys', '--Num_Toys', type=int, default=500,
-                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...))")
+                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...)).")
                    
     p.add_argument('-title', '--title', type=str,
                    help="Adds an extra title to the histograms.")
@@ -102,14 +131,19 @@ def parse_args():
     p.add_argument('-evgen', '--EvGen', action='store_true',
                    help="Runs with EvGen instead of clasdis files.")
 
-    p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.005,
-                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Default: 0.005)")
+    p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut', type=float, default=0.0005,
+                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Old Default: 0.005).")
 
     p.add_argument('-e', '--email', action='store_true',
                    help="Sends an email to user when done running.")
     
     p.add_argument('-em', '--email_message', type=str, default=None,
-                   help="Extra email message to be added when given (use with `--email`)")
+                   help="Extra email message to be added when given (use with `--email`).")
+
+    p.add_argument('-sf', '--single_file', action='store_true',
+                   help="Runs with a single input file where the histograms are all taken from the same file instead of 3 separate ones.")
+    p.add_argument('-sfin', '--single_file_input', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/SIDIS_epip_All_File_Types_from_RDataFrames_ZeroOrder.root",
+                   help="Input file to be used with the '--single_file' option. Is set to 'None' if the '--single_file' option is not selected.")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
@@ -119,6 +153,8 @@ def parse_args():
 
 args = parse_args()
 
+if(not args.single_file):
+    args.single_file_input = None
 
 def silence_root_import():
     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
@@ -2705,18 +2741,17 @@ def Integrate_z_pT_Bins(Histogram_List_All, Default_Histo_Name, VARIABLE="(phi_t
 
 
 def FileLocation(FileName, Datatype):
+    if(args.single_file):
+        return args.single_file_input
     # location = "Histo_Files_ROOT/"
     location = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/"
-
     if(str(Datatype) == 'rdf'):
         file = "".join(["REAL_Data/SIDIS_epip_Data_REC_",         str(FileName), ".root"])
     if((str(Datatype) == 'mdf') or ((str(Datatype) in ['rdf']) and Sim_Test)):
         file = "".join(["Matching_REC_MC/SIDIS_epip_MC_Matched_", str(FileName), ".root"])
     if(str(Datatype) == 'gdf'):
         file = "".join(["GEN_MC/SIDIS_epip_MC_GEN_",              str(FileName), ".root"])
-        
-    loading = "".join([location, file])
-    
+    loading = f"{location}{file}"
     return loading
 
 
@@ -2880,8 +2915,11 @@ if(Sim_Test or args.closure):
 
 
 
-
-
+if(args.single_file):
+    MC_REC_File_Name = args.single_file_input
+    MC_GEN_File_Name = args.single_file_input
+    REAL_File_Name   = args.single_file_input
+    TRUE_File_Name   = args.single_file_input
 
 
 
@@ -3090,6 +3128,10 @@ for ii in mdf.GetListOfKeys():
     # if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
     #     continue
 
+    if(("_(Weighed)" in out_print_main) and not (Mod_Test or Closure_Test)):
+        print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
+        continue
+    
     # count += 1
     # if("pipsec" in out_print_main):
     #     print(f"out_print_main ({count}):\n{out_print_main}\n")
@@ -3647,6 +3689,7 @@ for ii in mdf.GetListOfKeys():
                     if(("Response_Matrix_Normal_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
                         print(str(ii.GetName()))
 
+            out_print_main_tdf = None
             if(Sim_Test):
                 out_print_main_rdf = out_print_main_mdf_1D
                 out_print_main_tdf = out_print_main_gdf
@@ -3697,8 +3740,10 @@ for ii in mdf.GetListOfKeys():
             MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
             MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
             Response_2D_initial   = mdf.Get(out_print_main_mdf)
-            if(tdf not in ["N/A"]):
+            if((tdf not in ["N/A"]) and out_print_main_tdf):
                 ExTRUE_1D_initial = tdf.Get(out_print_main_tdf)
+            else:
+                ExTRUE_1D_initial = None
             if("mdf" in str(ExREAL_1D_initial.GetName())):
                 print("\n    ExREAL_1D_initial.GetName() =", ExREAL_1D_initial.GetName())
                 ExREAL_1D_initial.SetName(str(ExREAL_1D_initial.GetName()).replace("mdf", "rdf"))
@@ -3778,7 +3823,7 @@ for ii in mdf.GetListOfKeys():
                         print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
                         raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
 
-                if(tdf not in ["N/A"]):
+                if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
                     if("3D" in str(type(ExTRUE_1D_initial))):
                         if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
                             ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
@@ -3840,7 +3885,7 @@ for ii in mdf.GetListOfKeys():
                         MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
                         MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
                     # print("MC_GEN_1D_initial.GetTitle() =", MC_GEN_1D_initial.GetTitle())
-                if(tdf not in ["N/A"]):
+                if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
                     if("3D" in str(type(ExTRUE_1D_initial))):
                         if(abs(ExTRUE_1D_initial.GetZaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetZaxis().GetXmax()) == 1.5):                    
                             ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
@@ -4004,7 +4049,7 @@ for ii in mdf.GetListOfKeys():
                     # print("\nMC_GEN_1D already is a 1D Histogram...")
                     MC_GEN_1D = MC_GEN_1D_initial
 
-                if(tdf not in ["N/A"]):
+                if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
                     if("2D" in str(type(ExTRUE_1D_initial))):
                         try:
                             # bin_ExTRUE_1D_0, bin_ExTRUE_1D_1 = ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else 0), ExTRUE_1D_initial.GetYaxis().FindBin(z_pT_Bin_Unfold if(z_pT_Bin_Unfold != 0) else ExTRUE_1D_initial.GetNbinsY())
@@ -4055,7 +4100,7 @@ for ii in mdf.GetListOfKeys():
                 # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'Multi_Dim" not in out_print_main)):
                 # if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'MM" not in out_print_main) and ("'W" not in out_print_main)):
                 if(("'phi_t" not in out_print_main) and ("'phi_t_smeared'" not in out_print_main) and ("Combined_phi_t" not in out_print_main) and ("'W" not in out_print_main) and ("'Multi_Dim" not in out_print_main) and ("'MultiDim_Q2_y_z_pT_phi_h" not in out_print_main) and ("'MultiDim_z_pT_Bin_Y_bin_phi_t" not in out_print_main)):
-                    print("\nADDING CUTS FOR:", out_print_main, "\n")
+                    print(f"\nADDING CUTS FOR: {out_print_main}\n")
 
                     if("'MM" not in out_print_main):
                         if(((Q2_xB_Bin_Unfold != 0) or (z_pT_Bin_Unfold != 0)) and (("Combined_phi_t" not in out_print_main) and ("Multi_Dim" not in out_print_main))):
@@ -4145,7 +4190,7 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("Cut: No Cuts",     "")).replace("Cut:  No Cuts", ""))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("Cut: No Cuts", "")).replace("Cut:  No Cuts", ""))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
 
@@ -4156,7 +4201,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str((str(MC_REC_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")).replace(") (", " - ")))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace("_{t}",                                       "_{h}")))
                 MC_GEN_1D.GetXaxis().SetTitle((str(MC_GEN_1D.GetXaxis().GetTitle()).replace("_{t}",                 "_{h}")))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace("_{t}",                                   "_{h}")))
                     ExTRUE_1D.GetXaxis().SetTitle((str(ExTRUE_1D.GetXaxis().GetTitle()).replace("_{t}",             "_{h}")))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace("_{t}", "_{h}")))
@@ -4170,7 +4215,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                           "#phi_{h}+Q^{2}-x_{B} Bin"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2",     "#phi_{h}+Q^{2}-x_{B} Bin"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_2", "#phi_{h}+Q^{2}-x_{B} Bin"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_2",                       "#phi_{h}+Q^{2}-x_{B} Bin"))
@@ -4184,7 +4229,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                           "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3",     "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_xB_Bin_3", "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_xB_Bin_3",                       "#phi_{h}+Q^{2}-x_{B} Bin (New)"))
@@ -4198,7 +4243,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                              "#phi_{h}+Q^{2}-y Bin"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",        "#phi_{h}+Q^{2}-y Bin"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2_y_Bin",    "#phi_{h}+Q^{2}-y Bin"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2_y_Bin",                          "#phi_{h}+Q^{2}-y Bin"))
@@ -4211,7 +4256,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                              "#phi_{h}+Q^{2}-y Bin"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",        "#phi_{h}+Q^{2}-y Bin"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("Q2_y_Bin_phi_t",    "#phi_{h}+Q^{2}-y Bin"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_y_Bin_phi_t",                          "#phi_{h}+Q^{2}-y Bin"))
@@ -4225,7 +4270,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("Q2_phi_t",                                    "#phi_{h}+Q^{2}"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("Q2_phi_t",              "#phi_{h}+Q^{2}"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
@@ -4239,7 +4284,7 @@ for ii in mdf.GetListOfKeys():
                 MC_REC_1D.GetXaxis().SetTitle(str(MC_REC_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
                 MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace("phi_t_Q2",                                    "#phi_{h}+Q^{2}"))
                 MC_GEN_1D.GetXaxis().SetTitle(str(MC_GEN_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",              "#phi_{h}+Q^{2}"))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace("Q2_phi_t",                                "#phi_{h}+Q^{2}"))
                     ExTRUE_1D.GetXaxis().SetTitle(str(ExTRUE_1D.GetXaxis().GetTitle()).replace("phi_t_Q2",          "#phi_{h}+Q^{2}"))
                 Response_2D.SetTitle(str(Response_2D.GetTitle()).replace("phi_t_Q2",                                "#phi_{h}+Q^{2}"))
@@ -4262,7 +4307,7 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
                 MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(Q2_Bin_Range),     str(Q2_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(Q2_Bin_Range), str(Q2_Bin_Replace_Range))))
 
@@ -4270,7 +4315,7 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
                 MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(xB_Bin_Range),     str(xB_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(xB_Bin_Range), str(xB_Bin_Replace_Range))))
 
@@ -4278,7 +4323,7 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
                 MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(z_Bin_Range),      str(z_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(z_Bin_Range),  str(z_Bin_Replace_Range))))
 
@@ -4286,7 +4331,7 @@ for ii in mdf.GetListOfKeys():
                 ExREAL_1D.SetTitle((str(ExREAL_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
                 MC_REC_1D.SetTitle((str(MC_REC_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
                 MC_GEN_1D.SetTitle((str(MC_GEN_1D.GetTitle()).replace(str(pT_Bin_Range),     str(pT_Bin_Replace_Range))))
-                if(tdf not in ["N/A"]):
+                if("N/A" not in [tdf, ExTRUE_1D]):
                     ExTRUE_1D.SetTitle((str(ExTRUE_1D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
                 Response_2D.SetTitle((str(Response_2D.GetTitle()).replace(str(pT_Bin_Range), str(pT_Bin_Replace_Range))))
 
@@ -4295,7 +4340,7 @@ for ii in mdf.GetListOfKeys():
                     ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
                     MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
                     MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV^{2}]"]))
-                    if(tdf not in ["N/A"]):
+                    if("N/A" not in [tdf, ExTRUE_1D]):
                         ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
                     Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV^{2}]"]))
                     Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV^{2}]"]))
@@ -4305,7 +4350,7 @@ for ii in mdf.GetListOfKeys():
                     ExREAL_1D.GetXaxis().SetTitle("".join([str(ExREAL_1D.GetXaxis().GetTitle()),     " [GeV]"]))
                     MC_REC_1D.GetXaxis().SetTitle("".join([str(MC_REC_1D.GetXaxis().GetTitle()),     " [GeV]"]))
                     MC_GEN_1D.GetXaxis().SetTitle("".join([str(MC_GEN_1D.GetXaxis().GetTitle()),     " [GeV]"]))
-                    if(tdf not in ["N/A"]):
+                    if("N/A" not in [tdf, ExTRUE_1D]):
                         ExTRUE_1D.GetXaxis().SetTitle("".join([str(ExTRUE_1D.GetXaxis().GetTitle()), " [GeV]"]))
                     Response_2D.GetXaxis().SetTitle("".join([str(Response_2D.GetXaxis().GetTitle()), " [GeV]"]))
                     Response_2D.GetYaxis().SetTitle("".join([str(Response_2D.GetYaxis().GetTitle()), " [GeV]"]))
@@ -4315,7 +4360,7 @@ for ii in mdf.GetListOfKeys():
                     ExREAL_1D.SetTitle(str(ExREAL_1D.GetTitle()).replace(range_strings,     ""))
                     MC_REC_1D.SetTitle(str(MC_REC_1D.GetTitle()).replace(range_strings,     ""))
                     MC_GEN_1D.SetTitle(str(MC_GEN_1D.GetTitle()).replace(range_strings,     ""))
-                    if(tdf not in ["N/A"]):
+                    if("N/A" not in [tdf, ExTRUE_1D]):
                         ExTRUE_1D.SetTitle(str(ExTRUE_1D.GetTitle()).replace(range_strings, ""))
                     Response_2D.SetTitle(str(Response_2D.GetTitle()).replace(range_strings, ""))
                 if(MC_BGS_1D != "None"):
@@ -4694,7 +4739,7 @@ The 'Just_RooUnfold_SIDIS_richcap.py' script has finished running.
 Ran with the following options:
 
 Output File:
-    {args.root}
+\t{args.root}
     
 Arguments:
 --test                                         --> {args.test}
@@ -4716,11 +4761,15 @@ Arguments:
 --tag-proton                                   --> {args.tag_proton}
 --cut-proton                                   --> {args.cut_proton}
 --Common_Int_Bins                              --> {args.Common_Int_Bins}
+--single_file                                  --> {args.single_file}
+--single_file_input                            --> {args.single_file_input}
+
+Final Count of Histograms Made: {final_count}
 """
 if(args.email_message):
     email_body = f"""{email_body}
 Extra Message:
-    {args.email_message}
+\t{args.email_message}
 
 """
 else:
