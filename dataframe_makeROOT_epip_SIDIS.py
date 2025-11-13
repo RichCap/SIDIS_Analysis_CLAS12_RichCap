@@ -3,7 +3,8 @@ import sys
 import argparse
 
 PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",   "MultiDim_Q2_y_z_pT_phi_h_gen", "MultiDim_Q2_y_z_pT_phi_h_smeared", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t_gen", "MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "Q2_xB_Bin_smeared",    "z_pT_Bin_smeared"],
-                            "PID":                ["Num_Pions",      "PID_el",   "PID_pip",        "PID_el_idx", "PID_pip_idx"],
+                            "PID":                ["PID_el_idx","PID_pip_idx"],
+                            # "PID":                ["Num_Pions",      "PID_el",   "PID_pip",        "PID_el_idx", "PID_pip_idx"],
                             "Sector":             ["esec_gen",   "pipsec_gen",   "pipPhi_Local", "elPhi_Local"],
                             "Cartesian":          ["eE_gen",             "ex",   "ex_gen", "ey",       "ey_gen", "ez", "ez_gen",        "pipE_gen",       "pipx", "pipx_gen", "pipy", "pipy_gen", "pipz",     "pipz_gen"],
                             "MM2":                ["MM2",           "MM2_gen",   "MM2_smeared"],
@@ -378,6 +379,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_"
         # Ran on 9/18/2025 -> with EvGen
             # Same as f"Acceptance_Tests{Cut_Configuration_Name}_V2_" but included the sector variables (needed for cuts)
+
+    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V4_"
+        # Ran on 11/13/2025
+            # Same as f"Acceptance_Tests{Cut_Configuration_Name}_V3_" but included the PID information in the dataframe outputs
 
     if(datatype in ["gdf"]):
         Common_Name = "Sector_Tests_V2_"
