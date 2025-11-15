@@ -676,12 +676,23 @@ if(__name__ == "__main__"):
         #             Histograms_All[Histo_Name_1D_Weighed]     = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D_Weighed), str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
         #         Histograms_All[Histo_Name_1D]                 = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D),         str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
 
+        print("")
         print(f"title                 = {title}\n")
+        print(f"Bin_Filter            = {Bin_Filter}\n")
         print(f"\nHisto_Name            =\n{Histo_Name}")
-        print("((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))")
+        # print("((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))")
         print(f"\nHisto_Name_1D         =\n{Histo_Name_1D}")
         print(f"\nHisto_Name_Weighed    =\n{Histo_Name_Weighed}")
         print(f"\nHisto_Name_1D_Weighed =\n{Histo_Name_1D_Weighed}")
+        if(is_scalar_or_multidim(variable)):
+            print(f"""
+Histograms_All["{Histo_Name}"] = 
+    sdf.Filter("{Bin_Filter}").Histo2D((str(Histo_Name), "{title}", int({num_of_GEN_bins}), {min_GEN_bin}, {Max_GEN_bin}, int({num_of_REC_bins}), {min_REC_bin}, {Max_REC_bin}), "{Variable_Gen}", "{Variable_Rec}")""")
+        else:
+            print(f"""
+Histograms_All["{Histo_Name}"] = 
+    sdf.Filter("{Bin_Filter}").Histo3D((str(Histo_Name), "{title}", int({num_of_GEN_bins}), {min_GEN_bin}, {Max_GEN_bin}, int({num_of_REC_bins}), {min_REC_bin}, {Max_REC_bin}, int({Res_Binning_2D_z_pT[3]}), {Res_Binning_2D_z_pT[1]}, {Res_Binning_2D_z_pT[2]}), "{Variable_Gen}", "{Variable_Rec}", "{Res_Binning_2D_z_pT[0]}")""")
+        print("")
         # targets = []
         # if(Histo_Name in Histograms_All):
         #     targets.append(Histo_Name)
@@ -706,7 +717,13 @@ if(__name__ == "__main__"):
     del script_dir
     Res_Binning_2D_z_pT_In = ["z_pT_Bin_Y_bin_smeared", -0.5, 37.5, 38]
     z_pT_phi_h_Binning     = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, 913.5, 915]
+    z_pT_phi_h_Binning     = ['phi_t', 0, 360, 24]
+    # z_pT_phi_h_Binning     = ['Q2',    0,    14, 280]
+    z_pT_phi_h_Binning     = ['xB', 0.09, 0.826,  50]
+    # z_pT_phi_h_Binning     = ['y',     0,   1.0, 100]
+    # z_pT_phi_h_Binning     = ['z',     0,   1.2, 120]
+    # z_pT_phi_h_Binning     = ['pT',    0,   2.0, 200]
     # make_rm_single_test(sdf=None, Histo_Group="Response_Matrix_Normal", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=1, Use_Weight=False, Histograms_All=[], file_location=None, output_type=None, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=None)
-    make_rm_single_test(sdf=None, Histo_Group="Response_Matrix_Normal", Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS", Histo_Smear="", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=1, Use_Weight=False, Histograms_All=[], file_location=None, output_type=None, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=None)
-
+    make_rm_single_test(sdf=None, Histo_Group="Response_Matrix_Normal", Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS", Histo_Smear="", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=-1, Use_Weight=False, Histograms_All=[], file_location=None, output_type=None, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=None)
+    # make_rm_single_test(sdf=None, Histo_Group="Response_Matrix_Normal", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=-1, Use_Weight=True, Histograms_All=[], file_location=None, output_type=None, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=None)
 
