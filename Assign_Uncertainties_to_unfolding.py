@@ -111,18 +111,22 @@ def parse_args():
     p = argparse.ArgumentParser(description=f"""{color.BOLD}Assign_Uncertainties_to_unfolding.py analysis script:{color.END}
     Meant for looking at the histograms in the output ROOT files from 'Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py' and 'Just_RooUnfold_SIDIS_richcap.py'.
     The primary purpose will be to assign uncertainties by comparing the baseline results to the unfolding tests.
-""", formatter_class=argparse.RawTextHelpFormatter)#formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+""", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+# """, formatter_class=argparse.RawTextHelpFormatter)#formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # saving / test modes
     p.add_argument('-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
                    help="Run full code but without saving any files.")
     p.add_argument('-r', '--root', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root",
-                   help="Name of ROOT input file. (Current Default: 'Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root')")
+                   help="Name of ROOT input file.")
+    p.add_argument('-sf', '--single_file', action='store_true', dest='single_file',
+                   help="Forces all histograms to come from one source (impacts the closure tests that try to draw from multiple files).")
+    
     p.add_argument('-ff', '--file_format', type=str, default=".png", choices=['.png', '.pdf', '.root'],
-                   help="Output File Formats. (Defaults to PNG)")
+                   help="Output File Formats.")
 
     p.add_argument('-so', '--smearing_option', type=str, default="Smear", choices=["Smear", "''"],
-                  help="Smearing options for unfolding. Defaults to 'Smear' whenever hardcoded not to.")
+                  help="Smearing options for unfolding.")
     
     # simulation / modulation / closure
     p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
@@ -151,10 +155,10 @@ def parse_args():
                    help="Runs with EvGen instead of clasdis files.")
 
     p.add_argument('-u', '--unfold', type=str, default="Bayesian", 
-                   help="Histogram type option. (Default: 'Bayesian')")
+                   help="Histogram type option.")
 
     p.add_argument('-d', '--dimensions', type=str, default="3D", 
-                   help="Unfolding Dimensions option. (Default: '3D')")
+                   help="Unfolding Dimensions option.")
 
     p.add_argument('-b', '-q2_y', '--bins', nargs="+", type=str, default=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'],
                    help="List of Q2-y bin indices to run.")
@@ -201,12 +205,14 @@ Standard_Histogram_Title_Addition = ""
 if(args.sim):
     print(f"\n{color.BLUE}Running Simulated Test{color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation"
-    args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
+    if(not args.single_file):
+        args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
 
 if(args.closure):
     print(f"\n{color.BLUE}Running Closure Test{color.END}\n")
     Standard_Histogram_Title_Addition = "Closure Test - Unfolding Simulation with itself"
-    args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Closure_Test_with_kCovToy.root"
+    if(not args.single_file):
+        args.root = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Closure_Test_with_kCovToy.root"
 
 if(args.title):
     if(Standard_Histogram_Title_Addition not in [""]):
@@ -544,6 +550,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     else:
         histo1 = ROOT_In_1.Get(HISTO_NAME_1)
         histo2 = ROOT_In_2.Get(HISTO_NAME_2)
+    
     histo1.SetStats(0)
     histo2.SetStats(0)
     # Ensure both exist
@@ -572,7 +579,20 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         histo1.SetTitle(str(histo1.GetTitle()).replace("Pass 2", TITLE))
     elif((TITLE not in histo1.GetTitle()) and (TITLE not in histo2.GetTitle())):
         histo1.SetTitle(f"#splitline{{{histo1.GetTitle()}}}{{{TITLE}}}")
+
+    if(histo1.GetLineColor() == histo2.GetLineColor()):
+        histo2.SetLineColor((histo2.GetLineColor() + 2) if(histo2.GetLineColor() != 28) else 26)
+    histo1.SetLineWidth(3)
+    histo2.SetLineWidth(2)
     
+    g_asym = None
+    if(args.use_errors):
+        g_asym = ROOT.TGraphAsymmErrors(histo1)
+        g_asym.SetName(f"{histo1.GetName()}_AsymErr")
+        g_asym.SetLineColor(histo1.GetLineColor())
+        g_asym.SetMarkerColor(histo1.GetMarkerColor())
+        g_asym.SetLineWidth(3)
+
     # Clone one histogram to create the difference histogram
     h_diff = histo1.Clone(f"{HISTO_NAME_1}_vs_{HISTO_NAME_2}_absdiff")
     h_diff.Reset("ICES")  # clear contents, keep errors and structure
@@ -597,7 +617,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         err2        = histo2.GetBinError(bin_idx)
         max_cd_1    = max([max_cd_1, val1 + err1, val2 + err2])
         diff        = abs(val1 - val2)
-        err         = math.sqrt(err1**2 + err2**2)
+        # err         = math.sqrt(err1**2 + err2**2)
+        err         = math.sqrt(max([err1**2 - err2**2, 0]))
         # M_uncer     = math.sqrt(max([0, (val2 - val1)**2 - err**2]))
         M_uncer     = diff
         max_content = max([max_content, diff])
@@ -612,17 +633,21 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + (diff + err)**2))
         # if(args.use_errors):
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + diff**2))
-        if(args.use_errors):
-            histo1.SetBinError(bin_idx, math.sqrt(err1**2 + M_uncer**2))
+        # if(args.use_errors):
+        #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + M_uncer**2))
+        if(args.use_errors and g_asym):
+            # Default: purely statistical
+            low_err  = diff if((diff > err1) and (val1 > val2)) else err1
+            high_err = diff if((diff > err1) and (val1 < val2)) else err1
+            g_asym.SetPointEYlow(bin_idx  - 1,  low_err)
+            g_asym.SetPointEYhigh(bin_idx - 1, high_err)
+    if(args.use_errors and g_asym):
+        histo1.asym_errors = g_asym
+
     h_diff.GetYaxis().SetRangeUser(0,        1.2*max_content)
     h_uncertainty.GetYaxis().SetRangeUser(0, 1.2*max_M_uncer)
     histo1.GetYaxis().SetRangeUser(0,        1.2*max_cd_1)
     histo2.GetYaxis().SetRangeUser(0,        1.2*max_cd_1)
-
-    if(histo1.GetLineColor() == histo2.GetLineColor()):
-        histo2.SetLineColor((histo2.GetLineColor() + 2) if(histo2.GetLineColor() != 28) else 26)
-    histo1.SetLineWidth(3)
-    histo2.SetLineWidth(2)
     
     h_diff.SetLineColor(ROOT.kBlack)
     h_diff.SetLineWidth(2)
@@ -649,7 +674,12 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     
         # Pad 1: Overlay the two histograms
         c.cd(1)
-        histo1.Draw("H P E0")
+        if(hasattr(histo1, "asym_errors")):
+            histo1.Draw("H P")
+            histo1.asym_errors.Draw("P E SAME")
+        else:
+            histo1.Draw("H P E0")
+
         histo2.Draw("H P E0 SAME")
     
         # Add legend
@@ -710,7 +740,11 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             HISTO_True   = f"(1D)_(tdf)_(SMEAR=Smear)_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_ALL)_(phi_t)"
         elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
             HISTO_True   = f"(MultiDim_3D_Histo)_(tdf)_(SMEAR='')_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_ALL)_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
-
+    if(args.single_file):
+        HISTO_NAME = f"{HISTO_NAME}{'_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+        # HISTO_NAME = f"{HISTO_NAME}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+        HISTO_True = f"{HISTO_True}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+        HISTO_True = HISTO_True.replace("(tdf)", "(gdf)")
     #######################################################################################################################################################################################################
     ####  Histogram Creations     #########################################################################################################################################################################
     Saved_Histos   = {}
@@ -724,12 +758,14 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             if((HISTO_NAME_Binned in ROOT_Input.GetListOfKeys()) and (HISTO_NAME_Binned in ROOT_Mod.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
-                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Mod,   HISTO_NAME_2=HISTO_NAME_Binned, legend_labels=("Unfolded with Normal MC", "Unfolded with Modulated MC"),               output_prefix="Mod_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Mod,   HISTO_NAME_2=f"{HISTO_NAME_Binned}{'' if(not args.single_file) else '_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}", legend_labels=("Unfolded with Normal MC", "Unfolded with Modulated MC"),               output_prefix="Mod_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
         elif(args.sim or args.closure):
             if((HISTO_NAME_Binned in ROOT_Input.GetListOfKeys()) and (HISTO_True_Binned in ROOT_Input.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.BGREEN} and {color.END_b}{HISTO_True_Binned}{color.END}")
-                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Input, HISTO_NAME_2=HISTO_True_Binned, legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Input, HISTO_NAME_2=HISTO_True_Binned,                                                                                                                                                   legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+            else:
+                print(f"{color.Error}Missing one of the following:\n{color.END_B} HISTO_NAME_Binned = {HISTO_NAME_Binned}\n HISTO_True_Binned = {HISTO_True_Binned}\n{color.END}")
         elif(HISTO_NAME in ROOT_Input.GetListOfKeys()):
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
@@ -815,14 +851,24 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             Draw_Canvas(All_z_pT_Canvas_cd_2_z_pT_Bin, 1, 0.15)
             if(args.mod or args.sim or args.closure):
                 if(canvas_num == 0):
-                    Saved_Histos[f"histo1_{z_pT}"].Draw("H P E0 SAME")
+                    # Saved_Histos[f"histo1_{z_pT}"].Draw("H P E0 SAME")
+                    if(hasattr(Saved_Histos[f"histo1_{z_pT}"], "asym_errors")):
+                        Saved_Histos[f"histo1_{z_pT}"].Draw("H P SAME")
+                        Saved_Histos[f"histo1_{z_pT}"].asym_errors.Draw("P E SAME")
+                    else:
+                        Saved_Histos[f"histo1_{z_pT}"].Draw("H P E0 SAME")
                     Saved_Histos[f"histo2_{z_pT}"].Draw("H P E0 SAME")
                 elif(canvas_num == 1):
                     Saved_Histos[f"h_diff_{z_pT}"].Draw("H P E0")
                 else:
                     Saved_Histos[f"h_uncertainty_{z_pT}"].Draw("H P E0")
             else:
-                Saved_Histos[str(z_pT)].Draw("H P E0")
+                # Saved_Histos[str(z_pT)].Draw("H P E0")
+                if(hasattr(Saved_Histos[str(z_pT)], "asym_errors")):
+                    Saved_Histos[str(z_pT)].Draw("H P")
+                    Saved_Histos[str(z_pT)].asym_errors.Draw("P E SAME")
+                else:
+                    Saved_Histos[str(z_pT)].Draw("H P E0")
             ROOT.gPad.Update()
             All_z_pT_Canvas[Canvas_Name].Update()
                 
@@ -863,13 +909,13 @@ if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])
 ROOT_Input = ROOT.TFile.Open(args.root, "READ")
 ROOT_Mod   = None
 if(args.mod):
-    ROOT_Mod = ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root", "READ")
+    ROOT_Mod = ROOT_Input if(args.single_file) else ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root", "READ")
     
 for BIN in Q2_y_Bin_List:
     Q2_y_BIN_NUM       = int(BIN) if(str(BIN) not in ["0"]) else "All"
     if(args.all_z_pt):
         Unfolding_Diff_Data = z_pT_Images_Together_For_Comparisons(ROOT_Input_In=ROOT_Input, ROOT_Mod_In=ROOT_Mod, Unfolding_Diff_Data_Input=Unfolding_Diff_Data, Q2_Y_Bin=Q2_y_BIN_NUM, Plot_Orientation="z_pT")
-        to_be_saved_count += 2 if(args.mod or args.sim or args.closure) else 1
+        to_be_saved_count += 3 if(args.mod or args.sim or args.closure) else 1
         continue
     if(args.z_pt):
         z_pT_Bin_Range = args.z_pt
@@ -889,6 +935,9 @@ for BIN in Q2_y_Bin_List:
         if(args.data):
             HISTO__mdf = HISTO_NAME.replace(f"({args.unfold})", "(mdf)")
             HISTO_NAME = HISTO_NAME.replace("(SMEAR=Smear)", "(SMEAR='')")
+            if(args.single_file and args.mod):
+                HISTO__mdf = f"{HISTO__mdf}_(Mod_Test)"
+                HISTO_NAME = f"{HISTO_NAME}_(Mod_Test)"
             if(args.mod):
                 if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO__mdf in ROOT_Mod.GetListOfKeys())):
                     if(args.verbose):
@@ -986,7 +1035,10 @@ Arguments:
 --all_z_pt                     --> {args.all_z_pt}
 --normalize                    --> {args.normalize}
 --file_format                  --> {args.file_format}
+--single_file                  --> {args.single_file}
 --verbose                      --> {args.verbose}
+--use_errors                   --> {args.use_errors}
+--use_errors_json              --> {args.use_errors_json}
 """
 if(json_output_name):
     email_body = f"""{email_body}
@@ -1008,8 +1060,7 @@ email_body = f"""{email_body}
 
 if(args.email):
     send_email(subject="Finished Running the 'Assign_Uncertainties_to_unfolding.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
-else:
-    print(email_body)
+print(email_body)
 
 
 print(f"""{color.BGREEN}{color_bg.YELLOW}
