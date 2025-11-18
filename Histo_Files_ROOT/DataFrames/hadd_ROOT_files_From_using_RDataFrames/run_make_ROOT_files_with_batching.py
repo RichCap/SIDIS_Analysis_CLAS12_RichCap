@@ -139,7 +139,6 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
     cmd_base.extend(["-em", email_msg])
     cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
 
-
     print(f"\n{color.BBLUE}[INFO]{color.END} Running batch {batch_index} (name={name_for_batch})...")
     print("       Command:", " ".join(cmd_base))
 
@@ -330,7 +329,11 @@ def write_slurm_array_script(path, main_script, preset_cfg, name_base_for_merged
     lines.append("setenv BATCH_ID $SLURM_ARRAY_TASK_ID")
     lines.append("echo \"Running batch $BATCH_ID on host `hostname` at `date`\"")
     lines.append(f"setenv NAME_BASE \"{name_base_for_merged}\"")
-    lines.append(f"setenv EMAIL_MSG \"{email_msg.replace('\"', '\\\"')}\"")
+
+    # Fix: pre-escape quotes in email_msg so we don't need a backslash in the f-string expression
+    safe_email_msg = email_msg.replace('"', '\\"')
+    lines.append(f'setenv EMAIL_MSG "{safe_email_msg}"')
+
     lines.append("set NAME_FOR_BATCH = \"${NAME_BASE}_Batch${BATCH_ID}\"")
 
     cmd_parts = [sys.executable, main_script, "-bID", "$BATCH_ID"]
@@ -654,4 +657,3 @@ The 'run_make_ROOT_files_with_batching.py' script has finished running.
 if(__name__ == "__main__"):
     timer.start()
     main()
-    
