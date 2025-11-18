@@ -144,6 +144,8 @@ def parse_args():
     # # fitting / output control
     p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
                    help="Disable fitting of plots.")
+    p.add_argument('-fr', '--fit-root', type=str, default=None,
+                   help="Optional ROOT file to save fit outputs (fitted histograms, fit functions, and fit parameter vectors). If omitted, fit outputs are not written to a ROOT file.")
     
     p.add_argument('-t', '--title', type=str,
                    help="Adds an extra title to the histograms.")
@@ -635,12 +637,14 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + diff**2))
         # if(args.use_errors):
         #     histo1.SetBinError(bin_idx, math.sqrt(err1**2 + M_uncer**2))
-        if(args.use_errors and g_asym):
+        if(args.use_errors):
             # Default: purely statistical
             low_err  = diff if((diff > err1) and (val1 > val2)) else err1
             high_err = diff if((diff > err1) and (val1 < val2)) else err1
-            g_asym.SetPointEYlow(bin_idx  - 1,  low_err)
-            g_asym.SetPointEYhigh(bin_idx - 1, high_err)
+            histo1.SetBinError(bin_idx, max([low_err, high_err]))
+            if(g_asym):
+                g_asym.SetPointEYlow(bin_idx  - 1,  low_err)
+                g_asym.SetPointEYhigh(bin_idx - 1, high_err)
     if(args.use_errors and g_asym):
         histo1.asym_errors = g_asym
 
@@ -754,22 +758,67 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             continue
         HISTO_NAME_Binned = HISTO_NAME.replace("(z_pT_Bin_ALL)", f"(z_pT_Bin_{z_PT_BIN_NUM})")
         HISTO_True_Binned = HISTO_True.replace("(z_pT_Bin_ALL)", f"(z_pT_Bin_{z_PT_BIN_NUM})")
-        if(args.mod):
-            if((HISTO_NAME_Binned in ROOT_Input.GetListOfKeys()) and (HISTO_NAME_Binned in ROOT_Mod.GetListOfKeys())):
+        if(args.data):
+            Data_Legend_Titles = ("Experimental Data", "Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)")
+            Legend_Labels = ["Experimental Data", "Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)"]
+            if("rdf" in HISTO_NAME_Binned):
+                HISTO_NAME_Binned_1 = HISTO_NAME_Binned.replace("SMEAR=Smear", "SMEAR=''")
+                for clear_name in ["_(Mod_Test)", "_(Closure_Test)", "_(Sim_Test)"]:
+                    HISTO_NAME_Binned_1 = HISTO_NAME_Binned_1.replace(clear_name, "")
+                HISTO_NAME_Binned_2 = HISTO_NAME_Binned.replace("rdf", "mdf")
+                HISTO_NAME_Binned_2 = HISTO_NAME_Binned_2.replace("SMEAR=''", f"SMEAR={args.smearing_option}")
+                if(args.single_file):
+                    for string, condition in [['_(Mod_Test)', args.mod], ['_(Closure_Test)', args.closure], ['_(Sim_Test)', args.sim]]:
+                        if((string not in str(HISTO_NAME_Binned_2)) and condition):
+                            HISTO_NAME_Binned_2 = f"{HISTO_NAME_Binned_2}{string}"
+                            break
+            else: # mdf in 'HISTO_NAME_Binned'
+                HISTO_NAME_Binned_1 = HISTO_NAME_Binned.replace("SMEAR=''", f"SMEAR={args.smearing_option}")
+                if(args.single_file):
+                    for string, condition in [['_(Mod_Test)', args.mod], ['_(Closure_Test)', args.closure], ['_(Sim_Test)', args.sim]]:
+                        if((string not in str(HISTO_NAME_Binned_1)) and condition):
+                            HISTO_NAME_Binned_1 = f"{HISTO_NAME_Binned_1}{string}"
+                            break
+                HISTO_NAME_Binned_2 = HISTO_NAME_Binned.replace("mdf", "rdf")
+                HISTO_NAME_Binned_2 = HISTO_NAME_Binned_2.replace("SMEAR=Smear", "SMEAR=''")
+                for clear_name in ["_(Mod_Test)", "_(Closure_Test)", "_(Sim_Test)"]:
+                    HISTO_NAME_Binned_2 = HISTO_NAME_Binned_2.replace(clear_name, "")
+                Data_Legend_Titles = ("Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)", "Experimental Data")
+                Legend_Labels = ["Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)", "Experimental Data"]
+            try:
+                if(not ROOT_Mod_In):
+                    ROOT_Mod_In = ROOT_Input_In
+            except:
+                ROOT_Mod_In = ROOT_Input_In
+            if((HISTO_NAME_Binned_1 in ROOT_Input_In.GetListOfKeys()) and (HISTO_NAME_Binned_2 in ROOT_Mod_In.GetListOfKeys())):
+                if(args.verbose):
+                    print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned_1}{color.BGREEN} and {color.END_b}{HISTO_NAME_Binned_2}{color.END}")
+                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input_In, HISTO_NAME_1=HISTO_NAME_Binned_1, ROOT_In_2=ROOT_Mod_In,   HISTO_NAME_2=HISTO_NAME_Binned_2,                                                                                                                                                 legend_labels=Data_Legend_Titles,                                                      output_prefix="Mod_Test_" if(args.mod) else "Closure_Test_" if(args.closure) else "Sim_Test_" if(args.sim) else "", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+                # Saved_Histos[str(z_PT_BIN_NUM)] = Saved_Histos[f"histo1_{z_PT_BIN_NUM}"]
+        elif(args.mod):
+            if(args.single_file):
+                try:
+                    if(not ROOT_Mod_In):
+                        ROOT_Mod_In = ROOT_Input_In
+                except:
+                    ROOT_Mod_In = ROOT_Input_In
+            if((HISTO_NAME_Binned in ROOT_Input_In.GetListOfKeys()) and (f"{HISTO_NAME_Binned}{'' if(not args.single_file) else '_(Mod_Test)'}" in ROOT_Mod_In.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
-                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Mod,   HISTO_NAME_2=f"{HISTO_NAME_Binned}{'' if(not args.single_file) else '_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}", legend_labels=("Unfolded with Normal MC", "Unfolded with Modulated MC"),               output_prefix="Mod_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+                    if(args.single_file):
+                        print(f"\t{color.BGREEN}AND {color.END_b}{HISTO_NAME_Binned}_(Mod_Test){color.END}")
+                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input_In, HISTO_NAME_1=HISTO_NAME_Binned,   ROOT_In_2=ROOT_Mod_In,   HISTO_NAME_2=f"{HISTO_NAME_Binned}{'' if(not args.single_file) else '_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}", legend_labels=("Unfolded with Normal MC", "Unfolded with Modulated MC"),               output_prefix="Mod_Test_",                                                                                          SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
         elif(args.sim or args.closure):
-            if((HISTO_NAME_Binned in ROOT_Input.GetListOfKeys()) and (HISTO_True_Binned in ROOT_Input.GetListOfKeys())):
+            if((HISTO_NAME_Binned in ROOT_Input_In.GetListOfKeys()) and (HISTO_True_Binned in ROOT_Input_In.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.BGREEN} and {color.END_b}{HISTO_True_Binned}{color.END}")
-                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME_Binned, ROOT_In_2=ROOT_Input, HISTO_NAME_2=HISTO_True_Binned,                                                                                                                                                   legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
+                Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input_In, HISTO_NAME_1=HISTO_NAME_Binned,   ROOT_In_2=ROOT_Input_In, HISTO_NAME_2=HISTO_True_Binned,                                                                                                                                                   legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_",                                                                                          SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
             else:
                 print(f"{color.Error}Missing one of the following:\n{color.END_B} HISTO_NAME_Binned = {HISTO_NAME_Binned}\n HISTO_True_Binned = {HISTO_True_Binned}\n{color.END}")
-        elif(HISTO_NAME in ROOT_Input.GetListOfKeys()):
+        elif(HISTO_NAME in ROOT_Input_In.GetListOfKeys()):
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
-            Saved_Histos[str(z_PT_BIN_NUM)] = Save_Histograms_As_Images(ROOT_In=ROOT_Input, HISTO_NAME_In=HISTO_NAME_Binned, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "", TITLE=Standard_Histogram_Title_Addition, Return_Histos=True)
+            Saved_Histos[str(z_PT_BIN_NUM)] = Save_Histograms_As_Images(ROOT_In=ROOT_Input_In, HISTO_NAME_In=HISTO_NAME_Binned, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "", TITLE=Standard_Histogram_Title_Addition, Return_Histos=True)
         else:
             print(f"\n{color.Error}MISSING: {HISTO_NAME_Binned}{color.END}\n")
             
@@ -809,10 +858,12 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         Legend_Header = f"#splitline{{#scale[2]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}{{#scale[1.5]{{Plots Shown}}}}"
         if(args.normalize):
             Legend_Header = f"#splitline{{{Legend_Header}}}{{Plots were normalized}}"
-        if(args.closure):
+        if(args.data):
+            Legend_Header = f"#splitline{{#scale[1.5]{{Comparing Data and MC}}}}{{{Legend_Header}}}"
+        elif(args.closure):
             Legend_Header = f"#splitline{{#splitline{{#scale[1.5]{{Closure Test}}}}{{Corrected the MC with itself}}}}{{{Legend_Header}}}"
         legend[Canvas_Name].SetHeader(Legend_Header, "C") # option "C" allows to center the header
-        if(args.mod or args.sim or args.closure):
+        if(args.mod or args.sim or args.closure or args.data):
             if(canvas_num   == 0):
                 for ii, label in enumerate(Legend_Labels):
                     legend[Canvas_Name].AddEntry(Saved_Histos[f"histo{ii+1}_1"], label, "lep")
@@ -823,7 +874,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         else:
             legend[Canvas_Name].AddEntry(Saved_Histos["1"], Legend_Labels[0], "lep")
         Draw_Canvas(All_z_pT_Canvas_cd_1_Upper[Canvas_Name], 1, 0.15)
-        Blank = Saved_Histos[f"h_diff_1" if(args.mod or args.sim or args.closure) else "1"].Clone("EMPTY")
+        Blank = Saved_Histos[f"h_diff_1" if(args.mod or args.sim or args.closure or args.data) else "1"].Clone("EMPTY")
         Blank.SetTitle("")
         Blank.Draw("H P E0")
         legend[Canvas_Name].DrawClone()
@@ -849,7 +900,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
                 All_z_pT_Canvas_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
 
             Draw_Canvas(All_z_pT_Canvas_cd_2_z_pT_Bin, 1, 0.15)
-            if(args.mod or args.sim or args.closure):
+            if(args.mod or args.sim or args.closure or args.data):
                 if(canvas_num == 0):
                     # Saved_Histos[f"histo1_{z_pT}"].Draw("H P E0 SAME")
                     if(hasattr(Saved_Histos[f"histo1_{z_pT}"], "asym_errors")):
@@ -907,7 +958,7 @@ if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])
     args.smearing_option = "''"
 
 ROOT_Input = ROOT.TFile.Open(args.root, "READ")
-ROOT_Mod   = None
+ROOT_Mod   = ROOT_Input if(args.single_file) else None
 if(args.mod):
     ROOT_Mod = ROOT_Input if(args.single_file) else ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root", "READ")
     
