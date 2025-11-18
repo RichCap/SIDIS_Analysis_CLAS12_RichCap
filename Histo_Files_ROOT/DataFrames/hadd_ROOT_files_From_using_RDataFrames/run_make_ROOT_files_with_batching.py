@@ -42,25 +42,36 @@ ALWAYS_MAIN_ARGS = ["-NoEvGen", "-f", "-MR", "--event_limit", "1"]
 # ALWAYS_MAIN_ARGS = ["-NoEvGen", "-f", "--event_limit", "1"]
 ALWAYS_MAIN_ARGS = ["-NoEvGen", "-f", "-MR", "-e"]
 
-# Preset configurations: base name, title, and base email message
+JSON_DEFAULT_PATH = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json"
+
+# Preset configurations: base name, title, base email message, etc.
 PRESETS = {
     "zeroth": {
-        "name_base":  "ZerothOrder",
-        "title":      "Zeroth Order Acceptance Weights",
-        "email_base": "Zeroth Order Acceptance Weight batched run. No Injected Physics.",
-        "hpp_file":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_ZeroOrder.hpp"
+        "name_base":        "ZerothOrder",
+        "title":            "Zeroth Order Acceptance Weights",
+        "email_base":       "Zeroth Order Acceptance Weight batched run. No Injected Physics.",
+        "hpp_file":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_ZeroOrder.hpp",
+        "use_json_weights": False,
+        "json_file":        JSON_DEFAULT_PATH,
+        "do_not_use_hpp":   False,
     },
     "first": {
-        "name_base":  "FirstOrder",
-        "title":      "First Order Modulation Weights",
-        "email_base": "First Order Injected Physics Modulation Weight batched run. No Acceptance Weights.",
-        "hpp_file":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_FirstOrder.hpp"
+        "name_base":        "FirstOrder",
+        "title":            "First Order Modulation Weights",
+        "email_base":       "First Order Injected Physics Modulation Weight batched run. No Acceptance Weights.",
+        "hpp_file":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_FirstOrder.hpp",
+        "use_json_weights": True,
+        "json_file":        JSON_DEFAULT_PATH,
+        "do_not_use_hpp":   True,   # disable acceptance weights
     },
     "first-acc": {
-        "name_base":  "FirstOrderAcc",
-        "title":      "#splitline{First Order Acceptance Weights}{Made with injected physics}",
-        "email_base": "First Acceptance Order Weight batched run. Uses both the Injected Physics Modulations AND Acceptance Weights.",
-        "hpp_file":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_FirstOrder.hpp"
+        "name_base":        "FirstOrderAcc",
+        "title":            "#splitline{First Order Acceptance Weights}{Made with injected physics}",
+        "email_base":       "First Acceptance Order Weight batched run. Uses both the Injected Physics Modulations AND Acceptance Weights.",
+        "hpp_file":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_FirstOrder.hpp",
+        "use_json_weights": True,
+        "json_file":        JSON_DEFAULT_PATH,
+        "do_not_use_hpp":   False,
     },
 }
 
@@ -139,6 +150,13 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
     cmd_base.extend(["-em", email_msg])
     cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
 
+    if(preset_cfg.get("use_json_weights", False)):
+        cmd_base.append("--json_weights")
+        cmd_base.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
+
+    if(preset_cfg.get("do_not_use_hpp", False)):
+        cmd_base.append("--do_not_use_hpp")
+
     print(f"\n{color.BBLUE}[INFO]{color.END} Running batch {batch_index} (name={name_for_batch})...")
     print("       Command:", " ".join(cmd_base))
 
@@ -184,6 +202,14 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
             cmd_base.extend(["-n", name_for_batch])
             cmd_base.extend(["-t", preset_cfg["title"]])
             cmd_base.extend(["-em", email_msg])
+            cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
+
+            if(preset_cfg.get("use_json_weights", False)):
+                cmd_base.append("--json_weights")
+                cmd_base.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
+
+            if(preset_cfg.get("do_not_use_hpp", False)):
+                cmd_base.append("--do_not_use_hpp")
 
             print(f"\n{color.BBLUE}[INFO]{color.END} Starting batch {batch_index} in parallel (name={name_for_batch})...")
             print("       Command:", " ".join(cmd_base))
@@ -330,7 +356,6 @@ def write_slurm_array_script(path, main_script, preset_cfg, name_base_for_merged
     lines.append("echo \"Running batch $BATCH_ID on host `hostname` at `date`\"")
     lines.append(f"setenv NAME_BASE \"{name_base_for_merged}\"")
 
-    # Fix: pre-escape quotes in email_msg so we don't need a backslash in the f-string expression
     safe_email_msg = email_msg.replace('"', '\\"')
     lines.append(f'setenv EMAIL_MSG "{safe_email_msg}"')
 
@@ -341,6 +366,15 @@ def write_slurm_array_script(path, main_script, preset_cfg, name_base_for_merged
     cmd_parts.extend(["-n", "$NAME_FOR_BATCH"])
     cmd_parts.extend(["-t", f"\"{preset_cfg['title']}\""])
     cmd_parts.extend(["-em", "\"$EMAIL_MSG\""])
+    cmd_parts.extend(["-hpp", preset_cfg["hpp_file"]])
+
+    if(preset_cfg.get("use_json_weights", False)):
+        cmd_parts.append("--json_weights")
+        cmd_parts.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
+
+    if(preset_cfg.get("do_not_use_hpp", False)):
+        cmd_parts.append("--do_not_use_hpp")
+
     cmd_str = " ".join(cmd_parts)
 
     lines.append(f"echo \"Command: {cmd_str}\"")
@@ -375,64 +409,6 @@ def write_slurm_hadd_script(path, batch_files, merged_file):
 def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, account, preset_cfg, name_base_for_merged, email_msg):
     print(f"{color.Error}Disabled{color.END}")
     return None, None, None, None
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
-    # array_script = os.path.join(script_dir, "slurm_array_job.tcsh")
-    # hadd_script  = os.path.join(script_dir, "slurm_hadd_job.tcsh")
-
-    # batch_files = []
-    # for i in range(1, nbatches + 1):
-    #     name_for_batch = build_name_for_batch(name_base_for_merged, i)
-    #     batch_files.append(build_batch_root_filename(name_for_batch, output_dir))
-    # merged_file = build_merged_root_filename(name_base_for_merged, output_dir)
-
-    # write_slurm_array_script(array_script, main_script, preset_cfg, name_base_for_merged, email_msg)
-    # write_slurm_hadd_script(hadd_script, batch_files, merged_file)
-
-    # array_cmd = ["sbatch", "--parsable", f"--array=1-{nbatches}", f"--partition={partition}", f"--time={time_str}", f"--job-name=RDF_batches"]
-    # if((account is not None) and (account != "")):
-    #     array_cmd.append(f"--account={account}")
-    # array_cmd.append(array_script)
-
-    # print(f"\n{color.BBLUE}[INFO]{color.END} Submitting SLURM array job:")
-    # print("       Command:", " ".join(array_cmd))
-
-    # try:
-    #     proc = subprocess.run(array_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    #     if(proc.returncode != 0):
-    #         print(f"{color.Error}[ERROR]{color.END} sbatch for array job failed with code {proc.returncode}")
-    #         print(proc.stderr)
-    #         return None, None, merged_file, batch_files
-    # except Exception as e:
-    #     print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM array job: {e}")
-    #     return None, None, merged_file, batch_files
-
-    # array_jobid_raw = proc.stdout.strip()
-    # print(f"{color.BBLUE}[INFO]{color.END} Submitted array job with id: {array_jobid_raw}")
-
-    # array_jobid = array_jobid_raw.split("_")[0]
-
-    # hadd_cmd = ["sbatch", "--parsable", f"--dependency=afterok:{array_jobid}", f"--partition={partition}", f"--time={time_str}", f"--job-name=RDF_hadd"]
-    # if((account is not None) and (account != "")):
-    #     hadd_cmd.append(f"--account={account}")
-    # hadd_cmd.append(hadd_script)
-
-    # print(f"\n{color.BBLUE}[INFO]{color.END} Submitting SLURM hadd job (afterok dependency):")
-    # print("       Command:", " ".join(hadd_cmd))
-
-    # try:
-    #     proc2 = subprocess.run(hadd_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    #     if(proc2.returncode != 0):
-    #         print(f"{color.Error}[ERROR]{color.END} sbatch for hadd job failed with code {proc2.returncode}")
-    #         print(proc2.stderr)
-    #         return array_jobid, None, merged_file, batch_files
-    # except Exception as e:
-    #     print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM hadd job: {e}")
-    #     return array_jobid, None, merged_file, batch_files
-
-    # hadd_jobid = proc2.stdout.strip()
-    # print(f"{color.BBLUE}[INFO]{color.END} Submitted hadd job with id: {hadd_jobid}")
-
-    # return array_jobid, hadd_jobid, merged_file, batch_files
 
 
 def wait_for_slurm_job(jobid, poll_seconds=60):
@@ -609,7 +585,7 @@ def main():
     end_time_str, total_time_str, rate_line = timer.stop(return_Q=True)
 
     summary_lines = []
-    summary_lines.append(f"Script: run_make_ROOT_files_with_batching.py")
+    summary_lines.append("Script: run_make_ROOT_files_with_batching.py")
     summary_lines.append(f"Mode: {args.mode}")
     summary_lines.append(f"Preset: {args.preset}")
     summary_lines.append(f"Main script: {main_script}")
