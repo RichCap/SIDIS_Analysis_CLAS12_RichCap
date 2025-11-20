@@ -33,12 +33,6 @@ ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
 ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
 ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 
-def safe_write(obj, tfile):
-    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
-    if(existing):
-        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
-    obj.Write()
-
 
 import subprocess
 def ansi_to_html(text):
@@ -166,39 +160,48 @@ def parse_args():
     p.add_argument('-ue',  '--use_errors', action='store_true',
                    help="Applies uncertainties to the baseline histograms based on their differences to their comparisons. (Calculated during comparisons — will update later to use the output files too)")
 
+    # p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences_FirstOrderAcc.json", 
+    #                help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
+    
     p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json", 
                    help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
+
+    p.add_argument('-rad', '--radiation_correction', action='store_true', 
+                   help="Applies Radiative Corrections.")
     
     return p.parse_args()
 
 args = parse_args()
 
+# if((args.radiation_correction) and (args.use_errors_json == "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences_FirstOrderAcc.json")):
+#     # Changing default based on using the radiative corrections
+#     args.use_errors_json = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences_FirstOrderAcc_Rad.json"
 
-def silence_root_import():
-    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-    sys.stdout.flush()
-    sys.stderr.flush()
-    # Save original file descriptors
-    old_stdout = os.dup(1)
-    old_stderr = os.dup(2)
-    try:
-        # Redirect stdout and stderr to /dev/null at the OS level
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-        # Perform the noisy import
-        import RooUnfold
-    finally:
-        # Restore the original file descriptors
-        os.dup2(old_stdout, 1)
-        os.dup2(old_stderr, 2)
-        os.close(old_stdout)
-        os.close(old_stderr)
+# def silence_root_import():
+#     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+#     sys.stdout.flush()
+#     sys.stderr.flush()
+#     # Save original file descriptors
+#     old_stdout = os.dup(1)
+#     old_stderr = os.dup(2)
+#     try:
+#         # Redirect stdout and stderr to /dev/null at the OS level
+#         devnull = os.open(os.devnull, os.O_WRONLY)
+#         os.dup2(devnull, 1)
+#         os.dup2(devnull, 2)
+#         os.close(devnull)
+#         # Perform the noisy import
+#         import RooUnfold
+#     finally:
+#         # Restore the original file descriptors
+#         os.dup2(old_stdout, 1)
+#         os.dup2(old_stderr, 2)
+#         os.close(old_stdout)
+#         os.close(old_stderr)
 
-# Use it like this:
-silence_root_import()
-       
+# # Use it like this:
+# silence_root_import()
+
 Saving_Q = not args.test
 Fit_Test = not args.no_fit
 
@@ -258,15 +261,32 @@ print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
 ################################################################################################################################################
 
 import json
-def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin, z_pT_Bin, Uncertainty_File_In=args.use_errors_json):
+# def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertainty_File_In=args.use_errors_json):
+#     # Something was going wrong when I updated this function
+#     return Histo_In
+
+def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertainty_File_In=args.use_errors_json):
     # Modify the bin uncertainties of a histogram using precomputed values
     # from a JSON file. If any condition fails, return the unmodified histogram.
     if(Uncertainty_File_In is None):
         return Histo_In
+
     # Check histogram validity
     if((not Histo_In) or (not Histo_In.InheritsFrom("TH1"))):
         print(f"{color.Error}Error:{color.END}\n\t{Histo_In} is an invalid histogram that was passed to Apply_PreBin_Uncertainties()")
         return Histo_In
+        
+    Histo_Name_General = Histo_In.GetName()
+    # If Q2_y_Bin / z_pT_Bin were not given, try to parse them from the name
+    if((Q2_y_Bin is None) or (z_pT_Bin is None)):
+        match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_General))
+        if(match):
+            Q2_y_Bin = int(match.group(1))
+            z_pT_Bin = int(match.group(2))
+        else:
+            print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+            return Histo_In
+
     # Load the JSON file
     with open(Uncertainty_File_In, "r") as jf:
         data = json.load(jf)
@@ -282,13 +302,45 @@ def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin, z_pT_Bin, Uncertainty_File_In
     if(n_bins_data != n_bins_hist):
         print(f"{color.Error}Error:{color.END} Bin count mismatch (JSON={n_bins_data}, Histo={n_bins_hist}). Aborting modification.")
         return Histo_In
+
+    # Build an asymmetric error graph, like in Compare_TH1D_Histograms
+    g_asym = ROOT.TGraphAsymmErrors(Histo_In)
+    g_asym.SetName(f"{Histo_In.GetName()}_AsymErr")
+    g_asym.SetLineColor(Histo_In.GetLineColor())
+    g_asym.SetMarkerColor(Histo_In.GetMarkerColor())
+    g_asym.SetLineWidth(Histo_In.GetLineWidth())
+
     # Apply new errors to each bin
     for i, entry in enumerate(bin_data, start=1):
-        diff_val = entry.get("diff", 0.0)
-        err_val  = entry.get("err", 0.0)
-        current_err = Histo_In.GetBinError(i)
-        new_err = ROOT.sqrt(current_err**2 + (diff_val + err_val)**2)
+        # Signed difference val2 - val1; magnitude is the systematic envelope
+        uncertainty = float(entry.get("uncertainty", 0.0))
+        current_err = float(Histo_In.GetBinError(i))
+        sys_mag     = abs(uncertainty)
+
+        # Symmetric envelope (like we used before: max of stat and sys)
+        new_err = max([sys_mag, current_err])
         Histo_In.SetBinError(i, new_err)
+
+        low_err, high_err = current_err, current_err
+        # Asymmetric split:
+        #   positive -> upper side enlarged
+        #   negative -> lower side enlarged
+        if(sys_mag > current_err):
+            if(uncertainty > 0.0):
+                low_err  = current_err
+                high_err = sys_mag
+            elif(uncertainty < 0.0):
+                low_err  = sys_mag
+                high_err = current_err
+        # Otherwise systematic smaller than stat → keep symmetric
+
+        # Set asymmetric errors on the graph (bin index → point index i-1)
+        g_asym.SetPointEYlow(i  - 1, low_err)
+        g_asym.SetPointEYhigh(i - 1, high_err)
+
+    # Attach graph to histogram for later drawing / fitting
+    Histo_In.asym_errors = g_asym
+
     return Histo_In
 
 
@@ -365,6 +417,8 @@ def Full_Calc_Fit(Histo):
 
 from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
 def Fitting_Phi_Function(Histo_To_Fit_In, Method="FIT", Special="Normal", Overwrite_Fit_Test=Fit_Test):
+    if((args.radiation_correction) and ("RC" not in Method)):
+        Method = f"RC_{Method}"
     Histo_To_Fit = Histo_To_Fit_In.asym_errors if(hasattr(Histo_To_Fit_In, "asym_errors")) else Histo_To_Fit_In
     if((Method in ["RC"]) and Overwrite_Fit_Test):
         try:
@@ -431,26 +485,6 @@ def Fitting_Phi_Function(Histo_To_Fit_In, Method="FIT", Special="Normal", Overwr
         Fitting_Function.SetRange(fit_range_lower, fit_range_upper)
 
         Fitting_Function.SetLineColor(Histo_To_Fit_In.GetLineColor())
-        # Fitting_Function.SetLineColor(2)
-        # if(Special in ["Normal"]):
-        #     if(Method in ["rdf", "Experimental"]):
-        #         Fitting_Function.SetLineColor(root_color.Blue)
-        #     if(Method in ["mdf", "MC REC"]):
-        #         Fitting_Function.SetLineColor(root_color.Red)
-        #     if(Method in ["gdf", "gen", "MC GEN"]):
-        #         Fitting_Function.SetLineColor(root_color.Green)
-        #     if(Method in ["tdf", "true"]):
-        #         Fitting_Function.SetLineColor(root_color.Cyan)
-        #     if(Method in ["bbb", "Bin", "Bin-by-Bin", "Bin-by-bin"]):
-        #         Fitting_Function.SetLineColor(root_color.Brown)
-        #     if(Method in ["bayes", "bayesian", "Bayesian", "bay"]):
-        #         Fitting_Function.SetLineColor(root_color.Teal)
-        #     if(Method in ["RC_Bin"]):
-        #         Fitting_Function.SetLineColor(ROOT.kOrange + 4)
-        #     if(Method in ["RC_Bayesian"]):
-        #         Fitting_Function.SetLineColor(ROOT.kViolet - 8)
-        #     if(Method in ["SVD"]):
-        #         Fitting_Function.SetLineColor(root_color.Pink)
         
         Allow_Multiple_Fits   = True
         Allow_Multiple_Fits_C = True
@@ -662,6 +696,14 @@ def Draw_Fit_Params_Box(TPad_cd=None, Chi_List=None, ParA=None, ParB=None, ParC=
     return box
 
 
+def safe_write(obj, tfile):
+    existing = tfile.GetListOfKeys().FindObject(obj.GetName())
+    if(existing):
+        if(args.verbose):
+            print(f"Deleting: '{obj.GetName()};*' (already exists)")
+        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+    obj.Write()
+
 def Save_Fit_Outputs_To_ROOT(Histo_Name, Chi_List, ParA_List, ParB_List, ParC_List, Histo_New=None, Fit_Function=None):
     # If no output file requested, do nothing
     if(args.no_fit or (args.fit_root in [None, ""])):
@@ -674,7 +716,12 @@ def Save_Fit_Outputs_To_ROOT(Histo_Name, Chi_List, ParA_List, ParB_List, ParC_Li
         return
 
     # Determine the entry_type prefix
-    Histo_Name_str = str(Histo_Name)
+    # Histo_Name_str = str(Histo_Name)
+    Histo_Name_str = str(Histo_New.GetName())
+#     if(args.verbose):
+#         print(f"""
+# Histo_Name_str (from input) = {Histo_Name_str}
+# Histo_Name_str (from histo) = {Histo_New.GetName()}""")
     entry_type = "(1D)_" if(Histo_Name_str.startswith("(1D)_")) else "(MultiDim_3D_Histo)_" if(Histo_Name_str.startswith("(MultiDim_3D_Histo)_")) else "(MultiDim_5D_Histo)_"
     
     Fit_Function_Name    = Histo_Name_str.replace(str(entry_type), "(Fit_Function)_")
@@ -685,9 +732,10 @@ def Save_Fit_Outputs_To_ROOT(Histo_Name, Chi_List, ParA_List, ParB_List, ParC_Li
 
     # 1) Overwrite the fitted histogram itself
     if(Histo_New):
-        histo_out = Histo_New.Clone(Histo_Name_str)
-        histo_out.SetName(Histo_Name_str)
-        safe_write(histo_out, tfile)
+        # histo_out = Histo_New.Clone(Histo_Name_str)
+        # histo_out.SetName(Histo_Name_str)
+        # safe_write(histo_out, tfile)
+        safe_write(Histo_New, tfile)
 
     # 2) Fit function
     if(Fit_Function):
@@ -698,12 +746,25 @@ def Save_Fit_Outputs_To_ROOT(Histo_Name, Chi_List, ParA_List, ParB_List, ParC_Li
     # Helper: Python list -> TVectorD
     def write_vec(name, py_list):
         if(py_list is None):
+            print(f"{color.Error}py_list is 'None'{color.END}")
             return
+        if(len(py_list) == 0):
+            print(f"{color.Error}len(py_list) == 0{color.END}")
+            return
+        # Fill a TVectorD with the values
         vec = ROOT.TVectorD(len(py_list))
         for i, val in enumerate(py_list):
             vec[i] = float(val)
-        vec.SetName(f"TVectorD_{name}")
-        safe_write(vec, tfile)
+        keyname = f"TVectorD_{name}"
+        # Manually handle overwriting since TVectorD has no SetName/GetName
+        existing = tfile.GetListOfKeys().FindObject(keyname)
+        if(existing):
+            if(args.verbose):
+                print(f"Deleting: '{keyname};*' (already exists)")
+            tfile.Delete(f"{keyname};*")
+        # Store with the desired key name (this sets the *key* name in the file, even though the object itself doesn’t have a SetName method)
+        tfile.WriteObject(vec, keyname)
+
 
     # 3) Lists (as TVectorD) with the requested names
     write_vec(Chi_Squared_Name,    Chi_List)
@@ -773,6 +834,39 @@ def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=F
     return h1n, h2n, shared_bins, sum1, sum2
 
 
+if(args.radiation_correction):
+    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
+    sys.path.append(script_dir)
+    from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
+    sys.path.remove(script_dir)
+    del script_dir
+    print(f"\n{color.BOLD}Loaded `{color.GREEN}Find_RC_Fit_Params{color.END_B}` and `{color.GREEN}Apply_RC_Factor_Corrections{color.END_B}` for applying RC Corrections...{color.END}\n")
+    def apply_RC_to_found_histo(histo_In, Q2y_bin=None, zPT_bin=None):
+        Histo_Name_General = histo_In.GetName()
+        if(not (Q2y_bin and zPT_bin)):
+            match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_General))
+            if(match):
+                Q2y_bin = int(match.group(1))
+                zPT_bin = int(match.group(2))
+            else:
+                print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+                return histo_In
+                
+        if(all(cor not in Histo_Name_General for cor in ["Bayesian", "(Bin)"])):
+            # if(args.verbose):
+            print(f"\n{color.RED}Warning: Missing the Corrected Distribution for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+            return histo_In
+            
+        Histo_Name_Rad_Cor = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
+        RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2y_bin, z_pT_bin=zPT_bin, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
+        histo_rad = Apply_RC_Factor_Corrections(hist=histo_In, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
+        histo_In = histo_rad.Clone(Histo_Name_Rad_Cor)
+        return histo_In
+else:
+    def apply_RC_to_found_histo(histo_In, Q2y_bin=None, zPT_bin=None):
+        print(f"\n\n{color.Error}Did not set up RC code — This function (apply_RC_to_found_histo) shouldn't have been called...{color.END}\n\n")
+        return histo_In
+
 
 def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="", TITLE=Standard_Histogram_Title_Addition, Return_Histos=False):
     # Retrieve histogram from ROOT file
@@ -784,6 +878,19 @@ def Save_Histograms_As_Images(ROOT_In, HISTO_NAME_In, Format=args.file_format, S
         histo.SetTitle(str(histo.GetTitle()).replace("Pass 2", TITLE))
     elif(TITLE not in histo.GetTitle()):
         histo.SetTitle(f"#splitline{{{histo.GetTitle()}}}{{{TITLE}}}")
+
+    if((args.radiation_correction) and (args.unfold in ["Bayesian", "Bin"])):
+        if(args.verbose):
+            print("Applying Radiative Corrections...")
+        histo = apply_RC_to_found_histo(histo_In=histo)
+    elif((args.radiation_correction) and (args.verbose)):
+        print(f"{color.RED}Cannot apply Radiative Corrections to uncorrected histograms{color.END}")
+
+    if(args.use_errors):
+        if(args.verbose):
+            print("Applying Uncertainties from JSON File...")
+        histo = Apply_PreBin_Uncertainties(Histo_In=histo, Uncertainty_File_In=args.use_errors_json)
+        
     # Turn off stat box
     histo.SetStats(0)
     if(Return_Histos):
@@ -815,8 +922,8 @@ def Make_New_BbB_Mod(ROOT_IN_NORMAL, ROOT_IN_MODULATED, HISTO_NAME_INPUT):
     mdf_histo_norm =    ROOT_IN_NORMAL.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
 
     # Retrieve the modulated MC histograms
-    gdf_histo__mod = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
-    mdf_histo__mod = ROOT_IN_MODULATED.Get(str(HISTO_NAME_INPUT.replace(f"({args.unfold})", "(mdf)")))
+    gdf_histo__mod = ROOT_IN_MODULATED.Get(str(f"{HISTO_NAME_INPUT}_(Mod_Test)".replace(f"({args.unfold})", "(gdf)")).replace("(SMEAR=Smear)", "(SMEAR='')"))
+    mdf_histo__mod = ROOT_IN_MODULATED.Get(str(f"{HISTO_NAME_INPUT}_(Mod_Test)".replace(f"({args.unfold})", "(mdf)")))
 
     # Validate input histograms
     if((not rdf_histo_norm) or (not gdf_histo_norm) or (not mdf_histo_norm) or (not gdf_histo__mod) or (not mdf_histo__mod)):
@@ -964,8 +1071,6 @@ def Make_New_BbB_Sim(ROOT_IN_MODULATED, HISTO_NAME_INPUT):
 
 
 
-
-
 Unfolding_Diff_Data = {}
 def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, legend_labels=("Histogram 1", "Histogram 2"), output_prefix="Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str="1", zPT_str="1", Unfolding_Diff_Data_In=Unfolding_Diff_Data, Return_Histos=False):
     # Retrieve histograms
@@ -973,6 +1078,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         output_prefix = f"Resummed_Weights_{output_prefix}"
         if(args.mod):
             histo1, histo2 = Make_New_BbB_Mod(ROOT_IN_NORMAL=ROOT_In_1, ROOT_IN_MODULATED=ROOT_In_2, HISTO_NAME_INPUT=HISTO_NAME_1)
+            if(args.single_file):
+                histo1     = ROOT_In_1.Get(HISTO_NAME_1)
         elif(args.sim):
             histo1, histo2 = Make_New_BbB_Sim(ROOT_IN_MODULATED=ROOT_In_1, HISTO_NAME_INPUT=HISTO_NAME_1)
         else:
@@ -982,6 +1089,25 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     else:
         histo1 = ROOT_In_1.Get(HISTO_NAME_1)
         histo2 = ROOT_In_2.Get(HISTO_NAME_2)
+
+    if((args.radiation_correction) and (args.unfold in ["Bayesian", "Bin"]) and ("All" not in [Q2y_str, zPT_str])):
+        if(args.verbose):
+            print("Applying Radiative Corrections...")
+        for num, histo_rad in enumerate([histo1, histo2]):
+            Histo_Name_General   = histo_rad.GetName()
+            if(all(cor not in Histo_Name_General for cor in ["Bayesian", "(Bin)"])):
+                if(args.verbose):
+                    print(f"\n{color.RED}Warning: Missing the Corrected Distribution for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+                continue
+            Histo_Name_Rad_Cor   = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
+            RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=int(Q2y_str), z_pT_bin=int(zPT_str), root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
+            histo_rad = Apply_RC_Factor_Corrections(hist=histo_rad, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
+            if(num == 0):
+                histo1 = histo_rad.Clone(Histo_Name_Rad_Cor)
+            if(num == 1):
+                histo2 = histo_rad.Clone(Histo_Name_Rad_Cor)
+    elif((args.radiation_correction) and (args.verbose)):
+        print(f"{color.RED}Cannot apply Radiative Corrections to uncorrected histograms (or to 'All' bins){color.END}")
     
     histo1.SetStats(0)
     histo2.SetStats(0)
@@ -1049,7 +1175,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         # err         = math.sqrt(err1**2 + err2**2)
         err         = math.sqrt(max([err1**2 - err2**2, 0]))
         # M_uncer     = math.sqrt(max([0, (val2 - val1)**2 - err**2]))
-        M_uncer     = diff
+        # M_uncer     = diff
+        M_uncer     = val2 - val1 # if M_uncer is negative, then the uncertainty is applied to the lower error bar. If it is positive, then apply it to the upper error bar
         max_content = max([max_content, diff])
         max_M_uncer = max([max_M_uncer, M_uncer])
         # max_content = max([max_content, diff + err])
@@ -1134,6 +1261,8 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
     
         # Save
         Save_Name = f"{output_prefix}{HISTO_NAME_1}{SAVE}{Format}"
+        if(args.radiation_correction):
+            Save_Name = str(Save_Name.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
         for replace in ["(", ")", "'", '"', "'"]:
             Save_Name = Save_Name.replace(replace, "")
         Save_Name = Save_Name.replace("__", "_")
@@ -1244,7 +1373,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
                 Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Saved_Histos[f"h_diff_{z_PT_BIN_NUM}"], Saved_Histos[f"h_uncertainty_{z_PT_BIN_NUM}"], Unfolding_Diff_Data_Input =  Compare_TH1D_Histograms(ROOT_In_1=ROOT_Input_In, HISTO_NAME_1=HISTO_NAME_Binned,   ROOT_In_2=ROOT_Input_In, HISTO_NAME_2=HISTO_True_Binned,                                                                                                                                                   legend_labels=("Unfolded Synthetic (MC) Data", "True Distribution of Synthetic Data"), output_prefix="Sim_Test_",                                                                                          SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str=Q2_Y_Bin, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data_Input, Return_Histos=True)
             else:
                 print(f"{color.Error}Missing one of the following:\n{color.END_B} HISTO_NAME_Binned = {HISTO_NAME_Binned}\n HISTO_True_Binned = {HISTO_True_Binned}\n{color.END}")
-        elif(HISTO_NAME in ROOT_Input_In.GetListOfKeys()):
+        elif(HISTO_NAME_Binned in ROOT_Input_In.GetListOfKeys()):
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
             Saved_Histos[str(z_PT_BIN_NUM)] = Save_Histograms_As_Images(ROOT_In=ROOT_Input_In, HISTO_NAME_In=HISTO_NAME_Binned, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "", TITLE=Standard_Histogram_Title_Addition, Return_Histos=True)
@@ -1266,6 +1395,12 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
                     Saved_Histos[f"histo2_{z_PT_BIN_NUM}"].asym_errors = Saved_Histos[f"histo2_{z_PT_BIN_NUM}_fitted"]
                 else:
                     Saved_Histos[f"histo2_{z_PT_BIN_NUM}"]             = Saved_Histos[f"histo2_{z_PT_BIN_NUM}_fitted"]
+                # f"{HISTO_NAME_Binned}{'' if(not args.single_file) else '_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+
+#                 print(f"""Saving:
+# Saved_Histos[f"histo1_{z_PT_BIN_NUM}"].GetName() = {Saved_Histos[f"histo1_{z_PT_BIN_NUM}"].GetName()}
+# Saved_Histos[f"histo2_{z_PT_BIN_NUM}"].GetName() = {Saved_Histos[f"histo2_{z_PT_BIN_NUM}"].GetName()}
+# """)
                 Save_Fit_Outputs_To_ROOT(Histo_Name=HISTO_NAME_Binned,                                                     Chi_List=Saved_Histos[f"Chi_Squared_1_{z_PT_BIN_NUM}"], ParA_List=Saved_Histos[f"Fit_Par_A_1_{z_PT_BIN_NUM}"], ParB_List=Saved_Histos[f"Fit_Par_B_1_{z_PT_BIN_NUM}"], ParC_List=Saved_Histos[f"Fit_Par_C_1_{z_PT_BIN_NUM}"], Histo_New=Saved_Histos[f"histo1_{z_PT_BIN_NUM}"], Fit_Function=Saved_Histos[f"Fit_Function_1_{z_PT_BIN_NUM}"])
                 Save_Fit_Outputs_To_ROOT(Histo_Name=HISTO_True_Binned if(args.sim or args.closure) else HISTO_NAME_Binned, Chi_List=Saved_Histos[f"Chi_Squared_2_{z_PT_BIN_NUM}"], ParA_List=Saved_Histos[f"Fit_Par_A_2_{z_PT_BIN_NUM}"], ParB_List=Saved_Histos[f"Fit_Par_B_2_{z_PT_BIN_NUM}"], ParC_List=Saved_Histos[f"Fit_Par_C_2_{z_PT_BIN_NUM}"], Histo_New=Saved_Histos[f"histo2_{z_PT_BIN_NUM}"], Fit_Function=Saved_Histos[f"Fit_Function_2_{z_PT_BIN_NUM}"])
             else:
@@ -1318,6 +1453,8 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             Legend_Header = f"#splitline{{#scale[1.5]{{Comparing Data and MC}}}}{{{Legend_Header}}}"
         elif(args.closure):
             Legend_Header = f"#splitline{{#splitline{{#scale[1.5]{{Closure Test}}}}{{Corrected the MC with itself}}}}{{{Legend_Header}}}"
+        if(args.radiation_correction):
+            Legend_Header = f"#splitline{{#scale[1.5]{{Applying Radiative Corrections}}}}{{{Legend_Header}}}"
         legend[Canvas_Name].SetHeader(Legend_Header, "C") # option "C" allows to center the header
         if(args.mod or args.sim or args.closure or args.data):
             if(canvas_num   == 0):
@@ -1376,10 +1513,11 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             if(Fit_Test and (args.unfold in ["Bayesian", "Bin", "gdf", "tdf"]) and (canvas_num == 0)):
                 if(f"Chi_Squared_2_{z_pT}" in Saved_Histos):
                     ROOT.gStyle.SetOptFit(0)
-                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=f"#color[{Saved_Histos[f'histo1_{z_pT}'].GetLineColor()}]{{{Legend_Labels[0]}}}", x1=0.19,  y1=0.10, x2=0.49,  y2=0.33, text_size=0.025)
-                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}_H2"] = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_2_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_2_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_2_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_2_{z_pT}"], header=f"#color[{Saved_Histos[f'histo2_{z_pT}'].GetLineColor()}]{{{Legend_Labels[1]}}}", x1=0.51,  y1=0.10, x2=0.84,  y2=0.33, text_size=0.025)
-                # else:
-                #     Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=str(Legend_Labels[0]), x1=0.35, y1=0.12, x2=0.65, y2=0.32, text_size=0.030)
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=f"#color[{Saved_Histos[f'histo1_{z_pT}'].GetLineColor()}]{{{Legend_Labels[0]}}}", x1=0.19,  y1=0.10, x2=0.49,  y2=0.34, text_size=0.025)
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}_H2"] = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_2_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_2_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_2_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_2_{z_pT}"], header=f"#color[{Saved_Histos[f'histo2_{z_pT}'].GetLineColor()}]{{{Legend_Labels[1]}}}", x1=0.51,  y1=0.10, x2=0.84,  y2=0.34, text_size=0.025)
+                else:
+                    ROOT.gStyle.SetOptFit(0)
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=f"#color[{Saved_Histos[str(z_pT)].GetLineColor()}]{{{Legend_Labels[0]}}}",        x1=0.35,  y1=0.10, x2=0.70,  y2=0.34, text_size=0.030)
 
             ROOT.gPad.Update()
             All_z_pT_Canvas[Canvas_Name].Update()
@@ -1388,6 +1526,10 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################
         ##################################################################### ################################################################ ################################################################
         Save_Name = f"{Canvas_Name}_{args.save_name}{args.file_format}"
+        if(args.radiation_correction):
+            Save_Name = str(Save_Name.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
+            if("RC" not in Save_Name):
+                Save_Name = f"Ran_with_RC_{Save_Name}"
         if(Plot_Orientation != "z_pT"):
             Save_Name = Save_Name.replace(f"{args.save_name}{args.file_format}", f"{args.save_name}_Flipped{args.file_format}")
         for replace in ["(", ")", "'", '"', "'"]:
@@ -1443,13 +1585,15 @@ for BIN in Q2_y_Bin_List:
             HISTO_NAME = f"(1D)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(phi_t)"
         elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
             HISTO_NAME = f"(MultiDim_3D_Histo)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
-
+            
+        if(args.single_file):
+            HISTO_NAME = f"{HISTO_NAME}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
         if(args.data):
             HISTO__mdf = HISTO_NAME.replace(f"({args.unfold})", "(mdf)")
             HISTO_NAME = HISTO_NAME.replace("(SMEAR=Smear)", "(SMEAR='')")
-            if(args.single_file and args.mod):
-                HISTO__mdf = f"{HISTO__mdf}_(Mod_Test)"
-                HISTO_NAME = f"{HISTO_NAME}_(Mod_Test)"
+            # if(args.single_file and args.mod):
+            #     HISTO__mdf = f"{HISTO__mdf}_(Mod_Test)"
+            #     HISTO_NAME = f"{HISTO_NAME}_(Mod_Test)"
             if(args.mod):
                 if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO__mdf in ROOT_Mod.GetListOfKeys())):
                     if(args.verbose):
@@ -1480,6 +1624,9 @@ for BIN in Q2_y_Bin_List:
                 HISTO_True = f"(1D)_(tdf)_(SMEAR=Smear)_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(phi_t)"
             elif(args.dimensions in ["3D", "MultiDim_3D_Histo"]):
                 HISTO_True = f"(MultiDim_3D_Histo)_(tdf)_(SMEAR='')_(Q2_y_Bin_{Q2_y_BIN_NUM})_(z_pT_Bin_{z_PT_BIN_NUM})_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
+            if(args.single_file):
+                HISTO_True = f"{HISTO_True}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+                
             if((HISTO_NAME in ROOT_Input.GetListOfKeys()) and (HISTO_True in ROOT_Input.GetListOfKeys())):
                 if(args.verbose):
                     print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.BGREEN} and {color.END_b}{HISTO_True}{color.END}")
@@ -1554,7 +1701,7 @@ Arguments:
 --use_errors_json              --> {args.use_errors_json}
 --no-fit                       --> {args.no_fit}
 --fit_root                     --> {args.fit_root}
---remake_bin_by_bin            --> {args.remake_bin_by_bin}
+--remake_bin_by_bin            --> {args.remake}
 """
 if(json_output_name):
     email_body = f"""{email_body}
