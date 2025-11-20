@@ -41,31 +41,6 @@ ROOT.gStyle.SetStatY(0.45)  # Set the top edge of the stat box (NDC)
 ROOT.gStyle.SetStatW(0.3)  # Set the width of the stat box (NDC)
 ROOT.gStyle.SetStatH(0.2)  # Set the height of the stat box (NDC)
 
-def silence_root_import():
-    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-    sys.stdout.flush()
-    sys.stderr.flush()
-    # Save original file descriptors
-    old_stdout = os.dup(1)
-    old_stderr = os.dup(2)
-    try:
-        # Redirect stdout and stderr to /dev/null at the OS level
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-        # Perform the noisy import
-        import RooUnfold
-    finally:
-        # Restore the original file descriptors
-        os.dup2(old_stdout, 1)
-        os.dup2(old_stderr, 2)
-        os.close(old_stdout)
-        os.close(old_stderr)
-
-# Use it like this:
-silence_root_import()
-
 # try:
 #     import RooUnfold
 # except ImportError:
@@ -93,7 +68,9 @@ Create_stat_File = not True
 Cor_Compare      = False
 Smearing_Options = "both"
 
-Apply_RC = not True
+fits_included, RC_fits_included = False, False
+
+Apply_RC = True
 if(Apply_RC):
     print(f"\n{color.BYELLOW}Running with RC Corrections (from EvGen){color.END}\n")
 
@@ -104,6 +81,35 @@ if(Use_TTree):
     # TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/COPY_of_Copy_of_Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy_Adding_FirstOrderAcc_Test.root"
+
+
+
+def silence_root_import():
+    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Save original file descriptors
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+    try:
+        # Redirect stdout and stderr to /dev/null at the OS level
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+        # Perform the noisy import
+        import RooUnfold
+    finally:
+        # Restore the original file descriptors
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+
+if(not Use_TTree):
+    silence_root_import()
+
 
 
 if(len(sys.argv) > 1):
@@ -246,7 +252,7 @@ else:
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
 File_Save_Format = ".png"
-# File_Save_Format = ".root"
+File_Save_Format = ".root"
 # File_Save_Format = ".pdf"
 
 
@@ -7737,6 +7743,9 @@ if(Use_TTree):
             Relative_Background_Run_Q = "Relative_Background" in str(key_name)
         if("TList_of_" in key_name):
             List_of_All_Histos_For_Unfolding[key_name] = [float(str(item.GetString())) for item in TTree_Input.Get(key_name)]
+        elif("TVectorD_" in key_name):
+            List_of_All_Histos_For_Unfolding[key_name.replace("TVectorD_", "")] = list(TTree_Input.Get(key_name))
+            # print(f"""List_of_All_Histos_For_Unfolding[{key_name.replace("TVectorD_", "")}] = {list(TTree_Input.Get(key_name))}""")
         else:
             List_of_All_Histos_For_Unfolding[key_name] = TTree_Input.Get(key_name)
     TTree_Input.Close()
@@ -9360,125 +9369,133 @@ if(not Relative_Background_Run_Q):
 
 
 if((Fit_Test and Use_TTree) or Apply_RC):
-    fits_included = False
-    if(Fit_Test):
-        for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-            if("(Fit_Par" in str(List_of_All_Histos_For_Unfolding_ii)):
-                # print(f"\n{List_of_All_Histos_For_Unfolding_ii}")
-                fits_included = True
-                break
-    print(f"{color.BLUE}Normal Unfolding Fits Already Included? -> {color.BGREEN if(fits_included) else color.Error}{fits_included}{color.END}")
-    
-    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
-    sys.path.append(script_dir)
-    from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
-    sys.path.remove(script_dir)
-    del script_dir
-    print(f"\n{color.BOLD}Loaded `{color.GREEN}Find_RC_Fit_Params{color.END_B}` and `{color.GREEN}Apply_RC_Factor_Corrections{color.END_B}` for applying RC Corrections...{color.END}\n")
-    # print(Find_RC_Fit_Params(Q2_y_bin=1, z_pT_bin=1, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=not True))
-    Histogram_Fit_List_All = {}
-    fit_count = 0
-    for ii, List_of_All_Histos_For_Unfolding_ii in enumerate(List_of_All_Histos_For_Unfolding):
-        if(any(Fit_objects in str(List_of_All_Histos_For_Unfolding_ii) for Fit_objects in ["Fit_Function", "Chi_Squared", "Fit_Par_A", "Fit_Par_B", "Fit_Par_C"])):
-            continue
-        if("Bin_All)"  in str(List_of_All_Histos_For_Unfolding_ii)):
-            continue
-        if("_EvGen"    in str(List_of_All_Histos_For_Unfolding_ii)):
-            continue
-        if(("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
-            Histo_clasdis        = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
-            Histo_Name_EvGen     = f"{Histo_clasdis.GetName()}_EvGen"
-            Histo_Name_EvGen     = Histo_Name_EvGen.replace("Smear", "''")
-            if(Histo_Name_EvGen not in List_of_All_Histos_For_Unfolding):
-                if(Histo_Name_EvGen.replace("V1", "V2") in List_of_All_Histos_For_Unfolding):
-                    Histo_Name_EvGen = Histo_Name_EvGen.replace("V1", "V2")
-                    print(f"{color.Error}Warning:{color.END} Needed to switch to 'V2' to use '{Histo_Name_EvGen}'\n")
+    fits_included    = False
+    RC_fits_included = False
+    # if(Fit_Test):
+    for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
+        if("(Fit_Par" in str(List_of_All_Histos_For_Unfolding_ii)):
+            # print(f"\n{List_of_All_Histos_For_Unfolding_ii}")
+            fits_included    = True
+        if("(Fit_Par_B)_(RC" in str(List_of_All_Histos_For_Unfolding_ii)):
+            RC_fits_included = True
+        if(fits_included and RC_fits_included):
+            break
+    print(f"{color.BLUE}Normal Unfolding Fits Already Included? -> {color.BGREEN if(fits_included)    else color.Error}{fits_included}{color.END}")
+    print(f"{color.BLUE}RC Unfolding Fits Already Included?     -> {color.BGREEN if(RC_fits_included) else color.Error}{RC_fits_included}{color.END}")
+
+    if(not (fits_included and RC_fits_included)):
+        print("Making the fits...")
+        script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
+        sys.path.append(script_dir)
+        from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
+        sys.path.remove(script_dir)
+        del script_dir
+        print(f"\n{color.BOLD}Loaded `{color.GREEN}Find_RC_Fit_Params{color.END_B}` and `{color.GREEN}Apply_RC_Factor_Corrections{color.END_B}` for applying RC Corrections...{color.END}\n")
+        # print(Find_RC_Fit_Params(Q2_y_bin=1, z_pT_bin=1, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=not True))
+        Histogram_Fit_List_All = {}
+        fit_count = 0
+        for ii, List_of_All_Histos_For_Unfolding_ii in enumerate(List_of_All_Histos_For_Unfolding):
+            if(any(Fit_objects in str(List_of_All_Histos_For_Unfolding_ii) for Fit_objects in ["Fit_Function", "Chi_Squared", "Fit_Par_A", "Fit_Par_B", "Fit_Par_C"])):
+                continue
+            if("Bin_All)"  in str(List_of_All_Histos_For_Unfolding_ii)):
+                continue
+            if("_EvGen"    in str(List_of_All_Histos_For_Unfolding_ii)):
+                continue
+            if(("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
+                Histo_clasdis        = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
+                Histo_Name_EvGen     = f"{Histo_clasdis.GetName()}_EvGen"
+                Histo_Name_EvGen     = Histo_Name_EvGen.replace("Smear", "''")
+                if(Histo_Name_EvGen not in List_of_All_Histos_For_Unfolding):
+                    if(Histo_Name_EvGen.replace("V1", "V2") in List_of_All_Histos_For_Unfolding):
+                        Histo_Name_EvGen = Histo_Name_EvGen.replace("V1", "V2")
+                        print(f"{color.Error}Warning:{color.END} Needed to switch to 'V2' to use '{Histo_Name_EvGen}'\n")
+                    else:
+                        print(f"{color.Error}Could not find EvGen Acceptance ({Histo_Name_EvGen}){color.END}")
+                        continue
+                match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_EvGen))
+                if(match):
+                    Q2_Y_Bin_Fitting = int(match.group(1))
+                    Z_PT_Bin_Fitting = int(match.group(2))
                 else:
-                    print(f"{color.Error}Could not find EvGen Acceptance ({Histo_Name_EvGen}){color.END}")
+                    print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
                     continue
-            match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_EvGen))
-            if(match):
-                Q2_Y_Bin_Fitting = int(match.group(1))
-                Z_PT_Bin_Fitting = int(match.group(2))
-            else:
-                print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
-                continue
-            if(str(Q2_Y_Bin_Fitting) not in Q2_xB_Bin_List):
-                continue
-            Histo_Name_ratio     = str(Histo_clasdis.GetName()).replace("(Acceptance)", "(Acceptance_ratio)")
-            Hist_AcceptanceRatio = List_of_All_Histos_For_Unfolding[Histo_Name_EvGen].Clone(Histo_Name_ratio)
-            Hist_AcceptanceRatio.Divide(Histo_clasdis)
-            Hist_AcceptanceRatio.SetTitle(Hist_AcceptanceRatio.GetTitle().replace("Bin-by-Bin Acceptance", "Ratio of #frac{EvGen}{clasdis} Acceptances"))
-            Hist_AcceptanceRatio.GetYaxis().SetTitle("#frac{EvGen}{clasdis} Acceptance Ratio")
-            Hist_AcceptanceRatio.SetLineColor(ROOT.kAzure + 3)
-            Hist_AcceptanceRatio.SetLineWidth(2)
-            Hist_AcceptanceRatio.SetLineStyle(1)
-            Histogram_Fit_List_All[Histo_Name_ratio] = Hist_AcceptanceRatio
-            fit_count += 1
-        if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) or ("(Bin)" in str(List_of_All_Histos_For_Unfolding_ii))):
-            Histo_Original       = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
-            Histo_Name_General   = Histo_Original.GetName()
-            match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_General))
-            if(match):
-                Q2_Y_Bin_Fitting = int(match.group(1))
-                Z_PT_Bin_Fitting = int(match.group(2))
-            else:
-                print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
-                continue
-            if(str(Q2_Y_Bin_Fitting) not in Q2_xB_Bin_List):
-                # print(f"\n{color.RED}Not Using Histograms from Q2-y Bin {color.UNDERLINE}{Q2_Y_Bin_Fitting}{color.END}")
-                continue
-            if(Add_Uncertainties):
-                Histo_Original = Apply_PreBin_Uncertainties(Histo_In=Histo_Original, Q2_y_Bin=Q2_Y_Bin_Fitting, z_pT_Bin=Z_PT_Bin_Fitting, Uncertainty_File_In=Uncertainty_File)
-            Dimensions_Original = "1D" if("1D" in Histo_Name_General) else "MultiDim_3D_Histo" if("MultiDim_3D_Histo" in Histo_Name_General) else "MultiDim_5D_Histo" if("MultiDim_5D_Histo" in Histo_Name_General) else "Error"
-            if(Dimensions_Original == "Error"):
-                print(f"\n{color.Error}Error: Could not find unfolding dimensions for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
-                continue
-            print(f"\nFitting for: {color.BOLD}{List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
-            Histo_Name_Rad_Cor          = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
-            RC_RooUnfolded_TTree_Histos = Histo_Original.Clone(Histo_Name_Rad_Cor)
-            if(TTree_Name in ["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut.root"]):
-                RC_RooUnfolded_TTree_Histos.Rebin(2)
-            if((not fits_included) and Fit_Test):
-                RooUnfolded_TTree_Histos, Unfolded_TTree_Fit_Function, Chi_Squared_TTree, TTree_Fit_Par_A, TTree_Fit_Par_B, TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=Histo_Original, Method="Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting])
-                Histogram_Fit_List_All[str(Histo_Name_General)]                                                = RooUnfolded_TTree_Histos.Clone(str(Histo_Name_General))
-                Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function")]   = Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function"))
-                Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Chi_Squared")]    = Chi_Squared_TTree
-                Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_A")]      = TTree_Fit_Par_A
-                Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_B")]      = TTree_Fit_Par_B
-                Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
+                if(str(Q2_Y_Bin_Fitting) not in Q2_xB_Bin_List):
+                    continue
+                Histo_Name_ratio     = str(Histo_clasdis.GetName()).replace("(Acceptance)", "(Acceptance_ratio)")
+                Hist_AcceptanceRatio = List_of_All_Histos_For_Unfolding[Histo_Name_EvGen].Clone(Histo_Name_ratio)
+                Hist_AcceptanceRatio.Divide(Histo_clasdis)
+                Hist_AcceptanceRatio.SetTitle(Hist_AcceptanceRatio.GetTitle().replace("Bin-by-Bin Acceptance", "Ratio of #frac{EvGen}{clasdis} Acceptances"))
+                Hist_AcceptanceRatio.GetYaxis().SetTitle("#frac{EvGen}{clasdis} Acceptance Ratio")
+                Hist_AcceptanceRatio.SetLineColor(ROOT.kAzure + 3)
+                Hist_AcceptanceRatio.SetLineWidth(2)
+                Hist_AcceptanceRatio.SetLineStyle(1)
+                Histogram_Fit_List_All[Histo_Name_ratio] = Hist_AcceptanceRatio
                 fit_count += 1
-
-            RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
-            RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
-            RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], Overwrite_Fit_Test=True)
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor)]                                                = RC_RooUnfolded_TTree_Histos.Clone(str(Histo_Name_Rad_Cor))
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function")]   = RC_Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function"))
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Chi_Squared")]    = RC_Chi_Squared_TTree
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_A")]      = RC_TTree_Fit_Par_A
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_B")]      = RC_TTree_Fit_Par_B
-            Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_C")]      = RC_TTree_Fit_Par_C
-            fit_count += 1
-            
-            if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) and ("1D" in Histo_Name_General)):
-                print(f"\n{color.BBLUE}Grabbing the RC vs phi_h plot for {color.END_B}Bin {Q2_Y_Bin_Fitting}-{Z_PT_Bin_Fitting}{color.BLUE}...{color.END}\n")
-                RC_Factor_Plot = Get_RC_Fit_Plot(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", quiet=True, plot_choice="RC_factor")
-                RC_Factor_Plot, RC_Factor_Plot_Fit_Function, RC_Factor_Chi_Squared_Plot, RC_Factor_Fit_Par_A, RC_Factor_Fit_Par_B, RC_Factor_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_Factor_Plot, Method="RC", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], Overwrite_Fit_Test=True)
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC"))]                                                = RC_Factor_Plot.Clone(str(Histo_Name_General).replace("Bayesian", "RC"))
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function")]   = RC_Factor_Plot_Fit_Function.Clone(str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function"))
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Chi_Squared")]    = RC_Factor_Chi_Squared_Plot
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_A")]      = RC_Factor_Fit_Par_A
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_B")]      = RC_Factor_Fit_Par_B
-                Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_C")]      = RC_Factor_Fit_Par_C
+            if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) or ("(Bin)" in str(List_of_All_Histos_For_Unfolding_ii))):
+                Histo_Original       = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
+                Histo_Name_General   = Histo_Original.GetName()
+                match = re.search(r"Q2_y_Bin_(\d+).*z_pT_Bin_(\d+)", str(Histo_Name_General))
+                if(match):
+                    Q2_Y_Bin_Fitting = int(match.group(1))
+                    Z_PT_Bin_Fitting = int(match.group(2))
+                else:
+                    print(f"\n{color.Error}Error: Could not find kinematics bins for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+                    continue
+                if(str(Q2_Y_Bin_Fitting) not in Q2_xB_Bin_List):
+                    # print(f"\n{color.RED}Not Using Histograms from Q2-y Bin {color.UNDERLINE}{Q2_Y_Bin_Fitting}{color.END}")
+                    continue
+                if(Add_Uncertainties):
+                    Histo_Original = Apply_PreBin_Uncertainties(Histo_In=Histo_Original, Q2_y_Bin=Q2_Y_Bin_Fitting, z_pT_Bin=Z_PT_Bin_Fitting, Uncertainty_File_In=Uncertainty_File)
+                Dimensions_Original = "1D" if("1D" in Histo_Name_General) else "MultiDim_3D_Histo" if("MultiDim_3D_Histo" in Histo_Name_General) else "MultiDim_5D_Histo" if("MultiDim_5D_Histo" in Histo_Name_General) else "Error"
+                if(Dimensions_Original == "Error"):
+                    print(f"\n{color.Error}Error: Could not find unfolding dimensions for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
+                    continue
+                print(f"\nFitting for: {color.BOLD}{List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
+                Histo_Name_Rad_Cor          = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
+                RC_RooUnfolded_TTree_Histos = Histo_Original.Clone(Histo_Name_Rad_Cor)
+                if(TTree_Name in ["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut.root"]):
+                    RC_RooUnfolded_TTree_Histos.Rebin(2)
+                if((not fits_included) and Fit_Test):
+                    RooUnfolded_TTree_Histos, Unfolded_TTree_Fit_Function, Chi_Squared_TTree, TTree_Fit_Par_A, TTree_Fit_Par_B, TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=Histo_Original, Method="Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting])
+                    Histogram_Fit_List_All[str(Histo_Name_General)]                                                = RooUnfolded_TTree_Histos.Clone(str(Histo_Name_General))
+                    Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function")]   = Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function"))
+                    Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Chi_Squared")]    = Chi_Squared_TTree
+                    Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_A")]      = TTree_Fit_Par_A
+                    Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_B")]      = TTree_Fit_Par_B
+                    Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
+                    fit_count += 1
+    
+                RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
+                RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
+                RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], Overwrite_Fit_Test=True)
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor)]                                                = RC_RooUnfolded_TTree_Histos.Clone(str(Histo_Name_Rad_Cor))
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function")]   = RC_Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function"))
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Chi_Squared")]    = RC_Chi_Squared_TTree
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_A")]      = RC_TTree_Fit_Par_A
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_B")]      = RC_TTree_Fit_Par_B
+                Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_C")]      = RC_TTree_Fit_Par_C
                 fit_count += 1
+                
+                if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) and ("1D" in Histo_Name_General)):
+                    print(f"\n{color.BBLUE}Grabbing the RC vs phi_h plot for {color.END_B}Bin {Q2_Y_Bin_Fitting}-{Z_PT_Bin_Fitting}{color.BLUE}...{color.END}\n")
+                    RC_Factor_Plot = Get_RC_Fit_Plot(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", quiet=True, plot_choice="RC_factor")
+                    RC_Factor_Plot, RC_Factor_Plot_Fit_Function, RC_Factor_Chi_Squared_Plot, RC_Factor_Fit_Par_A, RC_Factor_Fit_Par_B, RC_Factor_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_Factor_Plot, Method="RC", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], Overwrite_Fit_Test=True)
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC"))]                                                = RC_Factor_Plot.Clone(str(Histo_Name_General).replace("Bayesian", "RC"))
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function")]   = RC_Factor_Plot_Fit_Function.Clone(str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function"))
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Chi_Squared")]    = RC_Factor_Chi_Squared_Plot
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_A")]      = RC_Factor_Fit_Par_A
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_B")]      = RC_Factor_Fit_Par_B
+                    Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_C")]      = RC_Factor_Fit_Par_C
+                    fit_count += 1
+                
+        print(f"\n{color.BBLUE}Fit/Added {color.END_B}{fit_count}{color.BBLUE} Histograms{color.END_b}\nAdding to Main List...{color.END}")
+    
+        for name_ii in Histogram_Fit_List_All:
+            List_of_All_Histos_For_Unfolding[name_ii] = Histogram_Fit_List_All[name_ii]
             
-    print(f"\n{color.BBLUE}Fit/Added {color.END_B}{fit_count}{color.BBLUE} Histograms{color.END_b}\nAdding to Main List...{color.END}")
-
-    for name_ii in Histogram_Fit_List_All:
-        List_of_All_Histos_For_Unfolding[name_ii] = Histogram_Fit_List_All[name_ii]
-        
-    print(f"\n{color.BGREEN}Length of Main List of Histograms (After adding Fits): {color.END_B}{len(List_of_All_Histos_For_Unfolding)}{color.END}\n")
-
+        print(f"\n{color.BGREEN}Length of Main List of Histograms (After adding Fits): {color.END_B}{len(List_of_All_Histos_For_Unfolding)}{color.END}\n")
+    else:
+        print(f"{color.BOLD}Fits are all already made{color.END}")
     timer.time_elapsed()
 
 
@@ -9550,7 +9567,7 @@ print(f"\nFinal Count = {final_count}")
 # del final_count
 
 
-if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and True):
+if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in range(1, 17)) or False) and not True):
     print(f"\n{color.BBLUE}Will be saving the Modulations now (for iterative modulations){color.END}\n")
     Cor_Type  = "Bayesian"
     # Var_Type  = "phi_t"                         # --> 1D Unfolding
@@ -9652,7 +9669,7 @@ if((tdf not in ["N/A"]) or Sim_Test):
     Method_Type_List.append("tdf")
 
 if(Apply_RC):
-    # Method_Type_List = []
+    Method_Type_List = []
     # Method_Type_List.append("RC")
     # Method_Type_List.remove("Bin")
     # Method_Type_List.append("RC_Bin")
@@ -9667,7 +9684,7 @@ if(Apply_RC):
 
 # Method_Type_List = ["mdf", "Background", "Relative_Background"]
 # Method_Type_List = ["RC"]
-Method_Type_List = ["Bayesian"]
+# Method_Type_List = ["Bayesian"]
 
 
 # Method_Type_List = ["Data", "Bin", "rdf", "mdf", "gdf", "Acceptance"]
@@ -9787,6 +9804,7 @@ if(("MultiDim_z_pT_Bin_Y_bin_phi_t"  in Variable_List_Final) and ("3D"   not in 
     Variable_List_Final.remove("MultiDim_z_pT_Bin_Y_bin_phi_t")
 
 
+# if(not (fits_included and RC_fits_included)):
 print(f"\n{color.BOLD}About to run 'Integrate_z_pT_Bins(...)' to get the Integrated z-pT bin plots...{color.END}")
 for variable in Variable_List:
     # if((variable not in ["phi_t", "MM"]) or ("sec" in variable)):
@@ -10039,6 +10057,9 @@ for variable in Variable_List:
         for smear in Smearing_final_list:
             HISTO_NAME = f"(1D)_(Data_Type)_(SMEAR={smear})_(Q2_y_Bin_{BIN_NUM})_(z_pT_Bin_All)_({variable})"
             for Multi_Dim in Multi_Dimensional_List:
+                if(fits_included and RC_fits_included):
+                    print("Skipping 'z_pT_Images_Together' to focus just on the Fit Parameter Images...")
+                    continue
                 if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
                     continue
                 if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"]) and ((str(variable) in ["phi_t", "el", "pip", "elth", "pipth", "elPhi", "pipPhi", "MM"]) or ("sec" in variable))):
@@ -10148,7 +10169,7 @@ for variable in Variable_List:
 
             # continue
 
-            if((str(BIN_NUM) not in ["All", "0"]) and (Fit_Test)):
+            if((str(BIN_NUM) not in ["All", "0"]) and (Fit_Test or (fits_included and RC_fits_included))):
                 # for Variable       in ["phi_t",     "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_z_pT_Bin_y_bin_phi_t"]:
                 for Variable       in Variable_List_Final:
                     if("phi_t" not in Variable):
@@ -10242,7 +10263,7 @@ for variable in Variable_List:
                                             # print("\nSKIPPING PT_BIN = 0.27\n")
                                             continue
 
-                                    if(Fit_Test):
+                                    if(Fit_Test or (fits_included and RC_fits_included)):
                                         try:
                                             PARAMETER_TO_ADD, PAR_ERROR_TO_ADD = List_of_All_Histos_For_Unfolding[str(PAR_FIND_NAME)]
                                         except:
@@ -10522,6 +10543,7 @@ if(Create_txt_File):
     # else:
     #     print(color.Error, "Still failed to get a new name for the .txt file...", color.END)
 
+    # if(Fit_Test or (fits_included and RC_fits_included)):
     if(Fit_Test):
         Output_txt_Par_Name  = f"Parameters_{Output_txt_Name}"
         Text_Par_Outputs     = "Note to Reader: Print the text in this file as a string in Python for the best formatting...\n"
