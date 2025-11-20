@@ -1612,7 +1612,8 @@ def Draw_the_MM_Cut_Lines(MM_z_pT_legend, MM_z_pT_borders={}, Q2_Y_Bin=1, Plot_O
 ##==========##==========##     Function for Finding Kinematic Binning Info     ##==========##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################################
 def Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find, z_pT_Bin_Find="All", List_Of_Histos_For_Stats_Search="Use_Center", Smearing_Q="''", DataType="bbb", Binning_Method_Input=Binning_Method):
-    if(str(List_Of_Histos_For_Stats_Search) in ["Use_Center"]):
+    # if(str(List_Of_Histos_For_Stats_Search) in ["Use_Center"]):
+    if((isinstance(List_Of_Histos_For_Stats_Search, str)) and (List_Of_Histos_For_Stats_Search == "Use_Center")):
         ####################======================================####################
         #####==========#####   Finding the Q2-y Bin Information   #####==========#####
         ####################======================================####################
