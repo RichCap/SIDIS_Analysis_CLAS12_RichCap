@@ -82,7 +82,7 @@ def parse_args():
     p.add_argument('-t', '-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
                    help="Run full code but without saving any files.")
     p.add_argument('-r', '--root', type=str, default="Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap.root",
-                   help="Name of ROOT output file to be saved.")
+                   help="Name of ROOT output file to be saved (must specify the FULL file name).")
 
     # smearing selection
     grp_smear = p.add_mutually_exclusive_group()
@@ -92,6 +92,8 @@ def parse_args():
                            help="Unfold with unsmeared Monte Carlo only.")
 
     # simulation / modulation / closure
+    p.add_argument('-wa', '--weighed_acceptace', action='store_true', dest='weighed_acceptace',
+                   help="Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied). Use with the '--single_file' option only. WARNING: This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
     p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
                    help="Use reconstructed MC instead of experimental data.")
     p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
@@ -144,6 +146,8 @@ def parse_args():
                    help="Runs with a single input file where the histograms are all taken from the same file instead of 3 separate ones.")
     p.add_argument('-sfin', '--single_file_input', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/SIDIS_epip_All_File_Types_from_RDataFrames_ZeroOrder.root",
                    help="Input file to be used with the '--single_file' option. Is set to 'None' if the '--single_file' option is not selected.")
+    # p.add_argument('-ZO', '--zero_order',  action='store_true', 
+    #                help="USE '-wa' INSTEAD — Can use with '--single_file' when using the zeroth order acceptance weights. When you want to use the weighted MC for corrections, the zeroth order generated distributions do not have any weights, so the script will always fail to find them. This argument allows for the unweighted 'gdf' histograms to be used in these cases (do not use this option for other types of weighted MCs).")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins', nargs='*', metavar='BIN',
@@ -241,6 +245,9 @@ if(Mod_Test):
         Standard_Histogram_Title_Addition = f"{Standard_Histogram_Title_Addition} - Using Modulated Response Matrix"
     else:
         Standard_Histogram_Title_Addition = "Closure Test - Using Modulated Response Matrix"
+
+if(args.weighed_acceptace):
+    Standard_Histogram_Title_Addition = Standard_Histogram_Title_Addition.replace("Modulated", "Weighted")
 
 if(Tag_ProQ):
     Proton_Type = "Tagged Proton" if(not Cut_ProQ) else "Cut with Proton Missing Mass"
@@ -1066,8 +1073,11 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         bayes_iterations = 4
                         print(f"{color.BOLD}Performing 5D Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
                     if(args.bayes_iterations):
-                        bayes_iterations = args.bayes_iterations
-                        print(f"{color.BOLD}Performing Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
+                        if(args.bayes_iterations != bayes_iterations):
+                            bayes_iterations = args.bayes_iterations
+                            print(f"{color.BOLD}Performing Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
+                    else:
+                        args.bayes_iterations = bayes_iterations
                     #########################################
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
@@ -1240,7 +1250,7 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
                 if(pattern == Pattern_Smear_Type):
                     histo_group = "".join(["SMEAR=", "".join(["'", str(histo_group), "'"]) if(histo_group != "''") else str(histo_group)]) 
                 if(pattern == Pattern_Q2_y_Bin):
-                    histo_group = "".join(["Q2_y_Bin_", str(histo_group)]) 
+                    histo_group = f"Q2_y_Bin_{histo_group}"
         else:
             histo_group = pattern
             if(pattern == Smear_Type):
@@ -1255,6 +1265,8 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
     
     Name_Output = str(Name_Output.replace("cut_Complete_SIDIS_Proton",    "Proton"))
     Name_Output = str(Name_Output.replace("cut_Complete_SIDIS_Integrate", "Integrate"))
+    if(args.single_file and (Closure_Test or Mod_Test or Sim_Test) and (")_(" in str(Name_Output)) and all(extra not in str(Name_Output) for extra in ["Mod_Test", "Closure_Test", "Sim_Test"])):
+        Name_Output = f"{Name_Output}_({'Mod_Test' if(Mod_Test) else 'Closure_Test' if(Closure_Test) else 'Sim_Test'})"
     
     return Name_Output
 
@@ -3131,6 +3143,9 @@ for ii in mdf.GetListOfKeys():
     if(("_(Weighed)" in out_print_main) and not (Mod_Test or Closure_Test)):
         print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
         continue
+    elif(("_(Weighed)" not in out_print_main) and Mod_Test):
+        print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
+        continue
     
     # count += 1
     # if("pipsec" in out_print_main):
@@ -3183,7 +3198,7 @@ for ii in mdf.GetListOfKeys():
         else:
             out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
             if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN MDF...\n{color.END_R}Dataframe is missing: {color.BOLD}{out_print_main_mdf}{color.END}\n")
                 continue
             Base_Name             = out_print_main_mdf.replace("_Slice_1_", "_Slice_NUMBER_")
             Slice_Num, Histo_List = 1, {}
@@ -3194,8 +3209,12 @@ for ii in mdf.GetListOfKeys():
                     Slice_Num += 1
                 else:
                     break  # Exit the loop if the histogram does not exist
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
+            out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+            if(not Closure_Test):
+                out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+            out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
+            if(args.weighed_acceptace):
+                out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
             ################################################################################
             ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
             out_print_main_rdf = out_print_main_rdf.replace(f"_Slice_1_(Increment='{Num_5D_Increments_Used_to_Slice}')", "")
@@ -3233,6 +3252,9 @@ for ii in mdf.GetListOfKeys():
             if(Sim_Test):
                 out_print_main_rdf = out_print_main_mdf_1D
                 out_print_main_tdf = out_print_main_gdf
+                if(not Closure_Test):
+                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
                         print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
@@ -3326,10 +3348,13 @@ for ii in mdf.GetListOfKeys():
             # print(f"Number Failed: {count_failed}\n\n")
             continue
         else:
-            out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
-            
+            out_print_main_mdf     = out_print_main.replace("DataFrame_Type", "mdf")
+            out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+            if(not Closure_Test):
+                out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+            out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
+            if(args.weighed_acceptace):
+                out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
             ################################################################################
             ##=============##          Finding MC Backgound Plots          ##=============##
             out_print_main_bdf = out_print_main_mdf.replace("Normal_2D", "Normal_Background_2D")
@@ -3355,13 +3380,16 @@ for ii in mdf.GetListOfKeys():
             ################################################################################
             
             if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN MDF...\n{color.END_R}Dataframe is missing: {color.BOLD}{out_print_main_mdf}{color.END}\n")
                 for ii in mdf.GetListOfKeys():
                     if(("Normal_2D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
                         print(str(ii.GetName()))
             if(Sim_Test):
-                out_print_main_rdf = out_print_main_mdf
-                out_print_main_tdf = out_print_main_gdf
+                out_print_main_rdf     = out_print_main_mdf
+                out_print_main_tdf     = out_print_main_gdf
+                if(not Closure_Test):
+                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
                         print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
@@ -3608,10 +3636,13 @@ for ii in mdf.GetListOfKeys():
         else:
             del Conditions_For_Unfolding # Do not need the list of conditions for the rest of this loop
             
-            out_print_main_rdf = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
-            out_print_main_mdf = out_print_main.replace("DataFrame_Type", "mdf")
-            out_print_main_gdf = out_print_main.replace("DataFrame_Type", "gdf")
-
+            out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not Sim_Test) else "mdf")
+            if(not Closure_Test):
+                out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+            out_print_main_mdf     = out_print_main.replace("DataFrame_Type", "mdf")
+            out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
+            if(args.weighed_acceptace):
+                out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
             ################################################################################
             ##=============##    Removing Cuts from the Generated files    ##=============##
             out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
@@ -3675,35 +3706,37 @@ for ii in mdf.GetListOfKeys():
             # ##======## Fixing potential LACK of (New) z-pT bins in Multi-Dim Response Matix ##======##
             # ##########################################################################################
 
-
             if(out_print_main_mdf not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN MDF...\n{color.END_R}Dataframe is missing: {color.BOLD}{out_print_main_mdf}{color.END}\n")
                 continue
 
             out_print_main_mdf_1D = out_print_main_mdf.replace("'Response_Matrix_Normal'", "'Response_Matrix_Normal_1D'")
             if(("".join([", (Var-D2='z_pT_Bin", str(Binning_Method)]) not in out_print_main_mdf_1D) and ("Var-D1='phi_t'" in out_print_main_mdf_1D)):
                 out_print_main_mdf_1D = out_print_main_mdf_1D.replace("]))", "".join(["]), (Var-D2='z_pT_Bin", str(Binning_Method), "" if("smear" not in str(out_print_main_mdf_1D)) else "_smeared", "'-[NumBins=52, MinBin=-1.5, MaxBin=50.5]))"]))
             if(out_print_main_mdf_1D not in mdf.GetListOfKeys()):
-                print("".join([color.Error, "ERROR IN MDF...\n", color.END_R, "Dataframe is missing: ", color.BOLD, str(out_print_main_mdf_1D), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN MDF...\n{color.END_R}Dataframe is missing: {color.BOLD}{out_print_main_mdf_1D}{color.END}\n")
                 for ii in mdf.GetListOfKeys():
                     if(("Response_Matrix_Normal_1D" in str(ii)) and ("cut_Complete_SIDIS" in str(ii))):
                         print(str(ii.GetName()))
 
             out_print_main_tdf = None
             if(Sim_Test):
-                out_print_main_rdf = out_print_main_mdf_1D
-                out_print_main_tdf = out_print_main_gdf
+                out_print_main_rdf     = out_print_main_mdf_1D
+                out_print_main_tdf     = out_print_main_gdf
+                if(not Closure_Test):
+                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
                 if(tdf not in ["N/A"]):
                     if(out_print_main_tdf not in tdf.GetListOfKeys()):
-                        print("".join([color.Error, "ERROR IN TDF...\n", color.END_R, "Dataframe is missing: ", color.BCYAN,  str(out_print_main_tdf), color.END, "\n"]))
+                        print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
                         continue
                 else:
-                    print("".join([color.Error,     "ERROR IN TDF...\n", color.END_R, "Missing Dataframe...",   color.END, "\n"]))
+                    print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Missing Dataframe...{color.END}\n")
             if(out_print_main_rdf not in rdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN RDF...\n", color.END_R, "Dataframe is missing: ", color.BBLUE,  str(out_print_main_rdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN RDF...\n{color.END_R}Dataframe is missing: {color.BBLUE}{out_print_main_rdf}{color.END}\n")
                 continue
             if(out_print_main_gdf not in gdf.GetListOfKeys()):
-                print("".join([color.Error,         "ERROR IN GDF...\n", color.END_R, "Dataframe is missing: ", color.BGREEN, str(out_print_main_gdf), color.END, "\n"]))
+                print(f"{color.Error}ERROR IN GDF...\n{color.END_R}Dataframe is missing: {color.BGREEN}{out_print_main_gdf}{color.END}\n")
                 continue
 
 
@@ -3726,16 +3759,15 @@ for ii in mdf.GetListOfKeys():
             # print("out_print_main =", out_print_main, "\n\n")
 
             if(type(Q2_xB_Bin_Unfold) is str):
-                print("".join([color.Error, "\nERROR - Q2_xB_Bin_Unfold = ", str(Q2_xB_Bin_Unfold), color.END]))
-                print(f"Error is with\n out_print_main = {out_print_main}")
+                print(f"\n{color.Error}ERROR - Q2_xB_Bin_Unfold = {Q2_xB_Bin_Unfold}\n{color.END}Error is with\n out_print_main = {out_print_main}")
 
             if((str(Q2_xB_Bin_Unfold) not in Q2_xB_Bin_List) and ("Multi_Dim_Q2_y_Bin_phi_t" not in str(out_print_main))):
                 # print("Skipping unselected Q2-xB Bin...")
-                print("".join(["Bin ", str(Q2_xB_Bin_Unfold), " is not in Q2_xB_Bin_List = ", str(Q2_xB_Bin_List)]))
+                print(f"Bin {Q2_xB_Bin_Unfold} is not in Q2_xB_Bin_List = {Q2_xB_Bin_List}")
                 continue
 
             count += 1
-            print("".join(["\nUnfolding: ", str(out_print_main)]))
+            print(f"\nUnfolding: {out_print_main}")
             ExREAL_1D_initial     = rdf.Get(out_print_main_rdf)
             MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
             MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
@@ -3766,7 +3798,7 @@ for ii in mdf.GetListOfKeys():
                 # print(f"{color.BOLD}MC_REC_1D_initial  -> {MC_REC_1D_initial.GetName()}{color.END}\n")
             else:
                 MC_BGS_1D_initial = "None"
-                print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
+                print(f"\n{color.Error}ERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
                 raise TypeError("Missing Background Histogram")
             if(Sim_Test and (str(MC_BGS_1D_initial) not in ["None"])):
                 # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
@@ -3777,7 +3809,7 @@ for ii in mdf.GetListOfKeys():
 
             if(("Gen_MM_Cut" in str(out_print_main_rdf)) or ("Gen_MM_Cut" in str(out_print_main_mdf_1D)) or ("Gen_MM_Cut" in str(out_print_main_gdf))  or ("Gen_MM_Cut" in str(out_print_main_mdf))):
                 if((not Use_Gen_MM_Cut) and (Common_Name not in ["Gen_Cuts_V7_All"])):
-                    print(color.Error, "\nERROR: NOT TRYING TO RUN Gen_MM_Cut\n", color.END)
+                    print(f"\n{color.Error}ERROR: NOT TRYING TO RUN Gen_MM_Cut{color.END}\n")
                     continue
                 print(f"{color.BBLUE}INCLUDES Gen_MM_Cut{color.END}")
                 # print("out_print_main_rdf    =", out_print_main_rdf)
@@ -3790,7 +3822,7 @@ for ii in mdf.GetListOfKeys():
                     Response_2D_initial = Response_2D_initial.Project3D("yx e")
                     Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace(" yx projection", ""))
                 else:
-                    print(color.Error, "\n\nERROR WITH Gen_MM_Cut Response Matrix", color.END, "\nResponse_2D_initial = ", Response_2D_initial)
+                    print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut Response Matrix\n{color.END}Response_2D_initial = {Response_2D_initial}")
                     raise TypeError("ERROR WITH Gen_MM_Cut Response Matrix")
 
                 if("3D" in str(type(MC_REC_1D_initial))):
@@ -3798,14 +3830,14 @@ for ii in mdf.GetListOfKeys():
                         MC_REC_1D_initial = MC_REC_1D_initial.Project3D("yx e")
                         MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" yx projection", ""))
                     else:
-                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                        print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC REC HISTO\n{color.END}MC_REC_1D_initial = {MC_REC_1D_initial}")
                         raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
                 else:
                     if(abs(MC_REC_1D_initial.GetYaxis().GetXmin()) == abs(MC_REC_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                         MC_REC_1D_initial = MC_REC_1D_initial.ProjectionX(str(MC_REC_1D_initial.GetName()), 0, -1, "e")
                         MC_REC_1D_initial.SetTitle(str(MC_REC_1D_initial.GetTitle()).replace(" x projection", ""))
                     else:
-                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC REC HISTO", color.END, "\nMC_REC_1D_initial = ", MC_REC_1D_initial)
+                        print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC REC HISTO\n{color.END}MC_REC_1D_initial = {MC_REC_1D_initial}")
                         raise TypeError("ERROR WITH Gen_MM_Cut MC REC HISTO")
 
                 if("3D" in str(type(MC_GEN_1D_initial))):
@@ -3813,14 +3845,14 @@ for ii in mdf.GetListOfKeys():
                         MC_GEN_1D_initial = MC_GEN_1D_initial.Project3D("yx e")
                         MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" yx projection", ""))
                     else:
-                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                        print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC GEN HISTO\n{color.END}MC_GEN_1D_initial = {MC_GEN_1D_initial}")
                         raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
                 else:
                     if(abs(MC_GEN_1D_initial.GetYaxis().GetXmin()) == abs(MC_GEN_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                         MC_GEN_1D_initial = MC_GEN_1D_initial.ProjectionX(str(MC_GEN_1D_initial.GetName()), 0, -1, "e")
                         MC_GEN_1D_initial.SetTitle(str(MC_GEN_1D_initial.GetTitle()).replace(" x projection", ""))
                     else:
-                        print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC GEN HISTO", color.END, "\nMC_GEN_1D_initial = ", MC_GEN_1D_initial)
+                        print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC GEN HISTO\n{color.END}MC_GEN_1D_initial = {MC_GEN_1D_initial}")
                         raise TypeError("ERROR WITH Gen_MM_Cut MC GEN HISTO")
 
                 if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
@@ -3829,14 +3861,14 @@ for ii in mdf.GetListOfKeys():
                             ExTRUE_1D_initial = ExTRUE_1D_initial.Project3D("yx e")
                             ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" yx projection", ""))
                         else:
-                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                            print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC TRUE HISTO\n{color.END}ExTRUE_1D_initial = {ExTRUE_1D_initial}")
                             raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
                     else:
                         if(abs(ExTRUE_1D_initial.GetYaxis().GetXmin()) == abs(ExTRUE_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                             ExTRUE_1D_initial = ExTRUE_1D_initial.ProjectionX(str(ExTRUE_1D_initial.GetName()), 0, -1, "e")
                             ExTRUE_1D_initial.SetTitle(str(ExTRUE_1D_initial.GetTitle()).replace(" x projection", ""))
                         else:
-                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC TRUE HISTO", color.END, "\nExTRUE_1D_initial = ", ExTRUE_1D_initial)
+                            print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC TRUE HISTO\n{color.END}ExTRUE_1D_initial = {ExTRUE_1D_initial}")
                             raise TypeError("ERROR WITH Gen_MM_Cut MC TRUE HISTO")
 
                 if(MC_BGS_1D_initial != "None"):
@@ -3845,14 +3877,14 @@ for ii in mdf.GetListOfKeys():
                             MC_BGS_1D_initial = MC_BGS_1D_initial.Project3D("yx e")
                             MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" yx projection", ""))
                         else:
-                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                            print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC BGS HISTO\n{color.END}MC_BGS_1D_initial = {MC_BGS_1D_initial}")
                             raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
                     else:
                         if(abs(MC_BGS_1D_initial.GetYaxis().GetXmin()) == abs(MC_BGS_1D_initial.GetYaxis().GetXmax()) == 1.5):                    
                             MC_BGS_1D_initial = MC_BGS_1D_initial.ProjectionX(str(MC_BGS_1D_initial.GetName()), 0, -1, "e")
                             MC_BGS_1D_initial.SetTitle(str(MC_BGS_1D_initial.GetTitle()).replace(" x projection", ""))
                         else:
-                            print(color.Error, "\n\nERROR WITH Gen_MM_Cut MC BGS HISTO", color.END, "\nMC_BGS_1D_initial = ", MC_BGS_1D_initial)
+                            print(f"\n\n{color.Error}ERROR WITH Gen_MM_Cut MC BGS HISTO\n{color.END}MC_BGS_1D_initial = {MC_BGS_1D_initial}")
                             raise TypeError("ERROR WITH Gen_MM_Cut MC BGS HISTO")
 
             elif(Common_Name in ["Gen_Cuts_V7_All"]):
@@ -3962,7 +3994,7 @@ for ii in mdf.GetListOfKeys():
                         Response_2D.SetTitle(Response_2D_Title_New)
                         # print(str(Response_2D.GetTitle()))
                     except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (Response_2D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                        print(f"\n{color.Error}ERROR IN z-pT BIN SLICING (Response_2D):\n{color.END_R}{traceback.format_exc()}{color.END}")
                 else:
                     Response_2D = Response_2D_initial
 
@@ -4003,7 +4035,7 @@ for ii in mdf.GetListOfKeys():
                             MC_REC_1D_Title_New          = "".join(["#splitline{", str(MC_REC_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                         MC_REC_1D.SetTitle(MC_REC_1D_Title_New)
                     except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_REC_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                        print(f"\n{color.Error}ERROR IN z-pT BIN SLICING (ExREAL_1D):\n{color.END_R}{traceback.format_exc()}{color.END}")
                 else:
                     # print("\nMC_REC_1D already is a 1D Histogram...")
                     MC_REC_1D = MC_REC_1D_initial
@@ -4023,7 +4055,7 @@ for ii in mdf.GetListOfKeys():
                                 MC_BGS_1D_Title_New          = "".join(["#splitline{", str(MC_BGS_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                             MC_BGS_1D.SetTitle(MC_BGS_1D_Title_New)
                         except:
-                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_BGS_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                            print(f"\n{color.Error}ERROR IN z-pT BIN SLICING (MC_BGS_1D):\n{color.END_R}{traceback.format_exc()}{color.END}")
                     else:
                         # print("\nMC_BGS_1D already is a 1D Histogram...")
                         MC_BGS_1D = MC_BGS_1D_initial
@@ -4044,7 +4076,7 @@ for ii in mdf.GetListOfKeys():
                             MC_GEN_1D_Title_New          = "".join(["#splitline{", str(MC_GEN_1D_Title_New), "}{", root_color.Bold, "{#scale[1.15]{", str(Pass_Version), "}}}"])
                         MC_GEN_1D.SetTitle(MC_GEN_1D_Title_New)
                     except:
-                        print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (MC_GEN_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                        print(f"\n{color.Error}ERROR IN z-pT BIN SLICING (MC_GEN_1D):\n{color.END_R}{traceback.format_exc()}{color.END}")
                 else:
                     # print("\nMC_GEN_1D already is a 1D Histogram...")
                     MC_GEN_1D = MC_GEN_1D_initial
@@ -4066,7 +4098,7 @@ for ii in mdf.GetListOfKeys():
                             ExTRUE_1D.SetTitle(ExTRUE_1D_Title_New)
                             ExTRUE_1D.GetXaxis().SetTitle(ExTRUE_1D_Title_X_Axis_New)
                         except:
-                            print("".join([color.Error, "\nERROR IN z-pT BIN SLICING (ExTRUE_1D):\n", color.END_R, str(traceback.format_exc()), color.END]))
+                            print(f"\n{color.Error}ERROR IN z-pT BIN SLICING (ExTRUE_1D):\n{color.END_R}{traceback.format_exc()}{color.END}")
                     else:
                         # print("\nExTRUE_1D already is a 1D Histogram...")
                         ExTRUE_1D = ExTRUE_1D_initial
@@ -4134,7 +4166,7 @@ for ii in mdf.GetListOfKeys():
                                 if(tdf not in ["N/A"]):
                                     ExTRUE_1D.SetBinContent(1, 0)
                         except:
-                            print("".join([color.RED, "ERROR IN SETTING BIT CONTENTS", color.END]))
+                            print(f"{color.RED}ERROR IN SETTING BIT CONTENTS{color.END}")
                             print(type(MC_REC_1D))
 
                     # else:
@@ -4742,29 +4774,29 @@ Output File:
 \t{args.root}
     
 Arguments:
---test                                         --> {args.test}
---bayes_iterations                             --> {args.bayes_iterations}
---Num_Toys                                     --> {args.Num_Toys}
---Min_Allowed_Acceptance_Cut                   --> {args.Min_Allowed_Acceptance_Cut}
---bins   (Q2-y Bins)                           --> {Q2_xB_Bin_List}
---title    (added title)                       --> {args.title}
---EvGen                                        --> {args.EvGen}
---smear                                        --> {args.smear}
---no-smear                                     --> {args.no_smear}
---simulation (unfolding synthetic data)        --> {args.sim}
---modulation (data unfolded with modulated MC) --> {args.mod}
---closure  (modulated MC unfolded with itself) --> {args.closure}
---fit                                          --> {args.fit}
---txt                                          --> {args.txt}
---stat                                         --> {args.stat}
---cor-compare                                  --> {args.cor_compare}
---tag-proton                                   --> {args.tag_proton}
---cut-proton                                   --> {args.cut_proton}
---Common_Int_Bins                              --> {args.Common_Int_Bins}
---single_file                                  --> {args.single_file}
---single_file_input                            --> {args.single_file_input}
+--test                                              --> {args.test}
+--bayes_iterations                                  --> {args.bayes_iterations}
+--Num_Toys                                          --> {args.Num_Toys}
+--Min_Allowed_Acceptance_Cut                        --> {args.Min_Allowed_Acceptance_Cut}
+--bins   (Q2-y Bins)                                --> {Q2_xB_Bin_List}
+--title    (added title)                            --> {args.title}
+--EvGen                                             --> {args.EvGen}
+--smear                                             --> {args.smear}
+--no-smear                                          --> {args.no_smear}
+--simulation (unfolding synthetic data)             --> {args.sim}
+--modulation (data unfolded with modulated MC)      --> {args.mod}
+--closure  (modulated MC unfolded with itself)      --> {args.closure}
+--weighed_acceptace (use acceptance weights only)   --> {args.weighed_acceptace}
+--fit                                               --> {args.fit}
+--txt                                               --> {args.txt}
+--stat                                              --> {args.stat}
+--cor-compare                                       --> {args.cor_compare}
+--tag-proton                                        --> {args.tag_proton}
+--cut-proton                                        --> {args.cut_proton}
+--Common_Int_Bins                                   --> {args.Common_Int_Bins}
+--single_file                                       --> {args.single_file}
+--single_file_input                                 --> {args.single_file_input}
 
-Final Count of Histograms Made: {final_count}
 """
 if(args.email_message):
     email_body = f"""{email_body}
