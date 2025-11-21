@@ -389,6 +389,47 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
 
 # --- 1D/3D Response Matrix: make exactly one request for one variable and one Q2-y bin ---
 
+
+def apply_weight_norm(df_in, bin_filter, use_weight=False, histo_data=None):
+    # Only MC REC should ever be renormalized
+    if((not use_weight) or (histo_data != "mdf")):
+        return df_in.Filter(bin_filter)
+
+    # Apply the cut first
+    df_cut = df_in.Filter(bin_filter)
+
+    # Check that weighting columns exist
+    if((not df_cut.HasColumn("W_pre")) or (not df_cut.HasColumn("W_acc"))):
+        return df_cut
+
+    # Compute sums for normalization
+    sum_pre = df_cut.Sum("W_pre").GetValue()
+    if(not df_cut.HasColumn("Event_Weight_raw")):
+        df_cut  = df_cut.Define("Event_Weight_raw", "W_pre * W_acc")
+        sum_acc = df_cut.Sum("Event_Weight_raw").GetValue()
+    else:
+        sum_acc = df_cut.Sum("Event_Weight_raw").GetValue()
+
+    # Safety check
+    if(sum_acc == 0):
+        print(f"{color.Error}WARNING: sum_acc == 0 inside apply_weight_norm() after cut:\n"
+              f"    {bin_filter}\n"
+              f"Skipping weight renormalization.{color.END}")
+        return df_cut
+
+    # Renormalization factor
+    renorm = sum_pre / sum_acc
+
+    # (Re)define Event_Weight with renormalization
+    if(df_cut.HasColumn("Event_Weight")):
+        df_cut = df_cut.Redefine("Event_Weight", f"(W_pre * W_acc) * ({renorm})")
+    else:
+        df_cut = df_cut.Define("Event_Weight",   f"(W_pre * W_acc) * ({renorm})")
+        
+    return df_cut
+
+
+
 def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Var_Input, Q2_y_bin_num, Use_Weight, Histograms_All, file_location, output_type, Res_Binning_2D_z_pT=["z_pT_Bin_Y_bin", -0.5, 37.5, 38], custom_title=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
@@ -472,30 +513,31 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
 
     Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter)
+    sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
     if(Histo_Data in ["mdf"]):
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
-                Histograms_All[Histo_Name_Weighed]        = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_Weighed),    str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name),            str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo2D((str(Histo_Name_Weighed),    str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
+            Histograms_All[Histo_Name]                    = sdf_cut.Histo2D((str(Histo_Name),            str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
             if(title2 is not None):
                 if(Use_Weight):
-                    Histograms_All[Histo_Name_1D_Weighed] = sdf.Filter(Bin_Filter).Histo1D((str(Histo_Name_1D_Weighed), str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-                Histograms_All[Histo_Name_1D]             = sdf.Filter(Bin_Filter).Histo1D((str(Histo_Name_1D),         str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                    Histograms_All[Histo_Name_1D_Weighed] = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),         str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
-                Histograms_All[Histo_Name_Weighed]        = sdf.Filter(Bin_Filter).Histo3D((str(Histo_Name_Weighed),    str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf.Filter(Bin_Filter).Histo3D((str(Histo_Name),            str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-            Histograms_All[Histo_Name_1D]                 = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo3D((str(Histo_Name_Weighed),    str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+            Histograms_All[Histo_Name]                    = sdf_cut.Histo3D((str(Histo_Name),            str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
     else:
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf.Filter(Bin_Filter).Histo1D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf.Filter(Bin_Filter).Histo1D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo1D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D_Weighed), str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf.Filter(Bin_Filter).Histo2D((str(Histo_Name_1D),         str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),         str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
 
     targets = []
     if(Histo_Name in Histograms_All):

@@ -43,6 +43,8 @@ parser.add_argument('-MR', '--make_root',                      action='store_tru
                     help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists — in testing phase as of 11/10/2025)")
 parser.add_argument('-nohpp', '--do_not_use_hpp',              action='store_true',
                     help="Prevents the acceptance weights from being applied (with the '--make_root' option). Allows the JSON weights (injected modulations) to be applied without also needing the Acceptance weights.")
+parser.add_argument('-aohpp', '--angles_only_hpp',             action='store_true',
+                    help="Changes the acceptance weights being applied (with the '--make_root' option) so that only the azimuthal and polar angle weights are applied (no momentum weights).")
 parser.add_argument('-r', '--root',                            type=str,   default="SIDIS_epip_All_File_Types_from_RDataFrames.root", 
                     help="Name of the ROOT file to be outputted by the '--make_root' option (will still append the string from '--name' just before the '.root' of this argument's value)")
 parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
@@ -118,6 +120,12 @@ if(not args.make_2D_weight):
     # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
     print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
     ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+
+
+if(args.do_not_use_hpp):
+    print(f"{color.Error}Not using Acceptance Weights{color.END}")
+elif(args.angles_only_hpp):
+    print(f"{color.Error}Only using the angle Acceptance Weights (not weighing the lab momemtum for acceptance){color.END}")
 
 
 import subprocess
@@ -2681,6 +2689,7 @@ double {func_name}(const double x, const double y){{
     if(args.make_root):
         print(f"\n{color.BOLD}Making ROOT Output File{color.END}")
         from helper_functions_for_using_RDataFrames_python import *
+        sys.stdout.flush()
 
         # if(not rdf.HasColumn("PID_pip")):
         #     print(f"\t{color.Error}WARNING:         'rdf' is missing 'PID_pip' — artifically defining as 211){color.END}")
@@ -2815,28 +2824,34 @@ double {func_name}(const double x, const double y){{
                 }}
                 """)
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
-            mdf_clasdis = mdf_clasdis.Define("W_pre" if(not args.do_not_use_hpp) else "Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight" if(args.do_not_use_hpp) else "W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             if(not args.do_not_use_hpp):
-                pre_sum     = mdf_clasdis.Sum("W_pre").GetValue()
-                mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
-                mdf_clasdis = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
-                post_sum    = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
-                scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-                mdf_clasdis = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+                pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
+                if(args.angles_only_hpp):
+                    mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared))")
+                else:
+                    mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
+                post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
+                scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
         else:
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
-            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "1.0")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight" if(args.do_not_use_hpp) else "W_pre", "1.0")
             if(not args.do_not_use_hpp):
-                pre_sum     = mdf_clasdis.Sum("Event_Weight").GetValue()
-                pre_sum     = mdf_clasdis.Count().GetValue()
-                mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
-                mdf_clasdis = mdf_clasdis.Define("Event_Weight_raw", "Event_Weight * W_acc")
-                post_sum    = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
-                scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-                mdf_clasdis = mdf_clasdis.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
+                pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
+                if(args.angles_only_hpp):
+                    mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared))")
+                else:
+                    mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
+                post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
+                scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
             
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         output_file = ROOT.TFile(args.root, "UPDATE")
+        sys.stdout.flush()
 
         Res_Binning_2D_z_pT_In = ["z_pT_Bin_Y_bin_smeared", -0.5, 37.5, 38]
         z_pT_phi_h_Binning     = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, 913.5, 915]
@@ -2846,13 +2861,16 @@ double {func_name}(const double x, const double y){{
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False,             Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights, Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             # if(not args.Do_not_use_EvGen):
             #     print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
             #     make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
@@ -2878,13 +2896,16 @@ double {func_name}(const double x, const double y){{
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=False,                                            Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_clasdis{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=(args.json_weights or (not args.do_not_use_hpp)), Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=(args.json_weights or (not args.do_not_use_hpp)), Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_clasdis{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=args.json_weights,                                Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
+            sys.stdout.flush()
             # if(not args.Do_not_use_EvGen):
             #     print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             #     make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=True,                                                 Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
@@ -2927,6 +2948,7 @@ Ran with the following arguments:
 --min-accept-cut                --> {args.min_accept_cut}
 --make_root                     --> {args.make_root}
 --do_not_use_hpp                --> {args.do_not_use_hpp}
+--angles_only_hpp               --> {args.angles_only_hpp}
 --make_2D_weight                --> {args.make_2D_weight}
 --make_2D_weight_check          --> {args.make_2D_weight_check}
 --make_2D_weight_binned_check   --> {args.make_2D_weight_binned_check}
