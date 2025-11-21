@@ -44,7 +44,11 @@ def send_email(subject, body, recipient):
     # Send an email via the system mail command.
     subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
 
+
+import RooUnfold
+
 import argparse
+
 
 def parse_args():
     p = argparse.ArgumentParser(description="Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py analysis script:\n\tMeant for JUST doing the 5D (Bayesian) Unfolding Procedure before saving outputs to a ROOT file.",
@@ -112,40 +116,43 @@ def parse_args():
     p.add_argument('-v', '--verbose', action='store_true',
                    help="Prints each Histogram name to be saved.")
 
+    p.add_argument('-e', '-em', '--email_message', type=str, default="", 
+                   help="Adds an extra user-defined message to emails sent at the end of the script (email will always be sent whether this argument is used or not).")
+
     return p.parse_args()
 
 args = parse_args()
 
 
-def silence_root_import():
-    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-    sys.stdout.flush()
-    sys.stderr.flush()
+# def silence_root_import():
+#     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
+#     sys.stdout.flush()
+#     sys.stderr.flush()
 
-    # Save original file descriptors
-    old_stdout = os.dup(1)
-    old_stderr = os.dup(2)
+#     # Save original file descriptors
+#     old_stdout = os.dup(1)
+#     old_stderr = os.dup(2)
 
-    try:
-        # Redirect stdout and stderr to /dev/null at the OS level
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
-        os.close(devnull)
+#     try:
+#         # Redirect stdout and stderr to /dev/null at the OS level
+#         devnull = os.open(os.devnull, os.O_WRONLY)
+#         os.dup2(devnull, 1)
+#         os.dup2(devnull, 2)
+#         os.close(devnull)
 
-        # Perform the noisy import
-        import RooUnfold
+#         # Perform the noisy import
+#         import RooUnfold
 
-    finally:
-        # Restore the original file descriptors
-        os.dup2(old_stdout, 1)
-        os.dup2(old_stderr, 2)
-        os.close(old_stdout)
-        os.close(old_stderr)
+#     finally:
+#         # Restore the original file descriptors
+#         os.dup2(old_stdout, 1)
+#         os.dup2(old_stderr, 2)
+#         os.close(old_stdout)
+#         os.close(old_stderr)
 
-# Use it like this:
-silence_root_import()
-# print("\nImported RooUnfold...\n")
+# # Use it like this:
+# silence_root_import()
+# # print("\nImported RooUnfold...\n")
 
 # try:
 #     import RooUnfold
@@ -1237,6 +1244,8 @@ Common_Name      = {Common_Name}
 REAL_File_Name   = {REAL_File_Name}
 MC_REC_File_Name = {MC_REC_File_Name}
 MC_GEN_File_Name = {MC_GEN_File_Name}
+
+{f'User Message: {args.email_message}' if(args.email_message not in [""]) else ''}
 
 Arguments:
 --test                         --> {args.test}
