@@ -31,10 +31,10 @@ DEFAULT_EMAIL = "richard.capobianco@uconn.edu"
 ROOT_BASE_PREFIX = "SIDIS_epip_All_File_Types_from_RDataFrames_"
 
 # Default SLURM settings (used only in --mode slurm)
-DEFAULT_SLURM_PARTITION   = "production"
-DEFAULT_SLURM_TIME        = "08:00:00"      # HH:MM:SS
-DEFAULT_SLURM_ACCOUNT     = "clas12"
-DEFAULT_SLURM_MEM_PER_CPU = "2GB"
+# DEFAULT_SLURM_PARTITION   = "production"
+DEFAULT_SLURM_TIME        = "20:00:00"      # HH:MM:SS
+# DEFAULT_SLURM_ACCOUNT     = "clas12"
+DEFAULT_SLURM_MEM_PER_CPU = "3GB"
 
 # Args that are always passed to using_RDataFrames_python.py
 # (As requested: "-NoEvGen -f -MR")
@@ -320,6 +320,7 @@ def run_hadd(batch_files, merged_file):
         dirname   = os.path.dirname(merged_file)
         basename  = os.path.basename(merged_file)
         newname   = f"{basename}_Outdated_on_{timestamp}_delete_later"
+        newname   = f'{newname.replace(".root", "")}.root'
         newpath   = os.path.join(dirname, newname)
 
         try:
@@ -376,7 +377,7 @@ def delete_batch_files(batch_files):
 # SLURM helpers (bash sbatch, with preview + approval)
 # =========================
 
-def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, partition, time_str, account, slurm_mem_per_cpu, email_address, job_name):
+def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, job_name, unique_array=None):
     lines = []
     lines.append("#!/bin/bash")
     lines.append("#SBATCH --ntasks=1")
@@ -385,11 +386,14 @@ def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged,
     lines.append(f"#SBATCH --mail-user={email_address}")
     lines.append("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out")
     lines.append("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err")
-    lines.append(f"#SBATCH --partition={partition}")
-    lines.append(f"#SBATCH --account={account}")
+    lines.append("#SBATCH --partition=production")
+    lines.append("#SBATCH --account=clas12")
     lines.append(f"#SBATCH --mem-per-cpu={slurm_mem_per_cpu}")
     lines.append(f"#SBATCH --time={time_str}")
-    lines.append(f"#SBATCH --array=1-{nbatches}")
+    if(unique_array is not None):
+        lines.append(f"#SBATCH --array={unique_array}")
+    else:
+        lines.append(f"#SBATCH --array=1-{nbatches}")
     lines.append("")
     lines.append("")
     lines.append('BATCH_ID=${SLURM_ARRAY_TASK_ID}')
@@ -424,7 +428,8 @@ def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged,
     return "\n".join(lines)
 
 
-def build_slurm_hadd_script_text(batch_files, merged_file, partition, time_str, account, slurm_mem_per_cpu, email_address, job_name):
+# def build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, job_name):
+def build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, job_name):
     lines = []
     lines.append("#!/bin/bash")
     lines.append("#SBATCH --ntasks=1")
@@ -433,28 +438,36 @@ def build_slurm_hadd_script_text(batch_files, merged_file, partition, time_str, 
     lines.append(f"#SBATCH --mail-user={email_address}")
     lines.append("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out")
     lines.append("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err")
-    lines.append(f"#SBATCH --partition={partition}")
-    lines.append(f"#SBATCH --account={account}")
+    lines.append("#SBATCH --partition=production")
+    lines.append("#SBATCH --account=clas12")
     # lines.append(f"#SBATCH --mem-per-cpu={slurm_mem_per_cpu}")
-    lines.append("#SBATCH --mem-per-cpu=5000")
-    lines.append(f"#SBATCH --time={time_str}")
+    lines.append("#SBATCH --mem-per-cpu=1GB")
+    # lines.append(f"#SBATCH --time={time_str}")
+    lines.append(f"#SBATCH --time=04:00:00")
     lines.append("")
     lines.append("")
     # lines.append('echo "Starting hadd job on host $(hostname) at $(date)"')
 
-    cmd_parts = ["$ROOTSYS/bin/hadd", "-f", merged_file] + batch_files
+    batch_pattern = os.path.join(output_dir, f"{ROOT_BASE_PREFIX}{name_base_for_merged}_Batch[1-9]*.root")
+
+    cmd_parts = ["$ROOTSYS/bin/hadd", "-f", merged_file, batch_pattern]
     cmd_str   = " ".join(cmd_parts)
 
-    # lines.append(f'echo "Command: {cmd_str}"')
     lines.append(cmd_str)
-    # lines.append('exit_code=$?')
-    # lines.append('echo "hadd finished with exit code ${exit_code} at $(date)"')
-    # lines.append("exit ${exit_code}")
 
     return "\n".join(lines)
 
+    # cmd_parts = ["$ROOTSYS/bin/hadd", "-f", merged_file] + batch_files
+    # cmd_str   = " ".join(cmd_parts)
+    # # lines.append(f'echo "Command: {cmd_str}"')
+    # lines.append(cmd_str)
+    # # lines.append('exit_code=$?')
+    # # lines.append('echo "hadd finished with exit code ${exit_code} at $(date)"')
+    # # lines.append("exit ${exit_code}")
+    # return "\n".join(lines)
 
-def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, account, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu):
+
+def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu, unique_array_batches=None):
     script_dir_local = os.path.dirname(os.path.abspath(__file__))
 
     batch_files = []
@@ -469,15 +482,26 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, ac
     array_job_name = f"{job_base}_{date_str}_running_batch_jobs"
     hadd_job_name  = f"{job_base}_{date_str}_hadd_batches"
 
-    array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, partition, time_str, account, slurm_mem_per_cpu, email_address, array_job_name)
+    array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, array_job_name, unique_array=unique_array_batches)
 
-    hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, partition, time_str, account, slurm_mem_per_cpu, email_address, hadd_job_name)
+    # hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
+    hadd_script_text = build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
+
 
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
     print(array_script_text)
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
     print(hadd_script_text)
 
+    if(os.path.isfile(merged_file)):
+        timestamp = time.strftime("%m-%d-%Y")
+        dirname   = os.path.dirname(merged_file)
+        basename  = os.path.basename(merged_file)
+        newname   = f"{basename}_Outdated_on_{timestamp}_delete_later"
+        newname   = f'{newname.replace(".root", "")}.root'
+        newpath   = os.path.join(dirname, newname)
+        print(f"\n{color.Error}[WARNING]{color.END_R} The to-be-merged file '{merged_file}' already exists.\n\t{color.END_B}If approved, will rename it to: {newpath}{color.END}\n\n")
+    
     try:
         response = input("\nApprove and submit these SLURM scripts? [y/N]: ").strip().lower()
     except EOFError:
@@ -489,6 +513,14 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, ac
 
     array_script_path = os.path.join(script_dir_local, "slurm_array_job.sh")
     hadd_script_path  = os.path.join(script_dir_local, "slurm_hadd_job.sh")
+
+
+    if(os.path.isfile(merged_file)):
+        try:
+            os.rename(merged_file, newpath)
+            print(f"{color.BBLUE}[INFO]{color.END} Existing merged file renamed to:\n       {newpath}")
+        except Exception as e:
+            print(f"{color.Error}[ERROR] Could not rename existing merged file {merged_file}:{color.END} {e}")
 
     try:
         with open(array_script_path, "w") as f:
@@ -579,16 +611,17 @@ def main():
     )
 
     parser.add_argument("-nb", "--nbatches", type=int, default=57, help="Number of batches (integer between 1 and 57).")
+    parser.add_argument("-ub", "--unique_batches", type=str, default=None, help="Unique set of sbatch array jobs (enter the string for which batches you want run — only works for the 'slurm' mode).")
     parser.add_argument("-m", "--mode", choices=["sequential", "parallel", "slurm"], default="sequential", help="Run mode: sequential (default), parallel, or slurm.")
     parser.add_argument("-nt", "--name-tag", default=None, help="Optional name tag appended into the --name used for files (affects both batch and merged ROOT names).")
-    parser.add_argument("--delete-batch-files", action="store_true", help="Delete per-batch ROOT files after successful hadd.")
+    parser.add_argument("-dbf", "--delete-batch-files", action="store_true", help="Delete per-batch ROOT files after successful hadd. Ignored in the 'slurm' mode.")
     parser.add_argument("--max-parallel", type=int, default=2, help="Maximum number of parallel jobs in parallel mode.")
     parser.add_argument("-e", "--email", default=None, help="Email address for notifications (overrides DEFAULT_EMAIL).")
     parser.add_argument("--main-script", default=DEFAULT_MAIN_SCRIPT, help="Path to using_RDataFrames_python.py (or equivalent).")
     parser.add_argument("--output-dir", default=os.path.dirname(os.path.abspath(__file__)), help="Directory where batch and merged ROOT files live.")
-    parser.add_argument("--slurm-partition", default=DEFAULT_SLURM_PARTITION, help="SLURM partition to use in slurm mode.")
+    # parser.add_argument("--slurm-partition", default=DEFAULT_SLURM_PARTITION, help="SLURM partition to use in slurm mode.")
     parser.add_argument("-st", "--slurm-time", default=DEFAULT_SLURM_TIME, help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
-    parser.add_argument("--slurm-account", default=DEFAULT_SLURM_ACCOUNT, help="SLURM account in slurm mode (if required by your cluster).")
+    # parser.add_argument("--slurm-account", default=DEFAULT_SLURM_ACCOUNT, help="SLURM account in slurm mode (if required by your cluster).")
     parser.add_argument("-cpu", "--slurm-mem-per-cpu", default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '2GB', '4000M').")
     parser.add_argument("-p", "--preset", choices=["zeroth", "ao-zeroth", "first", "first-acc", "ao-first-acc"], default="zeroth", help="Preset configuration.")
     parser.add_argument("-ee", "--email-extra", type=str, default="", help="Extra message appended to the -em email message passed to using_RDataFrames_python.py.")
@@ -675,12 +708,7 @@ def main():
     elif(args.mode == "slurm"):
         print(f"{color.BBLUE}[INFO]{color.END} Running in SLURM mode (submission only, no local waiting).")
 
-        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(
-            args.nbatches, main_script, output_dir,
-            args.slurm_partition, args.slurm_time, args.slurm_account,
-            preset_cfg, name_base_for_merged, email_msg,
-            email_address, args.slurm_mem_per_cpu
-        )
+        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(args.nbatches, main_script, output_dir, args.slurm_time, preset_cfg, name_base_for_merged, email_msg, email_address, args.slurm_mem_per_cpu, unique_array_batches=args.unique_batches)
 
         if((array_jobid is None) or (hadd_jobid is None)):
             print(f"{color.Error}[ERROR]{color.END} Failed to submit SLURM jobs.")
