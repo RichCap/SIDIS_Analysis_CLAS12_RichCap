@@ -31,9 +31,10 @@ DEFAULT_EMAIL = "richard.capobianco@uconn.edu"
 ROOT_BASE_PREFIX = "SIDIS_epip_All_File_Types_from_RDataFrames_"
 
 # Default SLURM settings (used only in --mode slurm)
-DEFAULT_SLURM_PARTITION = "batch"
-DEFAULT_SLURM_TIME      = "02:00:00"      # HH:MM:SS
-DEFAULT_SLURM_ACCOUNT   = None            # e.g. "halla", if needed; None -> not passed
+DEFAULT_SLURM_PARTITION   = "production"
+DEFAULT_SLURM_TIME        = "08:00:00"      # HH:MM:SS
+DEFAULT_SLURM_ACCOUNT     = "clas12"
+DEFAULT_SLURM_MEM_PER_CPU = "2GB"
 
 # Args that are always passed to using_RDataFrames_python.py
 # (As requested: "-NoEvGen -f -MR")
@@ -54,6 +55,17 @@ PRESETS = {
         "use_json_weights": False,
         "json_file":        JSON_DEFAULT_PATH,
         "do_not_use_hpp":   False,
+        "angles_only_hpp":  False,
+    },
+    "ao-zeroth": {
+        "name_base":        "AngleOnlyZerothOrder",
+        "title":            "Zeroth Order Acceptance Weights (Angles Only)",
+        "email_base":       "Zeroth Order Acceptance Weight batched run. Only used the acceptance weights for the lab angles. No Momemntum weights OR Injected Physics.",
+        "hpp_file":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_ZeroOrder.hpp",
+        "use_json_weights": False,
+        "json_file":        JSON_DEFAULT_PATH,
+        "do_not_use_hpp":   False,
+        "angles_only_hpp":  True,
     },
     "first": {
         "name_base":        "FirstOrder",
@@ -63,6 +75,7 @@ PRESETS = {
         "use_json_weights": True,
         "json_file":        JSON_DEFAULT_PATH,
         "do_not_use_hpp":   True,   # disable acceptance weights
+        "angles_only_hpp":  False,  # No variation of physics weights only will use 'angles_only_hpp'
     },
     "first-acc": {
         "name_base":        "FirstOrderAcc",
@@ -72,6 +85,17 @@ PRESETS = {
         "use_json_weights": True,
         "json_file":        JSON_DEFAULT_PATH,
         "do_not_use_hpp":   False,
+        "angles_only_hpp":  False,
+    },
+    "ao-first-acc": {
+        "name_base":        "AngleOnlyFirstOrderAcc",
+        "title":            "#splitline{First Order Acceptance Weights (Angles Only)}{Made with injected physics}",
+        "email_base":       "First Acceptance Order Weight batched run. Uses both the Injected Physics Modulations AND Acceptance Weights, but the acceptance weights only used the lab angles (not momentum).",
+        "hpp_file":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights_FirstOrder.hpp",
+        "use_json_weights": True,
+        "json_file":        JSON_DEFAULT_PATH,
+        "do_not_use_hpp":   False,
+        "angles_only_hpp":  True,
     },
 }
 
@@ -139,29 +163,40 @@ def build_email_message(preset_cfg, email_extra):
     return msg
 
 
+def apply_common_preset_args_to_cmd(cmd_base, preset_cfg):
+    # hpp file always provided
+    cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
+
+    # JSON weights / file
+    if(preset_cfg.get("use_json_weights", False)):
+        cmd_base.append("--json_weights")
+        cmd_base.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
+
+    # disable acceptance weights completely
+    if(preset_cfg.get("do_not_use_hpp", False)):
+        cmd_base.append("--do_not_use_hpp")
+
+    # angles-only acceptance weights
+    if(preset_cfg.get("angles_only_hpp", False)):
+        cmd_base.append("--angles_only_hpp")
+
+
 def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg, name_base_for_merged, email_msg):
-    name_for_batch = build_name_for_batch(name_base_for_merged, batch_index)
-    batch_root_file = build_batch_root_filename(name_for_batch, output_dir)
+    name_for_batch   = build_name_for_batch(name_base_for_merged, batch_index)
+    batch_root_file  = build_batch_root_filename(name_for_batch, output_dir)
 
     cmd_base = [sys.executable, main_script, "-bID", str(batch_index)]
     cmd_base.extend(ALWAYS_MAIN_ARGS)
     cmd_base.extend(["-n", name_for_batch])
     cmd_base.extend(["-t", preset_cfg["title"]])
     cmd_base.extend(["-em", email_msg])
-    cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
-
-    if(preset_cfg.get("use_json_weights", False)):
-        cmd_base.append("--json_weights")
-        cmd_base.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
-
-    if(preset_cfg.get("do_not_use_hpp", False)):
-        cmd_base.append("--do_not_use_hpp")
+    apply_common_preset_args_to_cmd(cmd_base, preset_cfg)
 
     print(f"\n{color.BBLUE}[INFO]{color.END} Running batch {batch_index} (name={name_for_batch})...")
     print("       Command:", " ".join(cmd_base))
 
     try:
-        proc = subprocess.run(cmd_base)
+        proc       = subprocess.run(cmd_base)
         returncode = proc.returncode
     except Exception as e:
         print(f"{color.Error}[ERROR]{color.END} Exception while running batch {batch_index}: {e}")
@@ -177,24 +212,24 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
         print(f"{color.Error}[ERROR]{color.END} Batch {batch_index} failed with return code {returncode}.")
 
     return {
-        "batch_id":   batch_index,
-        "returncode": returncode,
-        "root_file":  batch_root_file,
+        "batch_id":      batch_index,
+        "returncode":    returncode,
+        "root_file":     batch_root_file,
         "name_for_batch": name_for_batch,
     }
 
 
 def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset_cfg, name_base_for_merged, email_msg):
-    results = []
-    running = []
-    next_id = 1
+    results   = []
+    running   = []
+    next_id   = 1
 
     while(True):
         while((next_id <= nbatches) and (len(running) < max_parallel)):
-            batch_index = next_id
-            next_id    += 1
+            batch_index     = next_id
+            next_id        += 1
 
-            name_for_batch = build_name_for_batch(name_base_for_merged, batch_index)
+            name_for_batch  = build_name_for_batch(name_base_for_merged, batch_index)
             batch_root_file = build_batch_root_filename(name_for_batch, output_dir)
 
             cmd_base = [sys.executable, main_script, "-bID", str(batch_index)]
@@ -202,14 +237,7 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
             cmd_base.extend(["-n", name_for_batch])
             cmd_base.extend(["-t", preset_cfg["title"]])
             cmd_base.extend(["-em", email_msg])
-            cmd_base.extend(["-hpp", preset_cfg["hpp_file"]])
-
-            if(preset_cfg.get("use_json_weights", False)):
-                cmd_base.append("--json_weights")
-                cmd_base.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
-
-            if(preset_cfg.get("do_not_use_hpp", False)):
-                cmd_base.append("--do_not_use_hpp")
+            apply_common_preset_args_to_cmd(cmd_base, preset_cfg)
 
             print(f"\n{color.BBLUE}[INFO]{color.END} Starting batch {batch_index} in parallel (name={name_for_batch})...")
             print("       Command:", " ".join(cmd_base))
@@ -218,17 +246,17 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
             except Exception as e:
                 print(f"{color.Error}[ERROR]{color.END} Failed to start batch {batch_index}: {e}")
                 results.append({
-                    "batch_id":   batch_index,
-                    "returncode": 1,
-                    "root_file":  batch_root_file,
+                    "batch_id":      batch_index,
+                    "returncode":    1,
+                    "root_file":     batch_root_file,
                     "name_for_batch": name_for_batch,
                 })
                 continue
 
             running.append({
-                "batch_id":  batch_index,
-                "process":   proc,
-                "root_file": batch_root_file,
+                "batch_id":      batch_index,
+                "process":       proc,
+                "root_file":     batch_root_file,
                 "name_for_batch": name_for_batch,
             })
 
@@ -239,11 +267,11 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
 
         still_running = []
         for item in running:
-            proc      = item["process"]
-            ret       = proc.poll()
-            batch_id  = item["batch_id"]
-            root_file = item["root_file"]
-            name_for_batch = item["name_for_batch"]
+            proc         = item["process"]
+            ret          = proc.poll()
+            batch_id     = item["batch_id"]
+            root_file    = item["root_file"]
+            name_for_bch = item["name_for_batch"]
 
             if(ret is None):
                 still_running.append(item)
@@ -259,10 +287,10 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
                 print(f"{color.Error}[ERROR]{color.END} Batch {batch_id} failed with return code {ret} (parallel).")
 
             results.append({
-                "batch_id":   batch_id,
-                "returncode": ret,
-                "root_file":  root_file,
-                "name_for_batch": name_for_batch,
+                "batch_id":      batch_id,
+                "returncode":    ret,
+                "root_file":     root_file,
+                "name_for_batch": name_for_bch,
             })
 
         running = still_running
@@ -289,10 +317,10 @@ def run_hadd(batch_files, merged_file):
     # =====================
     if(os.path.isfile(merged_file)):
         timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
-        dirname = os.path.dirname(merged_file)
-        basename = os.path.basename(merged_file)
-        newname = f"{basename}_Outdated_on_{timestamp}_delete_later"
-        newpath = os.path.join(dirname, newname)
+        dirname   = os.path.dirname(merged_file)
+        basename  = os.path.basename(merged_file)
+        newname   = f"{basename}_Outdated_on_{timestamp}_delete_later"
+        newpath   = os.path.join(dirname, newname)
 
         try:
             os.rename(merged_file, newpath)
@@ -345,70 +373,176 @@ def delete_batch_files(batch_files):
 
 
 # =========================
-# SLURM helpers
+# SLURM helpers (bash sbatch, with preview + approval)
 # =========================
 
-def write_slurm_array_script(path, main_script, preset_cfg, name_base_for_merged, email_msg):
+def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, partition, time_str, account, slurm_mem_per_cpu, email_address, job_name):
     lines = []
-    lines.append("#!/bin/tcsh")
+    lines.append("#!/bin/bash")
+    lines.append("#SBATCH --ntasks=1")
+    lines.append(f"#SBATCH --job-name={job_name}")
+    lines.append("#SBATCH --mail-type=ALL")
+    lines.append(f"#SBATCH --mail-user={email_address}")
+    lines.append("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out")
+    lines.append("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err")
+    lines.append(f"#SBATCH --partition={partition}")
+    lines.append(f"#SBATCH --account={account}")
+    lines.append(f"#SBATCH --mem-per-cpu={slurm_mem_per_cpu}")
+    lines.append(f"#SBATCH --time={time_str}")
+    lines.append(f"#SBATCH --array=1-{nbatches}")
     lines.append("")
-    lines.append("setenv BATCH_ID $SLURM_ARRAY_TASK_ID")
-    lines.append("echo \"Running batch $BATCH_ID on host `hostname` at `date`\"")
-    lines.append(f"setenv NAME_BASE \"{name_base_for_merged}\"")
+    lines.append("")
+    lines.append('BATCH_ID=${SLURM_ARRAY_TASK_ID}')
+    # lines.append('echo "Running batch ${BATCH_ID} on host $(hostname) at $(date)"')
+    lines.append(f'NAME_BASE="{name_base_for_merged}"')
 
     safe_email_msg = email_msg.replace('"', '\\"')
-    lines.append(f'setenv EMAIL_MSG "{safe_email_msg}"')
+    lines.append(f'EMAIL_MSG="{safe_email_msg}"')
 
-    lines.append("set NAME_FOR_BATCH = \"${NAME_BASE}_Batch${BATCH_ID}\"")
-
-    cmd_parts = [sys.executable, main_script, "-bID", "$BATCH_ID"]
-    cmd_parts.extend(ALWAYS_MAIN_ARGS)
-    cmd_parts.extend(["-n", "$NAME_FOR_BATCH"])
-    cmd_parts.extend(["-t", f"\"{preset_cfg['title']}\""])
-    cmd_parts.extend(["-em", "\"$EMAIL_MSG\""])
-    cmd_parts.extend(["-hpp", preset_cfg["hpp_file"]])
-
-    if(preset_cfg.get("use_json_weights", False)):
-        cmd_parts.append("--json_weights")
-        cmd_parts.extend(["--json_file", preset_cfg.get("json_file", JSON_DEFAULT_PATH)])
-
-    if(preset_cfg.get("do_not_use_hpp", False)):
-        cmd_parts.append("--do_not_use_hpp")
-
-    cmd_str = " ".join(cmd_parts)
-
-    lines.append(f"echo \"Command: {cmd_str}\"")
-    lines.append(cmd_str)
-    lines.append("set exit_code = $status")
-    lines.append("echo \"Batch $BATCH_ID finished with exit code $exit_code at `date`\"")
-    lines.append("exit $exit_code")
-
-    with open(path, "w") as f:
-        f.write("\n".join(lines))
-    os.chmod(path, 0o755)
-
-
-def write_slurm_hadd_script(path, batch_files, merged_file):
-    lines = []
-    lines.append("#!/bin/tcsh")
+    lines.append('NAME_FOR_BATCH="${NAME_BASE}_Batch${BATCH_ID}"')
     lines.append("")
-    lines.append("echo \"Starting hadd job on host `hostname` at `date`\"")
-    cmd_parts = ["hadd", "-f", merged_file] + batch_files
+
+    # cmd_parts = [sys.executable, main_script, "-bID", "${BATCH_ID}"]
+    cmd_parts = ["srun", "python3", main_script, "-bID", "${BATCH_ID}"]
+    if("-e" in ALWAYS_MAIN_ARGS):
+        ALWAYS_MAIN_ARGS.remove("-e") # Do not send emails within sbatch jobs
+    cmd_parts.extend(ALWAYS_MAIN_ARGS)
+    cmd_parts.extend(["-n", '"${NAME_FOR_BATCH}"'])
+    cmd_parts.extend(["-t", f"\"{preset_cfg['title']}\""])
+    cmd_parts.extend(["-em", '"${EMAIL_MSG}"'])
+    apply_common_preset_args_to_cmd(cmd_parts, preset_cfg)
+
     cmd_str = " ".join(cmd_parts)
-    lines.append(f"echo \"Command: {cmd_str}\"")
+
+    lines.append("")
+    # lines.append(f'echo "Command: {cmd_str}"')
     lines.append(cmd_str)
-    lines.append("set exit_code = $status")
-    lines.append("echo \"hadd finished with exit code $exit_code at `date`\"")
-    lines.append("exit $exit_code")
+    # lines.append('exit_code=$?')
+    # lines.append('echo "Batch ${BATCH_ID} finished with exit code ${exit_code} at $(date)"')
+    # lines.append("exit ${exit_code}")
 
-    with open(path, "w") as f:
-        f.write("\n".join(lines))
-    os.chmod(path, 0o755)
+    return "\n".join(lines)
 
 
-def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, account, preset_cfg, name_base_for_merged, email_msg):
-    print(f"{color.Error}Disabled{color.END}")
-    return None, None, None, None
+def build_slurm_hadd_script_text(batch_files, merged_file, partition, time_str, account, slurm_mem_per_cpu, email_address, job_name):
+    lines = []
+    lines.append("#!/bin/bash")
+    lines.append("#SBATCH --ntasks=1")
+    lines.append(f"#SBATCH --job-name={job_name}")
+    lines.append("#SBATCH --mail-type=ALL")
+    lines.append(f"#SBATCH --mail-user={email_address}")
+    lines.append("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out")
+    lines.append("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err")
+    lines.append(f"#SBATCH --partition={partition}")
+    lines.append(f"#SBATCH --account={account}")
+    # lines.append(f"#SBATCH --mem-per-cpu={slurm_mem_per_cpu}")
+    lines.append("#SBATCH --mem-per-cpu=5000")
+    lines.append(f"#SBATCH --time={time_str}")
+    lines.append("")
+    lines.append("")
+    # lines.append('echo "Starting hadd job on host $(hostname) at $(date)"')
+
+    cmd_parts = ["$ROOTSYS/bin/hadd", "-f", merged_file] + batch_files
+    cmd_str   = " ".join(cmd_parts)
+
+    # lines.append(f'echo "Command: {cmd_str}"')
+    lines.append(cmd_str)
+    # lines.append('exit_code=$?')
+    # lines.append('echo "hadd finished with exit code ${exit_code} at $(date)"')
+    # lines.append("exit ${exit_code}")
+
+    return "\n".join(lines)
+
+
+def submit_slurm_jobs(nbatches, main_script, output_dir, partition, time_str, account, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu):
+    script_dir_local = os.path.dirname(os.path.abspath(__file__))
+
+    batch_files = []
+    for i in range(1, nbatches + 1):
+        name_for_batch = build_name_for_batch(name_base_for_merged, i)
+        batch_files.append(build_batch_root_filename(name_for_batch, output_dir))
+
+    merged_file = build_merged_root_filename(name_base_for_merged, output_dir)
+
+    date_str       = time.strftime("%m_%d_%Y")
+    job_base       = preset_cfg["name_base"]
+    array_job_name = f"{job_base}_{date_str}_running_batch_jobs"
+    hadd_job_name  = f"{job_base}_{date_str}_hadd_batches"
+
+    array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, partition, time_str, account, slurm_mem_per_cpu, email_address, array_job_name)
+
+    hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, partition, time_str, account, slurm_mem_per_cpu, email_address, hadd_job_name)
+
+    print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
+    print(array_script_text)
+    print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
+    print(hadd_script_text)
+
+    try:
+        response = input("\nApprove and submit these SLURM scripts? [y/N]: ").strip().lower()
+    except EOFError:
+        response = "n"
+
+    if((response != "y") and (response != "yes")):
+        print(f"{color.Error}[ERROR]{color.END} SLURM scripts not approved. Exiting without submission.")
+        return None, None, merged_file, batch_files
+
+    array_script_path = os.path.join(script_dir_local, "slurm_array_job.sh")
+    hadd_script_path  = os.path.join(script_dir_local, "slurm_hadd_job.sh")
+
+    try:
+        with open(array_script_path, "w") as f:
+            f.write(array_script_text)
+        os.chmod(array_script_path, 0o755)
+
+        with open(hadd_script_path, "w") as f:
+            f.write(hadd_script_text)
+        os.chmod(hadd_script_path, 0o755)
+    except Exception as e:
+        print(f"{color.Error}[ERROR]{color.END} Could not write SLURM scripts: {e}")
+        return None, None, merged_file, batch_files
+
+    array_cmd = ["sbatch", "--parsable", array_script_path]
+
+    print(f"\n{color.BBLUE}[INFO]{color.END} Submitting SLURM array job:")
+    print("       Command:", " ".join(array_cmd))
+
+    try:
+        proc = subprocess.run(array_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except Exception as e:
+        print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM array job: {e}")
+        return None, None, merged_file, batch_files
+
+    if(proc.returncode != 0):
+        print(f"{color.Error}[ERROR]{color.END} sbatch for array job failed with code {proc.returncode}")
+        print(proc.stderr)
+        return None, None, merged_file, batch_files
+
+    array_jobid_raw = proc.stdout.strip()
+    print(f"{color.BBLUE}[INFO]{color.END} Submitted array job with id: {array_jobid_raw}")
+    array_jobid = array_jobid_raw.split(";")[0].strip()
+
+    hadd_cmd = ["sbatch", "--parsable", f"--dependency=afterok:{array_jobid}", hadd_script_path]
+
+    print(f"\n{color.BBLUE}[INFO]{color.END} Submitting SLURM hadd job (afterok dependency):")
+    print("       Command:", " ".join(hadd_cmd))
+
+    try:
+        proc2 = subprocess.run(hadd_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except Exception as e:
+        print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM hadd job: {e}")
+        return array_jobid, None, merged_file, batch_files
+
+    if(proc2.returncode != 0):
+        print(f"{color.Error}[ERROR]{color.END} sbatch for hadd job failed with code {proc2.returncode}")
+        print(proc2.stderr)
+        return array_jobid, None, merged_file, batch_files
+
+    hadd_jobid_raw = proc2.stdout.strip()
+    print(f"{color.BBLUE}[INFO]{color.END} Submitted hadd job with id: {hadd_jobid_raw}")
+    hadd_jobid = hadd_jobid_raw.split(";")[0].strip()
+
+    return array_jobid, hadd_jobid, merged_file, batch_files
 
 
 def wait_for_slurm_job(jobid, poll_seconds=60):
@@ -439,7 +573,10 @@ def wait_for_slurm_job(jobid, poll_seconds=60):
 # =========================
 
 def main():
-    parser = argparse.ArgumentParser(description="Orchestrate batched ROOT production with using_RDataFrames_python.py and hadd.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="Orchestrate batched ROOT production with using_RDataFrames_python.py and hadd.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
 
     parser.add_argument("-nb", "--nbatches", type=int, default=57, help="Number of batches (integer between 1 and 57).")
     parser.add_argument("-m", "--mode", choices=["sequential", "parallel", "slurm"], default="sequential", help="Run mode: sequential (default), parallel, or slurm.")
@@ -450,9 +587,10 @@ def main():
     parser.add_argument("--main-script", default=DEFAULT_MAIN_SCRIPT, help="Path to using_RDataFrames_python.py (or equivalent).")
     parser.add_argument("--output-dir", default=os.path.dirname(os.path.abspath(__file__)), help="Directory where batch and merged ROOT files live.")
     parser.add_argument("--slurm-partition", default=DEFAULT_SLURM_PARTITION, help="SLURM partition to use in slurm mode.")
-    parser.add_argument("--slurm-time", default=DEFAULT_SLURM_TIME, help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
+    parser.add_argument("-st", "--slurm-time", default=DEFAULT_SLURM_TIME, help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
     parser.add_argument("--slurm-account", default=DEFAULT_SLURM_ACCOUNT, help="SLURM account in slurm mode (if required by your cluster).")
-    parser.add_argument("-p", "--preset", choices=["zeroth", "first", "first-acc"], default="zeroth", help="Preset configuration: 'zeroth' (default), 'first', or 'first-acc'.")
+    parser.add_argument("-cpu", "--slurm-mem-per-cpu", default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '2GB', '4000M').")
+    parser.add_argument("-p", "--preset", choices=["zeroth", "ao-zeroth", "first", "first-acc", "ao-first-acc"], default="zeroth", help="Preset configuration.")
     parser.add_argument("-ee", "--email-extra", type=str, default="", help="Extra message appended to the -em email message passed to using_RDataFrames_python.py.")
 
     args = parser.parse_args()
@@ -477,9 +615,9 @@ def main():
         print(f"{color.Error}[ERROR]{color.END} Unknown preset: {args.preset}")
         sys.exit(1)
 
-    preset_cfg = PRESETS[args.preset]
+    preset_cfg          = PRESETS[args.preset]
     name_base_for_merged = build_name_base_for_merged(preset_cfg, args.name_tag)
-    email_msg = build_email_message(preset_cfg, args.email_extra)
+    email_msg           = build_email_message(preset_cfg, args.email_extra)
 
     overall_success = False
     hadd_success    = False
@@ -501,7 +639,7 @@ def main():
                 batch_failures.append(res["batch_id"])
 
         if(len(batch_failures) == 0):
-            batch_files = [res["root_file"] for res in results]
+            batch_files  = [res["root_file"] for res in results]
             hadd_success = run_hadd(batch_files, merged_file)
             if(hadd_success and args.delete_batch_files):
                 delete_batch_files(batch_files)
@@ -524,7 +662,7 @@ def main():
                 batch_failures.append(res["batch_id"])
 
         if(len(batch_failures) == 0):
-            batch_files = [res["root_file"] for res in results]
+            batch_files  = [res["root_file"] for res in results]
             hadd_success = run_hadd(batch_files, merged_file)
             if(hadd_success and args.delete_batch_files):
                 delete_batch_files(batch_files)
@@ -535,28 +673,29 @@ def main():
             overall_success = False
 
     elif(args.mode == "slurm"):
-        print(f"{color.BBLUE}[INFO]{color.END} Running in SLURM mode.")
+        print(f"{color.BBLUE}[INFO]{color.END} Running in SLURM mode (submission only, no local waiting).")
 
-        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(args.nbatches, main_script, output_dir, args.slurm_partition, args.slurm_time, args.slurm_account, preset_cfg, name_base_for_merged, email_msg)
+        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(
+            args.nbatches, main_script, output_dir,
+            args.slurm_partition, args.slurm_time, args.slurm_account,
+            preset_cfg, name_base_for_merged, email_msg,
+            email_address, args.slurm_mem_per_cpu
+        )
 
         if((array_jobid is None) or (hadd_jobid is None)):
             print(f"{color.Error}[ERROR]{color.END} Failed to submit SLURM jobs.")
             overall_success = False
+            hadd_success    = "Not submitted"
         else:
-            wait_for_slurm_job(hadd_jobid)
+            print(f"{color.BBLUE}[INFO]{color.END} SLURM array job id: {array_jobid}")
+            print(f"{color.BBLUE}[INFO]{color.END} SLURM hadd job id:  {hadd_jobid}")
+            print(f"{color.BBLUE}[INFO]{color.END} Merged ROOT file will be: {merged_file}")
+            print(f"{color.BBLUE}[INFO]{color.END} Note: This script will not wait for jobs to finish; SLURM emails will report completion.")
+            if(args.delete_batch_files):
+                print(f"{color.BBLUE}[INFO]{color.END} Note: --delete-batch-files is ignored in slurm mode (cannot safely delete asynchronously).")
 
-            if(os.path.isfile(merged_file) and (os.path.getsize(merged_file) > 0)):
-                print(f"{color.BGREEN}[INFO]{color.END} Merged ROOT file appears to exist: {merged_file}")
-                hadd_success = True
-            else:
-                print(f"{color.Error}[ERROR]{color.END} Merged ROOT file missing or empty after SLURM hadd job: {merged_file}")
-                hadd_success = False
-
-            if(hadd_success and args.delete_batch_files):
-                delete_batch_files(batch_files)
-                delete_success = True
-
-            overall_success = hadd_success
+            overall_success = True
+            hadd_success    = "Submitted via SLURM (not monitored in wrapper)"
 
     # =========================
     # Approximate peak memory (MB/GB) via resource.ru_maxrss
@@ -564,14 +703,14 @@ def main():
     peak_mem_str = "Unknown"
     try:
         import resource
-        usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+        usage   = resource.getrusage(resource.RUSAGE_CHILDREN)
         peak_kb = usage.ru_maxrss
         if(peak_kb > 0):
             peak_mb = peak_kb / 1024.0
             if(peak_mb < 1024.0):
                 peak_mem_str = f"{peak_mb:.2f} MB"
             else:
-                peak_gb = peak_mb / 1024.0
+                peak_gb      = peak_mb / 1024.0
                 peak_mem_str = f"{peak_gb:.2f} GB"
     except Exception:
         peak_mem_str = "Unavailable (resource module not usable)"
@@ -617,11 +756,12 @@ The 'run_make_ROOT_files_with_batching.py' script has finished running.
 """
 
     subject_status = "SUCCESS" if(overall_success) else "FAILURE"
-    subject = f"[run_make_ROOT_files_with_batching] {subject_status} ({args.mode}, N={args.nbatches}, preset={args.preset})"
+    subject        = f"[run_make_ROOT_files_with_batching] {subject_status} ({args.mode}, N={args.nbatches}, preset={args.preset})"
 
     print(email_body)
 
-    if((email_address is not None) and (email_address != "")):
+    # Only send email for non-SLURM modes; SLURM jobs send their own emails.
+    if((args.mode != "slurm") and (email_address is not None) and (email_address != "")):
         send_email(subject=subject, body=email_body, recipient=email_address)
 
     if(overall_success):

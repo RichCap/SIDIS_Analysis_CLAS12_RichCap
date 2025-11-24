@@ -203,6 +203,46 @@ def find_max_bin(hist):
 #         Integrated_cs_from_gen = 6.834e4 # pb
 
 
+def Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""):
+    # Defined for the 'Y_bin' binning option
+    if(str(Variable_Type) not in ["smear", "smeared", "GEN", "Gen", "gen", "", "norm", "normal", "default"]):
+        print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type='{Variable_Type}').\nFix input to use anything other than the default calculations of the 4D kinematic bin.")
+        Variable_Type   = ""
+        
+    Q2_y_Bin_event_name = f"""Q2_Y_Bin{      "_smeared" if(str(Variable_Type) in ["smear", "smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen"]) else ""}"""
+    z_pT_Bin_event_name = f"""z_pT_Bin_Y_bin{"_smeared" if(str(Variable_Type) in ["smear", "smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen"]) else ""}"""
+    
+    Q2_y_z_pT_4D_Bin_Def = f"""
+    int Q2_y_Bin_event_val = {Q2_y_Bin_event_name};
+    int z_pT_Bin_event_val = {z_pT_Bin_event_name};
+    int Q2_y_z_pT_4D_Bin_event_val = 0;
+    if(Q2_y_Bin_event_val >  1){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    if(Q2_y_Bin_event_val >  2){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val >  3){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    if(Q2_y_Bin_event_val >  4){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val >  5){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val >  6){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    if(Q2_y_Bin_event_val >  7){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val >  8){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    if(Q2_y_Bin_event_val >  9){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    if(Q2_y_Bin_event_val > 10){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val > 11){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    if(Q2_y_Bin_event_val > 12){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    if(Q2_y_Bin_event_val > 13){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    if(Q2_y_Bin_event_val > 14){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    if(Q2_y_Bin_event_val > 15){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    if(Q2_y_Bin_event_val > 16){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    
+    Q2_y_z_pT_4D_Bin_event_val += z_pT_Bin_event_val;
+    
+    if(Q2_y_Bin_event_val < 1 || z_pT_Bin_event_val < 1){{ Q2_y_z_pT_4D_Bin_event_val = 0; }}
+    
+    return Q2_y_z_pT_4D_Bin_event_val;
+    """
+    # Total number of bins: 546 — Includes the migration bins in the grid, but not the zero bin
+    return Q2_y_z_pT_4D_Bin_Def
+
+
 ROOT.TH1.AddDirectory(0)
 ROOT.gStyle.SetTitleOffset(1.3,'y')
 
@@ -2703,6 +2743,11 @@ double {func_name}(const double x, const double y){{
         if(not rdf.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
             print(f"\t{color.Error}WARNING:         'rdf' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
             rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+        if(not rdf.HasColumn("Q2_y_z_pT_4D_Bins")):
+            print(f"\t{color.Error}WARNING:         'rdf' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
+            rdf = rdf.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
+            
+        
 
         if(not mdf_clasdis.HasColumn("PID_pip")):
             # print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
@@ -2716,6 +2761,9 @@ double {func_name}(const double x, const double y){{
         if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
             print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
             mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+        if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
 
         if(not mdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_gen")):
             print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_gen'){color.END}")
@@ -2723,6 +2771,9 @@ double {func_name}(const double x, const double y){{
         if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
             print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
             mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D"))
+        if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_gen")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_gen'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_gen", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="gen"))
 
         if(not mdf_clasdis.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared")):
             print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_smeared'){color.END}")
@@ -2730,7 +2781,9 @@ double {func_name}(const double x, const double y){{
         if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
             print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
             mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D"))
-
+        if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_smeared")):
+            print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_smeared'){color.END}")
+            mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_smeared", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="smear"))
 
         if(not gdf_clasdis.HasColumn("PID_pip")):
             # print(f"\t{color.RED}WARNING: 'gdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
@@ -2744,6 +2797,9 @@ double {func_name}(const double x, const double y){{
         if(not gdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
             print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
             gdf_clasdis = gdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+        if(not gdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
+            print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
+            gdf_clasdis = gdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
 
         if(not args.Do_not_use_EvGen):
 	        if(not mdf_EvGen.HasColumn("PID_pip")):
@@ -2879,20 +2935,22 @@ double {func_name}(const double x, const double y){{
             #     make_rm_single(sdf=gdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             #     timer.time_elapsed()
         print(f"{color.BBLUE}Done Saving the 3D phi_h Plots{color.END}\n\n{color.BOLD}Now Saving the other kinematic variable's response matricies{color.END}\n")
-        Q2_Unfolding_Binning  = ['Q2',        0,    14, 280]
-        xB_Unfolding_Binning  = ['xB',     0.09, 0.826,  50]
-        y_Unfolding_Binning   = ['y',         0,   1.0, 100]
-        z_Unfolding_Binning   = ['z',         0,   1.2, 120]
-        pT_Unfolding_Binning  = ['pT',        0,   2.0, 200]
-        El_Binning            = ['el',      2.5,   8.0,  44]
-        El_Th_Binning         = ['elth',    7.5,  35.5,  56]
-        El_Phi_Binning        = ['elPhi',     0,   360, 144]
-        Pip_Binning           = ['pip',     1.0,     5,  32]
-        Pip_Th_Binning        = ['pipth',   4.5,  35.5,  62]
-        Pip_Phi_Binning       = ['pipPhi',    0,   360, 144]
+        Q2_Unfolding_Binning  = ['Q2',                   0,    14, 280]
+        xB_Unfolding_Binning  = ['xB',                0.09, 0.826,  50]
+        y_Unfolding_Binning   = ['y',                    0,   1.0, 100]
+        z_Unfolding_Binning   = ['z',                    0,   1.2, 120]
+        pT_Unfolding_Binning  = ['pT',                   0,   2.0, 200]
+        El_Binning            = ['el',                 2.5,   8.0,  44]
+        El_Th_Binning         = ['elth',               7.5,  35.5,  56]
+        El_Phi_Binning        = ['elPhi',                0,   360, 144]
+        Pip_Binning           = ['pip',                1.0,     5,  32]
+        Pip_Th_Binning        = ['pipth',              4.5,  35.5,  62]
+        Pip_Phi_Binning       = ['pipPhi',               0,   360, 144]
+        Multi4D_Binning       = ['Q2_y_z_pT_4D_Bins', -0.5, 546.5, 547]
 
         # for Unfolding_Binning in [Q2_Unfolding_Binning, xB_Unfolding_Binning, y_Unfolding_Binning, z_Unfolding_Binning, pT_Unfolding_Binning]:
-        for Unfolding_Binning in [Q2_Unfolding_Binning, xB_Unfolding_Binning, y_Unfolding_Binning, z_Unfolding_Binning, pT_Unfolding_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning]:
+        for Unfolding_Binning in [Q2_Unfolding_Binning, xB_Unfolding_Binning, y_Unfolding_Binning, z_Unfolding_Binning, pT_Unfolding_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, Multi4D_Binning]:
+        # for Unfolding_Binning in [Multi4D_Binning]:
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=False,                                            Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
