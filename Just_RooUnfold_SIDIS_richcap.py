@@ -74,9 +74,12 @@ def send_email(subject, body, recipient):
 
 import argparse
 
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
+
 def parse_args():
     p = argparse.ArgumentParser(description="Just_RooUnfold_SIDIS_richcap.py analysis script:\n\tMeant for JUST doing the Unfolding Procedure before saving outputs to a ROOT file.",
-                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                formatter_class=RawDefaultsHelpFormatter)
 
     # saving / test modes
     p.add_argument('-t', '-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
@@ -93,7 +96,7 @@ def parse_args():
 
     # simulation / modulation / closure
     p.add_argument('-wa', '--weighed_acceptace', action='store_true', dest='weighed_acceptace',
-                   help="Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied). Use with the '--single_file' option only. WARNING: This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
+                   help="Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only. WARNING: This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
     p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
                    help="Use reconstructed MC instead of experimental data.")
     p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
@@ -119,7 +122,7 @@ def parse_args():
                    help="Use 'Cut with Proton Missing Mass' files.")
 
     p.add_argument('-cib', '-CIB', '--Common_Int_Bins', action='store_true',
-                   help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins). Otherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
+                   help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins).\nOtherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
 
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations', type=int,
                    help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically).")
@@ -145,7 +148,7 @@ def parse_args():
     p.add_argument('-sf', '--single_file', action='store_true',
                    help="Runs with a single input file where the histograms are all taken from the same file instead of 3 separate ones.")
     p.add_argument('-sfin', '--single_file_input', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/SIDIS_epip_All_File_Types_from_RDataFrames_ZeroOrder.root",
-                   help="Input file to be used with the '--single_file' option. Is set to 'None' if the '--single_file' option is not selected.")
+                   help="Input file to be used with the '--single_file' option. Is set to 'None' if the '--single_file' option is not selected.\n")
     # p.add_argument('-ZO', '--zero_order',  action='store_true', 
     #                help="USE '-wa' INSTEAD — Can use with '--single_file' when using the zeroth order acceptance weights. When you want to use the weighted MC for corrections, the zeroth order generated distributions do not have any weights, so the script will always fail to find them. This argument allows for the unweighted 'gdf' histograms to be used in these cases (do not use this option for other types of weighted MCs).")
 
@@ -3140,12 +3143,18 @@ for ii in mdf.GetListOfKeys():
     # if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
     #     continue
 
+    if("Q2_y_z_pT_4D_Bins" not in out_print_main):
+        continue
+    else:
+        print(f"out_print_main:\n\t{out_print_main}\n")
+
     if(("_(Weighed)" in out_print_main) and not (Mod_Test or Closure_Test)):
         print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
         continue
     elif(("_(Weighed)" not in out_print_main) and Mod_Test):
         print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
         continue
+
     
     # count += 1
     # if("pipsec" in out_print_main):
