@@ -13,6 +13,8 @@ import subprocess
 # ----------------------------------------------------------------------
 # Imports from your analysis environment
 # ----------------------------------------------------------------------
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *  # safe_write, color, etc.
@@ -107,13 +109,11 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 # Placeholder: decode 2D bin indices into kinematic values
 # You will replace the body of this with your real mapping.
 # ----------------------------------------------------------------------
-def decode_kinematics_from_bins(Q2_y_Bin, z_pT_Bin):
-    # TODO: Replace these placeholders with your actual mapping from
-    #       (Q2_y_Bin, z_pT_Bin) → (Q2_val, y_val, z_val, pT_val).
-    Q2_val = 0.0
-    y_val  = 0.0
-    z_val  = 0.0
-    pT_val = 0.0
+def decode_kinematics_from_bins(Q2_y_Bin_Find_In, z_pT_Bin_Find_In):
+    Q2_y_bins, z_pT_bins = Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find=Q2_y_Bin_Find_In, z_pT_Bin_Find=z_pT_Bin_Find_In, List_Of_Histos_For_Stats_Search="Use_Center", Smearing_Q="''", DataType="bbb", Binning_Method_Input=Binning_Method)
+    Q2_bins, y_bins = Q2_y_bins
+    z_bins, pT_bins = z_pT_bins
+    Q2_val, y_val, z_val, pT_val = Q2_bins[1], y_bins[1], z_bins[1], pT_bins[1]
     return Q2_val, y_val, z_val, pT_val
 
 
@@ -201,13 +201,13 @@ def build_dataframe_from_hist(ratio_hist):
         print(f"{color.YELLOW}Warning: No valid bins were converted into dataframe entries.{color.END}")
 
     data_dict = {
-        "Q2_y_Bin":   numpy.array(Q2_y_Bin_list, dtype="int32"),
-        "Q2_val":     numpy.array(Q2_val_list,   dtype="float64"),
-        "y_val":      numpy.array(y_val_list,    dtype="float64"),
-        "z_val":      numpy.array(z_val_list,    dtype="float64"),
-        "pT_val":     numpy.array(pT_val_list,   dtype="float64"),
-        "bin_content": numpy.array(content_list, dtype="float64"),
-        "bin_error":   numpy.array(error_list,   dtype="float64"),
+        "Q2_y_Bin":    numpy.array(Q2_y_Bin_list, dtype="int32"),
+        "Q2_val":      numpy.array(Q2_val_list,   dtype="float64"),
+        "y_val":       numpy.array(y_val_list,    dtype="float64"),
+        "z_val":       numpy.array(z_val_list,    dtype="float64"),
+        "pT_val":      numpy.array(pT_val_list,   dtype="float64"),
+        "bin_content": numpy.array(content_list,  dtype="float64"),
+        "bin_error":   numpy.array(error_list,    dtype="float64"),
     }
 
     rdf = ROOT.RDF.MakeNumpyDataFrame(data_dict)
@@ -218,29 +218,31 @@ def build_dataframe_from_hist(ratio_hist):
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file.")
+    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file.",
+                                formatter_class=RawDefaultsHelpFormatter)
 
-    parser.add_argument("--input-root", required=True,
+    parser.add_argument("-r", "-inR", "--input_root",
                         help="Input ROOT file containing the numerator and denominator TH1D histograms.")
-    parser.add_argument("--num-hist", required=True,
+    parser.add_argument("-nh", "--num_hist",
                         help="Name of the numerator TH1D histogram in the input file.")
-    parser.add_argument("--den-hist", required=True,
+    parser.add_argument("-dh", "--den_hist",
                         help="Name of the denominator TH1D histogram in the input file.")
-    parser.add_argument("--ratio-hist", required=True,
-                        help="Name to use (or look for) for the ratio TH1D histogram in the input file.")
+    parser.add_argument("-rh", "--ratio_hist", default=None,
+                        help="Name to use (or look for) for the ratio TH1D histogram in the input file. Overwrites the default naming.")
+    parser.add_argument("-rf", "--rdf_file",
+                        help="Output ROOT file to store the RDataFrame with bin-by-bin values.\n\tIf this file already exists and `--force_rdf` is not set, all processing is skipped.")
+    # parser.add_argument("--rdf-tree-name", default="h22",
+    #                     help="Name of the output TTree created by Snapshot (default: 'ratio_points').")
+    # Above will always be h22 for code compatiblity
 
-    parser.add_argument("--rdf-file", required=True,
-                        help="Output ROOT file to store the RDataFrame with bin-by-bin values. "
-                             "If this file already exists and --force-rdf is not set, all processing is skipped.")
-    parser.add_argument("--rdf-tree-name", default="ratio_points",
-                        help="Name of the output TTree created by Snapshot (default: 'ratio_points').")
-
-    parser.add_argument("--force-ratio", action="store_true",
+    parser.add_argument("-fr", "--force_ratio", action="store_true",
                         help="Force recreation of the ratio histogram even if it already exists in the input file.")
-    parser.add_argument("--force-rdf", action="store_true",
+    parser.add_argument("-frdf", "--force_rdf", action="store_true",
                         help="Force recreation of the RDataFrame file even if it already exists.")
-    parser.add_argument("--email-recipient", default=None,
-                        help="Optional email address for error notifications.")
+    parser.add_argument("-e", "--email", action="store_true",
+                        help="Optional email sent at the end of the script.")
+    parser.add_argument("-ee", "--email_message", default=None, type=str,
+                        help="Additional message to be attached to the email.")
 
     args = parser.parse_args()
     return args
@@ -267,11 +269,7 @@ def main():
             raise RuntimeError(f"Failed to open input ROOT file '{args.input_root}' in UPDATE mode.")
 
         # 1–3) Build or reuse ratio histogram, write it safely to the ROOT file
-        ratio_hist = build_ratio_histogram(root_file,
-                                           args.num_hist,
-                                           args.den_hist,
-                                           args.ratio_hist,
-                                           args.force_ratio)
+        ratio_hist = build_ratio_histogram(root_file, args.num_hist, args.den_hist, args.ratio_hist, args.force_ratio)
 
         # Make sure the file is updated on disk
         root_file.Write("", ROOT.TObject.kOverwrite)
@@ -282,8 +280,8 @@ def main():
         rdf = build_dataframe_from_hist(ratio_hist)
 
         # Create / overwrite the RDataFrame output file
-        print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree '{args.rdf_tree_name}'.{color.END}")
-        rdf.Snapshot(args.rdf_tree_name, args.rdf_file)
+        print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree 'h22'.{color.END}")
+        rdf.Snapshot("h22", args.rdf_file)
         print(f"{color.BGREEN}Done. RDataFrame with 7 columns written to '{args.rdf_file}'.{color.END}")
 
     except Exception as e:
@@ -295,11 +293,12 @@ def main():
             "\n\nTraceback:\n",
             traceback.format_exc(),
             "\n"
-        ])
+        ]) # Replace the `join` command with one-line f-strings later
         print(err_msg)
 
-        if(args.email_recipient is not None):
-            send_email("Ratio → RDataFrame script error", err_msg, args.email_recipient)
+        # if(args.email_recipient is not None):
+        #     send_email("Ratio → RDataFrame script error", err_msg, args.email_recipient)
+        # need to fix the emails to also send one when the script is successful (more important than when it fails)
 
         # Non-zero exit code to signal failure in batch environments
         sys.exit(1)
