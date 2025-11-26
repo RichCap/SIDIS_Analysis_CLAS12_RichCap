@@ -157,9 +157,6 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
     if((root_file is None) or root_file.IsZombie()):
         raise RuntimeError("Input ROOT file is not open or is a zombie.")
 
-    # Reuse logic disabled for now due to previous segfaults.
-    # Can revisit later if needed.
-
     num_hist = root_file.Get(num_name)
     den_hist = root_file.Get(den_name)
 
@@ -264,9 +261,10 @@ def build_dataframe_from_hist(ratio_hist):
 
 # ----------------------------------------------------------------------
 # Z-fit layer: bin_content vs z at fixed (Q2_y_Bin, pT range)
+# Quadratic: bin_content(z) = p0 + p1*z + p2*z^2
 # ----------------------------------------------------------------------
 def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    print(f"{color.BCYAN}Starting z-fits using RDataFrame.{color.END}")
+    print(f"{color.BCYAN}Starting z-fits using RDataFrame (quadratic in z).{color.END}")
 
     if(save_plots):
         if(not os.path.exists(plot_dir)):
@@ -282,8 +280,8 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             pT_min = pT_range[0]
             pT_max = pT_range[1]
 
-            cut_expr = f"(Q2_y_Bin == {Q2_y_Bin_key}) && (pT_val >= {pT_min}) && (pT_val < {pT_max}) && (z_val >= {Z_MIN}) && (z_val <= {Z_MAX})"
-            df_slice = rdf.Filter(cut_expr, f"Q2_y_Bin={Q2_y_Bin_key}, pT in [{pT_min},{pT_max})")
+            cut_expr = f"(Q2_y_Bin == {Q2_y_Bin_key}) && (pT_val >= {pT_min}) && (pT_val < {pT_max}) && (z_val >= {Z_MIN}) && (z_val <= {Z_MAX}) && (bin_content > 0.0)"
+            df_slice = rdf.Filter(cut_expr, f"Q2_y_Bin={Q2_y_Bin_key}, pT in [{pT_min},{pT_max}), bin_content>0")
 
             np_dict  = df_slice.AsNumpy(["z_val", "bin_content", "bin_error"])
             z_vals   = numpy.array(np_dict["z_val"],        dtype="float64")
@@ -291,10 +289,6 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             err_vals = numpy.array(np_dict["bin_error"],    dtype="float64")
 
             n_points = len(z_vals)
-            if(n_points < 2):
-                print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to insufficient points (n={n_points}).{color.END}")
-                continue
-
             graph = ROOT.TGraphErrors(n_points)
             for idx in range(n_points):
                 graph.SetPoint(idx, float(z_vals[idx]), float(y_vals[idx]))
@@ -304,25 +298,34 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             graph.SetMarkerSize(1.0)
             graph.SetLineWidth(2)
 
-            fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x", Z_MIN, Z_MAX)
+            fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x + [2]*x*x", Z_MIN, Z_MAX)
 
             intercept_guess = float(numpy.mean(y_vals))
             fit_func.SetParameter(0, intercept_guess)
             fit_func.SetParameter(1, 0.0)
+            fit_func.SetParameter(2, 0.0)
+            
+            if(n_points < 3):
+                # print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to insufficient points for quadratic fit (n={n_points}).{color.END}")
+                # continue
+                print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) has insufficient points for quadratic fit (n={n_points}) — using linear instead.{color.END}")
+                fit_func.FixParameter(2, 0.0)
 
-            fit_result = graph.Fit(fit_func, "QSRN")
+            fit_result = graph.Fit(fit_func, "QSRNB")
 
-            slope         = fit_func.GetParameter(1)
-            slope_err     = fit_func.GetParError(1)
             intercept     = fit_func.GetParameter(0)
             intercept_err = fit_func.GetParError(0)
+            slope         = fit_func.GetParameter(1)
+            slope_err     = fit_func.GetParError(1)
+            quad          = fit_func.GetParameter(2)
+            quad_err      = fit_func.GetParError(2)
             chi2          = fit_func.GetChisquare()
             ndf           = fit_func.GetNDF()
             pT_center     = 0.5 * (pT_min + pT_max)
 
             print(f"{color.BBLUE}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.3f}, {pT_max:.3f}) "
-                  f"n={n_points}, slope={slope:.4g} ± {slope_err:.4g}, "
-                  f"intercept={intercept:.4g} ± {intercept_err:.4g}, "
+                  f"n={n_points}, intercept={intercept:.4g} ± {intercept_err:.4g}, "
+                  f"slope={slope:.4g} ± {slope_err:.4g}, quad={quad:.4g} ± {quad_err:.4g}, "
                   f"chi2/ndf={chi2}/{ndf}{color.END}")
 
             if(save_plots):
@@ -331,7 +334,7 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
                 canvas = ROOT.TCanvas(cname, cname, 800, 600)
 
-                title_str = f"z-fit: Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.2f},{pT_max:.2f})"
+                title_str = f"z-fit (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key} #topbar P_{{T}} = [{pT_min:.2f},{pT_max:.2f})"
                 graph.SetTitle(f"{title_str};z;Ratio of #frac{{Unfolded Data}}{{Generated MC}}")
                 graph.Draw("AP")
 
@@ -342,9 +345,10 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
                 latex = ROOT.TLatex()
                 latex.SetNDC(True)
                 latex.SetTextSize(0.04)
-                latex.DrawLatex(0.15, 0.88, f"slope = {slope:.4g} #pm {slope_err:.4g}")
-                latex.DrawLatex(0.15, 0.83, f"intercept = {intercept:.4g} #pm {intercept_err:.4g}")
-                latex.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+                latex.DrawLatex(0.15, 0.88, f"intercept = {intercept:.4g} #pm {intercept_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"slope     = {slope:.4g} #pm {slope_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"quad      = {quad:.4g} #pm {quad_err:.4g}")
+                latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
 
                 if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
                     base_name = f"{cname}_{image_suffix}"
@@ -361,10 +365,12 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
                 "pT_max":        pT_max,
                 "pT_center":     pT_center,
                 "n_points":      n_points,
-                "slope":         slope,
-                "slope_err":     slope_err,
                 "intercept":     intercept,
                 "intercept_err": intercept_err,
+                "slope":         slope,
+                "slope_err":     slope_err,
+                "quad":          quad,
+                "quad_err":      quad_err,
                 "chi2":          chi2,
                 "ndf":           ndf,
             })
@@ -374,10 +380,18 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
 
 # ----------------------------------------------------------------------
-# pT-fit layer: slope(pT) and intercept(pT) for each Q2_y_Bin
+# pT-fit layer: fit intercept(pT), slope(pT), quad(pT) with quadratics
+#   intercept(pT) ≈ b0 + b1*pT + b2*pT^2
+#   slope(pT)     ≈ a0 + a1*pT + a2*pT^2
+#   quad(pT)      ≈ c0 + c1*pT + c2*pT^2
+#
+# Final 2D function per Q2_y_Bin:
+#   F(z,pT) = (b0 + b1*pT + b2*pT^2)
+#           + (a0 + a1*pT + a2*pT^2) * z
+#           + (c0 + c1*pT + c2*pT^2) * z^2
 # ----------------------------------------------------------------------
 def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters.{color.END}")
+    print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters (quadratic in pT).{color.END}")
 
     if(len(z_fit_results) == 0):
         print(f"{color.YELLOW}No z-fit results provided; skipping pT fits.{color.END}")
@@ -400,17 +414,25 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
     for Q2_y_Bin_key in sorted(results_by_q2.keys()):
         rows = results_by_q2[Q2_y_Bin_key]
         n = len(rows)
-        if(n < 2):
-            print(f"{color.YELLOW}Skipping pT-fit for Q2_y_Bin={Q2_y_Bin_key} (only {n} z-fit points).{color.END}")
-            continue
-
+        Linear = False
+        if(n < 3):
+            # print(f"{color.YELLOW}Skipping pT-fit for Q2_y_Bin={Q2_y_Bin_key} (only {n} z-fit points, need ≥3 for quadratic).{color.END}")
+            # continue
+            print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key} only has {n} z-fit points, need ≥3 for quadratic — using linear instead.{color.END}")
+            Linear = True
+            
         pT_centers     = numpy.array([r["pT_center"]     for r in rows], dtype="float64")
-        slopes         = numpy.array([r["slope"]         for r in rows], dtype="float64")
-        slope_errs     = numpy.array([r["slope_err"]     for r in rows], dtype="float64")
         intercepts     = numpy.array([r["intercept"]     for r in rows], dtype="float64")
         intercept_errs = numpy.array([r["intercept_err"] for r in rows], dtype="float64")
+        slopes         = numpy.array([r["slope"]         for r in rows], dtype="float64")
+        slope_errs     = numpy.array([r["slope_err"]     for r in rows], dtype="float64")
+        quads          = numpy.array([r["quad"]          for r in rows], dtype="float64")
+        quad_errs      = numpy.array([r["quad_err"]      for r in rows], dtype="float64")
 
-        # Slope vs pT
+        pT_min_fit = float(min(pT_centers))
+        pT_max_fit = float(max(pT_centers))
+
+        # --- slope(pT) ---
         g_slope = ROOT.TGraphErrors(n)
         for idx in range(n):
             g_slope.SetPoint(idx, float(pT_centers[idx]), float(slopes[idx]))
@@ -419,7 +441,24 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_slope.SetMarkerSize(1.0)
         g_slope.SetLineWidth(2)
 
-        # Intercept vs pT
+        f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", pT_min_fit, pT_max_fit)
+        f_slope.SetParameter(0, float(numpy.mean(slopes)))
+        f_slope.SetParameter(1, 0.0)
+        f_slope.SetParameter(2, 0.0)
+        if(Linear):
+            f_slope.FixParameter(2, 0.0)
+        g_slope.Fit(f_slope, "QSRNB")
+
+        a0     = f_slope.GetParameter(0)
+        a0_err = f_slope.GetParError(0)
+        a1     = f_slope.GetParameter(1)
+        a1_err = f_slope.GetParError(1)
+        a2     = f_slope.GetParameter(2)
+        a2_err = f_slope.GetParError(2)
+        chi2_s = f_slope.GetChisquare()
+        ndf_s  = f_slope.GetNDF()
+
+        # --- intercept(pT) ---
         g_int = ROOT.TGraphErrors(n)
         for idx in range(n):
             g_int.SetPoint(idx, float(pT_centers[idx]), float(intercepts[idx]))
@@ -428,45 +467,63 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_int.SetMarkerSize(1.0)
         g_int.SetLineWidth(2)
 
-        pT_min_fit = float(min(pT_centers))
-        pT_max_fit = float(max(pT_centers))
-
-        f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x", pT_min_fit, pT_max_fit)
-        f_int   = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}",   "[0] + [1]*x", pT_min_fit, pT_max_fit)
-
-        f_slope.SetParameter(0, float(numpy.mean(slopes)))
-        f_slope.SetParameter(1, 0.0)
+        f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", pT_min_fit, pT_max_fit)
         f_int.SetParameter(0, float(numpy.mean(intercepts)))
         f_int.SetParameter(1, 0.0)
+        f_int.SetParameter(2, 0.0)
+        if(Linear):
+            f_int.FixParameter(2, 0.0)
+        g_int.Fit(f_int, "QSRNB")
 
-        g_slope.Fit(f_slope, "QSRN")
-        g_int.Fit(f_int, "QSRN")
+        b0     = f_int.GetParameter(0)
+        b0_err = f_int.GetParError(0)
+        b1     = f_int.GetParameter(1)
+        b1_err = f_int.GetParError(1)
+        b2     = f_int.GetParameter(2)
+        b2_err = f_int.GetParError(2)
+        chi2_i = f_int.GetChisquare()
+        ndf_i  = f_int.GetNDF()
 
-        a0      = f_slope.GetParameter(0)
-        a0_err  = f_slope.GetParError(0)
-        a1      = f_slope.GetParameter(1)
-        a1_err  = f_slope.GetParError(1)
-        chi2_s  = f_slope.GetChisquare()
-        ndf_s   = f_slope.GetNDF()
+        # --- quad(pT) ---
+        g_quad = ROOT.TGraphErrors(n)
+        for idx in range(n):
+            g_quad.SetPoint(idx, float(pT_centers[idx]), float(quads[idx]))
+            g_quad.SetPointError(idx, 0.0, float(quad_errs[idx]))
+        g_quad.SetMarkerStyle(23)
+        g_quad.SetMarkerSize(1.0)
+        g_quad.SetLineWidth(2)
 
-        b0      = f_int.GetParameter(0)
-        b0_err  = f_int.GetParError(0)
-        b1      = f_int.GetParameter(1)
-        b1_err  = f_int.GetParError(1)
-        chi2_i  = f_int.GetChisquare()
-        ndf_i   = f_int.GetNDF()
+        f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", pT_min_fit, pT_max_fit)
+        f_quad.SetParameter(0, float(numpy.mean(quads)))
+        f_quad.SetParameter(1, 0.0)
+        f_quad.SetParameter(2, 0.0)
+        if(Linear):
+            f_quad.FixParameter(2, 0.0)
+        g_quad.Fit(f_quad, "QSRNB")
 
-        print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key}: slope(pT) = a0 + a1*pT with "
-              f"a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, chi2/ndf={chi2_s}/{ndf_s}; "
-              f"intercept(pT) = b0 + b1*pT with b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, "
-              f"chi2/ndf={chi2_i}/{ndf_i}{color.END}")
+        c0     = f_quad.GetParameter(0)
+        c0_err = f_quad.GetParError(0)
+        c1     = f_quad.GetParameter(1)
+        c1_err = f_quad.GetParError(1)
+        c2     = f_quad.GetParameter(2)
+        c2_err = f_quad.GetParError(2)
+        chi2_q = f_quad.GetChisquare()
+        ndf_q  = f_quad.GetNDF()
+
+        print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key}:")
+        print(f"  slope(pT)     = a0 + a1*pT + a2*pT^2 with "
+              f"a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, a2={a2:.4g}±{a2_err:.4g}, chi2/ndf={chi2_s}/{ndf_s}")
+        print(f"  intercept(pT) = b0 + b1*pT + b2*pT^2 with "
+              f"b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, b2={b2:.4g}±{b2_err:.4g}, chi2/ndf={chi2_i}/{ndf_i}")
+        print(f"  quad(pT)      = c0 + c1*pT + c2*pT^2 with "
+              f"c0={c0:.4g}±{c0_err:.4g}, c1={c1:.4g}±{c1_err:.4g}, c2={c2:.4g}±{c2_err:.4g}, chi2/ndf={chi2_q}/{ndf_q}{color.END}")
 
         if(save_plots):
             # Slope vs pT plot
             cname_slope = f"c_pTFit_slope_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_s = ROOT.TCanvas(cname_slope, cname_slope, 800, 600)
-            title_s  = f"Slope vs p_{{T}}: Q2_y_Bin={Q2_y_Bin_key}"
-            g_slope.SetTitle(f"{title_s};p_{{T}} (GeV);Slope of z-fit")
+            title_s  = f"Slope vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            g_slope.SetTitle(f"{title_s};P_{{T}} (GeV);Slope of z-fit")
             g_slope.Draw("AP")
             f_slope.SetLineColor(ROOT.kRed)
             f_slope.SetLineWidth(2)
@@ -477,7 +534,8 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_s.SetTextSize(0.04)
             latex_s.DrawLatex(0.15, 0.88, f"a0 = {a0:.4g} #pm {a0_err:.4g}")
             latex_s.DrawLatex(0.15, 0.83, f"a1 = {a1:.4g} #pm {a1_err:.4g}")
-            latex_s.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
+            latex_s.DrawLatex(0.15, 0.78, f"a2 = {a2:.4g} #pm {a2_err:.4g}")
+            latex_s.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
 
             if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
                 base_s = f"{cname_slope}_{image_suffix}"
@@ -490,8 +548,8 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             # Intercept vs pT plot
             cname_i = f"c_pTFit_intercept_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_i = ROOT.TCanvas(cname_i, cname_i, 800, 600)
-            title_i  = f"Intercept vs p_{{T}}: Q2_y_Bin={Q2_y_Bin_key}"
-            g_int.SetTitle(f"{title_i};p_{{T}} (GeV);Intercept of z-fit")
+            title_i  = f"Intercept vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            g_int.SetTitle(f"{title_i};P_{{T}} (GeV);Intercept of z-fit")
             g_int.Draw("AP")
             f_int.SetLineColor(ROOT.kRed)
             f_int.SetLineWidth(2)
@@ -502,7 +560,8 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_i.SetTextSize(0.04)
             latex_i.DrawLatex(0.15, 0.88, f"b0 = {b0:.4g} #pm {b0_err:.4g}")
             latex_i.DrawLatex(0.15, 0.83, f"b1 = {b1:.4g} #pm {b1_err:.4g}")
-            latex_i.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
+            latex_i.DrawLatex(0.15, 0.78, f"b2 = {b2:.4g} #pm {b2_err:.4g}")
+            latex_i.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
 
             if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
                 base_i = f"{cname_i}_{image_suffix}"
@@ -512,22 +571,55 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             canvas_i.SaveAs(out_i)
             del canvas_i
 
-        # Store the 4-parameter (z,pT) description for this Q2_y_Bin:
-        #   slope(pT)     = a0 + a1 * pT
-        #   intercept(pT) = b0 + b1 * pT
-        #   F(z,pT)       = (a0 + a1*pT)*z + (b0 + b1*pT)
+            # Quad vs pT plot
+            cname_q = f"c_pTFit_quad_Q2_y_Bin_{Q2_y_Bin_key}"
+            canvas_q = ROOT.TCanvas(cname_q, cname_q, 800, 600)
+            title_q  = f"Quad coeff vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            g_quad.SetTitle(f"{title_q};P_{{T}} (GeV);Quad term of z-fit")
+            g_quad.Draw("AP")
+            f_quad.SetLineColor(ROOT.kRed)
+            f_quad.SetLineWidth(2)
+            f_quad.Draw("same")
+
+            latex_q = ROOT.TLatex()
+            latex_q.SetNDC(True)
+            latex_q.SetTextSize(0.04)
+            latex_q.DrawLatex(0.15, 0.88, f"c0 = {c0:.4g} #pm {c0_err:.4g}")
+            latex_q.DrawLatex(0.15, 0.83, f"c1 = {c1:.4g} #pm {c1_err:.4g}")
+            latex_q.DrawLatex(0.15, 0.78, f"c2 = {c2:.4g} #pm {c2_err:.4g}")
+            latex_q.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
+
+            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
+                base_q = f"{cname_q}_{image_suffix}"
+            else:
+                base_q = cname_q
+            out_q = os.path.join(plot_dir, f"{base_q}{file_ext}")
+            canvas_q.SaveAs(out_q)
+            del canvas_q
+
         pt_fit_summary[Q2_y_Bin_key] = {
+            # slope(pT) parameters
             "a0": a0, "a0_err": a0_err,
             "a1": a1, "a1_err": a1_err,
+            "a2": a2, "a2_err": a2_err,
+            # intercept(pT) parameters
             "b0": b0, "b0_err": b0_err,
             "b1": b1, "b1_err": b1_err,
+            "b2": b2, "b2_err": b2_err,
+            # quad(pT) parameters
+            "c0": c0, "c0_err": c0_err,
+            "c1": c1, "c1_err": c1_err,
+            "c2": c2, "c2_err": c2_err,
+            # goodness-of-fit
             "chi2_slope": chi2_s,
             "ndf_slope":  ndf_s,
             "chi2_int":   chi2_i,
             "ndf_int":    ndf_i,
+            "chi2_quad":  chi2_q,
+            "ndf_quad":   ndf_q,
         }
 
-    print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with 4-parameter (z,pT) functions: {len(pt_fit_summary)}.{color.END}")
+    print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with 9-parameter (z,pT) description: {len(pt_fit_summary)}.{color.END}")
     return pt_fit_summary
 
 
@@ -535,7 +627,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, then perform z- and pT-fits.",
+    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, then perform quadratic z- and pT-fits.",
                                      formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument("-r", "-inR", "--input_root", default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
@@ -641,9 +733,9 @@ def main():
             z_fit_results = perform_z_fits(rdf_for_fits, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
             print(f"{color.BCYAN}Stored {len(z_fit_results)} z-fit result rows in memory (Python list).{color.END}")
 
-            if((not args.no_pT_fits) and (len(z_fit_results) > 0)):
+            if(do_pT_fits and (len(z_fit_results) > 0)):
                 pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
-                print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) functions in memory (by Q2_y_Bin).{color.END}")
+                print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) descriptions in memory (by Q2_y_Bin).{color.END}")
 
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
@@ -652,9 +744,9 @@ def main():
         email_body += f"Ratio hist:      {ratio_name}\n"
         email_body += f"RDF file:        {args.rdf_file}\n"
         if(do_z_fits and (z_fit_results is not None)):
-            email_body += f"z-fits in memory: {len(z_fit_results)} results\n"
+            email_body += f"z-fits in memory: {len(z_fit_results)} results (quadratic).\n"
         if(do_z_fits and do_pT_fits and (pT_fit_results is not None)):
-            email_body += f"pT-fit functions: {len(pT_fit_results)} Q2_y_Bins\n"
+            email_body += f"pT-fit functions (quadratic) per Q2_y_Bin: {len(pT_fit_results)}\n"
         if(save_plots):
             email_body += f"Fit image directory: {args.z_plot_dir}\n"
             email_body += f"Fit image format: {args.image_format}\n"
