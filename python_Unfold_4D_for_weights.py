@@ -55,11 +55,13 @@ def send_email(subject, body):
     html_body = ansi_to_html(body)
     subprocess.run(["mail", "-s", subject, EMAIL_RECIPIENT], input=html_body.encode(), check=False)
 
+
 def safe_write(obj, tfile):
     existing = tfile.GetListOfKeys().FindObject(obj.GetName())
     if(existing):
         tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
     obj.Write()
+
 
 # ----------------------------------------------------------------------
 # 4D → (Q2_y_Bin, z_pT_Bin) decoder
@@ -111,7 +113,7 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 
         if(Q2_y_z_pT_4D_Bins > offset):
             z_pT_Bin = Q2_y_z_pT_4D_Bins - offset
-            print(f"4D Bin ({Q2_y_z_pT_4D_Bins}) --> ({Q2_y_Bin}-{z_pT_Bin})")
+            # print(f"4D Bin ({Q2_y_z_pT_4D_Bins}) --> ({Q2_y_Bin}-{z_pT_Bin})")
             return Q2_y_Bin, z_pT_Bin
 
     return 0, 0
@@ -135,6 +137,8 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
     if((root_file is None) or root_file.IsZombie()):
         raise RuntimeError("Input ROOT file is not open or is a zombie.")
 
+    # The reuse logic is commented out for now due to segfault issues when returning
+    # existing histograms. Can revisit this later.
     # if((root_file.GetListOfKeys().Contains(ratio_name)) and (not force_ratio)):
     #     print(f"{color.BBLUE}Ratio histogram '{ratio_name}' already exists and force recreation is disabled. Reusing existing histogram.{color.END}")
     #     existing_histo = root_file.Get(ratio_name)
@@ -210,18 +214,47 @@ def build_dataframe_from_hist(ratio_hist):
     if(len(Q2_y_Bin_list) == 0):
         print(f"{color.YELLOW}Warning: No valid bins were converted into dataframe entries.{color.END}")
 
-    data_dict = {
-        "Q2_y_Bin":    numpy.array(Q2_y_Bin_list, dtype="int32"),
-        "Q2_val":      numpy.array(Q2_val_list,   dtype="float64"),
-        "y_val":       numpy.array(y_val_list,    dtype="float64"),
-        "z_val":       numpy.array(z_val_list,    dtype="float64"),
-        "pT_val":      numpy.array(pT_val_list,   dtype="float64"),
-        "bin_content": numpy.array(content_list,  dtype="float64"),
-        "bin_error":   numpy.array(error_list,    dtype="float64"),
-    }
+    # Instead of ROOT.RDF.MakeNumpyDataFrame (not available in this ROOT), create a small in-memory TTree and wrap it in an RDataFrame.
+    n_entries = len(Q2_y_Bin_list)
 
-    rdf = ROOT.RDF.MakeNumpyDataFrame(data_dict)
+    memfile = ROOT.TMemFile("tmp_unfold_4D_mem", "RECREATE")
+    tree    = ROOT.TTree("h22_tmp", "h22_tmp")
+
+    b_Q2_y_Bin = array.array("i", [0])
+    b_Q2_val   = array.array("d", [0.0])
+    b_y_val    = array.array("d", [0.0])
+    b_z_val    = array.array("d", [0.0])
+    b_pT_val   = array.array("d", [0.0])
+    b_content  = array.array("d", [0.0])
+    b_error    = array.array("d", [0.0])
+
+    tree.Branch("Q2_y_Bin",    b_Q2_y_Bin, "Q2_y_Bin/I")
+    tree.Branch("Q2_val",      b_Q2_val,   "Q2_val/D")
+    tree.Branch("y_val",       b_y_val,    "y_val/D")
+    tree.Branch("z_val",       b_z_val,    "z_val/D")
+    tree.Branch("pT_val",      b_pT_val,   "pT_val/D")
+    tree.Branch("bin_content", b_content,  "bin_content/D")
+    tree.Branch("bin_error",   b_error,    "bin_error/D")
+
+    for index in range(n_entries):
+        b_Q2_y_Bin[0] = Q2_y_Bin_list[index]
+        b_Q2_val[0]   = Q2_val_list[index]
+        b_y_val[0]    = y_val_list[index]
+        b_z_val[0]    = z_val_list[index]
+        b_pT_val[0]   = pT_val_list[index]
+        b_content[0]  = content_list[index]
+        b_error[0]    = error_list[index]
+        tree.Fill()
+
+    memfile.Write()
+
+    rdf = ROOT.RDataFrame(tree)
+    # Keep backing objects alive by attaching them to the rdf object
+    rdf._unfold_memfile = memfile
+    rdf._unfold_tree    = tree
+
     return rdf
+
 
 # ----------------------------------------------------------------------
 # Argument parsing
