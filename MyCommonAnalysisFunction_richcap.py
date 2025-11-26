@@ -1270,6 +1270,14 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=
             Bin_Definition_Array_str = f'Q2-y={Q2_y_Bin_Num}, z-pT={z_pT_Bin_Num} - MIGRATION BIN'
         else:
             Bin_Definition_Array_str = f'Q2-y={Q2_y_Bin_Num}, z-pT={z_pT_Bin_Num}'
+        try:
+            return Bin_Definition_Array[Bin_Definition_Array_str]
+        except KeyError:
+            for suffix in [" - REMOVE - MIGRATION BIN", " - MIGRATION BIN"]:
+                if(suffix in Bin_Definition_Array_str):
+                    print(f"\n{color.Error}WARNING: {color.END_B}{Bin_Definition_Array_str}{color.Error} is not in {color.END_B}Bin_Definition_Array{color.Error}.\nRemoving {color.END_B}'{suffix}'{color.Error} to be able to return the z-pT borders from `Get_z_pT_Bin_Corners()`.\nWill return:\n\t{color.END_B}[z_max, z_min, pT_max, pT_min] = {Bin_Definition_Array[Bin_Definition_Array_str.replace(suffix, '')]}{color.END}")
+                    return Bin_Definition_Array[Bin_Definition_Array_str.replace(suffix, "")]
+            raise
         return Bin_Definition_Array[Bin_Definition_Array_str]
         ###### return [z_max, z_min, pT_max, pT_min]
 
