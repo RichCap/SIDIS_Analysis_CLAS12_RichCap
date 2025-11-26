@@ -28,28 +28,25 @@ EMAIL_RECIPIENT = "richard.capobianco@uconn.edu"
 
 
 # ----------------------------------------------------------------------
-# ANSI → HTML + email helper (as given)
+# ANSI → HTML + email helper
 # ----------------------------------------------------------------------
 def ansi_to_html(text):
     # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
-    # Map ANSI codes to HTML spans
     ansi_html_map = {  # Styles
                       '\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",
                       # Colors
                       '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "",
-                      # Reset (closes span)
+                      # Reset
                       '\033[0m': "",
                      }
     sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
     for code in sorted_codes:
         text = text.replace(code, ansi_html_map[code])
-    # Remove any stray/unsupported ANSI codes that might remain
     text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', text)
     return text
 
 
 def send_email(subject, body):
-    # Send an email via the system mail command.
     if(EMAIL_RECIPIENT is None):
         return
     html_body = ansi_to_html(body)
@@ -59,14 +56,13 @@ def send_email(subject, body):
 def safe_write(obj, tfile):
     existing = tfile.GetListOfKeys().FindObject(obj.GetName())
     if(existing):
-        tfile.Delete(f"{obj.GetName()};*")  # delete all versions of the object
+        tfile.Delete(f"{obj.GetName()};*")
     obj.Write()
 
 
 # ----------------------------------------------------------------------
 # pT ranges per Q2_y_Bin (as provided)
 # ----------------------------------------------------------------------
-# pT_Ranges_per_Q2_y_Bin['key'] = [[pT_min, pT_max], [pT_min, pT_max], ...]
 pT_Ranges_per_Q2_y_Bin = {
     1:  [[0.05, 0.22], [0.22, 0.32], [0.32, 0.42], [0.42, 0.52], [0.52, 0.63], [0.63, 0.75], [0.75, 0.99]],
     2:  [[0.05, 0.25], [0.25, 0.35], [0.35, 0.45], [0.45, 0.54], [0.54, 0.67], [0.67, 0.93]],
@@ -87,22 +83,18 @@ pT_Ranges_per_Q2_y_Bin = {
     17: [[0.05, 0.19], [0.19, 0.28], [0.28, 0.37], [0.37, 0.45], [0.45, 0.55], [0.55, 0.73]],
 }
 
-# z fit range (can tweak later)
 Z_MIN = 0.16
 Z_MAX = 0.77
 
 
 # ----------------------------------------------------------------------
 # 4D → (Q2_y_Bin, z_pT_Bin) decoder
-# This is the inverse of your Q2_y_z_pT_4D_Bins encoding.
 # ----------------------------------------------------------------------
 def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
-    # Inverse mapping: from 4D bin index back to (Q2_y_Bin, z_pT_Bin)
-    # Returns (0, 0) for invalid / underflow codes.
     if(Q2_y_z_pT_4D_Bins <= 0):
         return 0, 0
 
-    max_Q2_y_Bin = 17  # Adjust if your analysis uses a different maximum
+    max_Q2_y_Bin = 17
 
     for Q2_y_Bin in range(max_Q2_y_Bin, 0, -1):
         offset = 0
@@ -142,7 +134,6 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 
         if(Q2_y_z_pT_4D_Bins > offset):
             z_pT_Bin = Q2_y_z_pT_4D_Bins - offset
-            # print(f"4D Bin ({Q2_y_z_pT_4D_Bins}) --> ({Q2_y_Bin}-{z_pT_Bin})")
             return Q2_y_Bin, z_pT_Bin
 
     return 0, 0
@@ -166,12 +157,8 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
     if((root_file is None) or root_file.IsZombie()):
         raise RuntimeError("Input ROOT file is not open or is a zombie.")
 
-    # The reuse logic is commented out for now due to segfault issues when returning
-    # existing histograms. Can revisit this later.
-    # if((root_file.GetListOfKeys().Contains(ratio_name)) and (not force_ratio)):
-    #     print(f"{color.BBLUE}Ratio histogram '{ratio_name}' already exists and force recreation is disabled. Reusing existing histogram.{color.END}")
-    #     existing_histo = root_file.Get(ratio_name)
-    #     return existing_histo
+    # Reuse logic disabled for now due to previous segfaults.
+    # Can revisit later if needed.
 
     num_hist = root_file.Get(num_name)
     den_hist = root_file.Get(den_name)
@@ -181,18 +168,13 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
     if(den_hist is None):
         raise RuntimeError(f"Denominator histogram '{den_name}' not found in file.")
 
-    # Clone numerator to get same binning and axis labels
     ratio_hist = num_hist.Clone(ratio_name)
-    ratio_hist.SetDirectory(0)  # Detach from file until we explicitly write it
-    # ratio_hist.Sumw2()        # Don't use this (I want to keep the original errors set in the original histogram)
+    ratio_hist.SetDirectory(0)
+    # ratio_hist.Sumw2()  # Keep original errors
 
-    # Perform bin-by-bin division
     ratio_hist.Divide(num_hist, den_hist)
-
-    # Placeholder: you will likely want a more structured title convention here
     ratio_hist.SetTitle(f"{ratio_name}")
 
-    # Write to file using your safe_write helper
     root_file.cd()
     safe_write(ratio_hist, root_file)
 
@@ -201,8 +183,7 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
 
 
 # ----------------------------------------------------------------------
-# Convert TH1D ratio histogram → RDataFrame with 7 columns:
-#   Q2_y_Bin, Q2_val, y_val, z_val, pT_val, bin_content, bin_error
+# Convert TH1D ratio histogram → RDataFrame with 7 columns
 # ----------------------------------------------------------------------
 def build_dataframe_from_hist(ratio_hist):
     if(ratio_hist is None):
@@ -222,9 +203,7 @@ def build_dataframe_from_hist(ratio_hist):
         Q2_y_z_pT_4D_Bins = int(ratio_hist.GetBinCenter(ibin))
 
         Q2_y_Bin, z_pT_Bin = decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins)
-
         if((Q2_y_Bin <= 0) or (z_pT_Bin <= 0)):
-            # Skip invalid/underflow mappings
             continue
 
         bin_content = ratio_hist.GetBinContent(ibin)
@@ -243,7 +222,6 @@ def build_dataframe_from_hist(ratio_hist):
     if(len(Q2_y_Bin_list) == 0):
         print(f"{color.YELLOW}Warning: No valid bins were converted into dataframe entries.{color.END}")
 
-    # Instead of ROOT.RDF.MakeNumpyDataFrame (not available in this ROOT), create a small in-memory TTree and wrap it in an RDataFrame.
     n_entries = len(Q2_y_Bin_list)
 
     memfile = ROOT.TMemFile("tmp_unfold_4D_mem", "RECREATE")
@@ -278,7 +256,6 @@ def build_dataframe_from_hist(ratio_hist):
     memfile.Write()
 
     rdf = ROOT.RDataFrame(tree)
-    # Keep backing objects alive by attaching them to the rdf object
     rdf._unfold_memfile = memfile
     rdf._unfold_tree    = tree
 
@@ -287,17 +264,14 @@ def build_dataframe_from_hist(ratio_hist):
 
 # ----------------------------------------------------------------------
 # Z-fit layer: bin_content vs z at fixed (Q2_y_Bin, pT range)
-# Returns a list of dictionaries with fit results.
-# Optionally saves PNGs of each fit.
 # ----------------------------------------------------------------------
-def perform_z_fits(rdf, save_plots=False, plot_dir="ZFit_Plots"):
+def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
     print(f"{color.BCYAN}Starting z-fits using RDataFrame.{color.END}")
 
     if(save_plots):
-        ROOT.gROOT.SetBatch(True)
         if(not os.path.exists(plot_dir)):
             os.makedirs(plot_dir, exist_ok=True)
-        print(f"{color.BCYAN}z-fit PNGs will be saved in directory '{plot_dir}'.{color.END}")
+        print(f"{color.BCYAN}z-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
 
     results = []
 
@@ -352,23 +326,33 @@ def perform_z_fits(rdf, save_plots=False, plot_dir="ZFit_Plots"):
                   f"chi2/ndf={chi2}/{ndf}{color.END}")
 
             if(save_plots):
-                # pT_min_code = int(round(1000.0 * pT_min))
-                # pT_max_code = int(round(1000.0 * pT_max))
                 pT_center_code = int(round(1000.0 * pT_center))
-                # cname = f"c_zFit_Q2yBin_{Q2_y_Bin_key:02d}_pT_{pT_min_code:03d}_{pT_max_code:03d}"
                 cname = f"c_zFit_Q2_y_Bin_{Q2_y_Bin_key}_pT_{pT_center_code:03d}"
+
                 canvas = ROOT.TCanvas(cname, cname, 800, 600)
 
                 title_str = f"z-fit: Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.2f},{pT_max:.2f})"
-                graph.SetTitle(f"{title_str};z;bin_content")
+                graph.SetTitle(f"{title_str};z;Ratio of #frac{{Unfolded Data}}{{Generated MC}}")
                 graph.Draw("AP")
 
                 fit_func.SetLineColor(ROOT.kRed)
                 fit_func.SetLineWidth(2)
                 fit_func.Draw("same")
 
-                png_name = os.path.join(plot_dir, f"{cname}.png")
-                canvas.SaveAs(png_name)
+                latex = ROOT.TLatex()
+                latex.SetNDC(True)
+                latex.SetTextSize(0.04)
+                latex.DrawLatex(0.15, 0.88, f"slope = {slope:.4g} #pm {slope_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"intercept = {intercept:.4g} #pm {intercept_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+
+                if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
+                    base_name = f"{cname}_{image_suffix}"
+                else:
+                    base_name = cname
+
+                out_name = os.path.join(plot_dir, f"{base_name}{file_ext}")
+                canvas.SaveAs(out_name)
                 del canvas
 
             results.append({
@@ -390,10 +374,168 @@ def perform_z_fits(rdf, save_plots=False, plot_dir="ZFit_Plots"):
 
 
 # ----------------------------------------------------------------------
+# pT-fit layer: slope(pT) and intercept(pT) for each Q2_y_Bin
+# ----------------------------------------------------------------------
+def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
+    print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters.{color.END}")
+
+    if(len(z_fit_results) == 0):
+        print(f"{color.YELLOW}No z-fit results provided; skipping pT fits.{color.END}")
+        return {}
+
+    if(save_plots):
+        if(not os.path.exists(plot_dir)):
+            os.makedirs(plot_dir, exist_ok=True)
+        print(f"{color.BPURPLE}pT-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
+
+    results_by_q2 = {}
+    for row in z_fit_results:
+        key = int(row["Q2_y_Bin"])
+        if(key not in results_by_q2):
+            results_by_q2[key] = []
+        results_by_q2[key].append(row)
+
+    pt_fit_summary = {}
+
+    for Q2_y_Bin_key in sorted(results_by_q2.keys()):
+        rows = results_by_q2[Q2_y_Bin_key]
+        n = len(rows)
+        if(n < 2):
+            print(f"{color.YELLOW}Skipping pT-fit for Q2_y_Bin={Q2_y_Bin_key} (only {n} z-fit points).{color.END}")
+            continue
+
+        pT_centers     = numpy.array([r["pT_center"]     for r in rows], dtype="float64")
+        slopes         = numpy.array([r["slope"]         for r in rows], dtype="float64")
+        slope_errs     = numpy.array([r["slope_err"]     for r in rows], dtype="float64")
+        intercepts     = numpy.array([r["intercept"]     for r in rows], dtype="float64")
+        intercept_errs = numpy.array([r["intercept_err"] for r in rows], dtype="float64")
+
+        # Slope vs pT
+        g_slope = ROOT.TGraphErrors(n)
+        for idx in range(n):
+            g_slope.SetPoint(idx, float(pT_centers[idx]), float(slopes[idx]))
+            g_slope.SetPointError(idx, 0.0, float(slope_errs[idx]))
+        g_slope.SetMarkerStyle(21)
+        g_slope.SetMarkerSize(1.0)
+        g_slope.SetLineWidth(2)
+
+        # Intercept vs pT
+        g_int = ROOT.TGraphErrors(n)
+        for idx in range(n):
+            g_int.SetPoint(idx, float(pT_centers[idx]), float(intercepts[idx]))
+            g_int.SetPointError(idx, 0.0, float(intercept_errs[idx]))
+        g_int.SetMarkerStyle(22)
+        g_int.SetMarkerSize(1.0)
+        g_int.SetLineWidth(2)
+
+        pT_min_fit = float(min(pT_centers))
+        pT_max_fit = float(max(pT_centers))
+
+        f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x", pT_min_fit, pT_max_fit)
+        f_int   = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}",   "[0] + [1]*x", pT_min_fit, pT_max_fit)
+
+        f_slope.SetParameter(0, float(numpy.mean(slopes)))
+        f_slope.SetParameter(1, 0.0)
+        f_int.SetParameter(0, float(numpy.mean(intercepts)))
+        f_int.SetParameter(1, 0.0)
+
+        g_slope.Fit(f_slope, "QSRN")
+        g_int.Fit(f_int, "QSRN")
+
+        a0      = f_slope.GetParameter(0)
+        a0_err  = f_slope.GetParError(0)
+        a1      = f_slope.GetParameter(1)
+        a1_err  = f_slope.GetParError(1)
+        chi2_s  = f_slope.GetChisquare()
+        ndf_s   = f_slope.GetNDF()
+
+        b0      = f_int.GetParameter(0)
+        b0_err  = f_int.GetParError(0)
+        b1      = f_int.GetParameter(1)
+        b1_err  = f_int.GetParError(1)
+        chi2_i  = f_int.GetChisquare()
+        ndf_i   = f_int.GetNDF()
+
+        print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key}: slope(pT) = a0 + a1*pT with "
+              f"a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, chi2/ndf={chi2_s}/{ndf_s}; "
+              f"intercept(pT) = b0 + b1*pT with b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, "
+              f"chi2/ndf={chi2_i}/{ndf_i}{color.END}")
+
+        if(save_plots):
+            # Slope vs pT plot
+            cname_slope = f"c_pTFit_slope_Q2_y_Bin_{Q2_y_Bin_key}"
+            canvas_s = ROOT.TCanvas(cname_slope, cname_slope, 800, 600)
+            title_s  = f"Slope vs p_{{T}}: Q2_y_Bin={Q2_y_Bin_key}"
+            g_slope.SetTitle(f"{title_s};p_{{T}} (GeV);Slope of z-fit")
+            g_slope.Draw("AP")
+            f_slope.SetLineColor(ROOT.kRed)
+            f_slope.SetLineWidth(2)
+            f_slope.Draw("same")
+
+            latex_s = ROOT.TLatex()
+            latex_s.SetNDC(True)
+            latex_s.SetTextSize(0.04)
+            latex_s.DrawLatex(0.15, 0.88, f"a0 = {a0:.4g} #pm {a0_err:.4g}")
+            latex_s.DrawLatex(0.15, 0.83, f"a1 = {a1:.4g} #pm {a1_err:.4g}")
+            latex_s.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
+
+            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
+                base_s = f"{cname_slope}_{image_suffix}"
+            else:
+                base_s = cname_slope
+            out_s = os.path.join(plot_dir, f"{base_s}{file_ext}")
+            canvas_s.SaveAs(out_s)
+            del canvas_s
+
+            # Intercept vs pT plot
+            cname_i = f"c_pTFit_intercept_Q2_y_Bin_{Q2_y_Bin_key}"
+            canvas_i = ROOT.TCanvas(cname_i, cname_i, 800, 600)
+            title_i  = f"Intercept vs p_{{T}}: Q2_y_Bin={Q2_y_Bin_key}"
+            g_int.SetTitle(f"{title_i};p_{{T}} (GeV);Intercept of z-fit")
+            g_int.Draw("AP")
+            f_int.SetLineColor(ROOT.kRed)
+            f_int.SetLineWidth(2)
+            f_int.Draw("same")
+
+            latex_i = ROOT.TLatex()
+            latex_i.SetNDC(True)
+            latex_i.SetTextSize(0.04)
+            latex_i.DrawLatex(0.15, 0.88, f"b0 = {b0:.4g} #pm {b0_err:.4g}")
+            latex_i.DrawLatex(0.15, 0.83, f"b1 = {b1:.4g} #pm {b1_err:.4g}")
+            latex_i.DrawLatex(0.15, 0.78, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
+
+            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
+                base_i = f"{cname_i}_{image_suffix}"
+            else:
+                base_i = cname_i
+            out_i = os.path.join(plot_dir, f"{base_i}{file_ext}")
+            canvas_i.SaveAs(out_i)
+            del canvas_i
+
+        # Store the 4-parameter (z,pT) description for this Q2_y_Bin:
+        #   slope(pT)     = a0 + a1 * pT
+        #   intercept(pT) = b0 + b1 * pT
+        #   F(z,pT)       = (a0 + a1*pT)*z + (b0 + b1*pT)
+        pt_fit_summary[Q2_y_Bin_key] = {
+            "a0": a0, "a0_err": a0_err,
+            "a1": a1, "a1_err": a1_err,
+            "b0": b0, "b0_err": b0_err,
+            "b1": b1, "b1_err": b1_err,
+            "chi2_slope": chi2_s,
+            "ndf_slope":  ndf_s,
+            "chi2_int":   chi2_i,
+            "ndf_int":    ndf_i,
+        }
+
+    print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with 4-parameter (z,pT) functions: {len(pt_fit_summary)}.{color.END}")
+    return pt_fit_summary
+
+
+# ----------------------------------------------------------------------
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, with optional z-fits.",
+    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, then perform z- and pT-fits.",
                                      formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument("-r", "-inR", "--input_root", default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
@@ -412,12 +554,21 @@ def parse_arguments():
     parser.add_argument("-frdf", "--force_rdf", action="store_true",
                         help="Force recreation of the RDataFrame file even if it already exists.")
 
-    parser.add_argument("-zf", "--do_z_fits", action="store_true",
-                        help="Run bin_content vs z fits for each Q2_y_Bin and pT range using the RDataFrame.")
-    parser.add_argument("-zpng", "--save_z_plots", action="store_true",
-                        help="Save z-fit plots as PNGs (requires --do_z_fits).")
+    # Fit/plot control: defaults are to DO everything; flags disable.
+    parser.add_argument("-noZ", "--no_z_fits", action="store_true",
+                        help="Do NOT run bin_content vs z fits for each Q2_y_Bin and pT range.")
+    parser.add_argument("-noPT", "--no_pT_fits", action="store_true",
+                        help="Do NOT run fits of z-fit parameters vs pT.")
+    parser.add_argument("-np", "--no_plots", action="store_true",
+                        help="Do NOT save any fit plots (neither z nor pT).")
+
     parser.add_argument("-zdir", "--z_plot_dir", default="ZFit_Plots",
-                        help="Output directory for z-fit PNGs (used if --save_z_plots is set).")
+                        help="Output directory for all fit plots (z and pT).")
+
+    parser.add_argument("-tag", "--image_suffix", default=None, type=str,
+                        help="Optional string appended to fit image filenames (before the file extension).")
+    parser.add_argument("-fmt", "--image_format", default="png", choices=["png", "pdf"],
+                        help="Image file format for saved fit plots (png or pdf).")
 
     parser.add_argument("-e", "--email", action="store_true",
                         help="Optional email sent at the end of the script.")
@@ -434,7 +585,6 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    # Decide on ratio histogram name if not provided
     if(args.ratio_hist is None):
         ratio_name = args.num_hist
         for options in ["(Bin)", "(Bayesian)", "(gdf)"]:
@@ -446,6 +596,14 @@ def main():
             ratio_name = f"{ratio_name}_(ratio)"
     else:
         ratio_name = args.ratio_hist
+
+    do_z_fits  = (not args.no_z_fits)
+    do_pT_fits = (not args.no_pT_fits)
+    save_plots = (not args.no_plots)
+    file_ext   = "." + str(args.image_format).lower()
+
+    if(save_plots):
+        ROOT.gROOT.SetBatch(True)
 
     try:
         need_build_rdf = (not os.path.exists(args.rdf_file)) or args.force_rdf
@@ -475,11 +633,17 @@ def main():
         if(not os.path.exists(args.rdf_file)):
             raise RuntimeError(f"RDataFrame file '{args.rdf_file}' does not exist even after attempted build.")
 
-        z_fit_results = None
-        if(args.do_z_fits):
+        z_fit_results  = None
+        pT_fit_results = None
+
+        if(do_z_fits):
             rdf_for_fits = ROOT.RDataFrame("h22", args.rdf_file)
-            z_fit_results = perform_z_fits(rdf_for_fits, save_plots=args.save_z_plots, plot_dir=args.z_plot_dir)
+            z_fit_results = perform_z_fits(rdf_for_fits, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
             print(f"{color.BCYAN}Stored {len(z_fit_results)} z-fit result rows in memory (Python list).{color.END}")
+
+            if((not args.no_pT_fits) and (len(z_fit_results) > 0)):
+                pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+                print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) functions in memory (by Q2_y_Bin).{color.END}")
 
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
@@ -487,10 +651,15 @@ def main():
         email_body += f"Denominator hist:{args.den_hist}\n"
         email_body += f"Ratio hist:      {ratio_name}\n"
         email_body += f"RDF file:        {args.rdf_file}\n"
-        if(args.do_z_fits):
+        if(do_z_fits and (z_fit_results is not None)):
             email_body += f"z-fits in memory: {len(z_fit_results)} results\n"
-            if(args.save_z_plots):
-                email_body += f"z-fit PNGs directory: {args.z_plot_dir}\n"
+        if(do_z_fits and do_pT_fits and (pT_fit_results is not None)):
+            email_body += f"pT-fit functions: {len(pT_fit_results)} Q2_y_Bins\n"
+        if(save_plots):
+            email_body += f"Fit image directory: {args.z_plot_dir}\n"
+            email_body += f"Fit image format: {args.image_format}\n"
+            if(args.image_suffix is not None):
+                email_body += f"Image filename suffix: {args.image_suffix}\n"
         if(args.email_message is not None):
             email_body += f"\nUser message:\n{args.email_message}\n"
         print(email_body)
@@ -504,8 +673,6 @@ def main():
         print(email_body)
         if(args.email):
             send_email("python_Unfold_4D_for_weights.py Script Error", email_body)
-
-        # Non-zero exit code to signal failure in batch environments
         sys.exit(1)
 
 
