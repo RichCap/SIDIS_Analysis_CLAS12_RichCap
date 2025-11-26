@@ -64,6 +64,35 @@ def safe_write(obj, tfile):
 
 
 # ----------------------------------------------------------------------
+# pT ranges per Q2_y_Bin (as provided)
+# ----------------------------------------------------------------------
+# pT_Ranges_per_Q2_y_Bin['key'] = [[pT_min, pT_max], [pT_min, pT_max], ...]
+pT_Ranges_per_Q2_y_Bin = {
+    1:  [[0.05, 0.22], [0.22, 0.32], [0.32, 0.42], [0.42, 0.52], [0.52, 0.63], [0.63, 0.75], [0.75, 0.99]],
+    2:  [[0.05, 0.25], [0.25, 0.35], [0.35, 0.45], [0.45, 0.54], [0.54, 0.67], [0.67, 0.93]],
+    3:  [[0.05, 0.20], [0.20, 0.30], [0.30, 0.39], [0.39, 0.49], [0.49, 0.59], [0.59, 0.76]],
+    4:  [[0.05, 0.20], [0.20, 0.29], [0.29, 0.38], [0.38, 0.48], [0.48, 0.61], [0.61, 0.85]],
+    5:  [[0.05, 0.22], [0.22, 0.32], [0.32, 0.41], [0.41, 0.51], [0.51, 0.65], [0.65, 0.98]],
+    6:  [[0.05, 0.22], [0.22, 0.32], [0.32, 0.41], [0.41, 0.51], [0.51, 0.65], [0.65, 1.00]],
+    7:  [[0.05, 0.20], [0.20, 0.29], [0.29, 0.38], [0.38, 0.48], [0.48, 0.60], [0.60, 0.83]],
+    8:  [[0.05, 0.20], [0.20, 0.29], [0.29, 0.37], [0.37, 0.46], [0.46, 0.60]],
+    9:  [[0.05, 0.22], [0.22, 0.30], [0.30, 0.38], [0.38, 0.46], [0.46, 0.58], [0.58, 0.74], [0.74, 0.95]],
+    10: [[0.05, 0.21], [0.21, 0.31], [0.31, 0.40], [0.40, 0.50], [0.50, 0.64], [0.64, 0.90]],
+    11: [[0.05, 0.20], [0.20, 0.30], [0.30, 0.40], [0.40, 0.53], [0.53, 0.69]],
+    12: [[0.05, 0.20], [0.20, 0.28], [0.28, 0.36], [0.36, 0.45], [0.45, 0.60]],
+    13: [[0.05, 0.22], [0.22, 0.34], [0.34, 0.44], [0.44, 0.58], [0.58, 0.90]],
+    14: [[0.05, 0.21], [0.21, 0.31], [0.31, 0.40], [0.40, 0.50], [0.50, 0.64], [0.64, 0.90]],
+    15: [[0.05, 0.22], [0.22, 0.32], [0.32, 0.42], [0.42, 0.55], [0.55, 0.80]],
+    16: [[0.05, 0.22], [0.22, 0.32], [0.32, 0.42], [0.42, 0.52], [0.52, 0.66], [0.66, 0.90]],
+    17: [[0.05, 0.19], [0.19, 0.28], [0.28, 0.37], [0.37, 0.45], [0.45, 0.55], [0.55, 0.73]],
+}
+
+# z fit range (can tweak later)
+Z_MIN = 0.16
+Z_MAX = 0.77
+
+
+# ----------------------------------------------------------------------
 # 4D → (Q2_y_Bin, z_pT_Bin) decoder
 # This is the inverse of your Q2_y_z_pT_4D_Bins encoding.
 # ----------------------------------------------------------------------
@@ -257,10 +286,114 @@ def build_dataframe_from_hist(ratio_hist):
 
 
 # ----------------------------------------------------------------------
+# Z-fit layer: bin_content vs z at fixed (Q2_y_Bin, pT range)
+# Returns a list of dictionaries with fit results.
+# Optionally saves PNGs of each fit.
+# ----------------------------------------------------------------------
+def perform_z_fits(rdf, save_plots=False, plot_dir="ZFit_Plots"):
+    print(f"{color.BCYAN}Starting z-fits using RDataFrame.{color.END}")
+
+    if(save_plots):
+        ROOT.gROOT.SetBatch(True)
+        if(not os.path.exists(plot_dir)):
+            os.makedirs(plot_dir, exist_ok=True)
+        print(f"{color.BCYAN}z-fit PNGs will be saved in directory '{plot_dir}'.{color.END}")
+
+    results = []
+
+    for Q2_y_Bin_key in sorted(pT_Ranges_per_Q2_y_Bin.keys()):
+        pT_ranges = pT_Ranges_per_Q2_y_Bin[Q2_y_Bin_key]
+
+        for pT_range in pT_ranges:
+            pT_min = pT_range[0]
+            pT_max = pT_range[1]
+
+            cut_expr = f"(Q2_y_Bin == {Q2_y_Bin_key}) && (pT_val >= {pT_min}) && (pT_val < {pT_max}) && (z_val >= {Z_MIN}) && (z_val <= {Z_MAX})"
+            df_slice = rdf.Filter(cut_expr, f"Q2_y_Bin={Q2_y_Bin_key}, pT in [{pT_min},{pT_max})")
+
+            np_dict  = df_slice.AsNumpy(["z_val", "bin_content", "bin_error"])
+            z_vals   = numpy.array(np_dict["z_val"],        dtype="float64")
+            y_vals   = numpy.array(np_dict["bin_content"],  dtype="float64")
+            err_vals = numpy.array(np_dict["bin_error"],    dtype="float64")
+
+            n_points = len(z_vals)
+            if(n_points < 2):
+                print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to insufficient points (n={n_points}).{color.END}")
+                continue
+
+            graph = ROOT.TGraphErrors(n_points)
+            for idx in range(n_points):
+                graph.SetPoint(idx, float(z_vals[idx]), float(y_vals[idx]))
+                graph.SetPointError(idx, 0.0, float(err_vals[idx]))
+
+            graph.SetMarkerStyle(20)
+            graph.SetMarkerSize(1.0)
+            graph.SetLineWidth(2)
+
+            fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x", Z_MIN, Z_MAX)
+
+            intercept_guess = float(numpy.mean(y_vals))
+            fit_func.SetParameter(0, intercept_guess)
+            fit_func.SetParameter(1, 0.0)
+
+            fit_result = graph.Fit(fit_func, "QSRN")
+
+            slope         = fit_func.GetParameter(1)
+            slope_err     = fit_func.GetParError(1)
+            intercept     = fit_func.GetParameter(0)
+            intercept_err = fit_func.GetParError(0)
+            chi2          = fit_func.GetChisquare()
+            ndf           = fit_func.GetNDF()
+            pT_center     = 0.5 * (pT_min + pT_max)
+
+            print(f"{color.BBLUE}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.3f}, {pT_max:.3f}) "
+                  f"n={n_points}, slope={slope:.4g} ± {slope_err:.4g}, "
+                  f"intercept={intercept:.4g} ± {intercept_err:.4g}, "
+                  f"chi2/ndf={chi2}/{ndf}{color.END}")
+
+            if(save_plots):
+                # pT_min_code = int(round(1000.0 * pT_min))
+                # pT_max_code = int(round(1000.0 * pT_max))
+                pT_center_code = int(round(1000.0 * pT_center))
+                # cname = f"c_zFit_Q2yBin_{Q2_y_Bin_key:02d}_pT_{pT_min_code:03d}_{pT_max_code:03d}"
+                cname = f"c_zFit_Q2_y_Bin_{Q2_y_Bin_key}_pT_{pT_center_code:03d}"
+                canvas = ROOT.TCanvas(cname, cname, 800, 600)
+
+                title_str = f"z-fit: Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.2f},{pT_max:.2f})"
+                graph.SetTitle(f"{title_str};z;bin_content")
+                graph.Draw("AP")
+
+                fit_func.SetLineColor(ROOT.kRed)
+                fit_func.SetLineWidth(2)
+                fit_func.Draw("same")
+
+                png_name = os.path.join(plot_dir, f"{cname}.png")
+                canvas.SaveAs(png_name)
+                del canvas
+
+            results.append({
+                "Q2_y_Bin":      Q2_y_Bin_key,
+                "pT_min":        pT_min,
+                "pT_max":        pT_max,
+                "pT_center":     pT_center,
+                "n_points":      n_points,
+                "slope":         slope,
+                "slope_err":     slope_err,
+                "intercept":     intercept,
+                "intercept_err": intercept_err,
+                "chi2":          chi2,
+                "ndf":           ndf,
+            })
+
+    print(f"{color.BGREEN}z-fits complete. Total successful fits: {len(results)}.{color.END}")
+    return results
+
+
+# ----------------------------------------------------------------------
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file.",
+    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, with optional z-fits.",
                                      formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument("-r", "-inR", "--input_root", default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
@@ -272,12 +405,19 @@ def parse_arguments():
     parser.add_argument("-rh", "--ratio_hist", default=None,
                         help="Name to use (or look for) for the ratio TH1D histogram in the input file. Overwrites the default naming.")
     parser.add_argument("-rf", "--rdf_file", default="Kinematic_4D_Unfolding.root",
-                        help="Output ROOT file to store the RDataFrame with bin-by-bin values.\nIf this file already exists and `--force_rdf` is not set, all processing is skipped.")
+                        help="Output ROOT file to store the RDataFrame with bin-by-bin values.\n If this file already exists and `--force_rdf` is not set, the RDataFrame will not be rebuilt.")
 
     parser.add_argument("-fr", "--force_ratio", action="store_true",
                         help="Force recreation of the ratio histogram even if it already exists in the input file.")
     parser.add_argument("-frdf", "--force_rdf", action="store_true",
                         help="Force recreation of the RDataFrame file even if it already exists.")
+
+    parser.add_argument("-zf", "--do_z_fits", action="store_true",
+                        help="Run bin_content vs z fits for each Q2_y_Bin and pT range using the RDataFrame.")
+    parser.add_argument("-zpng", "--save_z_plots", action="store_true",
+                        help="Save z-fit plots as PNGs (requires --do_z_fits).")
+    parser.add_argument("-zdir", "--z_plot_dir", default="ZFit_Plots",
+                        help="Output directory for z-fit PNGs (used if --save_z_plots is set).")
 
     parser.add_argument("-e", "--email", action="store_true",
                         help="Optional email sent at the end of the script.")
@@ -308,40 +448,49 @@ def main():
         ratio_name = args.ratio_hist
 
     try:
-        # If the RDataFrame output file already exists and user does not want to overwrite, skip everything
-        if(os.path.exists(args.rdf_file) and (not args.force_rdf)):
-            msg = f"{color.BBLUE}RDataFrame file '{args.rdf_file}' already exists and --force_rdf was not set. Skipping all processing.{color.END}"
+        need_build_rdf = (not os.path.exists(args.rdf_file)) or args.force_rdf
+
+        if(need_build_rdf):
+            if(not os.path.exists(args.input_root)):
+                raise RuntimeError(f"Input ROOT file '{args.input_root}' does not exist.")
+
+            root_file = ROOT.TFile.Open(args.input_root, "UPDATE")
+            if((root_file is None) or root_file.IsZombie()):
+                raise RuntimeError(f"Failed to open input ROOT file '{args.input_root}' in UPDATE mode.")
+
+            ratio_hist = build_ratio_histogram(root_file, args.num_hist, args.den_hist, ratio_name, args.force_ratio)
+
+            root_file.Write("", ROOT.TObject.kOverwrite)
+            root_file.Close()
+            root_file = None
+
+            rdf_build = build_dataframe_from_hist(ratio_hist)
+
+            print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree 'h22'.{color.END}")
+            rdf_build.Snapshot("h22", args.rdf_file)
+        else:
+            msg = f"{color.BBLUE}RDataFrame file '{args.rdf_file}' already exists and --force_rdf was not set. Skipping RDataFrame rebuild.{color.END}"
             print(msg if(args.email_message is None) else f"{msg}\n\nUser message:\n{args.email_message}\n")
-            # Not worth sending an email if the run purpose is just skipped
-            return
 
-        if(not os.path.exists(args.input_root)):
-            raise RuntimeError(f"Input ROOT file '{args.input_root}' does not exist.")
+        if(not os.path.exists(args.rdf_file)):
+            raise RuntimeError(f"RDataFrame file '{args.rdf_file}' does not exist even after attempted build.")
 
-        # Open ROOT file in UPDATE mode so we can read and also write the ratio histogram
-        root_file = ROOT.TFile.Open(args.input_root, "UPDATE")
-        if((root_file is None) or root_file.IsZombie()):
-            raise RuntimeError(f"Failed to open input ROOT file '{args.input_root}' in UPDATE mode.")
+        z_fit_results = None
+        if(args.do_z_fits):
+            rdf_for_fits = ROOT.RDataFrame("h22", args.rdf_file)
+            z_fit_results = perform_z_fits(rdf_for_fits, save_plots=args.save_z_plots, plot_dir=args.z_plot_dir)
+            print(f"{color.BCYAN}Stored {len(z_fit_results)} z-fit result rows in memory (Python list).{color.END}")
 
-        # 1–3) Build or reuse ratio histogram, write it safely to the ROOT file
-        ratio_hist = build_ratio_histogram(root_file, args.num_hist, args.den_hist, ratio_name, args.force_ratio)
-
-        # Make sure the file is updated on disk
-        root_file.Write("", ROOT.TObject.kOverwrite)
-        root_file.Close()
-        root_file = None
-
-        # 4–5) Convert ratio histogram to RDataFrame and Snapshot to a new ROOT file
-        rdf = build_dataframe_from_hist(ratio_hist)
-
-        print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree 'h22'.{color.END}")
-        rdf.Snapshot("h22", args.rdf_file)
-        email_body = f"{color.BGREEN}Done. RDataFrame with 7 columns written to '{args.rdf_file}'.{color.END}"
+        email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
         email_body += f"Numerator hist:  {args.num_hist}\n"
         email_body += f"Denominator hist:{args.den_hist}\n"
         email_body += f"Ratio hist:      {ratio_name}\n"
-        email_body += f"Output RDF file: {args.rdf_file}\n"
+        email_body += f"RDF file:        {args.rdf_file}\n"
+        if(args.do_z_fits):
+            email_body += f"z-fits in memory: {len(z_fit_results)} results\n"
+            if(args.save_z_plots):
+                email_body += f"z-fit PNGs directory: {args.z_plot_dir}\n"
         if(args.email_message is not None):
             email_body += f"\nUser message:\n{args.email_message}\n"
         print(email_body)
@@ -362,3 +511,4 @@ def main():
 
 if(__name__ == "__main__"):
     main()
+    print("\nDone\n\n")
