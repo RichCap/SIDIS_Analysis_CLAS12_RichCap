@@ -23,22 +23,18 @@ from ExtraAnalysisCodeValues import *
 sys.path.remove(script_dir)
 del script_dir
 
-# Single email recipient (you can hardcode your real address here)
 EMAIL_RECIPIENT = "richard.capobianco@uconn.edu"
-
 
 # ----------------------------------------------------------------------
 # ANSI → HTML + email helper
 # ----------------------------------------------------------------------
 def ansi_to_html(text):
-    # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
-    ansi_html_map = {  # Styles
-                      '\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",
-                      # Colors
-                      '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "",
-                      # Reset
-                      '\033[0m': "",
-                     }
+    ansi_html_map = {
+        '\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",
+        '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "",
+        '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "",
+        '\033[0m': "",
+    }
     sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
     for code in sorted_codes:
         text = text.replace(code, ansi_html_map[code])
@@ -85,6 +81,14 @@ pT_Ranges_per_Q2_y_Bin = {
 
 Z_MIN = 0.16
 Z_MAX = 0.77
+
+Q2_Centers = [2.20, 2.65, 3.30, 4.50, 6.60]
+y_Centers  = [0.40, 0.50, 0.60, 0.70]
+
+# We will re-use this everywhere:
+PARAM_NAMES = ["a0", "a1", "a2",
+               "b0", "b1", "b2",
+               "c0", "c1", "c2"]
 
 
 # ----------------------------------------------------------------------
@@ -138,7 +142,6 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 
     return 0, 0
 
-
 # ----------------------------------------------------------------------
 # Decode 2D bin indices into kinematic values
 # ----------------------------------------------------------------------
@@ -167,8 +170,6 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
 
     ratio_hist = num_hist.Clone(ratio_name)
     ratio_hist.SetDirectory(0)
-    # ratio_hist.Sumw2()  # Keep original errors
-
     ratio_hist.Divide(num_hist, den_hist)
     ratio_hist.SetTitle(f"{ratio_name}")
 
@@ -289,6 +290,10 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             err_vals = numpy.array(np_dict["bin_error"],    dtype="float64")
 
             n_points = len(z_vals)
+            if(n_points == 0):
+                print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to zero valid points after bin_content>0 cut.{color.END}")
+                continue
+
             graph = ROOT.TGraphErrors(n_points)
             for idx in range(n_points):
                 graph.SetPoint(idx, float(z_vals[idx]), float(y_vals[idx]))
@@ -306,8 +311,6 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             fit_func.SetParameter(2, 0.0)
             
             if(n_points < 3):
-                # print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to insufficient points for quadratic fit (n={n_points}).{color.END}")
-                # continue
                 print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) has insufficient points for quadratic fit (n={n_points}) — using linear instead.{color.END}")
                 fit_func.FixParameter(2, 0.0)
 
@@ -380,6 +383,7 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
 
 # ----------------------------------------------------------------------
+# pT-fits: intercept(pT), slope(pT), quad(pT) → 9 parameters per Q2_y_Bin
 # pT-fit layer: fit intercept(pT), slope(pT), quad(pT) with quadratics
 #   intercept(pT) ≈ b0 + b1*pT + b2*pT^2
 #   slope(pT)     ≈ a0 + a1*pT + a2*pT^2
@@ -416,8 +420,6 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         n = len(rows)
         Linear = False
         if(n < 3):
-            # print(f"{color.YELLOW}Skipping pT-fit for Q2_y_Bin={Q2_y_Bin_key} (only {n} z-fit points, need ≥3 for quadratic).{color.END}")
-            # continue
             print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key} only has {n} z-fit points, need ≥3 for quadratic — using linear instead.{color.END}")
             Linear = True
             
@@ -537,10 +539,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_s.DrawLatex(0.15, 0.78, f"a2 = {a2:.4g} #pm {a2_err:.4g}")
             latex_s.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
 
-            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
-                base_s = f"{cname_slope}_{image_suffix}"
-            else:
-                base_s = cname_slope
+            base_s = f"{cname_slope}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_slope
             out_s = os.path.join(plot_dir, f"{base_s}{file_ext}")
             canvas_s.SaveAs(out_s)
             del canvas_s
@@ -563,10 +562,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_i.DrawLatex(0.15, 0.78, f"b2 = {b2:.4g} #pm {b2_err:.4g}")
             latex_i.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
 
-            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
-                base_i = f"{cname_i}_{image_suffix}"
-            else:
-                base_i = cname_i
+            base_i = f"{cname_i}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_i
             out_i = os.path.join(plot_dir, f"{base_i}{file_ext}")
             canvas_i.SaveAs(out_i)
             del canvas_i
@@ -589,28 +585,21 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_q.DrawLatex(0.15, 0.78, f"c2 = {c2:.4g} #pm {c2_err:.4g}")
             latex_q.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
 
-            if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
-                base_q = f"{cname_q}_{image_suffix}"
-            else:
-                base_q = cname_q
+            base_q = f"{cname_q}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_q
             out_q = os.path.join(plot_dir, f"{base_q}{file_ext}")
             canvas_q.SaveAs(out_q)
             del canvas_q
 
         pt_fit_summary[Q2_y_Bin_key] = {
-            # slope(pT) parameters
             "a0": a0, "a0_err": a0_err,
             "a1": a1, "a1_err": a1_err,
             "a2": a2, "a2_err": a2_err,
-            # intercept(pT) parameters
             "b0": b0, "b0_err": b0_err,
             "b1": b1, "b1_err": b1_err,
             "b2": b2, "b2_err": b2_err,
-            # quad(pT) parameters
             "c0": c0, "c0_err": c0_err,
             "c1": c1, "c1_err": c1_err,
             "c2": c2, "c2_err": c2_err,
-            # goodness-of-fit
             "chi2_slope": chi2_s,
             "ndf_slope":  ndf_s,
             "chi2_int":   chi2_i,
@@ -624,55 +613,292 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
 
 # ----------------------------------------------------------------------
+# NEW: attach pT-fit parameters as columns in the RDataFrame (by Q2_y_Bin)
+# ----------------------------------------------------------------------
+def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
+
+    # Take the existing RDataFrame with columns:
+    #   Q2_y_Bin, Q2_val, y_val, z_val, pT_val, bin_content, bin_error and add 18 new columns:
+    #   a0,a0_err,...,c2,c2_err
+    # where each parameter is constant for all rows with the same Q2_y_Bin.
+    # The result is written back out as a new ROOT file 'out_file', tree 'tree_name'.
+
+    if((pt_fit_summary is None) or (len(pt_fit_summary) == 0)):
+        print(f"{color.YELLOW}attach_pT_params_to_rdf: No pt_fit_summary provided; skipping augmentation.{color.END}")
+        rdf.Snapshot(tree_name, out_file)
+        return
+
+    max_bin = 17
+
+    cpp_lines = []
+    cpp_lines.append("#include <cmath>")
+    cpp_lines.append("struct PTParamTables {")
+    cpp_lines.append("  static const int NMAX = 18;")
+    for pname in PARAM_NAMES:
+        cpp_lines.append(f"  static double {pname}[NMAX];")
+        cpp_lines.append(f"  static double {pname}_err[NMAX];")
+    cpp_lines.append("};")
+
+    for pname in PARAM_NAMES:
+        cpp_lines.append(f"double PTParamTables::{pname}[PTParamTables::NMAX] = {{0.0}};")
+        cpp_lines.append(f"double PTParamTables::{pname}_err[PTParamTables::NMAX] = {{0.0}};")
+
+    cpp_lines.append("void InitPTParamTables(){")
+    for Q2_y_Bin_key in range(1, max_bin + 1):
+        if(Q2_y_Bin_key not in pt_fit_summary):
+            continue
+        pars = pt_fit_summary[Q2_y_Bin_key]
+        for pname in PARAM_NAMES:
+            val = float(pars[pname])
+            err = float(pars[f"{pname}_err"])
+            cpp_lines.append(f"  PTParamTables::{pname}[{Q2_y_Bin_key}] = {val};")
+            cpp_lines.append(f"  PTParamTables::{pname}_err[{Q2_y_Bin_key}] = {err};")
+    cpp_lines.append("}")
+
+    for pname in PARAM_NAMES:
+        cpp_lines.append(
+            f"double Get_{pname}(int bin){{ "
+            f"if(bin < 0 || bin >= PTParamTables::NMAX) return 0.0; "
+            f"return PTParamTables::{pname}[bin]; }}"
+        )
+        cpp_lines.append(
+            f"double Get_{pname}_err(int bin){{ "
+            f"if(bin < 0 || bin >= PTParamTables::NMAX) return 0.0; "
+            f"return PTParamTables::{pname}_err[bin]; }}"
+        )
+
+    cpp_code = "\n".join(cpp_lines)
+    ROOT.gInterpreter.Declare(cpp_code)
+    ROOT.InitPTParamTables()
+
+    rdf_def = rdf
+    for pname in PARAM_NAMES:
+        rdf_def = rdf_def.Define(pname,       f"Get_{pname}(Q2_y_Bin)") \
+                         .Define(f"{pname}_err", f"Get_{pname}_err(Q2_y_Bin)")
+
+    rdf_def.Snapshot(tree_name, out_file)
+    print(f"{color.BCYAN}attach_pT_params_to_rdf: wrote augmented tree '{tree_name}' to '{out_file}' with parameter columns added.{color.END}")
+
+
+# ----------------------------------------------------------------------
+# NEW: Q²-fits using only Q2_val, y_val, and parameter columns in the RDataFrame
+# ----------------------------------------------------------------------
+def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
+    # Fit each parameter (a0..c2) as a function of Q2 at fixed y, using only
+    # the RDataFrame columns:
+    #    Q2_val, y_val, a0..c2, a0_err..c2_err.
+    # No use of Q2_y_Bin or pT_fit_results here: we just fix y and fit param(Q2).
+
+    print(f"{color.BCYAN}Starting Q^{{2}}-fits of (z,pT) parameters at fixed y (from RDataFrame columns).{color.END}")
+
+    if(save_plots):
+        if(not os.path.exists(plot_dir)):
+            os.makedirs(plot_dir, exist_ok=True)
+        print(f"{color.BCYAN}Q^2-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
+
+    Q2_fit_summary = {}
+
+    for y_center in y_Centers:
+        # Narrow window around y_center; all y_val should be exact centers anyway.
+        y_min = y_center - 1e-3
+        y_max = y_center + 1e-3
+
+        cut_expr = f"(y_val > {y_min}) && (y_val < {y_max})"
+        df_y = rdf.Filter(cut_expr, f"Select rows with y≈{y_center:.2f}")
+
+        needed_cols = ["Q2_val"] + PARAM_NAMES + [f"{p}_err" for p in PARAM_NAMES]
+        np_dict = df_y.AsNumpy(needed_cols)
+
+        if(("Q2_val" not in np_dict) or (len(np_dict["Q2_val"]) == 0)):
+            print(f"{color.YELLOW}perform_Q2_fits: No entries found at y={y_center:.2f}; skipping this y bin.{color.END}")
+            continue
+
+        Q2_vals_all = numpy.array(np_dict["Q2_val"], dtype="float64")
+
+        for pname in PARAM_NAMES:
+            par_vals_all = numpy.array(np_dict[pname],       dtype="float64")
+            par_errs_all = numpy.array(np_dict[f"{pname}_err"], dtype="float64")
+
+            # Collapse many events per (Q2,y) down to one value per Q2:
+            points_by_Q2 = {}
+            for idx in range(len(Q2_vals_all)):
+                q2  = float(Q2_vals_all[idx])
+                val = float(par_vals_all[idx])
+                err = float(par_errs_all[idx])
+
+                if(q2 not in points_by_Q2):
+                    points_by_Q2[q2] = [val, err]
+                else:
+                    # Sanity check: if we ever see mismatched values for same Q2,y, warn.
+                    old_val, old_err = points_by_Q2[q2]
+                    if((abs(old_val - val) > 1e-8) or (abs(old_err - err) > 1e-8)):
+                        print(
+                            f"{color.YELLOW}Warning: multiple values for param {pname} at "
+                            f"Q2={q2:.3f}, y={y_center:.2f} differ slightly; using first.{color.END}"
+                        )
+
+            if(len(points_by_Q2) == 0):
+                print(f"{color.YELLOW}perform_Q2_fits: No unique Q2 points for param={pname}, y={y_center:.2f}.{color.END}")
+                continue
+
+            Q2_unique = sorted(points_by_Q2.keys())
+            n_points  = len(Q2_unique)
+
+            x_vals = numpy.array(Q2_unique, dtype="float64")
+            y_vals = numpy.array([points_by_Q2[q2][0] for q2 in Q2_unique], dtype="float64")
+            y_errs = numpy.array([points_by_Q2[q2][1] for q2 in Q2_unique], dtype="float64")
+
+            Linear = False
+            if(n_points < 3):
+                print(
+                    f"{color.RED}Waring: {color.YELLOW}Param={pname}, y={y_center:.2f} only has {n_points} Q^2 points, "
+                    f"need ≥3 for quadratic — using linear instead.{color.END}"
+                )
+                Linear = True
+
+            x_min = float(min(x_vals))
+            x_max = float(max(x_vals))
+
+            graph = ROOT.TGraphErrors(n_points)
+            for idx in range(n_points):
+                graph.SetPoint(idx, float(x_vals[idx]), float(y_vals[idx]))
+                graph.SetPointError(idx, 0.0, float(y_errs[idx]))
+
+            graph.SetMarkerStyle(20)
+            graph.SetMarkerSize(1.0)
+            graph.SetLineWidth(2)
+
+            y_code = int(round(100.0 * y_center))  # e.g. 40, 50, 60, 70
+            fname  = f"f_Q2_{pname}_y_{y_code:03d}"
+
+            fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", x_min, x_max)
+            fit_func.SetParameter(0, float(numpy.mean(y_vals)))
+            fit_func.SetParameter(1, 0.0)
+            fit_func.SetParameter(2, 0.0)
+
+            if(Linear):
+                fit_func.FixParameter(2, 0.0)
+
+            fit_result = graph.Fit(fit_func, "QSRNB")
+
+            q0     = fit_func.GetParameter(0)
+            q0_err = fit_func.GetParError(0)
+            q1     = fit_func.GetParameter(1)
+            q1_err = fit_func.GetParError(1)
+            q2     = fit_func.GetParameter(2)
+            q2_err = fit_func.GetParError(2)
+            chi2   = fit_func.GetChisquare()
+            ndf    = fit_func.GetNDF()
+
+            print(
+                f"{color.BCYAN}Q^2-fit: param={pname}, y={y_center:.2f}: n={n_points}, "
+                f"q0={q0:.4g}±{q0_err:.4g}, q1={q1:.4g}±{q1_err:.4g}, "
+                f"q2={q2:.4g}±{q2_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
+            )
+
+            if(save_plots):
+                cname = f"c_Q2Fit_{pname}_y_{y_code:03d}"
+                canvas = ROOT.TCanvas(cname, cname, 800, 600)
+
+                title_str = f"{pname} vs Q^{{2}} (quadratic): y = {y_center:.2f}"
+                graph.SetTitle(f"{title_str};Q^{{2}} (GeV^{{2}});{pname} parameter")
+                graph.Draw("AP")
+
+                fit_func.SetLineColor(ROOT.kRed)
+                fit_func.SetLineWidth(2)
+                fit_func.Draw("same")
+
+                latex = ROOT.TLatex()
+                latex.SetNDC(True)
+                latex.SetTextSize(0.04)
+                latex.DrawLatex(0.15, 0.88, f"q0 = {q0:.4g} #pm {q0_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"q1 = {q1:.4g} #pm {q1_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"q2 = {q2:.4g} #pm {q2_err:.4g}")
+                latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+
+                base_name = f"{cname}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname
+                out_name  = os.path.join(plot_dir, f"{base_name}{file_ext}")
+                canvas.SaveAs(out_name)
+                del canvas
+
+            if(pname not in Q2_fit_summary):
+                Q2_fit_summary[pname] = {}
+            Q2_fit_summary[pname][y_center] = {
+                "q0":       q0,
+                "q0_err":   q0_err,
+                "q1":       q1,
+                "q1_err":   q1_err,
+                "q2":       q2,
+                "q2_err":   q2_err,
+                "chi2":     chi2,
+                "ndf":      ndf,
+                "n_points": n_points,
+                "Linear":   Linear,
+            }
+
+    total_combos = sum(len(v) for v in Q2_fit_summary.values())
+    print(f"{color.BGREEN}Q^2-fits complete. Total (param,y) combinations fitted: {total_combos}.{color.END}")
+    return Q2_fit_summary
+
+
+# ----------------------------------------------------------------------
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms and export their 4D-bin contents into an RDataFrame ROOT file, then perform quadratic z- and pT-fits.",
-                                     formatter_class=RawDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="Build ratio histograms, build an RDataFrame, do quadratic z- and pT-fits, then fit parameters vs Q^2.",
+        formatter_class=RawDefaultsHelpFormatter
+    )
 
-    parser.add_argument("-r", "-inR", "--input_root", default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
+    parser.add_argument("-r", "-inR", "--input_root",
+                        default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
                         help="Input ROOT file containing the TH1D histograms.\n")
-    parser.add_argument("-nh", "--num_hist", default="(1D)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_All)_(z_pT_Bin_All)_(Q2_y_z_pT_4D_Bins)",
+    parser.add_argument("-nh", "--num_hist",
+                        default="(1D)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_All)_(z_pT_Bin_All)_(Q2_y_z_pT_4D_Bins)",
                         help="Name of the numerator TH1D histogram in the input file.\n")
-    parser.add_argument("-dh", "--den_hist", default="(1D)_(gdf)_(SMEAR='')_(Q2_y_Bin_All)_(z_pT_Bin_All)_(Q2_y_z_pT_4D_Bins)",
+    parser.add_argument("-dh", "--den_hist",
+                        default="(1D)_(gdf)_(SMEAR='')_(Q2_y_Bin_All)_(z_pT_Bin_All)_(Q2_y_z_pT_4D_Bins)",
                         help="Name of the denominator TH1D histogram in the input file.\n")
     parser.add_argument("-rh", "--ratio_hist", default=None,
-                        help="Name to use (or look for) for the ratio TH1D histogram in the input file. Overwrites the default naming.")
-    parser.add_argument("-rf", "--rdf_file", default="Kinematic_4D_Unfolding.root",
-                        help="Output ROOT file to store the RDataFrame with bin-by-bin values.\n If this file already exists and `--force_rdf` is not set, the RDataFrame will not be rebuilt.")
+                        help="Name to use (or look for) for the ratio TH1D histogram in the input file.")
+    parser.add_argument("-rf", "--rdf_file",
+                        default="Kinematic_4D_Unfolding.root",
+                        help="Output ROOT file to store the RDataFrame with bin-by-bin values.")
 
     parser.add_argument("-fr", "--force_ratio", action="store_true",
-                        help="Force recreation of the ratio histogram even if it already exists in the input file.")
+                        help="Force recreation of the ratio histogram even if it already exists.")
     parser.add_argument("-frdf", "--force_rdf", action="store_true",
                         help="Force recreation of the RDataFrame file even if it already exists.")
 
-    # Fit/plot control: defaults are to DO everything; flags disable.
     parser.add_argument("-noZ", "--no_z_fits", action="store_true",
-                        help="Do NOT run bin_content vs z fits for each Q2_y_Bin and pT range.")
+                        help="Do NOT run bin_content vs z fits.")
     parser.add_argument("-noPT", "--no_pT_fits", action="store_true",
-                        help="Do NOT run fits of z-fit parameters vs pT.")
+                        help="Do NOT run pT fits of z-fit parameters.")
+    parser.add_argument("-noQ2", "--no_Q2_fits", action="store_true",
+                        help="Do NOT run fits of parameters vs Q^2.")
     parser.add_argument("-np", "--no_plots", action="store_true",
-                        help="Do NOT save any fit plots (neither z nor pT).")
+                        help="Do NOT save any fit plots (z, pT, or Q^2).")
 
-    parser.add_argument("-zdir", "--z_plot_dir", default="ZFit_Plots",
-                        help="Output directory for all fit plots (z and pT).")
-
-    parser.add_argument("-tag", "--image_suffix", default=None, type=str,
-                        help="Optional string appended to fit image filenames (before the file extension).")
-    parser.add_argument("-fmt", "--image_format", default="png", choices=["png", "pdf"],
-                        help="Image file format for saved fit plots (png or pdf).")
+    parser.add_argument("-zdir", "--z_plot_dir",
+                        default="ZFit_Plots",
+                        help="Output directory for all fit plots (z, pT, Q^2).")
+    parser.add_argument("-n", "-tag", "--image_suffix", default=None, type=str,
+                        help="Optional string appended to fit image filenames.")
+    parser.add_argument("-fmt", "--image_format",
+                        default="png", choices=["png", "pdf"],
+                        help="Image file format for fit plots.")
 
     parser.add_argument("-e", "--email", action="store_true",
-                        help="Optional email sent at the end of the script.")
+                        help="Send an email when the script finishes.")
     parser.add_argument("-ee", "--email_message", default=None, type=str,
-                        help="Additional message to be attached to the email.")
+                        help="Additional message to include in email.")
 
     args = parser.parse_args()
     return args
 
 
 # ----------------------------------------------------------------------
-# Main control flow
+# Main
 # ----------------------------------------------------------------------
 def main():
     args = parse_arguments()
@@ -691,6 +917,7 @@ def main():
 
     do_z_fits  = (not args.no_z_fits)
     do_pT_fits = (not args.no_pT_fits)
+    do_Q2_fits = (not args.no_Q2_fits)
     save_plots = (not args.no_plots)
     file_ext   = "." + str(args.image_format).lower()
 
@@ -715,7 +942,6 @@ def main():
             root_file = None
 
             rdf_build = build_dataframe_from_hist(ratio_hist)
-
             print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree 'h22'.{color.END}")
             rdf_build.Snapshot("h22", args.rdf_file)
         else:
@@ -725,17 +951,26 @@ def main():
         if(not os.path.exists(args.rdf_file)):
             raise RuntimeError(f"RDataFrame file '{args.rdf_file}' does not exist even after attempted build.")
 
-        z_fit_results  = None
-        pT_fit_results = None
+        z_fit_results   = None
+        pT_fit_results  = None
+        Q2_fit_results  = None
 
         if(do_z_fits):
             rdf_for_fits = ROOT.RDataFrame("h22", args.rdf_file)
             z_fit_results = perform_z_fits(rdf_for_fits, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
             print(f"{color.BCYAN}Stored {len(z_fit_results)} z-fit result rows in memory (Python list).{color.END}")
 
-            if(do_pT_fits and (len(z_fit_results) > 0)):
-                pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
-                print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) descriptions in memory (by Q2_y_Bin).{color.END}")
+        if(do_z_fits and do_pT_fits and (z_fit_results is not None) and (len(z_fit_results) > 0)):
+            pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+            print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) descriptions in memory (by Q2_y_Bin).{color.END}")
+
+            # Augment the RDataFrame with the pT-fit parameters as columns
+            rdf_orig = ROOT.RDataFrame("h22", args.rdf_file)
+            attach_pT_params_to_rdf(rdf_orig, pT_fit_results, args.rdf_file, tree_name="h22")
+
+            if(do_Q2_fits):
+                rdf_for_Q2 = ROOT.RDataFrame("h22", args.rdf_file)
+                Q2_fit_results = perform_Q2_fits(rdf_for_Q2, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
 
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
@@ -744,9 +979,12 @@ def main():
         email_body += f"Ratio hist:      {ratio_name}\n"
         email_body += f"RDF file:        {args.rdf_file}\n"
         if(do_z_fits and (z_fit_results is not None)):
-            email_body += f"z-fits in memory: {len(z_fit_results)} results (quadratic).\n"
+            email_body += f"z-fits in memory: {len(z_fit_results)} results (quadratic in z).\n"
         if(do_z_fits and do_pT_fits and (pT_fit_results is not None)):
             email_body += f"pT-fit functions (quadratic) per Q2_y_Bin: {len(pT_fit_results)}\n"
+        if(do_z_fits and do_pT_fits and do_Q2_fits and (Q2_fit_results is not None)):
+            total_Q2_combos = sum(len(v) for v in Q2_fit_results.values())
+            email_body += f"Q^2-fit functions (quadratic) for (param,y) combinations: {total_Q2_combos}\n"
         if(save_plots):
             email_body += f"Fit image directory: {args.z_plot_dir}\n"
             email_body += f"Fit image format: {args.image_format}\n"
