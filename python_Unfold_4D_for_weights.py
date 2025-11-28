@@ -142,6 +142,7 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 
     return 0, 0
 
+
 # ----------------------------------------------------------------------
 # Decode 2D bin indices into kinematic values
 # ----------------------------------------------------------------------
@@ -613,7 +614,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
 
 # ----------------------------------------------------------------------
-# NEW: attach pT-fit parameters as columns in the RDataFrame (by Q2_y_Bin)
+# Attach pT-fit parameters as columns in the RDataFrame (by Q2_y_Bin)
 # ----------------------------------------------------------------------
 def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
 
@@ -672,16 +673,18 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
     ROOT.InitPTParamTables()
 
     rdf_def = rdf
+    print(f"list(rdf_def.GetColumnNames()) = {list(rdf_def.GetColumnNames())}")
     for pname in PARAM_NAMES:
-        rdf_def = rdf_def.Define(pname,       f"Get_{pname}(Q2_y_Bin)") \
-                         .Define(f"{pname}_err", f"Get_{pname}_err(Q2_y_Bin)")
-
+        if((pname in list(rdf_def.GetColumnNames())) or (f"{pname}_err" in list(rdf_def.GetColumnNames()))):
+            rdf_def = rdf_def.Redefine(pname, f"Get_{pname}(Q2_y_Bin)").Redefine(f"{pname}_err", f"Get_{pname}_err(Q2_y_Bin)")
+        else:
+            rdf_def = rdf_def.Define(pname,   f"Get_{pname}(Q2_y_Bin)").Define(f"{pname}_err",   f"Get_{pname}_err(Q2_y_Bin)")
     rdf_def.Snapshot(tree_name, out_file)
     print(f"{color.BCYAN}attach_pT_params_to_rdf: wrote augmented tree '{tree_name}' to '{out_file}' with parameter columns added.{color.END}")
 
 
 # ----------------------------------------------------------------------
-# NEW: Q²-fits using only Q2_val, y_val, and parameter columns in the RDataFrame
+# Q²-fits using only Q2_val, y_val, and parameter columns in the RDataFrame
 # ----------------------------------------------------------------------
 def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
     # Fit each parameter (a0..c2) as a function of Q2 at fixed y, using only
@@ -842,11 +845,167 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
 
 
 # ----------------------------------------------------------------------
+# NEW: y-fits of the Q² coefficients q0,q1,q2 vs y
+# ----------------------------------------------------------------------
+def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
+    # Take the output of perform_Q2_fits:
+    #   Q2_fit_results[pname][y_center] = {q0,q0_err,q1,q1_err,q2,q2_err,...}
+    # For each pname in PARAM_NAMES and each coefficient (q0,q1,q2),
+    # build qk(y) using the available y_center values and fit:
+    #   qk(y) ≈ r0 + r1*y + r2*y^2
+    # with a quadratic in y (or linear if <3 points).
+    # That gives 27 y-fits total (9 pname × 3 coefficients).
+
+    print(f"{color.BPINK}Starting y-fits of Q^{{2}} coefficients (q0,q1,q2) vs y.{color.END}")
+
+    if((Q2_fit_results is None) or (len(Q2_fit_results) == 0)):
+        print(f"{color.YELLOW}perform_y_fits: No Q2_fit_results provided; skipping y-fits.{color.END}")
+        return {}
+
+    if(save_plots):
+        if(not os.path.exists(plot_dir)):
+            os.makedirs(plot_dir, exist_ok=True)
+        print(f"{color.BPINK}y-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
+
+    coeff_names = ["q0", "q1", "q2"]
+    Y_fit_summary = {}
+
+    for pname in PARAM_NAMES:
+        if(pname not in Q2_fit_results):
+            print(f"{color.YELLOW}perform_y_fits: pname={pname} not present in Q2_fit_results; skipping.{color.END}")
+            continue
+
+        # Dictionary: y_center → dict with q0,q1,q2,...
+        y_dict = Q2_fit_results[pname]
+        if(len(y_dict) == 0):
+            print(f"{color.YELLOW}perform_y_fits: pname={pname} has no y entries; skipping.{color.END}")
+            continue
+
+        # Sort y values so plots are monotonic in x
+        y_values_sorted = sorted(y_dict.keys())
+        n_y = len(y_values_sorted)
+
+        for coeff in coeff_names:
+            y_points  = []
+            val_points = []
+            err_points = []
+
+            for y_center in y_values_sorted:
+                entry = y_dict[y_center]
+                if((coeff not in entry) or (f"{coeff}_err" not in entry)):
+                    print(f"{color.YELLOW}perform_y_fits: Missing {coeff} or {coeff}_err for param={pname}, y={y_center:.2f}; skipping that point.{color.END}")
+                    continue
+
+                y_points.append(float(y_center))
+                val_points.append(float(entry[coeff]))
+                err_points.append(float(entry[f"{coeff}_err"]))
+
+            n_points = len(y_points)
+            if(n_points == 0):
+                print(f"{color.YELLOW}perform_y_fits: No valid points for (param={pname}, coeff={coeff}); skipping this y-fit.{color.END}")
+                continue
+
+            Linear = False
+            if(n_points < 3):
+                print(f"{color.RED}Waring: {color.YELLOW}y-fit for param={pname}, coeff={coeff} only has {n_points} points, need ≥3 for quadratic — using linear instead.{color.END}")
+                Linear = True
+
+            y_min = float(min(y_points))
+            y_max = float(max(y_points))
+
+            graph = ROOT.TGraphErrors(n_points)
+            for idx in range(n_points):
+                graph.SetPoint(idx, y_points[idx], val_points[idx])
+                graph.SetPointError(idx, 0.0, err_points[idx])
+
+            graph.SetMarkerStyle(20)
+            graph.SetMarkerSize(1.0)
+            graph.SetLineWidth(2)
+
+            fname = f"f_y_{pname}_{coeff}"
+            fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", y_min, y_max)
+            fit_func.SetParameter(0, float(numpy.mean(val_points)))
+            fit_func.SetParameter(1, 0.0)
+            fit_func.SetParameter(2, 0.0)
+
+            if(Linear):
+                fit_func.FixParameter(2, 0.0)
+
+            fit_result = graph.Fit(fit_func, "QSRNB")
+
+            r0     = fit_func.GetParameter(0)
+            r0_err = fit_func.GetParError(0)
+            r1     = fit_func.GetParameter(1)
+            r1_err = fit_func.GetParError(1)
+            r2     = fit_func.GetParameter(2)
+            r2_err = fit_func.GetParError(2)
+            chi2   = fit_func.GetChisquare()
+            ndf    = fit_func.GetNDF()
+
+            print(
+                f"{color.BPINK}y-fit: param={pname}, coeff={coeff}: n={n_points}, "
+                f"r0={r0:.4g}±{r0_err:.4g}, r1={r1:.4g}±{r1_err:.4g}, "
+                f"r2={r2:.4g}±{r2_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
+            )
+
+            if(save_plots):
+                cname = f"c_YFit_{pname}_{coeff}"
+                canvas = ROOT.TCanvas(cname, cname, 800, 600)
+
+                title_str = f"{coeff} of {pname} vs y (quadratic)"
+                graph.SetTitle(f"{title_str};y;{coeff} coefficient of {pname}")
+                graph.Draw("AP")
+
+                fit_func.SetLineColor(ROOT.kRed)
+                fit_func.SetLineWidth(2)
+                fit_func.Draw("same")
+
+                latex = ROOT.TLatex()
+                latex.SetNDC(True)
+                latex.SetTextSize(0.04)
+                latex.DrawLatex(0.15, 0.88, f"r0 = {r0:.4g} #pm {r0_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"r1 = {r1:.4g} #pm {r1_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"r2 = {r2:.4g} #pm {r2_err:.4g}")
+                latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+
+                if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
+                    base_name = f"{cname}_{image_suffix}"
+                else:
+                    base_name = cname
+
+                out_name = os.path.join(plot_dir, f"{base_name}{file_ext}")
+                canvas.SaveAs(out_name)
+                del canvas
+
+            if(pname not in Y_fit_summary):
+                Y_fit_summary[pname] = {}
+            if(coeff not in Y_fit_summary[pname]):
+                Y_fit_summary[pname][coeff] = {}
+
+            Y_fit_summary[pname][coeff] = {
+                "r0":       r0,
+                "r0_err":   r0_err,
+                "r1":       r1,
+                "r1_err":   r1_err,
+                "r2":       r2,
+                "r2_err":   r2_err,
+                "chi2":     chi2,
+                "ndf":      ndf,
+                "n_points": n_points,
+                "Linear":   Linear,
+            }
+
+    total_y_fits = sum(len(coeff_dict) for coeff_dict in Y_fit_summary.values())
+    print(f"{color.BGREEN}y-fits complete. Total (param,coeff) combinations fitted: {total_y_fits}.{color.END}")
+    return Y_fit_summary
+
+
+# ----------------------------------------------------------------------
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Build ratio histograms, build an RDataFrame, do quadratic z- and pT-fits, then fit parameters vs Q^2.",
+        description="Build ratio histograms, build an RDataFrame, do quadratic z- and pT-fits, then fit parameters vs Q^2 and y.",
         formatter_class=RawDefaultsHelpFormatter
     )
 
@@ -876,12 +1035,14 @@ def parse_arguments():
                         help="Do NOT run pT fits of z-fit parameters.")
     parser.add_argument("-noQ2", "--no_Q2_fits", action="store_true",
                         help="Do NOT run fits of parameters vs Q^2.")
+    parser.add_argument("-noY", "--no_y_fits", action="store_true",
+                        help="Do NOT run fits of Q^2 coefficients vs y.")
     parser.add_argument("-np", "--no_plots", action="store_true",
-                        help="Do NOT save any fit plots (z, pT, or Q^2).")
+                        help="Do NOT save any fit plots (z, pT, Q^2, or y).")
 
     parser.add_argument("-zdir", "--z_plot_dir",
                         default="ZFit_Plots",
-                        help="Output directory for all fit plots (z, pT, Q^2).")
+                        help="Output directory for all fit plots (z, pT, Q^2, y).")
     parser.add_argument("-n", "-tag", "--image_suffix", default=None, type=str,
                         help="Optional string appended to fit image filenames.")
     parser.add_argument("-fmt", "--image_format",
@@ -918,6 +1079,7 @@ def main():
     do_z_fits  = (not args.no_z_fits)
     do_pT_fits = (not args.no_pT_fits)
     do_Q2_fits = (not args.no_Q2_fits)
+    do_y_fits  = (not args.no_y_fits)
     save_plots = (not args.no_plots)
     file_ext   = "." + str(args.image_format).lower()
 
@@ -954,6 +1116,7 @@ def main():
         z_fit_results   = None
         pT_fit_results  = None
         Q2_fit_results  = None
+        Y_fit_results   = None
 
         if(do_z_fits):
             rdf_for_fits = ROOT.RDataFrame("h22", args.rdf_file)
@@ -972,6 +1135,9 @@ def main():
                 rdf_for_Q2 = ROOT.RDataFrame("h22", args.rdf_file)
                 Q2_fit_results = perform_Q2_fits(rdf_for_Q2, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
 
+                if(do_y_fits and (Q2_fit_results is not None) and (len(Q2_fit_results) > 0)):
+                    Y_fit_results = perform_y_fits(Q2_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
         email_body += f"Numerator hist:  {args.num_hist}\n"
@@ -985,6 +1151,9 @@ def main():
         if(do_z_fits and do_pT_fits and do_Q2_fits and (Q2_fit_results is not None)):
             total_Q2_combos = sum(len(v) for v in Q2_fit_results.values())
             email_body += f"Q^2-fit functions (quadratic) for (param,y) combinations: {total_Q2_combos}\n"
+        if(do_z_fits and do_pT_fits and do_Q2_fits and do_y_fits and (Y_fit_results is not None)):
+            total_Y_combos = sum(len(v) for v in Y_fit_results.values())
+            email_body += f"y-fit functions (quadratic) for (param,coeff) combinations: {total_Y_combos}\n"
         if(save_plots):
             email_body += f"Fit image directory: {args.z_plot_dir}\n"
             email_body += f"Fit image format: {args.image_format}\n"
