@@ -90,6 +90,30 @@ PARAM_NAMES = ["a0", "a1", "a2",
                "b0", "b1", "b2",
                "c0", "c1", "c2"]
 
+# Map Q^2 power index → letter (for names like Aaa2)
+Q2_INDEX_LETTER = {
+    2: "a",   # Q2^2
+    1: "b",   # Q2^1
+    0: "c",   # Q2^0
+}
+
+# Map original parameters (a0..c2) to (pT-letter, z-digit)
+# This encodes the structure:
+#   z^2: c2 (pT^2), c1 (pT^1), c0 (pT^0)
+#   z^1: a2 (pT^2), a1 (pT^1), a0 (pT^0)
+#   z^0: b2 (pT^2), b1 (pT^1), b0 (pT^0)
+PARAM_Z_PTZ_MAP = {
+    "c2": ("a", "2"),
+    "c1": ("b", "2"),
+    "c0": ("c", "2"),
+    "a2": ("a", "1"),
+    "a1": ("b", "1"),
+    "a0": ("c", "1"),
+    "b2": ("a", "0"),
+    "b1": ("b", "0"),
+    "b0": ("c", "0"),
+}
+
 
 # ----------------------------------------------------------------------
 # 4D → (Q2_y_Bin, z_pT_Bin) decoder
@@ -673,7 +697,7 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
     ROOT.InitPTParamTables()
 
     rdf_def = rdf
-    print(f"list(rdf_def.GetColumnNames()) = {list(rdf_def.GetColumnNames())}")
+    # print(f"list(rdf_def.GetColumnNames()) = {list(rdf_def.GetColumnNames())}")
     for pname in PARAM_NAMES:
         if((pname in list(rdf_def.GetColumnNames())) or (f"{pname}_err" in list(rdf_def.GetColumnNames()))):
             rdf_def = rdf_def.Redefine(pname, f"Get_{pname}(Q2_y_Bin)").Redefine(f"{pname}_err", f"Get_{pname}_err(Q2_y_Bin)")
@@ -719,8 +743,8 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
         Q2_vals_all = numpy.array(np_dict["Q2_val"], dtype="float64")
 
         for pname in PARAM_NAMES:
-            par_vals_all = numpy.array(np_dict[pname],       dtype="float64")
-            par_errs_all = numpy.array(np_dict[f"{pname}_err"], dtype="float64")
+            par_vals_all = numpy.array(np_dict[pname],             dtype="float64")
+            par_errs_all = numpy.array(np_dict[f"{pname}_err"],    dtype="float64")
 
             # Collapse many events per (Q2,y) down to one value per Q2:
             points_by_Q2 = {}
@@ -732,7 +756,6 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
                 if(q2 not in points_by_Q2):
                     points_by_Q2[q2] = [val, err]
                 else:
-                    # Sanity check: if we ever see mismatched values for same Q2,y, warn.
                     old_val, old_err = points_by_Q2[q2]
                     if((abs(old_val - val) > 1e-8) or (abs(old_err - err) > 1e-8)):
                         print(
@@ -846,16 +869,10 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
 
 # ----------------------------------------------------------------------
 # NEW: y-fits of the Q² coefficients q0,q1,q2 vs y
+# Produces A,B,C for each (param, Q2-power) and is the basis for the
+# final 4D coefficients Aaa2, Baa2, Caa2, etc.
 # ----------------------------------------------------------------------
 def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    # Take the output of perform_Q2_fits:
-    #   Q2_fit_results[pname][y_center] = {q0,q0_err,q1,q1_err,q2,q2_err,...}
-    # For each pname in PARAM_NAMES and each coefficient (q0,q1,q2),
-    # build qk(y) using the available y_center values and fit:
-    #   qk(y) ≈ r0 + r1*y + r2*y^2
-    # with a quadratic in y (or linear if <3 points).
-    # That gives 27 y-fits total (9 pname × 3 coefficients).
-
     print(f"{color.BPINK}Starting y-fits of Q^{{2}} coefficients (q0,q1,q2) vs y.{color.END}")
 
     if((Q2_fit_results is None) or (len(Q2_fit_results) == 0)):
@@ -867,64 +884,70 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             os.makedirs(plot_dir, exist_ok=True)
         print(f"{color.BPINK}y-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
 
-    coeff_names = ["q0", "q1", "q2"]
-    Y_fit_summary = {}
+    # Structure of output:
+    #   y_fit_results[pname][q_index] = {
+    #       "A","A_err","B","B_err","C","C_err","chi2","ndf","n_points","Linear"
+    #   }
+    y_fit_results = {}
 
     for pname in PARAM_NAMES:
         if(pname not in Q2_fit_results):
             print(f"{color.YELLOW}perform_y_fits: pname={pname} not present in Q2_fit_results; skipping.{color.END}")
             continue
 
-        # Dictionary: y_center → dict with q0,q1,q2,...
-        y_dict = Q2_fit_results[pname]
-        if(len(y_dict) == 0):
+        by_y = Q2_fit_results[pname]
+        if(len(by_y) == 0):
             print(f"{color.YELLOW}perform_y_fits: pname={pname} has no y entries; skipping.{color.END}")
             continue
 
-        # Sort y values so plots are monotonic in x
-        y_values_sorted = sorted(y_dict.keys())
-        n_y = len(y_values_sorted)
+        y_list = sorted(by_y.keys())
 
-        for coeff in coeff_names:
-            y_points  = []
-            val_points = []
-            err_points = []
+        for q_index in [0, 1, 2]:
+            q_key     = f"q{q_index}"
+            q_err_key = f"{q_key}_err"
 
-            for y_center in y_values_sorted:
-                entry = y_dict[y_center]
-                if((coeff not in entry) or (f"{coeff}_err" not in entry)):
-                    print(f"{color.YELLOW}perform_y_fits: Missing {coeff} or {coeff}_err for param={pname}, y={y_center:.2f}; skipping that point.{color.END}")
+            y_vals   = []
+            val_vals = []
+            err_vals = []
+
+            for y_center in y_list:
+                entry = by_y[y_center]
+                if((q_key not in entry) or (q_err_key not in entry)):
+                    print(f"{color.YELLOW}perform_y_fits: Missing {q_key} or {q_err_key} for param={pname}, y={y_center:.2f}; skipping that point.{color.END}")
                     continue
+                y_vals.append(float(y_center))
+                val_vals.append(float(entry[q_key]))
+                err_vals.append(float(entry[q_err_key]))
 
-                y_points.append(float(y_center))
-                val_points.append(float(entry[coeff]))
-                err_points.append(float(entry[f"{coeff}_err"]))
-
-            n_points = len(y_points)
+            n_points = len(y_vals)
             if(n_points == 0):
-                print(f"{color.YELLOW}perform_y_fits: No valid points for (param={pname}, coeff={coeff}); skipping this y-fit.{color.END}")
+                print(f"{color.YELLOW}perform_y_fits: No valid y points for (param={pname}, q_index={q_index}); skipping this y-fit.{color.END}")
                 continue
+
+            arr_y   = numpy.array(y_vals,   dtype="float64")
+            arr_v   = numpy.array(val_vals, dtype="float64")
+            arr_err = numpy.array(err_vals, dtype="float64")
 
             Linear = False
             if(n_points < 3):
-                print(f"{color.RED}Waring: {color.YELLOW}y-fit for param={pname}, coeff={coeff} only has {n_points} points, need ≥3 for quadratic — using linear instead.{color.END}")
+                print(f"{color.RED}Waring: {color.YELLOW}y-fit for param={pname}, q_index={q_index} only has {n_points} points, need ≥3 for quadratic — using linear instead.{color.END}")
                 Linear = True
 
-            y_min = float(min(y_points))
-            y_max = float(max(y_points))
+            y_min = float(min(arr_y))
+            y_max = float(max(arr_y))
 
             graph = ROOT.TGraphErrors(n_points)
             for idx in range(n_points):
-                graph.SetPoint(idx, y_points[idx], val_points[idx])
-                graph.SetPointError(idx, 0.0, err_points[idx])
+                graph.SetPoint(idx, float(arr_y[idx]), float(arr_v[idx]))
+                graph.SetPointError(idx, 0.0, float(arr_err[idx]))
 
             graph.SetMarkerStyle(20)
             graph.SetMarkerSize(1.0)
             graph.SetLineWidth(2)
 
-            fname = f"f_y_{pname}_{coeff}"
+            fname = f"f_y_{pname}_q{q_index}"
             fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", y_min, y_max)
-            fit_func.SetParameter(0, float(numpy.mean(val_points)))
+            fit_func.SetParameter(0, float(numpy.mean(arr_v)))
             fit_func.SetParameter(1, 0.0)
             fit_func.SetParameter(2, 0.0)
 
@@ -933,27 +956,28 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
             fit_result = graph.Fit(fit_func, "QSRNB")
 
-            r0     = fit_func.GetParameter(0)
-            r0_err = fit_func.GetParError(0)
-            r1     = fit_func.GetParameter(1)
-            r1_err = fit_func.GetParError(1)
-            r2     = fit_func.GetParameter(2)
-            r2_err = fit_func.GetParError(2)
-            chi2   = fit_func.GetChisquare()
-            ndf    = fit_func.GetNDF()
+            C_val = fit_func.GetParameter(0)
+            C_err = fit_func.GetParError(0)
+            B_val = fit_func.GetParameter(1)
+            B_err = fit_func.GetParError(1)
+            A_val = fit_func.GetParameter(2)
+            A_err = fit_func.GetParError(2)
+            chi2  = fit_func.GetChisquare()
+            ndf   = fit_func.GetNDF()
 
             print(
-                f"{color.BPINK}y-fit: param={pname}, coeff={coeff}: n={n_points}, "
-                f"r0={r0:.4g}±{r0_err:.4g}, r1={r1:.4g}±{r1_err:.4g}, "
-                f"r2={r2:.4g}±{r2_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
+                f"{color.BPINK}y-fit: param={pname}, q_index={q_index}: n={n_points}, "
+                f"A={A_val:.4g}±{A_err:.4g}, B={B_val:.4g}±{B_err:.4g}, "
+                f"C={C_val:.4g}±{C_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
             )
 
             if(save_plots):
-                cname = f"c_YFit_{pname}_{coeff}"
+                q_letter = Q2_INDEX_LETTER[q_index]
+                cname = f"c_yFit_{pname}_q{q_index}"
                 canvas = ROOT.TCanvas(cname, cname, 800, 600)
 
-                title_str = f"{coeff} of {pname} vs y (quadratic)"
-                graph.SetTitle(f"{title_str};y;{coeff} coefficient of {pname}")
+                title_str = f"{pname}, q{q_index} vs y (quadratic): Q^{{2}}-coefficient ({q_letter})"
+                graph.SetTitle(f"{title_str};y;{pname}, q{q_index} coefficient")
                 graph.Draw("AP")
 
                 fit_func.SetLineColor(ROOT.kRed)
@@ -963,41 +987,195 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
                 latex = ROOT.TLatex()
                 latex.SetNDC(True)
                 latex.SetTextSize(0.04)
-                latex.DrawLatex(0.15, 0.88, f"r0 = {r0:.4g} #pm {r0_err:.4g}")
-                latex.DrawLatex(0.15, 0.83, f"r1 = {r1:.4g} #pm {r1_err:.4g}")
-                latex.DrawLatex(0.15, 0.78, f"r2 = {r2:.4g} #pm {r2_err:.4g}")
+                latex.DrawLatex(0.15, 0.88, f"A = {A_val:.4g} #pm {A_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"B = {B_val:.4g} #pm {B_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"C = {C_val:.4g} #pm {C_err:.4g}")
                 latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
 
-                if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
-                    base_name = f"{cname}_{image_suffix}"
-                else:
-                    base_name = cname
-
-                out_name = os.path.join(plot_dir, f"{base_name}{file_ext}")
+                base_name = f"{cname}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname
+                out_name  = os.path.join(plot_dir, f"{base_name}{file_ext}")
                 canvas.SaveAs(out_name)
                 del canvas
 
-            if(pname not in Y_fit_summary):
-                Y_fit_summary[pname] = {}
-            if(coeff not in Y_fit_summary[pname]):
-                Y_fit_summary[pname][coeff] = {}
-
-            Y_fit_summary[pname][coeff] = {
-                "r0":       r0,
-                "r0_err":   r0_err,
-                "r1":       r1,
-                "r1_err":   r1_err,
-                "r2":       r2,
-                "r2_err":   r2_err,
+            if(pname not in y_fit_results):
+                y_fit_results[pname] = {}
+            y_fit_results[pname][q_index] = {
+                "A":        A_val,
+                "A_err":    A_err,
+                "B":        B_val,
+                "B_err":    B_err,
+                "C":        C_val,
+                "C_err":    C_err,
                 "chi2":     chi2,
                 "ndf":      ndf,
                 "n_points": n_points,
                 "Linear":   Linear,
             }
 
-    total_y_fits = sum(len(coeff_dict) for coeff_dict in Y_fit_summary.values())
-    print(f"{color.BGREEN}y-fits complete. Total (param,coeff) combinations fitted: {total_y_fits}.{color.END}")
-    return Y_fit_summary
+    total_y_fits = sum(len(v) for v in y_fit_results.values())
+    print(f"{color.BGREEN}y-fits complete. Total (param,q_index) combinations fitted: {total_y_fits}.{color.END}")
+    return y_fit_results
+
+
+# ----------------------------------------------------------------------
+# Build the final A.. / B.. / C.. coefficient maps from y_fits
+# ----------------------------------------------------------------------
+def build_final_coefficients(y_fit_results):
+    coeff_map     = {}
+    coeff_err_map = {}
+    meta_map      = {}
+
+    for pname, (pT_letter, z_digit) in PARAM_Z_PTZ_MAP.items():
+        if(pname not in y_fit_results):
+            print(f"{color.YELLOW}build_final_coefficients: No y-fit results for param '{pname}'. Coefficients set to 0.{color.END}")
+            param_y_fits = {}
+        else:
+            param_y_fits = y_fit_results[pname]
+
+        for q_index in [2, 1, 0]:
+            q_letter = Q2_INDEX_LETTER[q_index]
+            entry    = param_y_fits.get(q_index, None)
+
+            if(entry is None):
+                A_val = 0.0
+                B_val = 0.0
+                C_val = 0.0
+                A_err = 0.0
+                B_err = 0.0
+                C_err = 0.0
+                print(
+                    f"{color.YELLOW}build_final_coefficients: Missing y-fit for param='{pname}', q_index={q_index}; "
+                    f"setting A,B,C to 0.{color.END}"
+                )
+            else:
+                A_val = entry["A"]
+                A_err = entry["A_err"]
+                B_val = entry["B"]
+                B_err = entry["B_err"]
+                C_val = entry["C"]
+                C_err = entry["C_err"]
+
+            # y^2 coefficient
+            nameA = f"A{q_letter}{pT_letter}{z_digit}"
+            coeff_map[nameA]     = A_val
+            coeff_err_map[nameA] = A_err
+            meta_map[nameA]      = {
+                "param":     pname,
+                "Q2_power":  q_index,
+                "y_power":   2,
+                "pT_letter": pT_letter,
+                "z_power":   int(z_digit),
+            }
+
+            # y^1 coefficient
+            nameB = f"B{q_letter}{pT_letter}{z_digit}"
+            coeff_map[nameB]     = B_val
+            coeff_err_map[nameB] = B_err
+            meta_map[nameB]      = {
+                "param":     pname,
+                "Q2_power":  q_index,
+                "y_power":   1,
+                "pT_letter": pT_letter,
+                "z_power":   int(z_digit),
+            }
+
+            # y^0 coefficient
+            nameC = f"C{q_letter}{pT_letter}{z_digit}"
+            coeff_map[nameC]     = C_val
+            coeff_err_map[nameC] = C_err
+            meta_map[nameC]      = {
+                "param":     pname,
+                "Q2_power":  q_index,
+                "y_power":   0,
+                "pT_letter": pT_letter,
+                "z_power":   int(z_digit),
+            }
+
+    print(f"{color.BGREEN}build_final_coefficients: constructed {len(coeff_map)} final coefficients (A/B/C with aa2-style names).{color.END}")
+    return coeff_map, coeff_err_map, meta_map
+
+
+# ----------------------------------------------------------------------
+# Print the final 4D function F(y,Q2,pT,z) and the coefficient table
+# ----------------------------------------------------------------------
+def print_final_4D_function(y_fit_results):
+    coeff_map, coeff_err_map, meta_map = build_final_coefficients(y_fit_results)
+
+    # Arrange parameters by z-power groups, matching the intended z structure:
+    #   z^2: c2,c1,c0
+    #   z^1: a2,a1,a0
+    #   z^0: b2,b1,b0
+    Z_GROUPS = {
+        "2": ["c2", "c1", "c0"],
+        "1": ["a2", "a1", "a0"],
+        "0": ["b2", "b1", "b0"],
+    }
+
+    def y_poly_str(q_letter, pT_letter, z_digit):
+        return f"(A{q_letter}{pT_letter}{z_digit}*y_val*y_val + B{q_letter}{pT_letter}{z_digit}*y_val + C{q_letter}{pT_letter}{z_digit})"
+
+    z_terms = []
+
+    for z_digit in ["2", "1", "0"]:
+        pT_terms = []
+
+        for pname in Z_GROUPS[z_digit]:
+            pT_letter, _z = PARAM_Z_PTZ_MAP[pname]
+
+            q2_terms = []
+            for q_index in [2, 1, 0]:
+                q_letter = Q2_INDEX_LETTER[q_index]
+                y_poly   = y_poly_str(q_letter, pT_letter, z_digit)
+                if(q_index == 2):
+                    q2_terms.append(f"{y_poly}*Q2_val*Q2_val")
+                elif(q_index == 1):
+                    q2_terms.append(f"{y_poly}*Q2_val")
+                else:
+                    q2_terms.append(f"{y_poly}")
+
+            Q2_block = "(" + " + ".join(q2_terms) + ")"
+
+            if(pname.endswith("2")):
+                pT_factor = "*pT_val*pT_val"
+            elif(pname.endswith("1")):
+                pT_factor = "*pT_val"
+            else:
+                pT_factor = ""
+
+            pT_terms.append(f"{Q2_block}{pT_factor}")
+
+        pT_block = "(" + " + ".join(pT_terms) + ")"
+
+        if(z_digit == "2"):
+            z_terms.append(f"{pT_block}*z_val*z_val")
+        elif(z_digit == "1"):
+            z_terms.append(f"{pT_block}*z_val")
+        else:
+            z_terms.append(f"{pT_block}")
+
+    print(f"\n{color.BCYAN}Symbolic final 4D function in terms of fitted coefficients:{color.END}")
+    print("F(y_val, Q2_val, pT_val, z_val) =")
+    email_output = "Symbolic final 4D function in terms of fitted coefficients:\nF(y_val, Q2_val, pT_val, z_val) =\n"
+    for idx, term in enumerate(z_terms):
+        prefix = "  " if(idx == 0) else "  + "
+        print(prefix + term)
+        email_output = f"{email_output}{prefix + term}\n"
+
+    print(f"\n{color.BCYAN}Final 4D-coefficient values (name = value ± error):{color.END}")
+    email_output = "\nFinal 4D-coefficient values (name = value ± error):\n"
+    for name in sorted(coeff_map.keys()):
+        val  = coeff_map[name]
+        err  = coeff_err_map[name]
+        meta = meta_map[name]
+        print(
+            f"  {name:4s} = {val:.6g} ± {err:.6g}   "
+            f"(from param '{meta['param']}', Q2^{meta['Q2_power']}, "
+            f"pT index '{meta['pT_letter']}', z^{meta['z_power']})"
+        )
+        email_output = f"{email_output}  {name:4s} = {val:.6g} ± {err:.6g}   (from param '{meta['param']}', Q2^{meta['Q2_power']}, pT index '{meta['pT_letter']}', z^{meta['z_power']})\n"
+        
+
+    return coeff_map, coeff_err_map, meta_map, email_output
 
 
 # ----------------------------------------------------------------------
@@ -1083,6 +1261,8 @@ def main():
     save_plots = (not args.no_plots)
     file_ext   = "." + str(args.image_format).lower()
 
+    email_output_4D = None
+    
     if(save_plots):
         ROOT.gROOT.SetBatch(True)
 
@@ -1137,6 +1317,8 @@ def main():
 
                 if(do_y_fits and (Q2_fit_results is not None) and (len(Q2_fit_results) > 0)):
                     Y_fit_results = perform_y_fits(Q2_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+                    if((Y_fit_results is not None) and (len(Y_fit_results) > 0)):
+                        _, _, _, email_output_4D = print_final_4D_function(Y_fit_results)
 
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
@@ -1153,7 +1335,7 @@ def main():
             email_body += f"Q^2-fit functions (quadratic) for (param,y) combinations: {total_Q2_combos}\n"
         if(do_z_fits and do_pT_fits and do_Q2_fits and do_y_fits and (Y_fit_results is not None)):
             total_Y_combos = sum(len(v) for v in Y_fit_results.values())
-            email_body += f"y-fit functions (quadratic) for (param,coeff) combinations: {total_Y_combos}\n"
+            email_body += f"y-fit functions (quadratic) for (param,q_index) combinations: {total_Y_combos}\n"
         if(save_plots):
             email_body += f"Fit image directory: {args.z_plot_dir}\n"
             email_body += f"Fit image format: {args.image_format}\n"
@@ -1163,6 +1345,8 @@ def main():
             email_body += f"\nUser message:\n{args.email_message}\n"
         print(email_body)
         if(args.email):
+            if(email_output_4D is not None):
+                email_body = f"{email_body}\n{email_output_4D}"
             send_email("python_Unfold_4D_for_weights.py Script Done", email_body)
 
     except Exception as e:
