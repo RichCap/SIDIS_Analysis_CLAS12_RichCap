@@ -224,17 +224,18 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
     else:
         Histo_Cut = False
     Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}, {}
-    if(str(Method) not in ["rdf", "gdf"]):
-        if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
-            print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
-        else:
-            print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
-            return "Error"
-    elif(Smear in [""]):
-        print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
-    else:
-        print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
-        return "Error"
+    print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
+    # if(str(Method) not in ["rdf", "gdf"]):
+    #     if(((Smearing_Options in ["both", "no_smear"]) and (Smear in [""])) or ((Smearing_Options in ["both", "smear"]) and ("mear" in str(Smear)))):
+    #         print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
+    #     else:
+    #         print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
+    #         return "Error"
+    # elif(Smear in [""]):
+    #     print(f"\n{color.BLUE}Running Multi5D_Slice(...){color.END}\n")
+    # else:
+    #     print(f"\n\n{color.Error}Wrong Smearing option for Multi5D_Slice(...){color.END}\n\n")
+    #     return "Error"
     try:
         #######################################################################
         #####==========#####     Catching Input Errors     #####==========#####
@@ -249,7 +250,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             print(f"{color.RED}ERROR in Multi5D_Slice(): Not set up for other variables (yet)\n{color.END}Variable = {Variable}\n\n")
             return "Error"
         if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
-            Variable = "".join([Variable,  "_smeared"])
+            Variable = f"{Variable}_smeared"
         if(("mear" not in str(Smear)) and ("_smeared"     in str(Variable))):
             Smear = "Smear"
         ########################################################################
@@ -1216,18 +1217,33 @@ if(Saving_Q):
     for s in File_Name_Lists:
         File_Name_Tlist.Add(ROOT.TObjString(s))
     safe_write(File_Name_Tlist, output_file)
+    # Saving full histograms (before slicing)
+    # safe_write(ExREAL_1D, output_file)
+    # safe_write(MC_REC_1D, output_file)
+    # safe_write(MC_GEN_1D, output_file)
+    # safe_write(MC_BGS_1D, output_file)
+    try:
+        safe_write(Unfold_1D, output_file)
+    except:
+        print(f"\n{color.Error}ERROR: Tried to save Unfold_1D (before slicing)\n{color.END_B}Error Message:{color.END}\n{traceback.format_exc()}\n")
     for Pre_Sliced_1Ds, method in Histos_To_Slice:
         Sliced_1Ds = Multi5D_Slice(Histo=Pre_Sliced_1Ds, Title=Pre_Sliced_1Ds.GetTitle(), Name=Pre_Sliced_1Ds.GetName(), Method=method, Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if(any(smear_find in Pre_Sliced_1Ds.GetName() for smear_find in ["'smear'", "'Smear'", "smeared"])) else "", Out_Option="histo", Fitting_Input="off")[0]
+        if(type(Sliced_1Ds) is str):
+            print(f"{color.Error}ERROR: Sliced_1Ds = {Sliced_1Ds}{color.END}")
+            continue
         for Sliced_1D in Sliced_1Ds:
-            to_be_saved_count += 1
-            Sliced_1Ds[Sliced_1D].GetYaxis().SetTitle("")
-            if(method in ["bayes"]):
-                Sliced_1Ds[Sliced_1D].SetName(f"{Sliced_1Ds[Sliced_1D].GetName()}_(Iteration_{args.bayes_iterations})")
-            if(args.EvGen):
-                Sliced_1Ds[Sliced_1D].SetName(f"{Sliced_1Ds[Sliced_1D].GetName()}_EvGen")
-            if(args.verbose):
-                print(f"{color.BGREEN}Saving Histo {to_be_saved_count:>4.0f})\n\t{color.BBLUE}{Sliced_1Ds[Sliced_1D].GetName()}{color.END}")
-            safe_write(Sliced_1Ds[Sliced_1D], output_file)
+            try:
+                Sliced_1Ds[Sliced_1D].GetYaxis().SetTitle("")
+                if(method in ["bayes"]):
+                    Sliced_1Ds[Sliced_1D].SetName(f"{Sliced_1Ds[Sliced_1D].GetName()}_(Iteration_{args.bayes_iterations})")
+                if(args.EvGen):
+                    Sliced_1Ds[Sliced_1D].SetName(f"{Sliced_1Ds[Sliced_1D].GetName()}_EvGen")
+                safe_write(Sliced_1Ds[Sliced_1D], output_file)
+                to_be_saved_count += 1
+                if(args.verbose):
+                    print(f"{color.BGREEN}Saved Histo {to_be_saved_count:>4.0f})\n\t{color.BBLUE}{Sliced_1Ds[Sliced_1D].GetName()}{color.END}")
+            except:
+                print(f"\n{color.Error}ERROR: Tried to save Sliced_1Ds[{color.END_B}{Sliced_1D}{color.Error}]\n{color.END_B}Error Message:{color.END}\n{traceback.format_exc()}\n")
     print(f"\n{color.BBLUE}Done Saving...{color.END}\n")
     output_file.Close()
 
@@ -1270,6 +1286,9 @@ else:
     print(f"{color.PINK}Would be saving to: {color.BCYAN}{args.root}{color.END}")
     for Pre_Sliced_1Ds, method in Histos_To_Slice:
         Sliced_1Ds = Multi5D_Slice(Histo=Pre_Sliced_1Ds, Title=Pre_Sliced_1Ds.GetTitle(), Name=Pre_Sliced_1Ds.GetName(), Method=method, Variable="MultiDim_Q2_y_z_pT_phi_h", Smear="Smear" if(any(smear_find in Pre_Sliced_1Ds.GetName() for smear_find in ["'smear'", "'Smear'", "smeared"])) else "", Out_Option="histo", Fitting_Input="off")[0]
+        if(type(Sliced_1Ds) is str):
+            print(f"{color.Error}ERROR: Sliced_1Ds = {Sliced_1Ds}{color.END}")
+            continue
         for Sliced_1D in Sliced_1Ds:
             to_be_saved_count += 1
             if(method in ["bayes"]):
