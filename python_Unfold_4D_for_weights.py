@@ -85,7 +85,7 @@ Z_MAX = 0.77
 Q2_Centers = [2.20, 2.65, 3.30, 4.50, 6.60]
 y_Centers  = [0.40, 0.50, 0.60, 0.70]
 
-# We will re-use this everywhere:
+# Parameters from pT-fits
 PARAM_NAMES = ["a0", "a1", "a2",
                "b0", "b1", "b2",
                "c0", "c1", "c2"]
@@ -98,10 +98,6 @@ Q2_INDEX_LETTER = {
 }
 
 # Map original parameters (a0..c2) to (pT-letter, z-digit)
-# This encodes the structure:
-#   z^2: c2 (pT^2), c1 (pT^1), c0 (pT^0)
-#   z^1: a2 (pT^2), a1 (pT^1), a0 (pT^0)
-#   z^0: b2 (pT^2), b1 (pT^1), b0 (pT^0)
 PARAM_Z_PTZ_MAP = {
     "c2": ("a", "2"),
     "c1": ("b", "2"),
@@ -171,7 +167,14 @@ def decode_Q2_y_and_z_pT(Q2_y_z_pT_4D_Bins):
 # Decode 2D bin indices into kinematic values
 # ----------------------------------------------------------------------
 def decode_kinematics_from_bins(Q2_y_Bin_Find_In, z_pT_Bin_Find_In):
-    Q2_y_bins, z_pT_bins = Find_Q2_y_z_pT_Bin_Stats(Q2_y_Bin_Find=Q2_y_Bin_Find_In, z_pT_Bin_Find=z_pT_Bin_Find_In, List_Of_Histos_For_Stats_Search="Use_Center", Smearing_Q="''", DataType="bbb", Binning_Method_Input=Binning_Method)
+    Q2_y_bins, z_pT_bins = Find_Q2_y_z_pT_Bin_Stats(
+        Q2_y_Bin_Find       = Q2_y_Bin_Find_In,
+        z_pT_Bin_Find       = z_pT_Bin_Find_In,
+        List_Of_Histos_For_Stats_Search = "Use_Center",
+        Smearing_Q          = "''",
+        DataType            = "bbb",
+        Binning_Method_Input= Binning_Method
+    )
     Q2_bins, y_bins = Q2_y_bins
     z_bins, pT_bins = z_pT_bins
     Q2_val, y_val, z_val, pT_val = Q2_bins[1], y_bins[1], z_bins[1], pT_bins[1]
@@ -206,7 +209,8 @@ def build_ratio_histogram(root_file, num_name, den_name, ratio_name, force_ratio
 
 
 # ----------------------------------------------------------------------
-# Convert TH1D ratio histogram → RDataFrame with 7 columns
+# Convert TH1D ratio histogram → RDataFrame with 8 columns
+# (adds Q2_y_z_pT_4D_Bins for later 4D-bin tests)
 # ----------------------------------------------------------------------
 def build_dataframe_from_hist(ratio_hist):
     if(ratio_hist is None):
@@ -214,13 +218,14 @@ def build_dataframe_from_hist(ratio_hist):
 
     n_bins = ratio_hist.GetNbinsX()
 
-    Q2_y_Bin_list = []
-    Q2_val_list   = []
-    y_val_list    = []
-    z_val_list    = []
-    pT_val_list   = []
-    content_list  = []
-    error_list    = []
+    Q2_y_z_pT_4D_Bins_list = []
+    Q2_y_Bin_list          = []
+    Q2_val_list            = []
+    y_val_list             = []
+    z_val_list             = []
+    pT_val_list            = []
+    content_list           = []
+    error_list             = []
 
     for ibin in range(1, n_bins + 1):
         Q2_y_z_pT_4D_Bins = int(ratio_hist.GetBinCenter(ibin))
@@ -234,6 +239,7 @@ def build_dataframe_from_hist(ratio_hist):
 
         Q2_val, y_val, z_val, pT_val = decode_kinematics_from_bins(Q2_y_Bin, z_pT_Bin)
 
+        Q2_y_z_pT_4D_Bins_list.append(Q2_y_z_pT_4D_Bins)
         Q2_y_Bin_list.append(Q2_y_Bin)
         Q2_val_list.append(Q2_val)
         y_val_list.append(y_val)
@@ -250,30 +256,33 @@ def build_dataframe_from_hist(ratio_hist):
     memfile = ROOT.TMemFile("tmp_unfold_4D_mem", "RECREATE")
     tree    = ROOT.TTree("h22_tmp", "h22_tmp")
 
-    b_Q2_y_Bin = array.array("i", [0])
-    b_Q2_val   = array.array("d", [0.0])
-    b_y_val    = array.array("d", [0.0])
-    b_z_val    = array.array("d", [0.0])
-    b_pT_val   = array.array("d", [0.0])
-    b_content  = array.array("d", [0.0])
-    b_error    = array.array("d", [0.0])
+    b_Q2_y_z_pT_4D_Bins = array.array("i", [0])
+    b_Q2_y_Bin          = array.array("i", [0])
+    b_Q2_val            = array.array("d", [0.0])
+    b_y_val             = array.array("d", [0.0])
+    b_z_val             = array.array("d", [0.0])
+    b_pT_val            = array.array("d", [0.0])
+    b_content           = array.array("d", [0.0])
+    b_error             = array.array("d", [0.0])
 
-    tree.Branch("Q2_y_Bin",    b_Q2_y_Bin, "Q2_y_Bin/I")
-    tree.Branch("Q2_val",      b_Q2_val,   "Q2_val/D")
-    tree.Branch("y_val",       b_y_val,    "y_val/D")
-    tree.Branch("z_val",       b_z_val,    "z_val/D")
-    tree.Branch("pT_val",      b_pT_val,   "pT_val/D")
-    tree.Branch("bin_content", b_content,  "bin_content/D")
-    tree.Branch("bin_error",   b_error,    "bin_error/D")
+    tree.Branch("Q2_y_z_pT_4D_Bins", b_Q2_y_z_pT_4D_Bins, "Q2_y_z_pT_4D_Bins/I")
+    tree.Branch("Q2_y_Bin",          b_Q2_y_Bin,          "Q2_y_Bin/I")
+    tree.Branch("Q2_val",            b_Q2_val,            "Q2_val/D")
+    tree.Branch("y_val",             b_y_val,             "y_val/D")
+    tree.Branch("z_val",             b_z_val,             "z_val/D")
+    tree.Branch("pT_val",            b_pT_val,            "pT_val/D")
+    tree.Branch("bin_content",       b_content,           "bin_content/D")
+    tree.Branch("bin_error",         b_error,             "bin_error/D")
 
     for index in range(n_entries):
-        b_Q2_y_Bin[0] = Q2_y_Bin_list[index]
-        b_Q2_val[0]   = Q2_val_list[index]
-        b_y_val[0]    = y_val_list[index]
-        b_z_val[0]    = z_val_list[index]
-        b_pT_val[0]   = pT_val_list[index]
-        b_content[0]  = content_list[index]
-        b_error[0]    = error_list[index]
+        b_Q2_y_z_pT_4D_Bins[0] = Q2_y_z_pT_4D_Bins_list[index]
+        b_Q2_y_Bin[0]          = Q2_y_Bin_list[index]
+        b_Q2_val[0]            = Q2_val_list[index]
+        b_y_val[0]             = y_val_list[index]
+        b_z_val[0]             = z_val_list[index]
+        b_pT_val[0]            = pT_val_list[index]
+        b_content[0]           = content_list[index]
+        b_error[0]             = error_list[index]
         tree.Fill()
 
     memfile.Write()
@@ -283,6 +292,43 @@ def build_dataframe_from_hist(ratio_hist):
     rdf._unfold_tree    = tree
 
     return rdf
+
+
+# ----------------------------------------------------------------------
+# Helper: check if RDF tree already has the needed 4D columns
+# ----------------------------------------------------------------------
+def rdf_tree_has_4D_columns(rdf_file, tree_name="h22"):
+    if(not os.path.exists(rdf_file)):
+        return False
+
+    tfile = ROOT.TFile.Open(rdf_file, "READ")
+    if((tfile is None) or tfile.IsZombie()):
+        return False
+
+    tree = tfile.Get(tree_name)
+    if(tree is None):
+        tfile.Close()
+        return False
+
+    branches = tree.GetListOfBranches()
+    needed   = [
+        "Q2_y_z_pT_4D_Bins",
+        "Q2_y_Bin",
+        "Q2_val",
+        "y_val",
+        "z_val",
+        "pT_val",
+        "bin_content",
+        "bin_error"
+    ]
+
+    for name in needed:
+        if(branches.FindObject(name) is None):
+            tfile.Close()
+            return False
+
+    tfile.Close()
+    return True
 
 
 # ----------------------------------------------------------------------
@@ -334,7 +380,7 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             fit_func.SetParameter(0, intercept_guess)
             fit_func.SetParameter(1, 0.0)
             fit_func.SetParameter(2, 0.0)
-            
+
             if(n_points < 3):
                 print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) has insufficient points for quadratic fit (n={n_points}) — using linear instead.{color.END}")
                 fit_func.FixParameter(2, 0.0)
@@ -409,15 +455,6 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
 # ----------------------------------------------------------------------
 # pT-fits: intercept(pT), slope(pT), quad(pT) → 9 parameters per Q2_y_Bin
-# pT-fit layer: fit intercept(pT), slope(pT), quad(pT) with quadratics
-#   intercept(pT) ≈ b0 + b1*pT + b2*pT^2
-#   slope(pT)     ≈ a0 + a1*pT + a2*pT^2
-#   quad(pT)      ≈ c0 + c1*pT + c2*pT^2
-#
-# Final 2D function per Q2_y_Bin:
-#   F(z,pT) = (b0 + b1*pT + b2*pT^2)
-#           + (a0 + a1*pT + a2*pT^2) * z
-#           + (c0 + c1*pT + c2*pT^2) * z^2
 # ----------------------------------------------------------------------
 def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
     print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters (quadratic in pT).{color.END}")
@@ -442,12 +479,12 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
     for Q2_y_Bin_key in sorted(results_by_q2.keys()):
         rows = results_by_q2[Q2_y_Bin_key]
-        n = len(rows)
+        n    = len(rows)
         Linear = False
         if(n < 3):
             print(f"{color.RED}Waring: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key} only has {n} z-fit points, need ≥3 for quadratic — using linear instead.{color.END}")
             Linear = True
-            
+
         pT_centers     = numpy.array([r["pT_center"]     for r in rows], dtype="float64")
         intercepts     = numpy.array([r["intercept"]     for r in rows], dtype="float64")
         intercept_errs = numpy.array([r["intercept_err"] for r in rows], dtype="float64")
@@ -642,12 +679,6 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 # ----------------------------------------------------------------------
 def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
 
-    # Take the existing RDataFrame with columns:
-    #   Q2_y_Bin, Q2_val, y_val, z_val, pT_val, bin_content, bin_error and add 18 new columns:
-    #   a0,a0_err,...,c2,c2_err
-    # where each parameter is constant for all rows with the same Q2_y_Bin.
-    # The result is written back out as a new ROOT file 'out_file', tree 'tree_name'.
-
     if((pt_fit_summary is None) or (len(pt_fit_summary) == 0)):
         print(f"{color.YELLOW}attach_pT_params_to_rdf: No pt_fit_summary provided; skipping augmentation.{color.END}")
         rdf.Snapshot(tree_name, out_file)
@@ -697,7 +728,6 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
     ROOT.InitPTParamTables()
 
     rdf_def = rdf
-    # print(f"list(rdf_def.GetColumnNames()) = {list(rdf_def.GetColumnNames())}")
     for pname in PARAM_NAMES:
         if((pname in list(rdf_def.GetColumnNames())) or (f"{pname}_err" in list(rdf_def.GetColumnNames()))):
             rdf_def = rdf_def.Redefine(pname, f"Get_{pname}(Q2_y_Bin)").Redefine(f"{pname}_err", f"Get_{pname}_err(Q2_y_Bin)")
@@ -711,10 +741,6 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
 # Q²-fits using only Q2_val, y_val, and parameter columns in the RDataFrame
 # ----------------------------------------------------------------------
 def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    # Fit each parameter (a0..c2) as a function of Q2 at fixed y, using only
-    # the RDataFrame columns:
-    #    Q2_val, y_val, a0..c2, a0_err..c2_err.
-    # No use of Q2_y_Bin or pT_fit_results here: we just fix y and fit param(Q2).
 
     print(f"{color.BCYAN}Starting Q^{{2}}-fits of (z,pT) parameters at fixed y (from RDataFrame columns).{color.END}")
 
@@ -726,7 +752,6 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
     Q2_fit_summary = {}
 
     for y_center in y_Centers:
-        # Narrow window around y_center; all y_val should be exact centers anyway.
         y_min = y_center - 1e-3
         y_max = y_center + 1e-3
 
@@ -743,10 +768,9 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
         Q2_vals_all = numpy.array(np_dict["Q2_val"], dtype="float64")
 
         for pname in PARAM_NAMES:
-            par_vals_all = numpy.array(np_dict[pname],             dtype="float64")
-            par_errs_all = numpy.array(np_dict[f"{pname}_err"],    dtype="float64")
+            par_vals_all = numpy.array(np_dict[pname],          dtype="float64")
+            par_errs_all = numpy.array(np_dict[f"{pname}_err"], dtype="float64")
 
-            # Collapse many events per (Q2,y) down to one value per Q2:
             points_by_Q2 = {}
             for idx in range(len(Q2_vals_all)):
                 q2  = float(Q2_vals_all[idx])
@@ -794,7 +818,7 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
             graph.SetMarkerSize(1.0)
             graph.SetLineWidth(2)
 
-            y_code = int(round(100.0 * y_center))  # e.g. 40, 50, 60, 70
+            y_code = int(round(100.0 * y_center))
             fname  = f"f_Q2_{pname}_y_{y_code:03d}"
 
             fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", x_min, x_max)
@@ -868,9 +892,8 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
 
 
 # ----------------------------------------------------------------------
-# NEW: y-fits of the Q² coefficients q0,q1,q2 vs y
-# Produces A,B,C for each (param, Q2-power) and is the basis for the
-# final 4D coefficients Aaa2, Baa2, Caa2, etc.
+# y-fits of the Q² coefficients q0,q1,q2 vs y
+# Produces A,B,C for each (param, Q2-power)
 # ----------------------------------------------------------------------
 def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
     print(f"{color.BPINK}Starting y-fits of Q^{{2}} coefficients (q0,q1,q2) vs y.{color.END}")
@@ -884,10 +907,6 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             os.makedirs(plot_dir, exist_ok=True)
         print(f"{color.BPINK}y-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
 
-    # Structure of output:
-    #   y_fit_results[pname][q_index] = {
-    #       "A","A_err","B","B_err","C","C_err","chi2","ndf","n_points","Linear"
-    #   }
     y_fit_results = {}
 
     for pname in PARAM_NAMES:
@@ -1019,6 +1038,7 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
 # ----------------------------------------------------------------------
 # Build the final A.. / B.. / C.. coefficient maps from y_fits
+# (still useful for symbolic printout)
 # ----------------------------------------------------------------------
 def build_final_coefficients(y_fit_results):
     coeff_map     = {}
@@ -1055,8 +1075,10 @@ def build_final_coefficients(y_fit_results):
                 C_val = entry["C"]
                 C_err = entry["C_err"]
 
-            # y^2 coefficient
             nameA = f"A{q_letter}{pT_letter}{z_digit}"
+            nameB = f"B{q_letter}{pT_letter}{z_digit}"
+            nameC = f"C{q_letter}{pT_letter}{z_digit}"
+
             coeff_map[nameA]     = A_val
             coeff_err_map[nameA] = A_err
             meta_map[nameA]      = {
@@ -1067,8 +1089,6 @@ def build_final_coefficients(y_fit_results):
                 "z_power":   int(z_digit),
             }
 
-            # y^1 coefficient
-            nameB = f"B{q_letter}{pT_letter}{z_digit}"
             coeff_map[nameB]     = B_val
             coeff_err_map[nameB] = B_err
             meta_map[nameB]      = {
@@ -1079,8 +1099,6 @@ def build_final_coefficients(y_fit_results):
                 "z_power":   int(z_digit),
             }
 
-            # y^0 coefficient
-            nameC = f"C{q_letter}{pT_letter}{z_digit}"
             coeff_map[nameC]     = C_val
             coeff_err_map[nameC] = C_err
             meta_map[nameC]      = {
@@ -1096,15 +1114,11 @@ def build_final_coefficients(y_fit_results):
 
 
 # ----------------------------------------------------------------------
-# Print the final 4D function F(y,Q2,pT,z) and the coefficient table
+# Print the final 4D function F(y,Q2,pT,z) and coefficient table
 # ----------------------------------------------------------------------
 def print_final_4D_function(y_fit_results):
     coeff_map, coeff_err_map, meta_map = build_final_coefficients(y_fit_results)
 
-    # Arrange parameters by z-power groups, matching the intended z structure:
-    #   z^2: c2,c1,c0
-    #   z^1: a2,a1,a0
-    #   z^0: b2,b1,b0
     Z_GROUPS = {
         "2": ["c2", "c1", "c0"],
         "1": ["a2", "a1", "a0"],
@@ -1155,27 +1169,366 @@ def print_final_4D_function(y_fit_results):
 
     print(f"\n{color.BCYAN}Symbolic final 4D function in terms of fitted coefficients:{color.END}")
     print("F(y_val, Q2_val, pT_val, z_val) =")
-    email_output = "Symbolic final 4D function in terms of fitted coefficients:\nF(y_val, Q2_val, pT_val, z_val) =\n"
+    email_output = "Symbolic final 4D function in terms of fitted coefficients:\n"
+    email_output += "F(y_val, Q2_val, pT_val, z_val) =\n"
+
     for idx, term in enumerate(z_terms):
         prefix = "  " if(idx == 0) else "  + "
         print(prefix + term)
         email_output = f"{email_output}{prefix + term}\n"
 
     print(f"\n{color.BCYAN}Final 4D-coefficient values (name = value ± error):{color.END}")
-    email_output = "\nFinal 4D-coefficient values (name = value ± error):\n"
+    email_output += "\nFinal 4D-coefficient values (name = value ± error):\n"
     for name in sorted(coeff_map.keys()):
         val  = coeff_map[name]
         err  = coeff_err_map[name]
         meta = meta_map[name]
-        print(
+        line = (
             f"  {name:4s} = {val:.6g} ± {err:.6g}   "
             f"(from param '{meta['param']}', Q2^{meta['Q2_power']}, "
             f"pT index '{meta['pT_letter']}', z^{meta['z_power']})"
         )
-        email_output = f"{email_output}  {name:4s} = {val:.6g} ± {err:.6g}   (from param '{meta['param']}', Q2^{meta['Q2_power']}, pT index '{meta['pT_letter']}', z^{meta['z_power']})\n"
-        
+        print(line)
+        email_output = f"{email_output}{line}\n"
 
     return coeff_map, coeff_err_map, meta_map, email_output
+
+
+# ----------------------------------------------------------------------
+# Declare C++ implementation of the final F(y,Q2,pT,z) using A/B/C
+# ----------------------------------------------------------------------
+def declare_final_F_function(y_fit_results):
+    # Map param name → index in arrays
+    param_index_map = {}
+    for idx, pname in enumerate(PARAM_NAMES):
+        param_index_map[pname] = idx
+
+    cpp_lines = []
+    cpp_lines.append("#include <cmath>")
+    cpp_lines.append("struct Final4DParams {")
+    cpp_lines.append("  static const int NPAR = 9;")
+    cpp_lines.append("  static const int NQ   = 3;")
+    cpp_lines.append("  static double A[NPAR][NQ];")
+    cpp_lines.append("  static double B[NPAR][NQ];")
+    cpp_lines.append("  static double C[NPAR][NQ];")
+    cpp_lines.append("};")
+    cpp_lines.append("double Final4DParams::A[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
+    cpp_lines.append("double Final4DParams::B[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
+    cpp_lines.append("double Final4DParams::C[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
+
+    cpp_lines.append("void InitFinal4DParams(){")
+    for pname in PARAM_NAMES:
+        p_index = param_index_map[pname]
+        if(pname not in y_fit_results):
+            continue
+        param_y_fits = y_fit_results[pname]
+        for q_index in [0, 1, 2]:
+            entry = param_y_fits.get(q_index, None)
+            if(entry is None):
+                A_val = 0.0
+                B_val = 0.0
+                C_val = 0.0
+            else:
+                A_val = float(entry["A"])
+                B_val = float(entry["B"])
+                C_val = float(entry["C"])
+            cpp_lines.append(f"  Final4DParams::A[{p_index}][{q_index}] = {A_val};")
+            cpp_lines.append(f"  Final4DParams::B[{p_index}][{q_index}] = {B_val};")
+            cpp_lines.append(f"  Final4DParams::C[{p_index}][{q_index}] = {C_val};")
+    cpp_lines.append("}")
+
+    cpp_lines.append(
+        "double EvalFinalParam(int pIndex, double y, double Q2){\n"
+        "  if(pIndex < 0 || pIndex >= Final4DParams::NPAR) return 0.0;\n"
+        "  double result = 0.0;\n"
+        "  for(int q = 0; q < Final4DParams::NQ; ++q){\n"
+        "    double A = Final4DParams::A[pIndex][q];\n"
+        "    double B = Final4DParams::B[pIndex][q];\n"
+        "    double C = Final4DParams::C[pIndex][q];\n"
+        "    double y_poly = A*y*y + B*y + C;\n"
+        "    double Q2_pow = 1.0;\n"
+        "    if(q == 1) Q2_pow = Q2;\n"
+        "    else if(q == 2) Q2_pow = Q2*Q2;\n"
+        "    result += y_poly * Q2_pow;\n"
+        "  }\n"
+        "  return result;\n"
+        "}\n"
+    )
+
+    # Param indices: a0..c2 (must match PARAM_NAMES order)
+    cpp_lines.append(
+        "double F_4D_eval(double y_val, double Q2_val, double pT_val, double z_val){\n"
+        "  // PARAM_NAMES = [a0,a1,a2,b0,b1,b2,c0,c1,c2]\n"
+        "  double a0 = EvalFinalParam(0, y_val, Q2_val);\n"
+        "  double a1 = EvalFinalParam(1, y_val, Q2_val);\n"
+        "  double a2 = EvalFinalParam(2, y_val, Q2_val);\n"
+        "  double b0 = EvalFinalParam(3, y_val, Q2_val);\n"
+        "  double b1 = EvalFinalParam(4, y_val, Q2_val);\n"
+        "  double b2 = EvalFinalParam(5, y_val, Q2_val);\n"
+        "  double c0 = EvalFinalParam(6, y_val, Q2_val);\n"
+        "  double c1 = EvalFinalParam(7, y_val, Q2_val);\n"
+        "  double c2 = EvalFinalParam(8, y_val, Q2_val);\n"
+        "  double pT2 = pT_val * pT_val;\n"
+        "  double z2  = z_val  * z_val;\n"
+        "  double slope     = a0 + a1*pT_val + a2*pT2;\n"
+        "  double intercept = b0 + b1*pT_val + b2*pT2;\n"
+        "  double quad      = c0 + c1*pT_val + c2*pT2;\n"
+        "  double output = intercept + slope*z_val + quad*z2;\n"
+        "  if(output < 0){output = 0;}\n"
+        "  return output;\n"
+        "}\n"
+    )
+
+    cpp_code = "\n".join(cpp_lines)
+    ROOT.gInterpreter.Declare(cpp_code)
+    ROOT.InitFinal4DParams()
+    print(f"{color.BCYAN}declare_final_F_function: C++ F_4D_eval(y,Q2,pT,z) declared and initialized with final A/B/C parameters.{color.END}")
+
+
+# ----------------------------------------------------------------------
+# Test: compare original bin_content vs F_4D_eval prediction per 4D bin
+# ----------------------------------------------------------------------
+# def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
+#     print(f"{color.BYELLOW}Running final 4D test: comparing bin_content to F_4D_eval(y,Q2,pT,z) per 4D bin index.{color.END}")
+
+#     rdf = ROOT.RDataFrame("h22", rdf_file)
+#     colnames = list(rdf.GetColumnNames())
+#     if("Q2_y_z_pT_4D_Bins" not in colnames):
+#         msg = f"{color.RED}test_final_F_vs_original: Column 'Q2_y_z_pT_4D_Bins' not found in tree 'h22'. Will look in 'h22_tmp'...{color.END}"
+#         print(msg)
+#         rdf = ROOT.RDataFrame("h22_tmp", rdf_file)
+#         colnames = list(rdf.GetColumnNames())
+#         if("Q2_y_z_pT_4D_Bins" not in colnames):
+#             msg = f"{msg}\n{color.RED}Also looked for Column 'Q2_y_z_pT_4D_Bins' in tree 'h22_tmp'. Cannot build 4D-bin histograms.{color.END}"
+#             print(msg)
+#             return msg
+
+#     # Define F_4D prediction per event
+#     rdf_with_F = rdf.Define("F_fit_val", "F_4D_eval(y_val, Q2_val, pT_val, z_val)")
+
+#     # Determine bin range from data
+#     max_bin = int(rdf.Max("Q2_y_z_pT_4D_Bins").GetValue())
+#     min_bin = int(rdf.Min("Q2_y_z_pT_4D_Bins").GetValue())
+#     n_bins  = max_bin - min_bin + 1
+#     x_min   = float(min_bin) - 0.5
+#     x_max   = float(max_bin) + 0.5
+
+#     # Histos: original (bin_content), fitted (F_fit_val), and their ratio
+#     # h_orig_rptr = rdf_with_F.Histo1D(("h_4D_binContent", "#splitline{Weight to go from MC GEN to Unfolded Data per 4D bin}{Based on the binned Q^{2}, y, z, and P_{T} variables}; 4D Bin Index; Weight per Bin", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "bin_content")
+#     # h_fit_rptr  = rdf_with_F.Histo1D(("h_4D_Ffit", "#splitline{Weight to go from MC GEN to Unfolded Data per 4D bin}{Based on the continous weight function of the Q^{2}, y, z, and P_{T} variables}; 4D Bin Index; Weight at center of bin", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "F_fit_val")
+
+#     h_orig_rptr = rdf_with_F.Histo1D(("h_4D_binContent", "Weight to go from MC GEN to Unfolded Data #scale[0.75]{(per 4D bin)}; 4D Bin Index; Weight per Bin (at center)", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "bin_content")
+#     h_fit_rptr  = rdf_with_F.Histo1D(("h_4D_Ffit",       "Weight to go from MC GEN to Unfolded Data #scale[0.75]{(per 4D bin)}; 4D Bin Index; Weight per Bin (at center)", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "F_fit_val")
+
+
+#     h_orig = h_orig_rptr.GetValue()
+#     h_fit  = h_fit_rptr.GetValue()
+
+#     h_ratio = h_fit.Clone("h_4D_ratio_F_over_binContent")
+#     h_ratio.SetTitle("#frac{Continuous Function}{Per Bin Ratio} Weight per 4D bin; 4D Bin Index; #frac{Continuous Function}{Per Bin Ratio}")
+#     h_ratio.Divide(h_orig)
+
+#     # Write histograms into RDF file
+#     tfile = ROOT.TFile.Open(rdf_file, "UPDATE")
+#     if((tfile is None) or tfile.IsZombie()):
+#         print(f"{color.RED}test_final_F_vs_original: FAILED to reopen RDF file '{rdf_file}' in UPDATE mode; histos not written.{color.END}")
+#     else:
+#         safe_write(h_orig,  tfile)
+#         safe_write(h_fit,   tfile)
+#         safe_write(h_ratio, tfile)
+#         tfile.Close()
+#         print(f"{color.BGREEN}test_final_F_vs_original: Wrote h_4D_binContent, h_4D_Ffit, h_4D_ratio_F_over_binContent to '{rdf_file}'.{color.END}")
+
+#     email_summary = "Final 4D fit vs original bin_content test:\n"
+#     email_summary += f"  4D bin index range: [{min_bin}, {max_bin}] (n_bins = {n_bins})\n"
+#     email_summary += f"  Integral(h_4D_binContent) = {h_orig.Integral():.6g}\n"
+#     email_summary += f"  Integral(h_4D_Ffit)       = {h_fit.Integral():.6g}\n"
+
+#     # Optional plots
+#     if(save_plots):
+#         if(not os.path.exists(plot_dir)):
+#             os.makedirs(plot_dir, exist_ok=True)
+
+#         # Overlay of original vs fitted
+#         c1_name = "c_4D_binContent_vs_Ffit"
+#         canvas1 = ROOT.TCanvas(c1_name, c1_name, 900, 700)
+#         h_orig.SetLineColor(ROOT.kBlue)
+#         h_fit.SetLineColor(ROOT.kRed)
+#         h_orig.SetLineWidth(2)
+#         h_fit.SetLineWidth(2)
+#         h_orig.Draw("HIST")
+#         h_fit.Draw("HIST SAME")
+
+#         legend = ROOT.TLegend(0.15, 0.80, 0.45, 0.90)
+#         legend.AddEntry(h_orig, "Per Bin Ratio Weight", "l")
+#         legend.AddEntry(h_fit,  "Continous Function (Predicted) Weight", "l")
+#         legend.Draw()
+
+#         base1 = c1_name if((image_suffix is None) or (len(str(image_suffix)) == 0)) else f"{c1_name}_{image_suffix}"
+#         out1  = os.path.join(plot_dir, f"{base1}{file_ext}")
+#         canvas1.SaveAs(out1)
+#         del canvas1
+
+#         # Ratio plot
+#         c2_name = "c_4D_ratio_F_over_binContent"
+#         canvas2 = ROOT.TCanvas(c2_name, c2_name, 900, 700)
+#         h_ratio.SetLineColor(ROOT.kBlack)
+#         h_ratio.SetLineWidth(2)
+#         h_ratio.Draw("HIST")
+#         base2 = c2_name if((image_suffix is None) or (len(str(image_suffix)) == 0)) else f"{c2_name}_{image_suffix}"
+#         out2  = os.path.join(plot_dir, f"{base2}{file_ext}")
+#         canvas2.SaveAs(out2)
+#         del canvas2
+
+#         email_summary += f"  4D comparison canvases written to: {plot_dir} (base names '{c1_name}', '{c2_name}', format '{file_ext}')\n"
+
+#     print(email_summary)
+#     return email_summary
+def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
+    print(f"{color.BYELLOW}Running final 4D test: comparing bin_content to F_4D_eval(y,Q2,pT,z) per 4D bin index.{color.END}")
+
+    rdf = ROOT.RDataFrame("h22", rdf_file)
+    colnames = list(rdf.GetColumnNames())
+    if("Q2_y_z_pT_4D_Bins" not in colnames):
+        msg = f"{color.RED}test_final_F_vs_original: Column 'Q2_y_z_pT_4D_Bins' not found in tree 'h22'. Will look in 'h22_tmp'...{color.END}"
+        print(msg)
+        rdf = ROOT.RDataFrame("h22_tmp", rdf_file)
+        colnames = list(rdf.GetColumnNames())
+        if("Q2_y_z_pT_4D_Bins" not in colnames):
+            msg = f"{msg}\n{color.RED}Also looked for Column 'Q2_y_z_pT_4D_Bins' in tree 'h22_tmp'. Cannot build 4D-bin histograms.{color.END}"
+            print(msg)
+            return msg
+
+    # Define F_4D prediction per event
+    rdf_with_F = rdf.Define("F_fit_val", "F_4D_eval(y_val, Q2_val, pT_val, z_val)")
+
+    # Determine bin range from data
+    max_bin = int(rdf.Max("Q2_y_z_pT_4D_Bins").GetValue())
+    min_bin = int(rdf.Min("Q2_y_z_pT_4D_Bins").GetValue())
+    n_bins  = max_bin - min_bin + 1
+    x_min   = float(min_bin) - 0.5
+    x_max   = float(max_bin) + 0.5
+
+    # Histos: original (bin_content), fitted (F_fit_val), and their ratio
+    h_orig_rptr = rdf_with_F.Histo1D(("h_4D_binContent", "Weight to go from MC GEN to Unfolded Data #scale[0.75]{(per 4D bin)}; 4D Bin Index; Weight per Bin (at center)", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "bin_content")
+    h_fit_rptr  = rdf_with_F.Histo1D(("h_4D_Ffit",       "Weight to go from MC GEN to Unfolded Data #scale[0.75]{(per 4D bin)}; 4D Bin Index; Weight per Bin (at center)", n_bins, x_min, x_max), "Q2_y_z_pT_4D_Bins", "F_fit_val")
+
+    h_orig = h_orig_rptr.GetValue()
+    h_fit  = h_fit_rptr.GetValue()
+
+    h_ratio = h_fit.Clone("h_4D_ratio_F_over_binContent")
+    h_ratio.SetTitle("#frac{Continuous Function}{Per Bin Ratio} Weight per 4D bin; 4D Bin Index; #frac{Continuous Function}{Per Bin Ratio}")
+    h_ratio.Divide(h_orig)
+
+    # Write histograms into RDF file
+    tfile = ROOT.TFile.Open(rdf_file, "UPDATE")
+    if((tfile is None) or tfile.IsZombie()):
+        print(f"{color.RED}test_final_F_vs_original: FAILED to reopen RDF file '{rdf_file}' in UPDATE mode; histos not written.{color.END}")
+    else:
+        safe_write(h_orig,  tfile)
+        safe_write(h_fit,   tfile)
+        safe_write(h_ratio, tfile)
+        tfile.Close()
+        print(f"{color.BGREEN}test_final_F_vs_original: Wrote h_4D_binContent, h_4D_Ffit, h_4D_ratio_F_over_binContent to '{rdf_file}'.{color.END}")
+
+    email_summary = "Final 4D fit vs original bin_content test:\n"
+    email_summary += f"  4D bin index range: [{min_bin}, {max_bin}] (n_bins = {n_bins})\n"
+    email_summary += f"  Integral(h_4D_binContent) = {h_orig.Integral():.6g}\n"
+    email_summary += f"  Integral(h_4D_Ffit)       = {h_fit.Integral():.6g}\n"
+
+    # Optional plots
+    if(save_plots):
+        if(not os.path.exists(plot_dir)):
+            os.makedirs(plot_dir, exist_ok=True)
+
+        # ---------------------------------------------------------------------
+        # Overlay of original vs fitted (NOW: 2 pads, text on the right)
+        # ---------------------------------------------------------------------
+        c1_name = "c_4D_binContent_vs_Ffit"
+
+        # NEW: make the canvas wider to accommodate a second pad
+        canvas1 = ROOT.TCanvas(c1_name, c1_name, 1400, 700)
+        canvas1.Divide(2, 1)  # 2 pads side-by-side
+
+        # -------------------- Pad 1: existing histogram overlay ----------------
+        canvas1.cd(1)
+        h_orig.SetLineColor(ROOT.kBlue)
+        h_fit.SetLineColor(ROOT.kRed)
+        h_orig.SetLineWidth(2)
+        h_fit.SetLineWidth(2)
+        h_orig.Draw("HIST")
+        h_fit.Draw("HIST SAME")
+
+        legend = ROOT.TLegend(0.15, 0.80, 0.45, 0.90)
+        legend.AddEntry(h_orig, "Per Bin Ratio Weight", "l")
+        legend.AddEntry(h_fit,  "Continous Function (Predicted) Weight", "l")
+        legend.Draw()
+
+        # -------------------- Pad 2: TLatex text box ---------------------------
+        canvas1.cd(2)
+
+        # optional margins so text doesn't stick to the edges
+        ROOT.gPad.SetLeftMargin(0.10)
+        ROOT.gPad.SetRightMargin(0.10)
+        ROOT.gPad.SetTopMargin(0.10)
+        ROOT.gPad.SetBottomMargin(0.10)
+
+        latex = ROOT.TLatex()
+        latex.SetNDC(True)         # use NDC coordinates (0–1)
+        latex.SetTextSize(0.035)
+        latex.SetTextAlign(13)     # left, top-aligned
+
+        x0 = 0.05
+        y0 = 0.95
+        dy = 0.05
+
+        bin_lines = [
+            r"Conversion Key for Q^{2}-y Bins to the 4D Bins shown:",
+            r"Q^{2}-y Bin  1: 4D Bins   1 to  35",
+            r"Q^{2}-y Bin  2: 4D Bins  36 to  71",
+            r"Q^{2}-y Bin  3: 4D Bins  72 to 101",
+            r"Q^{2}-y Bin  4: 4D Bins 102 to 137",
+            r"Q^{2}-y Bin  5: 4D Bins 138 to 173",
+            r"Q^{2}-y Bin  6: 4D Bins 174 to 203",
+            r"Q^{2}-y Bin  7: 4D Bins 204 to 239",
+            r"Q^{2}-y Bin  8: 4D Bins 240 to 274",
+            r"Q^{2}-y Bin  9: 4D Bins 275 to 309",
+            r"Q^{2}-y Bin 10: 4D Bins 310 to 345",
+            r"Q^{2}-y Bin 11: 4D Bins 346 to 370",
+            r"Q^{2}-y Bin 12: 4D Bins 371 to 395",
+            r"Q^{2}-y Bin 13: 4D Bins 396 to 425",
+            r"Q^{2}-y Bin 14: 4D Bins 426 to 461",
+            r"Q^{2}-y Bin 15: 4D Bins 462 to 486",
+            r"Q^{2}-y Bin 16: 4D Bins 487 to 516",
+            r"Q^{2}-y Bin 17: 4D Bins 517+",
+        ]
+
+        y = y0
+        for line in bin_lines:
+            latex.DrawLatex(x0, y, line)
+            y -= dy
+
+        # save canvas as before; both pads will be included
+        base1 = c1_name if((image_suffix is None) or (len(str(image_suffix)) == 0)) else f"{c1_name}_{image_suffix}"
+        out1  = os.path.join(plot_dir, f"{base1}{file_ext}")
+        canvas1.SaveAs(out1)
+        del canvas1
+
+        # Ratio plot (unchanged, still a single canvas)
+        c2_name = "c_4D_ratio_F_over_binContent"
+        canvas2 = ROOT.TCanvas(c2_name, c2_name, 900, 700)
+        h_ratio.SetLineColor(ROOT.kBlack)
+        h_ratio.SetLineWidth(2)
+        h_ratio.Draw("HIST")
+        base2 = c2_name if((image_suffix is None) or (len(str(image_suffix)) == 0)) else f"{c2_name}_{image_suffix}"
+        out2  = os.path.join(plot_dir, f"{base2}{file_ext}")
+        canvas2.SaveAs(out2)
+        del canvas2
+
+        email_summary += f"  4D comparison canvases written to: {plot_dir} (base names '{c1_name}', '{c2_name}', format '{file_ext}')\n"
+
+    print(email_summary)
+    return email_summary
 
 
 # ----------------------------------------------------------------------
@@ -1261,13 +1614,21 @@ def main():
     save_plots = (not args.no_plots)
     file_ext   = "." + str(args.image_format).lower()
 
-    email_output_4D = None
-    
+    email_output_4D    = None
+    email_output_FTest = None
+
     if(save_plots):
         ROOT.gROOT.SetBatch(True)
 
     try:
-        need_build_rdf = (not os.path.exists(args.rdf_file)) or args.force_rdf
+        # Decide whether we actually need to build / rebuild the RDF file
+        need_build_rdf = False
+        if((not os.path.exists(args.rdf_file)) or args.force_rdf):
+            need_build_rdf = True
+        else:
+            if(not rdf_tree_has_4D_columns(args.rdf_file, "h22")):
+                print(f"{color.YELLOW}Existing RDF file '{args.rdf_file}' is missing required 4D columns; rebuilding it now.{color.END}")
+                need_build_rdf = True
 
         if(need_build_rdf):
             if(not os.path.exists(args.input_root)):
@@ -1287,7 +1648,7 @@ def main():
             print(f"{color.BBLUE}Writing RDataFrame to file '{args.rdf_file}' as tree 'h22'.{color.END}")
             rdf_build.Snapshot("h22", args.rdf_file)
         else:
-            msg = f"{color.BBLUE}RDataFrame file '{args.rdf_file}' already exists and --force_rdf was not set. Skipping RDataFrame rebuild.{color.END}"
+            msg = f"{color.BBLUE}RDataFrame file '{args.rdf_file}' already exists with required 4D columns and --force_rdf was not set. Skipping RDataFrame rebuild.{color.END}"
             print(msg if(args.email_message is None) else f"{msg}\n\nUser message:\n{args.email_message}\n")
 
         if(not os.path.exists(args.rdf_file)):
@@ -1307,7 +1668,6 @@ def main():
             pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
             print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) descriptions in memory (by Q2_y_Bin).{color.END}")
 
-            # Augment the RDataFrame with the pT-fit parameters as columns
             rdf_orig = ROOT.RDataFrame("h22", args.rdf_file)
             attach_pT_params_to_rdf(rdf_orig, pT_fit_results, args.rdf_file, tree_name="h22")
 
@@ -1319,6 +1679,10 @@ def main():
                     Y_fit_results = perform_y_fits(Q2_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
                     if((Y_fit_results is not None) and (len(Y_fit_results) > 0)):
                         _, _, _, email_output_4D = print_final_4D_function(Y_fit_results)
+
+                        # Declare F_4D_eval in C++ and run final 4D-bin test
+                        declare_final_F_function(Y_fit_results)
+                        email_output_FTest = test_final_F_vs_original(args.rdf_file, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
 
         email_body = f"{color.BGREEN}python_Unfold_4D_for_weights.py script completed successfully.{color.END}"
         email_body += f"\n\nInput ROOT file: {args.input_root}\n"
@@ -1343,10 +1707,15 @@ def main():
                 email_body += f"Image filename suffix: {args.image_suffix}\n"
         if(args.email_message is not None):
             email_body += f"\nUser message:\n{args.email_message}\n"
+
+        # Append final 4D function & test summaries if available
+        if(email_output_4D is not None):
+            email_body = f"{email_body}\n{email_output_4D}"
+        if(email_output_FTest is not None):
+            email_body = f"{email_body}\n{email_output_FTest}"
+
         print(email_body)
         if(args.email):
-            if(email_output_4D is not None):
-                email_body = f"{email_body}\n{email_output_4D}"
             send_email("python_Unfold_4D_for_weights.py Script Done", email_body)
 
     except Exception as e:
