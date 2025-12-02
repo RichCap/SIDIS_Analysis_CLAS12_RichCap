@@ -85,6 +85,7 @@ Z_MAX = 0.77
 Q2_Centers = [2.20, 2.65, 3.30, 4.50, 6.60]
 y_Centers  = [0.40, 0.50, 0.60, 0.70]
 
+
 # Parameters from pT-fits
 PARAM_NAMES = ["a0", "a1", "a2",
                "b0", "b1", "b2",
@@ -800,10 +801,8 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
 
             Linear = False
             if(n_points < 3):
-                print(
-                    f"{color.RED}Waring: {color.YELLOW}Param={pname}, y={y_center:.2f} only has {n_points} Q^2 points, "
-                    f"need ≥3 for quadratic — using linear instead.{color.END}"
-                )
+            # if(n_points < 4):
+                print(f"\n{color.RED}Waring: {color.YELLOW}Param={pname}, y={y_center:.2f} only has {n_points} Q^2 points, need >3 for quadratic — using linear instead.{color.END}\n")
                 Linear = True
 
             x_min = float(min(x_vals))
@@ -949,7 +948,8 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
             Linear = False
             if(n_points < 3):
-                print(f"{color.RED}Waring: {color.YELLOW}y-fit for param={pname}, q_index={q_index} only has {n_points} points, need ≥3 for quadratic — using linear instead.{color.END}")
+            # if(n_points < 4):
+                print(f"\n{color.RED}Waring: {color.YELLOW}y-fit for param={pname}, q_index={q_index} only has {n_points} points, need >3 for quadratic — using linear instead.{color.END}\n")
                 Linear = True
 
             y_min = float(min(arr_y))
@@ -1387,12 +1387,12 @@ def declare_final_F_function(y_fit_results):
 def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
     print(f"{color.BYELLOW}Running final 4D test: comparing bin_content to F_4D_eval(y,Q2,pT,z) per 4D bin index.{color.END}")
 
-    rdf = ROOT.RDataFrame("h22", rdf_file)
+    rdf      = ROOT.RDataFrame("h22", rdf_file)
     colnames = list(rdf.GetColumnNames())
     if("Q2_y_z_pT_4D_Bins" not in colnames):
         msg = f"{color.RED}test_final_F_vs_original: Column 'Q2_y_z_pT_4D_Bins' not found in tree 'h22'. Will look in 'h22_tmp'...{color.END}"
         print(msg)
-        rdf = ROOT.RDataFrame("h22_tmp", rdf_file)
+        rdf      = ROOT.RDataFrame("h22_tmp", rdf_file)
         colnames = list(rdf.GetColumnNames())
         if("Q2_y_z_pT_4D_Bins" not in colnames):
             msg = f"{msg}\n{color.RED}Also looked for Column 'Q2_y_z_pT_4D_Bins' in tree 'h22_tmp'. Cannot build 4D-bin histograms.{color.END}"
@@ -1420,6 +1420,21 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
     h_ratio.SetTitle("#frac{Continuous Function}{Per Bin Ratio} Weight per 4D bin; 4D Bin Index; #frac{Continuous Function}{Per Bin Ratio}")
     h_ratio.Divide(h_orig)
 
+    # NEW: helper to compute average bin content (regular bins only)
+    def avg_bin_content(h):
+        nbins = h.GetNbinsX()
+        if(nbins <= 0):
+            return 0.0
+        sum_content = 0.0
+        for ibin in range(1, nbins + 1):
+            sum_content += h.GetBinContent(ibin)
+        return sum_content / float(nbins)
+
+    # NEW: pre-compute averages for all three histograms
+    avg_orig  = avg_bin_content(h_orig)
+    avg_fit   = avg_bin_content(h_fit)
+    avg_ratio = avg_bin_content(h_ratio)
+
     # Write histograms into RDF file
     tfile = ROOT.TFile.Open(rdf_file, "UPDATE")
     if((tfile is None) or tfile.IsZombie()):
@@ -1431,22 +1446,29 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
         tfile.Close()
         print(f"{color.BGREEN}test_final_F_vs_original: Wrote h_4D_binContent, h_4D_Ffit, h_4D_ratio_F_over_binContent to '{rdf_file}'.{color.END}")
 
-    email_summary = "Final 4D fit vs original bin_content test:\n"
+    email_summary  = "Final 4D fit vs original bin_content test:\n"
     email_summary += f"  4D bin index range: [{min_bin}, {max_bin}] (n_bins = {n_bins})\n"
     email_summary += f"  Integral(h_4D_binContent) = {h_orig.Integral():.6g}\n"
     email_summary += f"  Integral(h_4D_Ffit)       = {h_fit.Integral():.6g}\n"
+    # NEW: include averages in the email summary too
+    email_summary += f"  Avg bin content(h_4D_binContent) = {avg_orig:.6g}\n"
+    email_summary += f"  Avg bin content(h_4D_Ffit)       = {avg_fit:.6g}\n"
+    email_summary += f"  Avg bin content(h_4D_ratio)      = {avg_ratio:.6g}\n"
 
     # Optional plots
     if(save_plots):
         if(not os.path.exists(plot_dir)):
             os.makedirs(plot_dir, exist_ok=True)
 
+        # NEW: temporarily change stats to show only entries (no name, no mean, no RMS)
+        old_optstat = ROOT.gStyle.GetOptStat()
+        ROOT.gStyle.SetOptStat("e")
+
         # ---------------------------------------------------------------------
         # Overlay of original vs fitted (NOW: 2 pads, text on the right)
         # ---------------------------------------------------------------------
         c1_name = "c_4D_binContent_vs_Ffit"
 
-        # NEW: make the canvas wider to accommodate a second pad
         canvas1 = ROOT.TCanvas(c1_name, c1_name, 1400, 700)
         canvas1.Divide(2, 1)  # 2 pads side-by-side
 
@@ -1456,13 +1478,25 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
         h_fit.SetLineColor(ROOT.kRed)
         h_orig.SetLineWidth(2)
         h_fit.SetLineWidth(2)
-        h_orig.Draw("HIST")
-        h_fit.Draw("HIST SAME")
+        h_fit.Draw("HIST")
+        h_orig.Draw("HIST SAME")
+        
 
         legend = ROOT.TLegend(0.15, 0.80, 0.45, 0.90)
         legend.AddEntry(h_orig, "Per Bin Ratio Weight", "l")
         legend.AddEntry(h_fit,  "Continous Function (Predicted) Weight", "l")
         legend.Draw()
+
+        # # NEW: write average bin contents for h_orig and h_fit on this pad
+        # avg_text_1 = ROOT.TLatex()
+        # avg_text_1.SetNDC(True)
+        # avg_text_1.SetTextSize(0.03)
+        # avg_text_1.SetTextAlign(13)  # left-top-ish anchor
+
+        # x_txt = 0.15
+        # y_txt = 0.25
+        # avg_text_1.DrawLatex(x_txt, y_txt,     f"#LT bin content #GT (Per Bin)   = {avg_orig:.4g}")
+        # avg_text_1.DrawLatex(x_txt, y_txt-0.05, f"#LT bin content #GT (Function) = {avg_fit:.4g}")
 
         # -------------------- Pad 2: TLatex text box ---------------------------
         canvas1.cd(2)
@@ -1475,32 +1509,34 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
 
         latex = ROOT.TLatex()
         latex.SetNDC(True)         # use NDC coordinates (0–1)
-        latex.SetTextSize(0.035)
+        latex.SetTextSize(0.03)
         latex.SetTextAlign(13)     # left, top-aligned
 
         x0 = 0.05
         y0 = 0.95
-        dy = 0.05
+        dy = 0.045
 
         bin_lines = [
             r"Conversion Key for Q^{2}-y Bins to the 4D Bins shown:",
-            r"Q^{2}-y Bin  1: 4D Bins   1 to  35",
-            r"Q^{2}-y Bin  2: 4D Bins  36 to  71",
-            r"Q^{2}-y Bin  3: 4D Bins  72 to 101",
-            r"Q^{2}-y Bin  4: 4D Bins 102 to 137",
-            r"Q^{2}-y Bin  5: 4D Bins 138 to 173",
-            r"Q^{2}-y Bin  6: 4D Bins 174 to 203",
-            r"Q^{2}-y Bin  7: 4D Bins 204 to 239",
-            r"Q^{2}-y Bin  8: 4D Bins 240 to 274",
-            r"Q^{2}-y Bin  9: 4D Bins 275 to 309",
-            r"Q^{2}-y Bin 10: 4D Bins 310 to 345",
-            r"Q^{2}-y Bin 11: 4D Bins 346 to 370",
-            r"Q^{2}-y Bin 12: 4D Bins 371 to 395",
-            r"Q^{2}-y Bin 13: 4D Bins 396 to 425",
-            r"Q^{2}-y Bin 14: 4D Bins 426 to 461",
-            r"Q^{2}-y Bin 15: 4D Bins 462 to 486",
-            r"Q^{2}-y Bin 16: 4D Bins 487 to 516",
-            r"Q^{2}-y Bin 17: 4D Bins 517+",
+            r"#scale[0.85]{Q^{2}-y Bin  1: 4D Bins   1 to  35}",
+            r"#scale[0.85]{Q^{2}-y Bin  2: 4D Bins  36 to  71}",
+            r"#scale[0.85]{Q^{2}-y Bin  3: 4D Bins  72 to 101}",
+            r"#scale[0.85]{Q^{2}-y Bin  4: 4D Bins 102 to 137}",
+            r"#scale[0.85]{Q^{2}-y Bin  5: 4D Bins 138 to 173}",
+            r"#scale[0.85]{Q^{2}-y Bin  6: 4D Bins 174 to 203}",
+            r"#scale[0.85]{Q^{2}-y Bin  7: 4D Bins 204 to 239}",
+            r"#scale[0.85]{Q^{2}-y Bin  8: 4D Bins 240 to 274}",
+            r"#scale[0.85]{Q^{2}-y Bin  9: 4D Bins 275 to 309}",
+            r"#scale[0.85]{Q^{2}-y Bin 10: 4D Bins 310 to 345}",
+            r"#scale[0.85]{Q^{2}-y Bin 11: 4D Bins 346 to 370}",
+            r"#scale[0.85]{Q^{2}-y Bin 12: 4D Bins 371 to 395}",
+            r"#scale[0.85]{Q^{2}-y Bin 13: 4D Bins 396 to 425}",
+            r"#scale[0.85]{Q^{2}-y Bin 14: 4D Bins 426 to 461}",
+            r"#scale[0.85]{Q^{2}-y Bin 15: 4D Bins 462 to 486}",
+            r"#scale[0.85]{Q^{2}-y Bin 16: 4D Bins 487 to 516}",
+            r"#scale[0.85]{Q^{2}-y Bin 17: 4D Bins 517+}",
+            f"Average Bin Content #color[{ROOT.kBlue}]{{(Per Bin)}}  = {avg_orig:.4g}",
+            f"Average Bin Content #color[{ROOT.kRed}]{{(Function)}} = {avg_fit:.4g}",
         ]
 
         y = y0
@@ -1520,15 +1556,28 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
         h_ratio.SetLineColor(ROOT.kBlack)
         h_ratio.SetLineWidth(2)
         h_ratio.Draw("HIST")
+
+        # NEW: write average bin content for ratio on this canvas
+        avg_text_2 = ROOT.TLatex()
+        avg_text_2.SetNDC(True)
+        avg_text_2.SetTextSize(0.03)
+        avg_text_2.SetTextAlign(13)
+        # avg_text_2.DrawLatex(0.15, 0.85, f"#LT bin content #GT (ratio) = {avg_ratio:.4g}")
+        avg_text_2.DrawLatex(0.15, 0.85, f"Average Bin Content (ratio) = {avg_ratio:.4g}")
+
         base2 = c2_name if((image_suffix is None) or (len(str(image_suffix)) == 0)) else f"{c2_name}_{image_suffix}"
         out2  = os.path.join(plot_dir, f"{base2}{file_ext}")
         canvas2.SaveAs(out2)
         del canvas2
 
+        # NEW: restore previous global stats style
+        ROOT.gStyle.SetOptStat(old_optstat)
+
         email_summary += f"  4D comparison canvases written to: {plot_dir} (base names '{c1_name}', '{c2_name}', format '{file_ext}')\n"
 
     print(email_summary)
     return email_summary
+
 
 
 # ----------------------------------------------------------------------
