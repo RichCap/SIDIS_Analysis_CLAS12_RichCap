@@ -315,24 +315,32 @@ def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertain
         # Signed difference val2 - val1; magnitude is the systematic envelope
         uncertainty = float(entry.get("uncertainty", 0.0))
         current_err = float(Histo_In.GetBinError(i))
-        sys_mag     = abs(uncertainty)
+        # sys_mag     = abs(uncertainty)
+        sys_mag     = ROOT.sqrt(max([current_err**2,uncertainty**2 + current_err**2]))
 
-        # Symmetric envelope (like we used before: max of stat and sys)
-        new_err = max([sys_mag, current_err])
-        Histo_In.SetBinError(i, new_err)
+        # # Symmetric envelope (like we used before: max of stat and sys)
+        # new_err = max([sys_mag, current_err])
+        # Histo_In.SetBinError(i, new_err)
+        # # Do not reset the histogram errors since that just makes it more likely that the asymmetric error bars won't be visible
 
         low_err, high_err = current_err, current_err
-        # Asymmetric split:
-        #   positive -> upper side enlarged
-        #   negative -> lower side enlarged
-        if(sys_mag > current_err):
-            if(uncertainty > 0.0):
-                low_err  = current_err
-                high_err = sys_mag
-            elif(uncertainty < 0.0):
-                low_err  = sys_mag
-                high_err = current_err
-        # Otherwise systematic smaller than stat → keep symmetric
+        if(uncertainty > 0.0):
+            low_err  = current_err
+            high_err = sys_mag
+        elif(uncertainty < 0.0):
+            low_err  = sys_mag
+            high_err = current_err
+        # # Asymmetric split:
+        # #   positive -> upper side enlarged
+        # #   negative -> lower side enlarged
+        # if(sys_mag > current_err):
+        #     if(uncertainty > 0.0):
+        #         low_err  = current_err
+        #         high_err = sys_mag
+        #     elif(uncertainty < 0.0):
+        #         low_err  = sys_mag
+        #         high_err = current_err
+        # # Otherwise systematic smaller than stat → keep symmetric
 
         # Set asymmetric errors on the graph (bin index → point index i-1)
         g_asym.SetPointEYlow(i  - 1, low_err)
