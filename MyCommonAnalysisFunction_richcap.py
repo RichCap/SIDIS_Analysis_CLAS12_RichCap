@@ -28,7 +28,7 @@ class color:
     BGREEN    = '\033[1m\033[92m'               # Combines GREEN and BOLD
     BYELLOW   = '\033[1m\033[93m'               # Combines YELLOW and BOLD
     BPINK     = '\033[1m\033[35m'               # Combines PINK and BOLD
-    BPURPLE   = '\033[1m\033[95m'               # Combines PINK and BOLD
+    BPURPLE   = '\033[1m\033[95m'               # Combines PURPLE and BOLD
     END_B     = '\033[0m\033[1m'                # Combines END and BOLD
     END_R     = '\033[0m\033[91m'               # Combines END and RED
     END_C     = '\033[0m\033[96m'               # Combines END and CYAN
