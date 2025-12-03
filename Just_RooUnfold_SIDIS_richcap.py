@@ -3143,7 +3143,11 @@ for ii in mdf.GetListOfKeys():
     # if(all(fixed_cuts not in out_print_main for fixed_cuts in ["cut_Complete_SIDIS_I", "cut_Complete_SIDIS_Proton_I"])):
     #     continue
 
-    if("Q2_y_z_pT_4D_Bins" not in out_print_main):
+    # if("Q2_y_z_pT_4D_Bins" not in out_print_main):
+    #     continue
+    # else:
+    #     print(f"out_print_main:\n\t{out_print_main}\n")
+    if("Q2_y_z_pT_4D_Bins" in out_print_main):
         continue
     else:
         print(f"out_print_main:\n\t{out_print_main}\n")
