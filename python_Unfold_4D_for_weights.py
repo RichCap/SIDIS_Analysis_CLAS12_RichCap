@@ -335,10 +335,10 @@ def rdf_tree_has_4D_columns(rdf_file, tree_name="h22"):
 
 # ----------------------------------------------------------------------
 # Z-fit layer: bin_content vs z at fixed (Q2_y_Bin, pT range)
-# Quadratic: bin_content(z) = p0 + p1*z + p2*z^2
+# Polynomial in z (default quadratic, optional cubic)
 # ----------------------------------------------------------------------
-def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    print(f"{color.BCYAN}Starting z-fits using RDataFrame (quadratic in z).{color.END}")
+def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png", allow_cubic=False):
+    print(f"{color.BCYAN}Starting z-fits using RDataFrame (polynomial in z, up to cubic).{color.END}")
 
     if(save_plots):
         if(not os.path.exists(plot_dir)):
@@ -367,6 +367,16 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
                 print(f"{color.YELLOW}Skipping Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) due to zero valid points after bin_content>0 cut.{color.END}")
                 continue
 
+            if((allow_cubic) and (n_points >= 4)):
+                poly_order = 3
+            elif(n_points >= 3):
+                poly_order = 2
+            else:
+                poly_order = 1
+                print(f"{color.RED}Warning: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) has insufficient points for quadratic fit in z (n={n_points}) — using linear instead.{color.END}")
+
+            Linear = (poly_order == 1)
+
             graph = ROOT.TGraphErrors(n_points)
             for idx in range(n_points):
                 graph.SetPoint(idx, float(z_vals[idx]), float(y_vals[idx]))
@@ -376,16 +386,28 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             graph.SetMarkerSize(1.0)
             graph.SetLineWidth(2)
 
-            fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x + [2]*x*x", min([0.9*Z_MIN, Z_MIN]), max([1.1*Z_MAX, Z_MAX]))
+            z_min_fit = min([0.9*Z_MIN, Z_MIN])
+            z_max_fit = max([1.1*Z_MAX, Z_MAX])
 
             intercept_guess = float(numpy.mean(y_vals))
-            fit_func.SetParameter(0, intercept_guess)
-            fit_func.SetParameter(1, 0.0)
-            fit_func.SetParameter(2, 0.0)
 
-            if(n_points < 3):
-                print(f"{color.RED}Warning: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min}, {pT_max}) has insufficient points for quadratic fit (n={n_points}) — using linear instead.{color.END}")
-                fit_func.FixParameter(2, 0.0)
+            if(allow_cubic):
+                fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", z_min_fit, z_max_fit)
+                fit_func.SetParameter(0, intercept_guess)
+                fit_func.SetParameter(1, 0.0)
+                fit_func.SetParameter(2, 0.0)
+                fit_func.SetParameter(3, 0.0)
+                if(poly_order < 3):
+                    fit_func.FixParameter(3, 0.0)
+                if(Linear):
+                    fit_func.FixParameter(2, 0.0)
+            else:
+                fit_func = ROOT.TF1("f_z_tmp", "[0] + [1]*x + [2]*x*x", z_min_fit, z_max_fit)
+                fit_func.SetParameter(0, intercept_guess)
+                fit_func.SetParameter(1, 0.0)
+                fit_func.SetParameter(2, 0.0)
+                if(Linear):
+                    fit_func.FixParameter(2, 0.0)
 
             fit_result = graph.Fit(fit_func, "QSRNB")
 
@@ -394,15 +416,31 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             slope         = fit_func.GetParameter(1)
             slope_err     = fit_func.GetParError(1)
             quad          = fit_func.GetParameter(2)
-            quad_err      = fit_func.GetParError(2) if(not (n_points < 3)) else 1e-4
-            chi2          = fit_func.GetChisquare()
-            ndf           = fit_func.GetNDF()
-            pT_center     = 0.5 * (pT_min + pT_max)
+            quad_err      = fit_func.GetParError(2) if(not Linear) else 1e-4
 
-            print(f"{color.BBLUE}Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.3f}, {pT_max:.3f}) "
-                  f"n={n_points}, intercept={intercept:.4g} ± {intercept_err:.4g}, "
-                  f"slope={slope:.4g} ± {slope_err:.4g}, quad={quad:.4g} ± {quad_err:.4g}, "
-                  f"chi2/ndf={chi2}/{ndf}{color.END}")
+            cubic     = 0.0
+            cubic_err = 0.0
+            if(allow_cubic):
+                cubic     = fit_func.GetParameter(3)
+                cubic_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
+
+            chi2      = fit_func.GetChisquare()
+            ndf       = fit_func.GetNDF()
+            pT_center = 0.5 * (pT_min + pT_max)
+
+            poly_label = "linear"
+            if(poly_order == 2):
+                poly_label = "quadratic"
+            elif(poly_order == 3):
+                poly_label = "cubic"
+
+            msg  = f"{color.BBLUE}z-fit ({poly_label}) Q2_y_Bin={Q2_y_Bin_key}, pT=[{pT_min:.3f}, {pT_max:.3f}) "
+            msg += f"n={n_points}, intercept={intercept:.4g} ± {intercept_err:.4g}, "
+            msg += f"slope={slope:.4g} ± {slope_err:.4g}, quad={quad:.4g} ± {quad_err:.4g}"
+            if(allow_cubic):
+                msg += f", cubic={cubic:.4g} ± {cubic_err:.4g}"
+            msg += f", chi2/ndf={chi2}/{ndf}{color.END}"
+            print(msg)
 
             if(save_plots):
                 pT_center_code = int(round(1000.0 * pT_center))
@@ -410,7 +448,7 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
                 canvas = ROOT.TCanvas(cname, cname, 800, 600)
 
-                title_str = f"z-fit (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key} #topbar P_{{T}} = [{pT_min:.2f},{pT_max:.2f})"
+                title_str = f"z-fit ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key} #topbar P_{{T}} = [{pT_min:.2f},{pT_max:.2f})"
                 graph.SetTitle(f"{title_str};z;Ratio of #frac{{Unfolded Data}}{{Generated MC}}")
                 graph.Draw("AP")
 
@@ -424,7 +462,11 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
                 latex.DrawLatex(0.15, 0.88, f"intercept = {intercept:.4g} #pm {intercept_err:.4g}")
                 latex.DrawLatex(0.15, 0.83, f"slope     = {slope:.4g} #pm {slope_err:.4g}")
                 latex.DrawLatex(0.15, 0.78, f"quad      = {quad:.4g} #pm {quad_err:.4g}")
-                latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+                if(allow_cubic):
+                    latex.DrawLatex(0.15, 0.73, f"cubic     = {cubic:.4g} #pm {cubic_err:.4g}")
+                    latex.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+                else:
+                    latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
 
                 if((image_suffix is not None) and (len(str(image_suffix)) > 0)):
                     base_name = f"{cname}_{image_suffix}"
@@ -447,8 +489,12 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
                 "slope_err":     slope_err,
                 "quad":          quad,
                 "quad_err":      quad_err,
+                "cubic":         cubic,
+                "cubic_err":     cubic_err,
                 "chi2":          chi2,
                 "ndf":           ndf,
+                "poly_order":    poly_order,
+                "Linear":        Linear,
             })
 
     print(f"{color.BGREEN}z-fits complete. Total successful fits: {len(results)}.{color.END}")
@@ -457,9 +503,10 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
 
 # ----------------------------------------------------------------------
 # pT-fits: intercept(pT), slope(pT), quad(pT) → 9 parameters per Q2_y_Bin
+# Polynomial in pT (default quadratic, optional cubic)
 # ----------------------------------------------------------------------
-def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters (quadratic in pT).{color.END}")
+def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png", allow_cubic=False):
+    print(f"{color.BPURPLE}Starting pT-fits of z-fit parameters (polynomial in pT, up to cubic).{color.END}")
 
     if(len(z_fit_results) == 0):
         print(f"{color.YELLOW}No z-fit results provided; skipping pT fits.{color.END}")
@@ -482,10 +529,20 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
     for Q2_y_Bin_key in sorted(results_by_q2.keys()):
         rows = results_by_q2[Q2_y_Bin_key]
         n    = len(rows)
-        Linear = False
-        if(n < 3):
+
+        if(n < 2):
+            print(f"{color.YELLOW}perform_pT_fits: Q2_y_Bin={Q2_y_Bin_key} only has {n} pT points; skipping pT fits for this bin.{color.END}")
+            continue
+
+        if((allow_cubic) and (n >= 4)):
+            poly_order = 3
+        elif(n >= 3):
+            poly_order = 2
+        else:
+            poly_order = 1
             print(f"{color.RED}Warning: {color.YELLOW}Q2_y_Bin={Q2_y_Bin_key} only has {n} z-fit points, need ≥3 for quadratic — using linear instead.{color.END}")
-            Linear = True
+
+        Linear = (poly_order == 1)
 
         pT_centers     = numpy.array([r["pT_center"]     for r in rows], dtype="float64")
         intercepts     = numpy.array([r["intercept"]     for r in rows], dtype="float64")
@@ -507,12 +564,24 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_slope.SetMarkerSize(1.0)
         g_slope.SetLineWidth(2)
 
-        f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-        f_slope.SetParameter(0, float(numpy.mean(slopes)))
-        f_slope.SetParameter(1, 0.0)
-        f_slope.SetParameter(2, 0.0)
-        if(Linear):
-            f_slope.FixParameter(2, 0.0)
+        if(allow_cubic):
+            f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_slope.SetParameter(0, float(numpy.mean(slopes)))
+            f_slope.SetParameter(1, 0.0)
+            f_slope.SetParameter(2, 0.0)
+            f_slope.SetParameter(3, 0.0)
+            if(poly_order < 3):
+                f_slope.FixParameter(3, 0.0)
+            if(Linear):
+                f_slope.FixParameter(2, 0.0)
+        else:
+            f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_slope.SetParameter(0, float(numpy.mean(slopes)))
+            f_slope.SetParameter(1, 0.0)
+            f_slope.SetParameter(2, 0.0)
+            if(Linear):
+                f_slope.FixParameter(2, 0.0)
+
         g_slope.Fit(f_slope, "QSRNB")
 
         a0     = f_slope.GetParameter(0)
@@ -521,6 +590,11 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         a1_err = f_slope.GetParError(1)
         a2     = f_slope.GetParameter(2)
         a2_err = f_slope.GetParError(2) if(not Linear) else 1e-4
+        a3     = 0.0
+        a3_err = 0.0
+        if(allow_cubic):
+            a3     = f_slope.GetParameter(3)
+            a3_err = f_slope.GetParError(3) if(poly_order > 2) else 1e-4
         chi2_s = f_slope.GetChisquare()
         ndf_s  = f_slope.GetNDF()
 
@@ -533,12 +607,24 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_int.SetMarkerSize(1.0)
         g_int.SetLineWidth(2)
 
-        f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-        f_int.SetParameter(0, float(numpy.mean(intercepts)))
-        f_int.SetParameter(1, 0.0)
-        f_int.SetParameter(2, 0.0)
-        if(Linear):
-            f_int.FixParameter(2, 0.0)
+        if(allow_cubic):
+            f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_int.SetParameter(0, float(numpy.mean(intercepts)))
+            f_int.SetParameter(1, 0.0)
+            f_int.SetParameter(2, 0.0)
+            f_int.SetParameter(3, 0.0)
+            if(poly_order < 3):
+                f_int.FixParameter(3, 0.0)
+            if(Linear):
+                f_int.FixParameter(2, 0.0)
+        else:
+            f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_int.SetParameter(0, float(numpy.mean(intercepts)))
+            f_int.SetParameter(1, 0.0)
+            f_int.SetParameter(2, 0.0)
+            if(Linear):
+                f_int.FixParameter(2, 0.0)
+
         g_int.Fit(f_int, "QSRNB")
 
         b0     = f_int.GetParameter(0)
@@ -547,6 +633,11 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         b1_err = f_int.GetParError(1)
         b2     = f_int.GetParameter(2)
         b2_err = f_int.GetParError(2) if(not Linear) else 1e-4
+        b3     = 0.0
+        b3_err = 0.0
+        if(allow_cubic):
+            b3     = f_int.GetParameter(3)
+            b3_err = f_int.GetParError(3) if(poly_order > 2) else 1e-4
         chi2_i = f_int.GetChisquare()
         ndf_i  = f_int.GetNDF()
 
@@ -559,12 +650,24 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_quad.SetMarkerSize(1.0)
         g_quad.SetLineWidth(2)
 
-        f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-        f_quad.SetParameter(0, float(numpy.mean(quads)))
-        f_quad.SetParameter(1, 0.0)
-        f_quad.SetParameter(2, 0.0)
-        if(Linear):
-            f_quad.FixParameter(2, 0.0)
+        if(allow_cubic):
+            f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_quad.SetParameter(0, float(numpy.mean(quads)))
+            f_quad.SetParameter(1, 0.0)
+            f_quad.SetParameter(2, 0.0)
+            f_quad.SetParameter(3, 0.0)
+            if(poly_order < 3):
+                f_quad.FixParameter(3, 0.0)
+            if(Linear):
+                f_quad.FixParameter(2, 0.0)
+        else:
+            f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+            f_quad.SetParameter(0, float(numpy.mean(quads)))
+            f_quad.SetParameter(1, 0.0)
+            f_quad.SetParameter(2, 0.0)
+            if(Linear):
+                f_quad.FixParameter(2, 0.0)
+
         g_quad.Fit(f_quad, "QSRNB")
 
         c0     = f_quad.GetParameter(0)
@@ -573,22 +676,54 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         c1_err = f_quad.GetParError(1)
         c2     = f_quad.GetParameter(2)
         c2_err = f_quad.GetParError(2) if(not Linear) else 1e-4
+        c3     = 0.0
+        c3_err = 0.0
+        if(allow_cubic):
+            c3     = f_quad.GetParameter(3)
+            c3_err = f_quad.GetParError(3) if(poly_order > 2) else 1e-4
         chi2_q = f_quad.GetChisquare()
         ndf_q  = f_quad.GetNDF()
 
-        print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key}:")
-        print(f"  slope(pT)     = a0 + a1*pT + a2*pT^2 with "
-              f"a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, a2={a2:.4g}±{a2_err:.4g}, chi2/ndf={chi2_s}/{ndf_s}")
-        print(f"  intercept(pT) = b0 + b1*pT + b2*pT^2 with "
-              f"b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, b2={b2:.4g}±{b2_err:.4g}, chi2/ndf={chi2_i}/{ndf_i}")
-        print(f"  quad(pT)      = c0 + c1*pT + c2*pT^2 with "
-              f"c0={c0:.4g}±{c0_err:.4g}, c1={c1:.4g}±{c1_err:.4g}, c2={c2:.4g}±{c2_err:.4g}, chi2/ndf={chi2_q}/{ndf_q}{color.END}")
+        poly_label = "linear"
+        if(poly_order == 2):
+            poly_label = "quadratic"
+        elif(poly_order == 3):
+            poly_label = "cubic"
+
+        print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key} (pT-fit {poly_label}):")
+        line_s = f"  slope(pT)     = a0 + a1*pT + a2*pT^2"
+        if(allow_cubic):
+            line_s += " + a3*pT^3"
+        line_s += f" with a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, a2={a2:.4g}±{a2_err:.4g}"
+        if(allow_cubic):
+            line_s += f", a3={a3:.4g}±{a3_err:.4g}"
+        line_s += f", chi2/ndf={chi2_s}/{ndf_s}"
+        print(line_s)
+
+        line_i = f"  intercept(pT) = b0 + b1*pT + b2*pT^2"
+        if(allow_cubic):
+            line_i += " + b3*pT^3"
+        line_i += f" with b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, b2={b2:.4g}±{b2_err:.4g}"
+        if(allow_cubic):
+            line_i += f", b3={b3:.4g}±{b3_err:.4g}"
+        line_i += f", chi2/ndf={chi2_i}/{ndf_i}"
+        print(line_i)
+
+        line_q = f"  quad(pT)      = c0 + c1*pT + c2*pT^2"
+        if(allow_cubic):
+            line_q += " + c3*pT^3"
+        line_q += (f" with c0={c0:.4g}±{c0_err:.4g}, c1={c1:.4g}±{c1_err:.4g}, "
+                   f"c2={c2:.4g}±{c2_err:.4g}")
+        if(allow_cubic):
+            line_q += f", c3={c3:.4g}±{c3_err:.4g}"
+        line_q += f", chi2/ndf={chi2_q}/{ndf_q}{color.END}"
+        print(line_q)
 
         if(save_plots):
             # Slope vs pT plot
             cname_slope = f"c_pTFit_slope_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_s = ROOT.TCanvas(cname_slope, cname_slope, 800, 600)
-            title_s  = f"Slope vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            title_s  = f"Slope vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
             g_slope.SetTitle(f"{title_s};P_{{T}} (GeV);Slope of z-fit")
             g_slope.Draw("AP")
             f_slope.SetLineColor(ROOT.kRed)
@@ -601,7 +736,11 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_s.DrawLatex(0.15, 0.88, f"a0 = {a0:.4g} #pm {a0_err:.4g}")
             latex_s.DrawLatex(0.15, 0.83, f"a1 = {a1:.4g} #pm {a1_err:.4g}")
             latex_s.DrawLatex(0.15, 0.78, f"a2 = {a2:.4g} #pm {a2_err:.4g}")
-            latex_s.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
+            if(allow_cubic):
+                latex_s.DrawLatex(0.15, 0.73, f"a3 = {a3:.4g} #pm {a3_err:.4g}")
+                latex_s.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
+            else:
+                latex_s.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
 
             base_s = f"{cname_slope}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_slope
             out_s = os.path.join(plot_dir, f"{base_s}{file_ext}")
@@ -611,7 +750,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             # Intercept vs pT plot
             cname_i = f"c_pTFit_intercept_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_i = ROOT.TCanvas(cname_i, cname_i, 800, 600)
-            title_i  = f"Intercept vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            title_i  = f"Intercept vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
             g_int.SetTitle(f"{title_i};P_{{T}} (GeV);Intercept of z-fit")
             g_int.Draw("AP")
             f_int.SetLineColor(ROOT.kRed)
@@ -624,7 +763,11 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_i.DrawLatex(0.15, 0.88, f"b0 = {b0:.4g} #pm {b0_err:.4g}")
             latex_i.DrawLatex(0.15, 0.83, f"b1 = {b1:.4g} #pm {b1_err:.4g}")
             latex_i.DrawLatex(0.15, 0.78, f"b2 = {b2:.4g} #pm {b2_err:.4g}")
-            latex_i.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
+            if(allow_cubic):
+                latex_i.DrawLatex(0.15, 0.73, f"b3 = {b3:.4g} #pm {b3_err:.4g}")
+                latex_i.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
+            else:
+                latex_i.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
 
             base_i = f"{cname_i}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_i
             out_i = os.path.join(plot_dir, f"{base_i}{file_ext}")
@@ -634,7 +777,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             # Quad vs pT plot
             cname_q = f"c_pTFit_quad_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_q = ROOT.TCanvas(cname_q, cname_q, 800, 600)
-            title_q  = f"Quad coeff vs P_{{T}} (quadratic): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+            title_q  = f"Quad coeff vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
             g_quad.SetTitle(f"{title_q};P_{{T}} (GeV);Quad term of z-fit")
             g_quad.Draw("AP")
             f_quad.SetLineColor(ROOT.kRed)
@@ -647,7 +790,11 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_q.DrawLatex(0.15, 0.88, f"c0 = {c0:.4g} #pm {c0_err:.4g}")
             latex_q.DrawLatex(0.15, 0.83, f"c1 = {c1:.4g} #pm {c1_err:.4g}")
             latex_q.DrawLatex(0.15, 0.78, f"c2 = {c2:.4g} #pm {c2_err:.4g}")
-            latex_q.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
+            if(allow_cubic):
+                latex_q.DrawLatex(0.15, 0.73, f"c3 = {c3:.4g} #pm {c3_err:.4g}")
+                latex_q.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
+            else:
+                latex_q.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
 
             base_q = f"{cname_q}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_q
             out_q = os.path.join(plot_dir, f"{base_q}{file_ext}")
@@ -670,7 +817,16 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             "ndf_int":    ndf_i,
             "chi2_quad":  chi2_q,
             "ndf_quad":   ndf_q,
+            "poly_order": poly_order,
         }
+
+        if(allow_cubic):
+            pt_fit_summary[Q2_y_Bin_key]["a3"]     = a3
+            pt_fit_summary[Q2_y_Bin_key]["a3_err"] = a3_err
+            pt_fit_summary[Q2_y_Bin_key]["b3"]     = b3
+            pt_fit_summary[Q2_y_Bin_key]["b3_err"] = b3_err
+            pt_fit_summary[Q2_y_Bin_key]["c3"]     = c3
+            pt_fit_summary[Q2_y_Bin_key]["c3_err"] = c3_err
 
     print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with 9-parameter (z,pT) description: {len(pt_fit_summary)}.{color.END}")
     return pt_fit_summary
@@ -812,15 +968,10 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
                 print(f"{color.YELLOW}perform_Q2_fits: Param={pname}, y={y_center:.2f} has only {n_points} Q^2 point(s); skipping this fit.{color.END}")
                 continue
 
-            
             y_code = int(round(100.0 * y_center))
             fname  = f"f_Q2_{pname}_y_{y_code:03d}"
-            
+
             Linear = (poly_order < 2)
-            # if((pname in ["a0", "c0"]) and (f"{y_code:03d}" in ["040"]) and (not Linear)):
-            #     poly_order, Linear = 1, True
-            #     print(f"\n{color.YELLOW}ALERT: Hardsetting Param={pname}, y(code)={y_code:03d} to a linear fit. {color.ERROR}(This condition was manually set within the script){color.END}\n")
-            #     # Note to self: This did not improve the tested fits...
 
             x_min = float(min(x_vals))
             x_max = float(max(x_vals))
@@ -865,7 +1016,7 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
             q3_err = 0.0
             if(allow_cubic):
                 q3     = fit_func.GetParameter(3)
-                q3_err = fit_func.GetParError(3)
+                q3_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
             chi2   = fit_func.GetChisquare()
             ndf    = fit_func.GetNDF()
 
@@ -941,9 +1092,10 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
 # ----------------------------------------------------------------------
 # y-fits of the Q² coefficients q0,q1,q2 vs y
 # Produces A,B,C for each (param, Q2-power)
+# Polynomial in y (default quadratic, optional cubic fit)
 # ----------------------------------------------------------------------
-def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png"):
-    print(f"{color.BPINK}Starting y-fits of Q^{{2}} coefficients q_{'{'}i{'}'} vs y.{color.END}")
+def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image_suffix=None, file_ext=".png", allow_cubic=False):
+    print(f"{color.BPINK}Starting y-fits of Q^{{2}} coefficients q_{{i}} vs y.{color.END}")
 
     if((Q2_fit_results is None) or (len(Q2_fit_results) == 0)):
         print(f"{color.YELLOW}perform_y_fits: No Q2_fit_results provided; skipping y-fits.{color.END}")
@@ -979,7 +1131,7 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             for y_center in y_list:
                 entry = by_y[y_center]
                 if((q_key not in entry) or (q_err_key not in entry)):
-                    # This is expected if we didn't do cubic
+                    # This is expected if we didn't do cubic, or this q_index wasn't fitted
                     continue
                 y_vals.append(float(y_center))
                 val_vals.append(float(entry[q_key]))
@@ -994,10 +1146,18 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             arr_v   = numpy.array(val_vals, dtype="float64")
             arr_err = numpy.array(err_vals, dtype="float64")
 
-            Linear = False
-            if(n_points < 3):
+            if((allow_cubic) and (n_points >= 4)):
+                poly_order = 3
+            elif(n_points >= 3):
+                poly_order = 2
+            elif(n_points >= 2):
+                poly_order = 1
                 print(f"\n{color.RED}Warning: {color.YELLOW}y-fit for param={pname}, q_index={q_index} only has {n_points} points, need >3 for quadratic — using linear instead.{color.END}\n")
-                Linear = True
+            else:
+                print(f"{color.YELLOW}perform_y_fits: y-fit for param={pname}, q_index={q_index} only has {n_points} point(s); skipping.{color.END}")
+                continue
+
+            Linear = (poly_order == 1)
 
             y_min = float(min(arr_y))
             y_max = float(max(arr_y))
@@ -1012,13 +1172,24 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             graph.SetLineWidth(2)
 
             fname = f"f_y_{pname}_q{q_index}"
-            fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", min([0.9*y_min, y_min]), max([1.1*y_max, y_max]))
-            fit_func.SetParameter(0, float(numpy.mean(arr_v)))
-            fit_func.SetParameter(1, 0.0)
-            fit_func.SetParameter(2, 0.0)
 
-            if(Linear):
-                fit_func.FixParameter(2, 0.0)
+            if(allow_cubic):
+                fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*y_min, y_min]), max([1.1*y_max, y_max]))
+                fit_func.SetParameter(0, float(numpy.mean(arr_v)))
+                fit_func.SetParameter(1, 0.0)
+                fit_func.SetParameter(2, 0.0)
+                fit_func.SetParameter(3, 0.0)
+                if(poly_order < 3):
+                    fit_func.FixParameter(3, 0.0)
+                if(Linear):
+                    fit_func.FixParameter(2, 0.0)
+            else:
+                fit_func = ROOT.TF1(fname, "[0] + [1]*x + [2]*x*x", min([0.9*y_min, y_min]), max([1.1*y_max, y_max]))
+                fit_func.SetParameter(0, float(numpy.mean(arr_v)))
+                fit_func.SetParameter(1, 0.0)
+                fit_func.SetParameter(2, 0.0)
+                if(Linear):
+                    fit_func.FixParameter(2, 0.0)
 
             fit_result = graph.Fit(fit_func, "QSRNB")
 
@@ -1028,11 +1199,24 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             B_err = fit_func.GetParError(1)
             A_val = fit_func.GetParameter(2)
             A_err = fit_func.GetParError(2) if(not Linear) else 1e-4
+
+            D_val = 0.0
+            D_err = 0.0
+            if(allow_cubic):
+                D_val = fit_func.GetParameter(3)
+                D_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
+
             chi2  = fit_func.GetChisquare()
             ndf   = fit_func.GetNDF()
 
+            poly_label = "linear"
+            if(poly_order == 2):
+                poly_label = "quadratic"
+            elif(poly_order == 3):
+                poly_label = "cubic"
+
             print(
-                f"{color.BPINK}y-fit: param={pname}, q_index={q_index}: n={n_points}, "
+                f"{color.BPINK}y-fit ({poly_label}): param={pname}, q_index={q_index}: n={n_points}, "
                 f"A={A_val:.4g}±{A_err:.4g}, B={B_val:.4g}±{B_err:.4g}, "
                 f"C={C_val:.4g}±{C_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
             )
@@ -1045,7 +1229,7 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
                 cname = f"c_yFit_{pname}_q{q_index}"
                 canvas = ROOT.TCanvas(cname, cname, 800, 600)
 
-                title_str = f"{pname}, q{q_index} vs y (quadratic): Q^{{2}}-coefficient ({q_letter})"
+                title_str = f"{pname}, q{q_index} vs y ({poly_label}): Q^{{2}}-coefficient ({q_letter})"
                 graph.SetTitle(f"{title_str};y;{pname}, q{q_index} coefficient")
                 graph.Draw("AP")
 
@@ -1079,7 +1263,12 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
                 "ndf":      ndf,
                 "n_points": n_points,
                 "Linear":   Linear,
+                "poly_order": poly_order,
             }
+
+            if(allow_cubic):
+                y_fit_results[pname][q_index]["D"]     = D_val
+                y_fit_results[pname][q_index]["D_err"] = D_err
 
     total_y_fits = sum(len(v) for v in y_fit_results.values())
     print(f"{color.BGREEN}y-fits complete. Total (param,q_index) combinations fitted: {total_y_fits}.{color.END}")
@@ -1514,7 +1703,7 @@ def test_final_F_vs_original(rdf_file, save_plots=True, plot_dir="ZFit_Plots", i
 # Argument parsing
 # ----------------------------------------------------------------------
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Build ratio histograms, build an RDataFrame, do quadratic z- and pT-fits, then fit parameters vs Q^2 and y.",
+    parser = argparse.ArgumentParser(description="Build ratio histograms, build an RDataFrame, do z- and pT-fits, then fit parameters vs Q^2 and y.",
                                      formatter_class=RawDefaultsHelpFormatter)
     parser.add_argument("-r", "-inR", "--input_root", default="Unfold_4D_Bins_Test_with_SF_FirstOrder_Almost_All.root",
                         help="Input ROOT file containing the TH1D histograms.\n")
@@ -1540,8 +1729,16 @@ def parse_arguments():
                         help="Do NOT run fits of parameters vs Q^2.")
     parser.add_argument("-noY", "--no_y_fits", action="store_true",
                         help="Do NOT run fits of Q^2 coefficients vs y.")
+
+    parser.add_argument("-z3", "--z_cubic", action="store_true",
+                        help="Allow cubic polynomials in the z-fits (degree 3) when there are ≥4 distinct z points. Otherwise fall back to quadratic/linear.")
+    parser.add_argument("-pT3", "--pT_cubic", action="store_true",
+                        help="Allow cubic polynomials in the pT-fits (degree 3) when there are ≥4 distinct pT points. Otherwise fall back to quadratic/linear.")
     parser.add_argument("-Q23", "-pol3", "--Q2_cubic", action="store_true",
                         help="Allow cubic polynomials in the Q^2-fits (degree 3) when there are ≥4 distinct Q^2 points. Otherwise fall back to quadratic/linear.")
+    parser.add_argument("-y3", "--y_cubic", action="store_true",
+                        help="Allow cubic polynomials in the y-fits (degree 3) when there are ≥4 distinct y points. Otherwise fall back to quadratic/linear.")
+
     parser.add_argument("-np", "--no_plots", action="store_true",
                         help="Do NOT save any fit plots (z, pT, Q^2, or y).")
 
@@ -1633,11 +1830,11 @@ def main():
 
         if(do_z_fits):
             rdf_for_fits = ROOT.RDataFrame("h22", args.rdf_file)
-            z_fit_results = perform_z_fits(rdf_for_fits, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+            z_fit_results = perform_z_fits(rdf_for_fits, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext, allow_cubic=args.z_cubic)
             print(f"{color.BCYAN}Stored {len(z_fit_results)} z-fit result rows in memory (Python list).{color.END}")
 
         if(do_z_fits and do_pT_fits and (z_fit_results is not None) and (len(z_fit_results) > 0)):
-            pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+            pT_fit_results = perform_pT_fits(z_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext, allow_cubic=args.pT_cubic)
             print(f"{color.BCYAN}Stored {len(pT_fit_results)} pT-fit (z,pT) descriptions in memory (by Q2_y_Bin).{color.END}")
 
             rdf_orig = ROOT.RDataFrame("h22", args.rdf_file)
@@ -1648,7 +1845,7 @@ def main():
                 Q2_fit_results = perform_Q2_fits(rdf_for_Q2, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext, allow_cubic=args.Q2_cubic)
 
                 if(do_y_fits and (Q2_fit_results is not None) and (len(Q2_fit_results) > 0)):
-                    Y_fit_results = perform_y_fits(Q2_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext)
+                    Y_fit_results = perform_y_fits(Q2_fit_results, save_plots=save_plots, plot_dir=args.z_plot_dir, image_suffix=args.image_suffix, file_ext=file_ext, allow_cubic=args.y_cubic)
                     if((Y_fit_results is not None) and (len(Y_fit_results) > 0)):
                         _, _, _, email_output_4D = print_final_4D_function(Y_fit_results)
 
@@ -1663,20 +1860,34 @@ def main():
         email_body += f"Ratio hist:      {ratio_name}\n"
         email_body += f"RDF file:        {args.rdf_file}\n"
         if(do_z_fits and (z_fit_results is not None)):
-            email_body += f"z-fits in memory: {len(z_fit_results)} results (quadratic in z).\n"
+            email_body += f"z-fits in memory: {len(z_fit_results)} results (polynomial in z, up to cubic).\n"
         if(do_z_fits and do_pT_fits and (pT_fit_results is not None)):
-            email_body += f"pT-fit functions (quadratic) per Q2_y_Bin: {len(pT_fit_results)}\n"
+            email_body += f"pT-fit functions (polynomial in pT, up to cubic) per Q2_y_Bin: {len(pT_fit_results)}\n"
         if(do_z_fits and do_pT_fits and do_Q2_fits and (Q2_fit_results is not None)):
             total_Q2_combos = sum(len(v) for v in Q2_fit_results.values())
             email_body += f"Q^2-fit functions (polynomial, up to cubic) for (param,y) combinations: {total_Q2_combos}\n"
         if(do_z_fits and do_pT_fits and do_Q2_fits and do_y_fits and (Y_fit_results is not None)):
             total_Y_combos = sum(len(v) for v in Y_fit_results.values())
-            email_body += f"y-fit functions (quadratic) for (param,q_index) combinations: {total_Y_combos}\n"
+            email_body += f"y-fit functions (polynomial in y, up to cubic) for (param,q_index) combinations: {total_Y_combos}\n"
         if(save_plots):
             email_body += f"Fit image directory: {args.z_plot_dir}\n"
             email_body += f"Fit image format: {args.image_format}\n"
             if(args.image_suffix is not None):
                 email_body += f"Image filename suffix: {args.image_suffix}\n"
+
+        # Note which cubic options were enabled
+        cubic_flags = []
+        if(args.z_cubic):
+            cubic_flags.append("z")
+        if(args.pT_cubic):
+            cubic_flags.append("pT")
+        if(args.Q2_cubic):
+            cubic_flags.append("Q^2")
+        if(args.y_cubic):
+            cubic_flags.append("y")
+        if(len(cubic_flags) > 0):
+            email_body += f"Cubic fits enabled for: {', '.join(cubic_flags)}\n"
+
         if(args.email_message is not None):
             email_body += f"\nUser message:\n{args.email_message}\n"
 
