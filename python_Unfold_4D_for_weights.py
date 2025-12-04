@@ -87,11 +87,19 @@ y_Centers  = [0.40, 0.50, 0.60, 0.70]
 
 
 # Parameters from pT-fits
-PARAM_NAMES = ["a0", "a1", "a2",
-               "b0", "b1", "b2",
-               "c0", "c1", "c2"]
+# We now allow up to cubic in pT and include the cubic-in-z family ("d*")
+# a*  → z^1 coefficients vs pT
+# b*  → z^0 coefficients vs pT
+# c*  → z^2 coefficients vs pT
+# d*  → z^3 coefficients vs pT
+PARAM_NAMES = [
+    "a0", "a1", "a2", "a3",
+    "b0", "b1", "b2", "b3",
+    "c0", "c1", "c2", "c3",
+    "d0", "d1", "d2", "d3",
+]
 
-# Map Q^2 power index → letter (for names like Aaa2)
+# Map Q^2 power index → letter (for names like Aaa2 etc.)
 Q2_INDEX_LETTER = {
     3: "d",   # Q2^3
     2: "a",   # Q2^2
@@ -99,18 +107,52 @@ Q2_INDEX_LETTER = {
     0: "c",   # Q2^0
 }
 
-# Map original parameters (a0..c2) to (pT-letter, z-digit)
+# Map param names (a0..d3) to (pT-letter, z-digit)
+# pT-letter encodes the pT power:
+#   'd' → pT^3, 'a' → pT^2, 'b' → pT^1, 'c' → pT^0
+# z-digit is the power of z (0,1,2,3)
 PARAM_Z_PTZ_MAP = {
-    "c2": ("a", "2"),
-    "c1": ("b", "2"),
-    "c0": ("c", "2"),
+    # z^2 family (c*)
+    "c3": ("d", "2"),  # pT^3 * z^2
+    "c2": ("a", "2"),  # pT^2 * z^2
+    "c1": ("b", "2"),  # pT^1 * z^2
+    "c0": ("c", "2"),  # pT^0 * z^2
+
+    # z^1 family (a*)
+    "a3": ("d", "1"),
     "a2": ("a", "1"),
     "a1": ("b", "1"),
     "a0": ("c", "1"),
+
+    # z^0 family (b*)
+    "b3": ("d", "0"),
     "b2": ("a", "0"),
     "b1": ("b", "0"),
     "b0": ("c", "0"),
+
+    # z^3 family (d*) – new cubic z coefficients
+    "d3": ("d", "3"),
+    "d2": ("a", "3"),
+    "d1": ("b", "3"),
+    "d0": ("c", "3"),
 }
+
+# Helper: map the pT-letter to the actual power of pT for the final expression
+PT_LETTER_TO_POWER = {
+    "d": 3,
+    "a": 2,
+    "b": 1,
+    "c": 0,
+}
+
+# Group parameters by z-power for the symbolic printout
+Z_GROUPS = {
+    "3": ["d3", "d2", "d1", "d0"],  # z^3
+    "2": ["c3", "c2", "c1", "c0"],  # z^2
+    "1": ["a3", "a2", "a1", "a0"],  # z^1
+    "0": ["b3", "b2", "b1", "b0"],  # z^0
+}
+
 
 
 # ----------------------------------------------------------------------
@@ -422,7 +464,7 @@ def perform_z_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=Non
             cubic_err = 0.0
             if(allow_cubic):
                 cubic     = fit_func.GetParameter(3)
-                cubic_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
+                cubic_err = fit_func.GetParError(3) if(poly_order > 2) else 100
 
             chi2      = fit_func.GetChisquare()
             ndf       = fit_func.GetNDF()
@@ -517,6 +559,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             os.makedirs(plot_dir, exist_ok=True)
         print(f"{color.BPURPLE}pT-fit plots will be saved in directory '{plot_dir}' with extension '{file_ext}'.{color.END}")
 
+    # Group z-fit rows by Q2_y_Bin
     results_by_q2 = {}
     for row in z_fit_results:
         key = int(row["Q2_y_Bin"])
@@ -534,6 +577,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             print(f"{color.YELLOW}perform_pT_fits: Q2_y_Bin={Q2_y_Bin_key} only has {n} pT points; skipping pT fits for this bin.{color.END}")
             continue
 
+        # Decide global pT polynomial order for this Q2_y_Bin
         if((allow_cubic) and (n >= 4)):
             poly_order = 3
         elif(n >= 3):
@@ -544,6 +588,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
         Linear = (poly_order == 1)
 
+        # Extract data arrays
         pT_centers     = numpy.array([r["pT_center"]     for r in rows], dtype="float64")
         intercepts     = numpy.array([r["intercept"]     for r in rows], dtype="float64")
         intercept_errs = numpy.array([r["intercept_err"] for r in rows], dtype="float64")
@@ -551,9 +596,36 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         slope_errs     = numpy.array([r["slope_err"]     for r in rows], dtype="float64")
         quads          = numpy.array([r["quad"]          for r in rows], dtype="float64")
         quad_errs      = numpy.array([r["quad_err"]      for r in rows], dtype="float64")
+        cubics         = numpy.array([r["cubic"]         for r in rows], dtype="float64")
+        cubic_errs     = numpy.array([r["cubic_err"]     for r in rows], dtype="float64")
+
+        # Check if there is any non-trivial cubic-in-z information for this bin
+        has_z_cubic = numpy.any(numpy.abs(cubics) > 0.0)
 
         pT_min_fit = float(min(pT_centers))
         pT_max_fit = float(max(pT_centers))
+
+        # Utility to build a TF1 for a generic parameter vs pT
+        def make_pT_tf1(name, y_vals, order, lin_flag):
+            if(allow_cubic and order == 3):
+                func = ROOT.TF1(name, "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+                func.SetParameter(0, float(numpy.mean(y_vals)))
+                func.SetParameter(1, 0.0)
+                func.SetParameter(2, 0.0)
+                func.SetParameter(3, 0.0)
+                if(order < 3):
+                    func.FixParameter(3, 0.0)
+                if(lin_flag):
+                    func.FixParameter(2, 0.0)
+            else:
+                # up to quadratic
+                func = ROOT.TF1(name, "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
+                func.SetParameter(0, float(numpy.mean(y_vals)))
+                func.SetParameter(1, 0.0)
+                func.SetParameter(2, 0.0)
+                if(lin_flag):
+                    func.FixParameter(2, 0.0)
+            return func
 
         # --- slope(pT) ---
         g_slope = ROOT.TGraphErrors(n)
@@ -564,24 +636,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_slope.SetMarkerSize(1.0)
         g_slope.SetLineWidth(2)
 
-        if(allow_cubic):
-            f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_slope.SetParameter(0, float(numpy.mean(slopes)))
-            f_slope.SetParameter(1, 0.0)
-            f_slope.SetParameter(2, 0.0)
-            f_slope.SetParameter(3, 0.0)
-            if(poly_order < 3):
-                f_slope.FixParameter(3, 0.0)
-            if(Linear):
-                f_slope.FixParameter(2, 0.0)
-        else:
-            f_slope = ROOT.TF1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_slope.SetParameter(0, float(numpy.mean(slopes)))
-            f_slope.SetParameter(1, 0.0)
-            f_slope.SetParameter(2, 0.0)
-            if(Linear):
-                f_slope.FixParameter(2, 0.0)
-
+        f_slope = make_pT_tf1(f"f_slope_Q2yBin_{Q2_y_Bin_key}", slopes, poly_order, Linear)
         g_slope.Fit(f_slope, "QSRNB")
 
         a0     = f_slope.GetParameter(0)
@@ -594,7 +649,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         a3_err = 0.0
         if(allow_cubic):
             a3     = f_slope.GetParameter(3)
-            a3_err = f_slope.GetParError(3) if(poly_order > 2) else 1e-4
+            a3_err = f_slope.GetParError(3) if(poly_order > 2) else 100
         chi2_s = f_slope.GetChisquare()
         ndf_s  = f_slope.GetNDF()
 
@@ -607,24 +662,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_int.SetMarkerSize(1.0)
         g_int.SetLineWidth(2)
 
-        if(allow_cubic):
-            f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_int.SetParameter(0, float(numpy.mean(intercepts)))
-            f_int.SetParameter(1, 0.0)
-            f_int.SetParameter(2, 0.0)
-            f_int.SetParameter(3, 0.0)
-            if(poly_order < 3):
-                f_int.FixParameter(3, 0.0)
-            if(Linear):
-                f_int.FixParameter(2, 0.0)
-        else:
-            f_int = ROOT.TF1(f"f_int_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_int.SetParameter(0, float(numpy.mean(intercepts)))
-            f_int.SetParameter(1, 0.0)
-            f_int.SetParameter(2, 0.0)
-            if(Linear):
-                f_int.FixParameter(2, 0.0)
-
+        f_int = make_pT_tf1(f"f_int_Q2yBin_{Q2_y_Bin_key}", intercepts, poly_order, Linear)
         g_int.Fit(f_int, "QSRNB")
 
         b0     = f_int.GetParameter(0)
@@ -637,7 +675,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         b3_err = 0.0
         if(allow_cubic):
             b3     = f_int.GetParameter(3)
-            b3_err = f_int.GetParError(3) if(poly_order > 2) else 1e-4
+            b3_err = f_int.GetParError(3) if(poly_order > 2) else 100
         chi2_i = f_int.GetChisquare()
         ndf_i  = f_int.GetNDF()
 
@@ -650,24 +688,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         g_quad.SetMarkerSize(1.0)
         g_quad.SetLineWidth(2)
 
-        if(allow_cubic):
-            f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x + [3]*x*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_quad.SetParameter(0, float(numpy.mean(quads)))
-            f_quad.SetParameter(1, 0.0)
-            f_quad.SetParameter(2, 0.0)
-            f_quad.SetParameter(3, 0.0)
-            if(poly_order < 3):
-                f_quad.FixParameter(3, 0.0)
-            if(Linear):
-                f_quad.FixParameter(2, 0.0)
-        else:
-            f_quad = ROOT.TF1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", "[0] + [1]*x + [2]*x*x", min([0.9*pT_min_fit, pT_min_fit]), max([1.1*pT_max_fit, pT_max_fit]))
-            f_quad.SetParameter(0, float(numpy.mean(quads)))
-            f_quad.SetParameter(1, 0.0)
-            f_quad.SetParameter(2, 0.0)
-            if(Linear):
-                f_quad.FixParameter(2, 0.0)
-
+        f_quad = make_pT_tf1(f"f_quad_Q2yBin_{Q2_y_Bin_key}", quads, poly_order, Linear)
         g_quad.Fit(f_quad, "QSRNB")
 
         c0     = f_quad.GetParameter(0)
@@ -680,9 +701,39 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
         c3_err = 0.0
         if(allow_cubic):
             c3     = f_quad.GetParameter(3)
-            c3_err = f_quad.GetParError(3) if(poly_order > 2) else 1e-4
+            c3_err = f_quad.GetParError(3) if(poly_order > 2) else 100
         chi2_q = f_quad.GetChisquare()
         ndf_q  = f_quad.GetNDF()
+
+        # --- cubic-in-z coefficient vs pT (d-family) ---
+        d0 = d1 = d2 = d3 = 0.0
+        d0_err = d1_err = d2_err = d3_err = 0.0
+        chi2_d = 0.0
+        ndf_d  = 0
+
+        if(has_z_cubic):
+            g_cub = ROOT.TGraphErrors(n)
+            for idx in range(n):
+                g_cub.SetPoint(idx, float(pT_centers[idx]), float(cubics[idx]))
+                g_cub.SetPointError(idx, 0.0, float(cubic_errs[idx]))
+            g_cub.SetMarkerStyle(24)
+            g_cub.SetMarkerSize(1.0)
+            g_cub.SetLineWidth(2)
+
+            f_cub = make_pT_tf1(f"f_cubic_Q2yBin_{Q2_y_Bin_key}", cubics, poly_order, Linear)
+            g_cub.Fit(f_cub, "QSRNB")
+
+            d0     = f_cub.GetParameter(0)
+            d0_err = f_cub.GetParError(0)
+            d1     = f_cub.GetParameter(1)
+            d1_err = f_cub.GetParError(1)
+            d2     = f_cub.GetParameter(2)
+            d2_err = f_cub.GetParError(2) if(not Linear) else 1e-4
+            if(allow_cubic):
+                d3     = f_cub.GetParameter(3)
+                d3_err = f_cub.GetParError(3) if(poly_order > 2) else 100
+            chi2_d = f_cub.GetChisquare()
+            ndf_d  = f_cub.GetNDF()
 
         poly_label = "linear"
         if(poly_order == 2):
@@ -692,35 +743,48 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
         print(f"{color.BPURPLE}Q2_y_Bin={Q2_y_Bin_key} (pT-fit {poly_label}):")
         line_s = f"  slope(pT)     = a0 + a1*pT + a2*pT^2"
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_s += " + a3*pT^3"
         line_s += f" with a0={a0:.4g}±{a0_err:.4g}, a1={a1:.4g}±{a1_err:.4g}, a2={a2:.4g}±{a2_err:.4g}"
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_s += f", a3={a3:.4g}±{a3_err:.4g}"
         line_s += f", chi2/ndf={chi2_s}/{ndf_s}"
         print(line_s)
 
         line_i = f"  intercept(pT) = b0 + b1*pT + b2*pT^2"
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_i += " + b3*pT^3"
         line_i += f" with b0={b0:.4g}±{b0_err:.4g}, b1={b1:.4g}±{b1_err:.4g}, b2={b2:.4g}±{b2_err:.4g}"
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_i += f", b3={b3:.4g}±{b3_err:.4g}"
         line_i += f", chi2/ndf={chi2_i}/{ndf_i}"
         print(line_i)
 
         line_q = f"  quad(pT)      = c0 + c1*pT + c2*pT^2"
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_q += " + c3*pT^3"
         line_q += (f" with c0={c0:.4g}±{c0_err:.4g}, c1={c1:.4g}±{c1_err:.4g}, "
                    f"c2={c2:.4g}±{c2_err:.4g}")
-        if(allow_cubic):
+        if(allow_cubic and poly_order > 2):
             line_q += f", c3={c3:.4g}±{c3_err:.4g}"
-        line_q += f", chi2/ndf={chi2_q}/{ndf_q}{color.END}"
+        line_q += f", chi2/ndf={chi2_q}/{ndf_q}"
         print(line_q)
 
+        if(has_z_cubic):
+            line_d = f"  cubic_z(pT)   = d0 + d1*pT + d2*pT^2"
+            if(allow_cubic and poly_order > 2):
+                line_d += " + d3*pT^3"
+            line_d += f" with d0={d0:.4g}±{d0_err:.4g}, d1={d1:.4g}±{d1_err:.4g}, d2={d2:.4g}±{d2_err:.4g}"
+            if(allow_cubic and poly_order > 2):
+                line_d += f", d3={d3:.4g}±{d3_err:.4g}"
+            line_d += f", chi2/ndf={chi2_d}/{ndf_d}{color.END}"
+            print(line_d)
+        else:
+            print(f"{color.BPURPLE}  No non-zero cubic-in-z coefficient found for this Q2_y_Bin; d*-parameters set to 0.{color.END}")
+
+        # Save plots if requested
         if(save_plots):
-            # Slope vs pT plot
+            # Slope vs pT
             cname_slope = f"c_pTFit_slope_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_s = ROOT.TCanvas(cname_slope, cname_slope, 800, 600)
             title_s  = f"Slope vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
@@ -736,7 +800,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_s.DrawLatex(0.15, 0.88, f"a0 = {a0:.4g} #pm {a0_err:.4g}")
             latex_s.DrawLatex(0.15, 0.83, f"a1 = {a1:.4g} #pm {a1_err:.4g}")
             latex_s.DrawLatex(0.15, 0.78, f"a2 = {a2:.4g} #pm {a2_err:.4g}")
-            if(allow_cubic):
+            if(allow_cubic and poly_order > 2):
                 latex_s.DrawLatex(0.15, 0.73, f"a3 = {a3:.4g} #pm {a3_err:.4g}")
                 latex_s.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_s:.1f} / {ndf_s}")
             else:
@@ -747,7 +811,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             canvas_s.SaveAs(out_s)
             del canvas_s
 
-            # Intercept vs pT plot
+            # Intercept vs pT
             cname_i = f"c_pTFit_intercept_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_i = ROOT.TCanvas(cname_i, cname_i, 800, 600)
             title_i  = f"Intercept vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
@@ -763,7 +827,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_i.DrawLatex(0.15, 0.88, f"b0 = {b0:.4g} #pm {b0_err:.4g}")
             latex_i.DrawLatex(0.15, 0.83, f"b1 = {b1:.4g} #pm {b1_err:.4g}")
             latex_i.DrawLatex(0.15, 0.78, f"b2 = {b2:.4g} #pm {b2_err:.4g}")
-            if(allow_cubic):
+            if(allow_cubic and poly_order > 2):
                 latex_i.DrawLatex(0.15, 0.73, f"b3 = {b3:.4g} #pm {b3_err:.4g}")
                 latex_i.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_i:.1f} / {ndf_i}")
             else:
@@ -774,7 +838,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             canvas_i.SaveAs(out_i)
             del canvas_i
 
-            # Quad vs pT plot
+            # Quad vs pT
             cname_q = f"c_pTFit_quad_Q2_y_Bin_{Q2_y_Bin_key}"
             canvas_q = ROOT.TCanvas(cname_q, cname_q, 800, 600)
             title_q  = f"Quad coeff vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
@@ -790,7 +854,7 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             latex_q.DrawLatex(0.15, 0.88, f"c0 = {c0:.4g} #pm {c0_err:.4g}")
             latex_q.DrawLatex(0.15, 0.83, f"c1 = {c1:.4g} #pm {c1_err:.4g}")
             latex_q.DrawLatex(0.15, 0.78, f"c2 = {c2:.4g} #pm {c2_err:.4g}")
-            if(allow_cubic):
+            if(allow_cubic and poly_order > 2):
                 latex_q.DrawLatex(0.15, 0.73, f"c3 = {c3:.4g} #pm {c3_err:.4g}")
                 latex_q.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_q:.1f} / {ndf_q}")
             else:
@@ -801,35 +865,66 @@ def perform_pT_fits(z_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             canvas_q.SaveAs(out_q)
             del canvas_q
 
+            # Cubic-in-z vs pT plot (if present)
+            if(has_z_cubic):
+                cname_d = f"c_pTFit_cubicZ_Q2_y_Bin_{Q2_y_Bin_key}"
+                canvas_d = ROOT.TCanvas(cname_d, cname_d, 800, 600)
+                title_d  = f"Cubic-in-z coeff vs P_{{T}} ({poly_label}): Q^{{2}}-y Bin = {Q2_y_Bin_key}"
+                g_cub.SetTitle(f"{title_d};P_{{T}} (GeV);Cubic-in-z term of z-fit")
+                g_cub.Draw("AP")
+                f_cub.SetLineColor(ROOT.kRed)
+                f_cub.SetLineWidth(2)
+                f_cub.Draw("same")
+
+                latex_d = ROOT.TLatex()
+                latex_d.SetNDC(True)
+                latex_d.SetTextSize(0.04)
+                latex_d.DrawLatex(0.15, 0.88, f"d0 = {d0:.4g} #pm {d0_err:.4g}")
+                latex_d.DrawLatex(0.15, 0.83, f"d1 = {d1:.4g} #pm {d1_err:.4g}")
+                latex_d.DrawLatex(0.15, 0.78, f"d2 = {d2:.4g} #pm {d2_err:.4g}")
+                if(allow_cubic and poly_order > 2):
+                    latex_d.DrawLatex(0.15, 0.73, f"d3 = {d3:.4g} #pm {d3_err:.4g}")
+                    latex_d.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2_d:.1f} / {ndf_d}")
+                else:
+                    latex_d.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2_d:.1f} / {ndf_d}")
+
+                base_d = f"{cname_d}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname_d
+                out_d = os.path.join(plot_dir, f"{base_d}{file_ext}")
+                canvas_d.SaveAs(out_d)
+                del canvas_d
+
+        # Store full set of parameters for this Q2_y_Bin
         pt_fit_summary[Q2_y_Bin_key] = {
             "a0": a0, "a0_err": a0_err,
             "a1": a1, "a1_err": a1_err,
             "a2": a2, "a2_err": a2_err,
+            "a3": a3, "a3_err": a3_err,
             "b0": b0, "b0_err": b0_err,
             "b1": b1, "b1_err": b1_err,
             "b2": b2, "b2_err": b2_err,
+            "b3": b3, "b3_err": b3_err,
             "c0": c0, "c0_err": c0_err,
             "c1": c1, "c1_err": c1_err,
             "c2": c2, "c2_err": c2_err,
+            "c3": c3, "c3_err": c3_err,
+            "d0": d0, "d0_err": d0_err,
+            "d1": d1, "d1_err": d1_err,
+            "d2": d2, "d2_err": d2_err,
+            "d3": d3, "d3_err": d3_err,
             "chi2_slope": chi2_s,
             "ndf_slope":  ndf_s,
             "chi2_int":   chi2_i,
             "ndf_int":    ndf_i,
             "chi2_quad":  chi2_q,
             "ndf_quad":   ndf_q,
-            "poly_order": poly_order,
+            "chi2_cubicZ": chi2_d,
+            "ndf_cubicZ":  ndf_d,
+            "poly_order":  poly_order,
         }
 
-        if(allow_cubic):
-            pt_fit_summary[Q2_y_Bin_key]["a3"]     = a3
-            pt_fit_summary[Q2_y_Bin_key]["a3_err"] = a3_err
-            pt_fit_summary[Q2_y_Bin_key]["b3"]     = b3
-            pt_fit_summary[Q2_y_Bin_key]["b3_err"] = b3_err
-            pt_fit_summary[Q2_y_Bin_key]["c3"]     = c3
-            pt_fit_summary[Q2_y_Bin_key]["c3_err"] = c3_err
-
-    print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with 9-parameter (z,pT) description: {len(pt_fit_summary)}.{color.END}")
+    print(f"{color.BGREEN}pT-fits complete. Total Q2_y_Bins with (z,pT) descriptions: {len(pt_fit_summary)}.{color.END}")
     return pt_fit_summary
+
 
 
 # ----------------------------------------------------------------------
@@ -863,8 +958,12 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
             continue
         pars = pt_fit_summary[Q2_y_Bin_key]
         for pname in PARAM_NAMES:
-            val = float(pars[pname])
-            err = float(pars[f"{pname}_err"])
+            if(pname in pars):
+                val = float(pars[pname])
+                err = float(pars.get(f"{pname}_err", 0.0))
+            else:
+                val = 0.0
+                err = 0.0
             cpp_lines.append(f"  PTParamTables::{pname}[{Q2_y_Bin_key}] = {val};")
             cpp_lines.append(f"  PTParamTables::{pname}_err[{Q2_y_Bin_key}] = {err};")
     cpp_lines.append("}")
@@ -893,6 +992,7 @@ def attach_pT_params_to_rdf(rdf, pt_fit_summary, out_file, tree_name="h22"):
             rdf_def = rdf_def.Define(pname,   f"Get_{pname}(Q2_y_Bin)").Define(f"{pname}_err",   f"Get_{pname}_err(Q2_y_Bin)")
     rdf_def.Snapshot(tree_name, out_file)
     print(f"{color.BCYAN}attach_pT_params_to_rdf: wrote augmented tree '{tree_name}' to '{out_file}' with parameter columns added.{color.END}")
+
 
 
 # ----------------------------------------------------------------------
@@ -1016,7 +1116,7 @@ def perform_Q2_fits(rdf, save_plots=True, plot_dir="ZFit_Plots", image_suffix=No
             q3_err = 0.0
             if(allow_cubic):
                 q3     = fit_func.GetParameter(3)
-                q3_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
+                q3_err = fit_func.GetParError(3) if(poly_order > 2) else 100
             chi2   = fit_func.GetChisquare()
             ndf    = fit_func.GetNDF()
 
@@ -1204,7 +1304,7 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
             D_err = 0.0
             if(allow_cubic):
                 D_val = fit_func.GetParameter(3)
-                D_err = fit_func.GetParError(3) if(poly_order > 2) else 1e-4
+                D_err = fit_func.GetParError(3) if(poly_order > 2) else 100
 
             chi2  = fit_func.GetChisquare()
             ndf   = fit_func.GetNDF()
@@ -1217,8 +1317,8 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
 
             print(
                 f"{color.BPINK}y-fit ({poly_label}): param={pname}, q_index={q_index}: n={n_points}, "
-                f"A={A_val:.4g}±{A_err:.4g}, B={B_val:.4g}±{B_err:.4g}, "
-                f"C={C_val:.4g}±{C_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
+                f"D={D_val:.4g}±{D_err:.4g}, A={A_val:.4g}±{A_err:.4g}, "
+                f"B={B_val:.4g}±{B_err:.4g}, C={C_val:.4g}±{C_err:.4g}, chi2/ndf={chi2}/{ndf}{color.END}"
             )
 
             if(save_plots):
@@ -1240,10 +1340,11 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
                 latex = ROOT.TLatex()
                 latex.SetNDC(True)
                 latex.SetTextSize(0.04)
-                latex.DrawLatex(0.15, 0.88, f"A = {A_val:.4g} #pm {A_err:.4g}")
-                latex.DrawLatex(0.15, 0.83, f"B = {B_val:.4g} #pm {B_err:.4g}")
-                latex.DrawLatex(0.15, 0.78, f"C = {C_val:.4g} #pm {C_err:.4g}")
-                latex.DrawLatex(0.15, 0.73, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
+                latex.DrawLatex(0.15, 0.88, f"D = {D_val:.4g} #pm {D_err:.4g}")
+                latex.DrawLatex(0.15, 0.83, f"A = {A_val:.4g} #pm {A_err:.4g}")
+                latex.DrawLatex(0.15, 0.78, f"B = {B_val:.4g} #pm {B_err:.4g}")
+                latex.DrawLatex(0.15, 0.73, f"C = {C_val:.4g} #pm {C_err:.4g}")
+                latex.DrawLatex(0.15, 0.68, f"#chi^{{2}}/ndf = {chi2:.1f} / {ndf}")
 
                 base_name = f"{cname}_{image_suffix}" if((image_suffix is not None) and (len(str(image_suffix)) > 0)) else cname
                 out_name  = os.path.join(plot_dir, f"{base_name}{file_ext}")
@@ -1259,12 +1360,15 @@ def perform_y_fits(Q2_fit_results, save_plots=True, plot_dir="ZFit_Plots", image
                 "B_err":    B_err,
                 "C":        C_val,
                 "C_err":    C_err,
+                "D":        D_val,
+                "D_err":    D_err,
                 "chi2":     chi2,
                 "ndf":      ndf,
                 "n_points": n_points,
                 "Linear":   Linear,
                 "poly_order": poly_order,
             }
+
 
             if(allow_cubic):
                 y_fit_results[pname][q_index]["D"]     = D_val
@@ -1296,27 +1400,37 @@ def build_final_coefficients(y_fit_results):
             entry    = param_y_fits.get(q_index, None)
 
             if(entry is None):
-                A_val = 0.0
-                B_val = 0.0
-                C_val = 0.0
-                A_err = 0.0
-                B_err = 0.0
-                C_err = 0.0
+                D_val = A_val = B_val = C_val = 0.0
+                D_err = A_err = B_err = C_err = 0.0
                 print(
                     f"{color.YELLOW}build_final_coefficients: Missing y-fit for param='{pname}', q_index={q_index}; "
-                    f"setting A,B,C to 0.{color.END}"
+                    f"setting A,B,C,D to 0.{color.END}"
                 )
             else:
-                A_val = entry["A"]
-                A_err = entry["A_err"]
-                B_val = entry["B"]
-                B_err = entry["B_err"]
-                C_val = entry["C"]
-                C_err = entry["C_err"]
+                D_val = entry.get("D", 0.0)
+                D_err = entry.get("D_err", 0.0)
+                A_val = entry.get("A", 0.0)
+                A_err = entry.get("A_err", 0.0)
+                B_val = entry.get("B", 0.0)
+                B_err = entry.get("B_err", 0.0)
+                C_val = entry.get("C", 0.0)
+                C_err = entry.get("C_err", 0.0)
 
+            # Names: D → y^3, A → y^2, B → y^1, C → y^0
+            nameD = f"D{q_letter}{pT_letter}{z_digit}"
             nameA = f"A{q_letter}{pT_letter}{z_digit}"
             nameB = f"B{q_letter}{pT_letter}{z_digit}"
             nameC = f"C{q_letter}{pT_letter}{z_digit}"
+
+            coeff_map[nameD]     = D_val
+            coeff_err_map[nameD] = D_err
+            meta_map[nameD]      = {
+                "param":     pname,
+                "Q2_power":  q_index,
+                "y_power":   3,
+                "pT_letter": pT_letter,
+                "z_power":   int(z_digit),
+            }
 
             coeff_map[nameA]     = A_val
             coeff_err_map[nameA] = A_err
@@ -1348,8 +1462,9 @@ def build_final_coefficients(y_fit_results):
                 "z_power":   int(z_digit),
             }
 
-    print(f"{color.BGREEN}build_final_coefficients: constructed {len(coeff_map)} final coefficients (A/B/C with aa2-style names).{color.END}")
+    print(f"{color.BGREEN}build_final_coefficients: constructed {len(coeff_map)} final coefficients (A/B/C/D with aa2-style names).{color.END}")
     return coeff_map, coeff_err_map, meta_map
+
 
 
 # ----------------------------------------------------------------------
@@ -1358,21 +1473,24 @@ def build_final_coefficients(y_fit_results):
 def print_final_4D_function(y_fit_results):
     coeff_map, coeff_err_map, meta_map = build_final_coefficients(y_fit_results)
 
-    Z_GROUPS = {
-        "2": ["c2", "c1", "c0"],
-        "1": ["a2", "a1", "a0"],
-        "0": ["b2", "b1", "b0"],
-    }
-
     def y_poly_str(q_letter, pT_letter, z_digit):
-        return f"(A{q_letter}{pT_letter}{z_digit}*y_val*y_val + B{q_letter}{pT_letter}{z_digit}*y_val + C{q_letter}{pT_letter}{z_digit})"
+        # D*y^3 + A*y^2 + B*y + C
+        return (
+            f"(D{q_letter}{pT_letter}{z_digit}*y_val*y_val*y_val + "
+            f"A{q_letter}{pT_letter}{z_digit}*y_val*y_val + "
+            f"B{q_letter}{pT_letter}{z_digit}*y_val + "
+            f"C{q_letter}{pT_letter}{z_digit})"
+        )
 
     z_terms = []
 
-    for z_digit in ["2", "1", "0"]:
+    # Loop over z^3, z^2, z^1, z^0 (if available)
+    for z_digit in sorted(Z_GROUPS.keys(), reverse=True):
         pT_terms = []
 
         for pname in Z_GROUPS[z_digit]:
+            if(pname not in PARAM_Z_PTZ_MAP):
+                continue
             pT_letter, _z = PARAM_Z_PTZ_MAP[pname]
 
             q2_terms = []
@@ -1390,7 +1508,10 @@ def print_final_4D_function(y_fit_results):
 
             Q2_block = "(" + " + ".join(q2_terms) + ")"
 
-            if(pname.endswith("2")):
+            # pT power from the param name suffix (0,1,2,3)
+            if(pname.endswith("3")):
+                pT_factor = "*pT_val*pT_val*pT_val"
+            elif(pname.endswith("2")):
                 pT_factor = "*pT_val*pT_val"
             elif(pname.endswith("1")):
                 pT_factor = "*pT_val"
@@ -1399,9 +1520,14 @@ def print_final_4D_function(y_fit_results):
 
             pT_terms.append(f"{Q2_block}{pT_factor}")
 
+        if(len(pT_terms) == 0):
+            continue
+
         pT_block = "(" + " + ".join(pT_terms) + ")"
 
-        if(z_digit == "2"):
+        if(z_digit == "3"):
+            z_terms.append(f"{pT_block}*z_val*z_val*z_val")
+        elif(z_digit == "2"):
             z_terms.append(f"{pT_block}*z_val*z_val")
         elif(z_digit == "1"):
             z_terms.append(f"{pT_block}*z_val")
@@ -1427,7 +1553,8 @@ def print_final_4D_function(y_fit_results):
         line = (
             f"  {name:4s} = {val:.6g} ± {err:.6g}   "
             f"(from param '{meta['param']}', Q2^{meta['Q2_power']}, "
-            f"pT index '{meta['pT_letter']}', z^{meta['z_power']})"
+            f"pT^{PT_LETTER_TO_POWER[meta['pT_letter']]}, z^{meta['z_power']}, "
+            f"y^{meta['y_power']})"
         )
         print(line)
         email_output = f"{email_output}{line}\n"
@@ -1435,96 +1562,79 @@ def print_final_4D_function(y_fit_results):
     return coeff_map, coeff_err_map, meta_map, email_output
 
 
+
 # ----------------------------------------------------------------------
 # Declare C++ implementation of the final F(y,Q2,pT,z) using A/B/C
 # ----------------------------------------------------------------------
 def declare_final_F_function(y_fit_results):
-    # Map param name → index in arrays
-    param_index_map = {}
-    for idx, pname in enumerate(PARAM_NAMES):
-        param_index_map[pname] = idx
+    # Build final coefficient maps and metadata
+    coeff_map, coeff_err_map, meta_map = build_final_coefficients(y_fit_results)
+
+    names_sorted = sorted(coeff_map.keys())
+    n_terms      = len(names_sorted)
 
     cpp_lines = []
     cpp_lines.append("#include <cmath>")
     cpp_lines.append("struct Final4DParams {")
-    cpp_lines.append("  static const int NPAR = 9;")
-    cpp_lines.append("  static const int NQ   = 4;  // allow Q2^0..Q2^3")
-    cpp_lines.append("  static double A[NPAR][NQ];")
-    cpp_lines.append("  static double B[NPAR][NQ];")
-    cpp_lines.append("  static double C[NPAR][NQ];")
+    cpp_lines.append(f"  static const int NTERMS = {n_terms};")
+    cpp_lines.append("  static double coeff[NTERMS];")
+    cpp_lines.append("  static int pow_y[NTERMS];")
+    cpp_lines.append("  static int pow_Q2[NTERMS];")
+    cpp_lines.append("  static int pow_pT[NTERMS];")
+    cpp_lines.append("  static int pow_z[NTERMS];")
     cpp_lines.append("};")
-    cpp_lines.append("double Final4DParams::A[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
-    cpp_lines.append("double Final4DParams::B[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
-    cpp_lines.append("double Final4DParams::C[Final4DParams::NPAR][Final4DParams::NQ] = {{0.0}};")
+    cpp_lines.append("double Final4DParams::coeff[Final4DParams::NTERMS] = {0.0};")
+    cpp_lines.append("int    Final4DParams::pow_y[Final4DParams::NTERMS]  = {0};")
+    cpp_lines.append("int    Final4DParams::pow_Q2[Final4DParams::NTERMS] = {0};")
+    cpp_lines.append("int    Final4DParams::pow_pT[Final4DParams::NTERMS] = {0};")
+    cpp_lines.append("int    Final4DParams::pow_z[Final4DParams::NTERMS]  = {0};")
 
     cpp_lines.append("void InitFinal4DParams(){")
-    for pname in PARAM_NAMES:
-        p_index = param_index_map[pname]
-        if(pname not in y_fit_results):
-            continue
-        param_y_fits = y_fit_results[pname]
-        for q_index in [0, 1, 2, 3]:
-            entry = param_y_fits.get(q_index, None)
-            if(entry is None):
-                A_val = 0.0
-                B_val = 0.0
-                C_val = 0.0
-            else:
-                A_val = float(entry["A"])
-                B_val = float(entry["B"])
-                C_val = float(entry["C"])
-            cpp_lines.append(f"  Final4DParams::A[{p_index}][{q_index}] = {A_val};")
-            cpp_lines.append(f"  Final4DParams::B[{p_index}][{q_index}] = {B_val};")
-            cpp_lines.append(f"  Final4DParams::C[{p_index}][{q_index}] = {C_val};")
+    for idx, name in enumerate(names_sorted):
+        meta = meta_map[name]
+        y_pow  = int(meta["y_power"])
+        Q2_pow = int(meta["Q2_power"])
+        z_pow  = int(meta["z_power"])
+        pT_letter = meta["pT_letter"]
+        pT_pow = PT_LETTER_TO_POWER[pT_letter]
+
+        val = float(coeff_map[name])
+
+        cpp_lines.append(f"  Final4DParams::coeff[{idx}] = {val};")
+        cpp_lines.append(f"  Final4DParams::pow_y[{idx}]  = {y_pow};")
+        cpp_lines.append(f"  Final4DParams::pow_Q2[{idx}] = {Q2_pow};")
+        cpp_lines.append(f"  Final4DParams::pow_pT[{idx}] = {pT_pow};")
+        cpp_lines.append(f"  Final4DParams::pow_z[{idx}]  = {z_pow};")
     cpp_lines.append("}")
 
     cpp_lines.append(
-        "double EvalFinalParam(int pIndex, double y, double Q2){\n"
-        "  if(pIndex < 0 || pIndex >= Final4DParams::NPAR) return 0.0;\n"
-        "  double result = 0.0;\n"
-        "  for(int q = 0; q < Final4DParams::NQ; ++q){\n"
-        "    double A = Final4DParams::A[pIndex][q];\n"
-        "    double B = Final4DParams::B[pIndex][q];\n"
-        "    double C = Final4DParams::C[pIndex][q];\n"
-        "    double y_poly = A*y*y + B*y + C;\n"
-        "    double Q2_pow = 1.0;\n"
-        "    if(q == 1)      Q2_pow = Q2;\n"
-        "    else if(q == 2) Q2_pow = Q2*Q2;\n"
-        "    else if(q == 3) Q2_pow = Q2*Q2*Q2;\n"
-        "    result += y_poly * Q2_pow;\n"
-        "  }\n"
-        "  return result;\n"
-        "}\n"
-    )
-
-    # Param indices: a0..c2 (must match PARAM_NAMES order)
-    cpp_lines.append(
         "double F_4D_eval(double y_val, double Q2_val, double pT_val, double z_val){\n"
-        "  // PARAM_NAMES = [a0,a1,a2,b0,b1,b2,c0,c1,c2]\n"
-        "  double a0 = EvalFinalParam(0, y_val, Q2_val);\n"
-        "  double a1 = EvalFinalParam(1, y_val, Q2_val);\n"
-        "  double a2 = EvalFinalParam(2, y_val, Q2_val);\n"
-        "  double b0 = EvalFinalParam(3, y_val, Q2_val);\n"
-        "  double b1 = EvalFinalParam(4, y_val, Q2_val);\n"
-        "  double b2 = EvalFinalParam(5, y_val, Q2_val);\n"
-        "  double c0 = EvalFinalParam(6, y_val, Q2_val);\n"
-        "  double c1 = EvalFinalParam(7, y_val, Q2_val);\n"
-        "  double c2 = EvalFinalParam(8, y_val, Q2_val);\n"
-        "  double pT2 = pT_val * pT_val;\n"
-        "  double z2  = z_val  * z_val;\n"
-        "  double slope     = a0 + a1*pT_val + a2*pT2;\n"
-        "  double intercept = b0 + b1*pT_val + b2*pT2;\n"
-        "  double quad      = c0 + c1*pT_val + c2*pT2;\n"
-        "  double output = intercept + slope*z_val + quad*z2;\n"
-        "  if(output < 0){output = 0;}\n"
-        "  return output;\n"
+        "  double result = 0.0;\n"
+        "  for(int i = 0; i < Final4DParams::NTERMS; ++i){\n"
+        "    double c = Final4DParams::coeff[i];\n"
+        "    if(c == 0.0) continue;\n"
+        "    int py  = Final4DParams::pow_y[i];\n"
+        "    int pQ2 = Final4DParams::pow_Q2[i];\n"
+        "    int ppT = Final4DParams::pow_pT[i];\n"
+        "    int pz  = Final4DParams::pow_z[i];\n"
+        "    double term = c;\n"
+        "    if(py > 0)  term *= std::pow(y_val,  py);\n"
+        "    if(pQ2 > 0) term *= std::pow(Q2_val, pQ2);\n"
+        "    if(ppT > 0) term *= std::pow(pT_val, ppT);\n"
+        "    if(pz > 0)  term *= std::pow(z_val,  pz);\n"
+        "    result += term;\n"
+        "  }\n"
+        "  if(result < 0.0) result = 0.0;\n"
+        "  if(result > 1.0) result = 1.0;\n"
+        "  return result;\n"
         "}\n"
     )
 
     cpp_code = "\n".join(cpp_lines)
     ROOT.gInterpreter.Declare(cpp_code)
     ROOT.InitFinal4DParams()
-    print(f"{color.BCYAN}declare_final_F_function: C++ F_4D_eval(y,Q2,pT,z) declared and initialized with final A/B/C parameters.{color.END}")
+    print(f"{color.BCYAN}declare_final_F_function: C++ F_4D_eval(y,Q2,pT,z) declared and initialized with full A/B/C/D parameters.{color.END}")
+
 
 
 # ----------------------------------------------------------------------
