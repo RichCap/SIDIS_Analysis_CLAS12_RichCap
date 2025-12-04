@@ -107,6 +107,8 @@ def parse_args():
                    help="Use reconstructed MC instead of experimental data.")
     p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
                    help="Use modulated MC files to create response matrices.")
+    p.add_argument('-mod_solo', '--modulation_solo', action='store_true', dest='mod_solo',
+                   help="Use modulated MC files to create response matrices, but will not compare to other files (use to get around the `--use_errors_json` restrictions).")
     p.add_argument('-close', '--closure',  action='store_true', dest='closure',
                    help="Run Closure Test (unfold modulated MC with itself).")
     p.add_argument('-data', '--data_compare',  action='store_true', dest='data',
@@ -168,6 +170,16 @@ def parse_args():
 
     p.add_argument('-rad', '--radiation_correction', action='store_true', 
                    help="Applies Radiative Corrections.")
+    p.add_argument('-fi', '--fewer_images', action='store_true', 
+                   help="Skips saving some images that might not be needed.")
+    p.add_argument('-c', '--compare', action='store_true', 
+                   help="Compares the same histograms from different ROOT file sources.")
+    p.add_argument('-r2', '--root_compare', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_FirstOrderAcc_as_of_12_2_2025.root",
+                   help="Name of second ROOT input file for using with `--compare`.")
+    p.add_argument('-ln1', '--legend_name_1', type=str, default=None,
+                   help="Custom Legend Name for histogram 1 (use with `-all` option).")
+    p.add_argument('-ln2', '--legend_name_2', type=str, default=None,
+                   help="Custom Legend Name for histogram 2 (use with `-all` option).")
     
     return p.parse_args()
 
@@ -201,6 +213,10 @@ args = parse_args()
 
 # # Use it like this:
 # silence_root_import()
+
+if((args.compare) and (args.single_file)):
+    args.single_file = False
+    print(f"\n{color.Error}With `--compare` selected, `--single_file` must be set to false...{color.END}\n")
 
 Saving_Q = not args.test
 Fit_Test = not args.no_fit
@@ -1301,6 +1317,8 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
     Canvases_to_Make = [HISTO_NAME]
     HISTO_True = "ERROR"
     Legend_Labels = [f"Plots of {args.dimensions} {args.unfold}"]
+    if(args.mod_solo):
+        Canvases_to_Make = [f"Mod_Test_{HISTO_NAME}"]
     if(args.mod):
         Canvases_to_Make = [f"Mod_Test_{HISTO_NAME}", f"Mod_Test_DIFF_{HISTO_NAME}", f"Mod_Test_UNCERTAINTY_{HISTO_NAME}"]
         Legend_Labels    = ["Unfolded with Normal MC", "Unfolded with Modulated MC"]
@@ -1316,6 +1334,15 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         # HISTO_NAME = f"{HISTO_NAME}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
         HISTO_True = f"{HISTO_True}{'_(Mod_Test)' if(args.mod) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
         HISTO_True = HISTO_True.replace("(tdf)", "(gdf)")
+    if(args.compare):
+        HISTO_NAME = f"{HISTO_NAME}{'_(Mod_Test)' if(args.mod or args.mod_solo) else '_(Closure_Test)' if(args.closure) else '_(Sim_Test)' if(args.sim) else ''}"
+    if((not args.data) and (args.legend_name_1 is not None)):
+        Legend_Labels[0] = str(args.legend_name_1)
+    if((not args.data) and (args.legend_name_2 is not None)):
+        if(len(Legend_Labels) > 1):
+            Legend_Labels[1] = str(args.legend_name_2)
+        else:
+            Legend_Labels.append(str(args.legend_name_2))
     #######################################################################################################################################################################################################
     ####  Histogram Creations     #########################################################################################################################################################################
     Saved_Histos   = {}
@@ -1325,6 +1352,9 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
             continue
         HISTO_NAME_Binned = HISTO_NAME.replace("(z_pT_Bin_ALL)", f"(z_pT_Bin_{z_PT_BIN_NUM})")
         HISTO_True_Binned = HISTO_True.replace("(z_pT_Bin_ALL)", f"(z_pT_Bin_{z_PT_BIN_NUM})")
+        # if(args.compare):
+        #     print(f"\n\nHISTO_NAME = {HISTO_NAME}")
+        #     print(f"HISTO_NAME_Binned = {HISTO_NAME_Binned}\n\n")
         if(args.data):
             Data_Legend_Titles = ("Experimental Data", "Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)")
             Legend_Labels = ["Experimental Data", "Reconstructed Monte Carlo" if(not (args.mod or args.closure)) else "Reconstructed MC (with weights)"]
@@ -1384,7 +1414,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         elif(HISTO_NAME_Binned in ROOT_Input_In.GetListOfKeys()):
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME_Binned}{color.END}")
-            Saved_Histos[str(z_PT_BIN_NUM)] = Save_Histograms_As_Images(ROOT_In=ROOT_Input_In, HISTO_NAME_In=HISTO_NAME_Binned, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "", TITLE=Standard_Histogram_Title_Addition, Return_Histos=True)
+            Saved_Histos[str(z_PT_BIN_NUM)] = Save_Histograms_As_Images(ROOT_In=ROOT_Input_In, HISTO_NAME_In=HISTO_NAME_Binned, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod or args.mod_solo) else "", TITLE=Standard_Histogram_Title_Addition, Return_Histos=True)
         else:
             print(f"\n{color.Error}MISSING: {HISTO_NAME_Binned}{color.END}\n")
 
@@ -1549,8 +1579,12 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         Save_Name = Save_Name.replace("SMEAR=_", "")
         Save_Name = Save_Name.replace("__", "_")
         Save_Name = Save_Name.replace("_.", ".")
-        All_z_pT_Canvas[Canvas_Name].SaveAs(Save_Name)
-        print(f"Saved Image: {Save_Name}")
+        if((args.fewer_images) and any(((short_save in Save_Name) and (short_save not in str(args.save_name))) for short_save in ["DIFF_", "UNCERTAINTY_"])):
+            print(f"{color.BOLD}WOULD HAVE{color.END} Saved Image: {color.RED}{Save_Name}{color.END}\n\t(Skipping due to `--fewer_images` option)")
+            continue
+        else:
+            All_z_pT_Canvas[Canvas_Name].SaveAs(Save_Name)
+            print(f"Saved Image: {Save_Name}")
         ##################################################################### ################################################################ ################################################################
         #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################
         ##################################################################### ################################################################ ################################################################
@@ -1570,14 +1604,17 @@ if((args.unfold in ["tdf"]) and (args.dimensions in ["3D", "MultiDim_3D_Histo"])
 
 ROOT_Input = ROOT.TFile.Open(args.root, "READ")
 ROOT_Mod   = ROOT_Input if(args.single_file) else None
-if(args.mod):
+if(args.compare):
+    ROOT_Mod = ROOT.TFile.Open(args.root_compare, "READ")
+    print(f"Comparing to {args.root_compare}.")
+elif(args.mod):
     ROOT_Mod = ROOT_Input if(args.single_file) else ROOT.TFile.Open("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root", "READ")
     
 for BIN in Q2_y_Bin_List:
     Q2_y_BIN_NUM       = int(BIN) if(str(BIN) not in ["0"]) else "All"
     if(args.all_z_pt):
         Unfolding_Diff_Data = z_pT_Images_Together_For_Comparisons(ROOT_Input_In=ROOT_Input, ROOT_Mod_In=ROOT_Mod, Unfolding_Diff_Data_Input=Unfolding_Diff_Data, Q2_Y_Bin=Q2_y_BIN_NUM, Plot_Orientation="z_pT")
-        to_be_saved_count += 3 if(args.mod or args.sim or args.closure) else 1
+        to_be_saved_count += 3 if((args.mod or args.sim or args.closure) and (not args.fewer_images)) else 1
         continue
     if(args.z_pt):
         z_pT_Bin_Range = args.z_pt
@@ -1647,7 +1684,7 @@ for BIN in Q2_y_Bin_List:
             if(args.verbose):
                 print(f"{color.BGREEN}Found: {color.END_b}{HISTO_NAME}{color.END}")
             if(Saving_Q):
-                Saved_Q = Save_Histograms_As_Images(ROOT_In=ROOT_Input, HISTO_NAME_In=HISTO_NAME, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod) else "Closure_Test_" if(args.closure) else "", TITLE=Standard_Histogram_Title_Addition)
+                Saved_Q = Save_Histograms_As_Images(ROOT_In=ROOT_Input, HISTO_NAME_In=HISTO_NAME, Format=args.file_format, SAVE=args.save_name, SAVE_prefix="Sim_Test_" if(args.sim) else "Mod_Test_" if(args.mod or args.mod_solo) else "Closure_Test_" if(args.closure) else "", TITLE=Standard_Histogram_Title_Addition)
                 if(not Saved_Q):
                     continue
             to_be_saved_count += 1
@@ -1693,6 +1730,7 @@ Arguments:
 --smearing_option              --> {args.smearing_option}
 --simulation (synthetic data?) --> {args.sim}
 --modulation (added to MC?)    --> {args.mod}
+--modulation_solo (no compare) --> {args.mod_solo}
 --closure (Full Closure Test)  --> {args.closure}
 --data_compare                 --> {args.data}
 --title  (added title)         --> {args.title}
@@ -1710,7 +1748,13 @@ Arguments:
 --no-fit                       --> {args.no_fit}
 --fit_root                     --> {args.fit_root}
 --remake_bin_by_bin            --> {args.remake}
+--radiation_correction         --> {args.radiation_correction}
+--fewer_images                 --> {args.fewer_images}
+--legend_name_1                --> {args.legend_name_1}
+--legend_name_2                --> {args.legend_name_2}
 """
+if(args.compare):
+    email_body = f"{email_body}--root_compare                 --> {args.root_compare}"
 if(json_output_name):
     email_body = f"""{email_body}
     
