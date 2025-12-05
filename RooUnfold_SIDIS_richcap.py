@@ -68,9 +68,12 @@ Create_stat_File = not True
 Cor_Compare      = False
 Smearing_Options = "both"
 
+
+
+
 fits_included, RC_fits_included = False, False
 
-Apply_RC = True
+Apply_RC = not True
 if(Apply_RC):
     print(f"\n{color.BYELLOW}Running with RC Corrections (from EvGen){color.END}\n")
 
@@ -82,7 +85,10 @@ if(Use_TTree):
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/COPY_of_Copy_of_Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy_Adding_FirstOrderAcc_Test.root"
-
+    
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_AngleOnlyZerothOrder_as_of_12_2_2025_Copy_First_Order_Errors.root"
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_AngleOnlyZerothOrder_as_of_12_2_2025_Copy.root"
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Baseline_Unfolded_with_No_extra_uncertainties_added.root"
 
 
 def silence_root_import():
@@ -238,6 +244,8 @@ if(Use_TTree and (Sim_Test or Mod_Test)):
         TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Synthetic_Data_with_kCovToy.root"
     elif(Mod_Test):
         TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Modulated_Response_with_kCovToy.root"
+        TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_FirstOrder_as_of_12_2_2025_Copy_First_Order_Errors.root"
+        TTree_Name = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_FirstOrder_as_of_12_2_2025_Copy.root"
 
 Add_Uncertainties = (not True) and ((Fit_Test and Use_TTree) or Apply_RC) and (not Mod_Test)
 Uncertainty_File  = None
@@ -9370,7 +9378,7 @@ if(not Relative_Background_Run_Q):
 
 if((Fit_Test and Use_TTree) or Apply_RC):
     fits_included    = False
-    RC_fits_included = False
+    RC_fits_included = not Apply_RC # if Apply_RC = False, then there is no need to create the RC fits anyway
     # if(Fit_Test):
     for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
         if("(Fit_Par" in str(List_of_All_Histos_For_Unfolding_ii)):
@@ -9381,7 +9389,10 @@ if((Fit_Test and Use_TTree) or Apply_RC):
         if(fits_included and RC_fits_included):
             break
     print(f"{color.BLUE}Normal Unfolding Fits Already Included? -> {color.BGREEN if(fits_included)    else color.Error}{fits_included}{color.END}")
-    print(f"{color.BLUE}RC Unfolding Fits Already Included?     -> {color.BGREEN if(RC_fits_included) else color.Error}{RC_fits_included}{color.END}")
+    if(not Apply_RC):
+        print(f"{color.BOLD}Not running RC... Did not check for RC fits.{color.END}")
+    else:
+        print(f"{color.BLUE}RC Unfolding Fits Already Included?     -> {color.BGREEN if(RC_fits_included) else color.Error}{RC_fits_included}{color.END}")
 
     if(not (fits_included and RC_fits_included)):
         print("Making the fits...")
@@ -9674,8 +9685,9 @@ if(Apply_RC):
     # Method_Type_List.remove("Bin")
     # Method_Type_List.append("RC_Bin")
     Method_Type_List.append("RC_Bayesian")
-# Method_Type_List = []
-# Method_Type_List.append("Bayesian")
+Method_Type_List = []
+Method_Type_List.append("Bayesian")
+# Method_Type_List.append("Bin")
 # Method_Type_List.append("RC_Bayesian")
 # Method_Type_List.append("Acceptance")
 # if(Use_TTree):
@@ -9804,55 +9816,55 @@ if(("MultiDim_z_pT_Bin_Y_bin_phi_t"  in Variable_List_Final) and ("3D"   not in 
     Variable_List_Final.remove("MultiDim_z_pT_Bin_Y_bin_phi_t")
 
 
-# if(not (fits_included and RC_fits_included)):
-print(f"\n{color.BOLD}About to run 'Integrate_z_pT_Bins(...)' to get the Integrated z-pT bin plots...{color.END}")
-for variable in Variable_List:
-    # if((variable not in ["phi_t", "MM"]) or ("sec" in variable)):
-    #     continue
-    for BIN in Q2_xB_Bin_List:
-        BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
-        for smear in Smearing_final_list:
-            for Cut in Cut_Options_List:
-                # if(Cut in ["Proton", "Proton_Integrate"]):
-                if(Cut not in ["", "Cut"]):
-                    HISTO_NAME = f"(1D)_(Data_Type)_({Cut})_(SMEAR={str(smear)})_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_({str(variable)})"
-                else:
-                    HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
-                for Multi_Dim in Multi_Dimensional_List:
-                    # if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
-                    if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]))):
-                        continue
-                    if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"])):
-                        for method in Method_Type_List:
-                            if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background", "RC"]) and (Multi_Dim not in ["Off"])):
-                                if((method == "RC") and ("Off" not in Multi_Dimensional_List)):
-                                    Multi_Dim = "Off"
-                                else:
+if(not (fits_included and RC_fits_included)):
+    print(f"\n{color.BOLD}About to run 'Integrate_z_pT_Bins(...)' to get the Integrated z-pT bin plots...{color.END}")
+    for variable in Variable_List:
+        # if((variable not in ["phi_t", "MM"]) or ("sec" in variable)):
+        #     continue
+        for BIN in Q2_xB_Bin_List:
+            BIN_NUM        = int(BIN) if(str(BIN) not in ["0"]) else "All"
+            for smear in Smearing_final_list:
+                for Cut in Cut_Options_List:
+                    # if(Cut in ["Proton", "Proton_Integrate"]):
+                    if(Cut not in ["", "Cut"]):
+                        HISTO_NAME = f"(1D)_(Data_Type)_({Cut})_(SMEAR={str(smear)})_(Q2_y_Bin_{str(BIN_NUM)})_(z_pT_Bin_All)_({str(variable)})"
+                    else:
+                        HISTO_NAME = "".join(["(1D)_(Data_Type)_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_All)_(", str(variable), ")"])
+                    for Multi_Dim in Multi_Dimensional_List:
+                        # if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]) or ("sec" in variable))):
+                        if((Multi_Dim not in ["Off"]) and ((variable in ["el", "pip", "elth", "pipth", "elPhi", "pipPhi"]))):
+                            continue
+                        if((BIN_NUM not in ["All"]) and (Multi_Dim in ["Off", "Only", "3D", "5D"])):
+                            for method in Method_Type_List:
+                                if((method in ["RooUnfold_svd", "SVD", "Response", "Relative_Background", "RC"]) and (Multi_Dim not in ["Off"])):
+                                    if((method == "RC") and ("Off" not in Multi_Dimensional_List)):
+                                        Multi_Dim = "Off"
+                                    else:
+                                        continue
+                                if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
+                                    # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
                                     continue
-                            if((method in ["Bayesian", "Unfold"])                                      and (Multi_Dim     in ["5D"])):
-                                # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
-                                continue
-                            if((method in ["gdf", "tdf"]) and (("Smear" in str(smear)) or (Cut in ["Proton"]))):
-                                continue
-                            # if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"]) or (variable not in ["phi_t", "MM"]) or ("sec" in variable)):
-                            # if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"])):
-                            if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "RC", "RC_Bin", "RC_Bayesian", "Acceptance_ratio"])):
-                                continue
-                            if(method in ["Data"]):
-                                if(Sim_Test):
-                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="tdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                    final_count += 1
+                                if((method in ["gdf", "tdf"]) and (("Smear" in str(smear)) or (Cut in ["Proton"]))):
+                                    continue
+                                # if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"]) or (variable not in ["phi_t", "MM"]) or ("sec" in variable)):
+                                # if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "Acceptance"])):
+                                if((method in ["gdf", "rdf", "Response", "Kinematic_Comparison", "Unfold", "RC", "RC_Bin", "RC_Bayesian", "Acceptance_ratio"])):
+                                    continue
+                                if(method in ["Data"]):
+                                    if(Sim_Test):
+                                        List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                        List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="tdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                        final_count += 1
+                                    else:
+                                        List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    final_count += 2
+                                    if("mdf" not in Method_Type_List):
+                                        List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="mdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                        final_count += 1
                                 else:
-                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="rdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME.replace(f"SMEAR={smear}", f"SMEAR=''"), VARIABLE=f"({variable})", Method="gdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                final_count += 2
-                                if("mdf" not in Method_Type_List):
-                                    List_of_All_Histos_For_Unfolding = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method="mdf",  Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
+                                    List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
                                     final_count += 1
-                            else:
-                                List_of_All_Histos_For_Unfolding     = Integrate_z_pT_Bins(Histogram_List_All=List_of_All_Histos_For_Unfolding, Default_Histo_Name=HISTO_NAME,                                        VARIABLE=f"({variable})", Method=method, Q2_Y_Bin=BIN_NUM, Multi_Dim_Option=Multi_Dim)
-                                final_count += 1
 
 print(f"\n(Extra) Final Count = {final_count}\n")
 del final_count
@@ -10226,8 +10238,8 @@ for variable in Variable_List:
                                     #     PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(", str(Cut), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
                                     else:
                                         PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
-
-
+                                    # if((fits_included and RC_fits_included) and Mod_Test):
+                                    #     PAR_FIND_NAME = f"{PAR_FIND_NAME}_(Mod_Test)"
                                     Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][1], 3)
                                     PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][1], 3)
                                     # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
@@ -10257,6 +10269,10 @@ for variable in Variable_List:
                                         PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
                                         PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])
                                         PAR_HISTO_NAME_VS_PT = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(pT_Bin_Center_", str(Z_BIN),    ")_(", str(Variable), ")_VS_PT"])
+                                    # if((fits_included and RC_fits_included) and Mod_Test):
+                                    #     PAR_FIND_NAME        = f"{PAR_FIND_NAME}_(Mod_Test)"
+                                    #     PAR_HISTO_NAME_VS_Z  = PAR_HISTO_NAME_VS_Z.replace(f"{str(Variable)})_VS_Z",   f"{str(Variable)})_(Mod_Test)_VS_Z")
+                                    #     PAR_HISTO_NAME_VS_PT = PAR_HISTO_NAME_VS_PT.replace(f"{str(Variable)})_VS_PT", f"{str(Variable)})_(Mod_Test)_VS_PT")
 
                                     if("y_bin" in Binning_Method):
                                         if(("0.27" in str(PT_BIN)) and (("Bay" in str(Method)) or ("Bin" in str(Method)))):
