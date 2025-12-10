@@ -212,9 +212,9 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
         print(f"{color.Error}[ERROR]{color.END} Batch {batch_index} failed with return code {returncode}.")
 
     return {
-        "batch_id":      batch_index,
-        "returncode":    returncode,
-        "root_file":     batch_root_file,
+        "batch_id":       batch_index,
+        "returncode":     returncode,
+        "root_file":      batch_root_file,
         "name_for_batch": name_for_batch,
     }
 
@@ -246,17 +246,17 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
             except Exception as e:
                 print(f"{color.Error}[ERROR]{color.END} Failed to start batch {batch_index}: {e}")
                 results.append({
-                    "batch_id":      batch_index,
-                    "returncode":    1,
-                    "root_file":     batch_root_file,
+                    "batch_id":       batch_index,
+                    "returncode":     1,
+                    "root_file":      batch_root_file,
                     "name_for_batch": name_for_batch,
                 })
                 continue
 
             running.append({
-                "batch_id":      batch_index,
-                "process":       proc,
-                "root_file":     batch_root_file,
+                "batch_id":       batch_index,
+                "process":        proc,
+                "root_file":      batch_root_file,
                 "name_for_batch": name_for_batch,
             })
 
@@ -287,9 +287,9 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
                 print(f"{color.Error}[ERROR]{color.END} Batch {batch_id} failed with return code {ret} (parallel).")
 
             results.append({
-                "batch_id":      batch_id,
-                "returncode":    ret,
-                "root_file":     root_file,
+                "batch_id":       batch_id,
+                "returncode":     ret,
+                "root_file":      root_file,
                 "name_for_batch": name_for_bch,
             })
 
@@ -371,6 +371,132 @@ def delete_batch_files(batch_files):
             print(f"       Skipping missing file: {path}")
         except Exception as e:
             print(f"       {color.Error}[WARNING]{color.END} Could not delete {path}: {e}")
+
+
+# =========================
+# SLURM array status helpers (used by sequential mode)
+# =========================
+
+SLURM_ARRAY_CHECK_DISABLED = False
+
+
+def query_slurm_array_task_state(array_jobid, batch_index):
+    global SLURM_ARRAY_CHECK_DISABLED
+
+    if(SLURM_ARRAY_CHECK_DISABLED):
+        return "IGNORE"
+
+    try:
+        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid), "-o", "%.18i %.2t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print(f"{color.Error}[WARNING]{color.END} squeue not found; cannot coordinate with SLURM array job {array_jobid}.")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return "IGNORE"
+    except Exception as e:
+        print(f"{color.Error}[WARNING]{color.END} Exception while running squeue for array job {array_jobid}: {e}")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return "IGNORE"
+
+    if(proc.returncode != 0):
+        msg = proc.stderr.strip()
+        if(msg == ""):
+            msg = "(no additional message from squeue)"
+        print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} returned code {proc.returncode}: {msg}")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return "IGNORE"
+
+    target_id = f"{array_jobid}_{batch_index}"
+    for line in proc.stdout.strip().splitlines():
+        parts = line.split()
+        if(len(parts) < 2):
+            continue
+        job_id = parts[0]
+        state  = parts[1]
+        if(job_id == target_id):
+            return state
+
+    # Not found (not pending/running/etc. in this array) -> treat as completed or absent
+    return None
+
+
+def cancel_slurm_array_task(array_jobid, batch_index):
+    job_str = f"{array_jobid}_{batch_index}"
+    try:
+        proc = subprocess.run(["scancel", job_str], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print(f"{color.Error}[WARNING]{color.END} scancel not found; cannot cancel SLURM array task {job_str}.")
+        return False
+    except Exception as e:
+        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {e}")
+        return False
+
+    if(proc.returncode != 0):
+        msg = proc.stderr.strip()
+        if(msg == ""):
+            msg = "(no additional message from scancel)"
+        print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
+        return False
+
+    print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+    return True
+
+
+def slurm_array_has_active_tasks(array_jobid):
+    global SLURM_ARRAY_CHECK_DISABLED
+
+    if(array_jobid is None):
+        return False
+    if(SLURM_ARRAY_CHECK_DISABLED):
+        # Coordination has been disabled earlier; fall back to original behaviour
+        return False
+
+    try:
+        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print(f"{color.Error}[WARNING]{color.END} squeue not found; cannot check active tasks for SLURM array job {array_jobid}.")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return False
+    except Exception as e:
+        print(f"{color.Error}[WARNING]{color.END} Exception while checking active tasks for SLURM array job {array_jobid}: {e}")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return False
+
+    if(proc.returncode != 0):
+        msg = proc.stderr.strip()
+        if(msg == ""):
+            msg = "(no additional message from squeue)"
+        print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} (final check) returned code {proc.returncode}: {msg}")
+        SLURM_ARRAY_CHECK_DISABLED = True
+        return False
+
+    output = proc.stdout.strip()
+    if(output == ""):
+        # No lines -> no active tasks in this array
+        return False
+
+    # At least one active task is still present
+    return True
+
+
+def cancel_slurm_job(jobid):
+    try:
+        proc = subprocess.run(["scancel", str(jobid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print(f"{color.Error}[WARNING]{color.END} scancel not found; cannot cancel SLURM job {jobid}.")
+        return False
+    except Exception as e:
+        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on job {jobid}: {e}")
+        return False
+
+    if(proc.returncode != 0):
+        msg = proc.stderr.strip()
+        if(msg == ""):
+            msg = "(no additional message from scancel)"
+        print(f"{color.Error}[WARNING]{color.END} scancel {jobid} failed with code {proc.returncode}: {msg}")
+        return False
+
+    print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM job {jobid} (hadd job).")
+    return True
 
 
 # =========================
@@ -487,7 +613,6 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, n
     # hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
     hadd_script_text = build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
 
-
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
     print(array_script_text)
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
@@ -513,7 +638,6 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, n
 
     array_script_path = os.path.join(script_dir_local, "slurm_array_job.sh")
     hadd_script_path  = os.path.join(script_dir_local, "slurm_hadd_job.sh")
-
 
     if(os.path.isfile(merged_file)):
         try:
@@ -625,12 +749,20 @@ def main():
     parser.add_argument("-cpu", "--slurm-mem-per-cpu", default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '2GB', '4000M').")
     parser.add_argument("-p", "--preset", choices=["zeroth", "ao-zeroth", "first", "first-acc", "ao-first-acc"], default="zeroth", help="Preset configuration.")
     parser.add_argument("-ee", "--email-extra", type=str, default="", help="Extra message appended to the -em email message passed to using_RDataFrames_python.py.")
+    parser.add_argument("-saj", "--slurm-array-jobid", type=str, default=None, help="Optional SLURM array job ID to coordinate with sequential mode (cancel pending tasks and skip running/completed ones).")
+    parser.add_argument("-shj", "--slurm-hadd-jobid", type=str, default=None, help="Optional SLURM hadd job ID to cancel if local hadd completes successfully.")
 
     args = parser.parse_args()
 
     if((args.nbatches <= 0) or (args.nbatches > 57)):
         print(f"{color.Error}[ERROR]{color.END} --nbatches must be between 1 and 57 (Maximum Group Number: 57).")
         sys.exit(1)
+
+    if((args.slurm_array_jobid is not None) and (args.mode != "sequential")):
+        print(f"{color.BBLUE}[INFO]{color.END} --slurm-array-jobid provided but mode is '{args.mode}'. This option only affects sequential mode and will be ignored for other modes.")
+
+    if((args.slurm_hadd_jobid is not None) and (args.mode != "sequential")):
+        print(f"{color.BBLUE}[INFO]{color.END} --slurm-hadd-jobid provided but mode is '{args.mode}'. This option only affects sequential mode and will be ignored for other modes.")
 
     email_address = args.email if(args.email is not None) else DEFAULT_EMAIL
 
@@ -648,9 +780,9 @@ def main():
         print(f"{color.Error}[ERROR]{color.END} Unknown preset: {args.preset}")
         sys.exit(1)
 
-    preset_cfg          = PRESETS[args.preset]
+    preset_cfg           = PRESETS[args.preset]
     name_base_for_merged = build_name_base_for_merged(preset_cfg, args.name_tag)
-    email_msg           = build_email_message(preset_cfg, args.email_extra)
+    email_msg            = build_email_message(preset_cfg, args.email_extra)
 
     overall_success = False
     hadd_success    = False
@@ -662,8 +794,36 @@ def main():
     if(args.mode == "sequential"):
         print(f"{color.BBLUE}[INFO]{color.END} Running in sequential local mode (no SLURM).")
 
-        results = []
+        results             = []
+        slurm_array_active  = False
+
         for batch_idx in range(1, args.nbatches + 1):
+            run_this_batch = True
+
+            if(args.slurm_array_jobid is not None):
+                state = query_slurm_array_task_state(args.slurm_array_jobid, batch_idx)
+
+                if(state == "IGNORE"):
+                    # Fall back to original sequential behaviour (no SLURM coordination)
+                    pass
+                elif(state is None):
+                    # Not found in squeue output -> assume completed / not active, skip to avoid double-processing
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{batch_idx} not found in squeue output; assuming completed and skipping batch {batch_idx} in sequential mode.")
+                    run_this_batch = False
+                elif(state == "PD"):
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{batch_idx} is pending; attempting to cancel so sequential mode can run this batch.")
+                    cancelled = cancel_slurm_array_task(args.slurm_array_jobid, batch_idx)
+                    if(not cancelled):
+                        print(f"{color.BBLUE}[INFO]{color.END} Could not safely cancel {args.slurm_array_jobid}_{batch_idx}; skipping batch {batch_idx} in sequential mode to avoid double-processing.")
+                        run_this_batch = False
+                else:
+                    # Running or some other active state (e.g. CG, R, etc.)
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{batch_idx} is in state '{state}'; skipping batch {batch_idx} in sequential mode.")
+                    run_this_batch = False
+
+            if(not run_this_batch):
+                continue
+
             res = run_single_batch_sequential(main_script, batch_idx, output_dir, preset_cfg, name_base_for_merged, email_msg)
             results.append(res)
 
@@ -671,13 +831,32 @@ def main():
             if(res["returncode"] != 0):
                 batch_failures.append(res["batch_id"])
 
+        # Final check: are there any active SLURM array tasks still running/pending?
+        if(args.slurm_array_jobid is not None):
+            slurm_array_active = slurm_array_has_active_tasks(args.slurm_array_jobid)
+            if(slurm_array_active):
+                print(f"{color.BBLUE}[INFO]{color.END} SLURM array job {args.slurm_array_jobid} still has active tasks; local hadd will be skipped so the SLURM hadd job can perform the merge.")
+            else:
+                print(f"{color.BBLUE}[INFO]{color.END} No active tasks remain in SLURM array job {args.slurm_array_jobid}; local hadd is allowed to run if all sequential batches succeeded.")
+
         if(len(batch_failures) == 0):
-            batch_files  = [res["root_file"] for res in results]
-            hadd_success = run_hadd(batch_files, merged_file)
-            if(hadd_success and args.delete_batch_files):
-                delete_batch_files(batch_files)
-                delete_success = True
-            overall_success = hadd_success
+            if(slurm_array_active):
+                # Sequential portion succeeded for the batches it ran, but we are deferring the merge to the SLURM hadd job.
+                overall_success = True
+                hadd_success    = f"Skipped locally (SLURM array {args.slurm_array_jobid} still active; SLURM hadd job will merge)."
+            else:
+                batch_files  = [res["root_file"] for res in results]
+                hadd_success = run_hadd(batch_files, merged_file)
+
+                if(hadd_success and args.delete_batch_files):
+                    delete_batch_files(batch_files)
+                    delete_success = True
+
+                # If local hadd succeeded and a SLURM hadd job ID was provided, cancel that SLURM hadd job.
+                if(hadd_success and (args.slurm_hadd_jobid is not None)):
+                    cancel_slurm_job(args.slurm_hadd_jobid)
+
+                overall_success = hadd_success
         else:
             print(f"{color.Error}[ERROR]{color.END} Some batches failed: {batch_failures}")
             overall_success = False

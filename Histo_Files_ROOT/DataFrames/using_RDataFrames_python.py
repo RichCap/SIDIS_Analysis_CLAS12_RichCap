@@ -2880,31 +2880,40 @@ double {func_name}(const double x, const double y){{
                 }}
                 """)
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
-            mdf_clasdis = mdf_clasdis.Define("Event_Weight" if(args.do_not_use_hpp) else "W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            mdf_clasdis = mdf_clasdis.Define("W_pre",        "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             if(not args.do_not_use_hpp):
-                pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
+                # pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
                 if(args.angles_only_hpp):
                     mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared))")
                 else:
                     mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
                 mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
-                post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
-                scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-                mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+                # post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
+                # scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+                # mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+            else:
+                mdf_clasdis     = mdf_clasdis.Define("W_acc",                      "1.0")
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
         else:
             gdf_clasdis = gdf_clasdis.Define("Event_Weight", "1.0")
-            mdf_clasdis = mdf_clasdis.Define("Event_Weight" if(args.do_not_use_hpp) else "W_pre", "1.0")
+            mdf_clasdis = mdf_clasdis.Define("Event_Weight", "1.0")
+            mdf_clasdis = mdf_clasdis.Define("W_pre",        "1.0")
             if(not args.do_not_use_hpp):
-                pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
+                # pre_sum         = mdf_clasdis.Sum("W_pre").GetValue()
                 if(args.angles_only_hpp):
                     mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared))")
                 else:
                     mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
                 mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
-                post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
-                scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
-                mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
-            
+                # post_sum        = mdf_clasdis.Sum("Event_Weight_raw").GetValue()
+                # scale           = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+                # mdf_clasdis     = mdf_clasdis.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+            else:
+                mdf_clasdis     = mdf_clasdis.Define("W_acc",                      "1.0")
+                mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
+        if(not args.do_not_use_hpp):
+            mdf_clasdis = weight_norm_by_bins(df_in=mdf_clasdis, Histo_Data_In="mdf", verbose=args.verbose, Do_not_use_Smeared=False) # See helper_functions_for_using_RDataFrames_python.py
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         output_file = ROOT.TFile(args.root, "UPDATE")
         sys.stdout.flush()

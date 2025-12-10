@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ROOT
 import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
@@ -392,7 +393,8 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
 
 def apply_weight_norm(df_in, bin_filter, use_weight=False, histo_data=None):
     # Only MC REC should ever be renormalized
-    if((not use_weight) or (histo_data != "mdf")):
+    # if((not use_weight) or (histo_data != "mdf")):
+    if(not use_weight):
         return df_in.Filter(bin_filter)
 
     # Apply the cut first
@@ -400,21 +402,25 @@ def apply_weight_norm(df_in, bin_filter, use_weight=False, histo_data=None):
 
     # Check that weighting columns exist
     if((not df_cut.HasColumn("W_pre")) or (not df_cut.HasColumn("W_acc"))):
+        print(f"{color.Error}WARNING: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
         return df_cut
 
+    # Number of events after the cut (unweighted integral)
+    n_events = df_cut.Count().GetValue()
     # Compute sums for normalization
     sum_pre = df_cut.Sum("W_pre").GetValue()
+    print(f"n_events  = {n_events}")
+    print(f"sum_pre   = {sum_pre}")
     if(not df_cut.HasColumn("Event_Weight_raw")):
         df_cut  = df_cut.Define("Event_Weight_raw", "W_pre * W_acc")
         sum_acc = df_cut.Sum("Event_Weight_raw").GetValue()
     else:
+        # print("Event_Weight_raw already exists")
         sum_acc = df_cut.Sum("Event_Weight_raw").GetValue()
 
     # Safety check
     if(sum_acc == 0):
-        print(f"{color.Error}WARNING: sum_acc == 0 inside apply_weight_norm() after cut:\n"
-              f"    {bin_filter}\n"
-              f"Skipping weight renormalization.{color.END}")
+        print(f"{color.Error}WARNING: sum_acc == 0 inside apply_weight_norm() after cut:\n    {bin_filter}\nSkipping weight renormalization.{color.END}")
         return df_cut
 
     # Renormalization factor
@@ -425,9 +431,78 @@ def apply_weight_norm(df_in, bin_filter, use_weight=False, histo_data=None):
         df_cut = df_cut.Redefine("Event_Weight", f"(W_pre * W_acc) * ({renorm})")
     else:
         df_cut = df_cut.Define("Event_Weight",   f"(W_pre * W_acc) * ({renorm})")
+
+    print(f"sum_final = {df_cut.Sum("Event_Weight").GetValue()}\n")
         
     return df_cut
 
+
+def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=False):
+    # Check weighting columns
+    if((not df_in.HasColumn("W_pre")) or (not df_in.HasColumn("W_acc"))):
+        print(f"{color.Error}ERROR: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
+        return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
+
+    if(not df_in.HasColumn("Event_Weight_raw")):
+        if(verbose):
+            print(f"{color.RED}WARNING: RDataframe is missing `Event_Weight_raw`. Redefining with `W_pre` and `W_acc`.{color.END}")
+        df_in = df_in.Define("Event_Weight_raw", "W_pre * W_acc")
+
+    Use_Smeared = ((Histo_Data_In == "mdf") and (df_in.HasColumn("Q2_y_z_pT_4D_Bins_smeared")) and (not Do_not_use_Smeared))
+
+    if((not Use_Smeared) and (not df_in.HasColumn("Q2_y_z_pT_4D_Bins"))):
+        print(f"{color.Error}ERROR: RDataframe is missing `Q2_y_z_pT_4D_Bins`. Skipping weight renormalization.{color.END}")
+        return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
+
+    bin_var    = "Q2_y_z_pT_4D_Bins_smeared" if(Use_Smeared) else "Q2_y_z_pT_4D_Bins"
+    bin_min    = 0
+    bin_max    = 546                     # inclusive → 546 bins
+    num_bins   = bin_max - bin_min + 1   # = 547
+    # One histogram per group (very fast)
+    renorm_dict = {}
+    for group in ["Response_Matrix_Normal", "Background_Response_Matrix"]:
+        if((Histo_Data_In != "mdf") and (group == "Background_Response_Matrix")):
+            continue
+        # Extract the pure background condition string (no base cut needed)
+        group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="")
+        df_group = df_in.Filter(group_filter)
+        h_pre = df_group.Histo1D(("h_pre", f"{bin_var} Unweighed (Base); {bin_var}",          num_bins, bin_min-0.5, bin_max+0.5), bin_var, "W_pre")
+        h_acc = df_group.Histo1D(("h_acc", f"{bin_var} Weighed (with Acceptance); {bin_var}", num_bins, bin_min-0.5, bin_max+0.5), bin_var, "Event_Weight_raw")
+
+        renorms = []
+        for idx in range(bin_min, bin_max + 1):
+            bin_content_pre = h_pre.GetBinContent(idx + 1)
+            bin_content_acc = h_acc.GetBinContent(idx + 1)
+            if(bin_content_acc == 0):
+                renorm = 1.0
+                print(f"{color.Error}sum_acc=0 in {group} bin {idx} -> renorm=1.0{color.END}")
+            else:
+                renorm = bin_content_pre / bin_content_acc
+            renorms.append(renorm)
+        renorm_dict[group] = renorms
+
+    # ——— C++ arrays ———
+    cpp_code  = "#include <array>\n"
+    cpp_code += f"const std::array<double,{num_bins}> renorms_normal {{{','.join(f'{x:.12g}' for x in renorm_dict['Response_Matrix_Normal'])}}};\n"
+    has_bg    = ("Background_Response_Matrix" in renorm_dict)
+    if(has_bg):
+        cpp_code += f"const std::array<double,{num_bins}> renorms_bg {{{','.join(f'{x:.12g}' for x in renorm_dict['Background_Response_Matrix'])}}};\n"
+
+    ROOT.gInterpreter.Declare(cpp_code)
+
+    bg_cond = ""
+    if(has_bg):
+        bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="")
+        expr    = f"""
+        if({bg_cond}){{ return (W_pre * W_acc) * renorms_bg[{bin_var} - {bin_min}]; }}
+        else {{ return (W_pre * W_acc) * renorms_normal[{bin_var} - {bin_min}]; }}"""
+    else:
+        expr = f"return (W_pre * W_acc) * renorms_normal[{bin_var} - {bin_min}];"
+    if(df_in.HasColumn("Event_Weight")):
+        df_in = df_in.Redefine("Event_Weight", expr)
+    else:
+        df_in = df_in.Define("Event_Weight",   expr)
+    return df_in
 
 
 def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Var_Input, Q2_y_bin_num, Use_Weight, Histograms_All, file_location, output_type, Res_Binning_2D_z_pT=["z_pT_Bin_Y_bin", -0.5, 37.5, 38], custom_title=None):
@@ -513,7 +588,9 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
 
     Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter)
-    sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
+    sdf_cut = sdf.Filter(Bin_Filter)
+    # print(f"Histo_Group = {Histo_Group}")
+    # sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
     if(Histo_Data in ["mdf"]):
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
