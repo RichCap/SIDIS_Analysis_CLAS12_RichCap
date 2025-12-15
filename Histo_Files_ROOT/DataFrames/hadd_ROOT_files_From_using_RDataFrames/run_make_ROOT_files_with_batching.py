@@ -133,6 +133,86 @@ def send_email(subject, body, recipient):
 # Helper functions
 # =========================
 
+def parse_unique_batches_string(unique_str, max_batch):
+    # Parses SLURM-style array strings like:
+    #   "1-5,7,10-12"
+    # Also supports:
+    #   "1-10:2" (step)
+    #   "1-57%10" (concurrency; ignored here)
+    #
+    # Returns a sorted list of batch indices within [1, max_batch], or None if not provided.
+    if((unique_str is None)):
+        return None
+
+    s = str(unique_str).strip()
+    if((s == "")):
+        return None
+
+    s = s.replace(" ", "")
+
+    # Ignore concurrency suffix like "%10"
+    if(("%" in s)):
+        s = s.split("%", 1)[0].strip()
+        if((s == "")):
+            return None
+
+    selected = set()
+    bad_tokens = []
+
+    for token in s.split(","):
+        if((token is None) or (token == "")):
+            continue
+
+        step_val = 1
+        if((":" in token)):
+            left, step_str = token.split(":", 1)
+            token = left
+            try:
+                step_val = int(step_str)
+                if((step_val <= 0)):
+                    step_val = 1
+            except Exception:
+                step_val = 1
+
+        if(("-" in token)):
+            parts = token.split("-", 1)
+            if(len(parts) != 2):
+                bad_tokens.append(token)
+                continue
+            try:
+                a = int(parts[0])
+                b = int(parts[1])
+            except Exception:
+                bad_tokens.append(token)
+                continue
+
+            if((a > b)):
+                a, b = b, a
+
+            for v in range(a, b + 1, step_val):
+                selected.add(v)
+        else:
+            try:
+                selected.add(int(token))
+            except Exception:
+                bad_tokens.append(token)
+
+    if(len(bad_tokens) > 0):
+        print(f"{color.Error}[WARNING]{color.END} Could not parse some --unique_batches tokens: {bad_tokens}")
+
+    # Filter to legal range
+    in_range  = sorted([v for v in selected if((v >= 1) and (v <= max_batch))])
+    out_range = sorted([v for v in selected if((v < 1) or (v > max_batch))])
+
+    if(len(out_range) > 0):
+        print(f"{color.Error}[WARNING]{color.END} Some --unique_batches values are outside [1, {max_batch}] and will be ignored: {out_range}")
+
+    if(len(in_range) == 0):
+        return []
+
+    return in_range
+
+
 def build_name_base_for_merged(preset_cfg, name_tag):
     # e.g., "ZerothOrder" or "ZerothOrder_MyTag"
     parts = [preset_cfg["name_base"]]
@@ -564,7 +644,6 @@ def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged,
     return "\n".join(lines)
 
 
-# def build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, job_name):
 def build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, job_name):
     lines = []
     lines.append("#!/bin/bash")
@@ -576,13 +655,10 @@ def build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, 
     lines.append("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err")
     lines.append("#SBATCH --partition=production")
     lines.append("#SBATCH --account=clas12")
-    # lines.append(f"#SBATCH --mem-per-cpu={slurm_mem_per_cpu}")
     lines.append("#SBATCH --mem-per-cpu=1GB")
-    # lines.append(f"#SBATCH --time={time_str}")
     lines.append(f"#SBATCH --time=04:00:00")
     lines.append("")
     lines.append("")
-    # lines.append('echo "Starting hadd job on host $(hostname) at $(date)"')
 
     batch_pattern = os.path.join(output_dir, f"{ROOT_BASE_PREFIX}{name_base_for_merged}_Batch[1-9]*.root")
 
@@ -592,15 +668,6 @@ def build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, 
     lines.append(cmd_str)
 
     return "\n".join(lines)
-
-    # cmd_parts = ["$ROOTSYS/bin/hadd", "-f", merged_file] + batch_files
-    # cmd_str   = " ".join(cmd_parts)
-    # # lines.append(f'echo "Command: {cmd_str}"')
-    # lines.append(cmd_str)
-    # # lines.append('exit_code=$?')
-    # # lines.append('echo "hadd finished with exit code ${exit_code} at $(date)"')
-    # # lines.append("exit ${exit_code}")
-    # return "\n".join(lines)
 
 
 def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu, unique_array_batches=None, valerii_bins=False):
@@ -624,7 +691,6 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, n
 
     array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, array_job_name, unique_array=unique_array_batches, valerii_bins=valerii_bins)
 
-    # hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
     hadd_script_text = build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
 
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
@@ -640,7 +706,7 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, n
         newname   = f'{newname.replace(".root", "")}.root'
         newpath   = os.path.join(dirname, newname)
         print(f"\n{color.Error}[WARNING]{color.END_R} The to-be-merged file '{merged_file}' already exists.\n\t{color.END_B}If approved, will rename it to: {newpath}{color.END}\n\n")
-    
+
     try:
         response = input("\nApprove and submit these SLURM scripts? [y/N]: ").strip().lower()
     except EOFError:
@@ -749,7 +815,7 @@ def main():
     )
 
     parser.add_argument("-nb", "--nbatches", type=int, default=57, help="Number of batches (integer between 1 and 57).")
-    parser.add_argument("-ub", "--unique_batches", type=str, default=None, help="Unique set of sbatch array jobs (enter the string for which batches you want run — only works for the 'slurm' mode).")
+    parser.add_argument("-ub", "--unique_batches", type=str, default=None, help="Unique set of batches to run (SLURM-style list like '1-5,7,10-12'). Works in slurm mode (as --array) and sequential mode (as a local filter).")
     parser.add_argument("-m", "--mode", choices=["sequential", "parallel", "slurm"], default="sequential", help="Run mode: sequential (default), parallel, or slurm.")
     parser.add_argument("-nt", "--name-tag", default=None, help="Optional name tag appended into the --name used for files (affects both batch and merged ROOT names).")
     parser.add_argument("-dbf", "--delete-batch-files", action="store_true", help="Delete per-batch ROOT files after successful hadd. Ignored in the 'slurm' mode.")
@@ -809,10 +875,20 @@ def main():
     if(args.mode == "sequential"):
         print(f"{color.BBLUE}[INFO]{color.END} Running in sequential local mode (no SLURM).")
 
+        requested_batches = parse_unique_batches_string(args.unique_batches, args.nbatches)
+        if((args.unique_batches is not None) and (requested_batches is not None)):
+            print(f"{color.BBLUE}[INFO]{color.END} --unique_batches provided for sequential mode: '{args.unique_batches}'")
+            print(f"{color.BBLUE}[INFO]{color.END} Will attempt to run these batch IDs (after range filtering): {requested_batches}")
+
         results             = []
         slurm_array_active  = False
 
-        for batch_idx in range(1, args.nbatches + 1):
+        if((requested_batches is None)):
+            batch_iterable = range(1, args.nbatches + 1)
+        else:
+            batch_iterable = requested_batches
+
+        for batch_idx in batch_iterable:
             run_this_batch = True
 
             if(args.slurm_array_jobid is not None):
@@ -856,22 +932,34 @@ def main():
 
         if(len(batch_failures) == 0):
             if(slurm_array_active):
-                # Sequential portion succeeded for the batches it ran, but we are deferring the merge to the SLURM hadd job.
                 overall_success = True
                 hadd_success    = f"Skipped locally (SLURM array {args.slurm_array_jobid} still active; SLURM hadd job will merge)."
             else:
-                batch_files  = [res["root_file"] for res in results]
-                hadd_success = run_hadd(batch_files, merged_file)
+                # For sequential reruns (including --unique_batches), attempt hadd over the full expected batch set.
+                batch_files = []
+                for i in range(1, args.nbatches + 1):
+                    name_for_batch = build_name_for_batch(name_base_for_merged, i)
+                    batch_files.append(build_batch_root_filename(name_for_batch, output_dir))
 
-                if(hadd_success and args.delete_batch_files):
-                    delete_batch_files(batch_files)
-                    delete_success = True
+                missing_files = [bf for bf in batch_files if(not os.path.isfile(bf))]
+                if(len(missing_files) > 0):
+                    print(f"{color.Error}[ERROR]{color.END} Cannot run hadd: missing {len(missing_files)} expected batch ROOT files.")
+                    print(f"{color.Error}[ERROR]{color.END} First missing file example(s):")
+                    for mf in missing_files[:10]:
+                        print(f"       {mf}")
+                    hadd_success    = False
+                    overall_success = False
+                else:
+                    hadd_success = run_hadd(batch_files, merged_file)
 
-                # If local hadd succeeded and a SLURM hadd job ID was provided, cancel that SLURM hadd job.
-                if(hadd_success and (args.slurm_hadd_jobid is not None)):
-                    cancel_slurm_job(args.slurm_hadd_jobid)
+                    if(hadd_success and args.delete_batch_files):
+                        delete_batch_files(batch_files)
+                        delete_success = True
 
-                overall_success = hadd_success
+                    if(hadd_success and (args.slurm_hadd_jobid is not None)):
+                        cancel_slurm_job(args.slurm_hadd_jobid)
+
+                    overall_success = hadd_success
         else:
             print(f"{color.Error}[ERROR]{color.END} Some batches failed: {batch_failures}")
             overall_success = False
@@ -954,6 +1042,8 @@ def main():
     summary_lines.append(f"Name base for merged file: {name_base_for_merged}")
     summary_lines.append(f"Merged ROOT file: {merged_file}")
     summary_lines.append(f"Number of batches: {args.nbatches}")
+    summary_lines.append(f"Unique batches: {args.unique_batches}")
+    summary_lines.append(f"Valerii bins: {args.valerii_bins}")
     summary_lines.append(f"Overall success: {overall_success}")
     summary_lines.append(f"hadd success: {hadd_success}")
     summary_lines.append(f"Delete batch files flag: {args.delete_batch_files}")
