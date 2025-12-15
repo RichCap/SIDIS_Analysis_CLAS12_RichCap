@@ -41,6 +41,8 @@ parser.add_argument('-minA', '--min-accept-cut',               type=float, defau
                     help='Minimum Acceptance Cut. Applies to the acceptance histograms such that any bin with an acceptance below this cut is automatically set to 0 (does not work with `--make_2D_weight_binned_check` as of 11/4/2025)')
 parser.add_argument('-MR', '--make_root',                      action='store_true',
                     help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists — in testing phase as of 11/10/2025)")
+parser.add_argument('-vb', '--valerii_bins',                   action='store_true',
+                    help="Runs code using Valerii's kinematic bins instead of mine (available only with the `--make_root` option as of 12/11/2025)")
 parser.add_argument('-nohpp', '--do_not_use_hpp',              action='store_true',
                     help="Prevents the acceptance weights from being applied (with the '--make_root' option). Allows the JSON weights (injected modulations) to be applied without also needing the Acceptance weights.")
 parser.add_argument('-aohpp', '--angles_only_hpp',             action='store_true',
@@ -2843,6 +2845,26 @@ double {func_name}(const double x, const double y){{
 	            # print(f"\t{color.Error}WARNING:   'gdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
 	            gdf_EvGen = gdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
 
+        if(args.valerii_bins):
+            script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+            sys.path.append(script_dir)
+            from Valerii_Kinematic_Binning_Code import *
+            sys.path.remove(script_dir)
+            del script_dir
+            ROOT.gInterpreter.Declare(Run_this_str_with_gInterpreter_for_Valeriis_Bins)
+            if(not rdf.HasColumn("Q2_xB_z_pT_4D_Bin_Valerii")):
+                print(f"\t{color.Error}WARNING:         'rdf' is missing Valerii's Kinematic bins{color.END}")
+                rdf         = add_valerii_bins(rdf_in=rdf,         var_type="")
+            if(not mdf_clasdis.HasColumn("Q2_xB_z_pT_4D_Bin_Valerii")):
+                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing Valerii's Kinematic bins{color.END}")
+                mdf_clasdis = add_valerii_bins(rdf_in=mdf_clasdis, var_type="")
+                mdf_clasdis = add_valerii_bins(rdf_in=mdf_clasdis, var_type="_smeared")
+                mdf_clasdis = add_valerii_bins(rdf_in=mdf_clasdis, var_type="_gen")
+            if(not gdf_clasdis.HasColumn("Q2_xB_z_pT_4D_Bin_Valerii")):
+                print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing Valerii's Kinematic bins{color.END}")
+                gdf_clasdis = add_valerii_bins(rdf_in=gdf_clasdis, var_type="")
+            
+
         if(args.json_weights):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
             print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
@@ -2879,7 +2901,7 @@ double {func_name}(const double x, const double y){{
                     return weight;
                 }}
                 """)
-            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
+            gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
             mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             mdf_clasdis = mdf_clasdis.Define("W_pre",        "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             if(not args.do_not_use_hpp):
@@ -2913,26 +2935,31 @@ double {func_name}(const double x, const double y){{
                 mdf_clasdis     = mdf_clasdis.Define("W_acc",                      "1.0")
                 mdf_clasdis     = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
         if(not args.do_not_use_hpp):
-            mdf_clasdis = weight_norm_by_bins(df_in=mdf_clasdis, Histo_Data_In="mdf", verbose=args.verbose, Do_not_use_Smeared=False) # See helper_functions_for_using_RDataFrames_python.py
+            mdf_clasdis = weight_norm_by_bins(df_in=mdf_clasdis, Histo_Data_In="mdf", verbose=args.verbose, Do_not_use_Smeared=False, Valerii_binning=args.valerii_bins) # See helper_functions_for_using_RDataFrames_python.py
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         output_file = ROOT.TFile(args.root, "UPDATE")
         sys.stdout.flush()
 
         Res_Binning_2D_z_pT_In = ["z_pT_Bin_Y_bin_smeared", -0.5, 37.5, 38]
         z_pT_phi_h_Binning     = ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, 913.5, 915]
-        for Q2_y_Bins in range(-1, 18):
+        if(args.valerii_bins):
+            Res_Binning_2D_z_pT_In = ["z_pT_Bin_Valerii_smeared",  -0.5,  60.5, 61]
+            z_pT_phi_h_Binning     = ['z_pT_phi_t_3D_Bin_Valerii', -1.5, 960.5, 962]
+        Q2_y_or_xB_bin_range = range(-1, 18) if(not args.valerii_bins) else range(-1, 17)
+        Bin_str = "Q2-y Bin" if(not args.valerii_bins) else "Valerii's Q2-xB Bin"
+        for Q2_y_Bins in Q2_y_or_xB_bin_range:
             if(Q2_y_Bins == 0):
                 continue
-            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False,             Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
             sys.stdout.flush()
-            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="smear", Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
             sys.stdout.flush()
-            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_clasdis{color.END_B} (Q2-y Bin {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
+            print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}")
             make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights, Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
             sys.stdout.flush()
@@ -2943,7 +2970,8 @@ double {func_name}(const double x, const double y){{
             #     print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}gdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}")
             #     make_rm_single(sdf=gdf_EvGen, Histo_Group="Response_Matrix_Normal", Histo_Data="gdf", Histo_Cut="no_cut",                                                              Histo_Smear="",      Binning="Y_bin", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,              Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             #     timer.time_elapsed()
-        print(f"{color.BBLUE}Done Saving the 3D phi_h Plots{color.END}\n\n{color.BOLD}Now Saving the other kinematic variable's response matricies{color.END}\n")
+        if(not args.valerii_bins):
+            print(f"{color.BBLUE}Done Saving the 3D phi_h Plots{color.END}\n\n{color.BOLD}Now Saving the other kinematic variable's response matricies{color.END}\n")
         Q2_Unfolding_Binning  = ['Q2',                   0,    14, 280]
         xB_Unfolding_Binning  = ['xB',                0.09, 0.826,  50]
         y_Unfolding_Binning   = ['y',                    0,   1.0, 100]
@@ -2960,6 +2988,8 @@ double {func_name}(const double x, const double y){{
         # for Unfolding_Binning in [Q2_Unfolding_Binning, xB_Unfolding_Binning, y_Unfolding_Binning, z_Unfolding_Binning, pT_Unfolding_Binning]:
         for Unfolding_Binning in [Q2_Unfolding_Binning, xB_Unfolding_Binning, y_Unfolding_Binning, z_Unfolding_Binning, pT_Unfolding_Binning, El_Binning, El_Th_Binning, El_Phi_Binning, Pip_Binning, Pip_Th_Binning, Pip_Phi_Binning, Multi4D_Binning]:
         # for Unfolding_Binning in [Multi4D_Binning]:
+            if(args.valerii_bins):
+                break
             print(f"{color.BBLUE}Saving Histograms for {color.BGREEN}rdf{color.END_B} (Variable: {Unfolding_Binning[0]}){color.END}")
             make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut="cut_Complete_SIDIS" if(not args.cut) else "cut_Complete_SIDIS_extra", Histo_Smear="",      Binning="Y_bin", Var_Input=Unfolding_Binning, Q2_y_bin_num=-1, Use_Weight=False,                                            Histograms_All={}, file_location=output_file, output_type=output_file, Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             timer.time_elapsed()
@@ -3014,6 +3044,7 @@ Ran with the following arguments:
 --use_HIGH_MX                   --> {args.use_HIGH_MX}
 --min-accept-cut                --> {args.min_accept_cut}
 --make_root                     --> {args.make_root}
+--valerii_bins                  --> {args.valerii_bins}
 --do_not_use_hpp                --> {args.do_not_use_hpp}
 --angles_only_hpp               --> {args.angles_only_hpp}
 --make_2D_weight                --> {args.make_2D_weight}

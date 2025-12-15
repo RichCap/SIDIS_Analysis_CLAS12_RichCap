@@ -181,7 +181,7 @@ def apply_common_preset_args_to_cmd(cmd_base, preset_cfg):
         cmd_base.append("--angles_only_hpp")
 
 
-def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg, name_base_for_merged, email_msg):
+def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg, name_base_for_merged, email_msg, valerii_bins=False):
     name_for_batch   = build_name_for_batch(name_base_for_merged, batch_index)
     batch_root_file  = build_batch_root_filename(name_for_batch, output_dir)
 
@@ -191,6 +191,9 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
     cmd_base.extend(["-t", preset_cfg["title"]])
     cmd_base.extend(["-em", email_msg])
     apply_common_preset_args_to_cmd(cmd_base, preset_cfg)
+
+    if(valerii_bins):
+        cmd_base.append("--valerii_bins")
 
     print(f"\n{color.BBLUE}[INFO]{color.END} Running batch {batch_index} (name={name_for_batch})...")
     print("       Command:", " ".join(cmd_base))
@@ -219,7 +222,7 @@ def run_single_batch_sequential(main_script, batch_index, output_dir, preset_cfg
     }
 
 
-def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset_cfg, name_base_for_merged, email_msg):
+def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset_cfg, name_base_for_merged, email_msg, valerii_bins=False):
     results   = []
     running   = []
     next_id   = 1
@@ -238,6 +241,9 @@ def run_batches_parallel(main_script, nbatches, output_dir, max_parallel, preset
             cmd_base.extend(["-t", preset_cfg["title"]])
             cmd_base.extend(["-em", email_msg])
             apply_common_preset_args_to_cmd(cmd_base, preset_cfg)
+
+            if(valerii_bins):
+                cmd_base.append("--valerii_bins")
 
             print(f"\n{color.BBLUE}[INFO]{color.END} Starting batch {batch_index} in parallel (name={name_for_batch})...")
             print("       Command:", " ".join(cmd_base))
@@ -503,7 +509,7 @@ def cancel_slurm_job(jobid):
 # SLURM helpers (bash sbatch, with preview + approval)
 # =========================
 
-def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, job_name, unique_array=None):
+def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, job_name, unique_array=None, valerii_bins=False):
     lines = []
     lines.append("#!/bin/bash")
     lines.append("#SBATCH --ntasks=1")
@@ -537,6 +543,10 @@ def build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged,
     if("-e" in ALWAYS_MAIN_ARGS):
         ALWAYS_MAIN_ARGS.remove("-e") # Do not send emails within sbatch jobs
     cmd_parts.extend(ALWAYS_MAIN_ARGS)
+
+    if(valerii_bins):
+        cmd_parts.append("--valerii_bins")
+
     cmd_parts.extend(["-n", '"${NAME_FOR_BATCH}"'])
     cmd_parts.extend(["-t", f"\"{preset_cfg['title']}\""])
     cmd_parts.extend(["-em", '"${EMAIL_MSG}"'])
@@ -593,7 +603,7 @@ def build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, 
     # return "\n".join(lines)
 
 
-def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu, unique_array_batches=None):
+def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, name_base_for_merged, email_msg, email_address, slurm_mem_per_cpu, unique_array_batches=None, valerii_bins=False):
     script_dir_local = os.path.dirname(os.path.abspath(__file__))
 
     batch_files = []
@@ -608,7 +618,11 @@ def submit_slurm_jobs(nbatches, main_script, output_dir, time_str, preset_cfg, n
     array_job_name = f"{job_base}_{date_str}_running_batch_jobs"
     hadd_job_name  = f"{job_base}_{date_str}_hadd_batches"
 
-    array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, array_job_name, unique_array=unique_array_batches)
+    if(valerii_bins):
+        array_job_name = f"V_{array_job_name}"
+        hadd_job_name  = f"V_{hadd_job_name}"
+
+    array_script_text = build_slurm_array_script_text(main_script, preset_cfg, name_base_for_merged, email_msg, nbatches, time_str, slurm_mem_per_cpu, email_address, array_job_name, unique_array=unique_array_batches, valerii_bins=valerii_bins)
 
     # hadd_script_text = build_slurm_hadd_script_text(batch_files, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
     hadd_script_text = build_slurm_hadd_script_text(output_dir, name_base_for_merged, merged_file, time_str, slurm_mem_per_cpu, email_address, hadd_job_name)
@@ -751,6 +765,7 @@ def main():
     parser.add_argument("-ee", "--email-extra", type=str, default="", help="Extra message appended to the -em email message passed to using_RDataFrames_python.py.")
     parser.add_argument("-saj", "--slurm-array-jobid", type=str, default=None, help="Optional SLURM array job ID to coordinate with sequential mode (cancel pending tasks and skip running/completed ones).")
     parser.add_argument("-shj", "--slurm-hadd-jobid", type=str, default=None, help="Optional SLURM hadd job ID to cancel if local hadd completes successfully.")
+    parser.add_argument("-vb", "--valerii_bins", action="store_true", help="Pass --valerii_bins through to using_RDataFrames_python.py.")
 
     args = parser.parse_args()
 
@@ -824,7 +839,7 @@ def main():
             if(not run_this_batch):
                 continue
 
-            res = run_single_batch_sequential(main_script, batch_idx, output_dir, preset_cfg, name_base_for_merged, email_msg)
+            res = run_single_batch_sequential(main_script, batch_idx, output_dir, preset_cfg, name_base_for_merged, email_msg, valerii_bins=args.valerii_bins)
             results.append(res)
 
         for res in results:
@@ -867,7 +882,7 @@ def main():
             print(f"{color.Error}[ERROR]{color.END} --max-parallel must be > 0 in parallel mode.")
             sys.exit(1)
 
-        results = run_batches_parallel(main_script, args.nbatches, output_dir, args.max_parallel, preset_cfg, name_base_for_merged, email_msg)
+        results = run_batches_parallel(main_script, args.nbatches, output_dir, args.max_parallel, preset_cfg, name_base_for_merged, email_msg, valerii_bins=args.valerii_bins)
 
         for res in results:
             if(res["returncode"] != 0):
@@ -887,7 +902,7 @@ def main():
     elif(args.mode == "slurm"):
         print(f"{color.BBLUE}[INFO]{color.END} Running in SLURM mode (submission only, no local waiting).")
 
-        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(args.nbatches, main_script, output_dir, args.slurm_time, preset_cfg, name_base_for_merged, email_msg, email_address, args.slurm_mem_per_cpu, unique_array_batches=args.unique_batches)
+        array_jobid, hadd_jobid, merged_file, batch_files = submit_slurm_jobs(args.nbatches, main_script, output_dir, args.slurm_time, preset_cfg, name_base_for_merged, email_msg, email_address, args.slurm_mem_per_cpu, unique_array_batches=args.unique_batches, valerii_bins=args.valerii_bins)
 
         if((array_jobid is None) or (hadd_jobid is None)):
             print(f"{color.Error}[ERROR]{color.END} Failed to submit SLURM jobs.")

@@ -187,6 +187,8 @@ def variable_Title_name(variable):
     
     output = 'error'
 
+    if("z_pT_phi_t_3D_Bin_Valerii"       in variable):
+        output  =  "Valerii's 3D Kinematic Bins (z+P_{T}+#phi_{h})"
     if("Q2_y_z_pT_4D_Bins"               in variable):
         output  =  "4D Kinematic Bins (Q^{2}+y+z+P_{T})"
     if("MultiDim_Q2_y_z_pT_phi_h"        in variable):

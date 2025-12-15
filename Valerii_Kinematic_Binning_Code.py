@@ -319,7 +319,7 @@ def draw_valerii_binning_tlines(pad=None, projection="Q2_vs_xB", selected_bin=No
             if(use_sqrt):
                 if(y_poly < 0.0):
                     y_poly = 0.0
-                y_val = math.sqrt(y_poly)
+                y_val = ROOT.sqrt(y_poly)
             else:
                 y_val = y_poly
             x_val = x_poly
