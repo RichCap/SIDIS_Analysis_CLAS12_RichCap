@@ -89,6 +89,11 @@ if(Use_TTree):
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_AngleOnlyZerothOrder_as_of_12_2_2025_Copy_First_Order_Errors.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_AngleOnlyZerothOrder_as_of_12_2_2025_Copy.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Baseline_Unfolded_with_No_extra_uncertainties_added.root"
+    
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_ZerothOrder_as_of_12_11_2025_Copy_First_Order_Errors.root"
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_ZerothOrder_as_of_12_11_2025.root"
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_FirstOrder_as_of_12_11_2025_Copy_First_Order_Errors.root"
+    
 
 
 def silence_root_import():

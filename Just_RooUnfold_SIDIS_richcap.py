@@ -129,6 +129,19 @@ def parse_args():
 
     p.add_argument('-nt', '-ntoys', '--Num_Toys', type=int, default=500,
                    help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...)).")
+
+    p.add_argument('-u1D', '--unfolding_1D', action='store_true',
+                   help="Run 1D unfolding only. Will still run normally as long as the `--unfolding_3D` is not passed.")
+    p.add_argument('-u3D', '--unfolding_3D', action='store_true',
+                   help="Run 3D unfolding only. Will still run normally as long as the `--unfolding_1D` is not passed.")
+
+    p.add_argument('-sec', '--run_sectors', action='store_true',
+                   help="Run Sector Unfolding.")
+    p.add_argument('-secU', '--sectors_to_unfold', default=["eS1o", "eS2o", "eS3o", "eS4o", "eS5o", "eS6o"],
+                   help="Sectors to Unfold with the `--run_sectors` option.")
+
+    p.add_argument('-aov', '--allow_other_variables', action='store_true',
+                   help="Allows for other variables to be unfolded other than the 'phi_t' distributions (such as Q2, y, etc. — does not impact the multidimensional unfolding).")
                    
     p.add_argument('-title', '--title', type=str,
                    help="Adds an extra title to the histograms.")
@@ -750,8 +763,8 @@ if(extra_function_terms):
             # Extract the optimized parameters
             A_opt, B_opt, C_opt, D_opt = optim_params
         except:
-            print("".join([color.Error, "Full_Calc_Fit(...) ERROR:\n", color.END, str(traceback.format_exc()), "\n"]))
-            print(color.Error, "\nERROR is with 'Histo'=", str(Histo), "\n", color.END)
+            print(f"{color.Error}Full_Calc_Fit(...) ERROR:\n{color.END}{traceback.format_exc()}\n")
+            print(f"\n{color.Error}ERROR is with 'Histo' = {Histo}\n{color.END}")
             A_opt, B_opt, C_opt, D_opt = "Error", "Error", "Error", "Error"
         return [A_opt, B_opt, C_opt, D_opt]
 
@@ -2788,6 +2801,7 @@ Common_Name =  "Pass_2_Sector_Tests_FC_14_V1_All"
 # Common_Name = "Pass_2_Sector_Tests_FC_14_V1_EvGen_All"
 
 Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_All"
+Common_Name = "Pass_2_Acceptance_Tests_FC_14_V3_All"
 if(args.EvGen):
     Common_Name = "Pass_2_Acceptance_Tests_FC_14_V1_EvGen_All"
     Common_Name = "Pass_2_Acceptance_Tests_FC_14_V2_EvGen_All"
@@ -3068,13 +3082,8 @@ if(run_5D_Unfold):
     
 run_Sec_Unfold = not True and (Smearing_Options in ["no_smear"])
 run_Sec_Unfold = not True
-run_SecCut_Unfold = not True
 
-# if(Tag_ProQ or Cut_ProQ):
-#     run_Sec_Unfold = True
-#     run_SecCut_Unfold = False
-
-if(run_Sec_Unfold or run_SecCut_Unfold):
+if(run_Sec_Unfold):
     Sector_List = [1, 2, 3, 4, 5, 6]
     # Sector_List = [1, 1, 1, 1, 1, 1]
 
@@ -3149,8 +3158,8 @@ for ii in mdf.GetListOfKeys():
     #     print(f"out_print_main:\n\t{out_print_main}\n")
     if("Q2_y_z_pT_4D_Bins" in out_print_main):
         continue
-    else:
-        print(f"out_print_main:\n\t{out_print_main}\n")
+    # else:
+    #     print(f"out_print_main:\n\t{out_print_main}\n")
 
     if(("_(Weighed)" in out_print_main) and not (Mod_Test or Closure_Test)):
         print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
@@ -3537,11 +3546,19 @@ for ii in mdf.GetListOfKeys():
         # Conditions_For_Unfolding.append('''"cut_Complete_EDIS"     not in str(out_print_main)''')
         Conditions_For_Unfolding.append("cut_Complete_EDIS"        not in str(out_print_main))
 
-        # Do not include the electron sector cuts here
-        # Conditions_For_Unfolding.append('''"cut_Complete_SIDIS_eS" not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
-        # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
-        Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
+        if(args.run_sectors):
+            Conditions_For_Unfolding.append(any(f"cut_Complete_SIDIS_{SC}" in str(out_print_main) for SC in args.sectors_to_unfold))
+        else:
+            # Do not include the electron sector cuts here
+            Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
+            Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
+
+        # # Do not include the electron sector cuts here
+        # # Conditions_For_Unfolding.append('''"cut_Complete_SIDIS_eS" not in str(out_print_main)''')
+        # Conditions_For_Unfolding.append("cut_Complete_SIDIS_eS"    not in str(out_print_main))
+        # # Conditions_For_Unfolding.append('''"no_cut_eS"             not in str(out_print_main)''')
+        # Conditions_For_Unfolding.append("no_cut_eS"                not in str(out_print_main))
+            
         
         # Proton Cuts (Can control from the command line arguments: add 'CP' options for 'Cut on Proton' - other inputs will prevent the Proton Missing Mass cuts from being run as of 8/26/2024)
         if(Cut_ProQ):
@@ -3564,9 +3581,14 @@ for ii in mdf.GetListOfKeys():
 
         ## Correct Variable(s):
         # # Conditions_For_Unfolding.append('''"phi_t" in str(out_print_main)''')
-        # Conditions_For_Unfolding.append("phi_t"    in str(out_print_main))
+        if(not args.allow_other_variables):
+            Conditions_For_Unfolding.append("phi_t"          in str(out_print_main)) # Unfolds only the phi_t distributions (skipping any option that does not include them)
         # # Conditions_For_Unfolding.append("'phi_t"      not in str(out_print_main))
-        Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main)) # For removing all (Old 3D) Multidimensional Unfolding Plots
+        if(args.unfolding_1D):
+            Conditions_For_Unfolding.append("Multi"      not in str(out_print_main)) # For REMOVING all Multidimensional Unfolding Plots (1D only)
+        if(args.unfolding_3D):
+            Conditions_For_Unfolding.append("Multi"          in str(out_print_main)) # For RUNNING only Multidimensional Unfolding Plots (3D only)
+        Conditions_For_Unfolding.append("Multi_Dim_" not in str(out_print_main))     # For removing all (Old 3D) Multidimensional Unfolding Plots
         # Conditions_For_Unfolding.append("Multi_Dim_"     in str(out_print_main)) # For running only (Old 3D) Multidimensional Unfolding Plots
         
         # Conditions_For_Unfolding.append("MultiDim_" not in str(out_print_main)) # For removing all (New 3D) Multidimensional Unfolding Plots
@@ -4790,9 +4812,14 @@ Arguments:
 --test                                              --> {args.test}
 --bayes_iterations                                  --> {args.bayes_iterations}
 --Num_Toys                                          --> {args.Num_Toys}
+--unfolding_1D (1D Unfolding Only)                  --> {args.unfolding_1D}
+--unfolding_3D (3D Unfolding Only)                  --> {args.unfolding_3D}
+--run_sectors                                       --> {args.run_sectors}
+--sectors_to_unfold                                 --> {"None" if(not args.run_sectors) else args.sectors_to_unfold}
+--allow_other_variables (for unfolding)             --> {args.allow_other_variables}
 --Min_Allowed_Acceptance_Cut                        --> {args.Min_Allowed_Acceptance_Cut}
 --bins   (Q2-y Bins)                                --> {Q2_xB_Bin_List}
---title    (added title)                            --> {args.title}
+--title  (added title)                              --> {args.title}
 --EvGen                                             --> {args.EvGen}
 --smear                                             --> {args.smear}
 --no-smear                                          --> {args.no_smear}
@@ -4814,7 +4841,7 @@ Arguments:
 if(args.email_message):
     email_body = f"""{email_body}
 Extra Message:
-\t{args.email_message}
+\t{str(args.email_message)}
 
 """
 else:

@@ -146,6 +146,9 @@ def parse_args():
 
     p.add_argument('-all', '--all_z_pt', action='store_true',
                    help="Draws all possible z-pT plots together in one image.")
+
+    p.add_argument('-si', '--show_integral', action='store_true',
+                   help="Shows the integrals of the phi_h distributions in the `--all_z_pt` image option.")
     
     p.add_argument('-v', '--verbose', action='store_true',
                    help="Prints each Histogram name to be saved.")
@@ -168,6 +171,9 @@ def parse_args():
     p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json", 
                    help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
 
+    p.add_argument('-ie', '--invert_errors', action='store_true', 
+                   help="Inverts the asymmetric errors from the JSON files so that the direction it is applied is reversed (meant to allow me to assign the errors to the acceptance weighted fits).")
+    
     p.add_argument('-rad', '--radiation_correction', action='store_true', 
                    help="Applies Radiative Corrections.")
     p.add_argument('-fi', '--fewer_images', action='store_true', 
@@ -180,6 +186,9 @@ def parse_args():
                    help="Custom Legend Name for histogram 1 (use with `-all` option).")
     p.add_argument('-ln2', '--legend_name_2', type=str, default=None,
                    help="Custom Legend Name for histogram 2 (use with `-all` option).")
+
+    p.add_argument('-mj', '-mjson', '--make_json', action='store_true', 
+                   help="Allows for new JSON files to be made (if not used, not JSON file will be outputted).")
     
     return p.parse_args()
 
@@ -332,7 +341,11 @@ def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertain
         uncertainty = float(entry.get("uncertainty", 0.0))
         current_err = float(Histo_In.GetBinError(i))
         # sys_mag     = abs(uncertainty)
-        sys_mag     = ROOT.sqrt(max([current_err**2,uncertainty**2 + current_err**2]))
+        sys_mag     = ROOT.sqrt(max([current_err**2, uncertainty**2 + current_err**2]))
+
+        if(args.invert_errors):
+            # Set `uncertainty` to `-uncertainty` to invert the direction it is applied below
+            uncertainty = -uncertainty
 
         # # Symmetric envelope (like we used before: max of stat and sys)
         # new_err = max([sys_mag, current_err])
@@ -1308,6 +1321,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
 
 
 def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, Unfolding_Diff_Data_Input={}, Q2_Y_Bin=1, Plot_Orientation="z_pT"):
+
     HISTO_NAME = f"\n{color.ERROR}ERROR{color.END}\n"
     if(args.dimensions   in ["1D"]):
         HISTO_NAME  = f"(1D)_({args.unfold})_(SMEAR={args.smearing_option})_(Q2_y_Bin_{Q2_Y_Bin})_(z_pT_Bin_ALL)_(phi_t)"
@@ -1514,6 +1528,9 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         for z_pT in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=int(Q2_Y_Bin))[1]+1):
             if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT, BINNING_METHOD=Binning_Method)):
                 continue
+
+            integral_1, integral_2, integral_single = None, None, None
+
             cd_number_of_z_pT_all_together = z_pT
             if(Plot_Orientation in ["z_pT"]):
                 All_z_pT_Canvas_cd_2_z_pT_Bin = All_z_pT_Canvas_cd_2[Canvas_Name].cd(cd_number_of_z_pT_all_together)
@@ -1548,14 +1565,81 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
                     Saved_Histos[str(z_pT)].asym_errors.Draw("P E SAME")
                 else:
                     Saved_Histos[str(z_pT)].Draw("H P E0")
-            if(Fit_Test and (args.unfold in ["Bayesian", "Bin", "gdf", "tdf"]) and (canvas_num == 0)):
-                if(f"Chi_Squared_2_{z_pT}" in Saved_Histos):
-                    ROOT.gStyle.SetOptFit(0)
-                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=f"#color[{Saved_Histos[f'histo1_{z_pT}'].GetLineColor()}]{{{Legend_Labels[0]}}}", x1=0.19,  y1=0.10, x2=0.49,  y2=0.34, text_size=0.025)
-                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}_H2"] = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_2_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_2_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_2_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_2_{z_pT}"], header=f"#color[{Saved_Histos[f'histo2_{z_pT}'].GetLineColor()}]{{{Legend_Labels[1]}}}", x1=0.51,  y1=0.10, x2=0.84,  y2=0.34, text_size=0.025)
+
+            # Compute integrals for the histogram(s) drawn on this pad, if requested
+            if(args.show_integral):
+                if(args.mod or args.sim or args.closure or args.data):
+                    if(canvas_num == 0):
+                        if(f"histo1_{z_pT}" in Saved_Histos):
+                            integral_1 = Saved_Histos[f"histo1_{z_pT}"].Integral()
+                        if(f"histo2_{z_pT}" in Saved_Histos):
+                            integral_2 = Saved_Histos[f"histo2_{z_pT}"].Integral()
+                    elif(canvas_num == 1):
+                        if(f"h_diff_{z_pT}" in Saved_Histos):
+                            integral_single = Saved_Histos[f"h_diff_{z_pT}"].Integral()
+                    else:
+                        if(f"h_uncertainty_{z_pT}" in Saved_Histos):
+                            integral_single = Saved_Histos[f"h_uncertainty_{z_pT}"].Integral()
                 else:
-                    ROOT.gStyle.SetOptFit(0)
-                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=f"#color[{Saved_Histos[str(z_pT)].GetLineColor()}]{{{Legend_Labels[0]}}}",        x1=0.35,  y1=0.10, x2=0.70,  y2=0.34, text_size=0.030)
+                    if(str(z_pT) in Saved_Histos):
+                        integral_single = Saved_Histos[str(z_pT)].Integral()
+
+            if(Fit_Test and (args.unfold in ["Bayesian", "Bin", "gdf", "tdf"]) and (canvas_num == 0)):
+                ROOT.gStyle.SetOptFit(0)
+                if(f"Chi_Squared_2_{z_pT}" in Saved_Histos):
+                    header_1 = f"#color[{Saved_Histos[f'histo1_{z_pT}'].GetLineColor()}]{{{Legend_Labels[0]}}}"
+                    header_2 = f"#color[{Saved_Histos[f'histo2_{z_pT}'].GetLineColor()}]{{{Legend_Labels[1]}}}"
+                    if(args.show_integral and (integral_1 is not None)):
+                        header_1 = f"#splitline{{{header_1}}}{{Integral = {integral_1:.3g}}}"
+                    if(args.show_integral and (integral_2 is not None)):
+                        header_2 = f"#splitline{{{header_2}}}{{Integral = {integral_2:.3g}}}"
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=header_1, x1=0.19,  y1=0.10, x2=0.49,  y2=0.34, text_size=0.025)
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}_H2"] = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_2_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_2_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_2_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_2_{z_pT}"], header=header_2, x1=0.51,  y1=0.10, x2=0.84,  y2=0.34, text_size=0.025)
+                else:
+                    header_1 = f"#color[{Saved_Histos[str(z_pT)].GetLineColor()}]{{{Legend_Labels[0]}}}"
+                    if(args.show_integral and (integral_single is not None)):
+                        header_1 = f"#splitline{{{header_1}}}{{Integral = {integral_single:.3g}}}"
+                    Saved_Histos[f"Parameter_textbox_bin_{z_pT}"]    = Draw_Fit_Params_Box(TPad_cd=All_z_pT_Canvas_cd_2_z_pT_Bin, Chi_List=Saved_Histos[f"Chi_Squared_1_{z_pT}"], ParA=Saved_Histos[f"Fit_Par_A_1_{z_pT}"], ParB=Saved_Histos[f"Fit_Par_B_1_{z_pT}"], ParC=Saved_Histos[f"Fit_Par_C_1_{z_pT}"], header=header_1,        x1=0.35,  y1=0.10, x2=0.70,  y2=0.34, text_size=0.030)
+            elif(args.show_integral):
+                # Fits are not being drawn here; draw integral-only boxes in the same locations
+                if(args.mod or args.sim or args.closure or args.data):
+                    if(canvas_num == 0):
+                        if(integral_1 is not None):
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"] = ROOT.TPaveText(0.19, 0.10, 0.49, 0.34, "NDC")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillColor(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillStyle(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetBorderSize(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetTextSize(0.025)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].AddText(f"#color[{Saved_Histos[f'histo1_{z_pT}'].GetLineColor()}]{{{Legend_Labels[0]}}}")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].AddText(f"Integral = {integral_1:.3g}")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].Draw()
+                        if(integral_2 is not None):
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"] = ROOT.TPaveText(0.51, 0.10, 0.84, 0.34, "NDC")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].SetFillColor(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].SetFillStyle(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].SetBorderSize(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].SetTextSize(0.025)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].AddText(f"#color[{Saved_Histos[f'histo2_{z_pT}'].GetLineColor()}]{{{Legend_Labels[1]}}}")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].AddText(f"Integral = {integral_2:.3g}")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}_H2"].Draw()
+                    else:
+                        if(integral_single is not None):
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"] = ROOT.TPaveText(0.35, 0.10, 0.70, 0.34, "NDC")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillColor(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillStyle(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetBorderSize(0)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetTextSize(0.030)
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].AddText(f"Integral = {integral_single:.3g}")
+                            Saved_Histos[f"Integral_textbox_bin_{z_pT}"].Draw()
+                else:
+                    if(integral_single is not None):
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"] = ROOT.TPaveText(0.35, 0.10, 0.70, 0.34, "NDC")
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillColor(0)
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetFillStyle(0)
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetBorderSize(0)
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].SetTextSize(0.030)
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].AddText(f"Integral = {integral_single:.3g}")
+                        Saved_Histos[f"Integral_textbox_bin_{z_pT}"].Draw()
 
             ROOT.gPad.Update()
             All_z_pT_Canvas[Canvas_Name].Update()
@@ -1589,6 +1673,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         #####==========#####        Saving Canvas        #####==========##### ################################################################ ################################################################
         ##################################################################### ################################################################ ################################################################
     return Unfolding_Diff_Data_Input
+
 
 ################################################################################################################################################
 ##### Large/Combined Image Function ############################################################################################################
@@ -1696,7 +1781,7 @@ for BIN in Q2_y_Bin_List:
 json_output_name = None
 if((args.mod or args.sim) and (not args.data)):
     json_output_name = f"{'Mod_Test' if(args.mod) else 'Sim_Test' if(args.sim) else 'ERROR'}_Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
-    if(Saving_Q and ("ERROR" not in json_output_name)):
+    if(Saving_Q and ("ERROR" not in json_output_name) and args.make_json):
         # Save all differences to JSON for later uncertainty mapping
         with open(json_output_name, "w") as json_file:
             json.dump(Unfolding_Diff_Data, json_file, indent=4)
@@ -1739,12 +1824,14 @@ Arguments:
 --q2_y   (Q2-y Bins)           --> {args.bins}
 --z_pt   (z-pT Bins)           --> {args.z_pt}
 --all_z_pt                     --> {args.all_z_pt}
+--show_integral                --> {args.show_integral}
 --normalize                    --> {args.normalize}
 --file_format                  --> {args.file_format}
 --single_file                  --> {args.single_file}
 --verbose                      --> {args.verbose}
 --use_errors                   --> {args.use_errors}
 --use_errors_json              --> {args.use_errors_json}
+--invert_errors                --> {args.invert_errors}
 --no-fit                       --> {args.no_fit}
 --fit_root                     --> {args.fit_root}
 --remake_bin_by_bin            --> {args.remake}
@@ -1752,13 +1839,14 @@ Arguments:
 --fewer_images                 --> {args.fewer_images}
 --legend_name_1                --> {args.legend_name_1}
 --legend_name_2                --> {args.legend_name_2}
+--make_json                    --> {args.make_json}
 """
 if(args.compare):
     email_body = f"{email_body}--root_compare                 --> {args.root_compare}"
 if(json_output_name):
     email_body = f"""{email_body}
     
-JSON File Output:
+JSON File Output:  {"(Not Saved)" if(not args.make_json) else ""}
     {json_output_name}
 
 """
