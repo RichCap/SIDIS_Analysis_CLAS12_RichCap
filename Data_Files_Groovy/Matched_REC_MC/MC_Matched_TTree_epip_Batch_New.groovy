@@ -56,11 +56,29 @@ def outname = args[0].split("/")[-1]
 //     // Also added "Num_Pions" to help control events where the electron is counted twice (in case that is a previously overlooked issue)
 // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
 
-
 // Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
 def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new6.${outname}.root")
-// Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
-def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:Par_PID_el/I:Par_PID_pip/I')
+
+def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:Par_PID_el/I:Par_PID_pip/I'
+// Additional independent matching criteria branches
+// Phi=12, Theta=6
+branches_string += ':ex_gen_P12T6:ey_gen_P12T6:ez_gen_P12T6:eE_gen_P12T6:PID_el_P12T6:'
+branches_string += 'pipx_gen_P12T6:pipy_gen_P12T6:pipz_gen_P12T6:pipE_gen_P12T6:PID_pip_P12T6:'
+branches_string += 'Par_PID_el_P12T6/I:Par_PID_pip_P12T6/I'
+// Phi=8, Theta=6
+branches_string += ':ex_gen_P8T6:ey_gen_P8T6:ez_gen_P8T6:eE_gen_P8T6:PID_el_P8T6:'
+branches_string += 'pipx_gen_P8T6:pipy_gen_P8T6:pipz_gen_P8T6:pipE_gen_P8T6:PID_pip_P8T6:'
+branches_string += 'Par_PID_el_P8T6/I:Par_PID_pip_P8T6/I'
+// Phi=10, Theta=8
+branches_string += ':ex_gen_P10T8:ey_gen_P10T8:ez_gen_P10T8:eE_gen_P10T8:PID_el_P10T8:'
+branches_string += 'pipx_gen_P10T8:pipy_gen_P10T8:pipz_gen_P10T8:pipE_gen_P10T8:PID_pip_P10T8:'
+branches_string += 'Par_PID_el_P10T8/I:Par_PID_pip_P10T8/I'
+// Phi=10, Theta=4
+branches_string += ':ex_gen_P10T4:ey_gen_P10T4:ez_gen_P10T4:eE_gen_P10T4:PID_el_P10T4:'
+branches_string += 'pipx_gen_P10T4:pipy_gen_P10T4:pipz_gen_P10T4:pipE_gen_P10T4:PID_pip_P10T4:'
+branches_string += 'Par_PID_el_P10T4/I:Par_PID_pip_P10T4/I'
+// Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
+def tt = ff.makeTree('h22', 'title', branches_string)
 
 // If print_extra_info = 1, then extra information will be printed while running this program (do not do unless trying to test certain information - will run less efficiently)
 // Let print_extra_info = 0 to run normally
@@ -146,6 +164,230 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
     return 0
 }
 
+// Runs the "Matching to Generated Loop" once for a given (Phi,Theta) criteria set.
+// Returns a Map containing the matched gen kinematics + PIDs + parent PIDs + current match bookkeeping.
+def matchToGenerated(def MCpart,           def lund,  def list_of_matched_particles_gen_pip,
+                     def el,               def elth,  def elPhi,
+                     def pip,              def pipth, def pipPhi,
+                     def Phi_Ele_Criteria, def Theta_Ele_Criteria,
+                     def Phi_Pip_Criteria, def Theta_Pip_Criteria,
+                     def print_extra_info,
+                     double ABS_TOL, double REL_TOL) {
+
+    def Best_ele_Match = 1000
+    def Best_pip_Match = 1000
+
+    def Next_Best_ele_Match = 1000
+    def Next_Best_pip_Match = 1000
+
+    def num_of_possible_ele_matches = 0
+    def pid_matched_el   = 0
+    def matched_el_x_gen = 0
+    def matched_el_y_gen = 0
+    def matched_el_z_gen = 0
+    def matched_el_E_gen = 0
+
+    def num_of_possible_pip_matches = 0
+    def pid_matched_pip   = 0
+    def matched_pip_x_gen = 0
+    def matched_pip_y_gen = 0
+    def matched_pip_z_gen = 0
+    def matched_pip_E_gen = 0
+
+    def pid_other_matched_el   = 0
+    def other_matched_el_x_gen = 0
+    def other_matched_el_y_gen = 0
+    def other_matched_el_z_gen = 0
+    def other_matched_el_E_gen = 0
+
+    def pid_other_matched_pip   = 0
+    def other_matched_pip_x_gen = 0
+    def other_matched_pip_y_gen = 0
+    def other_matched_pip_z_gen = 0
+    def other_matched_pip_E_gen = 0
+
+    def current_match_pip     = []
+    def current_2nd_match_pip = []
+    def current_match_ele     = []
+    def current_2nd_match_ele = []
+
+    for(int ii_MCpart = 0; ii_MCpart < MCpart.getRows(); ii_MCpart++){
+
+        def pid_unmatched     = MCpart.getInt("pid",  ii_MCpart)
+        def unmatched_x_gen   = MCpart.getFloat("px", ii_MCpart)
+        def unmatched_y_gen   = MCpart.getFloat("py", ii_MCpart)
+        def unmatched_z_gen   = MCpart.getFloat("pz", ii_MCpart)
+        def unmatched_vec_gen = LorentzVector.withPID(pid_unmatched, unmatched_x_gen, unmatched_y_gen, unmatched_z_gen)
+
+        if(print_extra_info == 1){ System.out.println("Particle in row " + ii_MCpart + " has PID= " + pid_unmatched); }
+
+        def unmatched_p   = unmatched_vec_gen.p()
+        def unmatched_th  = (180/3.1415926)*unmatched_vec_gen.theta()
+        def unmatched_Phi = (180/3.1415926)*unmatched_vec_gen.phi()
+        def unmatched_charge_gen = (PDGDatabase.getParticleById(pid_unmatched)).charge()
+
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+        if(unmatched_charge_gen == -1){
+
+            def Delta_el_p   = Math.abs(el    - unmatched_p);
+            def Delta_el_th  = Math.abs(elth  - unmatched_th);
+            def Delta_el_Phi = Math.abs(elPhi - unmatched_Phi);
+
+            if(Delta_el_Phi > 180){ Delta_el_Phi = Math.abs(Delta_el_Phi-360); }
+
+            def Total_Quality_of_Match = ((Math.abs(Delta_el_th))/(Math.abs(elth))) + ((Math.abs(Delta_el_Phi))/(Math.abs(elPhi)));
+
+            if(Delta_el_Phi < Phi_Ele_Criteria && Delta_el_th < Theta_Ele_Criteria){
+
+                num_of_possible_ele_matches += 1;
+
+                if(Best_ele_Match > Total_Quality_of_Match){
+
+                    if((Total_Quality_of_Match < Next_Best_ele_Match) && (Next_Best_ele_Match != 1000) && (Best_ele_Match != 1000)){
+
+                        Next_Best_ele_Match = Best_ele_Match;
+
+                        pid_other_matched_el   = pid_matched_el;
+                        other_matched_el_x_gen = matched_el_x_gen;
+                        other_matched_el_y_gen = matched_el_y_gen;
+                        other_matched_el_z_gen = matched_el_z_gen;
+                        other_matched_el_E_gen = matched_el_E_gen;
+
+                        current_2nd_match_ele  = current_match_ele
+                    }
+
+                    Best_ele_Match = Total_Quality_of_Match;
+
+                    if(pid_matched_el == 11 && pid_matched_el != pid_unmatched && print_extra_info == 1){
+                        System.out.println("Particle that is not an electron is considered a better match than an identified electron.");
+                    }
+
+                    pid_matched_el    = pid_unmatched;
+                    matched_el_x_gen  = unmatched_x_gen;
+                    matched_el_y_gen  = unmatched_y_gen;
+                    matched_el_z_gen  = unmatched_z_gen;
+                    matched_el_E_gen  = unmatched_vec_gen.e();
+
+                    current_match_ele = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                }
+            }
+
+            if((Total_Quality_of_Match > Best_ele_Match && Total_Quality_of_Match < Next_Best_ele_Match) || Next_Best_ele_Match == 1000){
+
+                Next_Best_ele_Match = Total_Quality_of_Match;
+
+                pid_other_matched_el   = pid_unmatched;
+                other_matched_el_x_gen = unmatched_x_gen;
+                other_matched_el_y_gen = unmatched_y_gen;
+                other_matched_el_z_gen = unmatched_z_gen;
+                other_matched_el_E_gen = unmatched_vec_gen.e();
+
+                current_2nd_match_ele  = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+            }
+        }
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+
+
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+        if(unmatched_charge_gen == 1){
+
+            if((list_of_matched_particles_gen_pip.isEmpty()) || (list_of_matched_particles_gen_pip.contains([ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]) == false)){
+
+                def Delta_pip_p   = Math.abs(pip    - unmatched_p);
+                def Delta_pip_th  = Math.abs(pipth  - unmatched_th);
+                def Delta_pip_Phi = Math.abs(pipPhi - unmatched_Phi);
+
+                if(Delta_pip_Phi > 180){ Delta_pip_Phi = Math.abs(Delta_pip_Phi-360); }
+
+                def Total_Quality_of_Match = ((Math.abs(Delta_pip_th))/(Math.abs(pipth))) + ((Math.abs(Delta_pip_Phi))/(Math.abs(pipPhi)));
+
+                if(Delta_pip_Phi < Phi_Pip_Criteria && Delta_pip_th < Theta_Pip_Criteria){
+
+                    num_of_possible_pip_matches += 1;
+
+                    if(Best_pip_Match > Total_Quality_of_Match){
+
+                        if((Total_Quality_of_Match < Next_Best_pip_Match) && (Next_Best_pip_Match != 1000) && (Best_pip_Match != 1000)){
+
+                            Next_Best_pip_Match = Best_pip_Match;
+
+                            pid_other_matched_pip   = pid_matched_pip;
+                            other_matched_pip_x_gen = matched_pip_x_gen;
+                            other_matched_pip_y_gen = matched_pip_y_gen;
+                            other_matched_pip_z_gen = matched_pip_z_gen;
+                            other_matched_pip_E_gen = matched_pip_E_gen;
+
+                            current_2nd_match_pip   = current_match_pip
+                        }
+
+                        Best_pip_Match = Total_Quality_of_Match;
+
+                        if(pid_matched_pip == 211 && pid_matched_pip != pid_unmatched && print_extra_info == 1){
+                            System.out.println("Particle that is not a pi+ pion is considered a better match than an identified pi+ pion.");
+                        }
+
+                        pid_matched_pip   = pid_unmatched;
+                        matched_pip_x_gen = unmatched_x_gen;
+                        matched_pip_y_gen = unmatched_y_gen;
+                        matched_pip_z_gen = unmatched_z_gen;
+                        matched_pip_E_gen = unmatched_vec_gen.e();
+
+                        current_match_pip = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                    }
+                }
+
+                if((Total_Quality_of_Match > Best_pip_Match && Total_Quality_of_Match < Next_Best_pip_Match) || Next_Best_pip_Match == 1000){
+
+                    Next_Best_pip_Match = Total_Quality_of_Match;
+
+                    pid_other_matched_pip   = pid_unmatched;
+                    other_matched_pip_x_gen = unmatched_x_gen;
+                    other_matched_pip_y_gen = unmatched_y_gen;
+                    other_matched_pip_z_gen = unmatched_z_gen;
+                    other_matched_pip_E_gen = unmatched_vec_gen.e();
+
+                    current_2nd_match_pip   = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                }
+            }
+        }
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+    }
+
+    int parentPID_el = 0
+    int parentPID_pi = 0
+    if(pid_matched_el  != 0){ parentPID_el = findParentPIDFromLund(lund, pid_matched_el,  matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  ABS_TOL, REL_TOL); }
+    if(pid_matched_pip != 0){ parentPID_pi = findParentPIDFromLund(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL); }
+
+    return [
+        pid_matched_el    : pid_matched_el,
+        matched_el_x_gen  : matched_el_x_gen,
+        matched_el_y_gen  : matched_el_y_gen,
+        matched_el_z_gen  : matched_el_z_gen,
+        matched_el_E_gen  : matched_el_E_gen,
+
+        pid_matched_pip   : pid_matched_pip,
+        matched_pip_x_gen : matched_pip_x_gen,
+        matched_pip_y_gen : matched_pip_y_gen,
+        matched_pip_z_gen : matched_pip_z_gen,
+        matched_pip_E_gen : matched_pip_E_gen,
+
+        parentPID_el      : parentPID_el,
+        parentPID_pi      : parentPID_pi,
+
+        current_match_ele : current_match_ele,
+        current_match_pip : current_match_pip
+    ]
+}
+
+
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
@@ -160,7 +402,7 @@ args.eachParallel{fname->
     def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund'].collect{factory.getSchema(it)}
     def banks       = schemas.collect{new Bank(it)}
 
-    def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}    
+    def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}
     def banks_gen   = schemas_gen.collect{new Bank(it)}
 
     //==============================================//
@@ -206,11 +448,17 @@ args.eachParallel{fname->
             if(canele.iselectron()){
                 // A RECONSTRUCTED electron has been found
                 num_of_rec_ele_found += 1;
-                
+
                 // These lists are to make sure that the same generated particles are not matched to multiple reconstructed particles
                 // Applies mainly to the pi+ pion as the same electron should be matched several times while searching for the pions
-                // The electron list is included in case the electron is matched to different particles within the same event (room for future improvement to remove unnecessary searching later)
-                def list_of_matched_particles_gen_pip = []
+                // The electron list is included in case the electron is matched to different particles within the same event
+                // Independent per-criteria matched-gen bookkeeping lists (so each criteria behaves like a separate run)
+                def list_of_matched_particles_gen_pip       = []   // default (P10T6)
+                def list_of_matched_particles_gen_pip_P12T6 = []
+                def list_of_matched_particles_gen_pip_P8T6  = []
+                def list_of_matched_particles_gen_pip_P10T8 = []
+                def list_of_matched_particles_gen_pip_P10T4 = []
+                
                 def list_of_matched_particles_gen_ele = []
                 
                 int pionCount = 0 // Counter for pions (helps control double-counted electrons)
@@ -230,7 +478,7 @@ args.eachParallel{fname->
                         // A RECONSTRUCTED pi+ particle has been found with the given electron
                         // After this 'if' statement, the event being added to the ntuple is known to have at least one RECONSTRUCTED electron AND pi+ pion
                         num_of_rec_pip_found += 1;
-                        pionCount += 1; // Increment pion counter
+                        pionCount += 1;
 
                         def pip0 = canpip.getLorentzVector()
 
@@ -240,14 +488,14 @@ args.eachParallel{fname->
                         // Cartesian Momentum Coordinates
                         def ex   = ele.px(),    ey = ele.py(),    ez = ele.pz()
                         def pipx = pip0.px(), pipy = pip0.py(), pipz = pip0.pz()
-                        
+
                         // Sectors (From Detector)
                         def esec = canele.getPCALsector(),    pipsec = canpip.getDCsector()
-                        
+
                         // Coordinate of the matched hit (PCAL) [cm] - for Valerii's cuts (done in python) - Based on Electron
                         float Hx = ecb.getFloat("hx", 0)
                         float Hy = ecb.getFloat("hy", 0)
-                        
+
                         // For other valerii cuts
                         float V_PCal = ecb.getFloat("lv", 0)
                         float W_PCal = ecb.getFloat("lw", 0)
@@ -331,275 +579,46 @@ args.eachParallel{fname->
                             System.out.println("For event: " + evn);
                             System.out.println("Number of (gen) rows: " + MCpart.getRows());
                         }
-                        
-                        // Below are the main angular matching criteria for both particles
-                        def Phi_Ele_Criteria   = 10;
-                        def Theta_Ele_Criteria = 6;
-                        def Phi_Pip_Criteria   = 10;
-                        def Theta_Pip_Criteria = 6;
-                        
-                        def Best_ele_Match = 1000;
-                        def Best_pip_Match = 1000;
-                        
-                        def Next_Best_ele_Match = 1000;
-                        def Next_Best_pip_Match = 1000;
-                        
-                        def num_of_possible_ele_matches = 0
-                        def pid_matched_el   = 0
-                        def matched_el_x_gen = 0
-                        def matched_el_y_gen = 0
-                        def matched_el_z_gen = 0
-                        def matched_el_E_gen = 0
-                        
-                        def num_of_possible_pip_matches = 0
-                        def pid_matched_pip   = 0
-                        def matched_pip_x_gen = 0
-                        def matched_pip_y_gen = 0
-                        def matched_pip_z_gen = 0
-                        def matched_pip_E_gen = 0
-                        
-                        def pid_other_matched_el   = 0
-                        def other_matched_el_x_gen = 0
-                        def other_matched_el_y_gen = 0
-                        def other_matched_el_z_gen = 0
-                        def other_matched_el_E_gen = 0
-                        
-                        def pid_other_matched_pip   = 0
-                        def other_matched_pip_x_gen = 0
-                        def other_matched_pip_y_gen = 0
-                        def other_matched_pip_z_gen = 0
-                        def other_matched_pip_E_gen = 0
-                        
-                        def current_match_pip     = []
-                        def current_2nd_match_pip = []
-                        def current_match_ele     = []
-                        def current_2nd_match_ele = []
-                        
-                        //====================================================================================================//
-                        //----------------------------------------------------------------------------------------------------//
-                        //==========||==========||==========// Matching to Generated Loop //==========||==========||==========//
-                        //----------------------------------------------------------------------------------------------------//
-                        //====================================================================================================//
-                        for(int ii_MCpart = 0; ii_MCpart < MCpart.getRows(); ii_MCpart++){
-                            // This loop is to go through each particle in the event to find the generated match for the reconstucted particles above
-                            
-                            def pid_unmatched     = MCpart.getInt("pid",  ii_MCpart)
-                            def unmatched_x_gen   = MCpart.getFloat("px", ii_MCpart)
-                            def unmatched_y_gen   = MCpart.getFloat("py", ii_MCpart)
-                            def unmatched_z_gen   = MCpart.getFloat("pz", ii_MCpart)
-                            def unmatched_vec_gen = LorentzVector.withPID(pid_unmatched, unmatched_x_gen, unmatched_y_gen, unmatched_z_gen)
-                            
-                            if(print_extra_info == 1){ System.out.println("Particle in row " + ii_MCpart + " has PID= " + pid_unmatched); }
-                            
-                            def unmatched_p   = unmatched_vec_gen.p()
-                            def unmatched_th  = (180/3.1415926)*unmatched_vec_gen.theta()
-                            def unmatched_Phi = (180/3.1415926)*unmatched_vec_gen.phi()
-                            def unmatched_charge_gen = (PDGDatabase.getParticleById(pid_unmatched)).charge()
-                            
-                            //------------------------------------------------------------------------------------------------------//
-                            //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
-                            //------------------------------------------------------------------------------------------------------//
-                            if(unmatched_charge_gen == -1){ //=====// Condition 1: Charge is matched for the Electron //=====//
-                                
-                                //===============// (Other) Matching Conditions for Electron //===============//
 
-                                def Delta_el_p   = Math.abs(el    - unmatched_p);
-                                def Delta_el_th  = Math.abs(elth  - unmatched_th);
-                                def Delta_el_Phi = Math.abs(elPhi - unmatched_Phi);
-                                
-                                // These lines are to account for the phi-distribution's natural discontinuity (i.e., The maximum difference between phi angles is 180˚. Beyond that, the angles become smaller when measured in the opposite direction. Since phi is naturally measured from ±180˚, a measurement of -179˚ and +179˚ should only be 2˚ apart, not 358˚)
-                                if(Delta_el_Phi > 180){ Delta_el_Phi = Math.abs(Delta_el_Phi-360); }
-                                
-                                // def Total_Quality_of_Match = Delta_el_th + Delta_el_Phi;
-                                
-                                // Used for rules 3:
-                                // def Total_Quality_of_Match = ((Math.abs(Delta_el_p))/(Math.abs(el))) + ((Math.abs(Delta_el_th))/(Math.abs(elth))) + ((Math.abs(Delta_el_Phi))/(Math.abs(elPhi)));
-                                
-                                // Used for rules 4: (also with better 2nd match recording)
-                                def Total_Quality_of_Match = ((Math.abs(Delta_el_th))/(Math.abs(elth))) + ((Math.abs(Delta_el_Phi))/(Math.abs(elPhi)));
-                                                                
-                                //=========================================//
-                                //=====// Primary Matching Criteria //=====//
-                                //=========================================//
-                                
-                                if(Delta_el_Phi < Phi_Ele_Criteria && Delta_el_th < Theta_Ele_Criteria){ // Matching Criteria (defined above)
-                                    // Particle can be matched to the Electron
-                                    num_of_possible_ele_matches += 1;
-                                    if(Best_ele_Match > Total_Quality_of_Match){
-                                        // These lines were added on 4-26-2022 (Not run before "Rules_3")
-                                        // Check to see if this match is replacing a better match, or is the first (good) match
-                                        //========================================//
-                                        //=====// Secondary Particle Match //=====//
-                                        //========================================//
-                                        if((Total_Quality_of_Match < Next_Best_ele_Match) && (Next_Best_ele_Match != 1000) && (Best_ele_Match != 1000)){
-                                            // Replace next best match with the match that is currently about to be replaced
-                                            Next_Best_ele_Match = Best_ele_Match;
+                        //========================================================================================//
+                        //==========//   Matching to Generated Loop (run 5 independent criteria sets) //==========//
+                        //========================================================================================//
 
-                                            pid_other_matched_el   = pid_matched_el;
-                                            other_matched_el_x_gen = matched_el_x_gen;
-                                            other_matched_el_y_gen = matched_el_y_gen;
-                                            other_matched_el_z_gen = matched_el_z_gen;
-                                            other_matched_el_E_gen = matched_el_E_gen;
+                        // Default (existing behavior): Phi=10, Theta=6
+                        def match_default = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip,     el, elth, elPhi, pip, pipth, pipPhi, 10, 6, 10, 6, print_extra_info, ABS_TOL, REL_TOL)
 
-                                            current_2nd_match_ele  = current_match_ele
-                                        }
-                                        //========================================//
-                                        //=====// Secondary Particle Match //=====//
-                                        //========================================//
-                                        
-                                        //======================================//
-                                        //=====// Primary Particle Match //=====//
-                                        //======================================//
-                                        
-                                        // Current match is the closest one to the reconstructed
-                                        Best_ele_Match = Total_Quality_of_Match;
+                        // Additional criteria sets (independent branch sets)
+                        def match_P12T6 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P12T6, el, elth, elPhi, pip, pipth, pipPhi, 12, 6, 12, 6, print_extra_info, ABS_TOL, REL_TOL)
 
-                                        if(pid_matched_el == 11 && pid_matched_el != pid_unmatched && print_extra_info == 1){
-                                            System.out.println("Particle that is not an electron is considered a better match than an identified electron."); 
-                                        }
+                        def match_P8T6  = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P8T6,  el, elth, elPhi, pip, pipth, pipPhi, 8,  6,  8, 6, print_extra_info, ABS_TOL, REL_TOL)
 
-                                        pid_matched_el    = pid_unmatched;
-                                        matched_el_x_gen  = unmatched_x_gen;
-                                        matched_el_y_gen  = unmatched_y_gen;
-                                        matched_el_z_gen  = unmatched_z_gen;
-                                        matched_el_E_gen  = unmatched_vec_gen.e();
-                                        
-                                        current_match_ele = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
-                                        // current_match_ele = ["row of match", "PID of match candidate", "Theta angle of match candidate", "Phi angle of match candidate"]
+                        def match_P10T8 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T8, el, elth, elPhi, pip, pipth, pipPhi, 10, 8, 10, 8, print_extra_info, ABS_TOL, REL_TOL)
 
-                                        //======================================//
-                                        //=====// Primary Particle Match //=====//
-                                        //======================================//
-                                    }
-                                }
-                                
-                                //========================================//
-                                //=====// Secondary Particle Match //=====//
-                                //========================================//
-                                
-                                if((Total_Quality_of_Match > Best_ele_Match && Total_Quality_of_Match < Next_Best_ele_Match) || Next_Best_ele_Match == 1000){
-                                    // Always have a 'next best' result (must still have the correct charge)
-                                    Next_Best_ele_Match = Total_Quality_of_Match;
-                                    
-                                    pid_other_matched_el   = pid_unmatched;
-                                    other_matched_el_x_gen = unmatched_x_gen;
-                                    other_matched_el_y_gen = unmatched_y_gen;
-                                    other_matched_el_z_gen = unmatched_z_gen;
-                                    other_matched_el_E_gen = unmatched_vec_gen.e();
-                                    
-                                    current_2nd_match_ele  = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]   
-                                }
-                                //===============// (Other) Matching Conditions for Electron //===============//
-                            }
-                            //------------------------------------------------------------------------------------------------------//
-                            //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
-                            //------------------------------------------------------------------------------------------------------//
-                            
-                            
-                            //------------------------------------------------------------------------------------------------------//
-                            //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
-                            //------------------------------------------------------------------------------------------------------//
-                            if(unmatched_charge_gen == 1){ //=====// Condition 1: Charge is matched for the Pi+ Pion //=====//
-                                
-                                //=====// Condition 2: Particle has not already been matched //=====//
-                                if((list_of_matched_particles_gen_pip.isEmpty()) || (list_of_matched_particles_gen_pip.contains([ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]) == false)){
-                                    // Condition above: WILL check the generated particle if there has not been another pion added to the dataframe for this event yet
-                                                    //  Will NOT check this particle if it had previously been matched to a different reconstructed pion
-                                    
-                                    //===============// (Other) Matching Conditions for Pi+ Pion //===============//
+                        def match_P10T4 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T4, el, elth, elPhi, pip, pipth, pipPhi, 10, 4, 10, 4, print_extra_info, ABS_TOL, REL_TOL)
 
-                                    def Delta_pip_p   = Math.abs(pip    - unmatched_p);
-                                    def Delta_pip_th  = Math.abs(pipth  - unmatched_th);
-                                    def Delta_pip_Phi = Math.abs(pipPhi - unmatched_Phi);
-                                    
-                                    // These lines are to account for the phi-distribution's natural discontinuity (i.e., The maximum difference between phi angles is 180˚. Beyond that, the angles become smaller when measured in the opposite direction. Since phi is naturally measured from ±180˚, a measurement of -179˚ and +179˚ should only be 2˚ apart, not 358˚)
-                                    if(Delta_pip_Phi > 180){ Delta_pip_Phi = Math.abs(Delta_pip_Phi-360); }
+                        // Unpack default matches into the existing variable names (preserves downstream behavior)
+                        def pid_matched_el   = match_default.pid_matched_el
+                        def matched_el_x_gen = match_default.matched_el_x_gen
+                        def matched_el_y_gen = match_default.matched_el_y_gen
+                        def matched_el_z_gen = match_default.matched_el_z_gen
+                        def matched_el_E_gen = match_default.matched_el_E_gen
 
-                                    // def Total_Quality_of_Match = Delta_pip_th + Delta_pip_Phi;
-                                    
-                                    // Used for rules 3:
-                                    // def Total_Quality_of_Match = ((Math.abs(Delta_pip_p))/(Math.abs(pip))) + ((Math.abs(Delta_pip_th))/(Math.abs(pipth))) + ((Math.abs(Delta_pip_Phi))/(Math.abs(pipPhi)));
-                                    
-                                    // Used for rules 4: (also with better 2nd match recording)
-                                    def Total_Quality_of_Match = ((Math.abs(Delta_pip_th))/(Math.abs(pipth))) + ((Math.abs(Delta_pip_Phi))/(Math.abs(pipPhi)));
-                                        
-                                    if(Delta_pip_Phi < Phi_Pip_Criteria && Delta_pip_th < Theta_Pip_Criteria){ // Matching Criteria (defined above)
-                                        // Particle can be matched to the Pi+ Pion
-                                        
-                                        num_of_possible_pip_matches += 1;
+                        def pid_matched_pip   = match_default.pid_matched_pip
+                        def matched_pip_x_gen = match_default.matched_pip_x_gen
+                        def matched_pip_y_gen = match_default.matched_pip_y_gen
+                        def matched_pip_z_gen = match_default.matched_pip_z_gen
+                        def matched_pip_E_gen = match_default.matched_pip_E_gen
 
-                                        if(Best_pip_Match > Total_Quality_of_Match){
-                                            // These lines were added on 4-26-2022 (Not run before "Rules_3")
-                                            // Check to see if this match is replacing a better match, or is the first (good) match
-                                            //========================================//
-                                            //=====// Secondary Particle Match //=====//
-                                            //========================================//
-                                            if((Total_Quality_of_Match < Next_Best_pip_Match) && (Next_Best_pip_Match != 1000) && (Best_pip_Match != 1000)){
-                                                // Replace next best match with the match that is currently about to be replaced
-                                                Next_Best_pip_Match = Best_pip_Match;
+                        def current_match_ele = match_default.current_match_ele
+                        def current_match_pip = match_default.current_match_pip
 
-                                                pid_other_matched_pip   = pid_matched_pip;
-                                                other_matched_pip_x_gen = matched_pip_x_gen;
-                                                other_matched_pip_y_gen = matched_pip_y_gen;
-                                                other_matched_pip_z_gen = matched_pip_z_gen;
-                                                other_matched_pip_E_gen = matched_pip_E_gen;
+                        int parentPID_el = match_default.parentPID_el
+                        int parentPID_pi = match_default.parentPID_pi
 
-                                                current_2nd_match_pip   = current_match_pip
-                                            }
-                                            //========================================//
-                                            //=====// Secondary Particle Match //=====//
-                                            //========================================//
-
-                                            //======================================//
-                                            //=====// Primary Particle Match //=====//
-                                            //======================================//
-
-                                            // Current match is the closest one to the reconstructed
-                                            Best_pip_Match = Total_Quality_of_Match;
-
-                                            if(pid_matched_pip == 211 && pid_matched_pip != pid_unmatched && print_extra_info == 1){
-                                                System.out.println("Particle that is not a pi+ pion is considered a better match than an identified pi+ pion."); 
-                                            }
-                                            pid_matched_pip   = pid_unmatched;
-                                            matched_pip_x_gen = unmatched_x_gen;
-                                            matched_pip_y_gen = unmatched_y_gen;
-                                            matched_pip_z_gen = unmatched_z_gen;
-                                            matched_pip_E_gen = unmatched_vec_gen.e();
-
-                                            current_match_pip = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
-                                            //  current_match_pip = ["row of match", "PID of match candidate", "Theta angle of match candidate", "Phi angle of match candidate"]
-                                        }
-                                    }
-                                    if((Total_Quality_of_Match > Best_pip_Match && Total_Quality_of_Match < Next_Best_pip_Match) || Next_Best_pip_Match == 1000){
-                                        // Always have a 'next best' result (must still have the correct charge)                                    
-                                        Next_Best_pip_Match = Total_Quality_of_Match;
-
-                                        pid_other_matched_pip   = pid_unmatched;
-                                        other_matched_pip_x_gen = unmatched_x_gen;
-                                        other_matched_pip_y_gen = unmatched_y_gen;
-                                        other_matched_pip_z_gen = unmatched_z_gen;
-                                        other_matched_pip_E_gen = unmatched_vec_gen.e();
-
-                                        current_2nd_match_pip   = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
-                                    }
-                                    //===============// (Other) Matching Conditions for Pi+ Pion //===============//
-                                }
-                            }
-                            //------------------------------------------------------------------------------------------------------//
-                            //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
-                            //------------------------------------------------------------------------------------------------------//
-                        }
-                        //==========================================================================================================//
-                        //----------------------------------------------------------------------------------------------------------//
-                        //==========||==========||==========// Matching to Generated Loop (END) //==========||==========||==========//
-                        //----------------------------------------------------------------------------------------------------------//
-                        //==========================================================================================================//
-                            
-                        
-                        //--------------------------------------------------------//
+                        //========================================================//
                         //====================// Print Info //====================//
-                        //--------------------------------------------------------//
-                            
+                        //========================================================//
+                        
                         //==========// Checking to see if particles were matched (Start) //==========//
                         if(pid_matched_el == 0 && matched_el_x_gen == 0 && matched_el_y_gen == 0 && matched_el_z_gen == 0){
                             num_of_failed_ele += 1
@@ -624,11 +643,11 @@ args.eachParallel{fname->
                             num_of_total_matched += 1
                         }
                         //=====// Found a matched particle //=====//
-                        
+
                         //==========// Checking to see if particles were matched (End) //==========//
                         
                         //===============// Matching Both Particles at the same time //===============//
-
+                        
                         if(pid_matched_el == pid_matched_pip && matched_el_x_gen == matched_pip_x_gen && matched_el_y_gen == matched_pip_y_gen && matched_el_z_gen == matched_pip_z_gen){
                             if(pid_matched_el == 0 && matched_el_x_gen == 0 && matched_el_y_gen == 0 && matched_el_z_gen == 0){
                                 if(print_extra_info == 1){ System.out.println("Failure to match either particle"); }
@@ -645,11 +664,16 @@ args.eachParallel{fname->
                         }
                         //===============// Matching Both Particles at the same time //===============//
                         
-                        //--------------------------------------------------------//
+                        //========================================================//
                         //====================// Print Info //====================//
-                        //--------------------------------------------------------//
-                        
+                        //========================================================//
+
+                        // Update per-criteria lists (so each criteria behaves like a separate run)
                         list_of_matched_particles_gen_pip.add(current_match_pip)
+                        list_of_matched_particles_gen_pip_P12T6.add(match_P12T6.current_match_pip)
+                        list_of_matched_particles_gen_pip_P8T6.add(match_P8T6.current_match_pip)
+                        list_of_matched_particles_gen_pip_P10T8.add(match_P10T8.current_match_pip)
+                        list_of_matched_particles_gen_pip_P10T4.add(match_P10T4.current_match_pip)
                         
                         if(list_of_matched_particles_gen_ele.isEmpty()){ list_of_matched_particles_gen_ele.add(current_match_ele) }
                         else{
@@ -659,31 +683,46 @@ args.eachParallel{fname->
                                 System.out.println("Run Number is: " + run);
                                 System.out.println("The list of electrons are: " + list_of_matched_particles_gen_ele);
                             }
-                            
                         }
-                        
-                        int parentPID_el = 0;
-                        int parentPID_pi = 0;
-                        // System.out.println("Finding (gen) electron Parent:");
-                        if(pid_matched_el  != 0){ parentPID_el = findParentPIDFromLund(lund, pid_matched_el,  matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  ABS_TOL, REL_TOL); }
-                        // System.out.println("parentPID_el = ${parentPID_el}");
-                        // System.out.println("Finding (gen) pi+ pion Parent:");
-                        if(pid_matched_pip != 0){ parentPID_pi = findParentPIDFromLund(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL); }
-                        // System.out.println("parentPID_pi = ${parentPID_pi}");
-                        
 
+                        // Fill tree:
+                        // - default criteria fills existing branches
+                        // - additional criteria fill their new, independent branches
                         tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        pipx, pipy, pipz,
                                 esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
-                                V_PCal,             W_PCal,            U_PCal, 
+                                V_PCal,             W_PCal,            U_PCal,
                                 ele_x_DC_6,         ele_y_DC_6,        ele_z_DC_6,
                                 ele_x_DC_18,        ele_y_DC_18,       ele_z_DC_18,
                                 ele_x_DC_36,        ele_y_DC_36,       ele_z_DC_36,
                                 pip_x_DC_6,         pip_y_DC_6,        pip_z_DC_6,
                                 pip_x_DC_18,        pip_y_DC_18,       pip_z_DC_18,
                                 pip_x_DC_36,        pip_y_DC_36,       pip_z_DC_36,
+                                
+                                // Default (P10T6)
                                 matched_el_x_gen,   matched_el_y_gen,  matched_el_z_gen,  matched_el_E_gen,  pid_matched_el,
                                 matched_pip_x_gen,  matched_pip_y_gen, matched_pip_z_gen, matched_pip_E_gen, pid_matched_pip,
-                                parentPID_el,       parentPID_pi)
+                                parentPID_el,       parentPID_pi,
+                                
+                                // Phi=12, Theta=6
+                                match_P12T6.matched_el_x_gen,  match_P12T6.matched_el_y_gen,  match_P12T6.matched_el_z_gen,  match_P12T6.matched_el_E_gen,  match_P12T6.pid_matched_el,
+                                match_P12T6.matched_pip_x_gen, match_P12T6.matched_pip_y_gen, match_P12T6.matched_pip_z_gen, match_P12T6.matched_pip_E_gen, match_P12T6.pid_matched_pip,
+                                match_P12T6.parentPID_el,      match_P12T6.parentPID_pi,
+                                
+                                // Phi=8, Theta=6
+                                match_P8T6.matched_el_x_gen,   match_P8T6.matched_el_y_gen,   match_P8T6.matched_el_z_gen,   match_P8T6.matched_el_E_gen,   match_P8T6.pid_matched_el,
+                                match_P8T6.matched_pip_x_gen,  match_P8T6.matched_pip_y_gen,  match_P8T6.matched_pip_z_gen,  match_P8T6.matched_pip_E_gen,  match_P8T6.pid_matched_pip,
+                                match_P8T6.parentPID_el,       match_P8T6.parentPID_pi,
+                                
+                                // Phi=10, Theta=8
+                                match_P10T8.matched_el_x_gen,  match_P10T8.matched_el_y_gen,  match_P10T8.matched_el_z_gen,  match_P10T8.matched_el_E_gen,  match_P10T8.pid_matched_el,
+                                match_P10T8.matched_pip_x_gen, match_P10T8.matched_pip_y_gen, match_P10T8.matched_pip_z_gen, match_P10T8.matched_pip_E_gen, match_P10T8.pid_matched_pip,
+                                match_P10T8.parentPID_el,      match_P10T8.parentPID_pi,
+                                
+                                // Phi=10, Theta=4
+                                match_P10T4.matched_el_x_gen,  match_P10T4.matched_el_y_gen,  match_P10T4.matched_el_z_gen,  match_P10T4.matched_el_E_gen,  match_P10T4.pid_matched_el,
+                                match_P10T4.matched_pip_x_gen, match_P10T4.matched_pip_y_gen, match_P10T4.matched_pip_z_gen, match_P10T4.matched_pip_E_gen, match_P10T4.pid_matched_pip,
+                                match_P10T4.parentPID_el,      match_P10T4.parentPID_pi
+                        )
                         
                         if(pionCount > 1){ Multiple_Pions_Per_Electron += 1 }
 
