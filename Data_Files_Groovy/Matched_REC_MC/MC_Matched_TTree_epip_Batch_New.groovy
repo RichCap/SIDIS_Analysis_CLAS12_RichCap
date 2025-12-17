@@ -30,20 +30,6 @@ if(ismc) suff += '.mc'
 else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
-// // New Naming convension as of 7-18-2022 (same as Test_Rules_New_5)
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.${outname}.root")
-
-// // New Naming convension as of 6-6-2024 (adding new info and removing unused old info)
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new2.${outname}.root")
-
-// // As of 6/12/2024: Added more information to perform fiducial cuts based on Valerii's work
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new3.${outname}.root")
-
-// // As of 7/1/2024: See notes made with 'def tt = ff.makeTree(...)'
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new4.${outname}.root")
-
-// // As of 7/24/2024: See notes made with 'def tt = ff.makeTree(...)'
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new5.${outname}.root")
 
 // As of 4/16/2025: Running with files that used a different background merging setting (used 45nA instead of 50nA as was done for all prior runs)
     // Change is only to the output file names - No other changes were made to the internal workings of the script itself
@@ -52,28 +38,16 @@ def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new5.45nA.${outnam
 // // Test_Rules_New_5 --> added code to check phi matches for edge cases (i.e., if Phi_rec = -179˚ and Phi_gen = +179˚, these particles should be considered as matches)
 // def ff = new ROOTFile("MC_Matched_sidis_epip_richcap_Test_Rules_New_5.${suff}.${outname}.root")
 
-// Update as of 6-17-2022 --> Prior versions were erased from the volite folder. Remade with additional information regarding the number of GENERATED events (i.e., how many events would be included if the reconstruction correctly identified every possible SIDIS event in the Monte Carlo - variable named 'SIDIS_GEN')
-// SIDIS_GEN will increase over time, so only the maximum value will represent the 'true' number of Generated SIDIS events
-
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I')
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I:SIDIS_GEN/I')
-
-// // Added beamCharge to the Tree:
-// def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:ex_2_gen:ey_2_gen:ez_2_gen:eE_2_gen:PID_2_el:pipx_2_gen:pipy_2_gen:pipz_2_gen:pipE_2_gen:PID_2_pip:Possible_ele/I:Possible_pip/I:SIDIS_GEN/I:beamCharge')
-
 // As of 6/10/2024: Removed second best match info and all of the event count information (i.e., Possible_ele, Possible_pip, and SIDIS_GEN)
 // // Also added Hx_pip, Hy_pip, Hz_pip and layer_DC
 // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:layer_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
 
-
 // // Added 'V_PCal', 'W_PCal', 'U_PCal', and 'detector_DC' on 6/12/2024
 // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:V_PCal:W_PCal:U_PCal:detector_DC/I:layer_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
 
 // // Made the PCal and DC hits, as well as the detector/layer variables unique to each particle on 7/1/2024
 //     // Added/renamed several variables to do this (runs with 'new4')
 // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:V_PCal:W_PCal:U_PCal:Hx:Hy:ele_x_DC:ele_y_DC:ele_z_DC:Hx_pip:Hy_pip:pip_x_DC:pip_y_DC:pip_z_DC:detector_ele_DC/I:layer_ele_DC/I:detector_pip_DC/I:layer_pip_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
 
 // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/24/2024
     // Added/renamed several variables to do this
@@ -116,11 +90,7 @@ args.eachParallel{fname->
     def event     = new Event()
     def factory   = reader.getSchemaFactory()
     
-    // def schemas   = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Header', 'MC::Particle'].collect{factory.getSchema(it)}
-    // def banks     = schemas.collect{new Bank(it)}
-    // // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
-    // def banks_gen = ['MC::Header',  'REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
-    
+    // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
     def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle'].collect{factory.getSchema(it)}
     def banks       = schemas.collect{new Bank(it)}
 
@@ -230,18 +200,7 @@ args.eachParallel{fname->
                         float W_PCal = ecb.getFloat("lw", 0)
                         float U_PCal = ecb.getFloat("lu", 0)
                         
-                        
                         // Coordinate of the matched hit (Drift Chamber) [cm] - for fiducial cuts - Based on Electron - for layers 6, 18, and 36 (i.e., regions 1, 2, and 3)
-                        // float ele_x_DC_6  = canele.getDC1x()
-                        // float ele_y_DC_6  = canele.getDC1y()
-                        // float ele_z_DC_6  = canele.getDC1z()
-                        // // Note regarding why getDC() functions aren't used: Only getDC1x(), getDC1y(), getDC1z() exist. The other layers do not have defined functions to retrieve them
-                        // float ele_x_DC_18 = canele.getDC2x()
-                        // float ele_y_DC_18 = canele.getDC2y()
-                        // float ele_z_DC_18 = canele.getDC2z()
-                        // float ele_x_DC_36 = canele.getDC3x()
-                        // float ele_y_DC_36 = canele.getDC3y()
-                        // float ele_z_DC_36 = canele.getDC3z()
                         
                         float ele_x_DC_6  = Float.NaN, ele_y_DC_6  = Float.NaN, ele_z_DC_6  = Float.NaN
                         float ele_x_DC_18 = Float.NaN, ele_y_DC_18 = Float.NaN, ele_z_DC_18 = Float.NaN
@@ -266,14 +225,8 @@ args.eachParallel{fname->
                             }
                         }
                         
-                        // float ele_x_DC = trajb.getFloat("x", 0)
-                        // float ele_y_DC = trajb.getFloat("y", 0)
-                        // float ele_z_DC = trajb.getFloat("z", 0)
                         // // Drift Chamber layer
-                        // int layer_ele_DC    = trajb.getInt("layer",    0)
                         // // Drift Chamber detector (DC = 6)
-                        // int detector_ele_DC = trajb.getInt("detector", 0)
-                        
                         
                         float Hx_pip = Float.NaN, Hy_pip = Float.NaN
                         // Coordinate of the matched hit (PCAL) [cm] - for fiducial cuts - Based on Pion
@@ -287,17 +240,6 @@ args.eachParallel{fname->
                         }
                         
                         // Coordinate of the matched hit (Drift Chamber) [cm] - for fiducial cuts - Based on Pion
-                        // float pip_x_DC_6  = canpip.getDC1x()
-                        // float pip_y_DC_6  = canpip.getDC1y()
-                        // float pip_z_DC_6  = canpip.getDC1z()
-                        // // Note regarding why getDC() functions aren't used: Only getDC1x(), getDC1y(), getDC1z() exist. The other layers do not have defined functions to retrieve them
-                        // float pip_x_DC_18 = canpip.getDC2x()
-                        // float pip_y_DC_18 = canpip.getDC2y()
-                        // float pip_z_DC_18 = canpip.getDC2z()
-                        // float pip_x_DC_36 = canpip.getDC3x()
-                        // float pip_y_DC_36 = canpip.getDC3y()
-                        // float pip_z_DC_36 = canpip.getDC3z()
-                        
                         float pip_x_DC_6  = Float.NaN, pip_y_DC_6  = Float.NaN, pip_z_DC_6  = Float.NaN
                         float pip_x_DC_18 = Float.NaN, pip_y_DC_18 = Float.NaN, pip_z_DC_18 = Float.NaN
                         float pip_x_DC_36 = Float.NaN, pip_y_DC_36 = Float.NaN, pip_z_DC_36 = Float.NaN
@@ -640,7 +582,6 @@ args.eachParallel{fname->
                         //==========================================================================================================//
                             
                         
-                        
                         //--------------------------------------------------------//
                         //====================// Print Info //====================//
                         //--------------------------------------------------------//
@@ -712,9 +653,6 @@ args.eachParallel{fname->
                             
                         }
 
-
-
-
                         tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        pipx, pipy, pipz,
                                 esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
                                 V_PCal,             W_PCal,            U_PCal, 
@@ -731,41 +669,6 @@ args.eachParallel{fname->
                             Multiple_Pions_Per_Electron += 1
                         }
 
-                        // Removed on 7/24/2024
-                        // tt.fill(evn,     run,      ex,                ey,                ez,                pipx, pipy, pipz,
-                        //         esec,    pipsec,   V_PCal,            W_PCal,            U_PCal,
-                        //         Hx,      Hy,       ele_x_DC,          ele_y_DC,          ele_z_DC,
-                        //         Hx_pip,  Hy_pip,   pip_x_DC,          pip_y_DC,          pip_z_DC,
-                        //         detector_ele_DC,   layer_ele_DC,      detector_pip_DC,   layer_pip_DC,      beamCharge,
-                        //         matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  matched_el_E_gen,  pid_matched_el,
-                        //         matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, matched_pip_E_gen, pid_matched_pip)
-                        
-                        // Removed on 6/6/2024
-                        // tt.fill(evn, run, ex, ey, ez, pipx, pipy, pipz,
-                        //     esec, pipsec, Hx, Hy,
-                        //     matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  matched_el_E_gen,  pid_matched_el,
-                        //     matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, matched_pip_E_gen, pid_matched_pip,
-                        //     other_matched_el_x_gen,  other_matched_el_y_gen,  other_matched_el_z_gen,  other_matched_el_E_gen,  pid_other_matched_el,
-                        //     other_matched_pip_x_gen, other_matched_pip_y_gen, other_matched_pip_z_gen, other_matched_pip_E_gen, pid_other_matched_pip,
-                        //     num_of_possible_ele_matches, num_of_possible_pip_matches, num_of_gen_sidis_events, beamCharge)
-                        // Removed on 7/1/2024
-                        // tt.fill(evn, run, ex,  ey, ez, pipx, pipy, pipz,
-                        //     esec, pipsec, Hx,  Hy, Hx_pip, Hy_pip, Hz_pip, 
-                        //     V_PCal,   W_PCal,  U_PCal,             detector_DC,       layer_DC,          beamCharge,
-                        //     matched_el_x_gen,  matched_el_y_gen,   matched_el_z_gen,  matched_el_E_gen,  pid_matched_el,
-                        //     matched_pip_x_gen, matched_pip_y_gen,  matched_pip_z_gen, matched_pip_E_gen, pid_matched_pip)
-                        
-                        // if(pid_matched_el  != 0 && pid_matched_el  != 11  && pid_matched_el  != -321 && pid_matched_el  != -211){
-                        //     System.out.println("Incorrect Electron PID");
-                        //     System.out.println("Matched PID_el  = " + pid_matched_el);
-                        // }
-                        // if(pid_matched_pip != 0 && pid_matched_pip != 211 && pid_matched_pip != 2212 && pid_matched_pip !=  321 && pid_matched_pip != -11){
-                        //     System.out.println("Incorrect Pi+ Pion PID");
-                        //     System.out.println("Matched PID_pip = " + pid_matched_pip);
-                        // }
-                        // if((pid_matched_el != 0 && pid_matched_el  != 11) || (pid_matched_pip != 0 && pid_matched_pip != 211)){
-                        //     System.out.println("");
-                        // }
                     }
                     //==================================================//
                     //==========//   Pi+ Pion (REC) Found   //==========//

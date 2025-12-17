@@ -1,0 +1,1 @@
+/cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-*
