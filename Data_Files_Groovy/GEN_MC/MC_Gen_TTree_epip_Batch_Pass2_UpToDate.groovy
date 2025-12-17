@@ -105,9 +105,9 @@ args.eachParallel{fname->
 
                 // Compare with values you already extracted from the other bank
                 boolean EpidOK = (Epid_lund == pid)
-                boolean exOK  = nearlyEqual(ex_lund, ex, ABS_TOL, REL_TOL)
-                boolean eyOK  = nearlyEqual(ey_lund, ey, ABS_TOL, REL_TOL)
-                boolean ezOK  = nearlyEqual(ez_lund, ez, ABS_TOL, REL_TOL)
+                boolean exOK   = nearlyEqual(ex_lund, ex, ABS_TOL, REL_TOL)
+                boolean eyOK   = nearlyEqual(ey_lund, ey, ABS_TOL, REL_TOL)
+                boolean ezOK   = nearlyEqual(ez_lund, ez, ABS_TOL, REL_TOL)
 
                 if (!(EpidOK && exOK && eyOK && ezOK)) {
                     System.out.println("");
@@ -146,12 +146,12 @@ args.eachParallel{fname->
                         float pz_lund   = lund.getFloat("pz", ipart)
 
                         // Compare with values you already extracted from the other bank
-                        boolean Ppid_lund = (Ppid_lund == pid_pip)
-                        boolean px_lund  = nearlyEqual(px_lund, px, ABS_TOL, REL_TOL)
-                        boolean py_lund  = nearlyEqual(py_lund, py, ABS_TOL, REL_TOL)
-                        boolean pz_lund  = nearlyEqual(pz_lund, pz, ABS_TOL, REL_TOL)
+                        boolean PpidOK = (Ppid_lund == pid_pip)
+                        boolean pxOK   = nearlyEqual(px_lund, px, ABS_TOL, REL_TOL)
+                        boolean pyOK   = nearlyEqual(py_lund, py, ABS_TOL, REL_TOL)
+                        boolean pzOK   = nearlyEqual(pz_lund, pz, ABS_TOL, REL_TOL)
 
-                        if (!(Ppid_lund && px_lund && py_lund && pz_lund)) {
+                        if (!(PpidOK && pxOK && pyOK && pzOK)) {
                             System.out.println("");
                             System.out.println("ERROR - Particle mismatch: pi+ pion index does not match between the Particle and LUND banks.");
                             System.out.println("Mismatch: LUND(pid,px,py,pz)=(${Ppid_lund},${px_lund},${py_lund},${pz_lund}) vs Particle=(${pid_pip},${px},${py},${pz})");
