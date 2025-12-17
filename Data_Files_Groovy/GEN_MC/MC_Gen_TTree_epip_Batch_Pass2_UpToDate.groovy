@@ -67,7 +67,7 @@ boolean nearlyEqual(double a, double b, double absTol, double relTol) {
 // Returns 0 if no matching particle is found.
 Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
 
-    int nrows_lund = lund_in.rows()
+    int nrows_lund = lund_in.getRows()
 
     for (int i = 0; i < nrows_lund; i++) {
 
