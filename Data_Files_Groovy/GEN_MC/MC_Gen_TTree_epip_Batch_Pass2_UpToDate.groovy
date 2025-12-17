@@ -62,7 +62,6 @@ boolean nearlyEqual(double a, double b, double absTol, double relTol) {
     return diff <= relTol * scale
 }
 
-
 // Finds the LUND particle matching the provided PID and momentum and returns the PID of its parent particle.
 // Returns 0 if no matching particle is found.
 Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
@@ -91,22 +90,19 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
 
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
-            System.out.println("")
             System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
             return 0
         }
 
         int parentPID = lund_in.getInt("pid", parentIndex)
 
-        System.out.println("")
-        System.out.println("Matched LUND row = ${i}")
-        System.out.println("parentPID = ${parentPID}")
+        // System.out.println("Matched LUND row = ${i}")
+        // System.out.println("parentPID = ${parentPID}")
 
         return parentPID
     }
 
     // ---- No match found ----
-    System.out.println("")
     System.out.println("ERROR - No matching particle found in LUND bank.")
     System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
 
@@ -148,31 +144,8 @@ args.eachParallel{fname->
                 def ele = LorentzVector.withPID(pid, ex, ey, ez)
                 def Q2  = -(beam - ele).mass2()
                 
-                System.out.println("Finding electron Parent:");
+                // System.out.println("Finding electron Parent:");
                 int parentPID_el = findParentPIDFromLund(lund, pid, ex, ey, ez, ABS_TOL, REL_TOL);
-                System.out.println("parentPID_el = ${parentPID_el}");
-
-                // // Pull candidate from MC::Lund at ipart=0
-                // int   Epid_lund = lund.getInt("pid",  0)
-                // float ex_lund   = lund.getFloat("px", 0)
-                // float ey_lund   = lund.getFloat("py", 0)
-                // float ez_lund   = lund.getFloat("pz", 0)
-
-                // // Compare with values you already extracted from the other bank
-                // boolean EpidOK = (Epid_lund == pid)
-                // boolean exOK   = nearlyEqual(ex_lund, ex, ABS_TOL, REL_TOL)
-                // boolean eyOK   = nearlyEqual(ey_lund, ey, ABS_TOL, REL_TOL)
-                // boolean ezOK   = nearlyEqual(ez_lund, ez, ABS_TOL, REL_TOL)
-
-                // if (!(EpidOK && exOK && eyOK && ezOK)) {
-                //     System.out.println("");
-                //     System.out.println("ERROR - Particle mismatch: electron index does not match between the Particle and LUND banks.");
-                //     System.out.println("Mismatch: LUND(pid,px,py,pz)=(${Epid_lund},${ex_lund},${ey_lund},${ez_lund}) vs Particle=(${pid},${ex},${ey},${ez})");
-                // }
-                // int EparentIndex = lund.getByte("parent", 0)  // 'parent' is type 'B'
-                // int parentPID_el = lund.getInt("pid", EparentIndex)
-
-                // System.out.println("");
                 // System.out.println("parentPID_el = ${parentPID_el}");
 
                 if(Q2 > 1.5){ Q2_cut_Count += 1;}
@@ -194,31 +167,8 @@ args.eachParallel{fname->
                         def pz = partb.getFloat("pz", ipart)
                         def pip0 = LorentzVector.withPID(pid_pip, px, py, pz)
                         
-                        System.out.println("Finding pi+ pion Parent:");
+                        // System.out.println("Finding pi+ pion Parent:");
                         int parentPID_pi = findParentPIDFromLund(lund, pid_pip, px, py, pz, ABS_TOL, REL_TOL);
-                        System.out.println("parentPID_pi = ${parentPID_pi}");
-                        
-                        // // Pull candidate from MC::Lund at ipart
-                        // int   Ppid_lund = lund.getInt("pid",  ipart)
-                        // float px_lund   = lund.getFloat("px", ipart)
-                        // float py_lund   = lund.getFloat("py", ipart)
-                        // float pz_lund   = lund.getFloat("pz", ipart)
-
-                        // // Compare with values you already extracted from the other bank
-                        // boolean PpidOK = (Ppid_lund == pid_pip)
-                        // boolean pxOK   = nearlyEqual(px_lund, px, ABS_TOL, REL_TOL)
-                        // boolean pyOK   = nearlyEqual(py_lund, py, ABS_TOL, REL_TOL)
-                        // boolean pzOK   = nearlyEqual(pz_lund, pz, ABS_TOL, REL_TOL)
-
-                        // if (!(PpidOK && pxOK && pyOK && pzOK)) {
-                        //     System.out.println("");
-                        //     System.out.println("ERROR - Particle mismatch: pi+ pion index does not match between the Particle and LUND banks.");
-                        //     System.out.println("Mismatch: LUND(pid,px,py,pz)=(${Ppid_lund},${px_lund},${py_lund},${pz_lund}) vs Particle=(${pid_pip},${px},${py},${pz})");
-                        // }
-                        // int PparentIndex = lund.getByte("parent", ipart)  // 'parent' is type 'B'
-                        // int parentPID_pi = lund.getInt("pid", PparentIndex)
-
-                        // System.out.println("");
                         // System.out.println("parentPID_pi = ${parentPID_pi}");
 
                         // Coordinate of the matched hit (cm) - for Valerii's cuts (done in python)
