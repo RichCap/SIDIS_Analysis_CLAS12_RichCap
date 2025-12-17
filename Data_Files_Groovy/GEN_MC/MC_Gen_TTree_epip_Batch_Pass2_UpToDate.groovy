@@ -28,11 +28,17 @@ def outname = args[0].split("/")[-1]
 
 // def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.${outname}.root")
 
-// Updated on 4/16/2025: Running over files with different background merging settings (used 45nA instead of 50nA), so changed names of file outputs (no other changes were made to how the code runs)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.45nA.${outname}.root")
+// // Updated on 4/16/2025: Running over files with different background merging settings (used 45nA instead of 50nA), so changed names of file outputs (no other changes were made to how the code runs)
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new5.45nA.${outname}.root")
 
-// Added 'Num_Pions' as of 7/29/2024 (as part of version 'new5' - name used to match the reconstructed files)
-def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy')
+// Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new6.${outname}.root")
+
+// // Added 'Num_Pions' as of 7/29/2024 (as part of version 'new5' - name used to match the reconstructed files)
+// def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy')
+
+// Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
+def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Par_PID_el/I:Par_PID_pip/I')
 
 int Multiple_Pions_Per_Electron = 0
 int Total_Events_Found = 0
@@ -43,6 +49,20 @@ def Q2_cut_Count   = 0
 def Q2_nocut_Count = 0
 def Q2_SIDIS_Count = 0
 
+
+// Tolerances for float comparisons (tune as needed)
+final double ABS_TOL = 1e-6
+final double REL_TOL = 1e-4
+
+// Helper: robust float compare (absolute + relative)
+boolean nearlyEqual(double a, double b, double absTol, double relTol) {
+    double diff = Math.abs(a - b)
+    if (diff <= absTol) return true
+    double scale = Math.max(Math.abs(a), Math.abs(b))
+    return diff <= relTol * scale
+}
+
+
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
@@ -52,14 +72,14 @@ args.eachParallel{fname->
     reader.open(fname)
     def event = new Event()
     def factory = reader.getSchemaFactory()
-    def banks = ['MC::Header', 'REC::Event', 'MC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
+    def banks = ['MC::Header', 'REC::Event', 'MC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Lund'].collect{new Bank(factory.getSchema(it))}
 
     while(reader.hasNext()){
         reader.nextEvent(event)
         banks.each{event.read(it)}
 
         if(banks.every()){
-            def (runb, evb, partb, ecb, ccb, trajb, scb) = banks
+            def (runb, evb, partb, ecb, ccb, trajb, scb, lund) = banks
 
             def run = runb.getInt("run",   0)
             def evn = runb.getInt("event", 0)
@@ -70,55 +90,85 @@ args.eachParallel{fname->
             if(pid == 11){ // Is an electron
                 
                 int pionCount = 0 // Counter for pions (helps control double-counted electrons)
-
-                        
+                
                 def ex  = partb.getFloat("px", 0)
                 def ey  = partb.getFloat("py", 0)
                 def ez  = partb.getFloat("pz", 0)
                 def ele = LorentzVector.withPID(pid, ex, ey, ez)
                 def Q2  = -(beam - ele).mass2()
+                
+                // Pull candidate from MC::Lund at ipart=0
+                int   Epid_lund = lund.getInt("pid",  0)
+                float ex_lund   = lund.getFloat("px", 0)
+                float ey_lund   = lund.getFloat("py", 0)
+                float ez_lund   = lund.getFloat("pz", 0)
 
-                if(Q2 > 1.5){
-                    Q2_cut_Count += 1;
+                // Compare with values you already extracted from the other bank
+                boolean EpidOK = (Epid_lund == pid)
+                boolean exOK  = nearlyEqual(ex_lund, ex, ABS_TOL, REL_TOL)
+                boolean eyOK  = nearlyEqual(ey_lund, ey, ABS_TOL, REL_TOL)
+                boolean ezOK  = nearlyEqual(ez_lund, ez, ABS_TOL, REL_TOL)
+
+                if (!(EpidOK && exOK && eyOK && ezOK)) {
+                    System.out.println("");
+                    System.out.println("ERROR - Particle mismatch: electron index does not match between the Particle and LUND banks.");
+                    System.out.println("Mismatch: LUND(pid,px,py,pz)=(${Epid_lund},${ex_lund},${ey_lund},${ez_lund}) vs Particle=(${pid},${ex},${ey},${ez})");
                 }
-                else{
-                    Q2_nocut_Count += 1;
-                }
+                int EparentIndex = lund.getByte("parent", 0)  // 'parent' is type 'B'
+                int parentPID_el = lund.getInt("pid", EparentIndex)
+                
+                System.out.println("");
+                System.out.println("parentPID_el = ${parentPID_el}");
+
+                if(Q2 > 1.5){ Q2_cut_Count += 1;}
+                else{ Q2_nocut_Count += 1;}
                 
                 for(int ipart = 1; ipart < partb.getRows(); ipart++){
                     def pid_pip = partb.getInt("pid", ipart)
                     
                     if(pid_pip == 211){ // Is a Pi+
                         
-                        pionCount += 1;                       // Increment pion counter
-                        Total_Events_Found += 1;              // Increment "total event" counter
-                        if(pionCount != 1){
-                            Multiple_Pions_Per_Electron += 1; // Increment "number of double-counted electron" counter
-                        }
+                        pionCount += 1;                                         // Increment pion counter
+                        Total_Events_Found += 1;                                // Increment "total event" counter
+                        if(pionCount != 1){ Multiple_Pions_Per_Electron += 1; } // Increment "number of double-counted electron" counter
 
-                        if(Q2 > 1.5){
-                            Q2_SIDIS_Count += 1;
-                        }
+                        if(Q2 > 1.5){ Q2_SIDIS_Count += 1; }
                         
                         def px = partb.getFloat("px", ipart)
                         def py = partb.getFloat("py", ipart)
                         def pz = partb.getFloat("pz", ipart)
                         def pip0 = LorentzVector.withPID(pid_pip, px, py, pz)
+                        
+                        // Pull candidate from MC::Lund at ipart
+                        int   Ppid_lund = lund.getInt("pid",  ipart)
+                        float px_lund   = lund.getFloat("px", ipart)
+                        float py_lund   = lund.getFloat("py", ipart)
+                        float pz_lund   = lund.getFloat("pz", ipart)
+
+                        // Compare with values you already extracted from the other bank
+                        boolean Ppid_lund = (Ppid_lund == pid_pip)
+                        boolean px_lund  = nearlyEqual(px_lund, px, ABS_TOL, REL_TOL)
+                        boolean py_lund  = nearlyEqual(py_lund, py, ABS_TOL, REL_TOL)
+                        boolean pz_lund  = nearlyEqual(pz_lund, pz, ABS_TOL, REL_TOL)
+
+                        if (!(Ppid_lund && px_lund && py_lund && pz_lund)) {
+                            System.out.println("");
+                            System.out.println("ERROR - Particle mismatch: pi+ pion index does not match between the Particle and LUND banks.");
+                            System.out.println("Mismatch: LUND(pid,px,py,pz)=(${Ppid_lund},${px_lund},${py_lund},${pz_lund}) vs Particle=(${pid_pip},${px},${py},${pz})");
+                        }
+                        int PparentIndex = lund.getByte("parent", ipart)  // 'parent' is type 'B'
+                        int parentPID_pi = lund.getInt("pid", PparentIndex)
+
+                        System.out.println("");
+                        System.out.println("parentPID_pi = ${parentPID_pi}");
 
                         // Coordinate of the matched hit (cm) - for Valerii's cuts (done in python)
                         float Hx = ecb.getFloat("hx", 0)
                         float Hy = ecb.getFloat("hy", 0)
 
                         // // Spherical Momentum Coordinates
-                        // def el = ele.p()
-                        // def elth = (180/3.1415926)*ele.theta()
                         def elPhi = (180/3.1415926)*ele.phi()
-                        // def pip = pip0.p()
-                        // def pipth = (180/3.1415926)*pip0.theta()
                         def pipPhi = (180/3.1415926)*pip0.phi()
-
-                        // // Particle Energy
-                        // def el_E = ele.e(), pip_E = pip0.e()
 
                         // Electron Sectors (From Angle)
                         def esec_a = 0
@@ -138,13 +188,10 @@ args.eachParallel{fname->
                         if(pipPhi >= -105 && pipPhi <  -45){pipsec_a = 5}
                         if(pipPhi >= -165 && pipPhi < -105){pipsec_a = 6}
                         
-                        // tt.fill(evn, run, ex, ey, ez, px, py, pz,
-                        //     esec_a, pipsec_a, Hx, Hy, elec_events_found)
-                        // tt.fill(evn, run, ex, ey, ez, px, py, pz,
-                        //     esec_a, pipsec_a, Hx, Hy, beamCharge)
-                        tt.fill(evn, run, beamCharge, pionCount,
-                                ex,  ey,  ez, px, py, pz,
-                            esec_a, pipsec_a, Hx, Hy)
+                        tt.fill(evn, run,  beamCharge, pionCount,
+                                 ex, ey,   ez, px, py, pz,
+                             esec_a, pipsec_a, Hx, Hy,
+                             parentPID_el, parentPID_pi)
                     }
                 }
             }

@@ -37,25 +37,6 @@ def outname = args[0].split("/")[-1]
 // As of 12/16/2025:
 def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.new6.${outname}.root")
 
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:el:elth:elPhi:el_E:px:py:pz:pip:pipth:pipPhi:pip_E:esec/I:pipsec/I:esec_a/I:pipsec_a/I:MM:MM2:Q2:s:W:xB:v:y:z:gamma:epsilon:Hx:Hy:elec_events_found/I')
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:elec_events_found/I')
-
-// // Removed 'elec_events_found' as of 1/26/2024
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy')
-
-
-// Added 'beamCharge' as of 1/29/2024
-// Added 'Hx_pip', 'Hy_pip', and 'layer_DC' as of 6/6/2024
-// Added 'Hz_pip' on 6/10/2024
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:layer_DC/I:beamCharge')
-
-// // Added 'V_PCal', 'W_PCal', 'U_PCal', and 'detector_DC' on 6/12/2024
-// def tt = ff.makeTree('h22','title','event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:V_PCal:W_PCal:U_PCal:detector_DC/I:layer_DC/I:beamCharge')
-
-
-// // Made the PCal and DC hits, as well as the detector/layer variables unique to each particle on 7/2/2024
-//     // Added/renamed several variables to do this (runs with 'new4')
-// def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:V_PCal:W_PCal:U_PCal:Hx:Hy:ele_x_DC:ele_y_DC:ele_z_DC:Hx_pip:Hy_pip:pip_x_DC:pip_y_DC:pip_z_DC:detector_ele_DC/I:layer_ele_DC/I:detector_pip_DC/I:layer_pip_DC/I:beamCharge')
 
 // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
     // Added/renamed several variables to do this

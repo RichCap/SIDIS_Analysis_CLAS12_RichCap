@@ -183,7 +183,7 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
             "gdf": {"epipX":    "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Batch_Pass2_UpToDate.groovy",
                     "epipN":    PLACEHOLDER_GROOVY_SCRIPT,
                     "eppipX":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Proton_Batch_Pass2_UpToDate.groovy",
-                    "epippimX": PLACEHOLDER_GROOVY_SCRIPT},
+                    "epippimX": "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Pim_Batch_Pass2_UpToDate.groovy"},
         },
         "evgen": {
             "mdf":              "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_EvGen_epip_Batch.groovy",

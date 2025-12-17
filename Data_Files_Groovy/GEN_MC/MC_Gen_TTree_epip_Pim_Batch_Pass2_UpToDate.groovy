@@ -26,17 +26,10 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.${outname}.root")
+// As of 12/17/2025: Adapted from the Proton tagging file (replaced the proton with the pi- pion)
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wPim.new6.${outname}.root")
 
-// // Updated on 4/22/2025: Running over files with different background merging settings (used 45nA instead of 50nA), so changed names of file outputs (no other changes were made to how the code runs)
-//     // On 4/23/2025: Also removed the clasqa.QADB to be in line with the other groovy scripts (will add back later when rerunning all files)
-// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.45nA.${outname}.root")
-
-// Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new6.${outname}.root")
-
-// Added 'Num_Pions' and Proton info as of 7/29/2024 (as part of version 'wProton.new5' - name used to match the reconstructed files)
-def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:prox:proy:proz:esec/I:pipsec/I:Hx:Hy')
+def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:pimx:pimy:pimz:esec/I:pipsec/I:Hx:Hy')
 
 int Multiple_Pions_Per_Electron = 0
 int Total_Events_Found = 0
@@ -67,28 +60,25 @@ GParsPool.withPool 2,{
 
                 if(pid == 11){ // Is an electron
 
-                    int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+                    int pionCount = 0 // Counter for (pi+) pions (helps control double-counted electrons)
 
-                    // Check for the presence of a proton (for Harut's Vector Meson Cuts)
-                    boolean hasProton = false
-                    // def proV = null // Declare proV to store the proton Lorentz vector
-                    def prox = null
-                    def proy = null
-                    def proz = null
-                    for (int ipart_proton = 1; ipart_proton < partb.getRows(); ipart_proton++){
-                        def pid_pro = partb.getInt("pid", ipart_proton)
-                        if(pid_pro == 2212){
-                            hasProton = true
-                            prox = partb.getFloat("px", ipart_proton)
-                            proy = partb.getFloat("py", ipart_proton)
-                            proz = partb.getFloat("pz", ipart_proton)
-                            // proV = LorentzVector.withPID(pid_pro, prox, proy, proz) // Get the Lorentz vector of the proton
-                            // Lorentz vector for proton is not in use due to not keeping the proton sector info
+                    // Check for the presence of a pi- pion (for double pion events)
+                    boolean hasPim = false
+                    def pimx = null
+                    def pimy = null
+                    def pimz = null
+                    for (int ipart_pim = 1; ipart_pim < partb.getRows(); ipart_pim++){
+                        def pid_pim = partb.getInt("pid", ipart_pim)
+                        if(pid_pim == -211){
+                            hasPim = true
+                            pimx = partb.getFloat("px", ipart_pim)
+                            pimy = partb.getFloat("py", ipart_pim)
+                            pimz = partb.getFloat("pz", ipart_pim)
                             break
                         }
                     }
-                    // Skip to the next event if no proton is found
-                    if(!hasProton){
+                    // Skip to the next event if no pi- pion is found
+                    if(!hasPim){
                         continue
                     }
 
@@ -138,7 +128,7 @@ GParsPool.withPool 2,{
                             if(pipPhi >= -165 && pipPhi < -105){pipsec_a = 6}
 
                             tt.fill(evn, run,  beamCharge, pionCount,
-                                    ex,  ey,   ez, px, py, pz,  prox, proy, proz,
+                                    ex,  ey,   ez, px, py, pz,  pimx, pimy, pimz,
                                 esec_a,  pipsec_a, Hx, Hy)
                         }
                     }
@@ -151,10 +141,10 @@ GParsPool.withPool 2,{
 
 System.out.println("");
 
-System.out.println("Total number of events found                                = " + Total_Events_Found);
+System.out.println("Total number of events found                                      = " + Total_Events_Found);
 System.out.println("");
 
-System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions_Per_Electron);
+System.out.println("Number of times that Multiple (pi+) Pions were found per Electron = " + Multiple_Pions_Per_Electron);
 System.out.println("");
 
 
