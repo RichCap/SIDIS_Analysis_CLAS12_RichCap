@@ -77,6 +77,11 @@ branches_string += 'Par_PID_el_P10T8/I:Par_PID_pip_P10T8/I'
 branches_string += ':ex_gen_P10T4:ey_gen_P10T4:ez_gen_P10T4:eE_gen_P10T4:PID_el_P10T4:'
 branches_string += 'pipx_gen_P10T4:pipy_gen_P10T4:pipz_gen_P10T4:pipE_gen_P10T4:PID_pip_P10T4:'
 branches_string += 'Par_PID_el_P10T4/I:Par_PID_pip_P10T4/I'
+// Using Bank Matching
+branches_string += ':ex_gen_Bank:ey_gen_Bank:ez_gen_Bank:eE_gen_Bank:PID_el_Bank:'
+branches_string += 'pipx_gen_Bank:pipy_gen_Bank:pipz_gen_Bank:pipE_gen_Bank:PID_pip_Bank:'
+branches_string += 'el_Bank_Match_Quality:pip_Bank_Match_Quality:'
+branches_string += 'Par_PID_el_Bank/I:Par_PID_pip_Bank/I'
 // Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
 def tt = ff.makeTree('h22', 'title', branches_string)
 
@@ -162,6 +167,48 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
     System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
 
     return 0
+}
+
+
+def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
+
+    int pid_matched     = 0;
+    float matched_x_gen = 0;
+    float matched_y_gen = 0;
+    float matched_z_gen = 0;
+    float matched_E_gen = 0;
+    int parentPID       = 0;
+    float quality_match = RecMatch_in.getFloat("quality", rec_index);
+    def gen_index       = RecMatch_in.getShort("mcindex", rec_index);
+    if(gen_index < 0){
+        // System.out.println("UnMatched Particle")
+        return [
+            pid_matched    : pid_matched,
+            matched_x_gen  : matched_x_gen,
+            matched_y_gen  : matched_y_gen,
+            matched_z_gen  : matched_z_gen,
+            matched_E_gen  : matched_E_gen,
+            parentPID      : parentPID,
+            quality_match  : quality_match
+        ]
+    }
+    
+    pid_matched         = MCpart_in.getInt("pid",  gen_index);
+    matched_x_gen       = MCpart_in.getFloat("px", gen_index);
+    matched_y_gen       = MCpart_in.getFloat("py", gen_index);
+    matched_z_gen       = MCpart_in.getFloat("pz", gen_index);
+    def matched_vec_gen = LorentzVector.withPID(pid_matched, matched_x_gen, matched_y_gen, matched_z_gen);
+    matched_E_gen       = matched_vec_gen.e();
+    parentPID           = findParentPIDFromLund(lund_in, pid_matched, matched_x_gen, matched_y_gen, matched_z_gen, absTol, relTol);
+    return [
+        pid_matched    : pid_matched,
+        matched_x_gen  : matched_x_gen,
+        matched_y_gen  : matched_y_gen,
+        matched_z_gen  : matched_z_gen,
+        matched_E_gen  : matched_E_gen,
+        parentPID      : parentPID,
+        quality_match  : quality_match
+    ]
 }
 
 // Runs the "Matching to Generated Loop" once for a given (Phi,Theta) criteria set.
@@ -399,7 +446,7 @@ args.eachParallel{fname->
     def factory   = reader.getSchemaFactory()
     
     // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
-    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund'].collect{factory.getSchema(it)}
+    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund', 'MC::RecMatch'].collect{factory.getSchema(it)}
     def banks       = schemas.collect{new Bank(it)}
 
     def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}
@@ -431,7 +478,7 @@ args.eachParallel{fname->
             
             banks.each{event.read(it)}
 
-            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund) = banks
+            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch) = banks
             
             def run            = runb.getInt("run",   0)
             def evn            = runb.getInt("event", 0)
@@ -596,6 +643,9 @@ args.eachParallel{fname->
 
                         def match_P10T4 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T4, el, elth, elPhi, pip, pipth, pipPhi, 10, 4, 10, 4, print_extra_info, ABS_TOL, REL_TOL)
 
+                        def match_bankE = matchBasedonHIPObanks(RecMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
+                        def match_bankP = matchBasedonHIPObanks(RecMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
+
                         // Unpack default matches into the existing variable names (preserves downstream behavior)
                         def pid_matched_el   = match_default.pid_matched_el
                         def matched_el_x_gen = match_default.matched_el_x_gen
@@ -721,7 +771,12 @@ args.eachParallel{fname->
                                 // Phi=10, Theta=4
                                 match_P10T4.matched_el_x_gen,  match_P10T4.matched_el_y_gen,  match_P10T4.matched_el_z_gen,  match_P10T4.matched_el_E_gen,  match_P10T4.pid_matched_el,
                                 match_P10T4.matched_pip_x_gen, match_P10T4.matched_pip_y_gen, match_P10T4.matched_pip_z_gen, match_P10T4.matched_pip_E_gen, match_P10T4.pid_matched_pip,
-                                match_P10T4.parentPID_el,      match_P10T4.parentPID_pi
+                                match_P10T4.parentPID_el,      match_P10T4.parentPID_pi,
+
+                                // Using Bank Matching
+                                match_bankE.matched_x_gen,     match_bankE.matched_y_gen,     match_bankE.matched_z_gen,     match_bankE.matched_E_gen,     match_bankE.pid_matched,
+                                match_bankP.matched_x_gen,     match_bankP.matched_y_gen,     match_bankP.matched_z_gen,     match_bankP.matched_E_gen,     match_bankP.pid_matched,
+                                match_bankE.quality_match,     match_bankP.quality_match,     match_bankE.parentPID,         match_bankP.parentPID
                         )
                         
                         if(pionCount > 1){ Multiple_Pions_Per_Electron += 1 }
