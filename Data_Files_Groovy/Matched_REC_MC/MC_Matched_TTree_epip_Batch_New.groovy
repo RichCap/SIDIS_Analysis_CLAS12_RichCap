@@ -435,6 +435,128 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
 }
 
 
+
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------
+// Custom electron detector wrapper
+// ------------------------------------------------------------
+
+def isElectronCustom(def eleCan_in, def cutLevel = "norm", def cut_return = "All") {
+
+    boolean passCut = true;
+
+    // Not impacted by 'cutLevel'
+    if(cut_return == "PID"               || cut_return == "All" ) { passCut = passCut && eleCan_in.iselectron(Cut.PID); }
+    if(cut_return == "CC_NPHE"           || cut_return == "All" ) { passCut = passCut && eleCan_in.iselectron(Cut.CC_NPHE); }
+    
+    // Cuts with different levels
+    
+    if(cut_return == "EC_OUTER_VS_INNER" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.EC_OUTER_VS_INNER)); }
+        else { passCut = (passCut && Custom_EC_OUTER_VS_INNER(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "EC_SAMPLING"       || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.EC_SAMPLING)); }
+        else { passCut = (passCut && Custom_EC_SAMPLING(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "EC_FIDUCIAL"       || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.EC_FIDUCIAL)); }
+        else { passCut = (passCut && Custom_EC_FIDUCIAL(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG1"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.DC_FIDUCIAL_REG1)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG1(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG2"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.DC_FIDUCIAL_REG2)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG2(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG3"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.DC_FIDUCIAL_REG3)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG3(eleCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_VERTEX"         || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(Cut.DC_VERTEX)); }
+        else { passCut = (passCut && Custom_DC_VERTEX(eleCan_in, cutLevel)); }
+    }
+    return passCut;
+}
+
+
+// ------------------------------------------------------------
+// Custom pi+ detector wrapper
+// ------------------------------------------------------------
+
+def isPipCustom(def pipCan_in, def cutLevel = "norm", def cut_return = "All") {
+
+    boolean passCut = true;
+
+    // Not impacted by 'cutLevel'
+    if(cut_return == "PID"               || cut_return == "All" ) { passCut = passCut && pipCan_in.ispip(Cut.PID); }
+    if(cut_return == "FORWARD"           || cut_return == "All" ) { passCut = passCut && pipCan_in.ispip(Cut.FORWARD); }
+    
+    // Cuts with different levels
+    
+    if(cut_return == "CHI2PID_CUT"       || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(Cut.CHI2PID_CUT)); }
+        else { passCut = (passCut && Custom_CHI2PID_CUT_pip(pipCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG1"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(Cut.DC_FIDUCIAL_REG1)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG1_pip(pipCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG2"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(Cut.DC_FIDUCIAL_REG2)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG2_pip(pipCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DC_FIDUCIAL_REG3"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(Cut.DC_FIDUCIAL_REG3)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG3_pip(pipCan_in, cutLevel)); }
+    }
+    if(!passCut){return passCut;}
+
+    if(cut_return == "DELTA_VZ"          || cut_return == "All" ) { 
+        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(Cut.DELTA_VZ)); }
+        else { passCut = (passCut && Custom_DELTA_VZ_pip(pipCan_in, cutLevel)); }
+    }
+    return passCut;
+}
+
+
+
+
+
+
+
+
+
+
+
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
