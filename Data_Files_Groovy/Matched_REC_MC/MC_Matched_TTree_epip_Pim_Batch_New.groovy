@@ -11,37 +11,53 @@ import uconn.utils.pid.Candidate.Level
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
 import my.Sugar
-import clasqa.QADB
+// import clasqa.QADB
+
+import org.jlab.clas.pdg.PDGDatabase;
+import org.jlab.clas.pdg.PDGParticle;
+
 
 long StartTime = System.nanoTime()
 
 Sugar.enable()
 
 
-def beam   = LorentzVector.withPID(11,  0,0,10.6041)
-def target = LorentzVector.withPID(2212,0,0,0)
-
 def isinb = ! ( args[0].contains('outb') || args[0].contains('torus+1') )
 def ismc  = args[0].contains("gemc")
 
-def suff = isinb ? 'inb' : 'outb'
+def suff  = isinb ? 'inb' : 'outb'
 if(ismc) suff += '.mc'
 else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-
 // As of 12/16/2025:
-def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.new6.${outname}.root")
+def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.wPim.new6.${outname}.root")
 
-// DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
-    // Added/renamed several variables to do this
-    // Removed detector/layer info now that it is built into the other variables
-    // Runs with 'new5'
-    // Also added "Num_Pions" to help control events where the electron is counted twice (in case that is a previously overlooked issue)
-def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36'
+def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:pimx:pimy:pimz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:Par_PID_el/I:Par_PID_pip/I'
+// Additional independent matching criteria branches
+// Phi=12, Theta=6
+branches_string += ':ex_gen_P12T6:ey_gen_P12T6:ez_gen_P12T6:eE_gen_P12T6:PID_el_P12T6:'
+branches_string += 'pipx_gen_P12T6:pipy_gen_P12T6:pipz_gen_P12T6:pipE_gen_P12T6:PID_pip_P12T6:'
+branches_string += 'Par_PID_el_P12T6/I:Par_PID_pip_P12T6/I'
+// Phi=8, Theta=6
+branches_string += ':ex_gen_P8T6:ey_gen_P8T6:ez_gen_P8T6:eE_gen_P8T6:PID_el_P8T6:'
+branches_string += 'pipx_gen_P8T6:pipy_gen_P8T6:pipz_gen_P8T6:pipE_gen_P8T6:PID_pip_P8T6:'
+branches_string += 'Par_PID_el_P8T6/I:Par_PID_pip_P8T6/I'
+// Phi=10, Theta=8
+branches_string += ':ex_gen_P10T8:ey_gen_P10T8:ez_gen_P10T8:eE_gen_P10T8:PID_el_P10T8:'
+branches_string += 'pipx_gen_P10T8:pipy_gen_P10T8:pipz_gen_P10T8:pipE_gen_P10T8:PID_pip_P10T8:'
+branches_string += 'Par_PID_el_P10T8/I:Par_PID_pip_P10T8/I'
+// Phi=10, Theta=4
+branches_string += ':ex_gen_P10T4:ey_gen_P10T4:ez_gen_P10T4:eE_gen_P10T4:PID_el_P10T4:'
+branches_string += 'pipx_gen_P10T4:pipy_gen_P10T4:pipz_gen_P10T4:pipE_gen_P10T4:PID_pip_P10T4:'
+branches_string += 'Par_PID_el_P10T4/I:Par_PID_pip_P10T4/I'
+// Using Bank Matching
+branches_string += ':ex_gen_Bank:ey_gen_Bank:ez_gen_Bank:eE_gen_Bank:PID_el_Bank:'
+branches_string += 'pipx_gen_Bank:pipy_gen_Bank:pipz_gen_Bank:pipE_gen_Bank:PID_pip_Bank:'
+branches_string += 'el_Bank_Match_Quality:pip_Bank_Match_Quality:'
+branches_string += 'Par_PID_el_Bank/I:Par_PID_pip_Bank/I'
 
-// Added as of 12/22/2025
 // Reconstructed PID Cut variations:
     // Electrons
 branches_string += ':Full_norm_el/I:Full_tight_el/I:Full_mid_el/I:Full_loose_el/I'
@@ -68,15 +84,36 @@ branches_string += ':FORWARD_norm_pip/I:PID_norm_pip/I'
 branches_string += ':pcal_energy:ecin_energy:ecout_energy:ele_DC_vertex_vz' // Electrons
 branches_string += ':pip_chi2pid:pip_dvz'                                   // Pi+ Pions
 
+
+// Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
+    // Second update on 12/22/2025: Added PID cut branches and some of the missing variables to be able to manipulate them again in the ROOT output files
 def tt = ff.makeTree('h22', 'title', branches_string)
 
+// If print_extra_info = 1, then extra information will be printed while running this program (do not do unless trying to test certain information - will run less efficiently)
+// Let print_extra_info = 0 to run normally
+print_extra_info = 0
 
-int event_count = 0;
-int true_events = 0;
-int strict_cuts = 0;
-int DC_count = 0;
+def num_of_failed_ele = 0
+def num_of_failed_pip = 0
 
-int Multiple_Pions_Per_Electron = 0
+
+def num_of_total_matched  = 0
+def num_of_true_matched   = 0
+def num_of_strict_matched = 0
+
+// num_of_double_matches = number of times both reconstucted particles are matched to the same generated particle
+def num_of_double_matches = 0
+
+// num_of_gen_sidis_events = number of generated events 
+def num_of_gen_sidis_events = 0
+
+def num_of_yesbs_fail = 0
+def num_of_rec_ele_candidates = 0
+def num_of_rec_pip_candidates = 0
+def num_of_rec_ele_found = 0
+def num_of_rec_pip_found = 0
+
+def Multiple_Pions_Per_Electron = 0
 
 
 // Helper: Converts booleans into integers (1 == true, 0 == false)
@@ -84,6 +121,331 @@ Integer ConvertBoolean(boolean bool) {
     if(bool) { return 1;}
     else {     return 0;}
 }
+
+// Tolerances for float comparisons (tune as needed)
+final double ABS_TOL = 1e-6
+final double REL_TOL = 1e-4
+
+// Helper: robust float compare (absolute + relative)
+boolean nearlyEqual(double a, double b, double absTol, double relTol) {
+    double diff = Math.abs(a - b)
+    if (diff <= absTol) return true
+    double scale = Math.max(Math.abs(a), Math.abs(b))
+    return diff <= relTol * scale
+}
+
+// Finds the LUND particle matching the provided PID and momentum and returns the PID of its parent particle.
+// Returns 0 if no matching particle is found.
+Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
+
+    int nrows_lund = lund_in.getRows()
+
+    for (int i = 0; i < nrows_lund; i++) {
+
+        // Pull candidate from MC::Lund at row i
+        int   pid_lund = lund_in.getInt("pid",  i)
+        float px_lund  = lund_in.getFloat("px", i)
+        float py_lund  = lund_in.getFloat("py", i)
+        float pz_lund  = lund_in.getFloat("pz", i)
+
+        // Compare with values you already extracted from the other bank
+        boolean pidOK = (pid_lund == pid_in)
+        boolean pxOK   = nearlyEqual(px_lund, px_in, absTol, relTol)
+        boolean pyOK   = nearlyEqual(py_lund, py_in, absTol, relTol)
+        boolean pzOK   = nearlyEqual(pz_lund, pz_in, absTol, relTol)
+
+        // If this row does not match, continue searching
+        if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
+
+        // ---- Match found ----
+        int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+
+        // Defensive check on parent index
+        if (parentIndex < 0 || parentIndex >= nrows_lund) {
+            System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
+            return 0
+        }
+
+        int parentPID = lund_in.getInt("pid", parentIndex)
+
+        // System.out.println("Matched LUND row = ${i}")
+        // System.out.println("parentPID = ${parentPID}")
+
+        return parentPID
+    }
+
+    // ---- No match found ----
+    System.out.println("ERROR - No matching particle found in LUND bank.")
+    System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
+
+    return 0
+}
+
+
+def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
+
+    int pid_matched     = 0;
+    float matched_x_gen = 0;
+    float matched_y_gen = 0;
+    float matched_z_gen = 0;
+    float matched_E_gen = 0;
+    int parentPID       = 0;
+    float quality_match = RecMatch_in.getFloat("quality", rec_index);
+    def gen_index       = RecMatch_in.getShort("mcindex", rec_index);
+    if(gen_index < 0){
+        // System.out.println("UnMatched Particle")
+        return [
+            pid_matched    : pid_matched,
+            matched_x_gen  : matched_x_gen,
+            matched_y_gen  : matched_y_gen,
+            matched_z_gen  : matched_z_gen,
+            matched_E_gen  : matched_E_gen,
+            parentPID      : parentPID,
+            quality_match  : quality_match
+        ]
+    }
+    
+    pid_matched         = MCpart_in.getInt("pid",  gen_index);
+    matched_x_gen       = MCpart_in.getFloat("px", gen_index);
+    matched_y_gen       = MCpart_in.getFloat("py", gen_index);
+    matched_z_gen       = MCpart_in.getFloat("pz", gen_index);
+    def matched_vec_gen = LorentzVector.withPID(pid_matched, matched_x_gen, matched_y_gen, matched_z_gen);
+    matched_E_gen       = matched_vec_gen.e();
+    parentPID           = findParentPIDFromLund(lund_in, pid_matched, matched_x_gen, matched_y_gen, matched_z_gen, absTol, relTol);
+    return [
+        pid_matched    : pid_matched,
+        matched_x_gen  : matched_x_gen,
+        matched_y_gen  : matched_y_gen,
+        matched_z_gen  : matched_z_gen,
+        matched_E_gen  : matched_E_gen,
+        parentPID      : parentPID,
+        quality_match  : quality_match
+    ]
+}
+
+// Runs the "Matching to Generated Loop" once for a given (Phi,Theta) criteria set.
+// Returns a Map containing the matched gen kinematics + PIDs + parent PIDs + current match bookkeeping.
+def matchToGenerated(def MCpart,           def lund,  def list_of_matched_particles_gen_pip,
+                     def el,               def elth,  def elPhi,
+                     def pip,              def pipth, def pipPhi,
+                     def Phi_Ele_Criteria, def Theta_Ele_Criteria,
+                     def Phi_Pip_Criteria, def Theta_Pip_Criteria,
+                     def print_extra_info,
+                     double ABS_TOL, double REL_TOL) {
+
+    def Best_ele_Match = 1000
+    def Best_pip_Match = 1000
+
+    def Next_Best_ele_Match = 1000
+    def Next_Best_pip_Match = 1000
+
+    def num_of_possible_ele_matches = 0
+    def pid_matched_el   = 0
+    def matched_el_x_gen = 0
+    def matched_el_y_gen = 0
+    def matched_el_z_gen = 0
+    def matched_el_E_gen = 0
+
+    def num_of_possible_pip_matches = 0
+    def pid_matched_pip   = 0
+    def matched_pip_x_gen = 0
+    def matched_pip_y_gen = 0
+    def matched_pip_z_gen = 0
+    def matched_pip_E_gen = 0
+
+    def pid_other_matched_el   = 0
+    def other_matched_el_x_gen = 0
+    def other_matched_el_y_gen = 0
+    def other_matched_el_z_gen = 0
+    def other_matched_el_E_gen = 0
+
+    def pid_other_matched_pip   = 0
+    def other_matched_pip_x_gen = 0
+    def other_matched_pip_y_gen = 0
+    def other_matched_pip_z_gen = 0
+    def other_matched_pip_E_gen = 0
+
+    def current_match_pip     = []
+    def current_2nd_match_pip = []
+    def current_match_ele     = []
+    def current_2nd_match_ele = []
+
+    for(int ii_MCpart = 0; ii_MCpart < MCpart.getRows(); ii_MCpart++){
+
+        def pid_unmatched     = MCpart.getInt("pid",  ii_MCpart)
+        def unmatched_x_gen   = MCpart.getFloat("px", ii_MCpart)
+        def unmatched_y_gen   = MCpart.getFloat("py", ii_MCpart)
+        def unmatched_z_gen   = MCpart.getFloat("pz", ii_MCpart)
+        def unmatched_vec_gen = LorentzVector.withPID(pid_unmatched, unmatched_x_gen, unmatched_y_gen, unmatched_z_gen)
+
+        if(print_extra_info == 1){ System.out.println("Particle in row " + ii_MCpart + " has PID= " + pid_unmatched); }
+
+        def unmatched_p   = unmatched_vec_gen.p()
+        def unmatched_th  = (180/3.1415926)*unmatched_vec_gen.theta()
+        def unmatched_Phi = (180/3.1415926)*unmatched_vec_gen.phi()
+        def unmatched_charge_gen = (PDGDatabase.getParticleById(pid_unmatched)).charge()
+
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+        if(unmatched_charge_gen == -1){
+
+            def Delta_el_p   = Math.abs(el    - unmatched_p);
+            def Delta_el_th  = Math.abs(elth  - unmatched_th);
+            def Delta_el_Phi = Math.abs(elPhi - unmatched_Phi);
+
+            if(Delta_el_Phi > 180){ Delta_el_Phi = Math.abs(Delta_el_Phi-360); }
+
+            def Total_Quality_of_Match = ((Math.abs(Delta_el_th))/(Math.abs(elth))) + ((Math.abs(Delta_el_Phi))/(Math.abs(elPhi)));
+
+            if(Delta_el_Phi < Phi_Ele_Criteria && Delta_el_th < Theta_Ele_Criteria){
+
+                num_of_possible_ele_matches += 1;
+
+                if(Best_ele_Match > Total_Quality_of_Match){
+
+                    if((Total_Quality_of_Match < Next_Best_ele_Match) && (Next_Best_ele_Match != 1000) && (Best_ele_Match != 1000)){
+
+                        Next_Best_ele_Match = Best_ele_Match;
+
+                        pid_other_matched_el   = pid_matched_el;
+                        other_matched_el_x_gen = matched_el_x_gen;
+                        other_matched_el_y_gen = matched_el_y_gen;
+                        other_matched_el_z_gen = matched_el_z_gen;
+                        other_matched_el_E_gen = matched_el_E_gen;
+
+                        current_2nd_match_ele  = current_match_ele
+                    }
+
+                    Best_ele_Match = Total_Quality_of_Match;
+
+                    if(pid_matched_el == 11 && pid_matched_el != pid_unmatched && print_extra_info == 1){
+                        System.out.println("Particle that is not an electron is considered a better match than an identified electron.");
+                    }
+
+                    pid_matched_el    = pid_unmatched;
+                    matched_el_x_gen  = unmatched_x_gen;
+                    matched_el_y_gen  = unmatched_y_gen;
+                    matched_el_z_gen  = unmatched_z_gen;
+                    matched_el_E_gen  = unmatched_vec_gen.e();
+
+                    current_match_ele = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                }
+            }
+
+            if((Total_Quality_of_Match > Best_ele_Match && Total_Quality_of_Match < Next_Best_ele_Match) || Next_Best_ele_Match == 1000){
+
+                Next_Best_ele_Match = Total_Quality_of_Match;
+
+                pid_other_matched_el   = pid_unmatched;
+                other_matched_el_x_gen = unmatched_x_gen;
+                other_matched_el_y_gen = unmatched_y_gen;
+                other_matched_el_z_gen = unmatched_z_gen;
+                other_matched_el_E_gen = unmatched_vec_gen.e();
+
+                current_2nd_match_ele  = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+            }
+        }
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// ELECTRON MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+
+
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+        if(unmatched_charge_gen == 1){
+
+            if((list_of_matched_particles_gen_pip.isEmpty()) || (list_of_matched_particles_gen_pip.contains([ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]) == false)){
+
+                def Delta_pip_p   = Math.abs(pip    - unmatched_p);
+                def Delta_pip_th  = Math.abs(pipth  - unmatched_th);
+                def Delta_pip_Phi = Math.abs(pipPhi - unmatched_Phi);
+
+                if(Delta_pip_Phi > 180){ Delta_pip_Phi = Math.abs(Delta_pip_Phi-360); }
+
+                def Total_Quality_of_Match = ((Math.abs(Delta_pip_th))/(Math.abs(pipth))) + ((Math.abs(Delta_pip_Phi))/(Math.abs(pipPhi)));
+
+                if(Delta_pip_Phi < Phi_Pip_Criteria && Delta_pip_th < Theta_Pip_Criteria){
+
+                    num_of_possible_pip_matches += 1;
+
+                    if(Best_pip_Match > Total_Quality_of_Match){
+
+                        if((Total_Quality_of_Match < Next_Best_pip_Match) && (Next_Best_pip_Match != 1000) && (Best_pip_Match != 1000)){
+
+                            Next_Best_pip_Match = Best_pip_Match;
+
+                            pid_other_matched_pip   = pid_matched_pip;
+                            other_matched_pip_x_gen = matched_pip_x_gen;
+                            other_matched_pip_y_gen = matched_pip_y_gen;
+                            other_matched_pip_z_gen = matched_pip_z_gen;
+                            other_matched_pip_E_gen = matched_pip_E_gen;
+
+                            current_2nd_match_pip   = current_match_pip
+                        }
+
+                        Best_pip_Match = Total_Quality_of_Match;
+
+                        if(pid_matched_pip == 211 && pid_matched_pip != pid_unmatched && print_extra_info == 1){
+                            System.out.println("Particle that is not a pi+ pion is considered a better match than an identified pi+ pion.");
+                        }
+
+                        pid_matched_pip   = pid_unmatched;
+                        matched_pip_x_gen = unmatched_x_gen;
+                        matched_pip_y_gen = unmatched_y_gen;
+                        matched_pip_z_gen = unmatched_z_gen;
+                        matched_pip_E_gen = unmatched_vec_gen.e();
+
+                        current_match_pip = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                    }
+                }
+
+                if((Total_Quality_of_Match > Best_pip_Match && Total_Quality_of_Match < Next_Best_pip_Match) || Next_Best_pip_Match == 1000){
+
+                    Next_Best_pip_Match = Total_Quality_of_Match;
+
+                    pid_other_matched_pip   = pid_unmatched;
+                    other_matched_pip_x_gen = unmatched_x_gen;
+                    other_matched_pip_y_gen = unmatched_y_gen;
+                    other_matched_pip_z_gen = unmatched_z_gen;
+                    other_matched_pip_E_gen = unmatched_vec_gen.e();
+
+                    current_2nd_match_pip   = [ii_MCpart, pid_unmatched, unmatched_th, unmatched_Phi]
+                }
+            }
+        }
+        //------------------------------------------------------------------------------------------------------//
+        //==========||==========||==========// PI+ PION MATCHING CONDITIONS //==========||==========||==========//
+        //------------------------------------------------------------------------------------------------------//
+    }
+
+    int parentPID_el = 0
+    int parentPID_pi = 0
+    if(pid_matched_el  != 0){ parentPID_el = findParentPIDFromLund(lund, pid_matched_el,  matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  ABS_TOL, REL_TOL); }
+    if(pid_matched_pip != 0){ parentPID_pi = findParentPIDFromLund(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL); }
+
+    return [
+        pid_matched_el    : pid_matched_el,
+        matched_el_x_gen  : matched_el_x_gen,
+        matched_el_y_gen  : matched_el_y_gen,
+        matched_el_z_gen  : matched_el_z_gen,
+        matched_el_E_gen  : matched_el_E_gen,
+
+        pid_matched_pip   : pid_matched_pip,
+        matched_pip_x_gen : matched_pip_x_gen,
+        matched_pip_y_gen : matched_pip_y_gen,
+        matched_pip_z_gen : matched_pip_z_gen,
+        matched_pip_E_gen : matched_pip_E_gen,
+
+        parentPID_el      : parentPID_el,
+        parentPID_pi      : parentPID_pi,
+
+        current_match_ele : current_match_ele,
+        current_match_pip : current_match_pip
+    ]
+}
+
 
 
 // ------------------------------------------------------------
@@ -266,7 +628,6 @@ def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region) {
             [[12.7388,-0.617954],[21.1677,-0.621012],[15.4502,-0.525165]],[[13.4019,-0.63075],[16.6584,-0.554797],[19.0302,-0.55004]]
         ]
     ] as double[][][][];
-    // See MC clasdis file version for the Outbending cuts
 
     double[][][][] minparams = minparams_in;
     double[][][][] maxparams = maxparams_in;
@@ -490,7 +851,6 @@ def Custom_DC_FIDUCIAL_REG_pip(def pipCan_In, def cutLevel_In, def region) {
             [[39.6762,-31.6354,1.73354,-0.0123964],[30.2451,-27.8243,1.67413,-0.0138583],[4.78902,-14.9558,0.912758,-0.00855026]]
         ]
     ] as double[][][][];
-    // See MC clasdis file version for the Outbending cuts
     
     double[][][][] minparams = minparams_in;
     double[][][][] maxparams = maxparams_in;
@@ -849,229 +1209,461 @@ def isPipFull(def pipCan){
 }
 
 
+
 GParsPool.withPool 2,{
 args.eachParallel{fname->
     println(fname)
-    QADB qa = new QADB("latest")
-    qa.checkForDefect('TotalOutlier')     // these choices match the criteria of `OkForAsymmetry`
-    qa.checkForDefect('TerminalOutlier')
-    qa.checkForDefect('MarginalOutlier')
-    qa.checkForDefect('SectorLoss')
-    qa.checkForDefect('Misc')
-    [ // list of runs with `Misc` defect that are allowed by `OkForAsymmetry`
-      5046, 5047, 5051, 5128, 5129, 5130, 5158, 5159,
-      5160, 5163, 5165, 5166, 5167, 5168, 5169, 5180,
-      5181, 5182, 5183, 5400, 5448, 5495, 5496, 5505,
-      5567, 5610, 5617, 5621, 5623, 6736, 6737, 6738,
-      6739, 6740, 6741, 6742, 6743, 6744, 6746, 6747,
-      6748, 6749, 6750, 6751, 6753, 6754, 6755, 6756,
-      6757
-    ].each{ run -> qa.allowMiscBit(run) }
-    // after this, just use `qa.pass(run, evn)` for each event (instead of `qa.OkForAsymmetry(run, evn)`)
-
-
-    def reader = new HipoReader()
+    // QADB qa = new QADB()
+    
+    def reader    = new HipoReader()
     reader.open(fname)
-    def event = new Event()
-    def factory = reader.getSchemaFactory()
-    def banks = ['RUN::config','REC::Event','REC::Particle','REC::Calorimeter','REC::Cherenkov','REC::Traj','REC::Scintillator'].collect{new Bank(factory.getSchema(it))}
+    def event     = new Event()
+    def factory   = reader.getSchemaFactory()
     
-    // int elec_total_found  = 0;
-    // int elec_num_current  = 0;
-    // int elec_events_found = 0;
+    // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
+    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund', 'MC::RecMatch'].collect{factory.getSchema(it)}
+    def banks       = schemas.collect{new Bank(it)}
 
-    while(reader.hasNext()){
+    def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}
+    def banks_gen   = schemas_gen.collect{new Bank(it)}
+
+    //==============================================//
+    //==========//   Event Loop Start   //==========//
+    //==============================================//
+    while(reader.hasNext()) {
         reader.nextEvent(event)
-        banks.each{event.read(it)}
 
-        if(banks.every()){
-            def (runb,evb,partb,ecb,ccb,trajb,scb) = banks
-
-            def run = runb.getInt("run",  0)
-            def evn = runb.getInt("event",0)
-            
-            // // Running with QADB requirements despite it not being fully updated for Pass 2 yet (still using Pass 1 requirements to my knowledge - was like this in all prior runs before 6/6/2024)
-            // // Remove this note when QADB is updated
-            // if(ismc || skipqadb || qa.OkForAsymmetry(run, evn)){
-            // def skipqadb = true // Skipping as of 7/2/2024 as I couldn't get the QADB to load (also it hasn't been updated for Pass 2 anyway)
-            // if(ismc || skipqadb){
-            def skipqadb = false // Reusing the QADB as of 12/16/2025
-            if(ismc || skipqadb || qa.pass(run, evn)){
-
-                def canele = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
-                def ele    = canele.getLorentzVector()
-                
-                def beamCharge = evb.getFloat("beamCharge", 0)
-                
-                def electron_PIDs  = isElectronFull(canele);
-
-                if(electron_PIDs.Full_norm || electron_PIDs.Full_tight || electron_PIDs.Full_mid || electron_PIDs.Full_loose || canele.iselectron()){ // A electron has been found
-                    // elec_total_found += 1;
-                    
-                    int pionCount = 0 // Counter for pions (helps control double-counted electrons)
-                    
-                    for(int ipart = 1; ipart < partb.getRows(); ipart++){
-                        def canpip = PionCandidate.getPionCandidate(ipart, partb, trajb, isinb)
-
-                        def pip_pion_PIDs  = isPipFull(canpip);
-                        if(pip_pion_PIDs.Full_norm || pip_pion_PIDs.Full_tight || pip_pion_PIDs.Full_mid || pip_pion_PIDs.Full_loose || canpip.ispip()){
-                            // After this 'if' statement, the event being added to the ntuple is known to have at least one electron AND pi+ pion
-                            // if(elec_total_found   != elec_num_current){
-                            //     elec_events_found += 1;
-                            //     elec_num_current   = elec_total_found;
-                            // }
-                            pionCount += 1; // Increment pion counter
-                            
-                            def pip0 = canpip.getLorentzVector()
-                            
-                            // Cartesian Momentum Coordinates
-                            def ex = ele.px(),  ey = ele.py(),  ez = ele.pz()
-                            def px = pip0.px(), py = pip0.py(), pz = pip0.pz()
-                            
-                            // Sectors (From Detector)
-                            def esec = canele.getPCALsector(), pipsec = canpip.getDCsector()
-                            
-                            // Coordinate of the matched hit (PCAL) [cm] - for Valerii's cuts (done in python) - Based on Electron
-                            float Hx = ecb.getFloat("hx", 0)
-                            float Hy = ecb.getFloat("hy", 0)
-                            
-                            // For other valerii cuts
-                            // int detector_PCal = ecb.getInt("detector", 0)
-                            // int layer_PCal    = ecb.getInt("layer",    0)
-                            float V_PCal = ecb.getFloat("lv", 0)
-                            float W_PCal = ecb.getFloat("lw", 0)
-                            float U_PCal = ecb.getFloat("lu", 0)
-                            
-                            float ele_x_DC_6  = Float.NaN, ele_y_DC_6  = Float.NaN, ele_z_DC_6  = Float.NaN
-                            float ele_x_DC_18 = Float.NaN, ele_y_DC_18 = Float.NaN, ele_z_DC_18 = Float.NaN
-                            float ele_x_DC_36 = Float.NaN, ele_y_DC_36 = Float.NaN, ele_z_DC_36 = Float.NaN
-                            for(int ii_el = 0; ii_el < trajb.getRows(); ii_el++) {
-                                // Check conditions: pindex is 0 and detector is 6
-                                if(trajb.getShort("pindex", ii_el) == 0 && trajb.getByte("detector", ii_el) == 6){
-                                    // Process based on layer value
-                                    if(trajb.getByte("layer", ii_el) == 6) {
-                                        ele_x_DC_6  = trajb.getFloat("x", ii_el)
-                                        ele_y_DC_6  = trajb.getFloat("y", ii_el)
-                                        ele_z_DC_6  = trajb.getFloat("z", ii_el)
-                                    } else if(trajb.getByte("layer", ii_el) == 18) {
-                                        ele_x_DC_18 = trajb.getFloat("x", ii_el)
-                                        ele_y_DC_18 = trajb.getFloat("y", ii_el)
-                                        ele_z_DC_18 = trajb.getFloat("z", ii_el)
-                                    } else if(trajb.getByte("layer", ii_el) == 36) {
-                                        ele_x_DC_36 = trajb.getFloat("x", ii_el)
-                                        ele_y_DC_36 = trajb.getFloat("y", ii_el)
-                                        ele_z_DC_36 = trajb.getFloat("z", ii_el)
-                                    }
-                                }
-                            }
-                            
-                            float Hx_pip = Float.NaN, Hy_pip = Float.NaN
-                            // Coordinate of the matched hit (PCAL) [cm] - for fiducial cuts - Based on Pion
-                            for(int jj = 0; jj < ecb.getRows(); jj++){
-                                // Extracting hx and hy from 'ecb' bank for the pion by looping through the bank
-                                if((ecb.getShort("pindex", jj) == ipart) && (ecb.getByte("detector", jj) == 7) && (ecb.getByte("layer", jj) == 1)){
-                                    Hx_pip = ecb.getFloat("hx", jj)
-                                    Hy_pip = ecb.getFloat("hy", jj)
-                                    break // Exit the loop once the matching entry is found
-                                }
-                            }
-                            float pip_x_DC_6  = Float.NaN, pip_y_DC_6  = Float.NaN, pip_z_DC_6  = Float.NaN
-                            float pip_x_DC_18 = Float.NaN, pip_y_DC_18 = Float.NaN, pip_z_DC_18 = Float.NaN
-                            float pip_x_DC_36 = Float.NaN, pip_y_DC_36 = Float.NaN, pip_z_DC_36 = Float.NaN
-                            for(int ii_pip = 0; ii_pip < trajb.getRows(); ii_pip++) {
-                                // Check conditions: pindex matches ipart and detector is 6
-                                if(trajb.getShort("pindex", ii_pip) == ipart && trajb.getByte("detector", ii_pip) == 6){
-                                    // Process based on layer value
-                                    if(trajb.getByte("layer", ii_pip) == 6) {
-                                        pip_x_DC_6  = trajb.getFloat("x", ii_pip)
-                                        pip_y_DC_6  = trajb.getFloat("y", ii_pip)
-                                        pip_z_DC_6  = trajb.getFloat("z", ii_pip)
-                                    } else if(trajb.getByte("layer", ii_pip) == 18) {
-                                        pip_x_DC_18 = trajb.getFloat("x", ii_pip)
-                                        pip_y_DC_18 = trajb.getFloat("y", ii_pip)
-                                        pip_z_DC_18 = trajb.getFloat("z", ii_pip)
-                                    } else if(trajb.getByte("layer", ii_pip) == 36) {
-                                        pip_x_DC_36 = trajb.getFloat("x", ii_pip)
-                                        pip_y_DC_36 = trajb.getFloat("y", ii_pip)
-                                        pip_z_DC_36 = trajb.getFloat("z", ii_pip)
-                                    }
-                                }
-                            }
-                            
-                            tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        px, py, pz,
-                                    esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
-                                    V_PCal,             W_PCal,            U_PCal, 
-                                    ele_x_DC_6,         ele_y_DC_6,        ele_z_DC_6,
-                                    ele_x_DC_18,        ele_y_DC_18,       ele_z_DC_18,
-                                    ele_x_DC_36,        ele_y_DC_36,       ele_z_DC_36,
-                                    pip_x_DC_6,         pip_y_DC_6,        pip_z_DC_6,
-                                    pip_x_DC_18,        pip_y_DC_18,       pip_z_DC_18,
-                                    pip_x_DC_36,        pip_y_DC_36,       pip_z_DC_36, 
-                                   
-                                    // Electron PID Cuts
-                                    ConvertBoolean(electron_PIDs.Full_norm),              ConvertBoolean(electron_PIDs.Full_tight),              ConvertBoolean(electron_PIDs.Full_mid),              ConvertBoolean(electron_PIDs.Full_loose),
-                                    ConvertBoolean(electron_PIDs.DC_VERTEX_norm),         ConvertBoolean(electron_PIDs.DC_VERTEX_tight),         ConvertBoolean(electron_PIDs.DC_VERTEX_mid),         ConvertBoolean(electron_PIDs.DC_VERTEX_loose),
-                                    ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_loose),
-                                    ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_loose),
-                                    ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_loose),
-                                    ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_loose),
-                                    ConvertBoolean(electron_PIDs.EC_FIDUCIAL_norm),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_tight),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_mid),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_loose),
-                                    ConvertBoolean(electron_PIDs.EC_SAMPLING_norm),       ConvertBoolean(electron_PIDs.EC_SAMPLING_tight),       ConvertBoolean(electron_PIDs.EC_SAMPLING_mid),       ConvertBoolean(electron_PIDs.EC_SAMPLING_loose),
-                                    ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_norm), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_tight), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_mid), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_loose),
-                                    ConvertBoolean(electron_PIDs.CC_NPHE_norm),           ConvertBoolean(electron_PIDs.PID_norm),
-                                    
-                                    // Pi+ Pion PID Cuts
-                                    ConvertBoolean(pip_pion_PIDs.Full_norm),              ConvertBoolean(pip_pion_PIDs.Full_tight),              ConvertBoolean(pip_pion_PIDs.Full_mid),              ConvertBoolean(pip_pion_PIDs.Full_loose),
-                                    ConvertBoolean(pip_pion_PIDs.DELTA_VZ_norm),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_tight),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_mid),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_loose),
-                                    ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_loose),
-                                    ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_loose),
-                                    ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_loose),
-                                    ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_loose),
-                                    ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_norm),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_tight),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_mid),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_loose),
-                                    ConvertBoolean(pip_pion_PIDs.FORWARD_norm),           ConvertBoolean(pip_pion_PIDs.PID_norm),
-    
-                                    // Extra Variables for the electron PID refinement cuts:
-                                    canele.pcal_energy,        canele.ecin_energy,        canele.ecout_energy,        canele.vz,
-                                    // Extra Variables for the pi+ pion PID refinement cuts:
-                                    canpip.chi2pid,            canpip.dvz)
-
-                            if(pionCount > 1){ Multiple_Pions_Per_Electron += 1; }
-                            if(canpip.ispip() && canele.iselectron()){ true_events += 1; }                          // Made to count the difference caused by the (normal) cut variation
-                            if(electron_PIDs.Full_tight && pip_pion_PIDs.Full_tight){ strict_cuts += 1; } // Made to count the difference caused by the (strict) cut variation
-                            
-                            event_count += 1;
-
-                        }
-                    }
+        //===================================================================================================//
+        //==========//   Getting Current Number of Generated Events as of the given event loop   //==========//
+        if(event.hasBanks(schemas_gen)){
+            banks_gen.each{event.read(it)}
+            def (evb_gen, partb_gen, ecb_gen, ccb_gen, trajb_gen, scb_gen) = banks_gen
+            def pid_el_gen = partb_gen.getInt("pid", 0)
+            if(pid_el_gen == 11){ // There is a generated electron
+                for(int ipart = 1; ipart < partb_gen.getRows(); ipart++){
+                    def pid_pip_gen = partb_gen.getInt("pid", ipart)
+                    if(pid_pip_gen == 211){ num_of_gen_sidis_events += 1 } // There is a generated Pi+
                 }
             }
         }
+        //==========//   Getting Current Number of Generated Events as of the given event loop   //==========//
+        //===================================================================================================//
+        
+        if(event.hasBanks(schemas)){
+            
+            banks.each{event.read(it)}
+
+            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch) = banks
+            
+            def run            = runb.getInt("run",   0)
+            def evn            = runb.getInt("event", 0)
+            
+            def canele         = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
+            def ele            = canele.getLorentzVector()
+            
+            def beamCharge     = evb.getFloat("beamCharge", 0)
+            
+            def electron_PIDs  = isElectronFull(canele);
+
+            num_of_rec_ele_candidates += 1;
+            //==================================================//
+            //==========//   Electron (REC) Found   //==========//
+            //==================================================//
+            if(electron_PIDs.Full_norm || electron_PIDs.Full_tight || electron_PIDs.Full_mid || electron_PIDs.Full_loose || canele.iselectron()){
+                // A RECONSTRUCTED electron has been found
+                num_of_rec_ele_found += 1;
+
+                // These lists are to make sure that the same generated particles are not matched to multiple reconstructed particles
+                // Applies mainly to the pi+ pion as the same electron should be matched several times while searching for the pions
+                // The electron list is included in case the electron is matched to different particles within the same event
+                // Independent per-criteria matched-gen bookkeeping lists (so each criteria behaves like a separate run)
+                def list_of_matched_particles_gen_pip       = []   // default (P10T6)
+                def list_of_matched_particles_gen_pip_P12T6 = []
+                def list_of_matched_particles_gen_pip_P8T6  = []
+                def list_of_matched_particles_gen_pip_P10T8 = []
+                def list_of_matched_particles_gen_pip_P10T4 = []
+                
+                def list_of_matched_particles_gen_ele = []
+                
+                int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+
+                // Check for the presence of a pi- pion (for double pion events)
+                boolean hasPim = false
+                def pimV = null // Declare pimV to store the pi- pion Lorentz vector
+                for (int ipart_pim = 1; ipart_pim < partb.getRows(); ipart_pim++){
+                    def canpim = PionCandidate.getPionCandidate(ipart_pim, partb, trajb, isinb)
+                    if(canpim.ispim()){
+                        hasPim = true
+                        pimV = canpim.getLorentzVector() // Get the Lorentz vector of the pi- pion
+                        break
+                    }
+                }
+                // Skip to the next event if no pi- pion is found
+                if(!hasPim){ continue; }
+                
+                //=====================================================//
+                //==========//   Start of Pi+ (REC) Loop   //==========//
+                //=====================================================//
+                for(int ipart = 1; ipart < partb.getRows(); ipart++){
+                    
+                    def canpip = PionCandidate.getPionCandidate(ipart, partb, trajb, isinb)
+                    num_of_rec_pip_candidates += 1;
+
+                    def pip_pion_PIDs  = isPipFull(canpip);
+                    //==================================================//
+                    //==========//   Pi+ Pion (REC) Found   //==========//
+                    //==================================================//
+                    if(pip_pion_PIDs.Full_norm || pip_pion_PIDs.Full_tight || pip_pion_PIDs.Full_mid || pip_pion_PIDs.Full_loose || canpip.ispip()){
+                        // A RECONSTRUCTED pi+ particle has been found with the given electron
+                        // After this 'if' statement, the event being added to the ntuple is known to have at least one RECONSTRUCTED electron AND pi+ pion
+                        num_of_rec_pip_found += 1;
+                        pionCount += 1;
+
+                        def pip0 = canpip.getLorentzVector()
+
+                        //========================================================//
+                        //==========// Reconstructed Info to be Saved //==========//
+                        
+                        // Cartesian Momentum Coordinates
+                        def ex   = ele.px(),    ey = ele.py(),    ez = ele.pz()
+                        def pipx = pip0.px(), pipy = pip0.py(), pipz = pip0.pz()
+                        def pimx = pimV.px(), pimy = pimV.py(), pimz = pimV.pz()
+
+                        // Sectors (From Detector)
+                        def esec = canele.getPCALsector(),    pipsec = canpip.getDCsector()
+
+                        // Coordinate of the matched hit (PCAL) [cm] - for Valerii's cuts (done in python) - Based on Electron
+                        float Hx = ecb.getFloat("hx", 0)
+                        float Hy = ecb.getFloat("hy", 0)
+
+                        // For other valerii cuts
+                        float V_PCal = ecb.getFloat("lv", 0)
+                        float W_PCal = ecb.getFloat("lw", 0)
+                        float U_PCal = ecb.getFloat("lu", 0)
+                        
+                        // Coordinate of the matched hit (Drift Chamber) [cm] - for fiducial cuts - Based on Electron - for layers 6, 18, and 36 (i.e., regions 1, 2, and 3)
+                        float ele_x_DC_6  = Float.NaN, ele_y_DC_6  = Float.NaN, ele_z_DC_6  = Float.NaN
+                        float ele_x_DC_18 = Float.NaN, ele_y_DC_18 = Float.NaN, ele_z_DC_18 = Float.NaN
+                        float ele_x_DC_36 = Float.NaN, ele_y_DC_36 = Float.NaN, ele_z_DC_36 = Float.NaN
+                        for(int ii_el = 0; ii_el < trajb.getRows(); ii_el++) {
+                            // Check conditions: pindex is 0 and detector is 6
+                            if(trajb.getShort("pindex", ii_el) == 0 && trajb.getByte("detector", ii_el) == 6){
+                                // Process based on layer value
+                                if(trajb.getByte("layer", ii_el) == 6) {
+                                    ele_x_DC_6  = trajb.getFloat("x", ii_el)
+                                    ele_y_DC_6  = trajb.getFloat("y", ii_el)
+                                    ele_z_DC_6  = trajb.getFloat("z", ii_el)
+                                } else if(trajb.getByte("layer", ii_el) == 18) {
+                                    ele_x_DC_18 = trajb.getFloat("x", ii_el)
+                                    ele_y_DC_18 = trajb.getFloat("y", ii_el)
+                                    ele_z_DC_18 = trajb.getFloat("z", ii_el)
+                                } else if(trajb.getByte("layer", ii_el) == 36) {
+                                    ele_x_DC_36 = trajb.getFloat("x", ii_el)
+                                    ele_y_DC_36 = trajb.getFloat("y", ii_el)
+                                    ele_z_DC_36 = trajb.getFloat("z", ii_el)
+                                }
+                            }
+                        }
+                        
+                        // // Drift Chamber layer
+                        // // Drift Chamber detector (DC = 6)
+                        
+                        float Hx_pip = Float.NaN, Hy_pip = Float.NaN
+                        // Coordinate of the matched hit (PCAL) [cm] - for fiducial cuts - Based on Pion
+                        for(int jj = 0; jj < ecb.getRows(); jj++){
+                            // Extracting hx and hy from 'ecb' bank for the pion by looping through the bank
+                            if((ecb.getShort("pindex", jj) == ipart) && (ecb.getByte("detector", jj) == 7) && (ecb.getByte("layer", jj) == 1)){
+                                Hx_pip = ecb.getFloat("hx", jj)
+                                Hy_pip = ecb.getFloat("hy", jj)
+                                break // Exit the loop once the matching entry is found
+                            }
+                        }
+                        
+                        // Coordinate of the matched hit (Drift Chamber) [cm] - for fiducial cuts - Based on Pion
+                        float pip_x_DC_6  = Float.NaN, pip_y_DC_6  = Float.NaN, pip_z_DC_6  = Float.NaN
+                        float pip_x_DC_18 = Float.NaN, pip_y_DC_18 = Float.NaN, pip_z_DC_18 = Float.NaN
+                        float pip_x_DC_36 = Float.NaN, pip_y_DC_36 = Float.NaN, pip_z_DC_36 = Float.NaN
+                        for(int ii_pip = 0; ii_pip < trajb.getRows(); ii_pip++) {
+                            // Check conditions: pindex matches ipart and detector is 6
+                            if(trajb.getShort("pindex", ii_pip) == ipart && trajb.getByte("detector", ii_pip) == 6){
+                                // Process based on layer value
+                                if(trajb.getByte("layer", ii_pip) == 6) {
+                                    pip_x_DC_6  = trajb.getFloat("x", ii_pip)
+                                    pip_y_DC_6  = trajb.getFloat("y", ii_pip)
+                                    pip_z_DC_6  = trajb.getFloat("z", ii_pip)
+                                } else if(trajb.getByte("layer", ii_pip) == 18) {
+                                    pip_x_DC_18 = trajb.getFloat("x", ii_pip)
+                                    pip_y_DC_18 = trajb.getFloat("y", ii_pip)
+                                    pip_z_DC_18 = trajb.getFloat("z", ii_pip)
+                                } else if(trajb.getByte("layer", ii_pip) == 36) {
+                                    pip_x_DC_36 = trajb.getFloat("x", ii_pip)
+                                    pip_y_DC_36 = trajb.getFloat("y", ii_pip)
+                                    pip_z_DC_36 = trajb.getFloat("z", ii_pip)
+                                }
+                            }
+                        }
+                        
+                        //==========// Reconstructed Info to be Saved //==========//
+                        //========================================================//
+                        
+                        // Spherical Momentum Coordinates
+                        def el     = ele.p()
+                        def elth   = (180/3.1415926)*ele.theta()
+                        def elPhi  = (180/3.1415926)*ele.phi()
+                        def pip    = pip0.p()
+                        def pipth  = (180/3.1415926)*pip0.theta()
+                        def pipPhi = (180/3.1415926)*pip0.phi()
+                        
+                        // After this line, a proper reconstructed ep->epi+X SIDIS event has been found. The following lines will aim to match these particles to their generated counterparts
+                        if(print_extra_info == 1){
+                            System.out.println("For event: " + evn);
+                            System.out.println("Number of (gen) rows: " + MCpart.getRows());
+                        }
+
+                        //========================================================================================//
+                        //==========//   Matching to Generated Loop (run 5 independent criteria sets) //==========//
+                        //========================================================================================//
+
+                        // Default (existing behavior): Phi=10, Theta=6
+                        def match_default = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip,     el, elth, elPhi, pip, pipth, pipPhi, 10, 6, 10, 6, print_extra_info, ABS_TOL, REL_TOL)
+
+                        // Additional criteria sets (independent branch sets)
+                        def match_P12T6 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P12T6, el, elth, elPhi, pip, pipth, pipPhi, 12, 6, 12, 6, print_extra_info, ABS_TOL, REL_TOL)
+
+                        def match_P8T6  = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P8T6,  el, elth, elPhi, pip, pipth, pipPhi, 8,  6,  8, 6, print_extra_info, ABS_TOL, REL_TOL)
+
+                        def match_P10T8 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T8, el, elth, elPhi, pip, pipth, pipPhi, 10, 8, 10, 8, print_extra_info, ABS_TOL, REL_TOL)
+
+                        def match_P10T4 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T4, el, elth, elPhi, pip, pipth, pipPhi, 10, 4, 10, 4, print_extra_info, ABS_TOL, REL_TOL)
+
+                        def match_bankE = matchBasedonHIPObanks(RecMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
+                        def match_bankP = matchBasedonHIPObanks(RecMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
+
+                        // Unpack default matches into the existing variable names (preserves downstream behavior)
+                        def pid_matched_el   = match_default.pid_matched_el
+                        def matched_el_x_gen = match_default.matched_el_x_gen
+                        def matched_el_y_gen = match_default.matched_el_y_gen
+                        def matched_el_z_gen = match_default.matched_el_z_gen
+                        def matched_el_E_gen = match_default.matched_el_E_gen
+
+                        def pid_matched_pip   = match_default.pid_matched_pip
+                        def matched_pip_x_gen = match_default.matched_pip_x_gen
+                        def matched_pip_y_gen = match_default.matched_pip_y_gen
+                        def matched_pip_z_gen = match_default.matched_pip_z_gen
+                        def matched_pip_E_gen = match_default.matched_pip_E_gen
+
+                        def current_match_ele = match_default.current_match_ele
+                        def current_match_pip = match_default.current_match_pip
+
+                        int parentPID_el = match_default.parentPID_el
+                        int parentPID_pi = match_default.parentPID_pi
+
+                        //========================================================//
+                        //====================// Print Info //====================//
+                        //========================================================//
+                        
+                        //==========// Checking to see if particles were matched (Start) //==========//
+                        if(pid_matched_el == 0 && matched_el_x_gen == 0 && matched_el_y_gen == 0 && matched_el_z_gen == 0){
+                            num_of_failed_ele += 1
+                            if(print_extra_info == 1){
+                                System.out.println("FAILED to match the electron. (Failure Number: " + num_of_failed_ele + ")");
+                                System.out.println("Event Number is: " + evn);
+                                System.out.println("Run Number is: "   + run);
+                            }
+                        }
+                        
+                        if(pid_matched_pip == 0 && matched_pip_x_gen == 0 && matched_pip_y_gen == 0 && matched_pip_z_gen == 0){
+                            num_of_failed_pip += 1
+                            if(print_extra_info == 1){
+                                System.out.println("FAILED to match the pi+ pion. (Failure Number: " + num_of_failed_pip + ")");
+                                System.out.println("Event Number is: " + evn);
+                                System.out.println("Run Number is: " + run);
+                            }
+                        }
+                        
+                        //=====// Found a matched particle //=====//
+                        if(pid_matched_el != 0 && matched_el_x_gen != 0 && matched_el_y_gen != 0 && matched_el_z_gen != 0 && pid_matched_pip != 0 && matched_pip_x_gen != 0 && matched_pip_y_gen != 0 && matched_pip_z_gen != 0){
+                            num_of_total_matched += 1;
+                            if(canpip.ispip() && canele.iselectron()){ num_of_true_matched += 1; }   // Made to count the difference caused by the (normal) cut variation
+                            if(electron_PIDs.Full_tight && pip_pion_PIDs.Full_tight){ num_of_strict_matched += 1; } // Made to count the difference caused by the (strict) cut variation
+                            
+                        }
+                        //=====// Found a matched particle //=====//
+
+                        //==========// Checking to see if particles were matched (End) //==========//
+                        
+                        //===============// Matching Both Particles at the same time //===============//
+                        
+                        if(pid_matched_el == pid_matched_pip && matched_el_x_gen == matched_pip_x_gen && matched_el_y_gen == matched_pip_y_gen && matched_el_z_gen == matched_pip_z_gen){
+                            if(pid_matched_el == 0 && matched_el_x_gen == 0 && matched_el_y_gen == 0 && matched_el_z_gen == 0){
+                                if(print_extra_info == 1){ System.out.println("Failure to match either particle"); }
+                            }
+                            else{
+                                num_of_double_matches += 1
+                                if(print_extra_info == 1){
+                                    System.out.println("Rare case of both particles being matched at the same time has been found");
+                                    System.out.println("Event Number is: " + evn);
+                                    System.out.println("Run Number is: " + run);
+                                }
+                            }
+                        }
+                        //===============// Matching Both Particles at the same time //===============//
+                        
+                        //========================================================//
+                        //====================// Print Info //====================//
+                        //========================================================//
+
+                        // Update per-criteria lists (so each criteria behaves like a separate run)
+                        list_of_matched_particles_gen_pip.add(current_match_pip)
+                        list_of_matched_particles_gen_pip_P12T6.add(match_P12T6.current_match_pip)
+                        list_of_matched_particles_gen_pip_P8T6.add(match_P8T6.current_match_pip)
+                        list_of_matched_particles_gen_pip_P10T8.add(match_P10T8.current_match_pip)
+                        list_of_matched_particles_gen_pip_P10T4.add(match_P10T4.current_match_pip)
+                        
+                        if(list_of_matched_particles_gen_ele.isEmpty()){ list_of_matched_particles_gen_ele.add(current_match_ele) }
+                        else{
+                            if((list_of_matched_particles_gen_ele.contains(current_match_ele) == false) && print_extra_info == 1){
+                                System.out.println("Multiple electrons have been matched to the same event");
+                                System.out.println("Event Number is: " + evn);
+                                System.out.println("Run Number is: " + run);
+                                System.out.println("The list of electrons are: " + list_of_matched_particles_gen_ele);
+                            }
+                        }
+
+                        // Fill tree:
+                        // - default criteria fills existing branches
+                        // - additional criteria fill their new, independent branches
+                        tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        pipx, pipy, pipz,  pimx, pimy, pimz, 
+                                esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
+                                V_PCal,             W_PCal,            U_PCal,
+                                ele_x_DC_6,         ele_y_DC_6,        ele_z_DC_6,
+                                ele_x_DC_18,        ele_y_DC_18,       ele_z_DC_18,
+                                ele_x_DC_36,        ele_y_DC_36,       ele_z_DC_36,
+                                pip_x_DC_6,         pip_y_DC_6,        pip_z_DC_6,
+                                pip_x_DC_18,        pip_y_DC_18,       pip_z_DC_18,
+                                pip_x_DC_36,        pip_y_DC_36,       pip_z_DC_36,
+                                
+                                // Default (P10T6)
+                                matched_el_x_gen,   matched_el_y_gen,  matched_el_z_gen,  matched_el_E_gen,  pid_matched_el,
+                                matched_pip_x_gen,  matched_pip_y_gen, matched_pip_z_gen, matched_pip_E_gen, pid_matched_pip,
+                                parentPID_el,       parentPID_pi,
+                                
+                                // Phi=12, Theta=6
+                                match_P12T6.matched_el_x_gen,  match_P12T6.matched_el_y_gen,  match_P12T6.matched_el_z_gen,  match_P12T6.matched_el_E_gen,  match_P12T6.pid_matched_el,
+                                match_P12T6.matched_pip_x_gen, match_P12T6.matched_pip_y_gen, match_P12T6.matched_pip_z_gen, match_P12T6.matched_pip_E_gen, match_P12T6.pid_matched_pip,
+                                match_P12T6.parentPID_el,      match_P12T6.parentPID_pi,
+                                
+                                // Phi=8, Theta=6
+                                match_P8T6.matched_el_x_gen,   match_P8T6.matched_el_y_gen,   match_P8T6.matched_el_z_gen,   match_P8T6.matched_el_E_gen,   match_P8T6.pid_matched_el,
+                                match_P8T6.matched_pip_x_gen,  match_P8T6.matched_pip_y_gen,  match_P8T6.matched_pip_z_gen,  match_P8T6.matched_pip_E_gen,  match_P8T6.pid_matched_pip,
+                                match_P8T6.parentPID_el,       match_P8T6.parentPID_pi,
+                                
+                                // Phi=10, Theta=8
+                                match_P10T8.matched_el_x_gen,  match_P10T8.matched_el_y_gen,  match_P10T8.matched_el_z_gen,  match_P10T8.matched_el_E_gen,  match_P10T8.pid_matched_el,
+                                match_P10T8.matched_pip_x_gen, match_P10T8.matched_pip_y_gen, match_P10T8.matched_pip_z_gen, match_P10T8.matched_pip_E_gen, match_P10T8.pid_matched_pip,
+                                match_P10T8.parentPID_el,      match_P10T8.parentPID_pi,
+                                
+                                // Phi=10, Theta=4
+                                match_P10T4.matched_el_x_gen,  match_P10T4.matched_el_y_gen,  match_P10T4.matched_el_z_gen,  match_P10T4.matched_el_E_gen,  match_P10T4.pid_matched_el,
+                                match_P10T4.matched_pip_x_gen, match_P10T4.matched_pip_y_gen, match_P10T4.matched_pip_z_gen, match_P10T4.matched_pip_E_gen, match_P10T4.pid_matched_pip,
+                                match_P10T4.parentPID_el,      match_P10T4.parentPID_pi,
+
+                                // Using Bank Matching
+                                match_bankE.matched_x_gen,     match_bankE.matched_y_gen,     match_bankE.matched_z_gen,     match_bankE.matched_E_gen,     match_bankE.pid_matched,
+                                match_bankP.matched_x_gen,     match_bankP.matched_y_gen,     match_bankP.matched_z_gen,     match_bankP.matched_E_gen,     match_bankP.pid_matched,
+                                match_bankE.quality_match,     match_bankP.quality_match,     match_bankE.parentPID,         match_bankP.parentPID,
+
+                                // Electron PID Cuts
+                                ConvertBoolean(electron_PIDs.Full_norm),              ConvertBoolean(electron_PIDs.Full_tight),              ConvertBoolean(electron_PIDs.Full_mid),              ConvertBoolean(electron_PIDs.Full_loose),
+                                ConvertBoolean(electron_PIDs.DC_VERTEX_norm),         ConvertBoolean(electron_PIDs.DC_VERTEX_tight),         ConvertBoolean(electron_PIDs.DC_VERTEX_mid),         ConvertBoolean(electron_PIDs.DC_VERTEX_loose),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_loose),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_loose),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_loose),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_loose),
+                                ConvertBoolean(electron_PIDs.EC_FIDUCIAL_norm),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_tight),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_mid),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_loose),
+                                ConvertBoolean(electron_PIDs.EC_SAMPLING_norm),       ConvertBoolean(electron_PIDs.EC_SAMPLING_tight),       ConvertBoolean(electron_PIDs.EC_SAMPLING_mid),       ConvertBoolean(electron_PIDs.EC_SAMPLING_loose),
+                                ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_norm), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_tight), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_mid), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_loose),
+                                ConvertBoolean(electron_PIDs.CC_NPHE_norm),           ConvertBoolean(electron_PIDs.PID_norm),
+                                
+                                // Pi+ Pion PID Cuts
+                                ConvertBoolean(pip_pion_PIDs.Full_norm),              ConvertBoolean(pip_pion_PIDs.Full_tight),              ConvertBoolean(pip_pion_PIDs.Full_mid),              ConvertBoolean(pip_pion_PIDs.Full_loose),
+                                ConvertBoolean(pip_pion_PIDs.DELTA_VZ_norm),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_tight),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_mid),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_loose),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_loose),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_loose),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_loose),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_loose),
+                                ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_norm),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_tight),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_mid),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_loose),
+                                ConvertBoolean(pip_pion_PIDs.FORWARD_norm),           ConvertBoolean(pip_pion_PIDs.PID_norm),
+
+                                // Extra Variables for the electron PID refinement cuts:
+                                canele.pcal_energy,                   canele.ecin_energy,                    canele.ecout_energy,                 canele.vz,
+                                // Extra Variables for the pi+ pion PID refinement cuts:
+                                canpip.chi2pid,                       canpip.dvz
+
+                        )
+                        
+                        if(pionCount > 1){ Multiple_Pions_Per_Electron += 1 }
+
+                    }
+                    //==================================================//
+                    //==========//   Pi+ Pion (REC) Found   //==========//
+                    //==================================================//
+                    
+                }
+                //===================================================//
+                //==========//   End of Pi+ (REC) Loop   //==========//
+                //===================================================//
+                
+            }
+            //==================================================//
+            //==========//   Electron (REC) Found   //==========//
+            //==================================================//
+            
+        }
+        else{ num_of_yesbs_fail += 1; }
+        
     }
+    //============================================//
+    //==========//   Event Loop End   //==========//
+    //============================================//
 
     reader.close()
+    
 }
 }
 
+System.out.println("");
+System.out.println("Total number of completly matched events = " + num_of_total_matched);
+System.out.println("True number of completly matched events (i.e., those that would have survived the normal PID cuts) = " + num_of_true_matched);
+System.out.println("Number of completly matched events with the strictess PID cuts = " + num_of_strict_matched);
+
+System.out.println("Total number of failed Electron matches  = " + num_of_failed_ele);
+System.out.println("Total number of failed Pi+ Pion matches  = " + num_of_failed_pip);
+
+System.out.println("Number of times the reconstructed particles are matched to the same generated particle = " + num_of_double_matches);
 
 System.out.println("");
-System.out.println("Total number of events found: " + event_count);
-System.out.println("True number of events (i.e., those that would have survived the normal PID cuts) = " + true_events);
-System.out.println("Total number of events with the strictess PID cuts = " + strict_cuts);
-System.out.println("");
+System.out.println("Total number of generated events = " + num_of_gen_sidis_events);
 
-System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions_Per_Electron);
+System.out.println("Number of Reconstructed Electron candidates = " + num_of_rec_ele_candidates);
+System.out.println("Number of Reconstructed Electron found      = " + num_of_rec_ele_found);
+System.out.println("Number of Reconstructed Pi+ Pion candidates = " + num_of_rec_pip_candidates);
+System.out.println("Number of Reconstructed Pi+ Pion found      = " + num_of_rec_pip_found);
 System.out.println("");
+System.out.println("Number of times that Multiple (pi+) Pions were found per Electron = " + Multiple_Pions_Per_Electron);
+System.out.println("");
+System.out.println("Total number of failed yesbs.every() conditions  = " + num_of_yesbs_fail);
 
+System.out.println("");
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
-
 if(RunTime > 60){
     RunTime = RunTime/60;
     System.out.println("This code's runtime (in min) is: ");
 }
 else{ System.out.println("This code's runtime (in sec) is: "); }
-
 System.out.println(RunTime);
 System.out.println("");
 
 tt.write()
 ff.close()
+

@@ -10,6 +10,7 @@ import org.jlab.jroot.ROOTFile
 import uconn.utils.pid.Candidate.Level
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
+import uconn.utils.pid.stefan.ProtonCandidate
 import my.Sugar
 import clasqa.QADB
 
@@ -30,16 +31,15 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-
 // As of 12/16/2025:
-def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.new6.${outname}.root")
+def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.wProton.new6.${outname}.root")
 
 // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
     // Added/renamed several variables to do this
     // Removed detector/layer info now that it is built into the other variables
     // Runs with 'new5'
     // Also added "Num_Pions" to help control events where the electron is counted twice (in case that is a previously overlooked issue)
-def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36'
+def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:prox:proy:proz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36'
 
 // Added as of 12/22/2025
 // Reconstructed PID Cut variations:
@@ -70,7 +70,6 @@ branches_string += ':pip_chi2pid:pip_dvz'                                   // P
 
 def tt = ff.makeTree('h22', 'title', branches_string)
 
-
 int event_count = 0;
 int true_events = 0;
 int strict_cuts = 0;
@@ -78,13 +77,11 @@ int DC_count = 0;
 
 int Multiple_Pions_Per_Electron = 0
 
-
 // Helper: Converts booleans into integers (1 == true, 0 == false)
 Integer ConvertBoolean(boolean bool) {
     if(bool) { return 1;}
     else {     return 0;}
 }
-
 
 // ------------------------------------------------------------
 // Custom Electron PID Cuts
@@ -890,11 +887,6 @@ args.eachParallel{fname->
             def run = runb.getInt("run",  0)
             def evn = runb.getInt("event",0)
             
-            // // Running with QADB requirements despite it not being fully updated for Pass 2 yet (still using Pass 1 requirements to my knowledge - was like this in all prior runs before 6/6/2024)
-            // // Remove this note when QADB is updated
-            // if(ismc || skipqadb || qa.OkForAsymmetry(run, evn)){
-            // def skipqadb = true // Skipping as of 7/2/2024 as I couldn't get the QADB to load (also it hasn't been updated for Pass 2 anyway)
-            // if(ismc || skipqadb){
             def skipqadb = false // Reusing the QADB as of 12/16/2025
             if(ismc || skipqadb || qa.pass(run, evn)){
 
@@ -909,24 +901,34 @@ args.eachParallel{fname->
                     // elec_total_found += 1;
                     
                     int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+
+                    // Check for the presence of a proton (for Harut's Vector Meson Cuts)
+                    boolean hasProton = false
+                    def proV = null // Declare proV to store the proton Lorentz vector
+                    for (int ipart_proton = 1; ipart_proton < partb.getRows(); ipart_proton++) {
+                        def canpro = ProtonCandidate.getProtonCandidate(ipart_proton, partb, trajb, isinb)
+                        if(canpro.isproton()){
+                            hasProton = true
+                            proV = canpro.getLorentzVector() // Get the Lorentz vector of the proton
+                            break
+                        }
+                    }
+                    // Skip to the next event if no proton is found
+                    if(!hasProton){ continue; }
                     
                     for(int ipart = 1; ipart < partb.getRows(); ipart++){
                         def canpip = PionCandidate.getPionCandidate(ipart, partb, trajb, isinb)
 
                         def pip_pion_PIDs  = isPipFull(canpip);
                         if(pip_pion_PIDs.Full_norm || pip_pion_PIDs.Full_tight || pip_pion_PIDs.Full_mid || pip_pion_PIDs.Full_loose || canpip.ispip()){
-                            // After this 'if' statement, the event being added to the ntuple is known to have at least one electron AND pi+ pion
-                            // if(elec_total_found   != elec_num_current){
-                            //     elec_events_found += 1;
-                            //     elec_num_current   = elec_total_found;
-                            // }
                             pionCount += 1; // Increment pion counter
                             
                             def pip0 = canpip.getLorentzVector()
                             
                             // Cartesian Momentum Coordinates
-                            def ex = ele.px(),  ey = ele.py(),  ez = ele.pz()
-                            def px = pip0.px(), py = pip0.py(), pz = pip0.pz()
+                            def ex   = ele.px(),  ey   = ele.py(),  ez   = ele.pz()
+                            def px   = pip0.px(), py   = pip0.py(), pz   = pip0.pz()
+                            def prox = proV.px(), proy = proV.py(), proz = proV.pz()
                             
                             // Sectors (From Detector)
                             def esec = canele.getPCALsector(), pipsec = canpip.getDCsector()
@@ -936,8 +938,6 @@ args.eachParallel{fname->
                             float Hy = ecb.getFloat("hy", 0)
                             
                             // For other valerii cuts
-                            // int detector_PCal = ecb.getInt("detector", 0)
-                            // int layer_PCal    = ecb.getInt("layer",    0)
                             float V_PCal = ecb.getFloat("lv", 0)
                             float W_PCal = ecb.getFloat("lw", 0)
                             float U_PCal = ecb.getFloat("lu", 0)
@@ -998,7 +998,7 @@ args.eachParallel{fname->
                                 }
                             }
                             
-                            tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        px, py, pz,
+                            tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        px, py, pz,  prox, proy, proz, 
                                     esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
                                     V_PCal,             W_PCal,            U_PCal, 
                                     ele_x_DC_6,         ele_y_DC_6,        ele_z_DC_6,
@@ -1051,7 +1051,6 @@ args.eachParallel{fname->
     reader.close()
 }
 }
-
 
 System.out.println("");
 System.out.println("Total number of events found: " + event_count);

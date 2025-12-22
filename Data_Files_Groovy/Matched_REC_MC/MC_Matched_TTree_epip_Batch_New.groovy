@@ -1855,9 +1855,7 @@ if(RunTime > 60){
     RunTime = RunTime/60;
     System.out.println("This code's runtime (in min) is: ");
 }
-else{
-    System.out.println("This code's runtime (in sec) is: ");
-}
+else{ System.out.println("This code's runtime (in sec) is: "); }
 System.out.println(RunTime);
 System.out.println("");
 

@@ -178,8 +178,8 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
         "clasdis": {
             "mdf": {"epipX":    "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Batch_New.groovy",
                     "epipN":    PLACEHOLDER_GROOVY_SCRIPT,
-                    "eppipX":   PLACEHOLDER_GROOVY_SCRIPT,
-                    "epippimX": PLACEHOLDER_GROOVY_SCRIPT},
+                    "eppipX":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Proton_Batch_New.groovy",
+                    "epippimX": "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Pim_Batch_New.groovy"},
             "gdf": {"epipX":    "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Batch_Pass2_UpToDate.groovy",
                     "epipN":    PLACEHOLDER_GROOVY_SCRIPT,
                     "eppipX":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Proton_Batch_Pass2_UpToDate.groovy",
@@ -192,8 +192,8 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
         "data": {
             "epipX":            "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_TTree_epip_Batch_Pass2.groovy",
             "epipN":            PLACEHOLDER_GROOVY_SCRIPT,
-            "eppipX":           "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_TTree_epip_Proton_Batch_Pass2.groovy",
-            "epippimX":         PLACEHOLDER_GROOVY_SCRIPT,
+            "eppipX":           "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_TTree_epip_Proton_Batch_Pass2_New.groovy",
+            "epippimX":         "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_TTree_epip_Pim_Batch_Pass2.groovy",
         },
     }
 
@@ -468,24 +468,25 @@ def main():
 
     parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential or SLURM array mode, with optional email summary (sequential only).", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("-m",    "-mode",   "--mode",              dest="mode",       choices=["sequential", "slurm"], default="sequential",              help="Run mode: sequential (local) or slurm (submit array job).")
-    parser.add_argument("-src",  "-source", "--source",            dest="source",                                      default="clasdis",                 help="Input source preset: clasdis, evgen, data, rdf (rdf is alias for data).")
-    parser.add_argument("-mc",   "-mct",    "--mc-type",           dest="mc_type",                                     default="mdf",                     help="MC type preset for clasdis/evgen: rec/mdf (default) or gen/gdf. Ignored for data/rdf.")
-    parser.add_argument("-evt",  "-event",  "--event-type",        dest="event_type",                                  default="epipX",                   help="Event type preset for clasdis and data/rdf: SIDIS/epipX (default), exclusive/epipN, proton/eppipX, DP/epippimX. Ignored for evgen (forced epipX).")
+    parser.add_argument("-m",    "-mode",    "--mode",              dest="mode",       choices=["sequential", "slurm"], default="sequential",              help="Run mode: sequential (local) or slurm (submit array job).")
+    parser.add_argument("-src",  "-source",  "--source",            dest="source",                                      default="clasdis",                 help="Input source preset: clasdis, evgen, data, rdf (rdf is alias for data).")
+    parser.add_argument("-mc",   "-mct",     "--mc-type",           dest="mc_type",                                     default="mdf",                     help="MC type preset for clasdis/evgen: rec/mdf (default) or gen/gdf. Ignored for data/rdf.")
+    parser.add_argument("-evt",  "-event",   "--event-type",        dest="event_type",                                  default="epipX",                   help="Event type preset for clasdis and data/rdf: SIDIS/epipX (default), exclusive/epipN, proton/eppipX, DP/epippimX. Ignored for evgen (forced epipX).")
 
-    parser.add_argument("-ptxt", "-paths",  "--paths-txt",         dest="paths_txt",                                   default=None,                      help=f"Override the default TXT file list. If omitted, uses a built-in default based on --source in: {DEFAULT_PATHS_DIR}/")
-    parser.add_argument("-sp",   "-script", "--script-path",       dest="script_path",                                 default=None,                      help="Override the Groovy script path directly. If omitted, uses a preset-based selection (currently placeholder until you fill it).")
-    parser.add_argument("-id",   "-jID",    "--job-id",            dest="job_id",                                      default=None,                      help="Job identifier (default is derived from presets + date; adds _Seq in sequential mode).")
+    parser.add_argument("-ptxt", "-paths",   "--paths-txt",         dest="paths_txt",                                   default=None,                      help=f"Override the default TXT file list. If omitted, uses a built-in default based on --source in: {DEFAULT_PATHS_DIR}/")
+    parser.add_argument("-sp",   "-script",  "--script-path",       dest="script_path",                                 default=None,                      help="Override the Groovy script path directly. If omitted, uses a preset-based selection (currently placeholder until you fill it).")
+    parser.add_argument("-id",   "-jID",     "--job-id",            dest="job_id",                                      default=None,                      help="Job identifier (default is derived from presets + date; adds _Seq in sequential mode).")
 
-    parser.add_argument("-e",    "-mail",   "--email",             dest="email",                                       action="store_true",               help=f"Send completion email to: {EMAIL_TO} (sequential mode only).")
-    parser.add_argument("-f",    "-file",   "--file",              dest="files",             action="append",          default=None,                      help="Add an explicit input file (bypasses TXT expansion for that entry). Can be repeated.")
-    parser.add_argument("-ub",   "-uniq",   "--unique-batches",    dest="unique_batches",    type=str,                 default=None,                      help="Run only a unique set of file-indices (SLURM-style list like '1-5,7,10-12' or '1-10:2'). Applies to sequential (filter) and slurm (array spec).")
-    parser.add_argument("-saj",  "-aj",     "--slurm-array-jobid", dest="slurm_array_jobid", type=str,                 default=None,                      help="In sequential mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks).")
+    parser.add_argument("-e",    "-mail",    "--email",             dest="email",                                       action="store_true",               help=f"Send completion email to: {EMAIL_TO} (sequential mode only).")
+    parser.add_argument("-em",   "-message", "--email_message",     dest="email_message",     type=str,                 default=None,                      help="Extra message to send in email if selected (sequential mode only).")
+    parser.add_argument("-f",    "-file",    "--file",              dest="files",             action="append",          default=None,                      help="Add an explicit input file (bypasses TXT expansion for that entry). Can be repeated.")
+    parser.add_argument("-ub",   "-uniq",    "--unique-batches",    dest="unique_batches",    type=str,                 default=None,                      help="Run only a unique set of file-indices (SLURM-style list like '1-5,7,10-12' or '1-10:2'). Applies to sequential (filter) and slurm (array spec).")
+    parser.add_argument("-saj",  "-aj",      "--slurm-array-jobid", dest="slurm_array_jobid", type=str,                 default=None,                      help="In sequential mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks).")
 
-    parser.add_argument("-st",   "-time",   "--slurm-time",        dest="slurm_time",                                  default=DEFAULT_SLURM_TIME,        help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
-    parser.add_argument("-cpu",  "-mem",    "--slurm-mem-per-cpu", dest="slurm_mem_per_cpu",                           default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '3GB', '4000M').")
+    parser.add_argument("-st",   "-time",    "--slurm-time",        dest="slurm_time",                                  default=DEFAULT_SLURM_TIME,        help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
+    parser.add_argument("-cpu",  "-mem",     "--slurm-mem-per-cpu", dest="slurm_mem_per_cpu",                           default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '3GB', '4000M').")
 
-    parser.add_argument("-dr",   "-test",   "--dry-run",           dest="dry_run",                                     action="store_true",               help="Do not execute local run-groovy or submit SLURM jobs; still expands file lists and prints planned actions (SLURM mode still requires approval).")
+    parser.add_argument("-dr",   "-test",    "--dry-run",           dest="dry_run",                                     action="store_true",               help="Do not execute local run-groovy or submit SLURM jobs; still expands file lists and prints planned actions (SLURM mode still requires approval).")
 
     args = parser.parse_args()
 
@@ -704,7 +705,14 @@ Files processed:
 {total_time_str}
 {rate_line}
 """
+        if(args.email_message is not None):
+            email_body = f"""
+User Given Message:
+{args.email_message}
 
+{email_body}
+
+"""
         print(email_body)
 
         if(args.email):
