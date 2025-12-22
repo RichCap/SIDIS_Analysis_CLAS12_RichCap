@@ -466,7 +466,7 @@ def estimate_peak_memory_children():
 def main():
     local_dir = os.path.dirname(os.path.abspath(__file__))
 
-    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential or SLURM array mode, with optional email summary (sequential only).")
+    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential or SLURM array mode, with optional email summary (sequential only).", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-m",    "-mode",   "--mode",              dest="mode",       choices=["sequential", "slurm"], default="sequential",              help="Run mode: sequential (local) or slurm (submit array job).")
     parser.add_argument("-src",  "-source", "--source",            dest="source",                                      default="clasdis",                 help="Input source preset: clasdis, evgen, data, rdf (rdf is alias for data).")
