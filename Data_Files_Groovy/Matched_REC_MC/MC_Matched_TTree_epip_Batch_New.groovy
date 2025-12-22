@@ -123,7 +123,9 @@ def num_of_failed_ele = 0
 def num_of_failed_pip = 0
 
 
-def num_of_total_matched = 0
+def num_of_total_matched  = 0
+def num_of_true_matched   = 0
+def num_of_strict_matched = 0
 
 // num_of_double_matches = number of times both reconstucted particles are matched to the same generated particle
 def num_of_double_matches = 0
@@ -1676,7 +1678,10 @@ args.eachParallel{fname->
                         
                         //=====// Found a matched particle //=====//
                         if(pid_matched_el != 0 && matched_el_x_gen != 0 && matched_el_y_gen != 0 && matched_el_z_gen != 0 && pid_matched_pip != 0 && matched_pip_x_gen != 0 && matched_pip_y_gen != 0 && matched_pip_z_gen != 0){
-                            num_of_total_matched += 1
+                            num_of_total_matched += 1;
+                            if(canpip.ispip() && canele.iselectron()){ num_of_true_matched += 1; }   // Made to count the difference caused by the (normal) cut variation
+                            if(electron_PIDs.Full_tight && pip_pion_PIDs.Full_tight){ num_of_strict_matched += 1; } // Made to count the difference caused by the (strict) cut variation
+                            
                         }
                         //=====// Found a matched particle //=====//
 
@@ -1824,6 +1829,8 @@ args.eachParallel{fname->
 
 System.out.println("");
 System.out.println("Total number of completly matched events = " + num_of_total_matched);
+System.out.println("True number of completly matched events (i.e., those that would have survived the normal PID cuts) = " + num_of_true_matched);
+System.out.println("Number of completly matched events with the strictess PID cuts = " + num_of_strict_matched);
 
 System.out.println("Total number of failed Electron matches  = " + num_of_failed_ele);
 System.out.println("Total number of failed Pi+ Pion matches  = " + num_of_failed_pip);
