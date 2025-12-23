@@ -197,8 +197,8 @@ args.eachParallel{fname->
                         if(pipPhi >= -105 && pipPhi <  -45){pipsec_a = 5}
                         if(pipPhi >= -165 && pipPhi < -105){pipsec_a = 6}
                         
-                        tt.fill(evn, run,  beamCharge, pionCount,
-                                 ex, ey,   ez, px, py, pz,
+                        tt.fill(evn, run, beamCharge, pionCount,
+                                 ex, ey,  ez, px, py, pz,
                              esec_a, pipsec_a, Hx, Hy,
                              parentPID_el, parentPID_pi)
                     }
