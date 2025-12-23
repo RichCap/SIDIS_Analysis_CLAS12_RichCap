@@ -37,7 +37,7 @@ def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new6.${outname}.ro
 
 // Added 'gStatus' and 'weight' as of 9/12/2025 (EvGen specific variables refering to the radiative state of the photon (0 for non-rad, 55 for ISR, and 56 for FSR) and the variable event weight)
 def branches_string  = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:gStatus:weight'
-def branches_string += ':Par_PID_el/I:Par_PID_pip/I'
+branches_string += ':Par_PID_el/I:Par_PID_pip/I'
 // Additional independent matching criteria branches
 // Phi=12, Theta=6
 branches_string += ':ex_gen_P12T6:ey_gen_P12T6:ez_gen_P12T6:eE_gen_P12T6:PID_el_P12T6:'
