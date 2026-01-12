@@ -283,10 +283,10 @@ def parse_unique_batches_string(unique_str, max_batch):
                 bad_tokens.append(token)
     if(len(bad_tokens) > 0):
         print(f"{color.Error}[WARNING]{color.END} Could not parse some --unique_batches tokens: {bad_tokens}")
-    in_range  = sorted([v for v in selected if((v >= 1) and (v <= max_batch))])
-    out_range = sorted([v for v in selected if((v < 1) or (v > max_batch))])
+    in_range  = sorted([v for v in selected if((v >= 0) and (v < max_batch))])
+    out_range = sorted([v for v in selected if((v < 0) or (v >= max_batch))])
     if(len(out_range) > 0):
-        print(f"{color.Error}[WARNING]{color.END} Some --unique_batches values are outside [1, {max_batch}] and will be ignored: {out_range}")
+        print(f"{color.Error}[WARNING]{color.END} Some --unique_batches values are outside [0, {max_batch-1}] and will be ignored: {out_range}")
     if(len(in_range) == 0):
         return []
     return in_range
@@ -578,7 +578,7 @@ def main():
         print(f"{color.BBLUE}[INFO]{color.END} Default SLURM array spec (if not overridden): {array_spec_default}")
         print(f"{color.BBLUE}[INFO]{color.END} Active array spec ({array_spec_reason}): {array_spec_str}")
         if((nfiles > 0)):
-            show_n = 5 if((nfiles >= 5)) else nfiles
+            show_n = 15 if((nfiles >= 15)) else nfiles
             examples = ""
             for ii in range(show_n):
                 examples = f"{examples}[{ii+1:05d}] {expanded_files[ii]}\n"
@@ -594,12 +594,12 @@ def main():
             print(f"{color.BBLUE}[INFO]{color.END} Sequential mode will coordinate with SLURM array job: {args.slurm_array_jobid}")
 
         if((requested_batches is None)):
-            batch_iterable = list(range(1, nfiles + 1))
+            batch_iterable = list(range(0, nfiles))
         else:
             batch_iterable = requested_batches
 
         for batch_idx in batch_iterable:
-            file_path = expanded_files[batch_idx - 1]
+            file_path = expanded_files[batch_idx]
             run_this  = True
 
             if((args.slurm_array_jobid is not None)):
@@ -622,7 +622,7 @@ def main():
             if(not run_this):
                 continue
 
-            print(f"{color.BBLUE}Processing file index {batch_idx}/{nfiles}: {color.END_B}{file_path}{color.END}")
+            print(f"{color.BBLUE}Processing file index {batch_idx}/{nfiles-1}: {color.END_B}{file_path}{color.END}")
             print(f"{color.BBLUE}[INFO]{color.END} Working directory: {work_dir_final}")
 
             cmd = ["run-groovy", script_path_final, file_path]
@@ -729,7 +729,11 @@ User Given Message:
 
         job_name      = job_id_final
         manifest_path = used_paths_txt
-        sbatch_path   = os.path.join(local_dir, f"{job_name}.sh")
+        sbatch_base   = f"GroovyArray_{source_norm}_{mc_type_norm}_{event_type_norm}"
+        if("data" in sbatch_base):
+            sbatch_base = sbatch_base.replace("mdf", "rdf")
+        sbatch_base   = re.sub(r'[^A-Za-z0-9_\-]+', '_', sbatch_base)
+        sbatch_path   = os.path.join(local_dir, f"{sbatch_base}.sh")
 
         if((args.unique_batches is None) or (str(args.unique_batches).strip() == "")):
             array_spec_str = f"0-{nfiles-1}"
