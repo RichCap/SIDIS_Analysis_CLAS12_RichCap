@@ -52,7 +52,9 @@ parser.add_argument('-r', '--root',                            type=str,   defau
 parser.add_argument('-2Dw', '--make_2D_weight',                action='store_true',
                     help='Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements) — Only uses clasdis files (as of 10/13/2025)')
 parser.add_argument('-2DwC', '--make_2D_weight_check',         action='store_true',
-                    help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN — Only uses clasdis files (as of 10/16/2025)')
+                    help='Uses the 2D weights from the `--make_2D_weight` option to create 1D variable plots of Data, MC-REC, and MC-GEN — Only uses clasdis files (as of 1/15/2026)')
+parser.add_argument('-VarwC', '--Var_weight_check',            type=str,   default="phi_h", choices=["phi_h", "Q2", "y", "xB", "z", "pT"],
+                    help='Selects the 1D variable to be checked with `--make_2D_weight_check`')
 parser.add_argument('-2DwBC', '--make_2D_weight_binned_check', action='store_true',
                     help='Uses the 2D weights from the `--make_2D_weight` option to create phi_h plots of Data, MC-REC, and MC-GEN in all the Q2-y-z-pT Bins — Also tests 1D Bin-by-Bin Corrections with these weights — Only uses clasdis files (as of 11/4/2025)')
 parser.add_argument('-jsw', '--json_weights',                  action='store_true',
@@ -1582,7 +1584,7 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         print(f"\n{color.BGREEN}Done Running 'z_pT_Images_Together_For_Comparisons'{color.END}\n")
         
     elif(args.make_2D_weight_check):
-        print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS (phi_h){color.END}\n")
+        print(f"\n{color.BOLD}CREATING/TESTING ACCEPTANCE WEIGHTED HISTOGRAMS ({args.Var_weight_check}){color.END}\n")
         
         # 1) Define Event_Weight on MC (mdf)
         if(args.json_weights):
@@ -1644,16 +1646,29 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
 
         print(f"\n{color.BOLD}Done defining the Event Weights{color.END}\n")
         timer.time_elapsed()
-        
-        # 2) Book TH1D histograms for phi_t (0..360, 24 bins)
-        Title = "Comparisons of #phi_{h}"
+
+
+        varible_title = variable_Title_name_new(args.Var_weight_check)
+        var, minBin, maxBin, numBin  = 'phi_t', 0.00,  360,  24
+        if(str(args.Var_weight_check) in ["Q2"]):
+            var, minBin, maxBin, numBin = "Q2", 0.00, 12.0, 240
+        if(str(args.Var_weight_check) in ["y"]):
+            var, minBin, maxBin, numBin =  "y", 0.05, 1.05, 100
+        if(str(args.Var_weight_check) in ["xB"]):
+            var, minBin, maxBin, numBin = "xB", 0.05, 0.85,  80
+        if(str(args.Var_weight_check) in ["z"]):
+            var, minBin, maxBin, numBin =  "z", 0.00, 1.20, 120
+        if(str(args.Var_weight_check) in ["pT"]):
+            var, minBin, maxBin, numBin = "pT", 0.00, 2.00, 200
+        # 2) Book TH1D histograms for the selected variable
+        Title = f"Comparisons of {varible_title}"
         if(args.title):
             Title = f"#splitline{{{Title}}}{{{args.title}}}"
-        h_rdf =         rdf.Histo1D(("h_phi_t_rdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t")
-        h_mdf = mdf_clasdis.Histo1D(("h_phi_t_mdf", "#splitline{Comparisons of #phi_{h}}{Without Reweighted MC}; #phi_{h}; Normalized", 24, 0.0, 360.0), "phi_t_smeared")
-        h_gdf = gdf_clasdis.Histo1D(("h_phi_t_gdf", "#splitline{Comparisons of #phi_{h}}{Without Reweighted MC}; #phi_{h}; Normalized", 24, 0.0, 360.0), "phi_t")
-        w_mdf = mdf_clasdis.Histo1D(("w_phi_t_mdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t_smeared", "Event_Weight")
-        w_gdf = gdf_clasdis.Histo1D(("w_phi_t_gdf", f"{Title}; #phi_{{h}}; Normalized", 24, 0.0, 360.0), "phi_t",         "Event_Weight")
+        h_rdf =         rdf.Histo1D(("h_1D_rdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}")
+        h_mdf = mdf_clasdis.Histo1D(("h_1D_mdf", f"#splitline{{Comparisons of {varible_title}}}{{Without Reweighted MC}}; {varible_title}; Normalized", numBin, minBin, maxBin), f"{var}_smeared")
+        h_gdf = gdf_clasdis.Histo1D(("h_1D_gdf", f"#splitline{{Comparisons of {varible_title}}}{{Without Reweighted MC}}; {varible_title}; Normalized", numBin, minBin, maxBin), f"{var}")
+        w_mdf = mdf_clasdis.Histo1D(("w_1D_mdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}_smeared", "Event_Weight")
+        w_gdf = gdf_clasdis.Histo1D(("w_1D_gdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}",         "Event_Weight")
         
         # 3) Set line colors (on the actual TH1 objects)
         h_rdf.GetValue().SetLineColor(ROOT.kBlue)
@@ -1671,14 +1686,14 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
                 h.Scale(1.0/integral)
             return h
         
-        h_rdf_n = _make_norm_clone(h_rdf, "h_phi_t_rdf_norm")
-        h_mdf_n = _make_norm_clone(h_mdf, "h_phi_t_mdf_norm")
-        h_gdf_n = _make_norm_clone(h_gdf, "h_phi_t_gdf_norm")
-        w_mdf_n = _make_norm_clone(w_mdf, "w_phi_t_mdf_norm")
-        w_gdf_n = _make_norm_clone(w_gdf, "w_phi_t_gdf_norm")
+        h_rdf_n = _make_norm_clone(h_rdf, "h_1D_rdf_norm")
+        h_mdf_n = _make_norm_clone(h_mdf, "h_1D_mdf_norm")
+        h_gdf_n = _make_norm_clone(h_gdf, "h_1D_gdf_norm")
+        w_mdf_n = _make_norm_clone(w_mdf, "w_1D_mdf_norm")
+        w_gdf_n = _make_norm_clone(w_gdf, "w_1D_gdf_norm")
         
-        comp_wW = w_mdf_n.Clone("w_phi_t_Compare")
-        comp_nW = h_mdf_n.Clone("h_phi_t_Compare")
+        comp_wW = w_mdf_n.Clone("w_1D_Compare")
+        comp_nW = h_mdf_n.Clone("h_1D_Compare")
 
         comp_wW.Divide(h_rdf_n)
         comp_nW.Divide(h_rdf_n)
@@ -1686,8 +1701,8 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         comp_wW.SetLineColor(ROOT.kBlack)
         comp_nW.SetLineColor(ROOT.kBlack)
 
-        comp_wW.SetTitle("#scale[1.25]{#splitline{Comparisons of Data and MC}{WITH Reweighted MC}}; #phi_{h}; #frac{MC REC}{Data}")
-        comp_nW.SetTitle("#scale[1.25]{#splitline{Comparisons of Data and MC}{WITHOUT Reweighted MC}}; #phi_{h}; #frac{MC REC}{Data}")
+        comp_wW.SetTitle(f"#scale[1.25]{{#splitline{{Comparisons of Data and MC}}{{WITH Reweighted MC}}}}; {varible_title}; #frac{{MC REC}}{{Data}}")
+        comp_nW.SetTitle(f"#scale[1.25]{{#splitline{{Comparisons of Data and MC}}{{WITHOUT Reweighted MC}}}}; {varible_title}; #frac{{MC REC}}{{Data}}")
 
         CwW_max, CwW_min = comp_wW.GetMaximum(), comp_wW.GetMinimum()
         CnW_max, CnW_min = comp_nW.GetMaximum(), comp_nW.GetMinimum()
@@ -1702,7 +1717,7 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
         
         # 5) Draw overlay on one canvas (first drawn sets axes)
         # c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", 900, 600)
-        c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", int(912*1.55*25), int(547*1.55*25))
+        c_phi = ROOT.TCanvas("c_1D_overlay", f"{args.Var_weight_check} overlays", int(912*1.55*25), int(547*1.55*25))
         c_phi.Divide(2, 2)
         
         # ----- Pad 1: Data vs Reweighted MC -----
@@ -1792,7 +1807,7 @@ gdf = gdf.Filter("((z     > 0.15) && (z     < 0.90))")
 
         
         # save_name = f"phi_h_Comparison_with_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_Acceptance_Weights_{args.name}{args.File_Save_Format}"
-        save_name = f"phi_h_Comparison_with_and_without_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"phi_h_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
         c_phi.SaveAs(save_name)
         print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
 
