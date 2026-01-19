@@ -120,15 +120,15 @@ Integer ConvertBoolean(boolean bool) {
 class DCEdgeCandidate {
     int     ipart   = -1;
     Integer pid     = null;
-    double  edge_r1 = null;
-    double  edge_r2 = null;
-    double  edge_r3 = null;
+    Double  edge_r1 = null;
+    Double  edge_r2 = null;
+    Double  edge_r3 = null;
     DCEdgeCandidate(int ipart_In) { ipart = ipart_In; }
 
     // Mirror the ElectronCandidate behavior: accept Number, store Integer (or null)
     void setPID(Number pid_In) { this.pid = (pid_In == null) ? null : pid_In.intValue(); }
     Integer getPID() { return pid; }
-    double getEdge(int region) {
+    Double getEdge(int region) {
         if((region == 1)) { return edge_r1; }
         if((region == 2)) { return edge_r2; }
         if((region == 3)) { return edge_r3; }
@@ -1136,7 +1136,7 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 
-GParsPool.withPool 2,{
+GParsPool.withPool 2 {
 args.eachParallel{fname->
     println(fname)
     QADB qa = new QADB("latest")
