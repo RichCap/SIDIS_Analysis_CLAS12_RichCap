@@ -120,10 +120,10 @@ def num_of_rec_pip_found = 0
 
 def Multiple_Pions_Per_Electron = 0
 
-// Helper: Converts booleans into integers (1 == true, 0 == false)
-Integer ConvertBoolean(boolean bool) {
-    if(bool) { return 1;}
-    else {     return 0;}
+// Helper: Converts booleans into integers (1 == true, 0 == false), or -1 if input is null.
+Integer ConvertBoolean(Boolean bool) {
+    if (bool == null) { return -1; } // Return -1 if the input is null
+    return bool ? 1 : 0;
 }
 
 // Tolerances for float comparisons (tune as needed)
@@ -460,15 +460,15 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
 class DCEdgeCandidate {
     int     ipart   = -1;
     Integer pid     = null;
-    double  edge_r1 = null;
-    double  edge_r2 = null;
-    double  edge_r3 = null;
+    Double  edge_r1 = null;
+    Double  edge_r2 = null;
+    Double  edge_r3 = null;
     DCEdgeCandidate(int ipart_In) { ipart = ipart_In; }
 
     // Mirror the ElectronCandidate behavior: accept Number, store Integer (or null)
     void setPID(Number pid_In) { this.pid = (pid_In == null) ? null : pid_In.intValue(); }
     Integer getPID() { return pid; }
-    double getEdge(int region) {
+    Double getEdge(int region) {
         if((region == 1)) { return edge_r1; }
         if((region == 2)) { return edge_r2; }
         if((region == 3)) { return edge_r3; }
@@ -1187,6 +1187,51 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
 
 
 // ------------------------------------------------------------
+// Null Variable Cuts (to make sure all of the PID refinements are possible to calculate)
+// ------------------------------------------------------------
+boolean Baseline_Acceptable_Electron(def eleCan_In, def DCEdgeCan_In){ // Checks that none of the other cuts would automatically return a `false` value due to missing key variables
+    if(eleCan_In.pcal_energy==null) {     return false; }
+    if(eleCan_In.getPCALsector()==null) { return false; }
+    if(eleCan_In.ecin_energy==null) {     return false; }
+    if(eleCan_In.ecout_energy==null) {    return false; }
+    def partp = eleCan_In.p;
+    if(partp==null || partp <= 0.0) {     return false; }
+    if(eleCan_In.pcal_lv==null) {         return false; }
+    if(eleCan_In.pcal_lw==null) {         return false; }
+    if(eleCan_In.getDCsector()==null) {   return false; }
+    if(eleCan_In.getDC1x()==null) {       return false; }
+    if(eleCan_In.getDC1y()==null) {       return false; }
+    if(eleCan_In.traj_x2==null) {         return false; }
+    if(eleCan_In.traj_y2==null) {         return false; }
+    if(eleCan_In.traj_x3==null) {         return false; }
+    if(eleCan_In.traj_y3==null) {         return false; }
+    if(eleCan_In.vz==null) {              return false; }
+    if(DCEdgeCan_In.getEdge(1)==null) {   return false; }
+    if(DCEdgeCan_In.getEdge(2)==null) {   return false; }
+    if(DCEdgeCan_In.getEdge(3)==null) {   return false; }
+    return true;
+}
+
+boolean Baseline_Acceptable_Pion(def pipCan_In, def DCEdgeCan_In){ // Checks that none of the other cuts would automatically return a `false` value due to missing key variables
+    if(pipCan_In.chi2pid==null) {         return false; }
+    if(pipCan_In.getDCsector()==null) {   return false; }
+    if(pipCan_In.getDC1x()==null) {       return false; }
+    if(pipCan_In.getDC1y()==null) {       return false; }
+    if(pipCan_In.getDC1z()==null) {       return false; }
+    if(pipCan_In.traj_x2==null) {         return false; }
+    if(pipCan_In.traj_y2==null) {         return false; }
+    if(pipCan_In.traj_z2==null) {         return false; }
+    if(pipCan_In.traj_x3==null) {         return false; }
+    if(pipCan_In.traj_y3==null) {         return false; }
+    if(pipCan_In.traj_z3==null) {         return false; }
+    if(pipCan_In.dvz==null) {             return false; }
+    if(DCEdgeCan_In.getEdge(1)==null) {   return false; }
+    if(DCEdgeCan_In.getEdge(2)==null) {   return false; }
+    if(DCEdgeCan_In.getEdge(3)==null) {   return false; }
+    return true;
+}
+
+// ------------------------------------------------------------
 // Custom electron detector (individual) wrapper
 // ------------------------------------------------------------
 def isElectronCustom(def eleCan_in, def DCEdgeCan_In, def cutLevel = "norm", def cut_return = "All") {
@@ -1342,7 +1387,7 @@ def isElectronFull(def eleCan, def DCEdgeCan){
     boolean DC_VERTEX_tight            = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_VERTEX");
     boolean DC_VERTEX_pass1            = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_VERTEX");
 
-    boolean Min_PID_check = (PID_norm      && CC_NPHE_norm);
+    boolean Min_PID_check = (PID_norm      && CC_NPHE_norm            && Baseline_Acceptable_Electron(eleCan, DCEdgeCan));
     boolean Full_default  = (Min_PID_check && EC_OUTER_VS_INNER_mid   && EC_SAMPLING_pass2 && EC_FIDUCIAL_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid   && DC_VERTEX_mid);
     boolean Full_pass1    = (Min_PID_check && EC_OUTER_VS_INNER_pass1 && EC_SAMPLING_pass1 && EC_FIDUCIAL_pass1 && DC_FIDUCIAL_REG1_pass1 && DC_FIDUCIAL_REG2_pass1 && DC_FIDUCIAL_REG3_pass1 && DC_VERTEX_pass1);
 
@@ -1433,7 +1478,7 @@ def isPipFull(def pipCan, def DCEdgeCan){
     boolean DELTA_VZ_tight          = isPipCustom(pipCan, DCEdgeCan, "tight", "DELTA_VZ");
     boolean DELTA_VZ_pass1          = isPipCustom(pipCan, DCEdgeCan, "pass1", "DELTA_VZ");
 
-    boolean Min_PID_check = (PID_norm      && FORWARD_norm);
+    boolean Min_PID_check = (PID_norm      && FORWARD_norm      && Baseline_Acceptable_Pion(pipCan, DCEdgeCan));
     boolean Full_default  = (Min_PID_check && CHI2PID_CUT_mid   && DELTA_VZ_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid);
     boolean Full_pass1    = (Min_PID_check && CHI2PID_CUT_pass1 && DELTA_VZ_pass1 && DC_FIDUCIAL_REG1_pass1 && DC_FIDUCIAL_REG2_pass1 && DC_FIDUCIAL_REG3_pass1);
 
@@ -1476,7 +1521,7 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 
-GParsPool.withPool 2,{
+GParsPool.withPool(2) {
 args.eachParallel{fname->
     println(fname)
     // QADB qa = new QADB()
@@ -1834,7 +1879,7 @@ args.eachParallel{fname->
                                 ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_pass1),
                                 ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_pass1),
                                 ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_pass1),
-                                ConvertBoolean(electron_PIDs.DC_VERTEX_loose),              ConvertBoolean(electron_PIDs.DC_VERTEX_mid),                ConvertBoolean(electron_PIDs.DC_VERTEX_tight),              ConvertBoolean(electron_PIDs.DC_VERTEX_pass1)
+                                ConvertBoolean(electron_PIDs.DC_VERTEX_loose),              ConvertBoolean(electron_PIDs.DC_VERTEX_mid),                ConvertBoolean(electron_PIDs.DC_VERTEX_tight),              ConvertBoolean(electron_PIDs.DC_VERTEX_pass1),
                                 // Combined PID Refinement Cut Booleans:
                                 ConvertBoolean(electron_PIDs.Min_PID_check),                ConvertBoolean(electron_PIDs.Full_default),                 ConvertBoolean(electron_PIDs.Full_pass1),
                                 // Extra Variables for the PID refinement cuts:
