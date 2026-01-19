@@ -1136,7 +1136,7 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 
-GParsPool.withPool 2 {
+GParsPool.withPool(2) {
 args.eachParallel{fname->
     println(fname)
     QADB qa = new QADB("latest")
