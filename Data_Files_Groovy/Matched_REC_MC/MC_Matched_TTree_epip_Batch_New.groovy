@@ -33,33 +33,8 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-// // As of 4/16/2025: Running with files that used a different background merging setting (used 45nA instead of 50nA as was done for all prior runs)
-//     // Change is only to the output file names - No other changes were made to the internal workings of the script itself
-// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new5.45nA.${outname}.root")
-
-// // // Test_Rules_New_5 --> added code to check phi matches for edge cases (i.e., if Phi_rec = -179˚ and Phi_gen = +179˚, these particles should be considered as matches)
-// // def ff = new ROOTFile("MC_Matched_sidis_epip_richcap_Test_Rules_New_5.${suff}.${outname}.root")
-
-// // As of 6/10/2024: Removed second best match info and all of the event count information (i.e., Possible_ele, Possible_pip, and SIDIS_GEN)
-// // // Also added Hx_pip, Hy_pip, Hz_pip and layer_DC
-// // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:layer_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
-// // // Added 'V_PCal', 'W_PCal', 'U_PCal', and 'detector_DC' on 6/12/2024
-// // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Hx_pip:Hy_pip:Hz_pip:V_PCal:W_PCal:U_PCal:detector_DC/I:layer_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
-// // // Made the PCal and DC hits, as well as the detector/layer variables unique to each particle on 7/1/2024
-// //     // Added/renamed several variables to do this (runs with 'new4')
-// // def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:V_PCal:W_PCal:U_PCal:Hx:Hy:ele_x_DC:ele_y_DC:ele_z_DC:Hx_pip:Hy_pip:pip_x_DC:pip_y_DC:pip_z_DC:detector_ele_DC/I:layer_ele_DC/I:detector_pip_DC/I:layer_pip_DC/I:beamCharge:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
-// // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/24/2024
-//     // Added/renamed several variables to do this
-//     // Removed detector/layer info now that it is built into the other variables
-//     // Runs with 'new5'
-//     // Also added "Num_Pions" to help control events where the electron is counted twice (in case that is a previously overlooked issue)
-// def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip')
-
-// Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
-def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new6.${outname}.root")
+// As of 1/18/2026: new7 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
+def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new7.${outname}.root")
 
 def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:Par_PID_el/I:Par_PID_pip/I'
 // Additional independent matching criteria branches
@@ -85,31 +60,34 @@ branches_string += 'pipx_gen_Bank:pipy_gen_Bank:pipz_gen_Bank:pipE_gen_Bank:PID_
 branches_string += 'el_Bank_Match_Quality:pip_Bank_Match_Quality:'
 branches_string += 'Par_PID_el_Bank/I:Par_PID_pip_Bank/I'
 
-// Reconstructed PID Cut variations:
-    // Electrons
-branches_string += ':Full_norm_el/I:Full_tight_el/I:Full_mid_el/I:Full_loose_el/I'
-branches_string += ':DC_VERTEX_norm_el/I:DC_VERTEX_tight_el/I:DC_VERTEX_mid_el/I:DC_VERTEX_loose_el/I'
-branches_string += ':DC_FIDUCIAL_REG_norm_el/I:DC_FIDUCIAL_REG_tight_el/I:DC_FIDUCIAL_REG_mid_el/I:DC_FIDUCIAL_REG_loose_el/I'
-branches_string += ':DC_FIDUCIAL_REG3_norm_el/I:DC_FIDUCIAL_REG3_tight_el/I:DC_FIDUCIAL_REG3_mid_el/I:DC_FIDUCIAL_REG3_loose_el/I'
-branches_string += ':DC_FIDUCIAL_REG2_norm_el/I:DC_FIDUCIAL_REG2_tight_el/I:DC_FIDUCIAL_REG2_mid_el/I:DC_FIDUCIAL_REG2_loose_el/I'
-branches_string += ':DC_FIDUCIAL_REG1_norm_el/I:DC_FIDUCIAL_REG1_tight_el/I:DC_FIDUCIAL_REG1_mid_el/I:DC_FIDUCIAL_REG1_loose_el/I'
-branches_string += ':EC_FIDUCIAL_norm_el/I:EC_FIDUCIAL_tight_el/I:EC_FIDUCIAL_mid_el/I:EC_FIDUCIAL_loose_el/I'
-branches_string += ':EC_SAMPLING_norm_el/I:EC_SAMPLING_tight_el/I:EC_SAMPLING_mid_el/I:EC_SAMPLING_loose_el/I'
-branches_string += ':EC_OUTER_VS_INNER_norm_el/I:EC_OUTER_VS_INNER_tight_el/I:EC_OUTER_VS_INNER_mid_el/I:EC_OUTER_VS_INNER_loose_el/I'
-branches_string += ':CC_NPHE_norm_el/I:PID_norm_el/I'
-    // Pi+ Pions
-branches_string += ':Full_norm_pip/I:Full_tight_pip/I:Full_mid_pip/I:Full_loose_pip/I'
-branches_string += ':DELTA_VZ_norm_pip/I:DELTA_VZ_tight_pip/I:DELTA_VZ_mid_pip/I:DELTA_VZ_loose_pip/I'
-branches_string += ':DC_FIDUCIAL_REG_norm_pip/I:DC_FIDUCIAL_REG_tight_pip/I:DC_FIDUCIAL_REG_mid_pip/I:DC_FIDUCIAL_REG_loose_pip/I'
-branches_string += ':DC_FIDUCIAL_REG3_norm_pip/I:DC_FIDUCIAL_REG3_tight_pip/I:DC_FIDUCIAL_REG3_mid_pip/I:DC_FIDUCIAL_REG3_loose_pip/I'
-branches_string += ':DC_FIDUCIAL_REG2_norm_pip/I:DC_FIDUCIAL_REG2_tight_pip/I:DC_FIDUCIAL_REG2_mid_pip/I:DC_FIDUCIAL_REG2_loose_pip/I'
-branches_string += ':DC_FIDUCIAL_REG1_norm_pip/I:DC_FIDUCIAL_REG1_tight_pip/I:DC_FIDUCIAL_REG1_mid_pip/I:DC_FIDUCIAL_REG1_loose_pip/I'
-branches_string += ':CHI2PID_CUT_norm_pip/I:CHI2PID_CUT_tight_pip/I:CHI2PID_CUT_mid_pip/I:CHI2PID_CUT_loose_pip/I'
-branches_string += ':FORWARD_norm_pip/I:PID_norm_pip/I'
+// Added as of 1/18/2026
+// Electrons (from isElectronFull)
+branches_string += ':EC_OUTER_VS_INNER_loose_el/I:EC_OUTER_VS_INNER_mid_el/I:EC_OUTER_VS_INNER_tight_el/I:EC_OUTER_VS_INNER_pass1_el/I'
+branches_string += ':EC_SAMPLING_BAND_loose_el/I:EC_SAMPLING_BAND_mid_el/I:EC_SAMPLING_BAND_tight_el/I'
+branches_string += ':EC_SAMPLING_TRIANGLE_mid_el/I'
+branches_string += ':EC_SAMPLING_THRESHOLD_loose_el/I:EC_SAMPLING_THRESHOLD_mid_el/I:EC_SAMPLING_THRESHOLD_tight_el/I'
+branches_string += ':EC_SAMPLING_pass2_el/I:EC_SAMPLING_pass1_el/I'
+branches_string += ':EC_FIDUCIAL_loose_el/I:EC_FIDUCIAL_mid_el/I:EC_FIDUCIAL_tight_el/I:EC_FIDUCIAL_pass1_el/I'
+branches_string += ':DC_FIDUCIAL_REG1_loose_el/I:DC_FIDUCIAL_REG1_mid_el/I:DC_FIDUCIAL_REG1_tight_el/I:DC_FIDUCIAL_REG1_pass1_el/I'
+branches_string += ':DC_FIDUCIAL_REG2_loose_el/I:DC_FIDUCIAL_REG2_mid_el/I:DC_FIDUCIAL_REG2_tight_el/I:DC_FIDUCIAL_REG2_pass1_el/I'
+branches_string += ':DC_FIDUCIAL_REG3_loose_el/I:DC_FIDUCIAL_REG3_mid_el/I:DC_FIDUCIAL_REG3_tight_el/I:DC_FIDUCIAL_REG3_pass1_el/I'
+branches_string += ':DC_VERTEX_loose_el/I:DC_VERTEX_mid_el/I:DC_VERTEX_tight_el/I:DC_VERTEX_pass1_el/I'
+branches_string += ':Min_PID_check_el/I:Full_default_el/I:Full_pass1_el/I'
+// Extra variables used in the Electron PID refinement cuts (that were not already included in the initial `branches_string`)
+branches_string += ':DC_Edge_R1e:DC_Edge_R2e:DC_Edge_R3e'
+branches_string += ':Electron_Vz'
+branches_string += ':PCAL_energy:ECin_energy:ECoutenergy'
 
-// Additional Variables for PID Cuts:
-branches_string += ':pcal_energy:ecin_energy:ecout_energy:ele_DC_vertex_vz' // Electrons
-branches_string += ':pip_chi2pid:pip_dvz'                                   // Pi+ Pions
+// Pi+ (from isPipFull)
+branches_string += ':CHI2PID_CUT_loose_pip/I:CHI2PID_CUT_mid_pip/I:CHI2PID_CUT_tight_pip/I:CHI2PID_CUT_pass1_pip/I'
+branches_string += ':DC_FIDUCIAL_REG1_loose_pip/I:DC_FIDUCIAL_REG1_mid_pip/I:DC_FIDUCIAL_REG1_tight_pip/I:DC_FIDUCIAL_REG1_pass1_pip/I'
+branches_string += ':DC_FIDUCIAL_REG2_loose_pip/I:DC_FIDUCIAL_REG2_mid_pip/I:DC_FIDUCIAL_REG2_tight_pip/I:DC_FIDUCIAL_REG2_pass1_pip/I'
+branches_string += ':DC_FIDUCIAL_REG3_loose_pip/I:DC_FIDUCIAL_REG3_mid_pip/I:DC_FIDUCIAL_REG3_tight_pip/I:DC_FIDUCIAL_REG3_pass1_pip/I'
+branches_string += ':DELTA_VZ_loose_pip/I:DELTA_VZ_mid_pip/I:DELTA_VZ_tight_pip/I:DELTA_VZ_pass1_pip/I'
+branches_string += ':Min_PID_check_pip/I:Full_default_pip/I:Full_pass1_pip/I'
+// Extra variables used in the Pion PID refinement cuts (that were not already included in the initial `branches_string`)
+branches_string += ':DC_Edge_R1p:DC_Edge_R2p:DC_Edge_R3p'
+branches_string += ':PID_chi2pip:PionDeltaVz'
 
 // Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
     // Second update on 12/22/2025: Added PID cut branches and some of the missing variables to be able to manipulate them again in the ROOT output files
@@ -125,7 +103,7 @@ def num_of_failed_pip = 0
 
 def num_of_total_matched  = 0
 def num_of_true_matched   = 0
-def num_of_strict_matched = 0
+def num_of_pass1_matched  = 0
 
 // num_of_double_matches = number of times both reconstucted particles are matched to the same generated particle
 def num_of_double_matches = 0
@@ -472,23 +450,72 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
     ]
 }
 
+// ============================================================
+// Minimal DC-edge-only "candidate" object
+// - Purpose: store DC edge values for regions 1..3
+// - Adds PID in the same spirit as the other candidate classes
+// - Does NOT modify/pass-through those classes at all
+// ============================================================
+class DCEdgeCandidate {
+    int     ipart   = -1;
+    Integer pid     = null;
+    double  edge_r1 = null;
+    double  edge_r2 = null;
+    double  edge_r3 = null;
+    DCEdgeCandidate(int ipart_In) { ipart = ipart_In; }
 
+    // Mirror the ElectronCandidate behavior: accept Number, store Integer (or null)
+    void setPID(Number pid_In) { this.pid = (pid_In == null) ? null : pid_In.intValue(); }
+    Integer getPID() { return pid; }
+    double getEdge(int region) {
+        if((region == 1)) { return edge_r1; }
+        if((region == 2)) { return edge_r2; }
+        if((region == 3)) { return edge_r3; }
+        return null;
+    }
+    // Builder: extract PID from recbank + DC edges from trajbank
+    static DCEdgeCandidate getDCEdgeCandidate(int ipart_In, Bank recbank_In, Bank trajbank_In) {
+        DCEdgeCandidate dcEdgeCan = new DCEdgeCandidate(ipart_In);
+        // PID (same idea as upstream candidate builder)
+        if((recbank_In != null)) { dcEdgeCan.setPID(recbank_In.getInt("pid", ipart_In)); }
+        // DC edges
+        if((trajbank_In == null)) { return dcEdgeCan; }
+        int nrows = trajbank_In.getRows();
+        for(int ir = 0; ir < nrows; ir++) {
+            if((trajbank_In.getShort("pindex", ir) != (short)ipart_In)) { continue; }
+            // if((trajbank_In.getByte("detector", ir) != DetectorType.DC.getDetectorId())) { continue; }  // DC detector ID should be 6
+            if((trajbank_In.getByte("detector", ir) != 6)) { continue; }
+            int layer = (int)trajbank_In.getByte("layer", ir);
+            // Region 1: layer 6
+            if((layer == 6))  { dcEdgeCan.edge_r1 = (double)trajbank_In.getFloat("edge", ir); }
+            // Region 2: layer 18
+            if((layer == 18)) { dcEdgeCan.edge_r2 = (double)trajbank_In.getFloat("edge", ir); }
+            // Region 3: layer 36
+            if((layer == 36)) { dcEdgeCan.edge_r3 = (double)trajbank_In.getFloat("edge", ir); }
+        }
+        return dcEdgeCan;
+    }
+}
 
 // ------------------------------------------------------------
 // Custom Electron PID Cuts
 // ------------------------------------------------------------
 
 def Custom_EC_OUTER_VS_INNER(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     def pcal_energy  = eleCan_In.pcal_energy;
     if(pcal_energy==null) { return false; }
-    final double edep_tight = 0.06, edep_medium = 0.07, edep_loose = 0.09;
+    // final double edep_tight = 0.06, edep_medium = 0.07, edep_loose = 0.09; // For PASS 1
+    final double edep_tight = 0.05, edep_medium = 0.06, edep_loose = 0.07, edep_loosest = 0.08; // For PASS 2
     double edep = edep_medium;
-    if(cutLevel_In == "loose"){ edep = edep_loose; }
-    if(cutLevel_In == "tight"){ edep = edep_tight; }
+    if(cutLevel_In == "loose"){   edep = edep_loose; }
+    if(cutLevel_In == "tight"){   edep = edep_tight; }
+    if(cutLevel_In == "loosest"){ edep = edep_loosest; }
     return pcal_energy > edep;
 }
 
-def Custom_EC_SAMPLING(def eleCan_In, def cutLevel_In) {
+def Custom_EC_SAMPLING(def eleCan_In, def cutLevel_In) { // This was built for Pass 1 (not Pass 2) — Replaced with `Custom_EC_SAMPLING_PASS2` and its composite functions
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     def pcal_sector  = eleCan_In.getPCALsector();
     def partp        = eleCan_In.p;
     def pcal_energy  = eleCan_In.pcal_energy;
@@ -523,7 +550,141 @@ def Custom_EC_SAMPLING(def eleCan_In, def cutLevel_In) {
     return pass_band && pass_triangle;
 }
 
+// ============================================================
+// Pass-2 replacement for Custom_EC_SAMPLING (Fall2018 INB DATA)
+// - Splits the sampling-fraction logic into 3 independent cuts:
+//   (A) pass_band      : total SF band cut on (Ecal_total / p)
+//   (B) pass_triangle  : partial SF “triangle” cut in (PCAL/p) vs (ECIN/p)
+//   (C) pass_threshold : PCAL/p > threshold
+// Can call the three parts individually, or call the wrapper.
+// ============================================================
+
+// (A) Total SF band cut
+def Custom_EC_SAMPLING_PASS2_BAND(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
+    def pcal_sector  = eleCan_In.getPCALsector();
+    def partp        = eleCan_In.p;
+    def pcal_energy  = eleCan_In.pcal_energy;
+    def ecin_energy  = eleCan_In.ecin_energy;
+    def ecout_energy = eleCan_In.ecout_energy;
+    if((pcal_sector==null) || (partp==null) || (pcal_energy==null) || (ecin_energy==null) || (ecout_energy==null)) { return false; }
+    if((partp <= 0.0)) { return false; }
+
+    // fall2018 inb: total SF parameters (array entries represent sectors 1..6)
+    double[] p0mean_inb  = [ 0.111767,    0.116619,    0.114606,    0.116586,    0.118251,    0.117391    ] as double[];
+    double[] p1mean_inb  = [-0.0281943,   0.0662751,  -0.0896597,   0.181465,    0.085993,    0.0186504   ] as double[];
+    double[] p2mean_inb  = [ 0.00711137,  0.00633334,  0.00912098,  0.00652068,  0.00416682,  0.00622289  ] as double[];
+    double[] p3mean_inb  = [-0.000878776,-0.000780257,-0.00108891,-0.000645957,-0.000485189,-0.000829729 ] as double[];
+
+    double[] p0sigma_inb = [-0.00497609,  0.0259435,  0.0296159,   0.0161445,   0.0239166,   0.0244309   ] as double[];
+    double[] p1sigma_inb = [ 0.0275006,  -0.000805156,-0.00449379,  0.0099462,   0.00192551,  0.00258059  ] as double[];
+    double[] p2sigma_inb = [ 0.00253641, -0.00386759, -0.00469883, -0.00182968, -0.00355973, -0.00398967 ] as double[];
+    double[] p3sigma_inb = [-0.000173549, 0.00030325,  0.000380195, 0.00012328,  0.000302528, 0.000340911] as double[];
+
+    double sigma_range = 3.5;
+    if((cutLevel_In == "loose")) { sigma_range = 4.0; }
+    if((cutLevel_In == "tight")) { sigma_range = 3.0; }
+
+    int isec = pcal_sector - 1;
+    if((isec < 0) || (isec > 5)) { return false; }
+
+    double ectotal_energy = pcal_energy + ecin_energy + ecout_energy;
+
+    double partp2 = partp*partp;
+
+    double mean  = p0mean_inb[isec]*(1.0 + partp/Math.sqrt(partp2 + p1mean_inb[isec])) + p2mean_inb[isec]*partp + p3mean_inb[isec]*partp2;
+
+    double sigma = p0sigma_inb[isec] + p1sigma_inb[isec]/Math.sqrt(partp) + p2sigma_inb[isec]*partp + p3sigma_inb[isec]*partp2;
+
+    double upper_lim_total = mean + sigma_range * sigma;
+    double lower_lim_total = mean - sigma_range * sigma;
+
+    boolean pass_band = ((ectotal_energy/partp) <= upper_lim_total);
+    pass_band = pass_band && ((ectotal_energy/partp) >= lower_lim_total);
+
+    return pass_band;
+}
+
+// (B) Partial SF “triangle” cut
+//     (PCAL/p) > (p1 - p0*(ECIN/p))
+def Custom_EC_SAMPLING_PASS2_TRIANGLE(def eleCan_In, def cutLevel_In) {
+    if((cutLevel_In == "off") || (cutLevel_In == "loose") || (cutLevel_In == "loosest") ) { return true; } // This cut does not offer an easy way to vary it definitionally — will just treat the loose/tight comparison as being an "on" or "off" cut
+    def pcal_sector  = eleCan_In.getPCALsector();
+    def partp        = eleCan_In.p;
+    def pcal_energy  = eleCan_In.pcal_energy;
+    def ecin_energy  = eleCan_In.ecin_energy;
+    if((pcal_sector==null) || (partp==null) || (pcal_energy==null) || (ecin_energy==null)) { return false; }
+    if((partp <= 0.0)) { return false; }
+
+    // fall2018 inb: triangle parameters (array entries are momentum bins)
+    double[][] p0_inb = [
+        [ 1.41582, 1.39934, 1.41204, 1.46385, 1.55892, 1.55892, 1.55892, 1.55892 ],  // sec1
+        [ 1.44726, 1.44245, 1.47269, 1.53225, 1.61465, 1.61465, 1.61465, 1.61465 ],  // sec2
+        [ 1.38589, 1.3908,  1.42501, 1.48177, 1.57636, 1.57636, 1.57636, 1.57636 ],  // sec3
+        [ 1.38631, 1.38107, 1.39757, 1.44579, 1.54154, 1.54154, 1.54154, 1.54154 ],  // sec4
+        [ 1.50251, 1.52408, 1.52996, 1.49583, 1.39339, 1.39339, 1.39339, 1.39339 ],  // sec5
+        [ 1.51312, 1.52784, 1.57519, 1.67332, 1.85128, 1.85128, 1.85128, 1.85128 ]   // sec6
+    ] as double[][];
+
+    double[][] p1_inb = [
+        [ 0.212225, 0.215542, 0.217,    0.218279, 0.219881, 0.219881, 0.219881, 0.219881 ],  // sec1
+        [ 0.221991, 0.225772, 0.227888, 0.229099, 0.228898, 0.228898, 0.228898, 0.228898 ],  // sec2
+        [ 0.221492, 0.225738, 0.227955, 0.228604, 0.22836,  0.22836,  0.22836,  0.22836  ],  // sec3
+        [ 0.215784, 0.221511, 0.224982, 0.227812, 0.231076, 0.231076, 0.231076, 0.231076 ],  // sec4
+        [ 0.22202,  0.227163, 0.228794, 0.226487, 0.218168, 0.218168, 0.218168, 0.218168 ],  // sec5
+        [ 0.223651, 0.228082, 0.2305,   0.23241,  0.234238, 0.234238, 0.234238, 0.234238 ]   // sec6
+    ] as double[][];
+
+    int isec = pcal_sector - 1;
+    if((isec < 0) || (isec > 5)) { return false; }
+
+    int p_bin = 0;
+    if((partp <= 3.0))                      { p_bin = 0; }
+    if((partp > 3.0) && (partp <= 4.0))     { p_bin = 1; }
+    if((partp > 4.0) && (partp <= 5.0))     { p_bin = 2; }
+    if((partp > 5.0) && (partp <= 6.0))     { p_bin = 3; }
+    if((partp > 6.0) && (partp <= 7.0))     { p_bin = 4; }
+    if((partp > 7.0) && (partp <= 8.0))     { p_bin = 5; }
+    if((partp > 8.0) && (partp <= 9.0))     { p_bin = 6; }
+    if((partp > 9.0))                       { p_bin = 7; }
+
+    double sf_pcal = pcal_energy/partp;
+    double sf_ecin = ecin_energy/partp;
+
+    double p0 = p0_inb[isec][p_bin];
+    double p1 = p1_inb[isec][p_bin];
+
+    boolean pass_triangle = (sf_pcal > (p1 - p0*sf_ecin));
+
+    return pass_triangle;
+}
+
+// (C) PCAL/p threshold cut
+def Custom_EC_SAMPLING_PASS2_THRESHOLD(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
+    def partp       = eleCan_In.p;
+    def pcal_energy = eleCan_In.pcal_energy;
+    if((partp==null) || (pcal_energy==null)) { return false; }
+    if((partp <= 0.0)) { return false; }
+    double min_threshold = 0.05;
+    if(cutLevel_In == "loose"){ min_threshold = 0.045; }
+    if(cutLevel_In == "tight"){ min_threshold = 0.065; }
+    boolean pass_threshold = ((pcal_energy/partp) > min_threshold);
+    return pass_threshold;
+}
+
+// Wrapper: “full Pass-2 sampling”
+def Custom_EC_SAMPLING_PASS2(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
+    boolean pass_band      = Custom_EC_SAMPLING_PASS2_BAND(eleCan_In, cutLevel_In);
+    boolean pass_triangle  = Custom_EC_SAMPLING_PASS2_TRIANGLE(eleCan_In, cutLevel_In);
+    boolean pass_threshold = Custom_EC_SAMPLING_PASS2_THRESHOLD(eleCan_In, cutLevel_In);
+
+    return pass_band && pass_triangle && pass_threshold;
+}
+
 def Custom_EC_FIDUCIAL(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     def pcal_sector = eleCan_In.getPCALsector();
     def lv          = eleCan_In.pcal_lv;
     def lw          = eleCan_In.pcal_lw;
@@ -533,7 +694,8 @@ def Custom_EC_FIDUCIAL(def eleCan_In, def cutLevel_In) {
     // Cut using the natural directions of the scintillator bars/ fibers:
     double[] min_v_tight_inb   = [19.0, 19.0, 19.0, 19.0, 19.0, 19.0] as double[];
     double[] min_v_med_inb     = [14.0, 14.0, 14.0, 14.0, 14.0, 14.0] as double[];
-    double[] min_v_loose_inb   = [9.0,  9.0,  9.0,  9.0,  9.0,  9.0 ] as double[];
+    // double[] min_v_loose_inb   = [9.0,  9.0,  9.0,  9.0,  9.0,  9.0 ] as double[]; // This is the default electron cut for PASS 1 beam-spin asymmetry measurements
+    double[] min_v_loose_inb   = [9.0,  9.0,  9.0, 13.5,  9.0,  9.0 ] as double[]; // In PASS 2: "Since the PCAL is approximately 1 bar wider than the other calorimeter regions and since a proper cluster formation requires at least 1 bar (4.5 cm) distance to the edge, the loosest cut is defined as 2 bars (9.0 cm). The bar after this cut is completely reconstructed, with a moderate drop of the sampling fraction, which is identical for data and MC. Only for the v coordinate in sector 4, this cut is increased to 13.5 cm, due to a bar with a dead PMT for lower v values, leading to reconstruction problems for lower v values." — https://clasweb.jlab.org/wiki/images/c/cf/Fiducial_PID_RGA_pass2.pdf
     double[] min_v_loosest_inb = [5.0,  5.0,  5.0,  5.0,  5.0,  5.0 ] as double[];
         
     double[] max_v_tight_inb   = [400, 400, 400, 400, 400, 400] as double[];
@@ -557,20 +719,26 @@ def Custom_EC_FIDUCIAL(def eleCan_In, def cutLevel_In) {
     double min_w = min_w_loose_inb[isec];
     double max_w = max_w_loose_inb[isec];
 
-    // if(lvl == Level.MEDIUM) {
-    if(cutLevel_In == "tight") {
-        min_v = min_v_med_inb[isec];
-        max_v = max_v_med_inb[isec];
-        min_w = min_w_med_inb[isec];
-        max_w = max_w_med_inb[isec];
+    // if(lvl == Level.MEDIUM) { \\ In PASS 2: This is the default cut (3 bars + 0.5cm)
+    // if(cutLevel_In == "tight") {
+    min_v = min_v_med_inb[isec];
+    max_v = max_v_med_inb[isec];
+    min_w = min_w_med_inb[isec];
+    max_w = max_w_med_inb[isec];
     // } else if(lvl == Level.TIGHT) {
-    } else if(cutLevel_In == "tighter") {
+    // } else 
+    if(cutLevel_In == "tighter" || cutLevel_In == "tight") {
         min_v = min_v_tight_inb[isec];
         max_v = max_v_tight_inb[isec];
         min_w = min_w_tight_inb[isec];
         max_w = max_w_tight_inb[isec];
     // } else if(lvl == Level.LOOSEST) {
     } else if(cutLevel_In == "loose") {
+        min_v = min_v_loose_inb[isec];
+        max_v = max_v_loose_inb[isec];
+        min_w = min_w_loose_inb[isec];
+        max_w = max_w_loose_inb[isec];
+    } else if(cutLevel_In == "loosest") {
         min_v = min_v_loosest_inb[isec];
         max_v = max_v_loosest_inb[isec];
         min_w = min_w_loosest_inb[isec];
@@ -580,9 +748,8 @@ def Custom_EC_FIDUCIAL(def eleCan_In, def cutLevel_In) {
     return lv > min_v && lv < max_v && lw > min_w && lw < max_w;
 }
 
-
-// def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region, boolean isinbending=isinb) {
-def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region) {
+def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region) { // Made for PASS 1
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     boolean isinbending = true;
     def dc_sector = eleCan_In.getDCsector();
     def x         = eleCan_In.getDC1x(); // traj_x1
@@ -654,99 +821,7 @@ def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region) {
             [[12.7388,-0.617954],[21.1677,-0.621012],[15.4502,-0.525165]],[[13.4019,-0.63075],[16.6584,-0.554797],[19.0302,-0.55004]]
         ]
     ] as double[][][][];
-    // //double maxparams_out[6][6][3][2] =
-    // double[][][][] maxparams_out = [
-    //     [   [[-9.86221, 0.565985],[-16.4397, 0.569087],[-29.7787, 0.586842]],
-    //         [[-10.2065, 0.565541],[-16.5554, 0.571394],[-28.933, 0.582078]],
-    //         [[-8.48034, 0.550706],[-16.4397, 0.569087],[-27.1037, 0.563767]],
-    //         [[-6.77188, 0.53062],[-16.4397, 0.569087],[-30.485, 0.587534]],
-    //         [[-8.00705, 0.543502],[-16.4038, 0.571178],[-27.7934, 0.573472]],
-    //         [[-10.3328, 0.571942],[-16.69, 0.575252],[-30.8177, 0.592418]]
-    //     ],
-    //     [   [[-5.43811, 0.550931],[-17.1906, 0.57936],[-18.552, 0.546789]],
-    //         [[-5.46281, 0.549659],[-18.0351, 0.588876],[-17.6981, 0.549803]],
-    //         [[-3.26087, 0.531677],[-16.3762, 0.578005],[-17.6831, 0.55049]],
-    //         [[-4.5985, 0.542017],[-17.2735, 0.581566],[-16.7013, 0.538853]],
-    //         [[-6.83053, 0.561019],[-16.5082, 0.579816],[-18.0846, 0.553592]],
-    //         [[-5.67358, 0.5558],[-18.8196, 0.594965],[-19.4333, 0.560965]]
-    //     ],
-    //     [   [[-12.6317, 0.611023],[-16.5644, 0.578978],[-11.5882, 0.496324]],
-    //         [[-12.8886, 0.614807],[-17.0847, 0.584072],[-14.9561, 0.532125]],
-    //         [[-11.4504, 0.600574],[-16.3862, 0.57885],[-12.3309, 0.515431]],
-    //         [[-12.2256, 0.609801],[-16.2134, 0.574306],[-12.7661, 0.515787]],
-    //         [[-12.6311, 0.611069],[-16.2486, 0.577577],[-12.6783, 0.519597]],
-    //         [[-12.6937, 0.615423],[-16.1427, 0.57847],[-11.5156, 0.509458]]
-    //     ],
-    //     [   [[-5.95834, 0.538479],[-15.8909, 0.570164],[-30.2922, 0.586335]],
-    //         [[-6.15277, 0.542134],[-16.1129, 0.573794],[-31.6024, 0.592681]],
-    //         [[-6.12341, 0.542023],[-16.1611, 0.575971],[-29.8604, 0.581528]],
-    //         [[-6.37691, 0.546536],[-16.8501, 0.580239],[-30.0623, 0.580497]],
-    //         [[-5.96605, 0.537402],[-15.7154, 0.5704],[-31.2955, 0.594146]],
-    //         [[-5.86704, 0.539556],[-16.2268, 0.580945],[-31.2345, 0.590849]]
-    //     ],
-    //     [   [[-11.7796, 0.614043],[-19.0763, 0.595015],[-18.804, 0.559538]],
-    //         [[-12.4399, 0.623126],[-19.1733, 0.600646],[-17.675, 0.557016]],
-    //         [[-10.4158, 0.605483],[-18.0044, 0.595497],[-17.5441, 0.556504]],
-    //         [[-12.1552, 0.617782],[-19.7134, 0.603519],[-17.3756, 0.549676]],
-    //         [[-11.3901, 0.612121],[-18.2429, 0.596796],[-10.0097, 0.482578]],
-    //         [[-12.5004, 0.626384],[-19.9266, 0.60993],[-16.4668, 0.543148]]
-    //     ],
-    //     [   [[-5.60572, 0.537153],[-16.3196, 0.582537],[-32.4336, 0.601487]],
-    //         [[-5.52369, 0.532985],[-15.2055, 0.568935],[-31.9046, 0.600079]],
-    //         [[-5.78558, 0.546316],[-16.3328, 0.583765],[-36.0074, 0.617008]],
-    //         [[-5.82321, 0.542839],[-15.9551, 0.580441],[-31.4304, 0.597132]],
-    //         [[-5.36526, 0.535923],[-15.9219, 0.586886],[-30.4245, 0.599613]],
-    //         [[-5.14766, 0.53037],[-14.1986, 0.561504],[-31.7548, 0.60233]]
-    //     ]
-    // ] as double[][][][];
-    // //double minparams_out[6][6][3][2] =
-    // double[][][][] minparams_out = [
-    //     [   [[8.07831, -0.548881],[16.4382, -0.569075],[33.7768, -0.607402]],
-    //         [[8.51057, -0.551773],[16.7782, -0.571381],[32.2613, -0.600686]],
-    //         [[8.5232, -0.552628],[16.4274, -0.56775],[31.1516, -0.584708]],
-    //         [[7.98845, -0.544571],[16.4381, -0.569077],[31.8093, -0.595237]],
-    //         [[7.46705, -0.538557],[16.7414, -0.573345],[31.1888, -0.586751]],
-    //         [[7.82627, -0.538957],[16.2409, -0.565872],[32.1089, -0.596846]]
-    //     ],
-    //     [   [[7.1519, -0.563678],[16.1038, -0.571795],[20.0449, -0.559802]],
-    //         [[6.38228, -0.553174],[16.4526, -0.576382],[19.3523, -0.556484]],
-    //         [[7.11359, -0.561586],[17.2815, -0.578095],[14.9667, -0.53314]],
-    //         [[5.89053, -0.556406],[17.4946, -0.585038],[17.3607, -0.545739]],
-    //         [[7.08253, -0.562099],[15.1516, -0.569192],[16.9665, -0.545949]],
-    //         [[5.53089, -0.546315],[16.4962, -0.574014],[17.9593, -0.545788]]
-    //     ],
-    //     [   [[12.4879, -0.610527],[16.7782, -0.575065],[11.7704, -0.511182]],
-    //         [[12.1931, -0.604779],[15.6443, -0.560967],[12.7304, -0.515606]],
-    //         [[12.206, -0.602999],[16.5979, -0.573274],[12.3971, -0.513795]],
-    //         [[11.5538, -0.604186],[16.6974, -0.576753],[12.7385, -0.517811]],
-    //         [[12.9718, -0.611968],[17.7233, -0.583943],[10.6601, -0.49233]],
-    //         [[12.2966, -0.607592],[15.923, -0.564133],[13.9314, -0.525363]]
-    //     ],
-    //     [   [[5.92493, -0.539308],[17.4444, -0.586183],[31.6974, -0.591988]],
-    //         [[5.467, -0.525876],[16.0649, -0.570869],[30.5937, -0.590071]],
-    //         [[5.67798, -0.531096],[16.5072, -0.57205],[30.7922, -0.586727]],
-    //         [[6.85795, -0.558336],[14.9425, -0.545596],[31.3159, -0.592865]],
-    //         [[6.0155, -0.545283],[16.0649, -0.570869],[30.6644, -0.587002]],
-    //         [[6.18343, -0.539055],[17.4516, -0.583221],[32.6264, -0.594317]]
-    //     ],
-    //     [   [[12.9118, -0.618907],[19.7061, -0.60171],[18.9352, -0.559461]],
-    //         [[13.0612, -0.618743],[19.0954, -0.595406],[19.7019, -0.568119]],
-    //         [[12.4007, -0.613459],[17.544, -0.581147],[12.8175, -0.511017]],
-    //         [[13.3144, -0.625596],[18.9225, -0.594001],[15.1524, -0.530046]],
-    //         [[13.101, -0.620887],[18.5616, -0.595279],[14.8807, -0.533111]],
-    //         [[12.2964, -0.613529],[19.0686, -0.595276],[19.2596, -0.562706]]
-    //     ],
-    //     [   [[5.34118, -0.530584],[16.3015, -0.585185],[38.7808, -0.641362]],
-    //         [[6.68051, -0.548747],[16.4236, -0.583598],[38.4718, -0.630423]],
-    //         [[6.87, -0.552602],[16.4285, -0.57977],[36.8889, -0.624053]],
-    //         [[7.15338, -0.565067],[16.9387, -0.595922],[37.2398, -0.624177]],
-    //         [[6.06995, -0.550001],[15.7376, -0.577755],[32.6004, -0.601595]],
-    //         [[6.20459, -0.543148],[14.6326, -0.561623],[39.2154, -0.631762]]
-    //     ]
-    // ] as double[][][][];
-
-    // double[][][][] minparams = isinbending ? minparams_in : minparams_out;
-    // double[][][][] maxparams = isinbending ? maxparams_in : maxparams_out;
+    // See MC clasdis file version for the Outbending cuts
 
     double[][][][] minparams = minparams_in;
     double[][][][] maxparams = maxparams_in;
@@ -802,20 +877,27 @@ def Custom_DC_FIDUCIAL_REG(def eleCan_In, def cutLevel_In, def region) {
 }
 
 def Custom_DC_VERTEX(def eleCan_In, def cutLevel_In) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     boolean isinbending = true;
     def pcal_sector     = eleCan_In.getPCALsector();
     def partvz          = eleCan_In.vz;
 
     if(pcal_sector==null || partvz==null ) { return false; }
 
-    double[] vz_min_sect_inb  = [-13d, -13d, -13d, -13d, -13d, -13d];
-    double[] vz_max_sect_inb  = [ 12d,  12d,  12d,  12d,  12d,  12d];
-    double[] vz_min_sect_outb = [-20d, -20d, -20d, -20d, -20d, -20d];
-    double[] vz_max_sect_outb = [ 12d,  12d,  12d,  12d,  12d,  12d];
+    // These were for Pass 1
+    // double[] vz_min_sect_inb  = [-13d, -13d, -13d, -13d, -13d, -13d];
+    // double[] vz_max_sect_inb  = [ 12d,  12d,  12d,  12d,  12d,  12d];
+    // double[] vz_min_sect_outb = [-20d, -20d, -20d, -20d, -20d, -20d];
+    // double[] vz_max_sect_outb = [ 12d,  12d,  12d,  12d,  12d,  12d];
+    // Below is updated for Pass 2
+    double[] vz_min_sect_inb  = [-8d,  -8d,  -8d,  -8d,  -8d,  -8d];
+    double[] vz_max_sect_inb  = [ 2d,   2d,   2d,   2d,   2d,   2d];
+    double[] vz_min_sect_outb = [-11d, -11d, -11d, -11d, -11d, -11d];
+    double[] vz_max_sect_outb = [ 1d,   1d,   1d,   1d,   1d,   1d];
 
     double level_var = 0d;
-    if(cutLevel_In == 'loose') { level_var = -0.5d; }
-    if(cutLevel_In == 'tight') { level_var =  0.5d; }
+    if(cutLevel_In == 'loose') { level_var = -1.5d; }
+    if(cutLevel_In == 'tight') { level_var =  1.0d; }
 
     int isec = pcal_sector - 1;
     double vz_min = (isinbending ? vz_min_sect_inb[isec]  : vz_min_sect_outb[isec]) + level_var;
@@ -824,12 +906,73 @@ def Custom_DC_VERTEX(def eleCan_In, def cutLevel_In) {
     return (partvz > vz_min) && (partvz < vz_max);
 }
 
+// ============================================================
+// Pass-2 version of Custom_DC_FIDUCIAL_REG(eleCan_In, cutLevel_In, region)
+// - Implements the Pass-2 DC edge cuts (inb/outb) from https://clasweb.jlab.org/wiki/images/c/cf/Fiducial_PID_RGA_pass2.pdf
+// - Uses `DCEdgeCan_In` instead of `eleCan_In` or `pipCan_In` since this cut can/should be applied to both particles
+// ============================================================
+def Custom_DC_FIDUCIAL_REG_PASS2(def DCEdgeCan_In, def cutLevel_In, def region) {
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
+    if((region == null)) { return false; }
+    if((region != 1) && (region != 2) && (region != 3)) { return false; }
+    def part_pid = DCEdgeCan_In.getPID();
+    // def edge1    = DCEdgeCan_In.getEdge(1);
+    // def edge2    = DCEdgeCan_In.getEdge(2);
+    // def edge3    = DCEdgeCan_In.getEdge(3);
+    def edge_val = DCEdgeCan_In.getEdge(region);
+
+    if((part_pid == null) || (edge_val == null) ) { return false; }
+
+    // --- Pass-2 DC edge cuts (arrays represent regions 1..3) ---
+    double[] DCedge_ele_inb  = [5.0, 5.0, 10.0] as double[];
+    double[] DCedge_prot_inb = [2.5, 2.5, 9.0 ] as double[];
+    double[] DCedge_pip_inb  = [2.5, 2.5, 9.0 ] as double[];
+    double[] DCedge_pim_inb  = [3.5, 3.0, 7.0 ] as double[];
+    double[] DCedge_Kp_inb   = [2.5, 2.0, 9.0 ] as double[];
+    double[] DCedge_Km_inb   = [3.5, 2.5, 5.0 ] as double[];
+
+    double[] DCedge_ele_outb  = [3.0, 3.0, 10.0] as double[];
+    double[] DCedge_prot_outb = [3.5, 3.0, 7.0 ] as double[];
+    double[] DCedge_pip_outb  = [3.5, 2.5, 6.5 ] as double[];
+    double[] DCedge_pim_outb  = [2.5, 2.5, 10.0] as double[];
+    double[] DCedge_Kp_outb   = [3.5, 2.5, 6.5 ] as double[];
+    double[] DCedge_Km_outb   = [2.5, 2.5, 10.0] as double[];
+    double edge_cut = 0.0;
+    int regIdx = region - 1;
+    boolean outbending = false; // This script is for Inbending files only
+    // --- Choose edge_cut based on bending, region, pid (same logic as colleague) ---
+    if((outbending == false) && (part_pid == 11))    { edge_cut = DCedge_ele_inb[regIdx]; }
+    if((outbending == false) && (part_pid == 2212))  { edge_cut = DCedge_prot_inb[regIdx]; }
+    if((outbending == false) && (part_pid == 211))   { edge_cut = DCedge_pip_inb[regIdx]; }
+    if((outbending == false) && (part_pid == -211))  { edge_cut = DCedge_pim_inb[regIdx]; }
+    if((outbending == false) && (part_pid == 321))   { edge_cut = DCedge_Kp_inb[regIdx]; }
+    if((outbending == false) && (part_pid == -321))  { edge_cut = DCedge_Km_inb[regIdx]; }
+
+    if((outbending == true) && (part_pid == 11))     { edge_cut = DCedge_ele_outb[regIdx]; }
+    if((outbending == true) && (part_pid == 2212))   { edge_cut = DCedge_prot_outb[regIdx]; }
+    if((outbending == true) && (part_pid == 211))    { edge_cut = DCedge_pip_outb[regIdx]; }
+    if((outbending == true) && (part_pid == -211))   { edge_cut = DCedge_pim_outb[regIdx]; }
+    if((outbending == true) && (part_pid == 321))    { edge_cut = DCedge_Kp_outb[regIdx]; }
+    if((outbending == true) && (part_pid == -321))   { edge_cut = DCedge_Km_outb[regIdx]; }
+
+    if(cutLevel_In == 'loose') { 
+        edge_cut = edge_cut - 1.0;
+        if(part_pid == 11){ edge_cut = edge_cut - 0.5; }
+    }
+    if(cutLevel_In == 'tight') { 
+        edge_cut = edge_cut + 1.0;
+        if(part_pid == 11){ edge_cut = edge_cut + 0.5; }
+    }
+    if((edge_val > edge_cut)) { return true; }
+    return false;
+}
 
 
 // ------------------------------------------------------------
 // Custom Pi+ Pion PID Cuts
 // ------------------------------------------------------------
-def Custom_CHI2PID_CUT_pip(def pipCan_In, def cutLevel_In) {
+def Custom_CHI2PID_CUT_pip(def pipCan_In, def cutLevel_In) {  // Made for Pass 1 but has no (generic) Pass 2 update (still needed, so will keep the same)
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     def p       = pipCan_In.p;
     int pid     = pipCan_In.pid; 
     def chi2pid = pipCan_In.chi2pid;
@@ -859,7 +1002,8 @@ def Custom_CHI2PID_CUT_pip(def pipCan_In, def cutLevel_In) {
     return chi2cut && chi2pid>coef*-3;
 }
 
-def Custom_DC_FIDUCIAL_REG_pip(def pipCan_In, def cutLevel_In, def region) {
+def Custom_DC_FIDUCIAL_REG_pip(def pipCan_In, def cutLevel_In, def region) { // Made for PASS 1 (See `Custom_DC_FIDUCIAL_REG_PASS2` as the replacement)
+    if(cutLevel_In == "off") { return true; } // Turns off this cut
     boolean isinbending = true;
     def dc_sector = pipCan_In.getDCsector();
     def trajx     = pipCan_In.getDC1x(); // traj_x1
@@ -970,98 +1114,8 @@ def Custom_DC_FIDUCIAL_REG_pip(def pipCan_In, def cutLevel_In, def region) {
             [[39.6762,-31.6354,1.73354,-0.0123964],[30.2451,-27.8243,1.67413,-0.0138583],[4.78902,-14.9558,0.912758,-0.00855026]]
         ]
     ] as double[][][][];
-    // //fitted values outbending
-    // double[][][][] maxparams_out = [
-    //     [   [[-3.69457, 12.3755, -0.41328, 0.00129631],[-54.3237, 40.3308, -2.39952, 0.0181339],[-39.8661, 27.1428, -0.907303, 0.00220974]],
-    //         [[-37.6199, 26.2865, -0.826366, 0.000862203],[-72.4212, 54.7953, -4.04856, 0.0373308],[-21.1791, 17.0759, -0.391795, 0.00151085]],
-    //         [[-0.421685, 10.482, -0.272111, 8.69408e-05],[-43.3635, 32.746, -1.6541, 0.0101454],[-62.6387, 41.1869, -1.97298, 0.0107022]],
-    //         [[-42.0766, 29.6387, -0.993426, 1.97101e-09],[-44.7036, 33.0587, -1.64131, 0.0099416],[-47.2703, 32.6109, -1.46533, 0.00817871]],
-    //         [[-22.2035, 20.6894, -0.689051, 0.000592423],[-74.6572, 54.7065, -3.83999, 0.0351952],[-38.9183, 25.7212, -0.711499, 2.5796e-12]],
-    //         [[-52.078, 45.571, -3.71942, 0.0376577],[-65.4047, 49.1723, -3.36623, 0.0288435],[-53.9611, 35.9294, -1.58589, 0.00772417]]
-    //     ],
-    //     [   [[-2.20312e-07, 13.0916, -0.864184, 0.0086342],[-6.44026e-08, 12.056, -0.675801, 0.00643464],[-20.2596, 23.5977, -1.545, 0.0141047]],
-    //         [[-4.42537e-05, 10.2799, -0.322454, 0.00154825],[-1.63659e-07, 11.0228, -0.451412, 0.00308633],[-8.5382, 15.6903, -0.785315, 0.00602734]],
-    //         [[-2.32088, 11.6343, -0.363509, 0.000902217],[-0.301128, 12.0319, -0.643794, 0.00581994],[-22.4378, 25.2772, -1.73656, 0.0164181]],
-    //         [[-7.40627, 13.601, -0.382439, 2.45262e-05],[-5.50415e-08, 11.9792, -0.652368, 0.00597647],[-15.1608, 20.6455, -1.33827, 0.0127123]],
-    //         [[-0.203913, 10.7032, -0.322123, 0.000691162],[-1.73184e-07, 10.735, -0.379993, 0.00196037],[-0.155443, 10.1794, -0.249841, 6.24278e-05]],
-    //         [[-1.87352e-07, 12.4226, -0.730141, 0.0068049],[-1.40236e-07, 12.5356, -0.750615, 0.00719921],[-16.8681, 21.8555, -1.43078, 0.0131935]]
-    //     ],
-    //     [   [[-8.89326e-08, 10.0681, -0.240869, 9.9612e-12],[-15.2705, 21.635, -1.55291, 0.0166645],[-10.5976, 17.9928, -1.08432, 0.00950807]],
-    //         [[-0.00389562, 10.2092, -0.254082, 4.15737e-06],[-9.16032e-11, 10.527, -0.334641, 0.00129061],[-9.63013e-07, 11.0668, -0.42453, 0.0022955]],
-    //         [[-2.40163e-06, 13.4151, -0.949883, 0.0107662],[-1.60937e-07, 10.5128, -0.35046, 0.00173787],[-29.2647, 30.1252, -2.20552, 0.0213809]],
-    //         [[-2.69733e-08, 11.7703, -0.589854, 0.00482124],[-3.77564e-08, 11.3764, -0.527037, 0.00416671],[-4.85047, 13.7737, -0.650441, 0.0047428]],
-    //         [[-3.90816e-07, 12.2683, -0.692591, 0.00625884],[-9.70203e-10, 11.0335, -0.438323, 0.00275342],[-2.54193, 13.5404, -0.76861, 0.00684486]],
-    //         [[-3.23439e-10, 10.7412, -0.348557, 0.00113794],[-1.79623, 11.7499, -0.449432, 0.00247294],[-13.1393, 19.4689, -1.17148, 0.00984086]]
-    //     ],
-    //     [   [[-5.07611e-08, 11.7796, -0.516966, 0.00295389],[-4.87018, 12.2727, -0.322719, 9.12315e-06],[-35.9369, 31.015, -1.95133, 0.0169834]],
-    //         [[-1.32385e-07, 11.6454, -0.495467, 0.00272602],[-2.70664, 12.0151, -0.434014, 0.00203292],[-8.97137, 15.0453, -0.646138, 0.00429196]],
-    //         [[-7.92247e-09, 12.5189, -0.682231, 0.00539531],[-0.0942499, 10.3465, -0.280521, 0.000405358],[-19.7485, 21.7919, -1.24334, 0.0105088]],
-    //         [[-8.50093e-11, 10.739, -0.302295, 5.6862e-11],[-0.184771, 10.4358, -0.285869, 0.000389546],[-21.9469, 24.9675, -1.77893, 0.0183075]],
-    //         [[-4.34589, 12.5902, -0.362849, 4.996e-15],[-0.000684493, 10.6055, -0.332363, 0.00104632],[-21.328, 22.0864, -1.20993, 0.00989151]],
-    //         [[-0.0202168, 12.0097, -0.539165, 0.00299034],[-0.5239, 10.7167, -0.309141, 0.000535617],[-10.0299, 16.3179, -0.812315, 0.00617078]]
-    //     ],
-    //     [   [[-0.169908, 10.902, -0.353938, 0.00100715],[-3.2818, 13.2193, -0.65495, 0.00515117],[-0.013532, 8.51331, -0.070239, 1.755e-05]],
-    //         [[-8.51985e-08, 11.6512, -0.56808, 0.00453582],[-1.2381e-07, 10.6653, -0.368149, 0.00181989],[-9.30287e-08, 10.0352, -0.254321, 0.000417053]],
-    //         [[-0.150407, 10.6338, -0.308676, 0.000481694],[-0.00186321, 10.4259, -0.303092, 0.00073092],[-21.3328, 28.0803, -2.37912, 0.025101]],
-    //         [[-14.4411, 19.817, -1.13705, 0.00894685],[-6.25263e-09, 11.7414, -0.586098, 0.00478932],[-5.49193, 16.1248, -1.11306, 0.0115644]],
-    //         [[-1.54761, 12.0015, -0.462506, 0.00204729],[-5.72883, 14.9638, -0.795325, 0.00616222],[-50.229, 45.8456, -3.88803, 0.0414729]],
-    //         [[-40.7531, 33.6269, -2.03771, 0.01609],[-1.33363e-09, 11.9894, -0.614358, 0.004924],[-27.2506, 29.2602, -2.1426, 0.0203235]]
-    //     ],
-    //     [   [[-1.62999e-10, 14.0422, -1.03609, 0.0107179],[-6.71565, 15.6964, -0.887791, 0.00740777],[-38.9148, 32.9935, -2.09023, 0.0177295]],
-    //         [[-1.09078e-05, 13.4131, -0.878092, 0.00825152],[-15.0102, 21.6968, -1.4935, 0.0138851],[-19.5261, 20.3932, -0.969464, 0.00661531]],
-    //         [[-1.39619e-08, 12.3593, -0.618488, 0.00415536],[-5.38271e-07, 11.5631, -0.512607, 0.00334452],[-23.0902, 24.7093, -1.57315, 0.0140132]],
-    //         [[-1.73908e-08, 12.0348, -0.591608, 0.00423834],[-8.35134, 17.3066, -1.11555, 0.010407],[-2.74909e-07, 9.59202, -0.216455, 0.000527479]],
-    //         [[-0.0449157, 10.5243, -0.334389, 0.00134555],[-0.0143489, 10.0993, -0.2434, 1.57595e-10],[-22.3661, 23.2499, -1.32946, 0.0108047]],
-    //         [[-5.83731e-07, 14.5234, -1.14022, 0.0122177],[-1.4586e-08, 11.6946, -0.520935, 0.00324975],[-12.4252, 16.3216, -0.652566, 0.00365791]]
-    //     ]
-    // ] as double[][][][];
-    // double[][][][] minparams_out = [
-    //     [   [[3.73672, -12.3584,0.390616, -0.000795415],[51.644, -37.8546,1.99228, -0.0119973],[32.3551, -22.9742,0.624096, -4.30811e-05]],
-    //         [[6.11614, -13.6358,0.491668, -0.0018637],[47.5098, -35.902,1.97535, -0.0134876],[82.9536, -58.2741,4.12662, -0.0378612]],
-    //         [[0.000950108, -7.99619,0.000506416, -0.0020788],[64.0688, -47.8642,3.16007, -0.025878],[70.0064, -50.3249,3.38975, -0.029639]],
-    //         [[37.0145, -35.0316,2.61892, -0.0250306],[14.5954, -15.6554,0.426733, -0.000879865],[28.9035, -21.5279,0.610475, -0.00087271]],
-    //         [[5.65685, -13.3347,0.400781, -1.46612e-11],[67.3504, -50.152,3.33677, -0.0270726],[47.0772, -32.1506,1.38851, -0.00719898]],
-    //         [[8.95987, -15.1646,0.585477, -0.00246174],[41.6154, -29.7967,1.1817, -0.00403765],[61.1631, -41.6465,2.32522, -0.0175271]]
-    //     ],
-    //     [   [[8.80954e-10, -11.0364,0.413853, -0.00210254],[6.50072e-08, -11.2505,0.501571, -0.00380973],[10.9643, -17.4701,0.989297, -0.00860789]],
-    //         [[2.33292e-08, -11.2353,0.470728, -0.00309666],[2.29373e-07, -11.2458,0.50218, -0.00383969],[29.5429, -29.9965,2.19166, -0.021366]],
-    //         [[1.61826e-08, -11.861,0.577321, -0.00433276],[2.9436e-07, -11.5738,0.581015, -0.00503307],[19.5142, -23.451,1.58724, -0.0151339]],
-    //         [[2.07231e-09, -12.7453,0.751184, -0.00664181],[1.77802e-07, -11.4574,0.537367, -0.00422656],[12.5683, -18.4632,1.05475, -0.00892182]],
-    //         [[7.6216e-08, -13.9769,1.01051, -0.0107372],[1.33092e-08, -11.9128,0.628521, -0.00550105],[13.5537, -20.1708,1.32578, -0.0123213]],
-    //         [[9.25941, -19.658,1.51566, -0.0157124],[6.25983e-10, -11.6806,0.599263, -0.00532588],[17.0479, -22.0046,1.47474, -0.0140475]]
-    //     ],
-    //     [   [[4.65436e-08, -11.1925,0.466196, -0.00308992],[18.4968, -22.5122,1.4594, -0.0135962],[18.9488, -23.3348,1.57414, -0.0146183]],
-    //         [[3.67722e-08, -10.9985,0.428395, -0.00257574],[16.3745, -21.0105,1.3093, -0.0119156],[11.4404, -18.6679,1.15919, -0.010306]],
-    //         [[1.46846e-08, -10.865,0.398638, -0.00212392],[20.7337, -23.3738,1.46852, -0.0130115],[28.2098, -28.9406,2.05908, -0.0197782]],
-    //         [[0.237058, -10.4694,0.271985, -1.08731e-07],[2.32759, -11.9354,0.469887, -0.00291497],[13.287, -20.8621,1.49656, -0.0148999]],
-    //         [[0.000149907, -10.4632,0.294713, -0.000431947],[6.96663, -15.3946,0.845078, -0.00724722],[11.0939, -17.4733,0.944239, -0.00747728]],
-    //         [[3.10006e-08, -10.1416,0.247764, -1.36913e-11],[5.41915, -14.6085,0.795369, -0.00684375],[5.89127, -13.0881,0.453024, -0.0020325]]
-    //     ],
-    //     [   [[4.16588e-09, -12.9305,0.749425, -0.00611725],[5.65263, -14.1661,0.637395, -0.00400239],[4.66325, -12.9519,0.565753, -0.00442033]],
-    //         [[8.0428e-08, -13.1625,0.836744, -0.00778246],[12.3243, -18.8718,1.11103, -0.00917354],[7.20312, -16.0935,0.987223, -0.00930883]],
-    //         [[0.00147165, -10.4992,0.280542, -1.79846e-06],[3.20232, -11.6892,0.350774, -0.00101099],[8.14117e-08, -10.9813,0.524839, -0.00507885]],
-    //         [[0.470888, -13.5446,0.820782, -0.00768941],[3.9697, -13.0821,0.540847, -0.00303209],[3.44817, -12.3932,0.533804, -0.00414144]],
-    //         [[1.05038e-08, -10.6539,0.297078, -6.04694e-05],[15.0983, -21.1791,1.38383, -0.0124058],[17.3666, -20.3986,1.16663, -0.0102393]],
-    //         [[8.49365e-07, -13.765,0.964056, -0.00956575],[9.38084, -16.7385,0.904339, -0.00707907],[12.1048, -17.3704,0.91318, -0.00757461]]
-    //     ],
-    //     [   [[10.6378, -19.5017,1.45275, -0.017057],[1.24368e-08, -10.5134,0.338985, -0.00143696],[37.3291, -35.1606,2.60092, -0.0242728]],
-    //         [[19.1614, -24.0851,1.73932, -0.0185466],[14.1293, -19.8382,1.21613, -0.0107037],[20.9629, -24.0839,1.60283, -0.015173]],
-    //         [[0.000450804, -8.15062,0.0103867, -2.00709e-05],[5.72496, -14.338,0.717819, -0.00567964],[16.9428, -21.8075,1.4216, -0.0131736]],
-    //         [[6.15991e-10, -11.5278,0.536105, -0.00402223],[2.17842e-07, -10.5338,0.327427, -0.0010898],[20.7387, -24.3028,1.65004, -0.0155857]],
-    //         [[0.650351, -10.6177,0.275393, -6.4664e-08],[8.05811, -16.1558,0.913735, -0.00788487],[0.308897, -10.2816,0.275186, -0.000561299]],
-    //         [[0.427836, -10.168,0.240458, -5.90042e-06],[2.30661, -12.8686,0.664796, -0.00562626],[0.00499667, -11.6585,0.62597, -0.00619261]]
-    //     ],
-    //     [   [[9.01249e-07, -11.8437,0.494125, -0.00223452],[14.3941, -21.2365,1.46048, -0.0137349],[13.7095, -15.4704,0.408961, -0.000312145]],
-    //         [[0.000251044, -11.3084,0.438545, -0.0020791],[0.00847078, -12.6769,0.804431, -0.00836705],[1.09388, -9.66797,0.175278, -1.8721e-11]],
-    //         [[4.04693e-10, -11.9001,0.585913, -0.00440376],[5.05178, -12.1514,0.31134, -0.000112735],[30.8105, -28.0795,1.73625, -0.0151639]],
-    //         [[3.86607e-11, -13.471,0.889111, -0.0083617],[8.86591e-09, -9.25745,0.163052, -6.08491e-12],[27.1358, -24.3255,1.23326, -0.00891886]],
-    //         [[0.196086, -11.7392,0.480055, -0.00224614],[0.18667, -10.5859,0.287231, -6.53153e-06],[14.8865, -17.1338,0.653576, -0.00333176]],
-    //         [[2.7955e-07, -13.1311,0.848222, -0.00812719],[29.5508, -32.9514,2.77917, -0.0291596],[59.7514, -47.3033,3.54495, -0.0341802]]
-    //     ]
-    // ] as double[][][][];
+    // See MC clasdis file version for the Outbending cuts
     
-    // double[][][][] minparams = isinbending ? minparams_in : minparams_out;
-    // double[][][][] maxparams = isinbending ? maxparams_in : maxparams_out;
     double[][][][] minparams = minparams_in;
     double[][][][] maxparams = maxparams_in;
         
@@ -1134,7 +1188,7 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
 // ------------------------------------------------------------
 // Custom electron detector (individual) wrapper
 // ------------------------------------------------------------
-def isElectronCustom(def eleCan_in, def cutLevel = "norm", def cut_return = "All") {
+def isElectronCustom(def eleCan_in, def DCEdgeCan_In, def cutLevel = "norm", def cut_return = "All") {
 
     boolean passCut = true;
 
@@ -1142,46 +1196,52 @@ def isElectronCustom(def eleCan_in, def cutLevel = "norm", def cut_return = "All
     if(cut_return == "PID"               || cut_return == "All" ) { passCut = passCut && eleCan_in.iselectron(ElectronCandidate.Cut.PID); }
     if(cut_return == "CC_NPHE"           || cut_return == "All" ) { passCut = passCut && eleCan_in.iselectron(ElectronCandidate.Cut.CC_NPHE); }
     
+    if(cutLevel == "off"){ return passCut; } // cutLevel = off --> just the PID cuts without refinements
     // Cuts with different levels
     
     if(cut_return == "EC_OUTER_VS_INNER" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_OUTER_VS_INNER)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_OUTER_VS_INNER)); }
         else { passCut = (passCut && Custom_EC_OUTER_VS_INNER(eleCan_in, cutLevel)); }
     }
     if(!passCut){return passCut;}
 
+    if(cut_return == "EC_SAMPLING_BAND") {      passCut = (passCut && Custom_EC_SAMPLING_PASS2_BAND(eleCan_in, cutLevel)); }
+    if(cut_return == "EC_SAMPLING_TRIANGLE") {  passCut = (passCut && Custom_EC_SAMPLING_PASS2_TRIANGLE(eleCan_in, cutLevel)); }
+    if(cut_return == "EC_SAMPLING_THRESHOLD") { passCut = (passCut && Custom_EC_SAMPLING_PASS2_THRESHOLD(eleCan_in, cutLevel)); }
+    if(!passCut){return passCut;}
+
     if(cut_return == "EC_SAMPLING"       || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_SAMPLING)); }
-        else { passCut = (passCut && Custom_EC_SAMPLING(eleCan_in, cutLevel)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_SAMPLING)); }
+        else { passCut = (passCut && Custom_EC_SAMPLING_PASS2(eleCan_in, cutLevel)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "EC_FIDUCIAL"       || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_FIDUCIAL)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.EC_FIDUCIAL)); }
         else { passCut = (passCut && Custom_EC_FIDUCIAL(eleCan_in, cutLevel)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG1"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG1)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG(eleCan_in, cutLevel, 1)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG1)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 1)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG2"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG2)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG(eleCan_in, cutLevel, 2)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG2)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 2)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG3"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG3)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG(eleCan_in, cutLevel, 3)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_FIDUCIAL_REG3)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 3)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_VERTEX"         || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_VERTEX)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && eleCan_in.iselectron(ElectronCandidate.Cut.DC_VERTEX)); }
         else { passCut = (passCut && Custom_DC_VERTEX(eleCan_in, cutLevel)); }
     }
     return passCut;
@@ -1190,7 +1250,7 @@ def isElectronCustom(def eleCan_in, def cutLevel = "norm", def cut_return = "All
 // ------------------------------------------------------------
 // Custom pi+ pion detector (individual) wrapper
 // ------------------------------------------------------------
-def isPipCustom(def pipCan_in, def cutLevel = "norm", def cut_return = "All") {
+def isPipCustom(def pipCan_in, def DCEdgeCan_In, def cutLevel = "norm", def cut_return = "All") {
 
     boolean passCut = true;
 
@@ -1198,34 +1258,35 @@ def isPipCustom(def pipCan_in, def cutLevel = "norm", def cut_return = "All") {
     if(cut_return == "PID"               || cut_return == "All" ) { passCut = passCut && pipCan_in.ispip(PionCandidate.Cut.PID); }
     if(cut_return == "FORWARD"           || cut_return == "All" ) { passCut = passCut && pipCan_in.ispip(PionCandidate.Cut.FORWARD); }
     
+    if(cutLevel == "off"){ return passCut; } // cutLevel = off --> just the PID cuts without refinements
     // Cuts with different levels
     
     if(cut_return == "CHI2PID_CUT"       || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.CHI2PID_CUT)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.CHI2PID_CUT)); }
         else { passCut = (passCut && Custom_CHI2PID_CUT_pip(pipCan_in, cutLevel)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG1"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG1)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_pip(pipCan_in, cutLevel, 1)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG1)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 1)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG2"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG2)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_pip(pipCan_in, cutLevel, 2)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG2)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 2)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DC_FIDUCIAL_REG3"  || cut_return == "DC_FIDUCIAL_REG" || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG3)); }
-        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_pip(pipCan_in, cutLevel, 3)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DC_FIDUCIAL_REG3)); }
+        else { passCut = (passCut && Custom_DC_FIDUCIAL_REG_PASS2(DCEdgeCan_In, cutLevel, 3)); }
     }
     if(!passCut){return passCut;}
 
     if(cut_return == "DELTA_VZ"          || cut_return == "All" ) { 
-        if(cutLevel == "norm"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DELTA_VZ)); }
+        if(cutLevel == "pass1"){ passCut = (passCut && pipCan_in.ispip(PionCandidate.Cut.DELTA_VZ)); }
         else { passCut = (passCut && Custom_DELTA_VZ_pip(pipCan_in, cutLevel)); }
     }
     return passCut;
@@ -1234,190 +1295,184 @@ def isPipCustom(def pipCan_in, def cutLevel = "norm", def cut_return = "All") {
 // ------------------------------------------------------------
 // Custom electron detector (full) wrapper
 // ------------------------------------------------------------
-def isElectronFull(def eleCan){
-    boolean PID_norm                = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "PID");
-    boolean CC_NPHE_norm            = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "CC_NPHE");
+def isElectronFull(def eleCan, def DCEdgeCan){
+    boolean PID_norm                    = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "norm",  cut_return = "PID");
+    boolean CC_NPHE_norm                = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "norm",  cut_return = "CC_NPHE");
 
-    boolean EC_OUTER_VS_INNER_loose = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "EC_OUTER_VS_INNER");
-    boolean EC_OUTER_VS_INNER_mid   = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "EC_OUTER_VS_INNER");
-    boolean EC_OUTER_VS_INNER_tight = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "EC_OUTER_VS_INNER");
-    boolean EC_OUTER_VS_INNER_norm  = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "EC_OUTER_VS_INNER");
+    // cutLevel = "mid" is the default for the pass 2 refinement cuts
 
-    boolean EC_SAMPLING_loose       = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "EC_SAMPLING");
-    boolean EC_SAMPLING_mid         = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "EC_SAMPLING");
-    boolean EC_SAMPLING_tight       = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "EC_SAMPLING");
-    boolean EC_SAMPLING_norm        = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "EC_SAMPLING");
+    boolean EC_OUTER_VS_INNER_loose     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "EC_OUTER_VS_INNER");
+    boolean EC_OUTER_VS_INNER_mid       = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "EC_OUTER_VS_INNER");
+    boolean EC_OUTER_VS_INNER_tight     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "EC_OUTER_VS_INNER");
+    boolean EC_OUTER_VS_INNER_pass1     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "EC_OUTER_VS_INNER");
 
-    boolean EC_FIDUCIAL_loose       = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "EC_FIDUCIAL");
-    boolean EC_FIDUCIAL_mid         = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "EC_FIDUCIAL");
-    boolean EC_FIDUCIAL_tight       = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "EC_FIDUCIAL");
-    boolean EC_FIDUCIAL_norm        = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "EC_FIDUCIAL");
+    boolean EC_SAMPLING_BAND_loose      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "EC_SAMPLING_BAND");
+    boolean EC_SAMPLING_BAND_mid        = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "EC_SAMPLING_BAND");
+    boolean EC_SAMPLING_BAND_tight      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "EC_SAMPLING_BAND");
+    boolean EC_SAMPLING_TRIANGLE_mid    = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "EC_SAMPLING_TRIANGLE"); // Does not have variations (just 'on' or 'off')
+    boolean EC_SAMPLING_THRESHOLD_loose = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "EC_SAMPLING_THRESHOLD");
+    boolean EC_SAMPLING_THRESHOLD_mid   = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "EC_SAMPLING_THRESHOLD");
+    boolean EC_SAMPLING_THRESHOLD_tight = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "EC_SAMPLING_THRESHOLD");
+    boolean EC_SAMPLING_pass2           = (EC_SAMPLING_BAND_mid && EC_SAMPLING_TRIANGLE_mid && EC_SAMPLING_THRESHOLD_mid);
+    boolean EC_SAMPLING_pass1           = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "EC_SAMPLING");
 
-    boolean DC_FIDUCIAL_REG1_loose  = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_mid    = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_tight  = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_norm   = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "DC_FIDUCIAL_REG1");
+    boolean EC_FIDUCIAL_loose           = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "EC_FIDUCIAL");
+    boolean EC_FIDUCIAL_mid             = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "EC_FIDUCIAL");
+    boolean EC_FIDUCIAL_tight           = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "EC_FIDUCIAL");
+    boolean EC_FIDUCIAL_pass1           = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "EC_FIDUCIAL");
 
-    boolean DC_FIDUCIAL_REG2_loose  = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_mid    = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_tight  = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_norm   = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG1_loose      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_mid        = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_tight      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_pass1      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG1");
 
-    boolean DC_FIDUCIAL_REG3_loose  = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_mid    = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_tight  = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_norm   = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG2_loose      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_mid        = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_tight      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_pass1      = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG2");
 
-    boolean DC_FIDUCIAL_REG_loose   = (DC_FIDUCIAL_REG1_loose && DC_FIDUCIAL_REG2_loose && DC_FIDUCIAL_REG3_loose);
-    boolean DC_FIDUCIAL_REG_mid     = (DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid);
-    boolean DC_FIDUCIAL_REG_tight   = (DC_FIDUCIAL_REG1_tight && DC_FIDUCIAL_REG2_tight && DC_FIDUCIAL_REG3_tight);
-    boolean DC_FIDUCIAL_REG_norm    = (DC_FIDUCIAL_REG1_norm  && DC_FIDUCIAL_REG2_norm  && DC_FIDUCIAL_REG3_norm);
+    boolean DC_FIDUCIAL_REG3_loose     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_mid       = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_tight     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_pass1     = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG3");
 
-    boolean DC_VERTEX_loose         = isElectronCustom(eleCan, cutLevel = "loose", cut_return = "DC_VERTEX");
-    boolean DC_VERTEX_mid           = isElectronCustom(eleCan, cutLevel = "mid",   cut_return = "DC_VERTEX");
-    boolean DC_VERTEX_tight         = isElectronCustom(eleCan, cutLevel = "tight", cut_return = "DC_VERTEX");
-    boolean DC_VERTEX_norm          = isElectronCustom(eleCan, cutLevel = "norm",  cut_return = "DC_VERTEX");
+    boolean DC_VERTEX_loose            = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_VERTEX");
+    boolean DC_VERTEX_mid              = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_VERTEX");
+    boolean DC_VERTEX_tight            = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_VERTEX");
+    boolean DC_VERTEX_pass1            = isElectronCustom(eleCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_VERTEX");
 
-    boolean Full_loose = (PID_norm && CC_NPHE_norm && EC_OUTER_VS_INNER_loose && EC_SAMPLING_loose && EC_FIDUCIAL_loose && DC_FIDUCIAL_REG1_loose && DC_FIDUCIAL_REG2_loose && DC_FIDUCIAL_REG3_loose && DC_FIDUCIAL_REG_loose && DC_VERTEX_loose);
-    boolean Full_mid   = (PID_norm && CC_NPHE_norm && EC_OUTER_VS_INNER_mid   && EC_SAMPLING_mid   && EC_FIDUCIAL_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid   && DC_FIDUCIAL_REG_mid   && DC_VERTEX_mid);
-    boolean Full_tight = (PID_norm && CC_NPHE_norm && EC_OUTER_VS_INNER_tight && EC_SAMPLING_tight && EC_FIDUCIAL_tight && DC_FIDUCIAL_REG1_tight && DC_FIDUCIAL_REG2_tight && DC_FIDUCIAL_REG3_tight && DC_FIDUCIAL_REG_tight && DC_VERTEX_tight);
-    boolean Full_norm  = (PID_norm && CC_NPHE_norm && EC_OUTER_VS_INNER_norm  && EC_SAMPLING_norm  && EC_FIDUCIAL_norm  && DC_FIDUCIAL_REG1_norm  && DC_FIDUCIAL_REG2_norm  && DC_FIDUCIAL_REG3_norm  && DC_FIDUCIAL_REG_norm  && DC_VERTEX_norm);
+    boolean Min_PID_check = (PID_norm      && CC_NPHE_norm);
+    boolean Full_default  = (Min_PID_check && EC_OUTER_VS_INNER_mid   && EC_SAMPLING_pass2 && EC_FIDUCIAL_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid   && DC_VERTEX_mid);
+    boolean Full_pass1    = (Min_PID_check && EC_OUTER_VS_INNER_pass1 && EC_SAMPLING_pass1 && EC_FIDUCIAL_pass1 && DC_FIDUCIAL_REG1_pass1 && DC_FIDUCIAL_REG2_pass1 && DC_FIDUCIAL_REG3_pass1 && DC_VERTEX_pass1);
 
-    if( !( (Full_mid == Full_norm) && (Full_norm == eleCan.iselectron()) ) ) {
-        System.out.println("");
-        System.out.println("ERROR: My Custom Electron (mid) Cuts do not match the normal cut returns...");
-    }
+    def DC_Edge_R1e = DCEdgeCan.getEdge(1);
+    def DC_Edge_R2e = DCEdgeCan.getEdge(2);
+    def DC_Edge_R3e = DCEdgeCan.getEdge(3);
+    def Electron_Vz = eleCan.vz;
+    def PCAL_energy = eleCan.pcal_energy;
+    def ECin_energy = eleCan.ecin_energy;
+    def ECoutenergy = eleCan.ecout_energy;
 
     return [
-        Full_norm               : Full_norm,
-        Full_tight              : Full_tight,
-        Full_mid                : Full_mid,
-        Full_loose              : Full_loose,
-        DC_VERTEX_norm          : DC_VERTEX_norm,
-        DC_VERTEX_tight         : DC_VERTEX_tight,
-        DC_VERTEX_mid           : DC_VERTEX_mid,
-        DC_VERTEX_loose         : DC_VERTEX_loose,
-        DC_FIDUCIAL_REG_norm    : DC_FIDUCIAL_REG_norm,
-        DC_FIDUCIAL_REG_tight   : DC_FIDUCIAL_REG_tight,
-        DC_FIDUCIAL_REG_mid     : DC_FIDUCIAL_REG_mid,
-        DC_FIDUCIAL_REG_loose   : DC_FIDUCIAL_REG_loose,
-        DC_FIDUCIAL_REG3_norm   : DC_FIDUCIAL_REG3_norm,
-        DC_FIDUCIAL_REG3_tight  : DC_FIDUCIAL_REG3_tight,
-        DC_FIDUCIAL_REG3_mid    : DC_FIDUCIAL_REG3_mid,
-        DC_FIDUCIAL_REG3_loose  : DC_FIDUCIAL_REG3_loose,
-        DC_FIDUCIAL_REG2_norm   : DC_FIDUCIAL_REG2_norm,
-        DC_FIDUCIAL_REG2_tight  : DC_FIDUCIAL_REG2_tight,
-        DC_FIDUCIAL_REG2_mid    : DC_FIDUCIAL_REG2_mid,
-        DC_FIDUCIAL_REG2_loose  : DC_FIDUCIAL_REG2_loose,
-        DC_FIDUCIAL_REG1_norm   : DC_FIDUCIAL_REG1_norm,
-        DC_FIDUCIAL_REG1_tight  : DC_FIDUCIAL_REG1_tight,
-        DC_FIDUCIAL_REG1_mid    : DC_FIDUCIAL_REG1_mid,
-        DC_FIDUCIAL_REG1_loose  : DC_FIDUCIAL_REG1_loose,
-        EC_FIDUCIAL_norm        : EC_FIDUCIAL_norm,
-        EC_FIDUCIAL_tight       : EC_FIDUCIAL_tight,
-        EC_FIDUCIAL_mid         : EC_FIDUCIAL_mid,
-        EC_FIDUCIAL_loose       : EC_FIDUCIAL_loose,
-        EC_SAMPLING_norm        : EC_SAMPLING_norm,
-        EC_SAMPLING_tight       : EC_SAMPLING_tight,
-        EC_SAMPLING_mid         : EC_SAMPLING_mid,
-        EC_SAMPLING_loose       : EC_SAMPLING_loose,
-        EC_OUTER_VS_INNER_norm  : EC_OUTER_VS_INNER_norm,
-        EC_OUTER_VS_INNER_tight : EC_OUTER_VS_INNER_tight,
-        EC_OUTER_VS_INNER_mid   : EC_OUTER_VS_INNER_mid,
-        EC_OUTER_VS_INNER_loose : EC_OUTER_VS_INNER_loose,
-        CC_NPHE_norm            : CC_NPHE_norm,
-        PID_norm                : PID_norm
+        EC_OUTER_VS_INNER_loose       : EC_OUTER_VS_INNER_loose,
+        EC_OUTER_VS_INNER_mid         : EC_OUTER_VS_INNER_mid,
+        EC_OUTER_VS_INNER_tight       : EC_OUTER_VS_INNER_tight,
+        EC_OUTER_VS_INNER_pass1       : EC_OUTER_VS_INNER_pass1,
+        EC_SAMPLING_BAND_loose        : EC_SAMPLING_BAND_loose,
+        EC_SAMPLING_BAND_mid          : EC_SAMPLING_BAND_mid,
+        EC_SAMPLING_BAND_tight        : EC_SAMPLING_BAND_tight,
+        EC_SAMPLING_TRIANGLE_mid      : EC_SAMPLING_TRIANGLE_mid,
+        EC_SAMPLING_THRESHOLD_loose   : EC_SAMPLING_THRESHOLD_loose,
+        EC_SAMPLING_THRESHOLD_mid     : EC_SAMPLING_THRESHOLD_mid,
+        EC_SAMPLING_THRESHOLD_tight   : EC_SAMPLING_THRESHOLD_tight,
+        EC_SAMPLING_pass2             : EC_SAMPLING_pass2,
+        EC_SAMPLING_pass1             : EC_SAMPLING_pass1,
+        EC_FIDUCIAL_loose             : EC_FIDUCIAL_loose,
+        EC_FIDUCIAL_mid               : EC_FIDUCIAL_mid,
+        EC_FIDUCIAL_tight             : EC_FIDUCIAL_tight,
+        EC_FIDUCIAL_pass1             : EC_FIDUCIAL_pass1,
+        DC_FIDUCIAL_REG1_loose        : DC_FIDUCIAL_REG1_loose,
+        DC_FIDUCIAL_REG1_mid          : DC_FIDUCIAL_REG1_mid,
+        DC_FIDUCIAL_REG1_tight        : DC_FIDUCIAL_REG1_tight,
+        DC_FIDUCIAL_REG1_pass1        : DC_FIDUCIAL_REG1_pass1,
+        DC_FIDUCIAL_REG2_loose        : DC_FIDUCIAL_REG2_loose,
+        DC_FIDUCIAL_REG2_mid          : DC_FIDUCIAL_REG2_mid,
+        DC_FIDUCIAL_REG2_tight        : DC_FIDUCIAL_REG2_tight,
+        DC_FIDUCIAL_REG2_pass1        : DC_FIDUCIAL_REG2_pass1,
+        DC_FIDUCIAL_REG3_loose        : DC_FIDUCIAL_REG3_loose,
+        DC_FIDUCIAL_REG3_mid          : DC_FIDUCIAL_REG3_mid,
+        DC_FIDUCIAL_REG3_tight        : DC_FIDUCIAL_REG3_tight,
+        DC_FIDUCIAL_REG3_pass1        : DC_FIDUCIAL_REG3_pass1,
+        DC_VERTEX_loose               : DC_VERTEX_loose,
+        DC_VERTEX_mid                 : DC_VERTEX_mid,
+        DC_VERTEX_tight               : DC_VERTEX_tight,
+        DC_VERTEX_pass1               : DC_VERTEX_pass1,
+        Min_PID_check                 : Min_PID_check,
+        Full_default                  : Full_default,
+        Full_pass1                    : Full_pass1,
+        DC_Edge_R1e                   : DC_Edge_R1e,
+        DC_Edge_R2e                   : DC_Edge_R2e,
+        DC_Edge_R3e                   : DC_Edge_R3e,
+        Electron_Vz                   : Electron_Vz,
+        PCAL_energy                   : PCAL_energy,
+        ECin_energy                   : ECin_energy,
+        ECoutenergy                   : ECoutenergy
     ];
 }
 
 // ------------------------------------------------------------
 // Custom pi+ pion detector (full) wrapper
 // ------------------------------------------------------------
-def isPipFull(def pipCan){
-    boolean PID_norm                = isPipCustom(pipCan, "norm",  "PID");
-    boolean FORWARD_norm            = isPipCustom(pipCan, "norm",  "FORWARD");
+def isPipFull(def pipCan, def DCEdgeCan){
+    boolean PID_norm                = isPipCustom(pipCan, DCEdgeCan, "norm",  "PID");
+    boolean FORWARD_norm            = isPipCustom(pipCan, DCEdgeCan, "norm",  "FORWARD");
     
-    boolean CHI2PID_CUT_loose       = isPipCustom(pipCan, "loose", "CHI2PID_CUT");
-    boolean CHI2PID_CUT_mid         = isPipCustom(pipCan, "mid",   "CHI2PID_CUT");
-    boolean CHI2PID_CUT_tight       = isPipCustom(pipCan, "tight", "CHI2PID_CUT");
-    boolean CHI2PID_CUT_norm        = isPipCustom(pipCan, "norm",  "CHI2PID_CUT");
+    boolean CHI2PID_CUT_loose       = isPipCustom(pipCan, DCEdgeCan, "loose", "CHI2PID_CUT");
+    boolean CHI2PID_CUT_mid         = isPipCustom(pipCan, DCEdgeCan, "mid",   "CHI2PID_CUT");
+    boolean CHI2PID_CUT_tight       = isPipCustom(pipCan, DCEdgeCan, "tight", "CHI2PID_CUT");
+    boolean CHI2PID_CUT_pass1       = isPipCustom(pipCan, DCEdgeCan, "pass1", "CHI2PID_CUT");
 
-    boolean DC_FIDUCIAL_REG1_loose  = isPipCustom(pipCan, "loose", "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_mid    = isPipCustom(pipCan, "mid",   "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_tight  = isPipCustom(pipCan, "tight", "DC_FIDUCIAL_REG1");
-    boolean DC_FIDUCIAL_REG1_norm   = isPipCustom(pipCan, "norm",  "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_loose  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_mid    = isPipCustom(pipCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_tight  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG1");
+    boolean DC_FIDUCIAL_REG1_pass1  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG1");
 
-    boolean DC_FIDUCIAL_REG2_loose  = isPipCustom(pipCan, "loose", "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_mid    = isPipCustom(pipCan, "mid",   "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_tight  = isPipCustom(pipCan, "tight", "DC_FIDUCIAL_REG2");
-    boolean DC_FIDUCIAL_REG2_norm   = isPipCustom(pipCan, "norm",  "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_loose  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_mid    = isPipCustom(pipCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_tight  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG2");
+    boolean DC_FIDUCIAL_REG2_pass1  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG2");
 
-    boolean DC_FIDUCIAL_REG3_loose  = isPipCustom(pipCan, "loose", "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_mid    = isPipCustom(pipCan, "mid",   "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_tight  = isPipCustom(pipCan, "tight", "DC_FIDUCIAL_REG3");
-    boolean DC_FIDUCIAL_REG3_norm   = isPipCustom(pipCan, "norm",  "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_loose  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "loose", cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_mid    = isPipCustom(pipCan, DCEdgeCan, cutLevel = "mid",   cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_tight  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "tight", cut_return = "DC_FIDUCIAL_REG3");
+    boolean DC_FIDUCIAL_REG3_pass1  = isPipCustom(pipCan, DCEdgeCan, cutLevel = "pass1", cut_return = "DC_FIDUCIAL_REG3");
 
-    boolean DC_FIDUCIAL_REG_loose   = (DC_FIDUCIAL_REG1_loose && DC_FIDUCIAL_REG2_loose && DC_FIDUCIAL_REG3_loose);
-    boolean DC_FIDUCIAL_REG_mid     = (DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid);
-    boolean DC_FIDUCIAL_REG_tight   = (DC_FIDUCIAL_REG1_tight && DC_FIDUCIAL_REG2_tight && DC_FIDUCIAL_REG3_tight);
-    boolean DC_FIDUCIAL_REG_norm    = (DC_FIDUCIAL_REG1_norm  && DC_FIDUCIAL_REG2_norm  && DC_FIDUCIAL_REG3_norm);
+    boolean DELTA_VZ_loose          = isPipCustom(pipCan, DCEdgeCan, "loose", "DELTA_VZ");
+    boolean DELTA_VZ_mid            = isPipCustom(pipCan, DCEdgeCan, "mid",   "DELTA_VZ");
+    boolean DELTA_VZ_tight          = isPipCustom(pipCan, DCEdgeCan, "tight", "DELTA_VZ");
+    boolean DELTA_VZ_pass1          = isPipCustom(pipCan, DCEdgeCan, "pass1", "DELTA_VZ");
 
-    boolean DELTA_VZ_loose          = isPipCustom(pipCan, "loose", "DELTA_VZ");
-    boolean DELTA_VZ_mid            = isPipCustom(pipCan, "mid",   "DELTA_VZ");
-    boolean DELTA_VZ_tight          = isPipCustom(pipCan, "tight", "DELTA_VZ");
-    boolean DELTA_VZ_norm           = isPipCustom(pipCan, "norm",  "DELTA_VZ");
+    boolean Min_PID_check = (PID_norm      && FORWARD_norm);
+    boolean Full_default  = (Min_PID_check && CHI2PID_CUT_mid   && DELTA_VZ_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid);
+    boolean Full_pass1    = (Min_PID_check && CHI2PID_CUT_pass1 && DELTA_VZ_pass1 && DC_FIDUCIAL_REG1_pass1 && DC_FIDUCIAL_REG2_pass1 && DC_FIDUCIAL_REG3_pass1);
 
-    boolean Full_loose = (PID_norm && FORWARD_norm && CHI2PID_CUT_loose && DC_FIDUCIAL_REG1_loose && DC_FIDUCIAL_REG2_loose && DC_FIDUCIAL_REG3_loose && DC_FIDUCIAL_REG_loose && DELTA_VZ_loose);
-    boolean Full_mid   = (PID_norm && FORWARD_norm && CHI2PID_CUT_mid   && DC_FIDUCIAL_REG1_mid   && DC_FIDUCIAL_REG2_mid   && DC_FIDUCIAL_REG3_mid   && DC_FIDUCIAL_REG_mid   && DELTA_VZ_mid);
-    boolean Full_tight = (PID_norm && FORWARD_norm && CHI2PID_CUT_tight && DC_FIDUCIAL_REG1_tight && DC_FIDUCIAL_REG2_tight && DC_FIDUCIAL_REG3_tight && DC_FIDUCIAL_REG_tight && DELTA_VZ_tight)
-    boolean Full_norm  = (PID_norm && FORWARD_norm && CHI2PID_CUT_norm  && DC_FIDUCIAL_REG1_norm  && DC_FIDUCIAL_REG2_norm  && DC_FIDUCIAL_REG3_norm  && DC_FIDUCIAL_REG_norm  && DELTA_VZ_norm);
-
-    if( !( (Full_mid == Full_norm) && (Full_norm == pipCan.ispip()) ) ) {
-        System.out.println("");
-        System.out.println("ERROR: My Custom Pi+ (mid) Cuts do not match the normal cut returns...");
-    }
+    def DC_Edge_R1p = DCEdgeCan.getEdge(1);
+    def DC_Edge_R2p = DCEdgeCan.getEdge(2);
+    def DC_Edge_R3p = DCEdgeCan.getEdge(3);
+    def PID_chi2pip = pipCan.chi2pid;
+    def PionDeltaVz = pipCan.dvz;
 
     return [
-        Full_norm              : Full_norm,
-        Full_tight             : Full_tight,
-        Full_mid               : Full_mid,
-        Full_loose             : Full_loose,
-
-        DELTA_VZ_norm          : DELTA_VZ_norm,
-        DELTA_VZ_tight         : DELTA_VZ_tight,
-        DELTA_VZ_mid           : DELTA_VZ_mid,
-        DELTA_VZ_loose         : DELTA_VZ_loose,
-
-        DC_FIDUCIAL_REG_norm   : DC_FIDUCIAL_REG_norm,
-        DC_FIDUCIAL_REG_tight  : DC_FIDUCIAL_REG_tight,
-        DC_FIDUCIAL_REG_mid    : DC_FIDUCIAL_REG_mid,
-        DC_FIDUCIAL_REG_loose  : DC_FIDUCIAL_REG_loose,
-
-        DC_FIDUCIAL_REG3_norm  : DC_FIDUCIAL_REG3_norm,
-        DC_FIDUCIAL_REG3_tight : DC_FIDUCIAL_REG3_tight,
-        DC_FIDUCIAL_REG3_mid   : DC_FIDUCIAL_REG3_mid,
-        DC_FIDUCIAL_REG3_loose : DC_FIDUCIAL_REG3_loose,
-
-        DC_FIDUCIAL_REG2_norm  : DC_FIDUCIAL_REG2_norm,
-        DC_FIDUCIAL_REG2_tight : DC_FIDUCIAL_REG2_tight,
-        DC_FIDUCIAL_REG2_mid   : DC_FIDUCIAL_REG2_mid,
-        DC_FIDUCIAL_REG2_loose : DC_FIDUCIAL_REG2_loose,
-
-        DC_FIDUCIAL_REG1_norm  : DC_FIDUCIAL_REG1_norm,
-        DC_FIDUCIAL_REG1_tight : DC_FIDUCIAL_REG1_tight,
-        DC_FIDUCIAL_REG1_mid   : DC_FIDUCIAL_REG1_mid,
-        DC_FIDUCIAL_REG1_loose : DC_FIDUCIAL_REG1_loose,
-
-        CHI2PID_CUT_norm       : CHI2PID_CUT_norm,
-        CHI2PID_CUT_tight      : CHI2PID_CUT_tight,
-        CHI2PID_CUT_mid        : CHI2PID_CUT_mid,
-        CHI2PID_CUT_loose      : CHI2PID_CUT_loose,
-
-        FORWARD_norm           : FORWARD_norm,
-        PID_norm               : PID_norm
+        CHI2PID_CUT_loose             : CHI2PID_CUT_loose,
+        CHI2PID_CUT_mid               : CHI2PID_CUT_mid,
+        CHI2PID_CUT_tight             : CHI2PID_CUT_tight,
+        CHI2PID_CUT_pass1             : CHI2PID_CUT_pass1,
+        DC_FIDUCIAL_REG1_loose        : DC_FIDUCIAL_REG1_loose,
+        DC_FIDUCIAL_REG1_mid          : DC_FIDUCIAL_REG1_mid,
+        DC_FIDUCIAL_REG1_tight        : DC_FIDUCIAL_REG1_tight,
+        DC_FIDUCIAL_REG1_pass1        : DC_FIDUCIAL_REG1_pass1,
+        DC_FIDUCIAL_REG2_loose        : DC_FIDUCIAL_REG2_loose,
+        DC_FIDUCIAL_REG2_mid          : DC_FIDUCIAL_REG2_mid,
+        DC_FIDUCIAL_REG2_tight        : DC_FIDUCIAL_REG2_tight,
+        DC_FIDUCIAL_REG2_pass1        : DC_FIDUCIAL_REG2_pass1,
+        DC_FIDUCIAL_REG3_loose        : DC_FIDUCIAL_REG3_loose,
+        DC_FIDUCIAL_REG3_mid          : DC_FIDUCIAL_REG3_mid,
+        DC_FIDUCIAL_REG3_tight        : DC_FIDUCIAL_REG3_tight,
+        DC_FIDUCIAL_REG3_pass1        : DC_FIDUCIAL_REG3_pass1,
+        DELTA_VZ_loose                : DELTA_VZ_loose,
+        DELTA_VZ_mid                  : DELTA_VZ_mid,
+        DELTA_VZ_tight                : DELTA_VZ_tight,
+        DELTA_VZ_pass1                : DELTA_VZ_pass1,
+        Min_PID_check                 : Min_PID_check,
+        Full_default                  : Full_default,
+        Full_pass1                    : Full_pass1,
+        DC_Edge_R1p                   : DC_Edge_R1p,
+        DC_Edge_R2p                   : DC_Edge_R2p,
+        DC_Edge_R3p                   : DC_Edge_R3p,
+        PID_chi2pip                   : PID_chi2pip,
+        PionDeltaVz                   : PionDeltaVz
     ];
 }
-
 
 
 GParsPool.withPool 2,{
@@ -1468,19 +1523,17 @@ args.eachParallel{fname->
             def run            = runb.getInt("run",   0)
             def evn            = runb.getInt("event", 0)
             
-            def canele         = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
-            def ele            = canele.getLorentzVector()
+            def canele = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
+            def ele    = canele.getLorentzVector()
+            def DC_ele = DCEdgeCandidate.getDCEdgeCandidate(0, partb, trajb)
+            def beamCharge = evb.getFloat("beamCharge", 0)
+            def electron_PIDs = isElectronFull(canele, DC_ele);
             
-            def beamCharge     = evb.getFloat("beamCharge", 0)
-            
-            def electron_PIDs  = isElectronFull(canele);
-
             num_of_rec_ele_candidates += 1;
             //==================================================//
             //==========//   Electron (REC) Found   //==========//
             //==================================================//
-            if(electron_PIDs.Full_norm || electron_PIDs.Full_tight || electron_PIDs.Full_mid || electron_PIDs.Full_loose || canele.iselectron()){
-                // A RECONSTRUCTED electron has been found
+            if(electron_PIDs.Min_PID_check){ // A RECONSTRUCTED electron has been found (no refinement cuts added)
                 num_of_rec_ele_found += 1;
 
                 // These lists are to make sure that the same generated particles are not matched to multiple reconstructed particles
@@ -1501,15 +1554,14 @@ args.eachParallel{fname->
                 //==========//   Start of Pi+ (REC) Loop   //==========//
                 //=====================================================//
                 for(int ipart = 1; ipart < partb.getRows(); ipart++){
-                    
-                    def canpip = PionCandidate.getPionCandidate(ipart, partb, trajb, isinb)
+                    def canpip = PionCandidate.getPionCandidate(ipart,     partb, trajb, isinb)
+                    def DC_pip = DCEdgeCandidate.getDCEdgeCandidate(ipart, partb, trajb)
+                    def pip_pion_PIDs  = isPipFull(canpip, DC_pip);
                     num_of_rec_pip_candidates += 1;
-
-                    def pip_pion_PIDs  = isPipFull(canpip);
                     //==================================================//
                     //==========//   Pi+ Pion (REC) Found   //==========//
                     //==================================================//
-                    if(pip_pion_PIDs.Full_norm || pip_pion_PIDs.Full_tight || pip_pion_PIDs.Full_mid || pip_pion_PIDs.Full_loose || canpip.ispip()){
+                    if(pip_pion_PIDs.Min_PID_check){
                         // A RECONSTRUCTED pi+ particle has been found with the given electron
                         // After this 'if' statement, the event being added to the ntuple is known to have at least one RECONSTRUCTED electron AND pi+ pion
                         num_of_rec_pip_found += 1;
@@ -1679,8 +1731,8 @@ args.eachParallel{fname->
                         //=====// Found a matched particle //=====//
                         if(pid_matched_el != 0 && matched_el_x_gen != 0 && matched_el_y_gen != 0 && matched_el_z_gen != 0 && pid_matched_pip != 0 && matched_pip_x_gen != 0 && matched_pip_y_gen != 0 && matched_pip_z_gen != 0){
                             num_of_total_matched += 1;
-                            if(canpip.ispip() && canele.iselectron()){ num_of_true_matched += 1; }   // Made to count the difference caused by the (normal) cut variation
-                            if(electron_PIDs.Full_tight && pip_pion_PIDs.Full_tight){ num_of_strict_matched += 1; } // Made to count the difference caused by the (strict) cut variation
+                            if(pip_pion_PIDs.Full_default && electron_PIDs.Full_default){ num_of_true_matched += 1; } // Made to count the difference caused by the Pass 2 PID refinement cuts
+                            if(electron_PIDs.Full_pass1 && pip_pion_PIDs.Full_pass1){ num_of_pass1_matched += 1; }    // Made to count the difference caused by the Pass 1 PID refinement cuts (i.e., the outdated cuts)
                             
                         }
                         //=====// Found a matched particle //=====//
@@ -1768,35 +1820,31 @@ args.eachParallel{fname->
                                 match_bankP.matched_x_gen,     match_bankP.matched_y_gen,     match_bankP.matched_z_gen,     match_bankP.matched_E_gen,     match_bankP.pid_matched,
                                 match_bankE.quality_match,     match_bankP.quality_match,     match_bankE.parentPID,         match_bankP.parentPID,
 
-                                // Electron PID Cuts
-                                ConvertBoolean(electron_PIDs.Full_norm),              ConvertBoolean(electron_PIDs.Full_tight),              ConvertBoolean(electron_PIDs.Full_mid),              ConvertBoolean(electron_PIDs.Full_loose),
-                                ConvertBoolean(electron_PIDs.DC_VERTEX_norm),         ConvertBoolean(electron_PIDs.DC_VERTEX_tight),         ConvertBoolean(electron_PIDs.DC_VERTEX_mid),         ConvertBoolean(electron_PIDs.DC_VERTEX_loose),
-                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG_loose),
-                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_loose),
-                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_loose),
-                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_loose),
-                                ConvertBoolean(electron_PIDs.EC_FIDUCIAL_norm),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_tight),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_mid),       ConvertBoolean(electron_PIDs.EC_FIDUCIAL_loose),
-                                ConvertBoolean(electron_PIDs.EC_SAMPLING_norm),       ConvertBoolean(electron_PIDs.EC_SAMPLING_tight),       ConvertBoolean(electron_PIDs.EC_SAMPLING_mid),       ConvertBoolean(electron_PIDs.EC_SAMPLING_loose),
-                                ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_norm), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_tight), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_mid), ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_loose),
-                                ConvertBoolean(electron_PIDs.CC_NPHE_norm),           ConvertBoolean(electron_PIDs.PID_norm),
-                                
-                                // Pi+ Pion PID Cuts
-                                ConvertBoolean(pip_pion_PIDs.Full_norm),              ConvertBoolean(pip_pion_PIDs.Full_tight),              ConvertBoolean(pip_pion_PIDs.Full_mid),              ConvertBoolean(pip_pion_PIDs.Full_loose),
-                                ConvertBoolean(pip_pion_PIDs.DELTA_VZ_norm),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_tight),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_mid),          ConvertBoolean(pip_pion_PIDs.DELTA_VZ_loose),
-                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_norm),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_tight),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_mid),   ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG_loose),
-                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_loose),
-                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_loose),
-                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_norm),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_tight),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_mid),  ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_loose),
-                                ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_norm),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_tight),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_mid),       ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_loose),
-                                ConvertBoolean(pip_pion_PIDs.FORWARD_norm),           ConvertBoolean(pip_pion_PIDs.PID_norm),
+                                // Electron PID Refinement Cuts
+                                ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_loose),      ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_mid),        ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_tight),      ConvertBoolean(electron_PIDs.EC_OUTER_VS_INNER_pass1),
+                                ConvertBoolean(electron_PIDs.EC_SAMPLING_BAND_loose),       ConvertBoolean(electron_PIDs.EC_SAMPLING_BAND_mid),         ConvertBoolean(electron_PIDs.EC_SAMPLING_BAND_tight),       ConvertBoolean(electron_PIDs.EC_SAMPLING_TRIANGLE_mid),
+                                ConvertBoolean(electron_PIDs.EC_SAMPLING_THRESHOLD_loose),  ConvertBoolean(electron_PIDs.EC_SAMPLING_THRESHOLD_mid),    ConvertBoolean(electron_PIDs.EC_SAMPLING_THRESHOLD_tight),  ConvertBoolean(electron_PIDs.EC_SAMPLING_pass2),            ConvertBoolean(electron_PIDs.EC_SAMPLING_pass1),
+                                ConvertBoolean(electron_PIDs.EC_FIDUCIAL_loose),            ConvertBoolean(electron_PIDs.EC_FIDUCIAL_mid),              ConvertBoolean(electron_PIDs.EC_FIDUCIAL_tight),            ConvertBoolean(electron_PIDs.EC_FIDUCIAL_pass1),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG1_pass1),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG2_pass1),
+                                ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_loose),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_mid),         ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_tight),       ConvertBoolean(electron_PIDs.DC_FIDUCIAL_REG3_pass1),
+                                ConvertBoolean(electron_PIDs.DC_VERTEX_loose),              ConvertBoolean(electron_PIDs.DC_VERTEX_mid),                ConvertBoolean(electron_PIDs.DC_VERTEX_tight),              ConvertBoolean(electron_PIDs.DC_VERTEX_pass1)
+                                // Combined PID Refinement Cut Booleans:
+                                ConvertBoolean(electron_PIDs.Min_PID_check),                ConvertBoolean(electron_PIDs.Full_default),                 ConvertBoolean(electron_PIDs.Full_pass1),
+                                // Extra Variables for the PID refinement cuts:
+                                electron_PIDs.DC_Edge_R1e, electron_PIDs.DC_Edge_R2e,       electron_PIDs.DC_Edge_R3e, electron_PIDs.Electron_Vz,       electron_PIDs.PCAL_energy, electron_PIDs.ECin_energy,       electron_PIDs.ECoutenergy,
 
-                                // Extra Variables for the electron PID refinement cuts:
-                                canele.pcal_energy,                   canele.ecin_energy,                    canele.ecout_energy,                 canele.vz,
-                                // Extra Variables for the pi+ pion PID refinement cuts:
-                                canpip.chi2pid,                       canpip.dvz
-
+                                // Pi+ Pion PID Refinement Cuts
+                                ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_loose),            ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_mid),              ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_tight),            ConvertBoolean(pip_pion_PIDs.CHI2PID_CUT_pass1),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_loose),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_mid),         ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_tight),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG1_pass1),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_loose),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_mid),         ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_tight),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG2_pass1),
+                                ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_loose),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_mid),         ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_tight),       ConvertBoolean(pip_pion_PIDs.DC_FIDUCIAL_REG3_pass1),
+                                ConvertBoolean(pip_pion_PIDs.DELTA_VZ_loose),               ConvertBoolean(pip_pion_PIDs.DELTA_VZ_mid),                 ConvertBoolean(pip_pion_PIDs.DELTA_VZ_tight),               ConvertBoolean(pip_pion_PIDs.DELTA_VZ_pass1),
+                                // Combined PID Refinement Cut Booleans:
+                                ConvertBoolean(pip_pion_PIDs.Min_PID_check),                ConvertBoolean(pip_pion_PIDs.Full_default),                 ConvertBoolean(pip_pion_PIDs.Full_pass1),
+                                // Extra Variables for the PID refinement cuts:
+                                pip_pion_PIDs.DC_Edge_R1p, pip_pion_PIDs.DC_Edge_R2p,       pip_pion_PIDs.DC_Edge_R3p, pip_pion_PIDs.PID_chi2pip,       pip_pion_PIDs.PionDeltaVz
                         )
-                        
                         if(pionCount > 1){ Multiple_Pions_Per_Electron += 1 }
 
                     }
@@ -1829,8 +1877,8 @@ args.eachParallel{fname->
 
 System.out.println("");
 System.out.println("Total number of completly matched events = " + num_of_total_matched);
-System.out.println("True number of completly matched events (i.e., those that would have survived the normal PID cuts) = " + num_of_true_matched);
-System.out.println("Number of completly matched events with the strictess PID cuts = " + num_of_strict_matched);
+System.out.println("True number of events (i.e., those that would have survived the Pass 2 PID cuts) = " + num_of_true_matched);
+System.out.println("Total number of events that survived the original Pass 1 PID cuts = " + num_of_pass1_matched);
 
 System.out.println("Total number of failed Electron matches  = " + num_of_failed_ele);
 System.out.println("Total number of failed Pi+ Pion matches  = " + num_of_failed_pip);
@@ -1851,11 +1899,17 @@ System.out.println("Total number of failed yesbs.every() conditions  = " + num_o
 
 System.out.println("");
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
+
 if(RunTime > 60){
     RunTime = RunTime/60;
-    System.out.println("This code's runtime (in min) is: ");
+    if(RunTime > 60){
+        RunTime = RunTime/60;
+        System.out.println("This code's runtime (in hours) is: ");
+    }
+    else { System.out.println("This code's runtime (in min) is: "); }
 }
 else{ System.out.println("This code's runtime (in sec) is: "); }
+
 System.out.println(RunTime);
 System.out.println("");
 
