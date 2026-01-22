@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Rec_epippimX_clasdis_1_12_2026
+#SBATCH --job-name=MC_Rec_epippimX_clasdis_1_19_2026
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,10 +9,10 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=3500M
 #SBATCH --time=20:00:00
-#SBATCH --array=0-8
+#SBATCH --array=0-971
 
 TASK_ID="${SLURM_ARRAY_TASK_ID}"
-MANIFEST="TEMP_Paths_to_MC_clasdis_files_wPim.txt"
+MANIFEST="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Paths_to_MC_clasdis_files_all.txt"
 GROOVY_SCRIPT="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Pim_Batch_New.groovy"
 WORK_DIR="/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"
 
