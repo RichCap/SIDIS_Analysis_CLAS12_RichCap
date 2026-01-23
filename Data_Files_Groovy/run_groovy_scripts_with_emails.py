@@ -507,6 +507,8 @@ def main():
         used_paths_txt_reason = "default-by-source"
     else:
         used_paths_txt = os.path.expanduser(os.path.expandvars(str(args.paths_txt).strip()))
+        if("/" not in str(used_paths_txt)):
+            used_paths_txt = f"{DEFAULT_PATHS_DIR}/{used_paths_txt}"
         used_paths_txt_reason = "user-override"
 
     globs_list = read_globs_from_txt(used_paths_txt)
