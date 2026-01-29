@@ -11,7 +11,6 @@
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-0009_8.hipo
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-0009_9.hipo
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-0011_8.hipo
-/cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-9585_1.hipo
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-9585_2.hipo
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-9585_3.hipo
 /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-9585_4.hipo
