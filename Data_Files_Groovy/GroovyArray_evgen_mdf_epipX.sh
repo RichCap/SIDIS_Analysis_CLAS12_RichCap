@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Rec_epipX_evgen_1_22_2026
+#SBATCH --job-name=MC_Rec_epipX_evgen_1_30_2026
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,7 +9,7 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=3500M
 #SBATCH --time=20:00:00
-#SBATCH --array=0-143
+#SBATCH --array=0-27
 
 TASK_ID="${SLURM_ARRAY_TASK_ID}"
 MANIFEST="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/TEMP_Paths_to_MC_EvGen_files_SIDIS.txt"
