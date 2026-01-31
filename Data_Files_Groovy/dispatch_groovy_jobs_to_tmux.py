@@ -45,61 +45,110 @@ def main():
     # tmuxTTree   -> hadd_TTree
 
     jobs = [
-        {
-            "alias": "tmuxSIDIS",
+
+# ================================================================================================================================================
+# "0.1":
+        { 
+            "alias":   "tmuxSIDIS",
             "session": "hadd_sidis",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "data" -mc "rec" -evt "epippimX" -ptxt 'TEMP_Paths_to_REAL_Data_files_wPim.txt' -saj 64257554 -e -em "Ran with the Command: '-src 'data' -mc 'rec' -evt 'epippimX' -ptxt 'TEMP_Paths_to_REAL_Data_files_wPim.txt' -saj 64257554'. Ran in tmuxSIDIS." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "data" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -ub '0-24' -saj 64692480 -e -em "Ran with the Command: '-src 'data' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -ub '0-24' -saj 64692480'. Ran in tmuxSIDIS." ; Done_at"""
         },
-        {
-            "alias": "tmuxSIDIS_1",
-            "session": "hadd_sidis1",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "data" -mc "rec" -evt "eppipX" -ptxt 'TEMP_Paths_to_REAL_Data_files_wProton.txt' -saj 64257566 -e -em "Ran with the Command: '-src 'data' -mc 'rec' -evt 'eppipX' -ptxt 'TEMP_Paths_to_REAL_Data_files_wProton.txt' -saj 64257566'. Ran in tmuxSIDIS_1." ; Done_at"""
-        },
-        {
-            "alias": "tmuxSIDIS_2",
-            "session": "hadd_sidis2",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "data" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -saj 64257595 -e -em "Ran with the Command: '-src 'data' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -saj 64257595'. Ran in tmuxSIDIS_2." ; Done_at"""
-        },
-        {
-            "alias": "tmuxSIDIS_3",
+
+# ================================================================================================================================================
+# "0.2":
+        { 
+            "alias":   "tmuxSIDIS_3",
             "session": "hadd_sidis3",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epippimX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_wPim.txt' -saj 64257766 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epippimX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_wPim.txt' -saj 64257766'. Ran in tmuxSIDIS_3." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "data" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -ub '25-48' -saj 64692480 -e -em "Ran with the Command: '-src 'data' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_REAL_Data_files_SIDIS.txt' -ub '25-48' -saj 64692480'. Ran in tmuxSIDIS_3." ; Done_at"""
         },
-        {
-            "alias": "tmuxEIC",
+
+# ================================================================================================================================================
+# "1.1":
+        { 
+            "alias":   "tmuxSIDIS_1",
+            "session": "hadd_sidis1",
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '0-48' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '0-48' -saj 64692481'. Ran in tmuxSIDIS_1." ; Done_at"""
+        },
+
+# ================================================================================================================================================
+# "1.2":
+        { 
+            "alias":   "tmuxEIC",
             "session": "EIC_Environment",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "eppipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_wProton.txt' -saj 64257781 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'eppipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_wProton.txt' -saj 64257781'. Ran in tmuxEIC." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '49-97' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '49-97' -saj 64692481'. Ran in tmuxEIC." ; Done_at"""
         },
-        {
-            "alias": "tmuxEvGen",
+
+# ================================================================================================================================================
+# "1.3":
+        { 
+            "alias":   "tmuxEvGen",
             "session": "EvGen",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -saj 64257796 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -saj 64257796'. Ran in tmuxEvGen." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '98-146' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '98-146' -saj 64692481'. Ran in tmuxEvGen." ; Done_at"""
         },
-        {
-            "alias": "tmuxLUND",
+
+# ================================================================================================================================================
+# "1.4":
+        { 
+            "alias":   "tmuxLUND",
             "session": "run_EvGen_lund",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "gen" -evt "epippimX" -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_wPim.txt' -saj 64257803 -e -em "Ran with the Command: '-src 'clasdis' -mc 'gen' -evt 'epippimX' -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_wPim.txt' -saj 64257803'. Ran in tmuxLUND." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '147-195' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '147-195' -saj 64692481'. Ran in tmuxLUND." ; Done_at"""
         },
-        {
-            "alias": "tmuxOSGL",
+
+# ================================================================================================================================================
+# "1.5":
+        { 
+            "alias":   "tmuxOSGL",
             "session": "Local_OSG_run",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "gen" -evt "eppipX" -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_wProton.txt' -saj 64257817 -e -em "Ran with the Command: '-src 'clasdis' -mc 'gen' -evt 'eppipX' -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_wProton.txt' -saj 64257817'. Ran in tmuxOSGL." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '196-244' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '196-244' -saj 64692481'. Ran in tmuxOSGL." ; Done_at"""
         },
-        {
-            "alias": "tmuxPython",
+
+# ================================================================================================================================================
+# "1.6":
+        { 
+            "alias":   "tmuxPython",
             "session": "Run_python",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "gen" -evt "epipX" -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_SIDIS.txt' -saj 64257826 -e -em "Ran with the Command: '-src 'clasdis' -mc 'gen' -evt 'epipX' -ptxt 'TEMP_GEN_Paths_to_MC_clasdis_files_SIDIS.txt' -saj 64257826'. Ran in tmuxPython." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '245-293' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '245-293' -saj 64692481'. Ran in tmuxPython." ; Done_at"""
         },
-        {
-            "alias": "tmuxRADGEN",
+
+# ================================================================================================================================================
+# "1.7":
+        { 
+            "alias":   "tmuxRADGEN",
             "session": "RADGEN",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "evgen" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64257874 -e -em "Ran with the Command: '-src 'evgen' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64257874'. Ran in tmuxRADGEN." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '294-341' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '294-341' -saj 64692481'. Ran in tmuxRADGEN." ; Done_at"""
         },
-        {
-            "alias": "tmuxTTree",
+
+# ================================================================================================================================================
+# "1.8":
+        { 
+            "alias":   "tmuxTTree",
             "session": "hadd_TTree",
-            "command": """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "evgen" -mc "gen" -evt "epipX" -ptxt 'TEMP_GEN_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64257889 -e -em "Ran with the Command: '-src 'evgen' -mc 'gen' -evt 'epipX' -ptxt 'TEMP_GEN_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64257889'. Ran in tmuxTTree." ; Done_at"""
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '342-389' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '342-389' -saj 64692481'. Ran in tmuxTTree." ; Done_at"""
         },
+
+# ================================================================================================================================================
+# "1.9":
+        { 
+            "alias":   "tmuxUnfold",
+            "session": "Unfolding",
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '390-437' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '390-437' -saj 64692481'. Ran in tmuxUnfold." ; Done_at"""
+        },
+
+# ================================================================================================================================================
+# "1.10":
+        { 
+            "alias":   "tmuxMerge",
+            "session": "merge_hipo",
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "clasdis" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '438-485' -saj 64692481 -e -em "Ran with the Command: '-src 'clasdis' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_clasdis_files_SIDIS.txt' -ub '438-485' -saj 64692481'. Ran in tmuxMerge." ; Done_at"""
+        },
+
+# ================================================================================================================================================
+# "2":
+        { 
+            "alias":   "tmuxSIDIS_2",
+            "session": "hadd_sidis2",
+            "command":  """cd_Groovy; ./run_groovy_scripts_with_emails.py -src "evgen" -mc "rec" -evt "epipX" -ptxt 'TEMP_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64692482 -e -em "Ran with the Command: '-src 'evgen' -mc 'rec' -evt 'epipX' -ptxt 'TEMP_Paths_to_MC_EvGen_files_SIDIS.txt' -saj 64692482'. Ran in tmuxSIDIS_2." ; Done_at"""
+        }
     ]
 
     for job in jobs:
