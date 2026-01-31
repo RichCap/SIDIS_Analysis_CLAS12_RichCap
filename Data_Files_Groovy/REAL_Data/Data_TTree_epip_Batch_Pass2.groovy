@@ -29,8 +29,10 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
+def filename = "Data_sidis_epip_richcap.${suff}.new7.${outname}.root"
+
 // As of 1/18/2025:
-def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.new7.${outname}.root")
+def ff = new ROOTFile(filename)
 
 // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
     // Added/renamed several variables to do this
@@ -1398,6 +1400,11 @@ else{ System.out.println("This code's runtime (in sec) is: "); }
 
 System.out.println(RunTime);
 System.out.println("");
+
+System.out.println("Created file named: ");
+System.out.println(filename);
+System.out.println("");
+
 
 tt.write()
 ff.close()
