@@ -230,6 +230,121 @@ def Q2_y_z_pT_Bin_rows_function(var, row_num, Q2_y_Bin=None, Output_Q="Centers",
     return None
 
 
+# =========================
+# Plotting Helpers
+# =========================
+
+def make_tgraph_errors(x_vals, y_vals, y_errs, graph_name="", graph_title=""):
+    if((x_vals is None) or (y_vals is None) or (y_errs is None)):
+        return None
+
+    npts = len(x_vals)
+    if((npts < 1) or (len(y_vals) != npts) or (len(y_errs) != npts)):
+        return None
+
+    x_arr  = array.array('d', [float(xx) for xx in x_vals])
+    y_arr  = array.array('d', [float(yy) for yy in y_vals])
+    ex_arr = array.array('d', [0.0 for _ in range(npts)])
+    ey_arr = array.array('d', [float(ee) for ee in y_errs])
+
+    graph = ROOT.TGraphErrors(npts, x_arr, y_arr, ex_arr, ey_arr)
+    if(graph_name):
+        graph.SetName(graph_name)
+    if(graph_title):
+        graph.SetTitle(graph_title)
+
+    return graph
+
+
+def style_graph(graph, x_axis_title, y_axis_title):
+    if(graph is None):
+        return
+
+    graph.SetMarkerStyle(20)
+    graph.SetMarkerSize(1.0)
+    graph.SetLineWidth(2)
+
+    graph.GetXaxis().SetTitle(x_axis_title)
+    graph.GetYaxis().SetTitle(y_axis_title)
+
+
+def fit_graph(graph, fit_type, fit_name, x_min, x_max):
+    if(graph is None):
+        return None, None
+
+    if(fit_type == "lin"):
+        fit_formula = "[0] + [1]*x"
+    elif(fit_type == "quad"):
+        fit_formula = "[0] + [1]*x + [2]*x*x"
+    else:
+        raise ValueError(f"Unknown fit_type='{fit_type}' (expected 'lin' or 'quad').")
+
+    if((x_min is None) or (x_max is None)):
+        return None, None
+
+    fit_fn = ROOT.TF1(fit_name, fit_formula, float(x_min), float(x_max))
+    fit_fn.SetLineWidth(2)
+
+    # Quiet + return fit result + enforce range
+    fit_result = graph.Fit(fit_fn, "QSR")
+
+    return fit_fn, fit_result
+
+
+def make_and_save_parameter_plot(fit_par, Q2_y_bin, z_group, bin_range, x_vals, y_vals, y_errs, args, keep_canvases=None, keep_graphs=None, keep_fits=None):
+    # Make one plot per (fit_par, Q2_y_bin, z_group)
+    if((x_vals is None) or (len(x_vals) < 1)):
+        return None, None, None, None
+
+    bins_str   = ",".join([str(bb) for bb in bin_range]) if(bin_range is not None) else ""
+    plot_ttl   = f"{fit_par} vs z  (Q2-y Bin={Q2_y_bin}, z_group={z_group}, z-pT bins=[{bins_str}])"
+    g_title    = f"{plot_ttl};z;{fit_par}"
+    graph_name = f"gr_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}"
+
+    graph = make_tgraph_errors(x_vals, y_vals, y_errs, graph_name=graph_name, graph_title=g_title)
+    if(graph is None):
+        return None, None, None, None
+
+    style_graph(graph, "z", fit_par)
+
+    canv_name = f"can_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}"
+    canvas    = ROOT.TCanvas(canv_name, canv_name, 900, 700)
+    canvas.cd()
+
+    graph.Draw("AP")
+
+    fit_fn     = None
+    fit_result = None
+    if(len(x_vals) >= 2):
+        x_min = min(x_vals)
+        x_max = max(x_vals)
+        if(x_min == x_max):
+            x_min -= 1e-6
+            x_max += 1e-6
+
+        fit_name          = f"f_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}_{args.fit_type}"
+        fit_fn, fit_result = fit_graph(graph, args.fit_type, fit_name, x_min, x_max)
+        if(fit_fn is not None):
+            fit_fn.Draw("same")
+
+    canvas.Update()
+
+    if(keep_canvases is not None):
+        keep_canvases.append(canvas)
+    if(keep_graphs is not None):
+        keep_graphs.append(graph)
+    if((keep_fits is not None) and (fit_fn is not None)):
+        keep_fits.append(fit_fn)
+
+    if(not args.test):
+        save_name = f"FitPar_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}_{args.fit_type}"
+        save_canvas(canvas, save_name, args.save_format)
+
+    return canvas, graph, fit_fn, fit_result
+
+
+
+
 if(__name__ == "__main__"):
     args = parse_args()
     timer = RuntimeTimer()
@@ -272,13 +387,6 @@ if(__name__ == "__main__"):
                     Err__of_Moment = List_of_Fit_Parameters.get(f"{fit_par}_ERR_{Q2_y_bin}_{bin_num}", 0.0)
                     print(f"\t\t{color.BOLD}{color.UNDERLINE}Par {fit_par}{color.END_B} of Bin {f'({Q2_y_bin}-{bin_num})':>7s}:{color.END} {Moment_To_Plot} ± {Err__of_Moment}")
                     
-    
-    # plot_var = "z"
-    # numslice = 1
-    # bin_range = Q2_y_z_pT_Bin_rows_function(plot_var, numslice+1, Q2_y_Bin=args.Q2_y_Bin, Output_Q="Bins")
-    # x_range   = Q2_y_z_pT_Bin_rows_function(plot_var, numslice+1, Q2_y_Bin=args.Q2_y_Bin, Output_Q="Centers")
-    # print(f"bin_range = {bin_range}")
-    # print(f"x_range   = {x_range}")
     
     print("\nDone Running 'Creation_of_Parameter_Fits.py'\n")
     timer.stop()
