@@ -45,6 +45,11 @@ def parse_args():
                         type=str,
                         choices=["B", "C"],
                         help="Selects which fit parameter to plot (defaults to both).")
+
+    parser.add_argument("-ft", "--fit_type",
+                        default='lin',
+                        choices=['lin', 'quad'],
+                        help="Selects the (initial) fit function type: 'lin' (linear) or 'quad' (quadratic).")
     
     parser.add_argument('-f', '--file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json",
@@ -56,6 +61,13 @@ def parse_args():
                         type=str,
                         choices=[".png", ".pdf"],
                         help="Selects the image file format of the images that would be saved by this script when running.")
+
+    parser.add_argument('-title', '-at', '--title',
+                        type=str,
+                        help="Optional string to add to plot titles.")
+    parser.add_argument('-n', '-sn', '--save_name',
+                        type=str,
+                        help="Optional string to add to the file names when saving.")
 
     parser.add_argument('-v', '--verbose',
                         action='store_true', 
@@ -70,7 +82,12 @@ sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues import *
 # from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
+sys.path.remove(script_dir)
+del script_dir
+
 def silence_root_import():
+    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    sys.path.append(script_dir)
     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
     sys.stdout.flush()
     sys.stderr.flush()
@@ -91,9 +108,8 @@ def silence_root_import():
         os.dup2(old_stderr, 2)
         os.close(old_stdout)
         os.close(old_stderr)
-silence_root_import()
-sys.path.remove(script_dir)
-del script_dir
+    sys.path.remove(script_dir)
+    del script_dir
 
 ROOT.TH1.AddDirectory(0)
 ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -164,21 +180,29 @@ from Binning_Dictionaries import Full_Bin_Definition_Array, Q2_y_Bin_rows_Array,
 # Bin Conversion Helpers
 # =========================
 
-def get_bin_centers(var, Q2_y_num, z_pT_num=None):
+def get_bin_centers(var, Q2_y_num, z_pT_num=None, Get_Range_str=False):
     if(var in ["Q2_y", "Q2", "y"]):
         Q2_y_Ranges = Full_Bin_Definition_Array.get(f'Q2-y={Q2_y_num}, Q2-y', None)
         if(Q2_y_Ranges):
             Q2_max, Q2_min, y_max, y_min = Q2_y_Ranges
-            return_value = (0.5 * (Q2_max + Q2_min)) if(var in ["Q2"]) else (0.5 * (y_max + y_min)) if(var in ["y"]) else [(0.5 * (Q2_max + Q2_min)), (0.5 * (y_max + y_min))]
-            return round(return_value, 5) if(not isinstance(return_value, list)) else return_value
+            if(Get_Range_str):
+                return_value = f"{Q2_min} < Q2 < {Q2_max}" if(var in ["Q2"]) else f"{y_min} < y < {y_max}" if(var in ["y"]) else f"#splitline{{{Q2_min} < Q^{{2}} < {Q2_max}}}{{{y_min} < y < {y_max}}}"
+                return return_value
+            else:
+                return_value = (0.5 * (Q2_max + Q2_min)) if(var in ["Q2"]) else (0.5 * (y_max + y_min)) if(var in ["y"]) else [(0.5 * (Q2_max + Q2_min)), (0.5 * (y_max + y_min))]
+                return round(return_value, 5) if(not isinstance(return_value, list)) else return_value
     elif(var in ["z_pT", "z", "pT"]):
         # print(f"Getting: f'Q2-y={Q2_y_num}, z-pT={z_pT_num}'")
         z_pT_Ranges = Full_Bin_Definition_Array.get(f'Q2-y={Q2_y_num}, z-pT={z_pT_num}', None)
         # print(f"z_pT_Ranges = {z_pT_Ranges}")
         if(z_pT_Ranges):
             z_max, z_min, pT_max, pT_min = z_pT_Ranges
-            return_value = (0.5 * (pT_max + pT_min)) if(var in ["pT"]) else (0.5 * (z_max + z_min)) if(var in ["z"]) else [(0.5 * (pT_max + pT_min)), (0.5 * (z_max + z_min))]
-            return round(return_value, 5) if(not isinstance(return_value, list)) else return_value
+            if(Get_Range_str):
+                return_value = f"{z_min} < z < {z_max}" if(var in ["z"]) else f"{pT_min} < pT < {pT_max}" if(var in ["pT"]) else f"#splitline{{{z_min} < z < {z_max}}}{{{pT_min} < P_{{T}} < {pT_max}}}"
+                return return_value
+            else:
+                return_value = (0.5 * (pT_max + pT_min)) if(var in ["pT"]) else (0.5 * (z_max + z_min)) if(var in ["z"]) else [(0.5 * (pT_max + pT_min)), (0.5 * (z_max + z_min))]
+                return round(return_value, 5) if(not isinstance(return_value, list)) else return_value
     return [None, None] if(var in ["Q2_y", "z_pT"]) else None
 
 
@@ -256,16 +280,30 @@ def make_tgraph_errors(x_vals, y_vals, y_errs, graph_name="", graph_title=""):
     return graph
 
 
-def style_graph(graph, x_axis_title, y_axis_title):
+group_color_map = {
+    "1": ROOT.kRed,
+    "2": ROOT.kBlue,
+    "3": ROOT.kMagenta,
+    "4": ROOT.kGreen,
+    "5": 28,
+    "6": 29,
+    "7": 41,
+}
+def style_graph(graph, Parameter="B", Group_Num=1):
     if(graph is None):
         return
-
     graph.SetMarkerStyle(20)
     graph.SetMarkerSize(1.0)
     graph.SetLineWidth(2)
 
-    graph.GetXaxis().SetTitle(x_axis_title)
-    graph.GetYaxis().SetTitle(y_axis_title)
+    graph.SetMarkerColor(group_color_map[str(Group_Num)])
+    graph.SetLineColor(group_color_map[str(Group_Num)])
+    
+    if(Parameter in ["B"]):
+        graph.GetYaxis().SetRangeUser(-1,    0.2)
+    else:
+        graph.GetYaxis().SetRangeUser(-0.45, 0.25)
+        
 
 
 def fit_graph(graph, fit_type, fit_name, x_min, x_max):
@@ -284,6 +322,8 @@ def fit_graph(graph, fit_type, fit_name, x_min, x_max):
 
     fit_fn = ROOT.TF1(fit_name, fit_formula, float(x_min), float(x_max))
     fit_fn.SetLineWidth(2)
+    fit_fn.SetLineColorAlpha(graph.GetLineColor(), 0.75)
+    fit_fn.SetLineStyle(3)
 
     # Quiet + return fit result + enforce range
     fit_result = graph.Fit(fit_fn, "QSR")
@@ -291,27 +331,83 @@ def fit_graph(graph, fit_type, fit_name, x_min, x_max):
     return fit_fn, fit_result
 
 
+def save_canvas(canvas, save_name, save_format):
+    if((canvas is None) or (save_name is None) or (save_format is None)):
+        raise ValueError("save_canvas: was passed a None argument.")
+    save_out = str(save_name)
+    if(not save_out.endswith(save_format)):
+        save_out += save_format
+    print(f"\n{color.BBLUE}Saving Image As: {color.BPINK}{save_out}{color.END}")
+    canvas.SaveAs(save_out)
+
+
+def add_fit_statbox(graph, canvas, Group_Num=1, x1=0.55, y1=0.1, x2=0.9, y2=0.32):
+    # Ensure fit stats are enabled (statbox for hist stats is separate from fit stats)
+    ROOT.gStyle.SetOptFit(1110)
+    if((graph is None) or (canvas is None)):
+        return None
+    canvas.cd()
+    ROOT.gPad.Update()
+    stats = graph.GetListOfFunctions().FindObject("stats")
+    if(stats is None):
+        # Sometimes one extra update is needed for TGraph
+        canvas.Update()
+        ROOT.gPad.Update()
+        stats = graph.GetListOfFunctions().FindObject("stats")
+    if(stats is None):
+        return None
+    # Position in NDC coordinates
+    stats.SetX1NDC(x1)
+    stats.SetY1NDC(y1)
+    stats.SetX2NDC(x2)
+    stats.SetY2NDC(y2)
+    # Make it readable / consistent
+    stats.SetFillStyle(0)
+    stats.SetBorderSize(1)
+    stats.SetTextFont(42)
+    stats.SetTextSize(0.030)
+    # # Match the group color (optional but useful)
+    # stats.SetTextColor(group_color_map[str(Group_Num)])
+    canvas.Modified()
+    canvas.Update()
+    return stats
+
+
 def make_and_save_parameter_plot(fit_par, Q2_y_bin, z_group, bin_range, x_vals, y_vals, y_errs, args, keep_canvases=None, keep_graphs=None, keep_fits=None):
     # Make one plot per (fit_par, Q2_y_bin, z_group)
     if((x_vals is None) or (len(x_vals) < 1)):
         return None, None, None, None
 
-    bins_str   = ",".join([str(bb) for bb in bin_range]) if(bin_range is not None) else ""
-    plot_ttl   = f"{fit_par} vs z  (Q2-y Bin={Q2_y_bin}, z_group={z_group}, z-pT bins=[{bins_str}])"
-    g_title    = f"{plot_ttl};z;{fit_par}"
+    par_fitT   = f"{'Cos(#phi_{h})' if('B' in fit_par) else 'Cos(2#phi_{h})'} Moments"
+    fit_type   = args.fit_type if(len(x_vals) > 2) else "lin"
+    for bb in bin_range:
+        bins_str   = get_bin_centers(var="pT", Q2_y_num=Q2_y_bin, z_pT_num=bb, Get_Range_str=True)
+        if(bins_str is not None):
+            bins_str = bins_str.replace("pT", "P_{T}")
+            bins_str = f"#color[{group_color_map[str(z_group)]}]{{{bins_str}}}"
+            break
+        else:
+            bins_str = f"#color[{ROOT.kRed}]{{ERROR}}"
+    plot_ttl     = f"#splitline{{{par_fitT} vs z}}{{#scale[0.5]{{Q^{{2}}-y Bin: {Q2_y_bin} #topbar {bins_str}}}}}"
+    ind_bins_str = ",".join([str(bb) for bb in bin_range]) if(bin_range is not None) else ""
+    plot_ttl     = f"#splitline{{{plot_ttl}}}{{#scale[0.35]{{Full List of z-P_{{T}} bins = [{ind_bins_str}]}}}}"
+    # plot_ttl   = f"#splitline{{{fit_par} vs z}}{{#scale[0.5]{{Q^{{2}}-y Bin={Q2_y_bin}, z-group={z_group}, z-P_{{T}} bins=[{bins_str}]}}}}"
+    if(args.title is not None):
+        plot_ttl = f"#splitline{{{plot_ttl}}}{{{args.title}}}"
+    g_title    = f"{plot_ttl}; z; {par_fitT}"
     graph_name = f"gr_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}"
 
     graph = make_tgraph_errors(x_vals, y_vals, y_errs, graph_name=graph_name, graph_title=g_title)
     if(graph is None):
         return None, None, None, None
 
-    style_graph(graph, "z", fit_par)
+    style_graph(graph, fit_par, z_group)
 
     canv_name = f"can_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}"
     canvas    = ROOT.TCanvas(canv_name, canv_name, 900, 700)
     canvas.cd()
 
-    graph.Draw("AP")
+    graph.Draw("APL")
 
     fit_fn     = None
     fit_result = None
@@ -322,12 +418,13 @@ def make_and_save_parameter_plot(fit_par, Q2_y_bin, z_group, bin_range, x_vals, 
             x_min -= 1e-6
             x_max += 1e-6
 
-        fit_name          = f"f_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}_{args.fit_type}"
-        fit_fn, fit_result = fit_graph(graph, args.fit_type, fit_name, x_min, x_max)
+        fit_name = f"f_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}_{fit_type}"
+        fit_fn, fit_result = fit_graph(graph, fit_type, fit_name, x_min, x_max)
         if(fit_fn is not None):
             fit_fn.Draw("same")
 
     canvas.Update()
+    add_fit_statbox(graph, canvas, Group_Num=z_group)
 
     if(keep_canvases is not None):
         keep_canvases.append(canvas)
@@ -337,7 +434,9 @@ def make_and_save_parameter_plot(fit_par, Q2_y_bin, z_group, bin_range, x_vals, 
         keep_fits.append(fit_fn)
 
     if(not args.test):
-        save_name = f"FitPar_{fit_par}_Q2y{Q2_y_bin}_zG{z_group}_{args.fit_type}"
+        save_name = f"Fit_Par_{fit_par}_Q2_y_{Q2_y_bin}_zG_{z_group}_{fit_type}"
+        if(args.save_name is not None):
+            save_name = f"{save_name}_{args.save_name}"
         save_canvas(canvas, save_name, args.save_format)
 
     return canvas, graph, fit_fn, fit_result
@@ -349,7 +448,7 @@ if(__name__ == "__main__"):
     args = parse_args()
     timer = RuntimeTimer()
     timer.start()
-
+    silence_root_import()
     List_of_Fit_Parameters = load_json_file(args.file)
     print(f"{color.BBLUE}Loaded Parameters from: {color.BPINK}{str(args.file).split('/')[-1]}{color.END}")
     # if(args.verbose):
@@ -357,6 +456,11 @@ if(__name__ == "__main__"):
     #     for ii in List_of_Fit_Parameters:
     #         print(f"\t{color.BOLD}{ii}: {color.END}{List_of_Fit_Parameters[ii]}")
     #     print(f"\nTotal Number of Entries = {len(List_of_Fit_Parameters)}")
+
+    # Keep ROOT objects alive
+    keep_canvases = []
+    keep_graphs   = []
+    keep_fits     = []
 
     Param_list    = ["B", "C"]   if(args.fit_parameter  is None) else [args.fit_parameter]
     Q2_y_range    = range(1, 18) if(args.Q2_y_Bin in [None, -1]) else [args.Q2_y_Bin]
@@ -367,7 +471,7 @@ if(__name__ == "__main__"):
             for z_group in z_group_range:
                 try:
                     bin_range = Q2_y_z_pT_Bin_rows_function("z", z_group, Q2_y_Bin=Q2_y_bin, Output_Q="Bins")
-                    x_range   = Q2_y_z_pT_Bin_rows_function("z", z_group, Q2_y_Bin=Q2_y_bin, Output_Q="Centers")
+                    # x_range   = Q2_y_z_pT_Bin_rows_function("z", z_group, Q2_y_Bin=Q2_y_bin, Output_Q="Centers")
                     print(f"\tz_group = {z_group}")
                 except ValueError as e:
                     msg = str(e).lower()
@@ -375,9 +479,12 @@ if(__name__ == "__main__"):
                         # print(f"\t\tSkipping invalid z_group={z_group} for Q2_y_bin={Q2_y_bin} ({e})")
                         break
                     raise
-                # print(f"\t\tbin_range = {bin_range}")
+                print(f"\t\tbin_range = {bin_range}")
                 # print(f"\t\tx_range   = {x_range}")
-                for idx, bin_num in enumerate(bin_range):
+
+                x_vals, y_vals, y_errs = [], [], []
+
+                for bin_num in bin_range:
                     if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_bin, Z_PT_BIN=bin_num, BINNING_METHOD="Y_bin")):
                         continue
                     Moment_To_Plot = List_of_Fit_Parameters.get(f"{fit_par}_{Q2_y_bin}_{bin_num}",    None)
@@ -385,10 +492,17 @@ if(__name__ == "__main__"):
                         print(f"\t\t{color.Error}Missing Parameter '{fit_par}' for Bin ({Q2_y_bin}-{bin_num}){color.END}\n")
                         continue
                     Err__of_Moment = List_of_Fit_Parameters.get(f"{fit_par}_ERR_{Q2_y_bin}_{bin_num}", 0.0)
-                    print(f"\t\t{color.BOLD}{color.UNDERLINE}Par {fit_par}{color.END_B} of Bin {f'({Q2_y_bin}-{bin_num})':>7s}:{color.END} {Moment_To_Plot} ± {Err__of_Moment}")
-                    
-    
-    print("\nDone Running 'Creation_of_Parameter_Fits.py'\n")
+                    print(f"\t\t{color.BOLD}{color.UNDERLINE}Par {fit_par}{color.END_B} of Bin {f'({Q2_y_bin}-{bin_num})':>7s}:{color.END} {Moment_To_Plot:>8.5f} ± {Err__of_Moment:1.3e}")
+
+                    x_vals.append(float(get_bin_centers(var="z", Q2_y_num=Q2_y_bin, z_pT_num=bin_num)))
+                    y_vals.append(float(Moment_To_Plot))
+                    y_errs.append(float(Err__of_Moment))
+
+                make_and_save_parameter_plot(fit_par, Q2_y_bin, z_group,
+                                             bin_range, x_vals, y_vals, y_errs,
+                                             args, keep_canvases=keep_canvases, keep_graphs=keep_graphs, keep_fits=keep_fits)
+
+    print(f"\n{color.BGREEN}Done Running {color.END_B}'Creation_of_Parameter_Fits.py'{color.END}\n")
     timer.stop()
-    
+
 
