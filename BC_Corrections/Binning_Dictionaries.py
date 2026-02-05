@@ -1,0 +1,1 @@
+/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/Binning_Dictionaries.py
