@@ -2,7 +2,7 @@
 import sys
 import argparse
 
-parser = argparse.ArgumentParser(description="Creates BC Corrections from MC GEN Plots.")
+parser = argparse.ArgumentParser(description="Creates BC Corrections from MC GEN Plots.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('-t', '--test',
                     action='store_true', 
@@ -15,12 +15,12 @@ parser.add_argument('-clasdis', '--use_clasdis',
 parser.add_argument('-nb', '--num_sub_bins',
                     default=3,
                     type=int,
-                    help="Number of sub-bins used per Q2-y-z-pT bin.")
+                    help="Number of sub-bins used per Q2-y-z-pT bin. Must be a positive, odd number.")
 
 parser.add_argument('-q2y', '-Q2y', '--Q2_y_Bin',
                     default=-1,
                     type=int,
-                    choices=[-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+                    choices=[x for x in range(-1, 18) if(x != 0)],
                     help="Selected Q2-y Bin to run. Use '-1' to run all bins.")
 
 parser.add_argument('-zpt', '-zpT', '--z_pT_Bin',
@@ -28,13 +28,32 @@ parser.add_argument('-zpt', '-zpT', '--z_pT_Bin',
                     type=int,
                     help="Selected z-pT Bin (for any given Q2-y Bin) to run. Use '-1' to run all bins. Does not automatically reject incompatible combinations of the '--Q2_y_Bin' and '--z_pT_Bin' options.")
 
+parser.add_argument('-phit', '-phih', '-phi_t', '-phi_h', '--phih_Bin',
+                    default=-1,
+                    type=int,
+                    choices=[x for x in range(-1, 16) if(x != 0)],
+                    help="Selected phi_t Bin to run (each bin is given in increments of 15 degrees). Use '-1' to run all bins.")
+
 parser.add_argument('-f', '--file',
                     default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb-EvGen-LUND_EvGen_richcap_GEMC-9729_4.hipo.root",
                     type=str, 
                     help="Path to MC GEN ROOT file used to create the BC corrections. Use EvGen files so that a difference in the modulations is actually observable in the 4D sub-bins.")
 
-args = parser.parse_args()
+parser.add_argument('-sf', '-ff', '--save_format',
+                    default=".png",
+                    type=str,
+                    choices=[".png", ".pdf"],
+                    help="Selects the image file format of the images that would be saved by this script when running.")
 
+parser.add_argument('-cdf', '--check_dataframe',
+                    action='store_true', 
+                    help='Prints full contents of the RDataFrame to see available branches.')
+
+parser.add_argument('-v', '--verbose',
+                    action='store_true', 
+                    help='Print more information while running.')
+
+args = parser.parse_args()
 
 import ROOT, numpy, re
 import traceback
@@ -70,6 +89,10 @@ silence_root_import()
 sys.path.remove(script_dir)
 del script_dir
 
+if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
+    print(f"\n{color.Error}ERROR: Number of sub-bins must a positive, odd number for this script to work properly{color.END}\n")
+    sys.exit(0)
+
 ROOT.TH1.AddDirectory(0)
 ROOT.gStyle.SetTitleOffset(1.3,'y')
 ROOT.gStyle.SetGridColor(17)
@@ -102,6 +125,91 @@ def send_email(subject, body, recipient):
     # Send an email via the system mail command.
     html_body = ansi_to_html(body)
     subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
+
+
+
+def Canvas_Image_Create(List_of_histograms, Q2_y_Bin=1, z_pT_Bin=1, Q2y_Sbin=1, num_of_subbins=args.num_sub_bins, canvas_w=1400, canvas_h=900, left_frac=0.25, left_top_frac=0.35, pad_margin=0.02, Save_Q=(not args.test), Save_Format=args.save_format):
+    # ------------------------------------------------------------------------------------------------
+    # Create canvas and do an initial equal divide, then reshape pads to 25%/75%
+    # ------------------------------------------------------------------------------------------------
+    canvas_name = f"BC_Cor_Image_for_Q2_y_Bin_({Q2_y_Bin}-{Q2y_Sbin})_z_pT_Bin_{z_pT_Bin}"
+    canvas = ROOT.TCanvas(canvas_name, canvas_name, canvas_w, canvas_h)
+    canvas.Divide(2, 1, 0.0, 0.0)  # equal split first (required by your constraint)
+
+    pad_left  = canvas.cd(1)
+    pad_right = canvas.cd(2)
+
+    # Reshape to 25% / 75% (NDC coordinates in the canvas)
+    pad_left.SetPad(0.0,      0.0, left_frac, 1.0)
+    pad_right.SetPad(left_frac, 0.0, 1.0,      1.0)
+
+    # Optional: margins for nicer spacing
+    pad_left.SetLeftMargin(0.15)
+    pad_left.SetRightMargin(0.05)
+    pad_left.SetTopMargin(0.08)
+    pad_left.SetBottomMargin(0.12)
+
+    pad_right.SetLeftMargin(0.10)
+    pad_right.SetRightMargin(0.08)
+    pad_right.SetTopMargin(0.08)
+    pad_right.SetBottomMargin(0.12)
+
+    # ------------------------------------------------------------------------------------------------
+    # LEFT pad: divided to create a "top corner image" space
+    # Made with 1 column x 2 rows, then resized
+    # ------------------------------------------------------------------------------------------------
+    pad_left.cd()
+    pad_left.Divide(1, 2, 0.0, 0.0)
+
+    pad_left_top    = pad_left.cd(1)
+    pad_left_bottom = pad_left.cd(2)
+
+    # Resize the two subpads inside the LEFT pad:
+    # Use the pad's own NDC (0..1) coordinates
+    if((left_top_frac <= 0.0) or (left_top_frac >= 1.0)):
+        left_top_frac = 0.35
+
+    pad_left_top.SetPad(0.0, 1.0 - left_top_frac, 1.0, 1.0)
+    pad_left_bottom.SetPad(0.0, 0.0,              1.0, 1.0 - left_top_frac)
+
+    # ------------------------------------------------------------------------------------------------
+    # RIGHT pad: divide into an N x N square grid
+    # ------------------------------------------------------------------------------------------------
+    pad_right.cd()
+    if(num_of_subbins < 1):
+        num_of_subbins = 1
+
+    pad_right.Divide(num_of_subbins, num_of_subbins, pad_margin, pad_margin)
+
+    # ------------------------------------------------------------------------------------------------
+    # Placeholder drawing logic
+    # Convention here:
+    #   - List_of_histograms[0] goes to left-top pad
+    #   - remaining hists fill the right grid pads in order
+    # ------------------------------------------------------------------------------------------------
+
+    # Draw the "corner" histogram
+    pad_left_top.cd()
+    histo_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-0)"
+    List_of_histograms[histo_bin_name].Draw("hist")
+
+    # Draw the remaining histograms into the right grid
+
+    for idx in range(1, int((num_of_subbins*num_of_subbins)+1)):
+        histo_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{idx})"
+        pad_right.cd(idx)
+        List_of_histograms[histo_bin_name].Draw("hist")
+
+    canvas.cd()
+    canvas.Update()
+
+    if(Save_Q):
+        print(f"{color.BGREEN}Saving Image As: {color.PINK}{canvas_name}{Save_Format}{color.END}")
+        canvas.SaveAs(f"{canvas_name}{Save_Format}")
+    else:
+        print(f"{color.BLUE}Would have saved image as: {color.PINK}{canvas_name}{Save_Format}{color.END}")
+
+
 
 
 ################################################################################################################################################################################################################################################
@@ -433,6 +541,8 @@ timer.start()
 if(args.test):
     print(f"\t{color.Error}Running as a test of the script...{color.END}\n")
 
+
+print(f"\n{color.BBLUE}Running with File: {color.BPINK}{args.file.split('/')[-1]}{color.END}\n")
 
 gdf = ROOT.RDataFrame("h22", str(args.file))
 
@@ -975,6 +1085,14 @@ return -1; // Error (Should have returned already...)
 """)
 
 
+gdf = gdf.Define("phi_t_bin", """
+if(phi_t < 360){ return int(phi_t/15) + 1; }
+else { return 1; }
+""")
+
+delta_phi_Sbin = float(15.0/float(args.num_sub_bins))
+gdf = gdf.Define("phi_t_SUB_BINs", f" int((phi_t - 15*(phi_t_bin - 1))/{delta_phi_Sbin}) + 1 ")
+
 if("Event_Weight" in gdf.GetColumnNames()):
     print(f"\n{color.Error}WARNING: 'Event_Weight' is already defined in the RDataFrame...{color.END}\n")
 elif(not args.use_clasdis):
@@ -983,39 +1101,100 @@ else:
     gdf = gdf.Define("Event_Weight", "1.0")
     
 
-# for ii in gdf.GetColumnNames():
-#     print(ii)
-
-print(f"\n{color.BGREEN}Creating phi_h histograms...{color.END}\n")
-List_of_histos = {}
-List_of_FitPar = {}
-Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
-z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
-Title = f"#splitline{{{root_color.Bold}{{Generated #phi_h Distributions from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
-for     Q2_y_Bin in Q2_y_Bin_Range:
-    for z_pT_Bin in z_pT_Bin_Range:
-        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-            if(z_pT_Bin < 35):
-                print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
-            continue
-        for     Q2y_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
-            for zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
-                histo_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})"
-                # print(histo_bin_name)
-                List_of_histos[histo_bin_name] = gdf.Histo1D((histo_bin_name, f"#splitline{{{Title}}}{{(Q^2-y)-(z-P_T) {histo_bin_name}}}", 24, 0, 360), "phi_t", "Event_Weight")
-                List_of_FitPar[histo_bin_name] = Fitting_Phi_Function(Histo_To_Fit=List_of_histos[histo_bin_name], Method="gdf", Fitting="default", Special="Normal", Fit_Test=True)
-                if("ERROR" == List_of_FitPar[histo_bin_name]):
-                    continue
-                # List_of_FitPar[histo_bin_name] = [Histo_To_Fit,  Fitting_Function,   [Fit_Chisquared,    Fit_ndf],  [A_Unfold,    A_Unfold_Error],  [B_Unfold,    B_Unfold_Error],  [C_Unfold,    C_Unfold_Error]]
-                List_of_histos[histo_bin_name], _, Chisquared_and_ndf, A_Fit_L, B_Fit_L, C_Fit_L = List_of_FitPar[histo_bin_name]
-                print(f"\nFor: {color.BOLD}'{histo_bin_name}'{color.END}:")
-                print(f"\tA = {A_Fit_L[0]:>5.2f} ± {A_Fit_L[1]:>5.2f}")
-                print(f"\tB = {B_Fit_L[0]:>2.5f} ± {B_Fit_L[1]:>2.5f}")
-                print(f"\tC = {C_Fit_L[0]:>2.5f} ± {C_Fit_L[1]:>2.5e}")
-        # print("")
-print(f"Done (Ran {len(List_of_histos)} histos)")
-
+if(args.check_dataframe):
+    print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+    for num, ii in enumerate(gdf.GetColumnNames()):
+        print(f"{num:>3.0f}) {str(ii).ljust(38)} (type -> {gdf.GetColumnType(ii)})")
+    print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
+else:
+    print(f"\n{color.BGREEN}Looping through sub-bins...{color.END}\n")
+    List_of_BCBins = {"keys": {"Nominal-Bins": "Bin (Q2_y_Bin-z_pT_Bin-phih_bin)", "Sub-Bins": "Bin (Q2_y_Bin-Q2y_Sbin)-(z_pT_Bin-zpT_Sbin)-(phih_bin-phi_Sbin)"}}
+    SumOfWeights_L = {} # Initial List for `List_of_BCBins` that will pass all the sums to the final list after the dataframe evaluations
+    Full_Run__List = [] # Used to store the sums in `SumOfWeights_L` in a way that is easily calculable at the end of the loops
+    Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
+    z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
+    phih_Bin_Range = range(1, 16) if(args.phih_Bin == -1) else [args.phih_Bin]
+    for                     Q2_y_Bin in Q2_y_Bin_Range:
+        gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
+        for                 z_pT_Bin in z_pT_Bin_Range:
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                if(z_pT_Bin < 35):
+                    print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+                continue
+            gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
+            for             phih_bin in phih_Bin_Range:
+                gdf_phih_Bin = gdf_z_pT_Bin.Filter(f"phi_t_bin == {phih_bin}")
+                Nominal_bin_name = f"Bin ({Q2_y_Bin}-{z_pT_Bin}-{phih_bin})"
+                List_of_BCBins[Nominal_bin_name] = {}
+                for         Q2y_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                    gdf_Q2y_SBin         = gdf_phih_Bin.Filter(f"Q2_y_SUB_BINs == {Q2y_Sbin}")
+                    for     zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                        gdf_zpT_SBin     = gdf_Q2y_SBin.Filter(f"z_pT_SUB_BINs == {zpT_Sbin}")
+                        for phi_Sbin in range(1, int(args.num_sub_bins+1)):
+                            gdf_phi_SBin = gdf_zpT_SBin.Filter(f"phi_t_SUB_BINs == {phi_Sbin}")
+                            sub_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})-({phih_bin}-{phi_Sbin})"
+                            sumw = gdf_phi_SBin.Sum("Event_Weight") # Book the action; do NOT GetValue() yet
+                            SumOfWeights_L[(Nominal_bin_name, sub_bin_name)] = sumw
+                            Full_Run__List.append(sumw)
+                            if(args.verbose):
+                                print(f"\t\t{color.BOLD}Collected Sub-{sub_bin_name}{color.END}")
+                                print(f"\t\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+                print(f"\t{color.BBLUE}Collected all sub-bins in {Nominal_bin_name}{color.END}")
+                if(args.verbose):
+                    timer.time_elapsed()
+                else:
+                    print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
+    print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {len(Full_Run__List)}){color.END}")
+    if(not args.test):
+        print(f"{color.BCYAN}Triggering Event Evaluation...{color.END}\n")
+        # One trigger for everything
+        ROOT.RDF.RunGraphs(Full_Run__List)
+        for (nom_name, sub_name), ptr in SumOfWeights_L.items():
+            List_of_BCBins[nom_name][sub_name] = float(ptr.GetValue())
+        print(f"{color.BGREEN}Evaluations are Complete{color.END}\n")
+    else:
+        print(f"\n{color.RED}Running as a test (no event evaluations)...{color.END}\n")
+    
 timer.stop(return_Q=not True)
+
+# print(f"Done (Ran {len(List_of_histos)} histos)")
+
+# print(f"\n{color.BGREEN}Creating phi_h histograms...{color.END}\n")
+# List_of_histos = {}
+# List_of_FitPar = {}
+# Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
+# z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
+# Title = f"#splitline{{{root_color.Bold}{{Generated #phi_h Distributions from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
+# for     Q2_y_Bin in Q2_y_Bin_Range:
+#     for z_pT_Bin in z_pT_Bin_Range:
+#         if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+#             if(z_pT_Bin < 35):
+#                 print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+#             continue
+#         for     Q2y_Sbin in range(0, int((args.num_sub_bins*args.num_sub_bins)+1)):
+#             for zpT_Sbin in range(0, int((args.num_sub_bins*args.num_sub_bins)+1)):
+#                 histo_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})"
+#                 # print(histo_bin_name)
+#                 main_bin_cut = f"((Q2_Y_Bin == {Q2_y_Bin}) && (z_pT_Bin_Y_bin == {z_pT_Bin}))"
+#                 sub__bin_cut = f"(Q2_y_SUB_BINs == {Q2y_Sbin}) && "           if(Q2y_Sbin != 0) else "(Q2_y_SUB_BINs != -1) && "
+#                 sub__bin_cut = f"{sub__bin_cut}(z_pT_SUB_BINs == {zpT_Sbin})" if(zpT_Sbin != 0) else f"{sub__bin_cut} (z_pT_SUB_BINs != -1)"
+#                 List_of_histos[histo_bin_name] = (gdf.Filter(f"{main_bin_cut} && ({sub__bin_cut})")).Histo1D((histo_bin_name, f"#splitline{{{Title}}}{{(Q^2-y)-(z-P_T) {histo_bin_name}}}", 24, 0, 360), "phi_t", "Event_Weight")
+#                 List_of_histos[histo_bin_name].SetLineColor(ROOT.kGreen)
+#                 List_of_FitPar[histo_bin_name] = Fitting_Phi_Function(Histo_To_Fit=List_of_histos[histo_bin_name], Method="gdf", Fitting="default", Special="Normal", Fit_Test=True)
+#                 if("ERROR" == List_of_FitPar[histo_bin_name]):
+#                     continue
+#                 # List_of_FitPar[histo_bin_name] = [Histo_To_Fit,  Fitting_Function,   [Fit_Chisquared,    Fit_ndf],  [A_Unfold,    A_Unfold_Error],  [B_Unfold,    B_Unfold_Error],  [C_Unfold,    C_Unfold_Error]]
+#                 List_of_histos[histo_bin_name], _, Chisquared_and_ndf, A_Fit_L, B_Fit_L, C_Fit_L = List_of_FitPar[histo_bin_name]
+#                 print(f"\nFor: {color.BOLD}'{histo_bin_name}'{color.END}:")
+#                 print(f"\tA = {A_Fit_L[0]:>5.3f} ± {A_Fit_L[1]:>5.2f}")
+#                 print(f"\tB = {B_Fit_L[0]:>2.7f} ± {B_Fit_L[1]:>2.5e}")
+#                 print(f"\tC = {C_Fit_L[0]:>2.7f} ± {C_Fit_L[1]:>2.5e}")
+#             Canvas_Image_Create(List_of_histograms=List_of_histos, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, Q2y_Sbin=Q2y_Sbin)
+#             timer.time_elapsed()
+#             break
+#         # print("")
+# print(f"Done (Ran {len(List_of_histos)} histos)")
+# timer.stop(return_Q=not True)
 
 
 
