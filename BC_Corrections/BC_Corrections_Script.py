@@ -1099,61 +1099,69 @@ elif(not args.use_clasdis):
     gdf = gdf.Define("Event_Weight", "weight")
 else:
     gdf = gdf.Define("Event_Weight", "1.0")
-    
+
 
 if(args.check_dataframe):
     print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
     for num, ii in enumerate(gdf.GetColumnNames()):
         print(f"{num:>3.0f}) {str(ii).ljust(38)} (type -> {gdf.GetColumnType(ii)})")
     print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
-else:
-    print(f"\n{color.BGREEN}Looping through sub-bins...{color.END}\n")
-    List_of_BCBins = {"keys": {"Nominal-Bins": "Bin (Q2_y_Bin-z_pT_Bin-phih_bin)", "Sub-Bins": "Bin (Q2_y_Bin-Q2y_Sbin)-(z_pT_Bin-zpT_Sbin)-(phih_bin-phi_Sbin)"}}
-    SumOfWeights_L = {} # Initial List for `List_of_BCBins` that will pass all the sums to the final list after the dataframe evaluations
-    Full_Run__List = [] # Used to store the sums in `SumOfWeights_L` in a way that is easily calculable at the end of the loops
-    Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
-    z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
-    phih_Bin_Range = range(1, 16) if(args.phih_Bin == -1) else [args.phih_Bin]
-    for                     Q2_y_Bin in Q2_y_Bin_Range:
-        gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
-        for                 z_pT_Bin in z_pT_Bin_Range:
-            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                if(z_pT_Bin < 35):
-                    print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
-                continue
-            gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
-            for             phih_bin in phih_Bin_Range:
-                gdf_phih_Bin = gdf_z_pT_Bin.Filter(f"phi_t_bin == {phih_bin}")
-                Nominal_bin_name = f"Bin ({Q2_y_Bin}-{z_pT_Bin}-{phih_bin})"
-                List_of_BCBins[Nominal_bin_name] = {}
-                for         Q2y_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
-                    gdf_Q2y_SBin         = gdf_phih_Bin.Filter(f"Q2_y_SUB_BINs == {Q2y_Sbin}")
-                    for     zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
-                        gdf_zpT_SBin     = gdf_Q2y_SBin.Filter(f"z_pT_SUB_BINs == {zpT_Sbin}")
-                        for phi_Sbin in range(1, int(args.num_sub_bins+1)):
-                            gdf_phi_SBin = gdf_zpT_SBin.Filter(f"phi_t_SUB_BINs == {phi_Sbin}")
-                            sub_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})-({phih_bin}-{phi_Sbin})"
-                            sumw = gdf_phi_SBin.Sum("Event_Weight") # Book the action; do NOT GetValue() yet
-                            SumOfWeights_L[(Nominal_bin_name, sub_bin_name)] = sumw
-                            Full_Run__List.append(sumw)
-                            if(args.verbose):
-                                print(f"\t\t{color.BOLD}Collected Sub-{sub_bin_name}{color.END}")
-                                print(f"\t\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
-                print(f"\t{color.BBLUE}Collected all sub-bins in {Nominal_bin_name}{color.END}")
-                if(args.verbose):
-                    timer.time_elapsed()
-                else:
-                    print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
-    print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {len(Full_Run__List)}){color.END}")
-    if(not args.test):
-        print(f"{color.BCYAN}Triggering Event Evaluation...{color.END}\n")
+
+
+def Evaluate_Weights(List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In, Run_As_Test=args.test, verbose=args.verbose):
+    if(not Run_As_Test):
+        print(f"{color.BCYAN}Triggering Event Evaluation on {color.END_B}{len(Full_Run__List_In)}{color.BCYAN} Sub-Bins...{color.END}\n")
         # One trigger for everything
-        ROOT.RDF.RunGraphs(Full_Run__List)
-        for (nom_name, sub_name), ptr in SumOfWeights_L.items():
-            List_of_BCBins[nom_name][sub_name] = float(ptr.GetValue())
+        ROOT.RDF.RunGraphs(Full_Run__List_In)
+        for (nom_name, sub_name), ptr in SumOfWeights_L_In.items():
+            List_of_BCBins_In[nom_name][sub_name] = float(ptr.GetValue())
         print(f"{color.BGREEN}Evaluations are Complete{color.END}\n")
-    else:
+    elif(verbose):
         print(f"\n{color.RED}Running as a test (no event evaluations)...{color.END}\n")
+        timer.time_elapsed()
+    else:
+        print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
+    SumOfWeights_L_In.clear()
+    Full_Run__List_In.clear()
+    return List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In
+
+print(f"\n{color.BGREEN}Looping through sub-bins...{color.END}\n")
+List_of_BCBins = {"keys": {"Nominal-Bins": "Bin (Q2_y_Bin-z_pT_Bin-phih_bin)", "Sub-Bins": "Bin (Q2_y_Bin-Q2y_Sbin)-(z_pT_Bin-zpT_Sbin)-(phih_bin-phi_Sbin)"}}
+SumOfWeights_L = {} # Initial List for `List_of_BCBins` that will pass all the sums to the final list after the dataframe evaluations
+Full_Run__List = [] # Used to store the sums in `SumOfWeights_L` in a way that is easily calculable at the end of the loops
+Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
+z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
+phih_Bin_Range = range(1, 16) if(args.phih_Bin == -1) else [args.phih_Bin]
+Total_Num_SBin = 0
+for                     Q2_y_Bin in Q2_y_Bin_Range:
+    gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
+    for                 z_pT_Bin in z_pT_Bin_Range:
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+            if(z_pT_Bin < 35):
+                print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+            continue
+        gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
+        for             phih_bin in phih_Bin_Range:
+            gdf_phih_Bin = gdf_z_pT_Bin.Filter(f"phi_t_bin == {phih_bin}")
+            Nominal_bin_name = f"Bin ({Q2_y_Bin}-{z_pT_Bin}-{phih_bin})"
+            List_of_BCBins[Nominal_bin_name] = {}
+            for         Q2y_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                gdf_Q2y_SBin         = gdf_phih_Bin.Filter(f"Q2_y_SUB_BINs == {Q2y_Sbin}")
+                for     zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                    gdf_zpT_SBin     = gdf_Q2y_SBin.Filter(f"z_pT_SUB_BINs == {zpT_Sbin}")
+                    for phi_Sbin in range(1, int(args.num_sub_bins+1)):
+                        gdf_phi_SBin = gdf_zpT_SBin.Filter(f"phi_t_SUB_BINs == {phi_Sbin}")
+                        sub_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})-({phih_bin}-{phi_Sbin})"
+                        sumw = gdf_phi_SBin.Sum("Event_Weight") # Book the action; do NOT GetValue() yet
+                        SumOfWeights_L[(Nominal_bin_name, sub_bin_name)] = sumw
+                        Full_Run__List.append(sumw)
+                        if(args.verbose):
+                            print(f"\t\t{color.BOLD}Collected Sub-{sub_bin_name}{color.END}")
+                            print(f"\t\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+            print(f"\t{color.BBLUE}Collected all sub-bins in {Nominal_bin_name}{color.END}")
+            Total_Num_SBin += len(Full_Run__List)
+            List_of_BCBins, SumOfWeights_L, Full_Run__List = Evaluate_Weights(List_of_BCBins, SumOfWeights_L, Full_Run__List)
+print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {Total_Num_SBin}){color.END}")
     
 timer.stop(return_Q=not True)
 
