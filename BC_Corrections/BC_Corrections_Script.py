@@ -52,12 +52,6 @@ def parse_args():
                         type=str, 
                         help="Path to MC GEN ROOT file used to create the BC corrections. Use EvGen files so that a difference in the modulations is actually observable in the 4D sub-bins.")
     
-    # parser.add_argument('-sf', '-ff', '--save_format',
-    #                     default=".png",
-    #                     type=str,
-    #                     choices=[".png", ".pdf"],
-    #                     help="Selects the image file format of the images that would be saved by this script when running.")
-    
     parser.add_argument('-cdf', '--check_dataframe',
                         action='store_true', 
                         help='Prints full contents of the RDataFrame to see available branches.')
@@ -76,9 +70,18 @@ def parse_args():
                         help='JSON file path for using `json_weights`.')
 
     parser.add_argument('-jf', '--json_file_out',
-                    default="Sub_Bin_Contents_for_BC_Correction.json",
-                    type=str,
-                    help='Output JSON file where the bin contents will be saved.')
+                        default="Sub_Bin_Contents_for_BC_Correction.json",
+                        type=str,
+                        help='Output JSON file where the bin contents will be saved.')
+
+    parser.add_argument('-e', '--email',
+                        action='store_true', 
+                        help='Send Email message when the script finishes running.')
+    
+    parser.add_argument('-em', '--email_message',
+                        default="",
+                        type=str,
+                        help="Optional Email message that can be added to the default notification from '--email'.")
     
     return parser.parse_args()
     
@@ -137,6 +140,46 @@ def send_email(subject, body, recipient):
     html_body = ansi_to_html(body)
     subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
 
+
+def Construct_Email(args, timer):
+    start_time = timer.start_find(return_Q=True)
+    start_time = start_time.replace("Ran", "Started running")
+    end_time, total_time, rate_line = timer.stop(return_Q=True)
+    email_body = f"""
+The 'BC_Corrections_Script.py' script has finished running.
+{start_time}
+
+{args.email_message}
+
+Ran with the following arguments:
+--test                          --> {args.test}
+--use_clasdis                   --> {args.use_clasdis}
+--num_sub_bins                  --> {args.num_sub_bins}
+--Q2_y_Bin                      --> {args.Q2_y_Bin}
+--z_pT_Bin                      --> {args.z_pT_Bin}
+--phih_Bin                      --> {args.phih_Bin}
+--file                          --> {args.file}
+--check_dataframe               --> {args.check_dataframe}
+--verbose                       --> {args.verbose}
+--json_weights                  --> {args.json_weights}
+--json_file_in                  --> {args.json_file_in}
+--json_file_out                 --> {args.json_file_out}
+
+{end_time}
+{total_time}
+{rate_line}
+    """
+    
+    if(args.email):
+        send_email(subject="Finished Running the 'BC_Corrections_Script.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
+    print(email_body)
+    
+    print(f"""{color.BGREEN}{color_bg.YELLOW}
+    \t                                   \t   
+    \tThis code has now finished running.\t   
+    \t                                   \t   {color.END}
+    
+    """)
 
 
 def load_json_file(path):
@@ -504,6 +547,7 @@ else if (Q2_Y_Bin == 4 || Q2_Y_Bin == 8 || Q2_Y_Bin ==12)                       
         gdf = gdf.Define("Event_Weight", f"{Default_Weights}*ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
     else:
         gdf = gdf.Define("Event_Weight", Default_Weights)
+    gdf = gdf.Filter("MM > 1.5") # Apply Missing Mass Cut to exclude the 'exclusive' phase space from my bins
     return gdf
 
     
@@ -517,6 +561,9 @@ def Evaluate_Weights(List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In, ar
             List_of_BCBins_In[nom_name][sub_name] = float(ptr.GetValue())
         print(f"{color.BGREEN}Evaluations are Complete{color.END}")
         print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+        # for     ii in List_of_BCBins_In:
+        #     for jj in List_of_BCBins_In[ii]:
+        #         print(f"List_of_BCBins_In['{ii}']['{jj}'] = {List_of_BCBins_In[ii][jj]}")
         print(f"{color.BBLUE}Saving To JSON File: {color.BPINK}{args.json_file_out}{color.END}")
         save_dict_to_json(data_to_save=List_of_BCBins_In, json_file=args.json_file_out)
         timer.time_elapsed()
@@ -570,7 +617,7 @@ def Get_Bin_Contents_for_BC(args):
                 Total_Num_SBin += len(Full_Run__List)
                 List_of_BCBins, SumOfWeights_L, Full_Run__List = Evaluate_Weights(List_of_BCBins, SumOfWeights_L, Full_Run__List, args, timer)
     print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {Total_Num_SBin}){color.END}")
-    return List_of_BCBins
+    return List_of_BCBins, Total_Num_SBin
 
 
 
@@ -609,8 +656,11 @@ if(__name__ == "__main__"):
         print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
     
 
-    List_of_BCBins = {}
-    List_of_BCBins = Get_Bin_Contents_for_BC(args)
-
-    timer.stop(return_Q=not True)
+    List_of_BCBins, Total_Num_SBin = {}, 0
+    List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
+    args.email_message = f"""{args.email_message}
+    
+The Total Number of Sub-bins Collected = {Total_Num_SBin}
+"""
+    Construct_Email(args, timer)
     
