@@ -26,7 +26,7 @@ def parse_args():
                         help='Run with clasdis instead of EvGen (assumes that the EvGen weight should be used by default unless this argument is used).')
     
     parser.add_argument('-nb', '--num_sub_bins',
-                        default=3,
+                        default=5,
                         type=int,
                         help="Number of sub-bins used per Q2-y-z-pT bin. Must be a positive, odd number.")
     
@@ -100,6 +100,11 @@ def parse_args():
                         default="",
                         type=str,
                         help="Optional Email message that can be added to the default notification from '--email'.")
+
+    parser.add_argument('-rR', '-read_root', '-bc', '--get_BC_factors',
+                        action='store_true', 
+                        help="Reads the ROOT files from '--root_file_out' to get the BC factors for each bin (will write the results to the '--json_file_out' JSON file if not running in '--test' mode).")
+    
     
     return parser.parse_args()
     
@@ -172,19 +177,21 @@ The 'BC_Corrections_Script.py' script has finished running.
 Ran with the following arguments:
 --test                          --> {args.test}
 --use_clasdis                   --> {args.use_clasdis}
---num_sub_bins                  --> {args.num_sub_bins}
+--num_sub_bins                  --> {args.num_sub_bins}{f'''
+--root_file_out       (Input)   --> {args.root_file_out}''' if(args.get_BC_factors) else f'''
 --file                (Input)   --> {args.file}
---check_dataframe               --> {args.check_dataframe}
+--check_dataframe               --> {args.check_dataframe}'''}
 --verbose                       --> {args.verbose}
 --json_weights                  --> {args.json_weights}
 --json_file_in      {'          ' if(args.json_weights) else '(Not Used)'}  --> {args.json_file_in}
 --histogram                     --> {args.histogram}
+--get_BC_factors                --> {args.get_BC_factors}
 --use_file_name                 --> {args.use_file_name}
 --Q2_y_Bin                      --> {args.Q2_y_Bin}
 --z_pT_Bin                      --> {args.z_pT_Bin}{f'''
 --phih_Bin                      --> {args.phih_Bin}
---json_file_out                 --> {args.json_file_out}''' if(not args.histogram) else f'''
---root_file_out                 --> {args.root_file_out}
+--json_file_out      (Output)   --> {args.json_file_out}''' if((not args.histogram) or args.get_BC_factors) else f'''
+--root_file_out      (Output)   --> {args.root_file_out}
 --histo_title                   --> "{args.histo_title}"'''}
 
 {end_time}
@@ -546,6 +553,8 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     """)
     
     Default_Weights = "1.0" if(args.use_clasdis) else "weight"
+    if(args.use_clasdis):
+        print(f"\n{color.BBLUE}Using clasdis File(s){color.END}\n")
     if("Event_Weight" in gdf.GetColumnNames()):
         print(f"\n{color.Error}WARNING: 'Event_Weight' is already defined in the RDataFrame...{color.END}\n")
     elif(args.json_weights):
@@ -688,7 +697,7 @@ def Create_Histograms_for_BC(args):
                 continue
             gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
             Nominal_bin_name = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
-            List_of_Histos[Nominal_bin_name] = Make_SubBin_TH2_SumW(gdf_Q2_y_Bin, args, Q2_y_Bin, z_pT_Bin)
+            List_of_Histos[Nominal_bin_name] = Make_SubBin_TH2_SumW(gdf_z_pT_Bin, args, Q2_y_Bin, z_pT_Bin)
     print(f"\n{color.BBLUE}Done Creating All Sub-bin Histograms {color.END_B}(Total = {len(List_of_Histos)}){color.END}")
     print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
     return List_of_Histos
@@ -732,6 +741,180 @@ def Evaluate_And_Write_Histograms(hist_ptrs, args):
 
 
 
+def parse_histogram_name(hist_name):
+    # Expected name pattern from Make_SubBin_TH2_SumW:
+    #   "Histogram Bin (Q2y-zpt)-(Num SubBins=N)"
+    # Returns: (Q2_y_Bin, z_pT_Bin, num_sub_bins) or (None, None, None) if no match.
+    match = re.search(r"Histogram Bin \((\d+)-(\d+)\)-\(Num SubBins=(\d+)\)", str(hist_name))
+    if(not match):
+        return None, None, None
+    return int(match.group(1)), int(match.group(2)), int(match.group(3))
+
+def mean_and_weighted_mean(contents, errors):
+    if(len(contents) != len(errors)):
+        raise ValueError("contents and errors must have the same length")
+    len_content = len(contents)
+    if(len_content == 0):
+        return None
+    # --- unweighted mean ---
+    sum_c, sum_e2 = 0.0, 0.0
+    for c,e in zip(contents, errors):
+        sum_c  += c
+        sum_e2 += (e*e)
+    mean     = (sum_c / len_content)
+    mean_err = (ROOT.TMath.Sqrt(sum_e2) / len_content)
+    # --- weighted mean (inverse-variance) ---
+    num, den = 0.0, 0.0
+    for c,e in zip(contents, errors):
+        if(e <= 0.0): 
+            continue
+        w    = (1.0 / (e*e))
+        num += (c * w)
+        den += w
+    if(den > 0.0):
+        wmean     = (num / den)
+        wmean_err = ROOT.TMath.Sqrt(1.0 / den)
+    else:
+        wmean     = float("nan")
+        wmean_err = float("nan")
+    return {"ave": mean, "ave_err": mean_err, "weighted_ave": wmean, "weighted_ave_err": wmean_err}
+
+
+def BC_ratio_and_error(val_num, err_num, val_den, err_den):
+    if(val_den == 0.0):
+        return float("nan"), float("nan")
+    if(val_num == 0.0):
+        return 0.0, 0.0
+    ratio = (val_num / val_den)
+    rel_err2 = 0.0
+    if(val_num != 0.0):
+        rel_err2 += (err_num / val_num)**2
+    if(val_den != 0.0):
+        rel_err2 += (err_den / val_den)**2
+    ratio_err = abs(ratio) * ROOT.TMath.Sqrt(rel_err2)
+    return ratio, ratio_err
+  
+# ------------------------------------------------------------
+# Core: read histograms and compute per-nominal-bin outputs
+# ------------------------------------------------------------
+
+def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, write_full_diagnostics=False):
+    # Self-contained function:
+    #   - opens the ROOT file (default: args.root_file_out)
+    #   - reads TH2 histograms
+    #   - computes avg vs center per nominal (Q2y, zpt, phi_nom)
+    #   - writes ONE number per nominal bin to JSON (plus optional diagnostics)
+    root_path = args.root_file_out
+    verbose   = args.verbose
+    if((root_path is None) or (str(root_path).strip() == "")):
+        raise ValueError("Compute_BC_Factors_From_SubBin_Histograms(...): empty root_path")
+    if(not os.path.exists(root_path)):
+        raise FileNotFoundError(f"ROOT file does not exist: {root_path}")
+
+    num_sub_bins = int(args.num_sub_bins)
+    Nsub = int(num_sub_bins**5)
+    full_center_idx = int((Nsub)/2)+1
+    
+    # Output: one value per nominal bin
+    out = {"meta": { "root_file": str(root_path), "num_sub_bins": int(num_sub_bins), "Nsub_per_nominal_bin": int(Nsub), "center_subbin": int(full_center_idx),
+                     "definition": {"bc_factor": "avg_subbin_content / center_subbin_content", "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)"}
+                   },
+           "results":       {},
+           "full_contents": {}
+          }
+
+    print(f"\n{color.BBLUE}Opening ROOT file: {color.BPINK}{root_path}{color.END}")
+    if(verbose):
+        print(f"\tnum_sub_bins={num_sub_bins}  => Nsub={Nsub}")
+        print(f"\tcenter Full_SUB_BIN_idx={full_center_idx}")
+    print("")
+    
+    fin = ROOT.TFile.Open(str(root_path), "READ")
+    if((fin is None) or (fin.IsZombie())):
+        raise RuntimeError(f"Failed to open ROOT file: {root_path}")
+        
+    # Collect all TH2 histograms by iterating keys
+    keys = fin.GetListOfKeys()
+    hist_names = []
+    for key in keys:
+        name = str(key.GetName())
+        obj_class = str(key.GetClassName())
+        if("TH2" in obj_class):
+            hist_names.append(name)
+    if(verbose):
+        print(f"Found {len(hist_names)} TH2 histograms in file")
+
+    Count_of_Nominal_Bins = 0
+    for hist_name in sorted(hist_names): # Loop histograms
+        h = fin.Get(hist_name)
+        if(h is None):
+            continue
+        Q2_y_Bin, z_pT_Bin, nsub_in_name = parse_histogram_name(hist_name)
+        if(None in [Q2_y_Bin, z_pT_Bin]):
+            if(verbose):
+                print(f"\t{color.RED}Skipping unrecognized histogram name: {color.ERROR}{hist_name}{color.END}")
+            continue
+        if((args.Q2_y_Bin not in [-1, None, Q2_y_Bin]) or (args.z_pT_Bin not in [-1, None, z_pT_Bin])):
+            if(verbose):
+                print(f"\t{color.RED}Skipping unselected histogram bin: {color.ERROR}{hist_name}{color.END}")
+            continue
+          
+        if((nsub_in_name is not None) and (int(nsub_in_name) != int(num_sub_bins))):
+            print(f"\n{color.Error}WARNING: num_sub_bins mismatch in {hist_name}: name has {nsub_in_name}, args has {num_sub_bins}{color.END}\n")
+            raise ValueError("Compute_BC_Factors_From_SubBin_Histograms Warning: num_sub_bins mismatch in hist_name.")
+
+        xax = h.GetXaxis()
+        yax = h.GetYaxis()
+        for phi_nom in range(1, 24 + 1):
+            phibin = yax.FindBin(phi_nom)
+            if((phibin < 1) or (phibin > yax.GetNbins())):
+                continue
+            nom_key = f"Bin ({Q2_y_Bin}-{z_pT_Bin}-{phi_nom})"
+            out["results"][nom_key] = {}
+            if(args.phih_Bin not in [None, -1, phibin]):
+                if(verbose):
+                    print(f"\t{color.RED}Skipping unselected Nominal Bin: {color.ERROR}{nom_key}{color.END}")
+                continue
+            nonBinContentsList = []
+            nonBin_Errors_List = []
+            for sbinval in range(1, Nsub + 1):
+                sbin = xax.FindBin(sbinval)
+                if((sbin < 1) or (sbin > xax.GetNbins())):
+                    continue
+                content = h.GetBinContent(sbin, phibin)
+                error   = h.GetBinError(sbin, phibin)
+                if(write_full_diagnostics or (sbinval in [full_center_idx])):
+                    sub_bin_key = f"Nominal {nom_key}-(SubBin={sbinval})"
+                    out["full_contents"][sub_bin_key] = {"Content": content, "Error": error}
+                    if(sbinval in [full_center_idx]):
+                        out["results"][nom_key]["Center Sub-Bin"] = {"Content": content, "Error": error}
+                nonBinContentsList.append(content)
+                nonBin_Errors_List.append(error)
+            out["results"][nom_key].update(mean_and_weighted_mean(nonBinContentsList, nonBin_Errors_List))
+            BC_norm, BC_norm_err = BC_ratio_and_error(out["results"][nom_key]["ave"],          out["results"][nom_key]["ave_err"],          out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
+            BC_Wave, BC_Wave_err = BC_ratio_and_error(out["results"][nom_key]["weighted_ave"], out["results"][nom_key]["weighted_ave_err"], out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
+            out["results"][nom_key].update({"BC_Factor": BC_norm, "BC_Factor_Err": BC_norm_err, "BC_Factor_Wave": BC_Wave, "BC_Factor_Wave_Err": BC_Wave_err})
+            Count_of_Nominal_Bins += 1
+        if(verbose):
+            print(f"{color.BBLUE}Processed histogram for (Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}){color.END_B} -> 24 nominal phi bins{color.END}")
+        print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+
+    fin.Close()
+    print(f"\n{color.BGREEN}Done Accessing the ROOT File{color.END_B} (Total Num of Nominal Bins Processed = {Count_of_Nominal_Bins}){color.END}")
+    if(not args.test):
+        print(f"{color.BBLUE}Saving To JSON File: {color.BPINK}{args.json_file_out}{color.END}")
+        save_dict_to_json(data_to_save=out, json_file=args.json_file_out)
+        timer.time_elapsed()
+    elif(args.verbose):
+        print(f"\n{color.RED}Running as a test (no JSON file save)...{color.END}\n")
+        timer.time_elapsed()
+    else:
+        print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
+    return out, Count_of_Nominal_Bins
+
+
+
+
 
 if(__name__ == "__main__"):
     
@@ -757,43 +940,45 @@ if(__name__ == "__main__"):
     if(args.test):
         print(f"\t{color.Error}Running as a test of the script...{color.END}\n")
 
-    if(args.use_file_name and ("*" not in str(args.file))):
-        name_insert = str(args.file).split("/")[-1]
-        name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
-        args.json_file_out = str(args.json_file_out).replace(".json", f"_{name_insert}.json")
-        args.root_file_out = str(args.root_file_out).replace(".root", f"_{name_insert}.root")
-        if(args.verbose):
-            print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
-    elif(args.use_file_name and args.verbose):
-        print(f"\n{color.Error}Will Not Update Output File Names if multiple files are inputed at the same time.{color.END}")
-        
-    
-    gdf = Load_RDataFrame(args)
-    
-    if(args.check_dataframe):
-        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
-        for num, ii in enumerate(gdf.GetColumnNames()):
-            print(f"{num:>3.0f}) {str(ii).ljust(38)} (type -> {gdf.GetColumnType(ii)})")
-        print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
-        # mn  = gdf.Min("Full_SUB_BIN_idx").GetValue()
-        # mx  = gdf.Max("Full_SUB_BIN_idx").GetValue()
-        # print(f"Full_SUB_BIN_idx \n min: {mn}\nmax: {mx}")
-        # mn  = gdf.Min("Q2_y_SUB_BINs").GetValue()
-        # mx  = gdf.Max("Q2_y_SUB_BINs").GetValue()
-        # print(f"Q2_y_SUB_BINs \n min: {mn}\nmax: {mx}")
-        # mn  = gdf.Min("z_pT_SUB_BINs").GetValue()
-        # mx  = gdf.Max("z_pT_SUB_BINs").GetValue()
-        # print(f"z_pT_SUB_BINs \n min: {mn}\nmax: {mx}")
-        # mn  = gdf.Min("phi_t_SUB_BINs").GetValue()
-        # mx  = gdf.Max("phi_t_SUB_BINs").GetValue()
-        # print(f"phi_t_SUB_BINs \n min: {mn}\nmax: {mx}")
-
     List_of_BCBins, Total_Num_SBin = {}, 0
-    if(args.histogram):
-        List_of_BCBins = Create_Histograms_for_BC(args)
-        Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
+    if(args.get_BC_factors):
+        List_of_BCBins, Total_Num_SBin = Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, write_full_diagnostics=False)
     else:
-        List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
+        if(args.use_file_name and ("*" not in str(args.file))):
+            name_insert = str(args.file).split("/")[-1]
+            name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
+            args.json_file_out = str(args.json_file_out).replace(".json", f"_{name_insert}.json")
+            args.root_file_out = str(args.root_file_out).replace(".root", f"_{name_insert}.root")
+            if(args.verbose):
+                print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
+        elif(args.use_file_name and args.verbose):
+            print(f"\n{color.Error}Will Not Update Output File Names if multiple files are inputed at the same time.{color.END}")
+            
+        gdf = Load_RDataFrame(args)
+        
+        if(args.check_dataframe):
+            print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+            for num, ii in enumerate(gdf.GetColumnNames()):
+                print(f"{num:>3.0f}) {str(ii).ljust(38)} (type -> {gdf.GetColumnType(ii)})")
+            print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
+            # mn  = gdf.Min("Full_SUB_BIN_idx").GetValue()
+            # mx  = gdf.Max("Full_SUB_BIN_idx").GetValue()
+            # print(f"Full_SUB_BIN_idx \n min: {mn}\nmax: {mx}")
+            # mn  = gdf.Min("Q2_y_SUB_BINs").GetValue()
+            # mx  = gdf.Max("Q2_y_SUB_BINs").GetValue()
+            # print(f"Q2_y_SUB_BINs \n min: {mn}\nmax: {mx}")
+            # mn  = gdf.Min("z_pT_SUB_BINs").GetValue()
+            # mx  = gdf.Max("z_pT_SUB_BINs").GetValue()
+            # print(f"z_pT_SUB_BINs \n min: {mn}\nmax: {mx}")
+            # mn  = gdf.Min("phi_t_SUB_BINs").GetValue()
+            # mx  = gdf.Max("phi_t_SUB_BINs").GetValue()
+            # print(f"phi_t_SUB_BINs \n min: {mn}\nmax: {mx}")
+
+        if(args.histogram):
+            List_of_BCBins = Create_Histograms_for_BC(args)
+            Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
+        else:
+            List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
     args.email_message = f"""{args.email_message}
     
 The Total Number of {'Histograms Created' if(args.histogram) else 'Sub-bins Collected'} = {Total_Num_SBin}
