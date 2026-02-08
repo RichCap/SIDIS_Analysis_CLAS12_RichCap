@@ -13,7 +13,7 @@ function display_help {
     echo "Options:"
     echo "  -o  Optional: The directory where the output will be saved."
     echo "                      If not specified, the current working directory is used."
-    echo "  -s  Optional: Identifier for input filenames. Defaults to 'inb-clasdis'."
+    echo "  -s  Optional: Identifier for input filenames. Defaults to 'inb-clasdis'. Put 'empty' if the files have no name string (will rename the output file to 'nb-clasdis-Q2_1.5')."
     echo "  -i  Optional: FULL path to search for input files. If provided, this REPLACES the default input directory."
     echo "  -n  Optional: Expected file total per group (used for percentage calc). Defaults to 2000."
     echo "  -h, --help          Display this help message and exit."
@@ -106,9 +106,15 @@ count=0
 
 # Loop to process the files
 for i in $(seq 0 9); do
-    input_files="${input_directory}/${string_identifier}-${job_id}-*${i}.hipo"
-    safe_string_identifier="${string_identifier//\*/}" # Remove '*' from string_identifier only for output_file naming
-    output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
+    if [[ "$string_identifier" == "empty" ]]; then
+        input_files="${input_directory}/${job_id}-*${i}.hipo"
+        safe_string_identifier="nb-clasdis-Q2_1.5"
+        output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
+    else
+        input_files="${input_directory}/${string_identifier}-${job_id}-*${i}.hipo"
+        safe_string_identifier="${string_identifier//\*/}" # Remove '*' from string_identifier only for output_file naming
+        output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
+    fi
 
     if [ "$test_mode" = true ]; then
         # Count the number of input files
