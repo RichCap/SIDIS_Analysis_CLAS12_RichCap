@@ -116,7 +116,7 @@ class RuntimeTimer:
         self.end_time = datetime.now()
         formatted_time = self._format_time(self.end_time)
         current_time = f"\nCurrent Time: {color.BOLD}{formatted_time}{color.END}"
-        print()
+        # print()
         delta = self.end_time - self.start_time
         total_seconds = int(delta.total_seconds())
         days = delta.days
@@ -2078,7 +2078,7 @@ def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_y_bin", Common
         skip_condition_y_bins_return = skip_condition_y_bins_return or  (((Q2_Y_BIN in [15, 16, 17]) and (Z_PT_BIN in [20])))
         return skip_condition_y_bins_return
     elif("Y_bin" in BINNING_METHOD):
-        skip_condition_Y_bins_return = (Z_PT_BIN in Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_BIN)[2])
+        skip_condition_Y_bins_return = (Z_PT_BIN in Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_BIN)[2]) or (Z_PT_BIN > Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_BIN)[1])
         return skip_condition_Y_bins_return
     else:
         return False
