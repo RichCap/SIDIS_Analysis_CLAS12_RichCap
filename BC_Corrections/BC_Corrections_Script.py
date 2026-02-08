@@ -74,6 +74,24 @@ def parse_args():
                         type=str,
                         help='Output JSON file where the bin contents will be saved.')
 
+    parser.add_argument('-hi', '-histo', '--histogram',
+                        action='store_true',
+                        help='Use ROOT histograms to get the weighted bin contents per sub-bin (instead of the per-bin sum of weight counts).')
+
+    parser.add_argument('-rf', '--root_file_out',
+                        default="ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root",
+                        type=str,
+                        help="Output ROOT file where the sub-bin histograms will be saved if the '--histogram' option is selected.")
+
+    parser.add_argument('-ufn', '--use_file_name',
+                        action='store_true',
+                        help="If the '--file' argument does not include a '*' in its path, this argument will assume that a single file is being used and that it should be added to the output JSON or ROOT file's names (the default option of just using the '--json_file_out' and '--root_file_out' will be applied if multiple files are given)")
+    
+    parser.add_argument('-ht', '--histo_title',
+                        default="",
+                        type=str,
+                        help="Optional histogram title addition (use with the '--histogram' option).")
+
     parser.add_argument('-e', '--email',
                         action='store_true', 
                         help='Send Email message when the script finishes running.')
@@ -155,15 +173,19 @@ Ran with the following arguments:
 --test                          --> {args.test}
 --use_clasdis                   --> {args.use_clasdis}
 --num_sub_bins                  --> {args.num_sub_bins}
---Q2_y_Bin                      --> {args.Q2_y_Bin}
---z_pT_Bin                      --> {args.z_pT_Bin}
---phih_Bin                      --> {args.phih_Bin}
---file                          --> {args.file}
+--file                (Input)   --> {args.file}
 --check_dataframe               --> {args.check_dataframe}
 --verbose                       --> {args.verbose}
 --json_weights                  --> {args.json_weights}
---json_file_in                  --> {args.json_file_in}
---json_file_out                 --> {args.json_file_out}
+--json_file_in      {'          ' if(args.json_weights) else '(Not Used)'}  --> {args.json_file_in}
+--histogram                     --> {args.histogram}
+--use_file_name                 --> {args.use_file_name}
+--Q2_y_Bin                      --> {args.Q2_y_Bin}
+--z_pT_Bin                      --> {args.z_pT_Bin}{f'''
+--phih_Bin                      --> {args.phih_Bin}
+--json_file_out                 --> {args.json_file_out}''' if(not args.histogram) else f'''
+--root_file_out                 --> {args.root_file_out}
+--histo_title                   --> "{args.histo_title}"'''}
 
 {end_time}
 {total_time}
@@ -297,7 +319,7 @@ def Load_RDataFrame(args):
     print(f"\n{color.BBLUE}Running with File: {color.BPINK}{args.file.split('/')[-1]}{color.END}\n")
     gdf = ROOT.RDataFrame("h22", str(args.file))
     if(any(var not in gdf.GetColumnNames() for var in ["Q2", "y", "z", "pT", "phi_t"])):
-        print(f"{color.ERROR}WARNING{color.END}{color.Error}:{color.END_B} ROOT file is missing the kinematic variables.{color.END}\n")
+        print(f"{color.RED}WARNING{color.END}: ROOT file is missing the kinematic variables.\n")
         ROOT.gInterpreter.Declare(Rotation_Matrix)
         gdf = gdf.Define("vals", """
 auto beam    = ROOT::Math::PxPyPzMVector(0, 0, 10.6, 0);
@@ -603,8 +625,8 @@ def Get_Bin_Contents_for_BC(args):
         gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
         for                 z_pT_Bin in z_pT_Bin_Range:
             if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                if(z_pT_Bin < 35):
-                    print(f"{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+                if(args.verbose and (z_pT_Bin < 35)):
+                    print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
                 continue
             gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
             for             phih_bin in phih_Bin_Range:
@@ -629,6 +651,83 @@ def Get_Bin_Contents_for_BC(args):
                 List_of_BCBins, SumOfWeights_L, Full_Run__List = Evaluate_Weights(List_of_BCBins, SumOfWeights_L, Full_Run__List, args, timer)
     print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {Total_Num_SBin}){color.END}")
     return List_of_BCBins, Total_Num_SBin
+
+
+
+def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
+    # Build ONE TH2D for a single (Q2_y_Bin, z_pT_Bin)
+    #   X axis: Full_SUB_BIN_idx
+    #   Y axis: phi_t_bin (1..24)
+    #   Weight: Event_Weight
+    Nsub = int(args.num_sub_bins**5)
+    hist_name   = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
+    hist_titl   = f"#splitline{{{root_color.Bold}{{Generated #phi_{{h}} vs Sub-Bin Indexes from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
+    hist_titl   = f"#splitline{{{hist_titl}}}{{Made for Q^{{2}}-y-z-P_{{T}} Bin: ({Q2_y_Bin}-{z_pT_Bin})}}"
+    hist_titl   = f"#splitline{{{hist_titl}}}{{Number of Sub-Bins Per Variable = {args.num_sub_bins}}}"
+    if(args.json_weights):
+      hist_titl = f"#splitline{{{hist_titl}}}{{Used Injected Modulation Weights}}"
+    if(args.histo_title not in ["", None]):
+      hist_titl = f"#splitline{{{hist_titl}}}{{{args.histo_title}}}"
+    hist_titl   = f"{hist_titl}; Sub-Bin Indexes; #phi_{{h}} Bins"
+    hmodel      = (hist_name, hist_titl, int(Nsub+2), -0.5, Nsub+1.5, 24, 0.5, 24.5)
+    hist_ptr    = gdf.Histo2D(hmodel, "Full_SUB_BIN_idx", "phi_t_bin", "Event_Weight")
+    return hist_ptr
+    
+
+def Create_Histograms_for_BC(args):
+    print(f"\n{color.BGREEN}Creating Sub-Bin Histograms...{color.END}\n")
+    List_of_Histos = {}
+    Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
+    z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
+    for     Q2_y_Bin in Q2_y_Bin_Range:
+        gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
+        for z_pT_Bin in z_pT_Bin_Range:
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                if(args.verbose and (z_pT_Bin < 35)):
+                    print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+                continue
+            gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
+            Nominal_bin_name = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
+            List_of_Histos[Nominal_bin_name] = Make_SubBin_TH2_SumW(gdf_Q2_y_Bin, args, Q2_y_Bin, z_pT_Bin)
+    print(f"\n{color.BBLUE}Done Creating All Sub-bin Histograms {color.END_B}(Total = {len(List_of_Histos)}){color.END}")
+    print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    return List_of_Histos
+
+
+def Evaluate_And_Write_Histograms(hist_ptrs, args):
+    # Evaluate all booked histograms in ONE trigger, then write them all at once
+    # hist_ptrs can be either:
+    #   (A) dict: {"Histogram Bin (Q2y-zpt)": RResultPtr<TH2D>, ...}
+    #   (B) list/tuple: [RResultPtr<TH2D>, ...]
+    if(args.test):
+        print(f"\n{color.BLUE}Would have saved the ROOT file as: {color.ERROR}{args.root_file_out}{color.END}")
+        return len(hist_ptrs)
+    if(isinstance(hist_ptrs, dict)):
+        ptr_list = [hist_ptrs[key] for key in sorted(hist_ptrs.keys())]
+    else:
+        ptr_list = list(hist_ptrs)
+    if((ptr_list is None) or (len(ptr_list) == 0)):
+        raise ValueError("Evaluate_And_Write_Histograms(...): hist_ptrs is empty")
+    out_path = str(args.root_file_out)
+    out_dir  = os.path.dirname(os.path.abspath(out_path))
+    if((out_dir != "") and (not os.path.exists(out_dir))):
+        os.makedirs(out_dir, exist_ok=True)
+    write_mode = "UPDATE" if(os.path.exists(out_path)) else "RECREATE"
+    print(f"\n{color.BBLUE}{'Updating the' if(write_mode == 'UPDATE') else 'Creating a new'} ROOT file: {color.BPINK}{args.root_file_out}{color.END}")
+    print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    ROOT.RDF.RunGraphs(ptr_list)
+    print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    fout = ROOT.TFile(out_path, write_mode)
+    if((fout is None) or (fout.IsZombie())):
+        raise RuntimeError(f"Evaluate_And_Write_Histograms(...): failed to open ROOT file: {out_path}")
+    fout.cd()
+    for ptr in ptr_list:
+        hist = ptr.GetValue()
+        # hist.Sumw2(True)
+        hist.Write("", ROOT.TObject.kOverwrite)
+    fout.Close()
+    print(f"\n{color.BGREEN}ROOT FILE HAS BEEN SAVED{color.END}\n")
+    return len(hist_ptrs)
 
 
 
@@ -657,6 +756,17 @@ if(__name__ == "__main__"):
 
     if(args.test):
         print(f"\t{color.Error}Running as a test of the script...{color.END}\n")
+
+    if(args.use_file_name and ("*" not in str(args.file))):
+        name_insert = str(args.file).split("/")[-1]
+        name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
+        args.json_file_out = str(args.json_file_out).replace(".json", f"_{name_insert}.json")
+        args.root_file_out = str(args.root_file_out).replace(".root", f"_{name_insert}.root")
+        if(args.verbose):
+            print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
+    elif(args.use_file_name and args.verbose):
+        print(f"\n{color.Error}Will Not Update Output File Names if multiple files are inputed at the same time.{color.END}")
+        
     
     gdf = Load_RDataFrame(args)
     
@@ -679,10 +789,14 @@ if(__name__ == "__main__"):
         # print(f"phi_t_SUB_BINs \n min: {mn}\nmax: {mx}")
 
     List_of_BCBins, Total_Num_SBin = {}, 0
-    List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
+    if(args.histogram):
+        List_of_BCBins = Create_Histograms_for_BC(args)
+        Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
+    else:
+        List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
     args.email_message = f"""{args.email_message}
     
-The Total Number of Sub-bins Collected = {Total_Num_SBin}
+The Total Number of {'Histograms Created' if(args.histogram) else 'Sub-bins Collected'} = {Total_Num_SBin}
 """
     Construct_Email(args, timer)
     
