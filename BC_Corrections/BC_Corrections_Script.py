@@ -452,6 +452,7 @@ return vals2;""")
     
     print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}({color.ERROR}{args.num_sub_bins}{color.END_B} per variable){color.END}\n")
     Find_Q2_y_Bin_Ranges = """
+if(Q2_Y_Bin < 1) { return -1; }
 double q2min=0., q2max=0., ymin=0., ymax=0.;
 // --- Q2 range from bin ---
 if      (Q2_Y_Bin>= 1 && Q2_Y_Bin<= 4)  { q2min=2.0; q2max=2.4; }
@@ -480,7 +481,9 @@ else if (Q2_Y_Bin == 4 || Q2_Y_Bin == 8 || Q2_Y_Bin ==12)                       
     }}
     return -1; // Error (Should have returned already...)
     """)
-    gdf = gdf.Define("z_pT_SUB_BINs", f"""{New_z_pT_and_MultiDim_Binning_Code}
+    gdf = gdf.Define("z_pT_SUB_BINs", f"""
+if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
+{New_z_pT_and_MultiDim_Binning_Code}
     // From New_z_pT_and_MultiDim_Binning_Code:
        // z_pT_Bin_Borders[Q2_y_Bin][z_pT_Bin][Border_Num]
         // Border_Num = 0 -> z_max
@@ -512,6 +515,13 @@ else if (Q2_Y_Bin == 4 || Q2_Y_Bin == 8 || Q2_Y_Bin ==12)                       
     else { return 1; } """)
     delta_phi_Sbin = float(15.0/float(args.num_sub_bins))
     gdf = gdf.Define("phi_t_SUB_BINs", f" int((phi_t - 15*(phi_t_bin - 1))/{delta_phi_Sbin}) + 1 ")
+
+    gdf = gdf.Define("Full_SUB_BIN_idx", f"""
+    if( (Q2_y_SUB_BINs < 0) || (z_pT_SUB_BINs < 0) || (phi_t_SUB_BINs < 0) ){{ return -1; }}
+    int q2y_idx = (Q2_y_SUB_BINs - 1)*{args.num_sub_bins}*{args.num_sub_bins};
+    int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.num_sub_bins};
+    return zpT_idx + phi_t_SUB_BINs;
+    """)
     
     Default_Weights = "1.0" if(args.use_clasdis) else "weight"
     if("Event_Weight" in gdf.GetColumnNames()):
@@ -548,6 +558,7 @@ else if (Q2_Y_Bin == 4 || Q2_Y_Bin == 8 || Q2_Y_Bin ==12)                       
     else:
         gdf = gdf.Define("Event_Weight", Default_Weights)
     gdf = gdf.Filter("MM > 1.5") # Apply Missing Mass Cut to exclude the 'exclusive' phase space from my bins
+    gdf = gdf.Filter("(Q2_y_SUB_BINs  != -1) && (z_pT_SUB_BINs  != -1) && (phi_t_SUB_BINs != -1)") # Remove all events outside my nominal binning scheme
     return gdf
 
     
@@ -586,7 +597,7 @@ def Get_Bin_Contents_for_BC(args):
     Full_Run__List = [] # Used to store the sums in `SumOfWeights_L` in a way that is easily calculable at the end of the loops
     Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
     z_pT_Bin_Range = range(1, 37) if(args.z_pT_Bin == -1) else [args.z_pT_Bin]
-    phih_Bin_Range = range(1, 16) if(args.phih_Bin == -1) else [args.phih_Bin]
+    phih_Bin_Range = range(1, 25) if(args.phih_Bin == -1) else [args.phih_Bin]
     Total_Num_SBin = 0
     for                     Q2_y_Bin in Q2_y_Bin_Range:
         gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
@@ -654,7 +665,18 @@ if(__name__ == "__main__"):
         for num, ii in enumerate(gdf.GetColumnNames()):
             print(f"{num:>3.0f}) {str(ii).ljust(38)} (type -> {gdf.GetColumnType(ii)})")
         print(f"\tTotal length= {len(gdf.GetColumnNames())}\n\n")
-    
+        # mn  = gdf.Min("Full_SUB_BIN_idx").GetValue()
+        # mx  = gdf.Max("Full_SUB_BIN_idx").GetValue()
+        # print(f"Full_SUB_BIN_idx \n min: {mn}\nmax: {mx}")
+        # mn  = gdf.Min("Q2_y_SUB_BINs").GetValue()
+        # mx  = gdf.Max("Q2_y_SUB_BINs").GetValue()
+        # print(f"Q2_y_SUB_BINs \n min: {mn}\nmax: {mx}")
+        # mn  = gdf.Min("z_pT_SUB_BINs").GetValue()
+        # mx  = gdf.Max("z_pT_SUB_BINs").GetValue()
+        # print(f"z_pT_SUB_BINs \n min: {mn}\nmax: {mx}")
+        # mn  = gdf.Min("phi_t_SUB_BINs").GetValue()
+        # mx  = gdf.Max("phi_t_SUB_BINs").GetValue()
+        # print(f"phi_t_SUB_BINs \n min: {mn}\nmax: {mx}")
 
     List_of_BCBins, Total_Num_SBin = {}, 0
     List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
