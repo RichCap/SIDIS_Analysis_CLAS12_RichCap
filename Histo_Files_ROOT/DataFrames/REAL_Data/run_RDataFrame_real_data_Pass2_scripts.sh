@@ -7,10 +7,10 @@
 # -------------------------------------------------------------------
 
 # Base job name (change this to suit your naming convention)
-JOB_BASE="FC14_rdf_DF_7_28_2025_Run1_Sector_Tests_V2"
+JOB_BASE="FC14_rdf_DF_2_8_2026_Run1_PID_Tests_V1"
 
 # Glob of input files
-FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new5.nSidis_005*)
+FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new7.nSidis_005*)
 
 # Path to your Python script
 CMD="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./dataframe_makeROOT_epip_SIDIS.py"
@@ -26,7 +26,7 @@ for idx in "${!FILES[@]}"; do
     echo "=== Processing [$idx] $file ==="
     
     # Run the command, overwrite any existing logs for this file
-    "$CMD" -s rdf -f "$file" > "$LOG_FILE" 2> "$ERR_FILE"
+    "$CMD" -v  -s rdf -f "$file" > "$LOG_FILE" 2> "$ERR_FILE"
     
     # Print the entire contents of the logs so you see everything as it happened
     echo "--- stdout ($LOG_FILE) ---"

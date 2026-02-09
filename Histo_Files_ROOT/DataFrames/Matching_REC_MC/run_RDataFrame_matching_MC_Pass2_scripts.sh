@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 
 # Base job name (change this to suit your naming convention)
-JOB_BASE="FC14_mdf_DF_11_13_2025_Run1_Acceptance_Tests_V4"
+JOB_BASE="FC14_mdf_DF_2_8_2026_Run1_PID_Tests_V1"
 
 
 EMAIL="richard.capobianco@uconn.edu"
@@ -16,7 +16,7 @@ START_TIME="Started Running at:  $(date)"
 PROCESSED_FILES=""
 
 # Glob of input files
-FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5*.inb-clasdis*_*)
+FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new7*clasdis*)
 # # FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5*.inb-clasdis*)
 # FILES=(/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-8683_*
 #        /w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-8684_*
@@ -80,7 +80,7 @@ for idx in "${!FILES[@]}"; do
     echo "=== Processing [$idx] $file ==="
     
     # Run the command, overwrite any existing logs for this file
-    "$CMD" -s mdf -f "$file" > "$LOG_FILE" 2> "$ERR_FILE"
+    "$CMD" -v -s mdf -f "$file" > "$LOG_FILE" 2> "$ERR_FILE"
 
     # Record the completion for this file
     PROCESSED_FILES+="$file (Done at: $(date))"$'\n'
