@@ -44,8 +44,10 @@ def main():
 
     fixed_args = [script_path, "-q", "-v", "pT", "-m", "z", "-u-z-pT"]
 
-    mmods = [2, 0, 1]
-    plots = ["sf_cos_sel", "sf_cos2_sel"]
+    # mmods = [2, 0, 1]
+    mmods = [2, 0]
+    # plots = ["sf_cos_sel", "sf_cos2_sel"]
+    plots = ["fit_b", "fit_c"]
     q2y_bins = range(1, 18)
 
     total_commands = 0
