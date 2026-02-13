@@ -10,6 +10,8 @@ PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",  
                             "MM2":                ["MM2",           "MM2_gen",   "MM2_smeared"],
                             "Event":              ["event",            "runN",    "beamCharge"],
                             "SmearingCorrection": ["DP_el_SF", "DP_el_SF_smeared",  "DP_pip_SF", "DP_pip_SF_smeared", "Dele_SF",  "Delta_Pel_Cors",         "Delta_Pel_Cors_smeared",  "Delta_Ppip_Cors", "Delta_Ppip_Cors_smeared",         "Delta_Theta_el_Cors", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors", "Delta_Theta_pip_Cors_smeared", "Dpip_SF", "Energy_Loss_Cor_Factor"],
+                            "FiducialCutParts":   ["CHI2PID_CUT_loose_pip", "CHI2PID_CUT_mid_pip", "CHI2PID_CUT_pass1_pip", "CHI2PID_CUT_tight_pip", "DC_FIDUCIAL_REG1_loose_el", "DC_FIDUCIAL_REG1_loose_pip", "DC_FIDUCIAL_REG1_mid_el", "DC_FIDUCIAL_REG1_mid_pip", "DC_FIDUCIAL_REG1_pass1_el", "DC_FIDUCIAL_REG1_pass1_pip", "DC_FIDUCIAL_REG1_tight_el", "DC_FIDUCIAL_REG1_tight_pip", "DC_FIDUCIAL_REG2_loose_el", "DC_FIDUCIAL_REG2_loose_pip", "DC_FIDUCIAL_REG2_mid_el", "DC_FIDUCIAL_REG2_mid_pip", "DC_FIDUCIAL_REG2_pass1_el", "DC_FIDUCIAL_REG2_pass1_pip", "DC_FIDUCIAL_REG2_tight_el", "DC_FIDUCIAL_REG2_tight_pip", "DC_FIDUCIAL_REG3_loose_el", "DC_FIDUCIAL_REG3_loose_pip", "DC_FIDUCIAL_REG3_mid_el", "DC_FIDUCIAL_REG3_mid_pip", "DC_FIDUCIAL_REG3_pass1_el", "DC_FIDUCIAL_REG3_pass1_pip", "DC_FIDUCIAL_REG3_tight_el", "DC_FIDUCIAL_REG3_tight_pip", "DC_VERTEX_loose_el", "DC_VERTEX_mid_el", "DC_VERTEX_pass1_el", "DC_VERTEX_tight_el", "DELTA_VZ_loose_pip", "DELTA_VZ_mid_pip", "DELTA_VZ_pass1_pip", "DELTA_VZ_tight_pip", "EC_FIDUCIAL_loose_el", "EC_FIDUCIAL_mid_el", "EC_FIDUCIAL_pass1_el", "EC_FIDUCIAL_tight_el", "EC_OUTER_VS_INNER_loose_el", "EC_OUTER_VS_INNER_mid_el", "EC_OUTER_VS_INNER_pass1_el", "EC_OUTER_VS_INNER_tight_el", "EC_SAMPLING_BAND_loose_el", "EC_SAMPLING_BAND_mid_el", "EC_SAMPLING_BAND_tight_el", "EC_SAMPLING_THRESHOLD_loose_el", "EC_SAMPLING_THRESHOLD_mid_el", "EC_SAMPLING_THRESHOLD_tight_el", "EC_SAMPLING_TRIANGLE_mid_el", "EC_SAMPLING_pass1_el", "EC_SAMPLING_pass2_el", "Full_default_el", "Full_default_pip", "Full_pass1_el", "Full_pass1_pip", "Min_PID_check_el", "Min_PID_check_pip"],
+                            "CutRefinements":     ["CHI2PID_CUT_strict_pip", "EC_SAMPLING_TRIANGLE_pass1_el", "My_pip_DC_Fiducial_Cuts_Layer_18", "My_pip_DC_Fiducial_Cuts_Layer_36", "My_pip_DC_Fiducial_Cuts_Layer_6", "Sector_PCal_Fiducial_Cuts", "Valerii_DC_Fiducial_Cuts_ele_DC_18", "Valerii_DC_Fiducial_Cuts_ele_DC_18_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_18_tight", "Valerii_DC_Fiducial_Cuts_ele_DC_36", "Valerii_DC_Fiducial_Cuts_ele_DC_36_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_36_tight", "Valerii_DC_Fiducial_Cuts_ele_DC_6", "Valerii_DC_Fiducial_Cuts_ele_DC_6_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_6_tight", "Valerii_PCal_Fiducial_Cuts", "Valerii_PCal_Fiducial_Cuts_loose", "Valerii_PCal_Fiducial_Cuts_tight", "valerii_PCAL_knockout_cut"],
 }
 
 parser = argparse.ArgumentParser(description="Make ROOT output from SIDIS RDataFrame: histo/data/tree/test/time")
@@ -23,6 +25,7 @@ parser.add_argument('-o', '--output-type', choices=['histo','data','tree','test'
 parser.add_argument('-f','--file', dest='file_location',
                     help='Full path to input file(s)')
 parser.add_argument('-t',      '--test',         action='store_true', help='Same as running "-o time" -> Overwrites "output_type" option')
+parser.add_argument('-v',      '--verbose',      action='store_true', help='Prints more information while running.')
 # flags for your old substring lists:
 parser.add_argument('-s',      '--sidis',        action='store_true', help='Runs only SIDIS Code (ignores the dedicated Momentum Correction/Smearing code)')
 parser.add_argument('-mom',    '--mom-cor',      action='store_true', help='Runs only the Momentum Correction columns/histograms (ignores all unneeded SIDIS code)')
@@ -151,9 +154,12 @@ if("All" not in args.exclude_groups):
             exclude_vars.extend(variables)
     if(len(exclude_vars) != 0):
         exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
-        print(f"\n{color.BYELLOW}{color.UNDERLINE}Will Exclude the following variables from the Snapshot output:{color.END}")
-        for num, ii in enumerate(exclude_vars):
-            print(f"\t{num+1:>3.0f}) {color.BOLD}{ii:>49}{color.END}")
+        if(args.verbose):
+            print(f"\n{color.BYELLOW}{color.UNDERLINE}Will Exclude the following variables from the Snapshot output:{color.END}")
+            for num, ii in enumerate(exclude_vars):
+                print(f"\t{num+1:>3.0f}) {color.BOLD}{ii:>49}{color.END}")
+        else:
+            print("\nUse '--verbose' argument to see the list of excluded variables\n")
     else:
         exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
 else:
@@ -201,14 +207,15 @@ if(str(file_location) == 'all'):
 if(str(file_location) == 'time'):
     print("\nRunning Count. Not saving results...\n")
     
-
+new_variation_cut_mode = False
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num = str(file_location)
-    if(".new6." in file_num):
+    if(any(new_files in file_num for new_files in [".new6.", ".new7."])):
+        new_variation_cut_mode = True
         file_num = (file_num.split("/"))[-1]
         file_num = (file_num.split(".hipo"))[0]
         file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "SIDIS"
-        file_num = (file_num.split(".new6."))[-1]
+        file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7."))[-1]
         file_num = file_num.replace("nSidis_00", "")
         mc = "EvGen_" if("EvGen" in file_num) else ""
         background = "45nA_" if ("45nA" in file_num) else "50nA_" if ("50nA" in file_num) else ""
@@ -409,7 +416,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Common_Name = "Acceptance_Tests_V3_"
             # Ran on 9/18/2025 -> with EvGen
                 # Same as Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_" but without the 'Cut_Configuration_Name' in name
-    
+
+
+    Common_Name = f"PID_Tests{Cut_Configuration_Name}_V1_"
+        # Ran on 2/8/2026
+            # Used updated files ('.new6.' and '.new7.') with PID variation cuts included in the RDataFrame
     
 
     if((datatype in ["rdf"]) and (not Mom_Correction_Q)):
@@ -2498,10 +2509,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     print("Kinematic Variables have been calculated.")
     
     if(output_all_histo_names_Q):
-        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
-        for ii in range(0, len(rdf.GetColumnNames()), 1):
-            print(f"{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-        print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+        if(args.verbose):
+            print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+            for ii in range(0, len(rdf.GetColumnNames()), 1):
+                print(f"{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
+            print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
+        else:
+            print(f"\tTotal length of the RDataFrame= {str(len(rdf.GetColumnNames()))}\n(Use '--verbose' to see each branch)\n")
     
     ###################################################################################################################################################################
     ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
@@ -2511,64 +2525,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ###################################################                  Making Cuts to DataFrames                  ###################################################
     ###################################################################################################################################################################
     
-    
-    def filter_Valerii(Data_Frame, Valerii_Cut, Include_Pion=Use_New_PF):
-        if("Valerii_Cut" in Valerii_Cut or "Complete" in Valerii_Cut):
-            Data_Frame_Clone = Data_Frame.Filter("".join(["""
-                auto func = [&](double x, double k, double b){
-                    return k * x + b;
-                };
-                struct line{
-                    double k;
-                    double b;
-                };
-                auto isOutOfLines = [&](double x, double y, line topLine, line botLine){
-                    return y > func(x, topLine.k, topLine.b) || y < func(x, botLine.k, botLine.b);
-                };
-                auto BadElementKnockOut = [&](double hx, double hy, int sector, int cutLevel){
-                    double widthChange = 0;
-                    if (cutLevel == 0)  widthChange = -1;
-                    if (cutLevel == 2)  widthChange = 1;
-                    if (sector == 5) return true;
-                    if (sector == 1){
-                        double k = tan(29.5*3.1415/180);
-                        double b = -92;
-                        bool test_sec_1 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 9.1} , {k, b - widthChange - 9.1 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127} , {k, b - widthChange - 127 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127 - 8} , {k, b - widthChange -127 - 8 - 2.4}) );
-                               
-                        return test_sec_1;       
-                    }
-                    if (sector == 2){
-                        double k = tan(30.4*3.1415/180);
-                        double b = 120.5;
-                        bool test_sec_2 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 4.4}));
-                        return test_sec_2;
-                    }
-                    if (sector == 3){
-                        bool test_sec_3 = ((hx - widthChange) > - 303 || (hx + widthChange) < -310);
-                        return test_sec_3;
-                    }
-                    if (sector == 4){
-                        double k = tan(-29.6*3.1415/180);
-                        double b = -232.8;
-                        bool test_sec_4 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 3.5}));
-                        
-                        return test_sec_4;
-                    }
-                    if (sector == 6){
-                        double k = tan(-30.6*3.1415/180);
-                        double b = -185;
-                        
-                        bool test_sec_6 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 2}) && isOutOfLines(hx, hy, {k, b + widthChange - 8.3} , {k, b - widthChange - 8.3 - 2.2}) );
-                        
-                        return test_sec_6;
-                    }
-                    return false;
-                };
-                """, "return BadElementKnockOut(Hx, Hy, esec, 1);" if((not Include_Pion) or ("Hpip" in Skipped_Fiducial_Cuts) or True) else "return (BadElementKnockOut(Hx, Hy, esec, 1) && BadElementKnockOut(Hx_pip, Hy_pip, pipsec, 1));"]))
-            return Data_Frame_Clone
-        else:
-            return Data_Frame
-    
+    # See `ExtraAnalysisCodeValues` now for updated version of `filter_Valerii(Data_Frame, Valerii_Cut, Include_Pion=Use_New_PF)`
     
     # Meant for the exclusive ep->eπ+(N) reaction
     def Calculated_Exclusive_Cuts(Smear_Q):
@@ -4476,19 +4433,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 #     # cut_list = []
 #     # cut_list.append('no_cut_Integrate')
 #     # cut_list.append('no_cut_eS1o')
-#     # cut_list.append('no_cut_eS2o')
-#     # cut_list.append('no_cut_eS3o')
-#     # cut_list.append('no_cut_eS4o')
-#     # cut_list.append('no_cut_eS5o')
-#     # cut_list.append('no_cut_eS6o')
 # #     if(not run_Mom_Cor_Code):
 # #         # cut_list.append('no_cut_eS1a')
 # #         cut_list.append('no_cut_eS1o')
-# #         # cut_list.append('no_cut_eS2o')
-# #         # cut_list.append('no_cut_eS3o')
-# #         # cut_list.append('no_cut_eS4o')
-# #         # cut_list.append('no_cut_eS5o')
-# #         # cut_list.append('no_cut_eS6o')
 #     if(datatype not in ["gdf"]):
 #         # cut_list = ['cut_Complete_SIDIS']
 #         cut_list = []
@@ -4513,11 +4460,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 # #         else:
 # #             # cut_list.append('cut_Complete_SIDIS_eS1a')
 # #             cut_list.append('cut_Complete_SIDIS_eS1o')
-# #             # cut_list.append('cut_Complete_SIDIS_eS2o')
-# #             # cut_list.append('cut_Complete_SIDIS_eS3o')
-# #             # cut_list.append('cut_Complete_SIDIS_eS4o')
-# #             # cut_list.append('cut_Complete_SIDIS_eS5o')
-# #             # cut_list.append('cut_Complete_SIDIS_eS6o')
 # #             # # cut_list.append('cut_Complete_MM')
 # #             # cut_list.append('cut_Complete_EDIS')
 #     # if(datatype not in ["rdf"]):
@@ -4559,7 +4501,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # If a Q2-xB bin is missing from this list, then that bin will be skipped when making the histograms
     
     # # binning_option_list = ["", "2"]
-    # # binning_option_list = ["2"]
     # # binning_option_list = ["2", "3"]
     # binning_option_list = ["Off"]
     # # binning_option_list = ["Off", "y_bin"]
@@ -4723,11 +4664,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         for smear_var in smearing_list:
             print(f"{color.BOLD}Getting Smeared version of variable: {color.BLUE}{smear_var}{color.END}")
             rdf = smear_frame_compatible(rdf, smear_var, "smear")
-    
-    print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
-    for ii in range(0, len(rdf.GetColumnNames()), 1):
-        print(f"\t{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-    print(f"\t{color.BOLD}Total length = {len(rdf.GetColumnNames()):>3.0f}{color.END}")
+
+    if(new_variation_cut_mode):
+        print(f"\n{color.BGREEN}Running with variation cuts as branches{color.END}\n")
+        rdf, cut_branches = Define_Cut_Variations_With_Smeared_Kinematics(df_in=rdf, df_type=datatype)
+        if(args.verbose):
+            print(f"{color.Error}Defined Cut Branches as:{color.END}")
+            for CUTNAME, CRITERIA in cut_branches:
+                print(f"\t{color.BOLD}CUTNAME = {color.UNDERLINE}{CUTNAME}{color.END}")
+                print(f"\t\t{color.BYELLOW}CRITERIA ={color.END} {CRITERIA}\n")
+        else:
+            print("\nUse '--verbose' argument to see the cut branch definitions\n")
+
+    if(args.verbose):
+        print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
+        for ii in range(0, len(rdf.GetColumnNames()), 1):
+            print(f"\t{str((rdf.GetColumnNames())[ii]).ljust(38)} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
+        print(f"\t{color.BOLD}Total length = {len(rdf.GetColumnNames()):>3.0f}{color.END}")
+    else:
+        print(f"\t{color.BOLD}Total length of current RDataFrame = {len(rdf.GetColumnNames()):>3.0f}{color.END}")
     print(f"\t{color.BOLD}Will Remove    {len(exclude_vars):>3.0f} Variables based on the 'exclude' list{color.END}\n\n\n")
     if(args.events):
         rdf_test = rdf.Range(args.events)
@@ -4741,7 +4696,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     cols_final, excl = [], 0
     for num, ii in enumerate(cols):
         if(str(ii) in exclude_vars):
-            print(f"\t{color.Error}{0:>3.0f}) {str(ii):>49}{color.END}")
+            if(args.verbose):
+                print(f"\t{color.Error}{0:>3.0f}) {str(ii):>49}{color.END}")
             excl += 1
             continue
         else:
@@ -4757,7 +4713,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     if(args.count_cuts):
         print(f"\n{color.Error}Checking Analysis Cuts (instead of saving output file)...{color.END}")
-        rdf_test = DF_Filter_Function_Full(DF=rdf_test, Variables="Cuts", Titles_or_DF="DF", Data_Type=datatype, Cut_Choice="no_cut" if(datatype in ["gdf"]) else "cut_Complete_SIDIS", Smearing_Q="smear" if("smear" in smearing_options_list) else "")
+        if(not new_variation_cut_mode):
+            rdf_test = DF_Filter_Function_Full(DF=rdf_test, Variables="Cuts", Titles_or_DF="DF", Data_Type=datatype, Cut_Choice="no_cut" if(datatype in ["gdf"]) else "cut_Complete_SIDIS", Smearing_Q="smear" if("smear" in smearing_options_list) else "")
+        else:
+            rdf_test = rdf_test.Filter("cut_Complete_SIDIS")
         count_after = (rdf_test.Count()).GetValue()
         
         print(f"Total Number of Events in the RDataFrame to be saved: {count:>8.0f} (before analysis cut)")
@@ -4783,3 +4742,4 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 else:
     print("\nERROR: No valid datatype selected...\n")
+    

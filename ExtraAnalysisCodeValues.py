@@ -4,7 +4,7 @@ float z_pT_Bin_Borders[18][37][4];
     // Border_Num = 0 -> z_max
     // Border_Num = 1 -> z_min
     // Border_Num = 2 -> pT_max
-    // Border_Num = 4 -> pT_min
+    // Border_Num = 3 -> pT_min
     // (Total of 17 Q2-y bins with defined z-pT borders)
 int Phi_h_Bin_Values[40][37][3];
  // Phi_h_Bin_Values[Q2_y_Bin][z_pT_Bin][Dimension]
@@ -2484,12 +2484,6 @@ Variable Def {color.BOLD}{Particle}_x_DC_{layer}_rot:{color.END} {{
         """)
         if(any(needed_col not in Data_Frame_Input.GetColumnNames()   for needed_col in [f"{Particle}_x_DC_{layer}_rot", f"{Particle}_x_DC_{layer}_rot"])):
             print(f"{color.Error}\nStill missing important variable(s) for the (new) fiducial cuts from Valerii (Cannot make cuts)\n{color.END}")
-            # print(f"{color.BOLD}Variables available:{color.END}")
-            # col_num = 1
-            # for column_name in Data_Frame_Input.GetColumnNames():
-            #     print(f"{col_num})\t{column_name}")
-            #     col_num += 1
-            # del col_num
             return Data_Frame_Input
         if(fidlevel not in ["None", "N/A"]):
             # DC Fiducial Cuts
@@ -2530,13 +2524,22 @@ Variable Def {color.BOLD}{Particle}_x_DC_{layer}_rot:{color.END} {{
                     print(f"Applied Cut:\n{color.BOLD}{Cut_Code_txt}{color.END}\n")
             else:
                 # Creates a new column to flag the events to cut (rather than cut them right away)
-                Data_Frame_Input = Data_Frame_Input.Define(f"Valerii_DC_Fiducial_Cuts_{str(Particle)}_DC_{layer}", Cut_Code_txt)
+                Data_Frame_Input = Data_Frame_Input.Define(f"Valerii_DC_Fiducial_Cuts_{str(Particle)}_DC_{layer}" if(fidlevel == 'mid') else f"Valerii_DC_Fiducial_Cuts_{str(Particle)}_DC_{layer}_{fidlevel}", Cut_Code_txt)
     return Data_Frame_Input
     
     
 # New Fiducial Volume Cuts for the electron in the PCal
     # Up-to-date as of: 7/8/2024
-def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False, show_cut_code=False):
+def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False, show_cut_code=False, cut_level="norm"):
+    cut_dict = {"loose": (14.5,   14.5,   399.5),
+                "norm":  (19,     19,     395),
+                "tight": (23.5,   23.5,   390.5)}
+    if(cut_level not in cut_dict):
+        print(f"{color.Error}Invalid cut_level '{cut_level}', defaulting to 'norm'{color.END}")
+        cut_level = "norm"
+    V_cut, W_cut, U_cut = cut_dict[cut_level]
+    cut_string = f"return ((V_PCal > {V_cut}) && (W_PCal > {W_cut}) && (U_PCal < {U_cut}));"
+    
     # Checking Dataframe for correct columns
     if(any(needed_col not in Data_Frame_Input.GetColumnNames()for needed_col in ["V_PCal", "W_PCal", "U_PCal"])):
         print(f"{color.Error}\nMissing very important variable(s) for the (new) fiducial {color.UNDERLINE}volume{color.END}{color.Error} cuts from Valerii (Cannot make cuts)\n{color.END}")
@@ -2549,12 +2552,12 @@ def Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input, Cut_Flag=False, show_cut
         return Data_Frame_Input
     elif(not Cut_Flag):
         # Applies Cut normally with the Filter() function
-        Data_Frame_Input = Data_Frame_Input.Filter("return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));")
+        Data_Frame_Input = Data_Frame_Input.Filter(cut_string)
         if(show_cut_code):
-            print(f"\n{color.BOLD}Applied PCal Cuts: {color.UNDERLINE}((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395)){color.END}\n")
+            print(f"\n{color.BOLD}Applied PCal Cuts: {color.UNDERLINE}((V_PCal > {V_cut}) && (W_PCal > {W_cut}) && (U_PCal < {U_cut})){color.END}\n")
     else:
         # Creates a new column to flag the events to cut (rather than cut them right away)
-        Data_Frame_Input = Data_Frame_Input.Define("Valerii_PCal_Fiducial_Cuts", "return ((V_PCal > 19) && (W_PCal > 19) && (U_PCal < 395));")
+        Data_Frame_Input = Data_Frame_Input.Define("Valerii_PCal_Fiducial_Cuts" if(cut_level == "norm") else f"Valerii_PCal_Fiducial_Cuts_{cut_level}", cut_string)
     return Data_Frame_Input
 
 
@@ -2658,3 +2661,416 @@ def PID_Histo_Label(Histogram):
     Histogram.GetYaxis().SetLabelSize(0.0375)
     
     return Histogram
+
+
+
+
+
+
+def filter_Valerii(Data_Frame, Valerii_Cut, Include_Pion=False, Cut_Flag=False):
+    # `Include_Pion` is an old arguments which no longer is used in the current version of this function (exist only to preserve compatiblity with older scripts that might still be using the outdated version)
+    # `Valerii_Cut` is a string that tells this function whether or not this cut should be applied when `Cut_Flag=False`
+    valerii_PCAL_knockout_cut = """
+auto func = [&](double x, double k, double b){ return k * x + b; };
+struct line{ double k; double b; };
+auto isOutOfLines = [&](double x, double y, line topLine, line botLine){ return y > func(x, topLine.k, topLine.b) || y < func(x, botLine.k, botLine.b); };
+auto BadElementKnockOut = [&](double hx, double hy, int sector, int cutLevel){
+    double widthChange = 0;
+    if (cutLevel == 0)  widthChange = -1;
+    if (cutLevel == 2)  widthChange = 1;
+    if (sector == 5) return true;
+    if (sector == 1){
+        double k = tan(29.5*3.1415/180);
+        double b = -92;
+        bool test_sec_1 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 9.1} , {k, b - widthChange - 9.1 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127} , {k, b - widthChange - 127 - 2.4}) && isOutOfLines(hx, hy, {k, b + widthChange - 127 - 8} , {k, b - widthChange -127 - 8 - 2.4}) );
+        return test_sec_1;       
+    }
+    if (sector == 2){
+        double k = tan(30.4*3.1415/180);
+        double b = 120.5;
+        bool test_sec_2 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 4.4}));
+        return test_sec_2;
+    }
+    if (sector == 3){
+        bool test_sec_3 = ((hx - widthChange) > - 303 || (hx + widthChange) < -310);
+        return test_sec_3;
+    }
+    if (sector == 4){
+        double k = tan(-29.6*3.1415/180);
+        double b = -232.8;
+        bool test_sec_4 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 3.5}));
+        return test_sec_4;
+    }
+    if (sector == 6){
+        double k = tan(-30.6*3.1415/180);
+        double b = -185;
+        bool test_sec_6 = (isOutOfLines(hx, hy, {k, b + widthChange} , {k, b - widthChange - 2}) && isOutOfLines(hx, hy, {k, b + widthChange - 8.3} , {k, b - widthChange - 8.3 - 2.2}) );
+        return test_sec_6;
+    }
+    return false;
+};
+return BadElementKnockOut(Hx, Hy, esec, 1);"""
+    
+    if((("Valerii_Cut" in Valerii_Cut) or ("Complete" in Valerii_Cut)) and (not Cut_Flag)):
+        Data_Frame_Clone = Data_Frame.Filter(valerii_PCAL_knockout_cut)
+        return Data_Frame_Clone
+    elif(Cut_Flag):
+        Data_Frame_Clone = Data_Frame.Define("valerii_PCAL_knockout_cut", valerii_PCAL_knockout_cut)
+        return Data_Frame_Clone
+    else:
+        return Data_Frame
+
+
+def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
+
+    # gdf: auto-return without defining any cut branches
+    if(df_type == "gdf"):
+        return df_in, [["no_cut", "true"]]
+
+    df_out       = df_in
+    cut_branches = []
+
+    # =========================================================================================================
+    # 0) DEFINE THE FEW CUT BRANCHES THAT ARE NOT GUARANTEED TO ALREADY EXIST IN THE ROOT FILE
+    # =========================================================================================================
+
+    # EC_SAMPLING_TRIANGLE_pass1_el is NOT stored in the existing ROOT files (per your note)
+    # Define it as: ECin_energy/el > (0.2 - PCAL_energy/el)
+    df_out = df_out.Define("EC_SAMPLING_TRIANGLE_pass1_el", "(ECin_energy/el) > (0.2 - (PCAL_energy/el))")
+
+    df_out = df_out.Define("CHI2PID_CUT_strict_pip", """
+    double coef = 0.88;
+    bool chi2cut = false;
+    if (el < 2.44) {chi2cut = (PID_chi2pip < 3.0 * coef);
+    } else if (el < 4.6) { chi2cut = (PID_chi2pip < coef * (0.00869 + 14.98587 * std::exp(-el / 1.18236) + 1.81751 * std::exp(-el / 4.86394)));
+    } else { chi2cut = (PID_chi2pip < coef * (-1.14099 + 24.14992 * std::exp(-el / 1.36554) +  2.66876 * std::exp(-el / 6.80522)));
+    }
+    return (chi2cut && (PID_chi2pip > (coef * -3.0)));""")
+
+    # Non-PID: Valerii knockout cut -> define a boolean branch (do NOT Filter here)
+    # NOTE: This uses your existing filter_Valerii() function with Cut_Flag=True
+    df_out = filter_Valerii(Data_Frame=df_out, Valerii_Cut="Complete", Cut_Flag=True)
+
+    # Fiducial refinement cuts: define boolean branches (do NOT Filter here)
+    # Valerii PCal volume cuts (norm default + loose/tight variations)
+    df_out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=df_out, Cut_Flag=True, show_cut_code=False, cut_level="norm")
+    df_out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=df_out, Cut_Flag=True, show_cut_code=False, cut_level="loose")
+    df_out = Valerii_Fiducial_PCal_Volume_Cuts(Data_Frame_Input=df_out, Cut_Flag=True, show_cut_code=False, cut_level="tight")
+
+    # Sector-dependent PCal fiducial cut (only on/off)
+    df_out = Sector_Fiducial_PCal_Cuts(Data_Frame_Input=df_out, Cut_Flag=True, show_cut_code=False)
+
+    # Sangbaek/Valerii DC fiducial cuts for ELECTRONS (mid default + loose/tight variations)
+    df_out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=df_out, fidlevel="mid",   Particle="ele", Cut_Flag=True, show_cut_code=False)
+    df_out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=df_out, fidlevel="loose", Particle="ele", Cut_Flag=True, show_cut_code=False)
+    df_out = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=df_out, fidlevel="tight", Particle="ele", Cut_Flag=True, show_cut_code=False)
+
+    # Pion "test" DC fiducial cuts MUST be defined here (not assumed to exist)
+    df_out = Apply_Test_Fiducial_Cuts(Data_Frame_In=df_out, List_of_Layers=["6", "18", "36"], List_of_Particles=["pip"], Define_Column=True, show_cut_code=False)
+
+
+    # =========================================================================================================
+    # 1) KINEMATIC CUTS (UNSMEARED + SMEARED)
+    #    - For mdf: use smeared_vals for "cut_Complete_SIDIS" and all variations
+    #    - For rdf: use unsmeared kinematics everywhere (no smeared_vals should exist)
+    # =========================================================================================================
+
+    # UNSMEARED kinematic baseline (your original style), WITHOUT MM cut first
+    KinCuts_Unsm_base = "(y < 0.75) && (xF > 0) && (W > 2) && (Q2 > 2) && (pip > 1.25) && (pip < 5) && (5 < elth) && (elth < 35) && (5 < pipth) && (pipth < 35)"
+
+    # SMEARED kinematic baseline (WITHOUT MM cut first)
+    if(df_type == "mdf"):
+        KinCuts_Smr_base = "(smeared_vals[7] < 0.75) && (smeared_vals[12] > 0) && (smeared_vals[6] > 2) && (smeared_vals[2] > 2) && (smeared_vals[19] > 1.25) && (smeared_vals[19] < 5) && (5 < smeared_vals[17]) && (smeared_vals[17] < 35) && (5 < smeared_vals[21]) && (smeared_vals[21] < 35)"
+        MMExpr_Smr       = "sqrt(smeared_vals[1])"
+    elif(df_type == "rdf"):
+        KinCuts_Smr_base = KinCuts_Unsm_base
+        MMExpr_Smr       = "sqrt(MM2)"
+    else:
+        raise ValueError(f"Define_Cut_Variations_With_Smeared_Kinematics(): df_type must be 'rdf', 'mdf', or 'gdf' (got '{df_type}')")
+
+    # Apply default MM cut
+    KinCuts_Unsm = f"({KinCuts_Unsm_base}) && (sqrt(MM2) > 1.5)"
+    KinCuts_Smr  = f"({KinCuts_Smr_base})  && ({MMExpr_Smr} > 1.5)"
+
+
+    # =========================================================================================================
+    # 2) PID CUT GROUPS (DEFAULT + VARIANTS)
+    # =========================================================================================================
+
+    # --- CHI2PID for pion ---
+    PID_chi2_mid_pip     = "(CHI2PID_CUT_mid_pip == 1)"
+    PID_chi2_strict_pip  = "(CHI2PID_CUT_strict_pip)"
+
+    # --- Electron DC Fiducial PID (3 regions must all be 1) ---
+    PID_el_dcfid_mid     = "(DC_FIDUCIAL_REG1_mid_el   == 1) && (DC_FIDUCIAL_REG2_mid_el   == 1) && (DC_FIDUCIAL_REG3_mid_el   == 1)"
+    PID_el_dcfid_loose   = "(DC_FIDUCIAL_REG1_loose_el == 1) && (DC_FIDUCIAL_REG2_loose_el == 1) && (DC_FIDUCIAL_REG3_loose_el == 1)"
+    PID_el_dcfid_tight   = "(DC_FIDUCIAL_REG1_tight_el == 1) && (DC_FIDUCIAL_REG2_tight_el == 1) && (DC_FIDUCIAL_REG3_tight_el == 1)"
+    PID_el_dcfid_pass1   = "(DC_FIDUCIAL_REG1_pass1_el == 1) && (DC_FIDUCIAL_REG2_pass1_el == 1) && (DC_FIDUCIAL_REG3_pass1_el == 1)"
+
+    # --- Pion DC Fiducial PID (3 regions must all be 1) ---
+    PID_pip_dcfid_mid    = "(DC_FIDUCIAL_REG1_mid_pip   == 1) && (DC_FIDUCIAL_REG2_mid_pip   == 1) && (DC_FIDUCIAL_REG3_mid_pip   == 1)"
+    PID_pip_dcfid_loose  = "(DC_FIDUCIAL_REG1_loose_pip == 1) && (DC_FIDUCIAL_REG2_loose_pip == 1) && (DC_FIDUCIAL_REG3_loose_pip == 1)"
+    PID_pip_dcfid_tight  = "(DC_FIDUCIAL_REG1_tight_pip == 1) && (DC_FIDUCIAL_REG2_tight_pip == 1) && (DC_FIDUCIAL_REG3_tight_pip == 1)"
+    PID_pip_dcfid_pass1  = "(DC_FIDUCIAL_REG1_pass1_pip == 1) && (DC_FIDUCIAL_REG2_pass1_pip == 1) && (DC_FIDUCIAL_REG3_pass1_pip == 1)"
+
+    # --- Electron DC Vertex ---
+    PID_el_dcv_mid       = "(DC_VERTEX_mid_el   == 1)"
+    PID_el_dcv_loose     = "(DC_VERTEX_loose_el == 1)"
+    PID_el_dcv_tight     = "(DC_VERTEX_tight_el == 1)"
+    PID_el_dcv_pass1     = "(DC_VERTEX_pass1_el == 1)"
+
+    # --- Pion Delta VZ ---
+    PID_pip_dvz_mid      = "(DELTA_VZ_mid_pip   == 1)"
+    PID_pip_dvz_loose    = "(DELTA_VZ_loose_pip == 1)"
+    PID_pip_dvz_tight    = "(DELTA_VZ_tight_pip == 1)"
+    PID_pip_dvz_pass1    = "(DELTA_VZ_pass1_pip == 1)"
+
+    # --- EC Outer vs Inner (only pass1 variant exists) ---
+    PID_el_ec_oi_mid     = "(EC_OUTER_VS_INNER_mid_el   == 1)"
+    PID_el_ec_oi_pass1   = "(EC_OUTER_VS_INNER_pass1_el == 1)"
+
+    # --- EC Sampling Band ---
+    PID_el_ec_band_mid   = "(EC_SAMPLING_BAND_mid_el   == 1)"
+    PID_el_ec_band_loose = "(EC_SAMPLING_BAND_loose_el == 1)"
+    PID_el_ec_band_tight = "(EC_SAMPLING_BAND_tight_el == 1)"
+
+    # --- EC Sampling Threshold ---
+    PID_el_ec_thr_mid    = "(EC_SAMPLING_THRESHOLD_mid_el   == 1)"
+    PID_el_ec_thr_loose  = "(EC_SAMPLING_THRESHOLD_loose_el == 1)"
+    PID_el_ec_thr_tight  = "(EC_SAMPLING_THRESHOLD_tight_el == 1)"
+
+    # --- EC Sampling Triangle ---
+    PID_el_ec_tri_mid    = "(EC_SAMPLING_TRIANGLE_mid_el   == 1)"
+    PID_el_ec_tri_pass1  = "(EC_SAMPLING_TRIANGLE_pass1_el == 1)"
+
+    # --- Full pass1 configs (replace all grouped PID cuts above) ---
+    PID_full_pass1       = "(Full_pass1_el == 1) && (Full_pass1_pip == 1)"
+
+    # DEFAULT PID block
+    PID_Default          = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+
+
+    # =========================================================================================================
+    # 3) NON-PID DEFAULTS + VARIANTS
+    # =========================================================================================================
+
+    # --- Valerii knockout cut (default ON, variation OFF) ---
+    NonPID_valerii_knockout_on   = "(valerii_PCAL_knockout_cut)"
+    NonPID_valerii_knockout_off  = "(1)"
+
+    # --- Fiducial refinements default ON ---
+    Fid_pcal_vol_norm            = "(Valerii_PCal_Fiducial_Cuts)"
+    Fid_pcal_vol_loose           = "(Valerii_PCal_Fiducial_Cuts_loose)"
+    Fid_pcal_vol_tight           = "(Valerii_PCal_Fiducial_Cuts_tight)"
+
+    Fid_sector_pcal_on           = "(Sector_PCal_Fiducial_Cuts)"
+    Fid_sector_pcal_off          = "(1)"
+
+    # Electron DC fiducial refinements from Sangbaek/Valerii (3 layers AND)
+    Fid_el_dc_mid                = "(Valerii_DC_Fiducial_Cuts_ele_DC_6) && (Valerii_DC_Fiducial_Cuts_ele_DC_18) && (Valerii_DC_Fiducial_Cuts_ele_DC_36)"
+    Fid_el_dc_loose              = "(Valerii_DC_Fiducial_Cuts_ele_DC_6_loose) && (Valerii_DC_Fiducial_Cuts_ele_DC_18_loose) && (Valerii_DC_Fiducial_Cuts_ele_DC_36_loose)"
+    Fid_el_dc_tight              = "(Valerii_DC_Fiducial_Cuts_ele_DC_6_tight) && (Valerii_DC_Fiducial_Cuts_ele_DC_18_tight) && (Valerii_DC_Fiducial_Cuts_ele_DC_36_tight)"
+
+    # Pion test DC fiducial cuts (now guaranteed to exist, defined above)
+    Fid_pip_testdc_on            = "(My_pip_DC_Fiducial_Cuts_Layer_6) && (My_pip_DC_Fiducial_Cuts_Layer_18) && (My_pip_DC_Fiducial_Cuts_Layer_36)"
+    Fid_pip_testdc_off           = "(1)"
+
+    Fid_Default       = " && ".join([Fid_pcal_vol_norm, Fid_sector_pcal_on, Fid_el_dc_mid, Fid_pip_testdc_on])
+    NonPID_Default    = " && ".join([NonPID_valerii_knockout_on, Fid_Default])
+
+
+    # =========================================================================================================
+    # 4) BUILD THE TWO BASELINES (UNSMEARED DEFAULT ONLY, SMEARED DEFAULT)
+    # =========================================================================================================
+
+    cut_def_name      = "cut_Complete_SIDIS_noSmear"
+    cut_def_sm_name   = "cut_Complete_SIDIS"
+
+    cut_def_expr      = f"({KinCuts_Unsm}) && ({PID_Default}) && ({NonPID_Default})"
+    cut_def_sm_expr   = f"({KinCuts_Smr})  && ({PID_Default}) && ({NonPID_Default})"
+
+    df_out = df_out.Define(cut_def_name,    cut_def_expr)
+    df_out = df_out.Define(cut_def_sm_name, cut_def_sm_expr)
+
+    cut_branches.append([cut_def_name,    cut_def_expr])
+    cut_branches.append([cut_def_sm_name, cut_def_sm_expr])
+
+
+    # =========================================================================================================
+    # 5) SMEARED/UNSMEARED VARIATIONS (ONE CHANGE AT A TIME)
+    #    - For rdf: these use unsmeared kinematics (KinCuts_Smr_base == KinCuts_Unsm_base)
+    #    - For mdf: these use smeared kinematics
+    # =========================================================================================================
+
+    # Helper strings for reuse
+    KinBlock        = f"({KinCuts_Smr})"
+    KinBlock_noMM   = f"({KinCuts_Smr_base})"
+    PID_base        = f"({PID_Default})"
+    NonPID_base     = f"({NonPID_Default})"
+
+    # ----------------------------
+    # Missing-mass variations (rdf: unsmeared, mdf: smeared)
+    # ----------------------------
+    for mm_thr, mm_tag in [(1.25, "MM_loose"), (1.75, "MM_tight")]:
+        KinBlock_mm = f"{KinBlock_noMM} && ({MMExpr_Smr} > {mm_thr})"
+        df_out      = df_out.Define(f"{cut_def_sm_name}_{mm_tag}", f"({KinBlock_mm}) && {PID_base} && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_{mm_tag}",        f"({KinBlock_mm}) && {PID_base} && {NonPID_base}"])
+
+
+    # -------------------------
+    # PID variations (one knob)
+    # -------------------------
+
+    # CHI2 strict (pion)
+    PID_var = " && ".join([PID_chi2_strict_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+    df_out  = df_out.Define(f"{cut_def_sm_name}_chi2_strict_pip", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+    cut_branches.append([f"{cut_def_sm_name}_chi2_strict_pip",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # Electron DC fid PID: loose / tight / pass1
+    for lev in ["loose", "tight", "pass1"]:
+        if(lev == "loose"):
+            PID_el_dcfid_use = PID_el_dcfid_loose
+        elif(lev == "tight"):
+            PID_el_dcfid_use = PID_el_dcfid_tight
+        else:
+            PID_el_dcfid_use = PID_el_dcfid_pass1
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_use, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_dcfid_{lev}_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_dcfid_{lev}_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # Pion DC fid PID: loose / tight / pass1
+    for lev in ["loose", "tight", "pass1"]:
+        if(lev == "loose"):
+            PID_pip_dcfid_use = PID_pip_dcfid_loose
+        elif(lev == "tight"):
+            PID_pip_dcfid_use = PID_pip_dcfid_tight
+        else:
+            PID_pip_dcfid_use = PID_pip_dcfid_pass1
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_use, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_dcfid_{lev}_pip", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_dcfid_{lev}_pip",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # Electron DC vertex: loose / tight / pass1
+    for lev in ["loose", "tight", "pass1"]:
+        if(lev == "loose"):
+            PID_el_dcv_use = PID_el_dcv_loose
+        elif(lev == "tight"):
+            PID_el_dcv_use = PID_el_dcv_tight
+        else:
+            PID_el_dcv_use = PID_el_dcv_pass1
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_use, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_dcv_{lev}_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_dcv_{lev}_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # Pion delta VZ: loose / tight / pass1
+    for lev in ["loose", "tight", "pass1"]:
+        if(lev == "loose"):
+            PID_pip_dvz_use = PID_pip_dvz_loose
+        elif(lev == "tight"):
+            PID_pip_dvz_use = PID_pip_dvz_tight
+        else:
+            PID_pip_dvz_use = PID_pip_dvz_pass1
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_use, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_dvz_{lev}_pip", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_dvz_{lev}_pip",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # EC outer vs inner pass1
+    PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_pass1, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+    df_out  = df_out.Define(f"{cut_def_sm_name}_ecoi_pass1_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+    cut_branches.append([f"{cut_def_sm_name}_ecoi_pass1_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # EC sampling band loose/tight
+    for lev in ["loose", "tight"]:
+        if(lev == "loose"):
+            PID_el_ec_band_use = PID_el_ec_band_loose
+        else:
+            PID_el_ec_band_use = PID_el_ec_band_tight
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_use, PID_el_ec_thr_mid, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_ecband_{lev}_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_ecband_{lev}_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # EC sampling threshold loose/tight
+    for lev in ["loose", "tight"]:
+        if(lev == "loose"):
+            PID_el_ec_thr_use = PID_el_ec_thr_loose
+        else:
+            PID_el_ec_thr_use = PID_el_ec_thr_tight
+
+        PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_use, PID_el_ec_tri_mid])
+        df_out  = df_out.Define(f"{cut_def_sm_name}_ecthr_{lev}_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+        cut_branches.append([f"{cut_def_sm_name}_ecthr_{lev}_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # EC sampling triangle pass1
+    PID_var = " && ".join([PID_chi2_mid_pip, PID_el_dcfid_mid, PID_pip_dcfid_mid, PID_el_dcv_mid, PID_pip_dvz_mid, PID_el_ec_oi_mid, PID_el_ec_band_mid, PID_el_ec_thr_mid, PID_el_ec_tri_pass1])
+    df_out  = df_out.Define(f"{cut_def_sm_name}_ectri_pass1_el", f"{KinBlock} && ({PID_var}) && {NonPID_base}")
+    cut_branches.append([f"{cut_def_sm_name}_ectri_pass1_el",    f"{KinBlock} && ({PID_var}) && {NonPID_base}"])
+
+    # Full pass1 PID config (replaces ALL grouped PID cuts above)
+    df_out  = df_out.Define(f"{cut_def_sm_name}_pid_full_pass1", f"{KinBlock} && ({PID_full_pass1}) && {NonPID_base}")
+    cut_branches.append([f"{cut_def_sm_name}_pid_full_pass1",    f"{KinBlock} && ({PID_full_pass1}) && {NonPID_base}"])
+
+
+    # ----------------------------
+    # Non-PID variations (one knob)
+    # ----------------------------
+
+    # Valerii knockout OFF
+    NonPID_var = " && ".join([NonPID_valerii_knockout_off, Fid_Default])
+    df_out     = df_out.Define(f"{cut_def_sm_name}_no_valerii_knockout", f"{KinBlock} && {PID_base} && ({NonPID_var})")
+    cut_branches.append([f"{cut_def_sm_name}_no_valerii_knockout",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+    # Valerii PCal volume loose/tight
+    for lev in ["loose", "tight"]:
+        if(lev == "loose"):
+            Fid_pcal_use = Fid_pcal_vol_loose
+        else:
+            Fid_pcal_use = Fid_pcal_vol_tight
+
+        Fid_var    = " && ".join([Fid_pcal_use, Fid_sector_pcal_on, Fid_el_dc_mid, Fid_pip_testdc_on])
+        NonPID_var = " && ".join([NonPID_valerii_knockout_on, Fid_var])
+        df_out     = df_out.Define(f"{cut_def_sm_name}_pcalvol_{lev}", f"{KinBlock} && {PID_base} && ({NonPID_var})")
+        cut_branches.append([f"{cut_def_sm_name}_pcalvol_{lev}",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+    # Sector PCal fiducial OFF
+    Fid_var    = " && ".join([Fid_pcal_vol_norm, Fid_sector_pcal_off, Fid_el_dc_mid, Fid_pip_testdc_on])
+    NonPID_var = " && ".join([NonPID_valerii_knockout_on, Fid_var])
+    df_out     = df_out.Define(f"{cut_def_sm_name}_no_sector_pcal", f"{KinBlock} && {PID_base} && ({NonPID_var})")
+    cut_branches.append([f"{cut_def_sm_name}_no_sector_pcal",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+    # Electron DC fiducial refinements loose/tight (Sangbaek/Valerii DC cuts)
+    for lev in ["loose", "tight"]:
+        if(lev == "loose"):
+            Fid_el_dc_use = Fid_el_dc_loose
+        else:
+            Fid_el_dc_use = Fid_el_dc_tight
+
+        Fid_var    = " && ".join([Fid_pcal_vol_norm, Fid_sector_pcal_on, Fid_el_dc_use, Fid_pip_testdc_on])
+        NonPID_var = " && ".join([NonPID_valerii_knockout_on, Fid_var])
+        df_out     = df_out.Define(f"{cut_def_sm_name}_dcfidref_{lev}_el", f"{KinBlock} && {PID_base} && ({NonPID_var})")
+        cut_branches.append([f"{cut_def_sm_name}_dcfidref_{lev}_el",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+    # Pion test DC fiducial OFF
+    Fid_var    = " && ".join([Fid_pcal_vol_norm, Fid_sector_pcal_on, Fid_el_dc_mid, Fid_pip_testdc_off])
+    NonPID_var = " && ".join([NonPID_valerii_knockout_on, Fid_var])
+    df_out     = df_out.Define(f"{cut_def_sm_name}_no_pip_testdc", f"{KinBlock} && {PID_base} && ({NonPID_var})")
+    cut_branches.append([f"{cut_def_sm_name}_no_pip_testdc",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+
+    # ----------------------------
+    # Sector variations (one knob)
+    # ----------------------------
+
+    for sec in range(1, 7, 1):
+        df_out = df_out.Define(f"{cut_def_sm_name}_eS{sec}o",   f"{KinBlock} && {PID_base} && {NonPID_base} && (esec == {sec})")
+        cut_branches.append([f"{cut_def_sm_name}_eS{sec}o",     f"{KinBlock} && {PID_base} && {NonPID_base} && (esec == {sec})"])
+
+    for sec in range(1, 7, 1):
+        df_out = df_out.Define(f"{cut_def_sm_name}_pipS{sec}o", f"{KinBlock} && {PID_base} && {NonPID_base} && (pipsec == {sec})")
+        cut_branches.append([f"{cut_def_sm_name}_pipS{sec}o",   f"{KinBlock} && {PID_base} && {NonPID_base} && (pipsec == {sec})"])
+
+    return df_out, cut_branches
