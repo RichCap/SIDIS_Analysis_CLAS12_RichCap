@@ -37,23 +37,27 @@ def parse_args():
     parser.add_argument('-bID', '--batch_id',
                         type=int,
                         default=1,
-                        choices=range(1, 109),
-                        help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: 108).")
+                        choices=range(0, 109),
+                        help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: 108 — 0 runs all batches together).")
+    parser.add_argument('-numF', '-nf', '--number_of_files',
+                        type=int,
+                        default=-1,
+                        help="Number of files allowed to run together if '--batch_id' is set to 0 (-1 corresponds to all files). Applies equally to each dataframe.")
     parser.add_argument('-evnL', '--event_limit',
                         type=int,
                         help="Event limit for all datasets (will set df.Range(...) based on this value, so only use if you don't want/need the full event statistics from the files — i.e., use for testing only).")
     parser.add_argument('-EvGen', '--Use_EvGen',
                         action='store_true', 
-                        help="Includes EvGen files when running (files not yet processed as of 2/11/2026).")
+                        help="Includes EvGen files when running (files not yet processed as of 2/12/2026).")
     # parser.add_argument('-2D', '--make_2D',
     #                     action='store_true',
     #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished.')
     parser.add_argument('-mr', '-MR', '--make_root',
                         action='store_true',
-                        help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists — in testing phase as of 11/10/2025).")
+                        help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists).")
     parser.add_argument('-vb', '--valerii_bins',
                         action='store_true',
-                        help="Runs code using Valerii's kinematic bins instead of mine (available only with the `--make_root` option as of 12/11/2025).")
+                        help="Runs code using Valerii's kinematic bins instead of mine (available only with the `--make_root` option as of 2/11/2025).")
     parser.add_argument('-hpp', '--use_hpp',
                         action='store_true',
                         help="Applies the acceptance weights. Allows the JSON weights (injected modulations) to be applied without also needing the Acceptance weights.")
@@ -77,14 +81,31 @@ def parse_args():
                         help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options in 'using_RDataFrames_python.py'.")
     parser.add_argument('-f', '--fast',
                         action='store_true',
-                        help="Tries to run the code faster by skipping some printed outputs that take more time to run")
+                        help="Tries to run the code faster by skipping some printed outputs that take more time to run.")
+    parser.add_argument('-bc', '-BC', '--run_BC_comparison',
+                        action='store_true',
+                        help="Creates Images showing the differences to the phi_h distributions based on the BC_Factors from the JSON file given by '--json_file_BC'.")
+    parser.add_argument('-jsbc', '--json_file_BC',
+                        type=str,
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/Sub_Bin_Contents_for_BC_Correction.json", 
+                        help="JSON file path for running '--run_BC_comparison'. The default file is for 0th order BC with EvGen corrections. The equivalent clasdis corrections are stored here: '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/Sub_Bin_Contents_for_clasdis_BC_Correction.json'")
+    parser.add_argument('-df', '--dataframe_BC',
+                        type=str,
+                        default="gdf",
+                        choices=['rdf', 'mdf', 'mdf_smeared', 'mdf_gen', "gdf"],
+                        help="Selects which RDataFrame is used to create the images for the '--run_BC_comparison' option. The different 'mdf' choices control smearing/'matched generated' plotting for the variables. EvGen plots are not available yet as of 2/12/2026.")
+    parser.add_argument('-sf', '--File_Save_Format',
+                        type=str,
+                        default=".png",
+                        choices=['.png', '.pdf'],
+                        help="Save Format of Images created in the '--run_BC_comparison' option.")
     parser.add_argument('-e', '--email',
                         action='store_true',
-                        help="Sends an email when the script is done running (if selected)")
+                        help="Sends an email when the script is done running (if selected).")
     parser.add_argument('-em', '--email_message',
                         type=str,
                         default="", 
-                        help="Adds an extra user-defined message to emails sent with the `--email` option")
+                        help="Adds an extra user-defined message to emails sent with the `--email` option.")
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.')
@@ -136,6 +157,8 @@ Ran with the following arguments:
 --event_limit                            --> {args.event_limit}
 --name                                   --> {args.name}
 --title                                  --> {args.title}
+--batch_id                               --> {args.batch_id}{f'''
+--number_of_files                        --> {args.number_of_files}''' if(args.batch_id < 0) else ''}
 --num_rdf_files                          --> {args.num_rdf_files}
 --num_MC_files                           --> {args.num_MC_files}
 --Use_EvGen                              --> {args.Use_EvGen}
@@ -148,7 +171,11 @@ Ran with the following arguments:
 --angles_only_hpp                        --> {args.angles_only_hpp}{f'''
 --hpp_input_file                         --> {args.hpp_input_file}''' if(args.use_hpp or args.angles_only_hpp) else '''
        Did not use HPP file(s)'''}
---root                        (Output)   --> {color.BOLD}{args.root}{color.END}
+--run_BC_comparison                      --> {args.run_BC_comparison}{f'''
+--json_file_BC                 (Input)   --> {args.json_file_BC}
+--dataframe_BC                           --> {args.dataframe_BC}
+--File_Save_Format                       --> {args.File_Save_Format}''' if(args.run_BC_comparison) else f'''
+--root                        (Output)   --> {color.BOLD}{args.root}{color.END}'''}
 --fast                                   --> {args.fast}
 --dry_run                       (Test)   --> {args.dry_run}
 
@@ -351,6 +378,14 @@ def pair_key_after_marker(path_str, marker="Pass_2_PID_Tests_FC_14_V1"):
     return name[(idx + len(marker)):]  # suffix AFTER marker; includes extension
 
 
+def combine_batches(batch_list, number_of_files=-1):
+    combined_list = []
+    for     ii in batch_list:
+        for jj in batch_list[ii]:
+            combined_list.append(jj)
+            if((len(combined_list) >= number_of_files) and (number_of_files > 0)):
+                return combined_list
+    return combined_list
 
 if(__name__ == "__main__"):
     args = parse_args()
@@ -374,7 +409,7 @@ if(__name__ == "__main__"):
     if((args.name is not None) and (str(args.name) not in str(args.root))):
         args.root = f'{str(args.root).split(".root")[0]}_{args.name}.root'
 
-    if(all(f"_Batch{args.batch_id:03d}" not in str(check) for check in [args.root, args.name])):
+    if(all(f"_Batch{args.batch_id:03d}" not in str(check) for check in [args.root, args.name]) and (args.batch_id > 0)):
         args.root = f'{str(args.root).split(".root")[0]}_Batch{args.batch_id:03d}.root'
     
     print(f"\n\n{color_bg.YELLOW}\n\n\t{color.BGREEN}Running with batch files {color.CYAN}{color_bg.YELLOW}{color.UNDERLINE}{args.batch_id}{color.END}{color_bg.YELLOW}\t\n{color.END}")
@@ -402,7 +437,13 @@ if(__name__ == "__main__"):
 
     all_root_files = {}
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
-    all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
+    if(args.batch_id > 0):
+        all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
+    else:
+        mdf_all = combine_batches(mdf_batch, args.number_of_files)
+        gdf_all = combine_batches(gdf_batch, args.number_of_files)
+        rdf_all = combine_batches(rdf_batch, args.number_of_files)
+        all_root_files = build_all_root_files(mdf_all, gdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
 
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
@@ -782,6 +823,20 @@ if(__name__ == "__main__"):
         sys.stdout.flush()
         num_histos_saved = Evaluate_And_Write_Histograms(hist_ptrs=Histograms_All, out_path=args.root, test=args.dry_run, timer=timer)
         print(f"{color.BBLUE}Done Saving (Saved {color.END_B}{num_histos_saved}{color.BBLUE} Histograms){color.END}\n")
+    else:
+        print(f"\n{color.Error}Skipping ROOT Output File{color.END}")
+
+    if(args.run_BC_comparison):
+        print(f"\n{color.BOLD}Making BC Comparison Images{color.END}")
+        from helper_functions_for_BC_Corrections import *
+        sys.stdout.flush()
+        args.timer   = timer
+        PhiT_Var     = "phi_t"          if("smear" not in str(args.dataframe_BC)) else "phi_t_smeared"          if("gen" not in str(args.dataframe_BC)) else "phi_t_gen"
+        Q2y_Bin_Var  = "Q2_Y_Bin"       if("smear" not in str(args.dataframe_BC)) else "Q2_Y_Bin_smeared"       if("gen" not in str(args.dataframe_BC)) else "Q2_Y_Bin_gen"
+        z_pT_Bin_Var = "z_pT_Bin_Y_bin" if("smear" not in str(args.dataframe_BC)) else "z_pT_Bin_Y_bin_smeared" if("gen" not in str(args.dataframe_BC)) else "z_pT_Bin_Y_bin_gen"
+        rdf_in       = rdf if("rdf" in str(args.dataframe_BC)) else mdf_clasdis if("mdf" in str(args.dataframe_BC)) else gdf_clasdis
+        List_of_Canvases = BC_Corrections_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=range(1,18), PhiT_Var=PhiT_Var, Q2y_Bin_Var=Q2y_Bin_Var, z_pT_Bin_Var=z_pT_Bin_Var, Normalize_Q=False, Plot_Orientation="z_pT")
+        print(f"\n{color.BBLUE}Done Creating ({color.END_B}{len(List_of_Canvases)}{color.BBLUE}) Images{color.END}\n")
     else:
         print(f"\n{color.Error}Skipping ROOT Output File{color.END}")
         

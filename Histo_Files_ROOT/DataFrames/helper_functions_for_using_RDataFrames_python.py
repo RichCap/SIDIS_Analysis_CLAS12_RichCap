@@ -654,11 +654,11 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     # if(("Combined_" in variable) or ("Multi_Dim" in variable) or ("MultiDim" in variable)):
     #     sdf = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_Input, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
     if(sdf == "continue"):
-        return # Histograms_All
+        return Histograms_All
 
     Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = _filter_fieldnames(Histo_Smear)
     if((Q2_y_bin_num > 0) and ((Q2_xB_Bin_Filter_str in variable) or (("Bin" in variable) and ("Multi_Dim_z_pT_Bin" not in variable) and ("MultiDim_z_pT_Bin" not in variable)))):
-        return # Histograms_All
+        return Histograms_All
 
     Histo_Binning = [Binning, "All" if(Q2_y_bin_num == -1) else str(Q2_y_bin_num), "All"]
     Histo_Binning_Name = f"Binning-Type:'{Histo_Binning[0]}'-[Q2-y-Bin:{Histo_Binning[1]}, z-PT-Bin:{Histo_Binning[2]}]"
@@ -682,7 +682,7 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Variable_Gen    = f"{variable.replace('_smeared','')}_gen"
         Variable_Rec    = variable
         if(Histo_Data in ["mdf"]):
-            left_label  = f"{variable_Title_name(variable.replace('_smeared',''))} GEN Bins" if(Histo_Group == "Response_Matrix") else f"{variable_Title_name(variable.replace('_smeared',''))} (GEN)"
+            left_label  = f"{variable_Title_name(variable.replace('_smeared', ''))} GEN Bins" if(Histo_Group == "Response_Matrix") else f"{variable_Title_name(variable.replace('_smeared',''))} (GEN)"
             right_label = f"{variable_Title_name(variable)} REC Bins" if(Histo_Group == "Response_Matrix") else f"{variable_Title_name(variable)} (REC)"
         else:
             left_label  = f"{variable_Title_name(variable)}"
@@ -696,7 +696,7 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Bin_Filter = f"({Bin_Filter}) && ({eq})" if(Bin_Filter != "esec != -2") else eq
     if((("Combined" in variable) or ("Multi_Dim" in variable) or ("MultiDim" in variable)) and (Q2_xB_Bin_Filter_str.replace("_smeared","") in variable)):
         extra = f"{Q2_xB_Bin_Filter_str.replace('_smeared','').replace('_gen','')}_gen != 0" if(Histo_Data in ["mdf", "gdf"]) else ""
-        Bin_Filter = "".join([f"({Bin_Filter}) && ({Q2_xB_Bin_Filter_str} != 0", f" && {extra})" if(extra != "" ) else ")"])
+        Bin_Filter = f"({Bin_Filter}) && ({Q2_xB_Bin_Filter_str} != 0{f' && {extra})' if(extra != '') else ')'}"
 
     if(Use_Weight):
         Histo_Name_Weighed = f"{Histo_Name}_(Weighed)"
@@ -711,43 +711,48 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     if(Histo_Data in ["mdf"]):
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
-                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo2D((str(Histo_Name_Weighed),    str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf_cut.Histo2D((str(Histo_Name),            str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+                title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
+                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo2D((str(Histo_Name_Weighed),    title_weight,  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
+            Histograms_All[Histo_Name]                    = sdf_cut.Histo2D((str(Histo_Name),              str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
             if(title2 is not None):
                 if(Use_Weight):
-                    Histograms_All[Histo_Name_1D_Weighed] = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),         str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                    title2_weight = f"#splitline{{{title2.split(';')[0]}}}{{Weighted}};{';'.join(title2.split(';')[1:])}"
+                    Histograms_All[Histo_Name_1D_Weighed] = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), title2_weight, int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
-                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo3D((str(Histo_Name_Weighed),    str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf_cut.Histo3D((str(Histo_Name),            str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
+                Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo3D((str(Histo_Name_Weighed),    title_weight, int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), title_weight.replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+            Histograms_All[Histo_Name]                    = sdf_cut.Histo3D((str(Histo_Name),              str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
     else:
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo1D((str(Histo_Name_1D),         str(title).replace("; " + variable_Title_name(Res_Binning_2D_z_pT[0]), ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), title_weight.replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
-                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),         str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
+                Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), title_weight, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
+            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
 
-    targets = []
-    if(Histo_Name in Histograms_All):
-        targets.append(Histo_Name)
-    if(Histo_Name_1D in Histograms_All):
-        targets.append(Histo_Name_1D)
-    if(Histo_Name_Weighed in Histograms_All):
-        targets.append(Histo_Name_Weighed)
-        Histograms_All[Histo_Name_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_Weighed].GetTitle()}}}{{Weighted}}")
-    if(Histo_Name_1D_Weighed in Histograms_All):
-        targets.append(Histo_Name_1D_Weighed)
-        Histograms_All[Histo_Name_1D_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_1D_Weighed].GetTitle()}}}{{Weighted}}")
-    for key in targets:
-        # _write_and_tick(Histograms_All, key, file_location, output_type)
-        safe_write(obj=Histograms_All[key], tfile=file_location)
-    # return Histograms_All
+    # # targets = []
+    # # if(Histo_Name in Histograms_All):
+    # #     targets.append(Histo_Name)
+    # # if(Histo_Name_1D in Histograms_All):
+    # #     targets.append(Histo_Name_1D)
+    # if(Histo_Name_Weighed in Histograms_All):
+    # #     targets.append(Histo_Name_Weighed)
+    #     Histograms_All[Histo_Name_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_Weighed].GetTitle()}}}{{Weighted}}")
+    # if(Histo_Name_1D_Weighed in Histograms_All):
+    # #     targets.append(Histo_Name_1D_Weighed)
+    #     Histograms_All[Histo_Name_1D_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_1D_Weighed].GetTitle()}}}{{Weighted}}")
+    # # for key in targets:
+    # #     # _write_and_tick(Histograms_All, key, file_location, output_type)
+    # #     safe_write(obj=Histograms_All[key], tfile=file_location)
+    return Histograms_All
 
 
 def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"):
@@ -800,6 +805,42 @@ return z_pT_Bin_event_val;
 """])
     
     return z_pT_Bin_Standard_Def
+
+
+import os
+def Evaluate_And_Write_Histograms(hist_ptrs, out_path, test, timer):
+    # Evaluate all booked histograms in ONE trigger, then write them all at once
+    # hist_ptrs can be either:
+    #   (A) dict: {"Histogram Bin (Q2y-zpt)": RResultPtr<TH2D>, ...}
+    #   (B) list/tuple: [RResultPtr<TH2D>, ...]
+    if(test):
+        print(f"\n{color.BLUE}Would have saved the ROOT file as: {color.ERROR}{out_path}{color.END}")
+        return len(hist_ptrs)
+    if(isinstance(hist_ptrs, dict)):
+        ptr_list = [hist_ptrs[key] for key in sorted(hist_ptrs.keys())]
+    else:
+        ptr_list = list(hist_ptrs)
+    if((ptr_list is None) or (len(ptr_list) == 0)):
+        raise ValueError("Evaluate_And_Write_Histograms(...): hist_ptrs is empty")
+    out_dir  = os.path.dirname(os.path.abspath(out_path))
+    if((out_dir != "") and (not os.path.exists(out_dir))):
+        os.makedirs(out_dir, exist_ok=True)
+    write_mode = "UPDATE" if(os.path.exists(out_path)) else "RECREATE"
+    print(f"\n{color.BBLUE}{'Updating the' if(write_mode == 'UPDATE') else 'Creating a new'} ROOT file: {color.BPINK}{out_path}{color.END}")
+    print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    ROOT.RDF.RunGraphs(ptr_list)
+    print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    fout = ROOT.TFile(out_path, write_mode)
+    if((fout is None) or (fout.IsZombie())):
+        raise RuntimeError(f"Evaluate_And_Write_Histograms(...): failed to open ROOT file: {out_path}")
+    fout.cd()
+    for ptr in ptr_list:
+        hist = ptr.GetValue()
+        # hist.Sumw2(True)
+        hist.Write("", ROOT.TObject.kOverwrite)
+    fout.Close()
+    print(f"\n{color.BGREEN}ROOT FILE HAS BEEN SAVED{color.END}\n")
+    return len(hist_ptrs)
 
 
 if(__name__ == "__main__"):
