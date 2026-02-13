@@ -72,6 +72,17 @@ def parse_args():
     parser.add_argument('-v', '--verbose',
                         action='store_true', 
                         help='Print more information while running.')
+
+    parser.add_argument('-o', '--fit_out',
+                        default="Kinematic_FitEquations_Of_Modulations.json",
+                        type=str,
+                        help="Optional output JSON file to save fitted equations/coefficients for reuse in later scripts.")
+
+    parser.add_argument("-ftpT", '-pt_fit_type', '--pT_fit_type',
+                        default='quad',
+                        choices=['lin', 'quad'],
+                        help="Fit type used when fitting the z-fit coefficients as functions of pT.")
+
     
     return parser.parse_args()
 
@@ -253,6 +264,55 @@ def Q2_y_z_pT_Bin_rows_function(var, row_num, Q2_y_Bin=None, Output_Q="Centers",
         return bin_num_list
     return None
 
+
+
+# =========================
+# Saving Fit Helpers
+# =========================
+
+def tf1_to_dict(fit_fn, x_min=None, x_max=None, fit_type=None):
+    if(fit_fn is None):
+        return None
+
+    npar = int(fit_fn.GetNpar())
+
+    par_vals = []
+    par_errs = []
+    for ii in range(npar):
+        par_vals.append(float(fit_fn.GetParameter(ii)))
+        par_errs.append(float(fit_fn.GetParError(ii)))
+
+    out = {}
+    out["fit_type"]   = str(fit_type) if(fit_type is not None) else None
+    out["formula"]    = str(fit_fn.GetTitle()) if(fit_fn.GetTitle() is not None) else None
+    out["npar"]       = int(npar)
+    out["par"]        = par_vals
+    out["par_err"]    = par_errs
+    out["chi2"]       = float(fit_fn.GetChisquare())
+    out["ndf"]        = int(fit_fn.GetNDF())
+    out["x_min"]      = float(x_min) if(x_min is not None) else None
+    out["x_max"]      = float(x_max) if(x_max is not None) else None
+
+    # Convenience equation strings for downstream scripts
+    # (These are redundant with par[] but handy.)
+    if(npar == 2):
+        out["equation"] = "p0 + p1*x"
+        out["par_name"] = ["p0", "p1"]
+    elif(npar == 3):
+        out["equation"] = "p0 + p1*x + p2*x^2"
+        out["par_name"] = ["p0", "p1", "p2"]
+    else:
+        out["equation"] = None
+        out["par_name"] = [f"p{ii}" for ii in range(npar)]
+
+    return out
+
+
+def safe_write_json(path_out, payload):
+    if((path_out is None) or (payload is None)):
+        raise ValueError("safe_write_json: was passed a None argument.")
+    with open(path_out, "w", encoding="utf-8") as out_f:
+        json.dump(payload, out_f, indent=2, sort_keys=True)
 
 # =========================
 # Plotting Helpers
