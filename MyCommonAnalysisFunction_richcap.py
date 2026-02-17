@@ -2060,7 +2060,7 @@ Common_Ranges_for_Integrating_z_pT_Bins = {
 ##=========================================================================================##
 
 
-def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_y_bin", Common_z_pT_Range_Q=False):
+def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False):
     if(Common_z_pT_Range_Q):
         return ((str(Q2_Y_BIN) in Common_Ranges_for_Integrating_z_pT_Bins) and (str(Z_PT_BIN) not in Common_Ranges_for_Integrating_z_pT_Bins[str(Q2_Y_BIN)]))
     elif("Y_bin" not in BINNING_METHOD):
