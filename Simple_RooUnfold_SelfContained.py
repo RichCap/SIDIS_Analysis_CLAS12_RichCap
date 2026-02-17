@@ -358,6 +358,7 @@ def Full_Calc_Fit(Histo):
 #####==========#####   Drawing Histogram Options   #####==========#####
 #######################################################################
 def Draw_Histo_Color_and_Range(Histo, Method="rdf", Hist_or_Line="Histo"):
+    color_set = root_color.Black
     if(Method in ["rdf", "Experimental"]):
         color_set = root_color.Blue
     if(Method in ["mdf", "MC REC"]):
@@ -1795,40 +1796,40 @@ def Bin_Widths_future_function(args):
 ##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
 ##################################################################################################################################################################
 
+import fcntl
 def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
     print("\n\nCounting Total Number of/Saving collected histograms...")
     if(not args.test):
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
-        output_file = ROOT.TFile(args.root, "UPDATE")
-        File_Name_Lists = [str(args.single_file_input)]
-        File_Name_Tlist = ROOT.TList() # Convert to a ROOT TList of TObjString
-        File_Name_Tlist.SetName("Latest_List_of_File_Names")  # Name in the ROOT file
-        for s in File_Name_Lists:
-            File_Name_Tlist.Add(ROOT.TObjString(s))
-        safe_write(File_Name_Tlist, output_file)
+        lock_file_path = args.root + ".lock"
+        with open(lock_file_path, "w+") as lock_fd:
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)  # Blocks until the lock is acquired
+            output_file = ROOT.TFile(args.root, "UPDATE")
+            File_Name_Lists = [str(args.single_file_input)]
+            File_Name_Tlist = ROOT.TList()  # Convert to a ROOT TList of TObjString
+            File_Name_Tlist.SetName("Latest_List_of_File_Names")  # Name in the ROOT file
+            for s in File_Name_Lists:
+                File_Name_Tlist.Add(ROOT.TObjString(s))
+            safe_write(File_Name_Tlist, output_file)
+            for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
+                if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
+                    Temp_Tlist = ROOT.TList()
+                    Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}" if(not args.EvGen) else f"TList_of_{List_of_All_Histos_For_Unfolding_ii}_EvGen")  # Name in the ROOT file
+                    for s in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
+                        Temp_Tlist.Add(ROOT.TObjString(str(s) if(not args.EvGen) else f"{str(s)}_EvGen"))
+                    safe_write(Temp_Tlist, output_file)
+                else:
+                    try:
+                        List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii if(not args.EvGen) else f"{List_of_All_Histos_For_Unfolding_ii}_EvGen")
+                        safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
+                    except:
+                        Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+            output_file.Close() # Lock is automatically released when the 'with' block exits and the file is closed
     else:
         print(f"{color.PINK}Would be saving to: {color.BCYAN}{args.root}{color.END}")
         output_file = None
-        
-    for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-        if(args.test):
+        for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
             print(f"\n{List_of_All_Histos_For_Unfolding_ii} --> {type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
-        else:
-            if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
-                Temp_Tlist = ROOT.TList()
-                Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}" if(not args.EvGen) else f"TList_of_{List_of_All_Histos_For_Unfolding_ii}_EvGen")  # Name in the ROOT file
-                for s in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
-                    Temp_Tlist.Add(ROOT.TObjString(str(s) if(not args.EvGen) else f"{str(s)}_EvGen"))
-                safe_write(Temp_Tlist, output_file)
-            else:
-                try:
-                    List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii if(not args.EvGen) else f"{List_of_All_Histos_For_Unfolding_ii}_EvGen")
-                    safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
-                except:
-                    Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
-    if(not args.test):
-        print(f"{color.BBLUE}Done Saving...{color.END}\n")
-        output_file.Close()
     print(f"\nFinal Count = {len(List_of_All_Histos_For_Unfolding)}")
     return List_of_All_Histos_For_Unfolding
 
@@ -2067,7 +2068,7 @@ def main_unfold(args):
                 if(args.sim and (str(MC_BGS_1D) not in ["None"])):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_1D.Add(MC_BGS_1D)
-                List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D)
+                List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D, args=args)
                 continue
         elif(any(sector_particle in out_print_main for sector_particle in ["esec", "pipsec"]) and args.run_sec_unfold):
             if("Var-D2='phi_t" not in out_print_main):
@@ -2272,7 +2273,7 @@ def main_unfold(args):
                         if(MC_BGS_3D not in ["None"]):
                             MC_BGS_1D = MC_BGS_1D.Project3D("z")
                             MC_BGS_1D.SetTitle(MC_BGS_1D_Title)
-                        List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main_____1D_Sector, Response_2D="N/A", ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
+                        List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main_____1D_Sector, Response_2D="N/A", ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D, args=args)
             continue
         else:
             ## Correct Histogram Type:
@@ -2752,7 +2753,7 @@ def main_unfold(args):
                     if(MC_BGS_1D != "None"):
                         MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))
 
-                    List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D)
+                    List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin=Q2_xB_Bin_Unfold, Z_PT_Bin=z_pT_Bin_Unfold, MC_BGS_1D=MC_BGS_1D, args=args)
                     continue
 
     ##===============##     Unfolding Histogram Procedure     ##===============##
