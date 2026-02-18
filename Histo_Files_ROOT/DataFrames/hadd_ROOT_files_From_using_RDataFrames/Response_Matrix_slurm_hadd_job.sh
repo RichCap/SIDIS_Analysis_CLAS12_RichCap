@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=RMatrix_ZerothOrder_02_11_2026_hadd_batches
+#SBATCH --job-name=RMatrix_ZerothOrder_02_13_2026_hadd_batches
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out

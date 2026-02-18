@@ -53,3 +53,10 @@ Histo_Files_ROOT/DataFrames/*/*.err
 Histo_Files_ROOT/DataFrames/Matching_REC_MC/Link_to_Volatile_MC_Matching
 Histo_Files_ROOT/Matching_REC_MC/sbatch_New_SIDIS_python_matching_MC_Pass2.sh
 New_RooUnfold/RooUnfold_pre_ifarm9/
+Old_Images_Folder_volatile
+Data_Files_Groovy/GEN_MC/Path_to_claspyth
+*.root.lock
+Histo_Files_ROOT/DataFrames/Image_Files_from_before_1_31_2026
+Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/volatile_RDataFrames_to_Delete_from_work
+Histo_Files_ROOT/DataFrames/GEN_MC/Link_to_Volatile_MC_GEN
+
