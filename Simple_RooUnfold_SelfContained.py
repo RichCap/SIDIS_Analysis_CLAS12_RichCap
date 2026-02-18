@@ -68,10 +68,15 @@ def parse_args():
                    help="Run Closure Test (unfold modulated MC with itself).")
 
     # fitting / output control
-    p.add_argument('-fit', '--fit',
+    p.add_argument('-f', '-fit', '--fit',
                    action='store_true',
                    dest='fit',
                    help="Enable fitting of plots. (Defaults to no fits)")
+    
+    p.add_argument('-rf', '-nf', '--remake_fit',
+                   action='store_true',
+                   dest='remake_fit',
+                   help="Forces fitting of plots even if fits were already made (to be used with the '--Use_TTree' option).")
 
     # kinematic comparison & proton modes
     p.add_argument('-tp', '--tag-proton', 
@@ -114,7 +119,7 @@ def parse_args():
                    action='store_true',
                    help="Allows for other variables to be unfolded other than the 'phi_t' distributions (such as Q2, y, etc. — does not impact the multidimensional unfolding).")
                    
-    p.add_argument('-title', '--title',
+    p.add_argument('-ti', '-title', '--title',
                    type=str,
                    help="Adds an extra title to the histograms.")
 
@@ -906,204 +911,6 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
 ##==========##==========##     Fitting Function For Phi Plots                     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 
-# ################################################################################################################################################################################################################################################
-# ##==========##==========##           Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
-# ################################################################################################################################################################################################################################################
-# def MultiD_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="Multi_Dim_Q2_y_Bin_phi_t", Smear="", Out_Option="Save", Fitting_Input="default", Q2_y_Bin_Select="All", args="args"):
-#     if(list is type(Histo)):
-#         Histo, Histo_Cut = Histo # If the input of Histo is given as a list, the first histogram is considered to be the main one to be sliced. 
-#                                  # The second one is considered to be the 'rdf' (or 'mdf') histogram used to tell when the edge bins should be cut (i.e., when the bin content of Histo_Cut = 0 --> Not good for acceptance).
-#     else:
-#         Histo_Cut = False
-#     Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C = {}, {}, {}, {}, {}
-#     if(str(Method) not in ["rdf", "gdf"]):
-#         if(((args.smearing_options in ["both", "no_smear"]) and (Smear in [""])) or ((args.smearing_options in ["both", "smear"]) and ("mear" in str(Smear)))):
-#             print(f"\n{color.BLUE}Running MultiD_Slice(...){color.END}\n")
-#         else:
-#             print(f"\n\n{color.Error}Wrong Smearing option for MultiD_Slice(...){color.END}\n\n")
-#             return "Error"
-#     elif(Smear in [""]):
-#         print(f"\n{color.BLUE}Running MultiD_Slice(...){color.END}\n")
-#     else:
-#         print(f"\n\n{color.Error}Wrong Smearing option for MultiD_Slice(...){color.END}\n\n")
-#         return "Error"
-#     try:
-#         Output_Histos = {}
-#         #############################################################################################
-#         #####==========#####     Catching Input Errors     #####==========###########################
-#         #############################################################################################
-#         if(Name != "none"):
-#             if(Name in ["histo", "Histo", "input", "default"]):
-#                 Name = Histo.GetName()
-#             if("Combined_" not in str(Name) and "Multi_Dim" not in str(Name)):
-#                 print(f"{color.RED}ERROR: WRONG TYPE OF HISTOGRAM\nName ={color.END} {Name}\nMultiD_Slice() should be used on 1D histograms with the 'Combined_' or 'Multi_Dim_' bin variable\n\n")
-#                 return "Error"
-#         if(str(Variable).replace("_smeared", "") not in ["Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_phi_t", "Multi_Dim_Q2_phi_t_smeared", "".join(["Multi_Dim_Q2_xB_Bin", str(Binning_Method), "_phi_t"]), "".join(["Multi_Dim_z_pT_Bin", str(Binning_Method), "_phi_t"]), "Multi_Dim_Q2_y_Bin_phi_t", "Multi_Dim_Q2_y_Bin_phi_t"]):
-#             print(f"{color.RED}ERROR in MultiD_Slice(): Not set up for other variables (yet){color.END}\nVariable ={Variable}\n\n")
-#             return "Error"
-#         if(("mear"     in str(Smear)) and ("_smeared" not in str(Variable))):
-#             Variable = f"{Variable}_smeared"
-#         if(("mear" not in str(Smear)) and ("_smeared"     in str(Variable))):
-#             Smear = "Smear"
-#         #############################################################################################
-#         #####==========#####     Catching Input Errors     #####==========###########################
-#         #############################################################################################
-#         #####==========#####    Setting Histogram Title     #####==========##########################
-#         #############################################################################################
-#         ###========###  Setting Method Title   ###========###
-#         Method_Title = Set_Method_Title(Method, args)
-#         if(Method in ["gdf", "gen", "MC GEN", "tdf", "true"]):
-#             Variable     = Variable.replace("_smeared", "")
-#             Smear        = ""
-#         if((Method in ["rdf", "Experimental"]) and (not args.sim)):
-#             Variable = Variable.replace("_smeared", "")
-#             Smear    = ""
-#         ###===============================================###
-#         if(Title == "Default"):
-#             Title = str(Histo.GetTitle())
-#         elif(Title in ["norm", "standard"]):
-#             Title = "".join(["#splitline{", str(root_color.Bold), "{(Old) 3-Dimensional Plot of", " (Smeared)" if("mear" in Smear) else "", " #phi_{h}", str(Method_Title), "}}{Multi_Dim_Var_Info}"])
-#         fit_function_title = "A (1 + B Cos(#phi_{h}) + C Cos(2#phi_{h}))"
-#         if((Method in ["gdf", "gen", "MC GEN", "tdf", "true", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bayes", "bayesian", "Bayesian"]) and (Fitting_Input in ["default", "Default"]) and args.fit):
-#             Title = f"#splitline{{{Title}}}{{{root_color.Bold}{{Fitted with: {fit_function_title}}}}}"
-#         if((args.pass_version not in [""]) and (args.pass_version not in str(Title))):
-#             Title = f"#splitline{{{Title}}}{{{root_color.Bold}{{{args.pass_version}}}}}"
-#         #############################################################################################
-#         #####==========#####    Setting Histogram Title     #####==========##########################
-#         #############################################################################################
-#         #####==========#####   Setting Variable Binning    #####==========###########################
-#         #############################################################################################
-#         ###=======================================================================================###
-#                                # ['min', 'max', 'num_bins', 'size']
-#         Q2_y_Binning           = [-0.5,  18.5,  19,          1]
-#         z_pT_Binning           = [-0.5,  37.5,  38,          1]
-#         if("Y_bin" not in str(Binning_Method)):
-#             z_pT_Binning       = [-0.5,  42.5,  43,          1]
-#         phi_h_Binning          = [0,     360,   24,         15]
-#         ###=======================================================================================###
-#         ###========###  Setting Q2-y Binning   ###================================================###
-#         NewDim_Bin_Min,     NewDim_Bin_Max, NewDim_Bin_Num, NewDim_Bin_Size = Q2_y_Binning
-#         Multi_Dim_Var       = "Q2_y"
-#         ###========###  Setting z-pT Binning   ###================================================###
-#         if("z_pT_Bin" in Variable):
-#             NewDim_Bin_Min, NewDim_Bin_Max, NewDim_Bin_Num, NewDim_Bin_Size = z_pT_Binning
-#             Multi_Dim_Var   = "z_pT"
-#         ###========###   Setting 4D Binning    ###================================================###
-#         if("Multi_Dim_Q2_y_z_pT_4D_Bin_phi_t" in str(Variable)):
-#             Q2_y_z_pT_4D_Binning = [-0.5, 506.5, 507, 1]
-#             NewDim_Bin_Min, NewDim_Bin_Max, NewDim_Bin_Num, NewDim_Bin_Size = Q2_y_z_pT_4D_Binning
-#             Multi_Dim_Var   = "Q2_y_z_pT"
-#         ###=======================================================================================###
-#         #############################################################################################
-#         #####==========#####   Setting Variable Binning    #####==========###########################
-#         #############################################################################################
-#         ###==============###   Creation of the Sliced Histograms    ###==============################
-#         #############################################################################################
-#         if(Name != "none"):
-#             Name = Histogram_Name_Def(out_print=Name, Histo_General="Multi-Dim Histo", Data_Type=str(Method), Cut_Type="Skip" if(all(cut_checks not in str(Name) for cut_checks in ["cut_Complete_SIDIS_Proton", "cut_Complete_SIDIS_Integrate"])) else "Find", Smear_Type=str(Smear), Q2_y_Bin="Multi_Dim_Q2_y_Bin_Info", z_pT_Bin="Multi_Dim_z_pT_Bin_Info", Bin_Extra="Multi_Dim_Bin_Info" if(Multi_Dim_Var not in ["Q2_y", "z_pT"]) else "Default", Variable="Default")
-#             if(str(Method) in ["tdf", "true"]):
-#                 Name = str(Name.replace("mdf", "tdf")).replace("gdf", "tdf")
-#         if(str(Multi_Dim_Var) in ["z_pT"]):
-#             Name = str(Name.replace("Multi_Dim_Q2_y_Bin_Info", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All"))
-#         bin_ii = 1
-#         for NewDim_Bin in range(0, NewDim_Bin_Num - 1, 1):            
-#             if(str(Multi_Dim_Var) in ["Q2_xB", "Q2_y"]):
-#                 Name_Out = str(Name.replace("Multi_Dim_Q2_y_Bin_Info", str(NewDim_Bin))).replace("Multi_Dim_z_pT_Bin_Info", "All")
-#             elif(str(Multi_Dim_Var) in ["z_pT"]):
-#                 Name_Out = str(Name.replace("Multi_Dim_Q2_y_Bin_Info", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All")).replace("Multi_Dim_z_pT_Bin_Info", str(NewDim_Bin))
-#                 z_pT_Bin_Range     = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Select)[1]
-#                 if("Y_bin" not in Binning_Method):
-#                     z_pT_Bin_Range = 42 if(str(Q2_y_Bin_Select) in ["2"]) else 36 if(str(Q2_y_Bin_Select) in ["4", "5", "9", "10"]) else 35 if(str(Q2_y_Bin_Select) in ["1", "3"]) else 30 if(str(Q2_y_Bin_Select) in ["6", "7", "8", "11"]) else 25 if(str(Q2_y_Bin_Select) in ["13", "14"]) else 20 if(str(Q2_y_Bin_Select) in ["12", "15", "16", "17"]) else 1
-#                 if(NewDim_Bin > z_pT_Bin_Range):
-#                     break
-#             else:
-#                 Name_Out = str(Name.replace("Multi_Dim_Bin_Info",      str(NewDim_Bin)))
-#             if(str(Multi_Dim_Var) not in ["z_pT"]):
-#                 Title_Out = str(Title.replace("Range: -1.5 #rightarrow 481.5 - Size: 1.0 per bin", "".join(["#scale[1.1]{Q^{2}" if(Multi_Dim_Var in ["Q2"]) else "Q^{2}-x_{B}" if(Multi_Dim_Var in ["Q2_xB"]) else "Q^{2}-y-z-P_{T}" if(Multi_Dim_Var in ["Q2_y_z_pT"]) else "Q^{2}-y", " Bin ", str(NewDim_Bin), "" if(Multi_Dim_Var in ["Q2_xB", "Q2_y", "Q2_y_z_pT"]) else "".join([": ", str(round(NewDim_Bin_Min + (NewDim_Bin_Size*NewDim_Bin), 4)), "-", str(round(NewDim_Bin_Min + (NewDim_Bin_Size*(NewDim_Bin + 1)), 4)), " [GeV^{2}]}"])])))
-#                 Title_Out = str(Title_Out.replace("Multi_Dim_Var_Info",                            "".join(["#scale[1.1]{Q^{2}" if(Multi_Dim_Var in ["Q2"]) else "Q^{2}-x_{B}" if(Multi_Dim_Var in ["Q2_xB"]) else "Q^{2}-y-z-P_{T}" if(Multi_Dim_Var in ["Q2_y_z_pT"]) else "Q^{2}-y", " Bin ", str(NewDim_Bin), "" if(Multi_Dim_Var in ["Q2_xB", "Q2_y", "Q2_y_z_pT"]) else "".join([": ", str(round(NewDim_Bin_Min + (NewDim_Bin_Size*NewDim_Bin), 4)), "-", str(round(NewDim_Bin_Min + (NewDim_Bin_Size*(NewDim_Bin + 1)), 4)), " [GeV^{2}]}"])])))
-#             else:
-#                 Title_Out = str(Title.replace("Range: -1.5 #rightarrow 481.5 - Size: 1.0 per bin", "".join(["#scale[1.1]{Q^{2}-y Bin ", str(Q2_y_Bin_Select), ": z-P_{T} Bin ", str(NewDim_Bin), "}"])))
-#                 Title_Out = str(Title_Out.replace("Multi_Dim_Var_Info",                            "".join(["#scale[1.1]{Q^{2}-y Bin ", str(Q2_y_Bin_Select), ": z-P_{T} Bin ", str(NewDim_Bin), "}"])))
-#             if("(z_pT_Bin_0)" in str(Name_Out)):
-#                 Name_Out = str(Name_Out).replace("(z_pT_Bin_0)", "(z_pT_Bin_All)")
-#                 Name_All = Name_Out
-#             ######################################################################
-#             #####==========#####   Filling Sliced Histogram   #####==========#####
-#             ######################################################################
-#             Output_Histos[Name_Out] = ROOT.TH1D(Name_Out, "".join([str(Title_Out), "; ",  "(Smeared) " if("mear" in Smear) else "", "#phi_{h} [", str(root_color.Degrees), "]"]), phi_h_Binning[2], phi_h_Binning[0], phi_h_Binning[1])
-#             ii_bin_num = 1
-#             for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
-#                 if(Histo_Cut is not False):
-#                     ii_bin_num += 1
-#                     bin_jj = Histo.FindBin(bin_ii)
-#                     Multi_Dim_cut_num = Histo_Cut.GetBinContent(bin_jj)
-#                     Multi_Dim_cut_err = Histo_Cut.GetBinError(bin_jj)
-#                     if((Multi_Dim_cut_num == 0) or (Multi_Dim_cut_num <= Multi_Dim_cut_err)):
-#                         Multi_Dim_phi_num = 0
-#                         Multi_Dim_phi_err = 0 # Histo.GetBinContent(bin_jj) + Histo.GetBinError(bin_jj)
-#                     else:
-#                         Multi_Dim_phi_num = Histo.GetBinContent(bin_jj)
-#                         Multi_Dim_phi_err = Histo.GetBinError(bin_jj)
-#                     Output_Histos[Name_Out].Fill(                                                               phi_bin + 0.5*phi_h_Binning[3],   Multi_Dim_phi_num)
-#                     Output_Histos[Name_Out].SetBinError(Output_Histos[Name_Out].FindBin(                        phi_bin + 0.5*phi_h_Binning[3]),  Multi_Dim_phi_err)
-#                     if(NewDim_Bin not in [0]):
-#                         Multi_Dim_All_Err = Output_Histos[Name_All].GetBinError(Output_Histos[Name_All].FindBin(phi_bin + 0.5*phi_h_Binning[3]))
-#                         Output_Histos[Name_All].Fill(                                                           phi_bin + 0.5*phi_h_Binning[3],   Multi_Dim_phi_num)
-#                         Output_Histos[Name_All].SetBinError(Output_Histos[Name_All].FindBin(                    phi_bin + 0.5*phi_h_Binning[3]), (Multi_Dim_All_Err**2 + Multi_Dim_phi_err**2)**0.5)
-#                     bin_ii += 1
-#                 else:
-#                     ii_bin_num += 1
-#                     bin_jj = Histo.FindBin(bin_ii)
-#                     Multi_Dim_phi_num = Histo.GetBinContent(bin_jj)
-#                     Multi_Dim_phi_err = Histo.GetBinError(bin_jj)
-#                     Output_Histos[Name_Out].Fill(                                                               phi_bin + 0.5*phi_h_Binning[3],   Multi_Dim_phi_num)
-#                     Output_Histos[Name_Out].SetBinError(Output_Histos[Name_Out].FindBin(                        phi_bin + 0.5*phi_h_Binning[3]),  Multi_Dim_phi_err)
-#                     if(NewDim_Bin not in [0]):
-#                         Multi_Dim_All_Err = Output_Histos[Name_All].GetBinError(Output_Histos[Name_All].FindBin(phi_bin + 0.5*phi_h_Binning[3]))
-#                         Output_Histos[Name_All].Fill(                                                           phi_bin + 0.5*phi_h_Binning[3],   Multi_Dim_phi_num)
-#                         Output_Histos[Name_All].SetBinError(Output_Histos[Name_All].FindBin(                    phi_bin + 0.5*phi_h_Binning[3]), (Multi_Dim_All_Err**2 + Multi_Dim_phi_err**2)**0.5)
-#                     bin_ii += 1
-#             ######################################################################
-#             #####==========#####   Filling Sliced Histogram   #####==========#####
-#             ######################################################################
-#             #####==========#####   Drawing Histogram/Canvas   #####==========#####
-#             Output_Histos[Name_Out] = Draw_Histo_Color_and_Range(Output_Histos[Name_Out], Method)
-#             Output_Histos[Name_Out].GetYaxis().SetRangeUser(0, 1.5*Output_Histos[Name_Out].GetBinContent(Output_Histos[Name_Out].GetMaximumBin()))
-#             ######################################################################
-#             #####==========#####     Fitting Distribution     #####==========#####
-#             ######################################################################
-#             if(Fitting_Input in ["default", "Default"] and args.fit):
-#                 Output_Histos[Name_Out], Unfolded_Fit_Function[Name_Out.replace("Multi-Dim Histo", "Fit_Function")], Fit_Chisquared[Name_Out.replace("Multi-Dim Histo", "Chi_Squared")], Fit_Par_A[Name_Out.replace("Multi-Dim Histo", "Fit_Par_A")], Fit_Par_B[Name_Out.replace("Multi-Dim Histo", "Fit_Par_B")], Fit_Par_C[Name_Out.replace("Multi-Dim Histo", "Fit_Par_C")] = Fitting_Phi_Function(Histo_To_Fit=Output_Histos[Name_Out], Method=Method, Fitting="default", Special=[Q2_y_Bin_Select, NewDim_Bin] if(str(Multi_Dim_Var) in ["z_pT"]) else "Normal", args=args)
-#             ######################################################################
-#             #####==========#####     Fitting Distribution     #####==========#####
-#             ######################################################################
-#         #############################################################################################
-#         ###==============###   Creation of the Sliced Histograms    ###==============################
-#         ###==============###========================================###==============################
-#         #####==========#####      Returning Outputs       #####==========############################
-#         #############################################################################################
-#         if(Out_Option not in ["Save", "save"]):
-#             Output_List = []
-#             if(Out_Option in ["all", "All", "Histos", "histos", "Histo", "histo"]):
-#                 Output_List.append(Output_Histos)
-#             if((Out_Option in ["all", "All", "Fit", "fit", "Pars", "pars"])):
-#                 Output_List.append(Unfolded_Fit_Function)
-#             if((Out_Option in ["all", "All", "Pars", "pars"])):
-#                 Output_List.append(Fit_Par_A)
-#                 Output_List.append(Fit_Par_B)
-#                 Output_List.append(Fit_Par_C)
-#             if(Out_Option in ["complete", "Complete"]):
-#                 Output_List = [Output_Histos, Unfolded_Fit_Function, Fit_Chisquared, Fit_Par_A, Fit_Par_B, Fit_Par_C]
-#             return Output_List
-#         #############################################################################################
-#         #####==========#####      Returning Outputs       #####==========############################
-#         #############################################################################################
-#     except:
-#         print(f"{color.Error}MultiD_Slice(...) ERROR:\n{color.END}{str(traceback.format_exc())}\n")
-#         return "Error"
-# ################################################################################################################################################################################################################################################
-# ##==========##==========##           Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
-# ################################################################################################################################################################################################################################################
 
 ################################################################################################################################################################################################################################################
 ##==========##==========##        3D-Multidimensional Slice Function              ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
@@ -1555,40 +1362,6 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         #####==========#####      Unfolding Histos       #####==========#####
         #####################################################################
         #####==========#####      Multi_Dim Histos       #####==========#####
-        #####==========##### (3D) Multi_Dim Histos (Old) #####==========#####
-        # if(("Multi_Dim" in str(Variable_Input))   and (Z_PT_Bin in ["All", "Integrated", "Common_Int", -2, -1, 0])):
-        #     # Only the Multi_Dim z-pT Plots should be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All" or 0
-        #     if(("z_pT_Bin" in str(Variable_Input)) or (Q2_Y_Bin in ["All", 0])):
-        #         ###=============================================###
-        #         ###========###   Before Unfolding    ###========###
-        #         ###=============================================###
-        #         Multi_Dim_ExREAL_1D                                                                                                  = MultiD_Slice(Histo=ExREAL_1D,                             Title="norm", Name=Out_Print_Main, Method="rdf",           Variable=Variable_Input, Smear=Smear_Input if(args.sim) else "", Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         Multi_Dim_MC_REC_1D                                                                                                  = MultiD_Slice(Histo=MC_REC_1D,                             Title="norm", Name=Out_Print_Main, Method="mdf",           Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         if(args.fit and Allow_Fitting):
-        #             Multi_Dim_MC_GEN_1D,     Unfolded_GEN_Fit_Function, Chi_Squared_GEN, GEN_Fit_Par_A, GEN_Fit_Par_B, GEN_Fit_Par_C = MultiD_Slice(Histo=MC_GEN_1D,                             Title="norm", Name=Out_Print_Main, Method="gdf",           Variable=Variable_Input, Smear="",                               Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
-        #         else:
-        #             Multi_Dim_MC_GEN_1D                                                                                              = MultiD_Slice(Histo=MC_GEN_1D,                             Title="norm", Name=Out_Print_Main, Method="gdf",           Variable=Variable_Input, Smear="",                               Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         if(MC_BGS_1D not in ["None"]):
-        #             Multi_Dim_MC_BGS_1D                                                                                              = MultiD_Slice(Histo=MC_BGS_1D,                             Title="norm", Name=Out_Print_Main, Method="Background",    Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         if(ExTRUE_1D not in ["N/A"]):
-        #             if(args.fit and Allow_Fitting):
-        #                 Multi_Dim_ExTRUE_1D, Unfolded_TDF_Fit_Function, Chi_Squared_TDF, TDF_Fit_Par_A, TDF_Fit_Par_B, TDF_Fit_Par_C = MultiD_Slice(Histo=ExTRUE_1D,                             Title="norm", Name=Out_Print_Main, Method="tdf",           Variable=Variable_Input, Smear="",                               Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
-        #             else:
-        #                 Multi_Dim_ExTRUE_1D                                                                                          = MultiD_Slice(Histo=ExTRUE_1D,                             Title="norm", Name=Out_Print_Main, Method="tdf",           Variable=Variable_Input, Smear="",                               Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         ###=============================================###
-        #         ###========###   Before Unfolding    ###========###
-        #         ###========###   After Unfolding     ###========###
-        #         ###=============================================###
-        #         Multi_Dim_Bin_Acceptance                                                                                             = MultiD_Slice(Histo=Bin_Acceptance,                        Title="norm", Name=Out_Print_Main, Method="Acceptance", Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         if(args.fit and Allow_Fitting):
-        #             Multi_Dim_Bin_Histo,     Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C = MultiD_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
-        #             Multi_Dim_Bay_Histo,     Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = MultiD_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin)
-        #         else:
-        #             Multi_Dim_Bin_Histo                                                                                              = MultiD_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #             Multi_Dim_Bay_Histo                                                                                              = MultiD_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin)[0]
-        #         ###=============================================###
-        #         ###========###   After Unfolding     ###========###
-        #         ###=============================================###
         #####==========##### (3D) MultiDim Histos (New)  #####==========#####
         if(("MultiDim_z_pT_Bin" in str(Variable_Input)) and (Z_PT_Bin in ["All", "Integrated", "Common_Int", -2, -1, 0])):
             # The MultiDim_z_pT_Bin z-pT Plots should only be able to run if Q2_Y_Bin and Z_PT_Bin do not equal "All", "Integrated", -1 or 0
@@ -1792,6 +1565,38 @@ def Bin_Widths_future_function(args):
                 Area_of_z_pT_Bins[f"{Q2_y_Bin}_{z_pT_Bin}"] = round(abs((z_Max - z_Min)*(pTMax - pTMin)), 6)
         Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = round(Area_of_z_pT_Bins[f"{Q2_y_Bin}"], 6)
     print(f"Area_of_z_pT_Bins = {Area_of_z_pT_Bins}")
+
+from Binning_Dictionaries import Full_Bin_Definition_Array #, Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
+def Bin_Area_by_Widths_Calc(args, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
+    # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
+        # Update phi_t_bin whenever the bin sizes are changed
+        # If the scale is applied to a 2D histogram of the other variables (i.e., integrated over the phi_t variable), then phi_t_bin should be set to 360
+    Bin_Area = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0, "dphi_t": phi_t_bin}
+    for q2y_bin in range(1, 18):
+        if(str(Q2_y_Bin) not in ["0", "All", str(q2y_bin)]):
+            continue
+        Bin_Area[f"Q2-y={q2y_bin}"] = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0}
+        Q2max, Q2min, y_max, y_min = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, Q2-y']
+        Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
+        Bin_Area[f"Q2-y={q2y_bin}"]["dQ2"] += abs(Q2max - Q2min)
+        Bin_Area[f"Q2-y={q2y_bin}"]["d_y"] += abs(y_max - y_min)
+        Bin_Area["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
+        Bin_Area["dQ2"] += abs(Q2max - Q2min)
+        Bin_Area["d_y"] += abs(y_max - y_min)
+        for zpT_bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y_bin)[0]):
+            if((skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpT_bin, BINNING_METHOD="Y_bin")) or (str(z_pT_Bin) not in ["0", "All", str(zpT_bin)])):
+                continue
+            z_max, z_min, pTmax, pTmin = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, z-pT={zpT_bin}']
+            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*abs(pTmax - pTmin), "d_z": abs(pTmax - pTmin), "dpT": abs(pTmax - pTmin)}
+            Bin_Area[f"Q2-y={q2y_bin}"]["zpTTotal"]       += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
+            Bin_Area[f"Q2-y={q2y_bin}"]["d_z"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["d_z"]
+            Bin_Area[f"Q2-y={q2y_bin}"]["dpT"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["dpT"]
+            Bin_Area["zpTTotal"]                          += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
+    Bin_Width_Area_Scale = Bin_Area["q2yTotal"]*Bin_Area["zpTTotal"]*Bin_Area["dphi_t"]
+    if(args.verbose):
+        print(f"Bin Area (∆Q2∆y∆z∆pT∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
+    return Bin_Width_Area_Scale, Bin_Area
+
 ##################################################################################################################################################################
 ##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
 ##################################################################################################################################################################
@@ -1909,13 +1714,11 @@ def main_unfold(args):
     tdf = ROOT.TFile(args.single_file_input, "READ")
     print(f"\n\n{color.BOLD}Done Loading RDataFrame files...\n{color.END}")
 
-
     print(f"{color.BBLUE}\n\nStarting Unfolding Procedures...\n{color.END}")
     Unfolded_Canvas, Legends, Bin_Unfolded, RooUnfolded_Histos, Bin_Acceptance, Unfolding_Histogram_1_Norm_Clone, Save_Response_Matrix, Parameter_List_Unfold_Methods = {}, {}, {}, {}, {}, {}, {}, {}
     Parameter_List_Unfold_Methods["SVD"], Parameter_List_Unfold_Methods["Bin"], Parameter_List_Unfold_Methods["Bayes"] = [], [], []
     List_of_All_Histos_For_Unfolding = {}
     count, count_failed = 0, 0
-
     for ii in mdf.GetListOfKeys():
         out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
         if("Q2_y_z_pT_4D_Bins" in out_print_main):
@@ -2761,11 +2564,11 @@ def main_unfold(args):
     print(f"Total: {count}")
     # print("".join(["Num Failed: ", str(count_failed)]))
     del count
-
+    
     BIN_SEARCH = []
     for BIN in args.Q2_y_Bin_List:
         BIN_SEARCH.append("".join(["Q2_y_Bin_", str(BIN) if(str(BIN) not in ['0', 0]) else "All", ")"]))
-        
+    
     for ii in rdf.GetListOfKeys():
         out_print_main = str(ii.GetName())
         if("Normal_2D" in out_print_main):
@@ -2808,7 +2611,7 @@ def main_unfold(args):
                             if(f"({particle})_({particle}th)"    in str(out_print_str)):
                                 List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom].GetYaxis().SetRange(ii, ii)
                                 List_of_All_Histos_For_Unfolding[str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}")] = List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned_Mom.replace("(1D)", "(Normal_2D)")].ProjectionX(str(out_print_str_1D_Binned_Mom).replace("z_pT_Bin_All", f"z_pT_Bin_{z_pT_bin_value}"), ii, ii)
-                
+    
     for ii in mdf.GetListOfKeys():
         out_print_main = str(ii.GetName())
         if(("Normal_2D" in out_print_main) or ("Normal_Background_2D" in out_print_main)):
@@ -2920,7 +2723,7 @@ def main_unfold(args):
                                 continue
                             num_z_pT_bins    = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].GetNbinsY()
                             out_print_str_1D = str(out_print_str.replace("(Normal_2D)", "(1D)"))
-                            out_print_str_1D_Binned         = out_print_str_1D.replace(f"({particle})_",    "")
+                            out_print_str_1D_Binned = out_print_str_1D.replace(f"({particle})_",    "")
                             List_of_All_Histos_For_Unfolding[out_print_str_1D_Binned]         = List_of_All_Histos_For_Unfolding[out_print_str.replace(f"({particle})_",   "")].ProjectionY(out_print_str_1D_Binned,     4, num_z_pT_bins)
                             if(f"({particle})_({particle}th)" in str(out_print_str_1D)):
                                 out_print_str_1D_Binned_Mom = out_print_str_1D.replace(f"_({particle}th)",  "")
@@ -3037,7 +2840,7 @@ def Load_TTree(args):
 def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
     TTree_Name = args.root
     if((args.fit and args.Use_TTree) or args.Apply_RC):
-        fits_included    = False
+        fits_included    = args.remake_fit
         RC_fits_included = not args.Apply_RC # if args.Apply_RC = False, then there is no need to create the RC fits anyway
         for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
             if("(Fit_Par" in str(List_of_All_Histos_For_Unfolding_ii)):
@@ -3133,7 +2936,6 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                         Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
                         fit_count += 1
                         #FIND SINGLE FILE FITS
-        
                     RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
                     RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
                     RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
@@ -3185,7 +2987,6 @@ def main():
     except:
         Crash_Report(args, crash_message=f"The Fitting/RC Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
-
 
 if(__name__ == "__main__"):
     main()
