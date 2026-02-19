@@ -21,6 +21,9 @@ def parse_args():
     parser.add_argument('-c',  '--cut',
                         type=str,
                         help='Adds additional cuts based on user input (Warning: applies to all datasets).')
+    parser.add_argument('-rkb', '-kb', '--Require_Kinematic_Binning',
+                        action='store_true',
+                        help="Applies a kinematic cut which requires all events to land in a proper kinematic bin before any plotting.")
     parser.add_argument('-n', '--name',
                         type=str,
                         default=None,
@@ -56,10 +59,10 @@ def parse_args():
                         type=str,
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json", 
                         help='JSON file path for using `json_weights`.')
-    # parser.add_argument('-hpp_in', '--hpp_input_file',
-    #                     type=str,
-    #                     default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp", 
-    #                     help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options in 'using_RDataFrames_python.py'.")
+    parser.add_argument('-hpp_in', '--hpp_input_file',
+                        type=str,
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/New_Pass_2_Cut_generated_acceptance_weights_Zeroth_Order.hpp", 
+                        help="hpp file path that is used to apply the acceptance weights created/used by the '--make_2D_weight'/'--make_2D_weight_check' options in this script.")
     parser.add_argument('-hpp_out', '--hpp_output_file',
                         type=str,
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/New_Pass_2_Cut_generated_acceptance_weights.hpp", 
@@ -79,6 +82,17 @@ def parse_args():
                         type=str,
                         default="", 
                         help="Adds an extra user-defined message to emails sent with the `--email` option.")
+    parser.add_argument('-2Dw', '--make_2D_weight',
+                        action='store_true',
+                        help="Gives 2D weights for the data to MC ratios based on the particle kinematics (for acceptance uncertainty measurements).")
+    parser.add_argument('-2DwC', '--make_2D_weight_check',
+                        action='store_true',
+                        help="Uses the 2D weights from the `--make_2D_weight` option to create 1D variable plots of Data and MC-REC (for MC-GEN, use the 'using_RDataFrames_python.py' script).")
+    parser.add_argument('-VarwC', '--Var_weight_check',
+                        type=str,
+                        default="phi_h",
+                        choices=["phi_h", "Q2", "y", "xB", "z", "pT"],
+                        help="Selects the 1D variable to be checked with `--make_2D_weight_check`.")
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.')
@@ -93,7 +107,6 @@ script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues import *
-# Now you can remove the path if you wish
 sys.path.remove(script_dir)
 del script_dir
 
@@ -147,6 +160,12 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
     for name, value in vars(args).items():
         if(str(name) in ["email", "email_message", "timer", "root", "single_file_input"]):
             continue
+        if((str(name) in ["json_file"]) and (not args.json_weights)):
+            continue
+        if((str(name) in ["hpp_input_file", "Var_weight_check"]) and (not args.make_2D_weight_check)):
+            continue
+        if((str(name) in ["hpp_output_file"]) and (not args.make_2D_weight)):
+            continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
     email_body = f"""
@@ -164,7 +183,7 @@ Arguments:{args_list}
     """
     
     if(args.email):
-        send_email(subject="Finished Running the 'Acceptance_Weights_Creations_using_RDataFrames.py' Code" if(not (Crashed or Warning)) else f"{'CRASH' if(Crashed) else 'ERROR'} REPORT: 'Simple_RooUnfold_SelfContained.py' Code {'Failed' if(Crashed) else 'is still running...'}", body=email_body, recipient="richard.capobianco@uconn.edu")
+        send_email(subject="Finished Running the 'Acceptance_Weights_Creations_using_RDataFrames.py' Code" if(not (Crashed or Warning)) else f"{'CRASH' if(Crashed) else 'ERROR'} REPORT: 'Acceptance_Weights_Creations_using_RDataFrames.py' Code {'Failed' if(Crashed) else 'is still running...'}", body=email_body, recipient="richard.capobianco@uconn.edu")
     print(f"\n\n\n\n{color.BOLD}{color_bg.YELLOW}EMAIL MESSAGE TO SEND:{color.END}\n\n{email_body}\n")
     if(Warning):
         print(f"\n\n{color.BOLD}CONTNUE RUNNING...{color.END}\n\n")
@@ -196,7 +215,6 @@ def Crash_Report(args, crash_message="The Code has CRASHED!", continue_run=False
     else:
         print(f"\n\n{color.ERROR}WILL CONTINUE RUNNING THROUGH THE ERROR{color.END}\n\n")
 
-
 def variable_Title_name_new(variable_in):
     if(variable_in in ["k0_cut"]):
         return "E^{Cutoff}_{#gamma}"
@@ -204,7 +222,6 @@ def variable_Title_name_new(variable_in):
         output = variable_Title_name(variable_in)
         output = output.replace(" (lepton energy loss fraction)", "")
         return output
-
 
 def validate_root_paths(label, paths, require_root_ext=True, require_root_magic=False):
     ok, bad = [], []
@@ -232,9 +249,11 @@ def validate_root_paths(label, paths, require_root_ext=True, require_root_magic=
         ok.append(str(pp))
     if(len(bad) > 0):
         if(len(ok) != 0):
-            Crash_Report(args, crash_message=f"{color.ERROR}Missing Files{color.END_R}:\nFileNotFoundError:{color.END}\n{'\n'.join(bad)}\n\n{color.BOLD}Allowed to keep running...{color.END}", continue_run=True)
+            Update_Email(args, update_message=f"{color.ERROR}Missing Files{color.END_R}:\nFileNotFoundError:{color.END}\n{'\n'.join(bad)}\n\n{color.BOLD}Allowed to keep running...{color.END}")
+            if(not args.verbose):
+                print(f"\n{color.Error}There are {color.END_B}{len(bad)}{color.Error} missing files...{color.END}\n")
         else:
-            Update_Email(args, update_message=f"{color.ERROR}Missing All Files!{color.END_R} There are no files left to actually run...{color.END}")
+            Crash_Report(args, crash_message=f"{color.ERROR}Missing All Files!{color.END_R} There are no files left to actually run...{color.END}")
             raise FileNotFoundError("\n".join(bad))
     return ok
 
@@ -320,7 +339,6 @@ def pair_key_after_marker(path_str, marker="Pass_2_PID_Tests_FC_14_V1"):
         raise ValueError(f"Marker not found in filename: marker={marker!r} file={name!r}")
     return name[(idx + len(marker)):]  # suffix AFTER marker; includes extension
 
-
 def combine_batches(batch_list, number_of_files=-1):
     combined_list = []
     for     ii in batch_list:
@@ -329,7 +347,6 @@ def combine_batches(batch_list, number_of_files=-1):
             if((len(combined_list) >= number_of_files) and (number_of_files > 0)):
                 return combined_list
     return combined_list
-
 
 def Collect_DataFrames(args):
     all_root_files = {}
@@ -340,13 +357,11 @@ def Collect_DataFrames(args):
         mdf_all = combine_batches(mdf_batch, args.number_of_files)
         rdf_all = combine_batches(rdf_batch, args.number_of_files)
         all_root_files = build_all_root_files(mdf_all, mdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
-
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
-        print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
-        
+        print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")     
     args.num_rdf_files = len(all_root_files["rdf"])
     args.num_MC_files  = len(all_root_files["mdf_clasdis"])
     print(f"\n{color.BOLD}LOADING DATAFRAMES{color.END}")
@@ -364,7 +379,6 @@ def Collect_DataFrames(args):
         args.timer.time_elapsed()
     else:
         print("Fast Load...")
-    
     print(f"\n{color.Error}mdf_clasdis{color.END}:")
     if(args.verbose):
         for ii in range(0, len(mdf_clasdis.GetColumnNames()), 1):
@@ -374,18 +388,19 @@ def Collect_DataFrames(args):
         args.timer.time_elapsed()
     else:
         print("Fast Load...")    
-
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     args.timer.time_elapsed()
     print(f"\n{color.BOLD}APPLYING (BASE) CUTS\n{color.END}")
     rdf           =         rdf.Filter(args.cut_name_rdf)
     mdf_clasdis   = mdf_clasdis.Filter(args.cut_name_mdf)
-
     if(args.cut):
         print(f"{color.Error}Applying User Cut: {color.END_B}{args.cut}{color.END}")
         rdf           =         rdf.Filter(args.cut)
         mdf_clasdis   = mdf_clasdis.Filter(args.cut)
-
+    if(args.Require_Kinematic_Binning):
+        print(f"{color.BYELLOW}Applying Cuts on the Kinematic Bins{color.END}")
+        rdf           =         rdf.Filter("(Q2_Y_Bin != 0) && (z_pT_Bin_Y_bin != 0)")
+        mdf_clasdis   = mdf_clasdis.Filter("(Q2_Y_Bin != 0) && (z_pT_Bin_Y_bin != 0)")
     if(not args.fast):
         print(f"\t(New) Total entries in {color.BBLUE}rdf        {color.END} files: \n{rdf.Count().GetValue():>20.0f}")
         args.timer.time_elapsed()
@@ -393,19 +408,15 @@ def Collect_DataFrames(args):
         args.timer.time_elapsed()
     else:
         print(f"\n{color.BGREEN}Done with Cuts {color.END_B}(Ran with 'fast' setting to skip the statistics change){color.END}\n")
-
     return args, rdf, mdf_clasdis
-
 
 if(__name__ == "__main__"):
     args = parse_args()
     print(f"{color.BBLUE}\nCode is ready to run.{color.END}")
     args.timer = RuntimeTimer()
     args.timer.start()
-
     args.save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
-    args.make_2D_weight = not args.dry_run
-
+    args.make_2D_weight = (args.make_2D_weight and (not args.dry_run))
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
     ROOT.gStyle.SetGridColor(17)
@@ -413,7 +424,6 @@ if(__name__ == "__main__"):
     ROOT.gStyle.SetPadGridY(1)
     ROOT.gStyle.SetOptStat(0)
     ROOT.gROOT.SetBatch(1)
-    
     # if(".root" not in args.root):
     #     print(f"\n'--root' was set to {args.root}\n")
     #     raise ValueError("Invalid '--root' argument (the string must end with '.root')")
@@ -421,13 +431,11 @@ if(__name__ == "__main__"):
     #     args.root = f'{str(args.root).split(".root")[0]}_{args.name}.root'
     # if(all(f"_Batch{args.batch_id:03d}" not in str(check) for check in [args.root, args.name]) and (args.batch_id > 0)):
     #     args.root = f'{str(args.root).split(".root")[0]}_Batch{args.batch_id:03d}.root'
-    
     print(f"\n\n{color_bg.YELLOW}\n\n\t{color.BGREEN}Running with batch files {color.CYAN}{color_bg.YELLOW}{color.UNDERLINE}{args.batch_id}{color.END}{color_bg.YELLOW}\t\n{color.END}")
-    
-    
-    # # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
-    # print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
-    # ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+    if(args.make_2D_weight_check):
+        # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
+        print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
+        ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
     
     # if(not args.use_hpp):
     #     print(f"{color.Error}Not using Acceptance Weights{color.END}")
@@ -435,14 +443,47 @@ if(__name__ == "__main__"):
         print(f"{color.Error}Only using the angle Acceptance Weights (not weighing the lab momemtum for acceptance){color.END}")
     else:
         print(f"{color.BBLUE}Using the Full Acceptance Weights{color.END}")
-
     try:
         args, rdf, mdf_clasdis = Collect_DataFrames(args)
         Update_Email(args, update_name="RDataFrame Collection", verbose_override=True)
     except:
         Crash_Report(args, crash_message=f"While trying to load the RDataFrames, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
-
-
+    
+    if(args.json_weights):
+        try:
+            print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
+            with open(args.json_file) as f:
+                Fit_Pars = json.load(f)
+                # Build the C++ initialization string
+                cpp_map_str = "{"
+                for key, val in Fit_Pars.items():
+                    cpp_map_str += f'{{"{key}", {val}}},'
+                cpp_map_str += "}"
+                ROOT.gInterpreter.Declare(f"""
+                #include <map>
+                #include <string>
+                #include <cmath>
+                std::map<std::string, double> Fit_Pars = {cpp_map_str};
+                double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
+                    // build the keys dynamically
+                    std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+                    // safely retrieve parameters (default = 1.0 or 0.0)
+                    double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 1.0;
+                    double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
+                    double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
+                    // calculate weight
+                    double phi_rad = phi_h * TMath::DegToRad();
+                    double weight  = Par_A*(1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
+                    return weight;
+                }}
+                """)
+        except:
+            Crash_Report(args, crash_message=f"While loading the JSON weights, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
+    else:
+        print(f"\n{color.BYELLOW}Not applying any physics weights...{color.END}")
+    
     if(args.make_2D_weight):
         try:
             print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
@@ -494,37 +535,7 @@ if(__name__ == "__main__"):
             def _cpp_list(vals):
                 return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
 
-            JSON_WEIGHT_FILE = args.json_file
             if(args.json_weights):
-                print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
-                with open(JSON_WEIGHT_FILE) as f:
-                    Fit_Pars = json.load(f)
-                    # Build the C++ initialization string
-                    cpp_map_str = "{"
-                    for key, val in Fit_Pars.items():
-                        cpp_map_str += f'{{"{key}", {val}}},'
-                    cpp_map_str += "}"
-                    
-                    ROOT.gInterpreter.Declare(f"""
-                    #include <map>
-                    #include <string>
-                    #include <cmath>
-                    std::map<std::string, double> Fit_Pars = {cpp_map_str};
-                    double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
-                        // build the keys dynamically
-                        std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
-                        std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
-                        std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
-                        // safely retrieve parameters (default = 1.0 or 0.0)
-                        double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 1.0;
-                        double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
-                        double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
-                        // calculate weight
-                        double phi_rad = phi_h * TMath::DegToRad();
-                        double weight  = Par_A*(1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
-                        return weight;
-                    }}
-                    """)
                 wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             else:
                 wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
@@ -658,7 +669,6 @@ if(__name__ == "__main__"):
                 print(f"{color.BOLD}Finished '{data_match_name}' Histograms{color.END}")
                 args.timer.time_elapsed()
                 
-                
             print(f"\n{color.BOLD}Done Creating the Histograms for getting the new event weights{color.END}\n")
             args.timer.time_elapsed()
 
@@ -716,5 +726,179 @@ if(__name__ == "__main__"):
             Crash_Report(args, crash_message=f"While trying to create the Acceptance Weights, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
     else:
         print(f"\n{color.Error}Skipping Acceptance Weight Histograms{color.END}")
+
+    if(args.make_2D_weight_check):
+        print(f"\n{color.BOLD}TESTING ACCEPTANCE WEIGHTED HISTOGRAMS ({args.Var_weight_check}){color.END}\n")
+        # 1) Define Event_Weight on MC (mdf)
+        if(args.json_weights):
+            # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
+            mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+        else:
+            mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
+            pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Redefine("Event_Weight", f"Event_Weight_raw * ({scale})")
+        Update_Email(args, update_message=f"\n{color.BOLD}Done defining the Event Weights{color.END}\n", verbose_override=True)
+
+        varible_title = variable_Title_name_new(args.Var_weight_check)
+        var, minBin, maxBin, numBin  = 'phi_t', 0.00,  360,  24
+        if(str(args.Var_weight_check) in ["Q2"]):
+            var, minBin, maxBin, numBin = "Q2", 0.00, 12.0, 240
+        if(str(args.Var_weight_check) in ["y"]):
+            var, minBin, maxBin, numBin =  "y", 0.05, 1.05, 100
+        if(str(args.Var_weight_check) in ["xB"]):
+            var, minBin, maxBin, numBin = "xB", 0.05, 0.85,  80
+        if(str(args.Var_weight_check) in ["z"]):
+            var, minBin, maxBin, numBin =  "z", 0.00, 1.20, 120
+        if(str(args.Var_weight_check) in ["pT"]):
+            var, minBin, maxBin, numBin = "pT", 0.00, 2.00, 200
+        # 2) Book TH1D histograms for the selected variable
+        Title = f"Comparisons of {varible_title}"
+        if(args.title):
+            Title = f"#splitline{{{Title}}}{{{args.title}}}"
+        h_rdf =         rdf.Histo1D(("h_1D_rdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}")
+        h_mdf = mdf_clasdis.Histo1D(("h_1D_mdf", f"#splitline{{Comparisons of {varible_title}}}{{Without Reweighted MC}}; {varible_title}; Normalized", numBin, minBin, maxBin), f"{var}_smeared")
+        w_mdf = mdf_clasdis.Histo1D(("w_1D_mdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}_smeared", "Event_Weight")
         
+        # 3) Set line colors (on the actual TH1 objects)
+        h_rdf.GetValue().SetLineColor(ROOT.kBlue)
+        h_mdf.GetValue().SetLineColor(ROOT.kRed)
+        w_mdf.GetValue().SetLineColor(ROOT.kPink + 10)
+        
+        # 4) Make normalized clones for maxima AND drawing
+        def _make_norm_clone(hptr, name):
+            h = hptr.GetValue()
+            integral = h.Integral()
+            h_norm = h.Clone(name)
+            if(integral != 0):
+                h_norm.Scale(1.0 / integral)
+            return h_norm
+        
+        h_rdf_n = _make_norm_clone(h_rdf, "h_1D_rdf_norm")
+        h_mdf_n = _make_norm_clone(h_mdf, "h_1D_mdf_norm")
+        w_mdf_n = _make_norm_clone(w_mdf, "w_1D_mdf_norm")
+        
+        comp_wW = w_mdf_n.Clone("w_1D_Compare")
+        comp_nW = h_mdf_n.Clone("h_1D_Compare")
+
+        comp_wW.Divide(h_rdf_n)
+        comp_nW.Divide(h_rdf_n)
+
+        comp_wW.SetLineColor(ROOT.kBlack)
+        comp_nW.SetLineColor(ROOT.kBlack)
+
+        comp_wW.SetTitle(f"#scale[1.25]{{#splitline{{Comparisons of Data and MC}}{{WITH Reweighted MC}}}}; {varible_title}; #frac{{MC REC}}{{Data}}")
+        comp_nW.SetTitle(f"#scale[1.25]{{#splitline{{Comparisons of Data and MC}}{{WITHOUT Reweighted MC}}}}; {varible_title}; #frac{{MC REC}}{{Data}}")
+
+        CwW_max, CwW_min = comp_wW.GetMaximum(), comp_wW.GetMinimum()
+        CnW_max, CnW_min = comp_nW.GetMaximum(), comp_nW.GetMinimum()
+
+        Comp_Max = max([1.3*CwW_max, 1.3*CnW_max, 0.5*CwW_max, 0.5*CnW_max, 1.3])
+        Comp_Min = min([1.3*CwW_max, 1.3*CnW_max, 0.5*CwW_max, 0.5*CnW_max, 0.7])
+        
+        rdf_max = h_rdf_n.GetMaximum()
+        mdf_max = w_mdf_n.GetMaximum()
+        global_max = max([rdf_max, mdf_max, 1e-5])
+        
+        # 5) Draw overlay on one canvas (first drawn sets axes)
+        # c_phi = ROOT.TCanvas("c_phi_t_overlay", "phi_t overlays", 900, 600)
+        c_phi = ROOT.TCanvas("c_1D_overlay", f"{args.Var_weight_check} overlays", int(912*1.55*25), int(547*1.55*25))
+        c_phi.Divide(2, 2)
+        
+        # ----- Pad 1: Data vs Reweighted MC -----
+        c_phi.cd(1)
+        h_rdf_n.GetYaxis().SetRangeUser(0.0, 1.2*global_max)
+        h_rdf_n.Draw("H P E0")
+        w_mdf_n.Draw("H P E0 same")
+        
+        # Legend for pad 1
+        # leg1 = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)  # top-right; adjust if needed
+        leg1 = ROOT.TLegend(0.38, 0.12, 0.62, 0.3)  # bottom-center
+        leg1.SetBorderSize(0)
+        leg1.SetFillStyle(0)
+        leg1.SetTextSize(0.04)
+        leg1.AddEntry(h_rdf_n, "Experimental Data", "l")
+        leg1.AddEntry(w_mdf_n, "MC REC (Reweighted)", "l")
+        leg1.Draw()
+        
+        # ----- Pad 2: Data vs Default MC -----
+        c_phi.cd(2)
+        h_mdf_n.GetYaxis().SetRangeUser(0.0, 1.2*global_max)
+        h_mdf_n.Draw("H P E0")
+        h_rdf_n.Draw("H P E0 same")
+        
+        # Legend for pad 2
+        leg2 = ROOT.TLegend(0.38, 0.12, 0.62, 0.3)  # bottom-center
+        leg2.SetBorderSize(0)
+        leg2.SetFillStyle(0)
+        leg2.SetTextSize(0.04)
+        leg2.AddEntry(h_rdf_n, "Experimental Data", "l")
+        leg2.AddEntry(h_mdf_n, "MC REC (Default)", "l")
+        leg2.Draw()
+        
+        # ----- Pad 3: Ratio WITH reweighting -----
+        c_phi.cd(3)
+        comp_wW.GetYaxis().SetRangeUser(Comp_Min, Comp_Max)
+        comp_wW.Draw("H P E0")
+        l_w = ROOT.TLine(0, 1.0, 360, 1.0)
+        l_w.SetLineStyle(2)
+        l_w.SetLineWidth(2)
+        l_w.SetLineColor(ROOT.kGray)
+        l_w.Draw("same")
+
+        # Compute average bin content (exclude under/overflow)
+        def _avg_bin_content(h):
+            nb = h.GetNbinsX()
+            s = 0.0
+            for i in range(1, nb + 1):
+                s += h.GetBinContent(i)
+            return (s / nb) if(nb > 0) else 0.0
+        
+        avg_w = _avg_bin_content(comp_wW)
+        # Add a small NDC stat box
+        pt3 = ROOT.TPaveText(0.38, 0.6, 0.62, 0.65, "NDC")
+        pt3.SetFillStyle(0)
+        pt3.SetBorderSize(0)
+        pt3.SetTextAlign(12)  # left-adjust text inside box
+        pt3.SetTextSize(0.04)
+        pt3.AddText(f"Average = {avg_w:.4f}")
+        pt3.Draw()
+        
+        # ----- Pad 4: Ratio WITHOUT reweighting -----
+        c_phi.cd(4)
+        comp_nW.GetYaxis().SetRangeUser(Comp_Min, Comp_Max)
+        comp_nW.Draw("H P E0")
+        l_h = ROOT.TLine(0, 1.0, 360, 1.0)
+        l_h.SetLineStyle(2)
+        l_h.SetLineWidth(2)
+        l_h.SetLineColor(ROOT.kGray)
+        l_h.Draw("same")
+        
+        avg_nw = _avg_bin_content(comp_nW)
+        pt4 = ROOT.TPaveText(0.38, 0.6, 0.62, 0.65, "NDC")
+        pt4.SetFillStyle(0)
+        pt4.SetBorderSize(0)
+        pt4.SetTextAlign(12)
+        pt4.SetTextSize(0.04)
+        pt4.AddText(f"Average = {avg_nw:.4f}")
+        pt4.Draw()
+        
+        c_phi.Update()
+
+        save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        if(args.Require_Kinematic_Binning):
+            save_name = f"Binned_{save_name}"
+        c_phi.SaveAs(save_name)
+        print(f"{color.BOLD}Saved: {color.BBLUE}{save_name}{color.END}")
+    else:
+        print(f"\n{color.Error}Skipping Checks of Acceptance Weights on the Kinematic Variable Histograms{color.END}")
     Construct_Email(args)
