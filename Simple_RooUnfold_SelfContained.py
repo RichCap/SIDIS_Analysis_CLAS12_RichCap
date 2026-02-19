@@ -77,6 +77,10 @@ def parse_args():
                    action='store_true',
                    dest='remake_fit',
                    help="Forces fitting of plots even if fits were already made (to be used with the '--Use_TTree' option).")
+    
+    p.add_argument('-N', '-csn', '--CrossSection_Norm',
+                   action='store_true',
+                   help="Apply Cross Section Normalization before fitting. Normalization includes division by bin width.")
 
     # kinematic comparison & proton modes
     p.add_argument('-tp', '--tag-proton', 
@@ -730,11 +734,114 @@ def Histogram_Name_Def(out_print, Histo_General="Find", Data_Type="Find", Cut_Ty
 ##==========##==========##     Function For Naming (New) Histograms     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ######################################################################################################################################################################################################################################
 
+##################################################################################################################################################################
+##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
+##################################################################################################################################################################
+def Bin_Widths_future_function(args):
+    # Run the following code whenever changes are made to the z-pT bins in order to get the correct (new) values for 'Area_of_z_pT_Bins'
+    Area_of_z_pT_Bins = {}
+    for Q2_y_Bin     in range(1, 18):
+        Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = 0
+        for z_pT_Bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin)[0]):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                continue
+            else:
+                z_Max, z_Min, pTMax, pTMin = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT_Bin, Q2_y_Bin_Num=Q2_y_Bin)
+                Area_of_z_pT_Bins[f"{Q2_y_Bin}"]           +=       abs((z_Max - z_Min)*(pTMax - pTMin))
+                Area_of_z_pT_Bins[f"{Q2_y_Bin}_{z_pT_Bin}"] = round(abs((z_Max - z_Min)*(pTMax - pTMin)), 6)
+        Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = round(Area_of_z_pT_Bins[f"{Q2_y_Bin}"], 6)
+    print(f"Area_of_z_pT_Bins = {Area_of_z_pT_Bins}")
+
+from Binning_Dictionaries import Full_Bin_Definition_Array #, Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
+def Bin_Area_by_Widths_Calc(args, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
+    # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
+        # Update phi_t_bin whenever the bin sizes are changed
+        # If the scale is applied to a 2D histogram of the other variables (i.e., integrated over the phi_t variable), then phi_t_bin should be set to 360
+    Bin_Area = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0, "dphi_t": phi_t_bin}
+    for q2y_bin in range(1, 18):
+        if(str(Q2_y_Bin) not in ["0", "All", str(q2y_bin)]):
+            continue
+        Bin_Area[f"Q2-y={q2y_bin}"] = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0, "d_z": 0, "dpT": 0}
+        Q2max, Q2min, y_max, y_min = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, Q2-y']
+        Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
+        Bin_Area[f"Q2-y={q2y_bin}"]["dQ2"] += abs(Q2max - Q2min)
+        Bin_Area[f"Q2-y={q2y_bin}"]["d_y"] += abs(y_max - y_min)
+        Bin_Area["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
+        Bin_Area["dQ2"] += abs(Q2max - Q2min)
+        Bin_Area["d_y"] += abs(y_max - y_min)
+        for zpT_bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y_bin)[0]):
+            if((skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpT_bin, BINNING_METHOD="Y_bin")) or (str(z_pT_Bin) not in ["0", "All", str(zpT_bin)])):
+                continue
+            z_max, z_min, pTmax, pTmin = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, z-pT={zpT_bin}']
+            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*abs(pTmax - pTmin), "d_z": abs(z_max - z_min), "dpT": abs(pTmax - pTmin)}
+            Bin_Area[f"Q2-y={q2y_bin}"]["zpTTotal"]       += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
+            Bin_Area[f"Q2-y={q2y_bin}"]["d_z"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["d_z"]
+            Bin_Area[f"Q2-y={q2y_bin}"]["dpT"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["dpT"]
+            Bin_Area["zpTTotal"]                          += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
+    Bin_Width_Area_Scale = Bin_Area["q2yTotal"]*Bin_Area["zpTTotal"]*Bin_Area["dphi_t"]
+    if(args.verbose):
+        print(f"Bin Area (∆Q2∆y∆z∆pT∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
+    return Bin_Width_Area_Scale, Bin_Area
+
+def ApplyCS_Norm(args, Histo, Q2_y_Bin, z_pT_Bin, List_of_All_Histos_For_Unfolding={}):
+    # Histo.SetLineWidth(3)
+    if(args.Bin_Width):
+        Bin_Width_Area_Scale, Bin_Area = Bin_Area_by_Widths_Calc(args, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=15)
+        if(args.verbose):
+            print(f"Scaling Histogram: {color.BOLD}{Histo.GetName()}{color.END} by bin widths/areas.\nFull list of bin widths/areas =\n{Bin_Area}\n")
+        if(Bin_Width_Area_Scale != 0.0):
+            Histo.Scale(1.0/Bin_Width_Area_Scale)
+        else:
+            Crash_Report(args, crash_message=f"The Scaling Histogram by Bin Widths Code would have CRASHED! Was trying to normalize: '{Histo.GetName()}'. Bin Area = 0", continue_run=False)
+        Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
+    return Histo.Clone(f"{Histo.GetName()}_(Normalized)")
+    # if(args.Normalize):
+    #     if(args.verbose):
+    #         print(f"Normalizing Histogram: {Histo.GetName()}")
+    #     try:
+    #         Integrated_Bins_Histo = List_of_All_Histos_For_Unfolding[str(str(Histo.GetName()).replace(f"(Q2_y_Bin_{Q2_y_Bin})", "(Q2_y_Bin_All)")).replace(f"(z_pT_Bin_{z_pT_Bin})", "(z_pT_Bin_All)")]
+    #         integral = Integrated_Bins_Histo.Integral(0, Integrated_Bins_Histo.GetNbinsX() + 1)
+    #         if(integral != 0.0):
+    #             Histo.Scale(1.0/integral)
+    #         Histo.GetYaxis().SetTitle(f"Normalized {Histo.GetYaxis().GetTitle()}")
+    #     except:
+    #         Crash_Report(args, crash_message=f"The Normalize Histogram Code would have CRASHED! Was trying to normalize: '{Histo.GetName()}'. (Attempting the simple normalization...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+    #         try:
+    #             integral = Histo.Integral(0, Histo.GetNbinsX() + 1)
+    #             if(integral != 0.0):
+    #                 Histo.Scale(1.0/integral)
+    #             Histo.GetYaxis().SetTitle(f"Normalized {Histo.GetYaxis().GetTitle()}")
+    #         except:
+    #             Crash_Report(args, crash_message=f"The Normalize Histogram Code would have CRASHED! Was trying to normalize: '{Histo.GetName()}'.\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=False)
+    # # if((args.Bin_Width or args.Normalize) and args.save_single_file):
+    # #     print(f"{color.BOLD}Updating ROOT file{color.END}")
+    # #     List_of_All_Histos_For_Unfolding[f"{Histo.GetName()}_(Normalized)"] = Histo.Clone(f"{Histo.GetName()}_(Normalized)")
+    # #     try:
+    # #         List_of_All_Histos_For_Unfolding = Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
+    # #     except:
+    # #         Crash_Report(args, crash_message=f"{color.Error}The Code has CRASHED! Failed to finish saving the histograms.\n{color.END_R}ERROR:\n{str(traceback.format_exc())}{color.END}")
+    # # return Histo, List_of_All_Histos_For_Unfolding
+
+##################################################################################################################################################################
+##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
+##################################################################################################################################################################
+
+
 ################################################################################################################################################################################################################################################
 ##==========##==========##     Fitting Function For Phi Plots                     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
-def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", args="args"):
+def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", args="args", Allow_Normalization=False):
+    if(Allow_Normalization and args.CrossSection_Norm and (len(Special) == 2)):
+        q2y_Bin, zpT_Bin = Special # (Most of) the normalization functions require the value for the kinematic bin numbers
+        if("_(Normalized)" in str(Histo_To_Fit.GetName())):
+            print(f"{color.Error}Normalization was already applied to {color.END_B}'{Histo_To_Fit.GetName()}'{color.END_R} (skipping right to fitting){color.END}")
+        else:
+            if(args.verbose):
+                print(f"{color.BBLUE}Applying Normalization for Differential Cross Section before fitting...{color.END}")
+            Histo_To_Fit = ApplyCS_Norm(args, Histo_To_Fit, Q2_y_Bin=q2y_Bin, z_pT_Bin=zpT_Bin)
+    elif(Allow_Normalization and args.CrossSection_Norm):
+        print(f"{color.Error}Cannot Normalize {color.END_B}'{Histo_To_Fit.GetName()}'{color.Error} without the kinematic bin numbers (were attempted to be given as: {color.END_B}'{Special}'{color.Error}){color.END}")
     if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian"]) and (Fitting in ["default", "Default"]) and args.fit):
         A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Histo_To_Fit)
         fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
@@ -1548,58 +1655,6 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 ##==========##==========##     Function For Creating All Unfolding Histograms     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 
-##################################################################################################################################################################
-##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
-##################################################################################################################################################################
-def Bin_Widths_future_function(args):
-    # Run the following code whenever changes are made to the z-pT bins in order to get the correct (new) values for 'Area_of_z_pT_Bins'
-    Area_of_z_pT_Bins = {}
-    for Q2_y_Bin     in range(1, 18):
-        Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = 0
-        for z_pT_Bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin)[0]):
-            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                continue
-            else:
-                z_Max, z_Min, pTMax, pTMin = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT_Bin, Q2_y_Bin_Num=Q2_y_Bin)
-                Area_of_z_pT_Bins[f"{Q2_y_Bin}"]           +=       abs((z_Max - z_Min)*(pTMax - pTMin))
-                Area_of_z_pT_Bins[f"{Q2_y_Bin}_{z_pT_Bin}"] = round(abs((z_Max - z_Min)*(pTMax - pTMin)), 6)
-        Area_of_z_pT_Bins[f"{Q2_y_Bin}"] = round(Area_of_z_pT_Bins[f"{Q2_y_Bin}"], 6)
-    print(f"Area_of_z_pT_Bins = {Area_of_z_pT_Bins}")
-
-from Binning_Dictionaries import Full_Bin_Definition_Array #, Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
-def Bin_Area_by_Widths_Calc(args, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
-    # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
-        # Update phi_t_bin whenever the bin sizes are changed
-        # If the scale is applied to a 2D histogram of the other variables (i.e., integrated over the phi_t variable), then phi_t_bin should be set to 360
-    Bin_Area = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0, "dphi_t": phi_t_bin}
-    for q2y_bin in range(1, 18):
-        if(str(Q2_y_Bin) not in ["0", "All", str(q2y_bin)]):
-            continue
-        Bin_Area[f"Q2-y={q2y_bin}"] = {"q2yTotal": 0, "zpTTotal": 0, "dQ2": 0, "d_y": 0}
-        Q2max, Q2min, y_max, y_min = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, Q2-y']
-        Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
-        Bin_Area[f"Q2-y={q2y_bin}"]["dQ2"] += abs(Q2max - Q2min)
-        Bin_Area[f"Q2-y={q2y_bin}"]["d_y"] += abs(y_max - y_min)
-        Bin_Area["q2yTotal"] += abs(Q2max - Q2min)*abs(y_max - y_min)
-        Bin_Area["dQ2"] += abs(Q2max - Q2min)
-        Bin_Area["d_y"] += abs(y_max - y_min)
-        for zpT_bin in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y_bin)[0]):
-            if((skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpT_bin, BINNING_METHOD="Y_bin")) or (str(z_pT_Bin) not in ["0", "All", str(zpT_bin)])):
-                continue
-            z_max, z_min, pTmax, pTmin = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, z-pT={zpT_bin}']
-            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*abs(pTmax - pTmin), "d_z": abs(pTmax - pTmin), "dpT": abs(pTmax - pTmin)}
-            Bin_Area[f"Q2-y={q2y_bin}"]["zpTTotal"]       += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
-            Bin_Area[f"Q2-y={q2y_bin}"]["d_z"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["d_z"]
-            Bin_Area[f"Q2-y={q2y_bin}"]["dpT"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["dpT"]
-            Bin_Area["zpTTotal"]                          += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
-    Bin_Width_Area_Scale = Bin_Area["q2yTotal"]*Bin_Area["zpTTotal"]*Bin_Area["dphi_t"]
-    if(args.verbose):
-        print(f"Bin Area (∆Q2∆y∆z∆pT∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
-    return Bin_Width_Area_Scale, Bin_Area
-
-##################################################################################################################################################################
-##==========##==========## Function for Creating the Integrated z-pT Bin Histograms     ##==========##==========##==========##==========##==========##==========##
-##################################################################################################################################################################
 
 import fcntl
 def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
@@ -1625,8 +1680,9 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
                     safe_write(Temp_Tlist, output_file)
                 else:
                     try:
-                        List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii if(not args.EvGen) else f"{List_of_All_Histos_For_Unfolding_ii}_EvGen")
-                        safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
+                        if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is not ROOT.TObjString):
+                            List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii)
+                            safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
                     except:
                         Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
             output_file.Close() # Lock is automatically released when the 'with' block exits and the file is closed
@@ -2984,6 +3040,7 @@ def main():
             Crash_Report(args, crash_message=f"The Unfolding Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     try:
         List_of_All_Histos_For_Unfolding = Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding)
+        List_of_All_Histos_For_Unfolding = Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
     except:
         Crash_Report(args, crash_message=f"The Fitting/RC Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
