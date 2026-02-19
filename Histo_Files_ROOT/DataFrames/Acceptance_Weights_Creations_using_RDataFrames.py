@@ -30,7 +30,7 @@ def parse_args():
                         help='Extra title text that can be added to the default titles.')
     parser.add_argument('-bID', '--batch_id',
                         type=int,
-                        default=1,
+                        default=0,
                         choices=range(0, 109),
                         help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: 108 — 0 runs all batches together).")
     parser.add_argument('-numF', '-nf', '--number_of_files',
@@ -43,19 +43,12 @@ def parse_args():
     # parser.add_argument('-2D', '--make_2D',
     #                     action='store_true',
     #                     help='Just Makes 2D Q2 vs y, Q2 vs xB, and z vs pT plots in different kinematic bins (rdf only) - Not finished.')
-    parser.add_argument('-mr', '-MR', '--make_root',
-                        action='store_true',
-                        help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists).")
-    parser.add_argument('-hpp', '--use_hpp',
-                        action='store_true',
-                        help="Applies the acceptance weights. Allows the JSON weights (injected modulations) to be applied without also needing the Acceptance weights.")
+    # parser.add_argument('-hpp', '--use_hpp',
+    #                     action='store_true',
+    #                     help="Applies the acceptance weights. Allows the JSON weights (injected modulations) to be applied without also needing the Acceptance weights.")
     parser.add_argument('-aohpp', '--angles_only_hpp',
                         action='store_true',
                         help="Changes the acceptance weights being applied (with the '--make_root' option) so that only the azimuthal and polar angle weights are applied (no momentum weights).")
-    parser.add_argument('-r', '--root',
-                        type=str,
-                        default="SIDIS_epip_Response_Matrices_from_RDataFrames.root", 
-                        help="Name of the ROOT file to be outputted by the '--make_root' option (will still append the string from '--name' just before the '.root' of this argument's value).")
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',
                         help='Use the json weights (for physics injections) given by the `--json_file` argument.')
@@ -63,10 +56,14 @@ def parse_args():
                         type=str,
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json", 
                         help='JSON file path for using `json_weights`.')
-    parser.add_argument('-hpp_in', '--hpp_input_file',
+    # parser.add_argument('-hpp_in', '--hpp_input_file',
+    #                     type=str,
+    #                     default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp", 
+    #                     help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options in 'using_RDataFrames_python.py'.")
+    parser.add_argument('-hpp_out', '--hpp_output_file',
                         type=str,
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp", 
-                        help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options in 'using_RDataFrames_python.py'.")
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/New_Pass_2_Cut_generated_acceptance_weights.hpp", 
+                        help="hpp file path for outputting the generated acceptance weights header.")
     parser.add_argument('-f', '--fast',
                         action='store_true',
                         help="Tries to run the code faster by skipping some printed outputs that take more time to run.")
@@ -74,7 +71,7 @@ def parse_args():
                         type=str,
                         default=".png",
                         choices=['.png', '.pdf'],
-                        help="Save Format of Images created in the '--run_BC_comparison' option.")
+                        help="Save Format of Images created.")
     parser.add_argument('-e', '--email',
                         action='store_true',
                         help="Sends an email when the script is done running (if selected).")
@@ -103,6 +100,8 @@ del script_dir
 import math
 # import array
 # import copy
+import re
+import traceback
 
 from pathlib import Path
 import subprocess
@@ -146,9 +145,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
         end_time, total_time, rate_line = args.timer.stop(count_label="Histograms", count_value=final_count, return_Q=True)
     args_list = ""
     for name, value in vars(args).items():
-        if(str(name) in ["email", "email_message", "timer", "root", "run_sectors", "sector_list", "sectors_to_unfold", "allow_other_variables", "bins", "sim", "mod", "closure", "weighed_acceptace", "single_file_input", "unfolding_1D", "unfolding_3D", "no_smear", "smear", "standard_histogram_title_addition"]):
-            continue
-        if((str(name) in ["num_5D_increments_used_to_slice"]) and (not args.Run_5D_Unfold)):
+        if(str(name) in ["email", "email_message", "timer", "root", "single_file_input"]):
             continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
@@ -156,15 +153,10 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
 The 'Acceptance_Weights_Creations_using_RDataFrames.py' script has {'finished running.' if(not (Crashed or Warning)) else f'{color.ERROR}CRASHED!{color.END}' if(not Warning) else f'{color.BYELLOW}GIVEN A WARNING MESSAGE{color.END}'}
 {start_time}
 
-Input File:
-\t{args.single_file_input}
-Output File:
-\t{args.root}
 
 {args.email_message}
 
-Arguments:
---{'weighed_acceptace (use acceptance weights only)':<50s}--> {args.weighed_acceptace}{args_list}
+Arguments:{args_list}
 
 {end_time}
 {total_time}
@@ -239,7 +231,11 @@ def validate_root_paths(label, paths, require_root_ext=True, require_root_magic=
                 continue
         ok.append(str(pp))
     if(len(bad) > 0):
-        raise FileNotFoundError("\n".join(bad))
+        if(len(ok) != 0):
+            Crash_Report(args, crash_message=f"{color.ERROR}Missing Files{color.END_R}:\nFileNotFoundError:{color.END}\n{'\n'.join(bad)}\n\n{color.BOLD}Allowed to keep running...{color.END}", continue_run=True)
+        else:
+            Update_Email(args, update_message=f"{color.ERROR}Missing All Files!{color.END_R} There are no files left to actually run...{color.END}")
+            raise FileNotFoundError("\n".join(bad))
     return ok
 
 def filter_matching_pairs(list_a, list_b, key_fn, label_a="A", label_b="B", keep="error", require_nonempty_after_filter=True):
@@ -405,9 +401,10 @@ if(__name__ == "__main__"):
     args = parse_args()
     print(f"{color.BBLUE}\nCode is ready to run.{color.END}")
     args.timer = RuntimeTimer()
-    timer.start()
+    args.timer.start()
 
     args.save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+    args.make_2D_weight = not args.dry_run
 
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -417,26 +414,24 @@ if(__name__ == "__main__"):
     ROOT.gStyle.SetOptStat(0)
     ROOT.gROOT.SetBatch(1)
     
-    if(".root" not in args.root):
-        print(f"\n'--root' was set to {args.root}\n")
-        raise ValueError("Invalid '--root' argument (the string must end with '.root')")
-        
-    if((args.name is not None) and (str(args.name) not in str(args.root))):
-        args.root = f'{str(args.root).split(".root")[0]}_{args.name}.root'
-
-    if(all(f"_Batch{args.batch_id:03d}" not in str(check) for check in [args.root, args.name]) and (args.batch_id > 0)):
-        args.root = f'{str(args.root).split(".root")[0]}_Batch{args.batch_id:03d}.root'
+    # if(".root" not in args.root):
+    #     print(f"\n'--root' was set to {args.root}\n")
+    #     raise ValueError("Invalid '--root' argument (the string must end with '.root')")
+    # if((args.name is not None) and (str(args.name) not in str(args.root))):
+    #     args.root = f'{str(args.root).split(".root")[0]}_{args.name}.root'
+    # if(all(f"_Batch{args.batch_id:03d}" not in str(check) for check in [args.root, args.name]) and (args.batch_id > 0)):
+    #     args.root = f'{str(args.root).split(".root")[0]}_Batch{args.batch_id:03d}.root'
     
     print(f"\n\n{color_bg.YELLOW}\n\n\t{color.BGREEN}Running with batch files {color.CYAN}{color_bg.YELLOW}{color.UNDERLINE}{args.batch_id}{color.END}{color_bg.YELLOW}\t\n{color.END}")
     
     
-    # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
-    print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
-    ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+    # # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
+    # print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
+    # ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
     
-    if(not args.use_hpp):
-        print(f"{color.Error}Not using Acceptance Weights{color.END}")
-    elif(args.angles_only_hpp):
+    # if(not args.use_hpp):
+    #     print(f"{color.Error}Not using Acceptance Weights{color.END}")
+    if(args.angles_only_hpp):
         print(f"{color.Error}Only using the angle Acceptance Weights (not weighing the lab momemtum for acceptance){color.END}")
     else:
         print(f"{color.BBLUE}Using the Full Acceptance Weights{color.END}")
@@ -499,6 +494,7 @@ if(__name__ == "__main__"):
             def _cpp_list(vals):
                 return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}"
 
+            JSON_WEIGHT_FILE = args.json_file
             if(args.json_weights):
                 print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n")
                 with open(JSON_WEIGHT_FILE) as f:
@@ -535,6 +531,19 @@ if(__name__ == "__main__"):
             print(f"\n{color.BOLD}Starting 2D Histogram Loops{color.END}\n")
             args.timer.time_elapsed()
 
+            data_histos = {}
+            mc_nw_histos = {}
+            for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
+                var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
+                var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
+                rdf_name = f"{var_x}_vs_{var_y}_rdf"
+                mclasdis_no_weight = f"{var_x}_vs_{var_y}_mdf_no_weight"
+                Title = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+                if args.title:
+                    Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
+                data_histos[rdf_name] = rdf.Histo2D((rdf_name, Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"), Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), var_x, var_y)
+                mc_nw_histos[mclasdis_no_weight] = wdf.Histo2D((mclasdis_no_weight, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"), Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared")
+
             for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
                 var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
                 var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
@@ -552,9 +561,9 @@ if(__name__ == "__main__"):
                 # -----------------------------
                 # 2) Build 2D histos
                 # -----------------------------
-                histos_data_match[rdf_name]                = rdf.Histo2D((rdf_name,                Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),               Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
+                histos_data_match[rdf_name]                = data_histos[rdf_name]
                 histos_data_match[mclasdis]                = wdf.Histo2D((mclasdis,                Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),         Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
-                histos_data_match[f"{mclasdis}_no_weight"] = wdf.Histo2D((f"{mclasdis}_no_weight", Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared")
+                histos_data_match[f"{mclasdis}_no_weight"] = mc_nw_histos[f"{var_x}_vs_{var_y}_mdf_no_weight"]
 
                 histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
                 histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
@@ -578,11 +587,8 @@ if(__name__ == "__main__"):
                 data_match_norm_factor = histos_data_match[data_match_name].Integral()
                 histos_data_match[data_match_name].Scale((1/data_match_norm_factor) if(data_match_norm_factor != 0) else 1)
                 
-                if(args.title):
-                    histos_data_match[data_match_name].SetTitle(f"#splitline{{Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}}}{{{args.title}}}")
-                else:
-                    histos_data_match[data_match_name].SetTitle(f"Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}")
-                histos_data_match[data_match_name].SetTitle(f"#splitline{{{histos_data_match[data_match_name].GetTitle()}}}{{Ratio is Normalized to 1}}")
+                title_base = f"#splitline{{Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}}}{{{args.title}}}" if args.title else f"Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}"
+                histos_data_match[data_match_name].SetTitle(f"#splitline{{{title_base}}}{{Ratio is Normalized to 1}}")
 
                 # -----------------------------
                 # 3) Extract edges + row-major weights from the ratio
@@ -602,8 +608,6 @@ if(__name__ == "__main__"):
                 for iy in range(1, ny+1):
                     for ix in range(1, nx+1):
                         val = H_w.GetBinContent(ix, iy)
-                        # exp = histos_data_match[f"norm_{rdf_name}"].GetBinContent(ix, iy)
-                        # if((val < 0.0) or (not math.isfinite(val)) or (exp == 0)):
                         if((val < 0.0) or (not math.isfinite(val))):
                             val = 1.0
                         weights.append(val)
@@ -657,6 +661,10 @@ if(__name__ == "__main__"):
                 
             print(f"\n{color.BOLD}Done Creating the Histograms for getting the new event weights{color.END}\n")
             args.timer.time_elapsed()
+
+            # all_wrappers = "\n".join(generated_wrappers_code)
+            # ROOT.gInterpreter.Declare(all_wrappers)
+
             for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
                 var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
                 var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
@@ -665,6 +673,7 @@ if(__name__ == "__main__"):
                 if(args.title):
                     Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
                 histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+                histos_data_match[mclasdis].GetValue()
                 histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
                 histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
                 mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
@@ -707,6 +716,5 @@ if(__name__ == "__main__"):
             Crash_Report(args, crash_message=f"While trying to create the Acceptance Weights, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
     else:
         print(f"\n{color.Error}Skipping Acceptance Weight Histograms{color.END}")
-
         
     Construct_Email(args)
