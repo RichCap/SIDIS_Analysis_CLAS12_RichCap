@@ -152,7 +152,7 @@ def parse_args():
     
     p.add_argument('-ut', '--Use_TTree',
                    action='store_true',
-                   help="Load pre-made ROOT file (post-unfolding) for faster fits+RC Corrections.")
+                   help="Load pre-made ROOT file (post-unfolding) for faster fits+RC Corrections. Control with the '--root' argument.")
     
     p.add_argument('-rc', '--Apply_RC',
                    action='store_true',
@@ -161,6 +161,10 @@ def parse_args():
     p.add_argument('-au', '--Add_Uncertainties',
                    action='store_true',
                    help="Adds systematic uncertainties to histograms before fitting.")
+
+    p.add_argument('-sj', '--save_json',
+                   action="store_true",
+                   help="Save Fit Parameters to JSON file.")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins',
@@ -1659,40 +1663,113 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 import fcntl
 def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
     print("\n\nCounting Total Number of/Saving collected histograms...")
+    fit_list_tags = ["Chi_Squared", "Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    def write_vec(tfile, name, py_list):
+        if(py_list is None):
+            print(f"{color.Error}WARNING:{color.END} Fit list '{name}' is None (skipping)")
+            return
+        if(not isinstance(py_list, (list, tuple))):
+            print(f"{color.Error}WARNING:{color.END} Fit list '{name}' is type={type(py_list)} (expected list/tuple; skipping)")
+            return
+        if(len(py_list) == 0):
+            print(f"{color.Error}WARNING:{color.END} Fit list '{name}' is empty (skipping)")
+            return
+        vec = ROOT.TVectorD(len(py_list))
+        for ii, val in enumerate(py_list):
+            vec[ii] = float(val)
+        keyname = f"TVectorD_{name}" if(not args.EvGen) else f"TVectorD_{name}_EvGen"
+        existing = tfile.GetListOfKeys().FindObject(keyname)
+        if(existing):
+            if(getattr(args, "verbose", False)):
+                print(f"{color.BBLUE}Deleting:{color.END} '{keyname};*' (already exists)")
+            tfile.Delete(f"{keyname};*")
+        tfile.WriteObject(vec, keyname)
     if(not args.test):
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         lock_file_path = args.root + ".lock"
         with open(lock_file_path, "w+") as lock_fd:
-            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)  # Blocks until the lock is acquired
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
             output_file = ROOT.TFile(args.root, "UPDATE")
             File_Name_Lists = [str(args.single_file_input)]
-            File_Name_Tlist = ROOT.TList()  # Convert to a ROOT TList of TObjString
-            File_Name_Tlist.SetName("Latest_List_of_File_Names")  # Name in the ROOT file
+            File_Name_Tlist = ROOT.TList()
+            File_Name_Tlist.SetName("Latest_List_of_File_Names")
             for s in File_Name_Lists:
                 File_Name_Tlist.Add(ROOT.TObjString(s))
             safe_write(File_Name_Tlist, output_file)
             for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
-                if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is list):
-                    Temp_Tlist = ROOT.TList()
-                    Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}" if(not args.EvGen) else f"TList_of_{List_of_All_Histos_For_Unfolding_ii}_EvGen")  # Name in the ROOT file
-                    for s in List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]:
-                        Temp_Tlist.Add(ROOT.TObjString(str(s) if(not args.EvGen) else f"{str(s)}_EvGen"))
-                    safe_write(Temp_Tlist, output_file)
-                else:
-                    try:
-                        if(type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]) is not ROOT.TObjString):
-                            List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii].SetName(List_of_All_Histos_For_Unfolding_ii)
-                            safe_write(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii], output_file)
-                    except:
-                        Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
-            output_file.Close() # Lock is automatically released when the 'with' block exits and the file is closed
+                try:
+                    obj = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
+                    if((any(tag in List_of_All_Histos_For_Unfolding_ii for tag in fit_list_tags)) and isinstance(obj, (list, tuple))):
+                        write_vec(output_file, List_of_All_Histos_For_Unfolding_ii, obj)
+                    elif(type(obj) is list):
+                        Temp_Tlist = ROOT.TList()
+                        Temp_Tlist.SetName(f"TList_of_{List_of_All_Histos_For_Unfolding_ii}" if(not args.EvGen) else f"TList_of_{List_of_All_Histos_For_Unfolding_ii}_EvGen")
+                        for s in obj:
+                            Temp_Tlist.Add(ROOT.TObjString(str(s) if(not args.EvGen) else f"{str(s)}_EvGen"))
+                        safe_write(Temp_Tlist, output_file)
+                    else:
+                        if(type(obj) is not ROOT.TObjString):
+                            obj.SetName(List_of_All_Histos_For_Unfolding_ii)
+                            safe_write(obj, output_file)
+                except:
+                    Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+            output_file.Close()
     else:
         print(f"{color.PINK}Would be saving to: {color.BCYAN}{args.root}{color.END}")
-        output_file = None
         for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
             print(f"\n{List_of_All_Histos_For_Unfolding_ii} --> {type(List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii])}")
     print(f"\nFinal Count = {len(List_of_All_Histos_For_Unfolding)}")
     return List_of_All_Histos_For_Unfolding
+
+
+import json
+from pathlib import Path
+def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Bayesian"):
+    MainFileName = str(str(args.root).replace("Unfolded_Histos_From_", "")).replace(".root", "")
+    var_type  =  "phi_t" if(args.unfolding_1D and (not args.unfolding_3D)) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
+    args.json_name = f"Fit_Pars_from_{'1D' if(args.unfolding_1D and (not args.unfolding_3D)) else '3D'}_{cor_type}{f'_in_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
+    json_path = Path(args.json_name)
+    Fit_Pars_JSON = {}
+    for key_name in List_of_All_Histos_For_Unfolding:
+        if(all(pars not in str(key_name) for pars in ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"])):
+            continue
+        if(any(selections not in str(key_name) for selections in [var_type, "SMEAR=Smear"])):
+            continue
+        par, method, smear_line, q2_y_bin, z_pt_bin, var = key_name.split(")_(")
+        par = par.replace("(Fit_Par_", "")
+        var = var.replace(")", "")
+        if(cor_type not in method):
+            # print(f"{color.RED}Wrong Correction Method{color.END}")
+            continue
+        q2_y_bin = q2_y_bin.replace("Q2_y_Bin_", "")
+        z_pt_bin = z_pt_bin.replace("z_pT_Bin_", "")
+        val, err = List_of_All_Histos_For_Unfolding[key_name]
+        Fit_Pars_JSON[f"{par}_{q2_y_bin}_{z_pt_bin}"]     = val
+        Fit_Pars_JSON[f"{par}_ERR_{q2_y_bin}_{z_pt_bin}"] = err
+    if(args.test):
+        print(f"\n{color.BCYAN}Would save JSON: {color.END_B}{args.json_name}{color.END}")
+        print(f"{color.BCYAN}New/updated entries in this batch: {color.END_B}{len(Fit_Pars_JSON)}{color.END}")
+        return args, Fit_Pars_JSON
+    existing_json = {}
+    if(json_path.exists()):
+        try:
+            with open(json_path, "r") as f:
+                loaded = json.load(f)
+            if(isinstance(loaded, dict)):
+                existing_json = loaded
+            else:
+                Update_Email(args, update_message=f"{color.BYELLOW}WARNING:{color.END} Existing JSON is not a dict. Will overwrite with a dict: {str(json_path)}", verbose_override=True)
+        except:
+            Crash_Report(args, crash_message=f"{color.Error}WARNING: Failed reading existing JSON.{color.END} Will overwrite: {str(json_path)}\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+    existing_json.update(Fit_Pars_JSON)
+    tmp_path = json_path.with_suffix(json_path.suffix + ".tmp")
+    with open(tmp_path, "w") as f:
+        json.dump(existing_json, f, indent=4)
+    tmp_path.replace(json_path)
+    print(f"\n{color.BBLUE}Saved Fit Parameters JSON as {color.BGREEN}{str(json_path)}{color.BBLUE} (total entries now = {len(existing_json)}){color.END}\n")
+    Update_Email(args, update_message=f"{color.BCYAN}Done Saving JSON File.{color.END}", verbose_override=True)
+    return args, Fit_Pars_JSON
+
 
 
 def main_start():
@@ -2618,7 +2695,6 @@ def main_unfold(args):
     ##===============##     Unfolding Histogram Procedure     ##===============##
     #############################################################################
     print(f"Total: {count}")
-    # print("".join(["Num Failed: ", str(count_failed)]))
     del count
     
     BIN_SEARCH = []
@@ -2928,7 +3004,7 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                     continue
                 if("_EvGen"    in str(List_of_All_Histos_For_Unfolding_ii)):
                     continue
-                if(("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
+                if(args.EvGen and ("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
                     Histo_clasdis        = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
                     Histo_Name_EvGen     = f"{Histo_clasdis.GetName()}_EvGen"
                     Histo_Name_EvGen     = Histo_Name_EvGen.replace("Smear", "''")
@@ -2992,28 +3068,29 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                         Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
                         fit_count += 1
                         #FIND SINGLE FILE FITS
-                    RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
-                    RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
-                    RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor)]                                                = RC_RooUnfolded_TTree_Histos.Clone(str(Histo_Name_Rad_Cor))
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function")]   = RC_Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function"))
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Chi_Squared")]    = RC_Chi_Squared_TTree
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_A")]      = RC_TTree_Fit_Par_A
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_B")]      = RC_TTree_Fit_Par_B
-                    Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_C")]      = RC_TTree_Fit_Par_C
-                    fit_count += 1
-                    
-                    if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) and ("1D" in Histo_Name_General)):
-                        print(f"\n{color.BBLUE}Grabbing the RC vs phi_h plot for {color.END_B}Bin {Q2_Y_Bin_Fitting}-{Z_PT_Bin_Fitting}{color.BLUE}...{color.END}\n")
-                        RC_Factor_Plot = Get_RC_Fit_Plot(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", quiet=True, plot_choice="RC_factor")
-                        RC_Factor_Plot, RC_Factor_Plot_Fit_Function, RC_Factor_Chi_Squared_Plot, RC_Factor_Fit_Par_A, RC_Factor_Fit_Par_B, RC_Factor_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_Factor_Plot, Method="RC", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC"))]                                                = RC_Factor_Plot.Clone(str(Histo_Name_General).replace("Bayesian", "RC"))
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function")]   = RC_Factor_Plot_Fit_Function.Clone(str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function"))
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Chi_Squared")]    = RC_Factor_Chi_Squared_Plot
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_A")]      = RC_Factor_Fit_Par_A
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_B")]      = RC_Factor_Fit_Par_B
-                        Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_C")]      = RC_Factor_Fit_Par_C
+                    if(args.Apply_RC):
+                        RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
+                        RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
+                        RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor)]                                                = RC_RooUnfolded_TTree_Histos.Clone(str(Histo_Name_Rad_Cor))
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function")]   = RC_Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Function"))
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Chi_Squared")]    = RC_Chi_Squared_TTree
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_A")]      = RC_TTree_Fit_Par_A
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_B")]      = RC_TTree_Fit_Par_B
+                        Histogram_Fit_List_All[str(Histo_Name_Rad_Cor).replace(Dimensions_Original, "Fit_Par_C")]      = RC_TTree_Fit_Par_C
                         fit_count += 1
+                        
+                        if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) and ("1D" in Histo_Name_General)):
+                            print(f"\n{color.BBLUE}Grabbing the RC vs phi_h plot for {color.END_B}Bin {Q2_Y_Bin_Fitting}-{Z_PT_Bin_Fitting}{color.BLUE}...{color.END}\n")
+                            RC_Factor_Plot = Get_RC_Fit_Plot(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", quiet=True, plot_choice="RC_factor")
+                            RC_Factor_Plot, RC_Factor_Plot_Fit_Function, RC_Factor_Chi_Squared_Plot, RC_Factor_Fit_Par_A, RC_Factor_Fit_Par_B, RC_Factor_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_Factor_Plot, Method="RC", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC"))]                                                = RC_Factor_Plot.Clone(str(Histo_Name_General).replace("Bayesian", "RC"))
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function")]   = RC_Factor_Plot_Fit_Function.Clone(str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Function"))
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Chi_Squared")]    = RC_Factor_Chi_Squared_Plot
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_A")]      = RC_Factor_Fit_Par_A
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_B")]      = RC_Factor_Fit_Par_B
+                            Histogram_Fit_List_All[str(str(Histo_Name_General).replace("Bayesian", "RC")).replace(Dimensions_Original, "Fit_Par_C")]      = RC_Factor_Fit_Par_C
+                            fit_count += 1
             print(f"\n{color.BBLUE}Fit/Added {color.END_B}{fit_count}{color.BBLUE} Histograms{color.END_b}\nAdding to Main List...{color.END}")
             for name_ii in Histogram_Fit_List_All:
                 List_of_All_Histos_For_Unfolding[name_ii] = Histogram_Fit_List_All[name_ii]
@@ -3040,7 +3117,10 @@ def main():
             Crash_Report(args, crash_message=f"The Unfolding Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     try:
         List_of_All_Histos_For_Unfolding = Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding)
-        List_of_All_Histos_For_Unfolding = Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
+        if(not ((args.fit and args.Use_TTree) or args.Apply_RC)):
+            List_of_All_Histos_For_Unfolding =  Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
+        if(args.save_json and args.fit):
+            args, Fit_Pars_JSON = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding)
     except:
         Crash_Report(args, crash_message=f"The Fitting/RC Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
