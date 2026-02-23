@@ -34,7 +34,7 @@ def parse_args():
     p.add_argument('-r', '--root',
                    type=str,
                    default="Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root",
-                   help="Name of ROOT output file to be saved (must specify the FULL file name).")
+                   help="Name of ROOT output file to be saved (must specify the FULL file name).\n")
     
     p.add_argument('-v', '--verbose',
                    action='store_true',
@@ -53,7 +53,7 @@ def parse_args():
     p.add_argument('-wa', '--weighed_acceptace',
                    action='store_true',
                    dest='weighed_acceptace',
-                   help="Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only. WARNING: This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
+                   help=f"Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only.\n{color.RED}WARNING:{color.END} This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
     p.add_argument('-sim', '--simulation',
                    action='store_true',
                    dest='sim',
@@ -80,7 +80,7 @@ def parse_args():
     
     p.add_argument('-N', '-csn', '--CrossSection_Norm',
                    action='store_true',
-                   help="Apply Cross Section Normalization before fitting. Normalization includes division by bin width.")
+                   help="Apply Cross Section Normalization before fitting.\nNormalization includes division by bin width.")
 
     # kinematic comparison & proton modes
     p.add_argument('-tp', '--tag-proton', 
@@ -98,7 +98,7 @@ def parse_args():
 
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations',
                    type=int,
-                   help="Number of Bayesian Iterations performed while Unfolding (defaults to pre-set values in the code, but this argument allows them to be overwritten automatically).")
+                   help="Number of Bayesian Iterations performed while Unfolding.\nDefaults to pre-set values in the code, but this argument allows them to be overwritten automatically.")
 
     p.add_argument('-nt', '-ntoys', '--Num_Toys',
                    type=int,
@@ -117,7 +117,7 @@ def parse_args():
                    help="Run Sector Unfolding.")
     p.add_argument('-secU', '--sectors_to_unfold',
                    default=["eS1o", "eS2o", "eS3o", "eS4o", "eS5o", "eS6o"],
-                   help="Sectors to Unfold with the `--run_sectors` option.")
+                   help="Sectors to Unfold with the `--run_sectors` option.\n")
 
     p.add_argument('-aov', '--allow_other_variables',
                    action='store_true',
@@ -134,7 +134,7 @@ def parse_args():
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut',
                    type=float,
                    default=0.0005,
-                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding - Old Default: 0.005).")
+                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding).")
 
     p.add_argument('-e', '--email',
                    action='store_true',
