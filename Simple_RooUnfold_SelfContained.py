@@ -2981,14 +2981,16 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                 RC_fits_included = True
             if(fits_included and RC_fits_included):
                 break
+        if(args.remake_fit):
+            fits_included = False
         print(f"{color.BLUE}Normal Unfolding Fits Already Included? -> {color.BGREEN if(fits_included) else color.Error}{fits_included}{color.END}")
         if(not args.Apply_RC):
             print(f"{color.BOLD}Not running RC... Did not check for RC fits.{color.END}")
         else:
             print(f"{color.BLUE}RC Unfolding Fits Already Included?     -> {color.BGREEN if(RC_fits_included) else color.Error}{RC_fits_included}{color.END}")
 
-        if(not (fits_included and RC_fits_included)):
-            print("Making the fits...")
+        if((not (fits_included and RC_fits_included)) or args.remake_fit):
+            print(f"\n{color.BBLUE}Making the fits...{color.END}\n")
             script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
             sys.path.append(script_dir)
             from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
