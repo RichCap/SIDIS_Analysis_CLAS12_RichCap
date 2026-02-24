@@ -1,0 +1,23 @@
+	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc.root -wa -em Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues). -ti Applied the 0th Order Acceptance Weights 10"
+	User time (seconds): 7832.61
+	System time (seconds): 35.47
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11:59
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 695996
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 14
+	Minor (reclaiming a frame) page faults: 11848479
+	Voluntary context switches: 1577608
+	Involuntary context switches: 126702
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 59896
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
