@@ -1,21 +1,21 @@
-	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc.root -wa -em Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues). -ti Applied the 0th Order Acceptance Weights 9"
-	User time (seconds): 7882.05
-	System time (seconds): 38.69
-	Percent of CPU this job got: 99%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:12:51
+	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa -em Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree. -ti Applied the 0th Order Acceptance Weights 9"
+	User time (seconds): 7603.47
+	System time (seconds): 12.02
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11:14
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 708356
+	Maximum resident set size (kbytes): 729604
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 105
-	Minor (reclaiming a frame) page faults: 13804979
-	Voluntary context switches: 1588099
-	Involuntary context switches: 85979
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1869862
+	Voluntary context switches: 1576347
+	Involuntary context switches: 12093
 	Swaps: 0
-	File system inputs: 0
-	File system outputs: 152688
+	File system inputs: 15392
+	File system outputs: 2207024
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0

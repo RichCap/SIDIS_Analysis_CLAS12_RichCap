@@ -1857,10 +1857,12 @@ def main_unfold(args):
         if("Q2_y_z_pT_4D_Bins" in out_print_main):
             continue
         if(("_(Weighed)" in out_print_main) and not (args.mod or args.closure)):
-            # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
+            if(args.verbose):
+                print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
             continue
         elif(("_(Weighed)" not in out_print_main) and args.mod):
-            # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
+            if(args.verbose):
+                print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
             continue
         ##========================================================##
         ##=====##    Conditions for Histogram Selection    ##=====##

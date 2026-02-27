@@ -1,21 +1,21 @@
-	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc.root -wa -em Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues). -ti Applied the 0th Order Acceptance Weights 13"
-	User time (seconds): 8006.94
-	System time (seconds): 33.27
+	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa -em Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree. -ti Applied the 0th Order Acceptance Weights 13"
+	User time (seconds): 7578.31
+	System time (seconds): 11.79
 	Percent of CPU this job got: 99%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:14:50
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:07:17
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 710032
+	Maximum resident set size (kbytes): 722544
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 71
-	Minor (reclaiming a frame) page faults: 10603995
-	Voluntary context switches: 1614697
-	Involuntary context switches: 34434
+	Major (requiring I/O) page faults: 60
+	Minor (reclaiming a frame) page faults: 1817014
+	Voluntary context switches: 1545116
+	Involuntary context switches: 10132
 	Swaps: 0
-	File system inputs: 0
-	File system outputs: 419528
+	File system inputs: 17400
+	File system outputs: 1989288
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0
