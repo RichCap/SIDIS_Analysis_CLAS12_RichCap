@@ -39,12 +39,17 @@ endif
 set script     = "./Simple_RooUnfold_SelfContained.py"
 set njobs      = 17
 set log_dir    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding"
-set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
-set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
+# set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
+# set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
+set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
+set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
 
 # Arguments for the Python script (easily changeable here)
 # set args       = "-bi 1 -nt 1 -smear -u3D -e -em \"Test of parallel running\""
-set args       = '-r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)"'
+# set args       = '-r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)"'
+set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc.root -wa'
+set emsg  = 'Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues).'
+set title = 'Applied the 0th Order Acceptance Weights'
 
 # Optional: limit concurrent jobs if machine is overloaded (set to 0 = unlimited)
 set max_concurrent = 0   # 0 = run all 17 at once; e.g. 8 = limit to 8 running at a time
@@ -70,9 +75,11 @@ foreach i (`seq 1 $njobs`)
     echo "Launching job $i → $outfile + $timefile"
 
     # Prepend the full command to the log file
-    echo "Full command: $script $args $i" > $outfile
+    echo "Full command: $script $args -em '$emsg' -ti '$title' $i" >! $outfile
 
-    /usr/bin/time -v -o $timefile $script $args $i >>& $outfile &
+    /usr/bin/time -v -o $timefile $script $args -em "$emsg" -ti "$title" $i >>& $outfile &
+    # set cmd = "/usr/bin/time -v -o $timefile $script $args -em \"$emsg\" -ti \"$title\" $i >>& $outfile &"
+    # eval $cmd
 
     set pid = $!
     set joblist = "$joblist $pid"

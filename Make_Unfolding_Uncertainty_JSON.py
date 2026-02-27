@@ -27,20 +27,20 @@ def parse_args():
     p.add_argument('-t', '--test', '--time', '--no_save',
                    action='store_true',
                    dest='test',
-                   help="Run but do not write JSON output.")
+                   help="Run but do not write JSON output.\n")
     p.add_argument('-r', '-root', "--root_nominal",
                    type=str,
-                   required=True,
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root",
                    dest='root_nominal',
-                   help="Nominal ROOT input file (baseline).")
+                   help="Nominal ROOT input file (baseline).\n")
     p.add_argument('-r2', '-rc', '--root_compare',
                    type=str,
-                   required=True,
-                   help="Comparison ROOT input file (variation).")
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root",
+                   help="Comparison ROOT input file (variation).\n")
     p.add_argument("-u", "--unfold",         
                    type=str, 
                    default="Bayesian", 
-                   help="Histogram label used in name, e.g. Bayesian, Bin, rdf, mdf.")
+                   help="Histogram label used in name, e.g. Bayesian, Bin, rdf, mdf.\n")
     p.add_argument("-d", "--dimensions",
                    type=str,
                    default="3D",
@@ -50,48 +50,48 @@ def parse_args():
                    type=str,
                    default="Smear",
                    choices=["Smear", "''"],
-                   help="Select smearing (via the token used in the histogram names).")
+                   help="Select smearing (via the token used in the histogram names).\n")
     p.add_argument("-q2y", "-q2_y", "--Q2_y_Bins",
                    nargs="+",
                    type=str,
                    default=[str(i) for i in range(1, 18)],
-                   help="List of Q2-y bins to run.")
+                   help="List of Q2-y bins to run.\n")
     p.add_argument("-zpt", '-z_pt', '--z_pt',
                    nargs="+",
                    type=int,
-                   help="List of z-pT bin indices to run. If omitted, runs the full bin range via Get_Num_of_z_pT_Bins_w_Migrations().")
+                   help="List of z-pT bin indices to run. If omitted, runs the full bin range via Get_Num_of_z_pT_Bins_w_Migrations().\n")
     p.add_argument('-ns', '--normalize_shared',
                    action='store_true',
-                   help="Normalize comparisons to the total events in their shared bins before getting the differences.")
+                   help="Normalize comparisons to the total events in their shared bins before getting the differences.\n")
     p.add_argument("-nt", "--normalization_threshold",
                    type=float,
                    default=0.0,
-                   help="Threshold for counting bins for '--normalize_shared' (i.e., if a bin in either histogram has its contents set below the given threshold, then that bin will be dropped from both histograms before normalizing).")
+                   help="Bin content threshold for '--normalize_shared'. If either histogram has a bin with contents below this threshold, then that bin will be dropped from both histograms before normalizing.\n")
     p.add_argument('-ncs', '--normalize_cross_section',
                    action='store_true',
-                   help="Normalize comparisons to the differential cross section using the functions from 'Cross_Section_Normalization.py'.")
+                   help="Normalize comparisons to the differential cross section using the functions from 'Cross_Section_Normalization.py'.\n")
     p.add_argument('-sn', '--save_name',
                    type=str,
                    default="",
-                   help="Appended tag for the JSON output name.")
+                   help="Appended tag for the JSON output name.\n")
     p.add_argument('-jp', '--json_prefix',
                    type=str,
                    default="",
-                   help="Prefix for JSON output naming (e.g. Mod_Test, Sim_Test, etc.). Can use to specify a full/relative file path.")
+                   help="Prefix for JSON output naming (e.g. Mod_Test, Sim_Test, etc.). Can use to specify a full/relative file path.\n")
     p.add_argument('-o', '--json_out',
                    type=str,
                    default=None,
-                   help="Optional explicit JSON output name. If omitted, uses the original naming convention. Does not interact with '--save_name' or '--json_prefix' (but will be overwritten by them for the email outputs).")
+                   help="Optional explicit JSON output name. If omitted, uses the original naming convention (i.e., f'{args.json_prefix}_Unfolding_Bin_Differences_{args.save_name}.json').\nDoes not interact with '--save_name' or '--json_prefix' by itself (but will be save the file name constucted with them for the record outputs).\n")
     p.add_argument('-v', '--verbose',
                    action='store_true',
-                   help="Verbose prints.")
+                   help="Verbose prints.\n")
     p.add_argument('-e', '--email',
                    action='store_true',
-                   help="Send an email when finished (optional).")
+                   help="Send an email when finished (optional).\n")
     p.add_argument('-em', '--email_message',
                    type=str,
                    default="",
-                   help="Extra message text included in the email.")
+                   help="Extra message text included in the email.\n")
     return p.parse_args()
 
 def ansi_to_plain(text):
@@ -433,7 +433,7 @@ def main():
         print(f"\n{color.BOLD}Running with the following Q2-y Bins:\t{color.GREEN}{args.Q2_y_Bins}{color.END}\n")
     if(args.json_out is None):
         args.json_out = f"{args.json_prefix if(str(args.json_prefix).endswith('/') or str(args.json_prefix).endswith('_') or (args.json_prefix in [''])) else f'{args.json_prefix}_'}Unfolding_Bin_Differences{f'_{args.save_name}' if(args.save_name not in ['']) else ''}.json"
-    elif(".json" not in str(args.json_out)):
+    elif(not str(args.json_out).endswith(".json")):
         args.json_out = f"{args.json_out}.json"
     ROOT_Input = ROOT.TFile.Open(args.root_nominal, "READ")
     ROOT_Comp  = ROOT.TFile.Open(args.root_compare, "READ")
@@ -455,9 +455,13 @@ def main():
                     print(f"{color.Error}WARNING:{color.END_R} The selected (Q2-y)-(z-pT) Bin ({Q2_y_BIN_NUM}-{z_PT_BIN}) does not exist...{color.END}")
                 continue
             z_PT_BIN_NUM = int(z_PT_BIN) if(str(z_PT_BIN) not in ["0"]) else "All"
-            HISTO_NAME = build_histo_name(args, Q2_y_BIN_NUM, z_PT_BIN_NUM)
+            HISTO_NAME   = build_histo_name(args, Q2_y_BIN_NUM, z_PT_BIN_NUM)
+            HISTO_NAME_2 = f"{HISTO_NAME}_(Mod_Test)"
+            if(not ROOT_Comp.GetListOfKeys().Contains(HISTO_NAME_2)):
+                Update_Email(args, update_message=f"{color.Error}The 'ROOT_Comp' file is missing the '_(Mod_Test)' part of the key in the Histogram Name: {color.END_B}{HISTO_NAME_2}\n{color.END}\nWill attempt to continue to run anyway by defaulting back to the non-'Mod_Test' key instead.", verbose_override=True)
+                HISTO_NAME_2 = HISTO_NAME
             try:
-                Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms_For_JSON(args, ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Comp, HISTO_NAME_2=HISTO_NAME, legend_labels=("Unfolded with Baseline MC", "Unfolded with Weighted/Modulated MC"), Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
+                Saved_Q, Unfolding_Diff_Data = Compare_TH1D_Histograms_For_JSON(args, ROOT_In_1=ROOT_Input, HISTO_NAME_1=HISTO_NAME, ROOT_In_2=ROOT_Comp, HISTO_NAME_2=HISTO_NAME_2, legend_labels=("Unfolded with Baseline MC", "Unfolded with Weighted/Modulated MC"), Q2y_str=Q2_y_BIN_NUM, zPT_str=z_PT_BIN_NUM, Unfolding_Diff_Data_In=Unfolding_Diff_Data)
             except:
                 Crash_Report(args, crash_message=f"{color.Error}The 'Compare_TH1D_Histograms_For_JSON()' Function CRASHED!\n{color.END_R}ERROR:\n{str(traceback.format_exc())}{color.END}\nWill continue to run anyway.", continue_run=True)
                 Saved_Q = False
