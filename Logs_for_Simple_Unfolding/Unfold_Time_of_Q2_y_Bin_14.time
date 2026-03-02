@@ -1,21 +1,21 @@
-	Command being timed: "./Simple_RooUnfold_SelfContained.py -r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)" 14"
-	User time (seconds): 7619.49
-	System time (seconds): 30.73
+	Command being timed: "./Simple_RooUnfold_SelfContained.py -r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -em Finished running Unfolding with the Baseline Response Matricies, but from the file that also has the 0th Order Acceptance Weights available. Reran to use the most recent set of successful batched files. Was running as background parallel jobs in tmuxTTree. -ti Used the Pass 2 PID Refinements 14"
+	User time (seconds): 7793.36
+	System time (seconds): 29.59
 	Percent of CPU this job got: 99%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:08:43
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11:09
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 671644
+	Maximum resident set size (kbytes): 725596
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 12
-	Minor (reclaiming a frame) page faults: 8293547
-	Voluntary context switches: 1510461
-	Involuntary context switches: 210800
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 9383525
+	Voluntary context switches: 1592235
+	Involuntary context switches: 16038
 	Swaps: 0
-	File system inputs: 416
-	File system outputs: 6088
+	File system inputs: 16256
+	File system outputs: 2422464
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0
