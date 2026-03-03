@@ -1,0 +1,80 @@
+Full command: ./Make_RC_Factor_Plots.py -si -f -uj -n Prokudin -em 'Ran using the default EvGen Cross Sections. Was running as background parallel jobs in tmuxTTree.' -t 'Used the default EvGen Cross Sections' -4d 287
+
+[91m[1mCRASH WARNING![0m
+
+[91m[1mWARNING: Bin ('Q2-y=9, z-pT=27') is not defined. MUST SKIP.[0m
+[1mCorresponded to 4D bin [4m287[0m
+
+
+Started running on [1m3-1-2026[0m at [1m11:10 p.m.[0m
+
+
+
+[1mStarting 'make_plot' function...[0m
+
+
+
+[1m[94mSetting (Q2-y, z-pT) with 4D Bin Number: [0m[1m287[0m
+
+[1m[92mRunning with (Q2-y, z-pT) bin = [0m[1m[4m(9, 27)[0m
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Make_RC_Factor_Plots.py' script has [91m[1m[4mCRASHED![0m
+Started running on [1m3-1-2026[0m at [1m11:10 p.m.[0m
+
+Ran using the default EvGen Cross Sections. Was running as background parallel jobs in tmuxTTree.
+
+[91m[1mCRASH WARNING![0m
+
+[91m[1mWARNING: Bin ('Q2-y=9, z-pT=27') is not defined. MUST SKIP.[0m
+[1mCorresponded to 4D bin [4m287[0m
+
+
+
+Arguments:
+
+--plot                                              --> 'RC'
+--variable                                          --> 'phi_h'
+--Q2_y_bin                                          --> 9
+--z_pT_bin                                          --> 27
+--Q2_y_z_pT_bin                                     --> 287
+--Q2_group                                          --> None
+--y_group                                           --> None
+--pT_group                                          --> None
+--z_group                                           --> None
+--phi_h                                             --> 0.0
+--phi_s                                             --> 0.0
+--k0_cut                                            --> 0.01
+--name                                              --> 'Prokudin'
+--title                                             --> 'Used the default EvGen Cross Sections'
+--verbose                                           --> False
+--meta_data                                         --> False
+--no_file                                           --> False
+--save_image                                        --> True
+--use_radian                                        --> False
+--output_file_type                                  --> '.png'
+--fit                                               --> True
+--scan                                              --> False
+--root                                              --> 'RC_Factor_Plots.root'
+--use_json                                          --> True
+--json_file                                         --> 'Fit_Parameters_from_Make_RC_Factor_Plots.json'
+--modulation_mode                                   --> 0
+
+
+The time that this code finished is [1m11:10 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[93m[41m
+    	                                   	   
+    	       This code has CRASHED!      	   
+    	                                   	   [0m
+    
+    

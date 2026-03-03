@@ -1,0 +1,135 @@
+Full command: ./Make_RC_Factor_Plots.py -si -f -uj -n Prokudin -em 'Ran using the default EvGen Cross Sections. Was running as background parallel jobs in tmuxTTree.' -t 'Used the default EvGen Cross Sections' -4d 464
+
+Started running on [1m3-2-2026[0m at [1m12:20 a.m.[0m
+
+
+
+[1mStarting 'make_plot' function...[0m
+
+
+
+[1m[94mSetting (Q2-y, z-pT) with 4D Bin Number: [0m[1m464[0m
+
+[1m[92mRunning with (Q2-y, z-pT) bin = [0m[1m[4m(16, 4)[0m
+[96mROOT Key: [0m[1m(RC_Factor)_(EvGen)_(SMEAR='')_(Q2_y_bin_16)_(z_pT_bin_4)_(phi_h)[0m
+[96mROOT File: [0m[1mRC_Factor_Plots_Prokudin.root[0m
+
+[96mImage File: [0m[1mRC_Factor_vs_phi_h_Q2_y_Bin_16_z_pT_Bin_4_Prokudin.png[0m
+
+[1mRunning (phi_h) Point [1m[94m  1[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 0.13090 rads = 7.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  2[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 0.39270 rads = 22.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  3[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 0.65450 rads = 37.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  4[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 0.91630 rads = 52.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 5 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  5[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 1.17810 rads = 67.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 6 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  6[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 1.43990 rads = 82.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 8 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  7[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 1.70170 rads = 97.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 10 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  8[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 1.96350 rads = 112.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 12 Second(s). 
+[1mRunning (phi_h) Point [1m[94m  9[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 2.22529 rads = 127.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 13 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 10[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 2.48709 rads = 142.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 15 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 11[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 2.74889 rads = 157.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 17 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 12[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = 3.01069 rads = 172.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 18 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 13[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -3.01069 rads = -172.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 20 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 14[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -2.74889 rads = -157.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 22 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 15[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -2.48709 rads = -142.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 24 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 16[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -2.22529 rads = -127.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 25 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 17[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -1.96350 rads = -112.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 27 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 18[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -1.70170 rads = -97.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 29 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 19[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -1.43990 rads = -82.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 30 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 20[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -1.17810 rads = -67.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 32 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 21[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -0.91630 rads = -52.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 34 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 22[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -0.65450 rads = -37.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 36 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 23[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -0.39270 rads = -22.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 37 Second(s). 
+[1mRunning (phi_h) Point [1m[94m 24[0m[1m of [1m[92m24[0m[1m... [0m(phi_h = -0.13090 rads = -7.5 degs)
+	Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 39 Second(s). 
+Info in <TCanvas::Print>: png file RC_Factor_vs_phi_h_Q2_y_Bin_16_z_pT_Bin_4_Prokudin.png has been created
+
+[1m[92mUpdated and Saved: [1m[94mFit_Parameters_from_Make_RC_Factor_Plots_Prokudin.json[0m
+
+
+[1m[94mSaving Image: [35mRC_Factor_vs_phi_h_Q2_y_Bin_16_z_pT_Bin_4_Prokudin.png[0m
+[1m[92mImage Saved.[0m
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92mRC_Factor_Plots_Prokudin.root[0m
+
+Final Count = 3
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Make_RC_Factor_Plots.py' script has finished running.
+Started running on [1m3-2-2026[0m at [1m12:20 a.m.[0m
+
+Ran using the default EvGen Cross Sections. Was running as background parallel jobs in tmuxTTree.
+
+Arguments:
+
+--plot                                              --> 'RC'
+--variable                                          --> 'phi_h'
+--Q2_y_bin                                          --> 16
+--z_pT_bin                                          --> 4
+--Q2_y_z_pT_bin                                     --> 464
+--Q2_group                                          --> None
+--y_group                                           --> None
+--pT_group                                          --> None
+--z_group                                           --> None
+--phi_h                                             --> 0.0
+--phi_s                                             --> 0.0
+--k0_cut                                            --> 0.01
+--name                                              --> 'Prokudin'
+--title                                             --> 'Used the default EvGen Cross Sections'
+--verbose                                           --> False
+--meta_data                                         --> False
+--no_file                                           --> False
+--save_image                                        --> True
+--use_radian                                        --> False
+--output_file_type                                  --> '.png'
+--fit                                               --> True
+--scan                                              --> False
+--root                                              --> 'RC_Factor_Plots.root'
+--use_json                                          --> True
+--json_file                                         --> 'Fit_Parameters_from_Make_RC_Factor_Plots.json'
+--modulation_mode                                   --> 0
+--root_file                                         --> 'RC_Factor_Plots_Prokudin.root'
+--Save_Name                                         --> 'RC_Factor_vs_phi_h_Q2_y_Bin_16_z_pT_Bin_4_Prokudin.png'
+
+
+The time that this code finished is [1m12:22 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 2 Minute(s), and 12 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

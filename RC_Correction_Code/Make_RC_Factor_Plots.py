@@ -804,7 +804,8 @@ def Scan_RC_in_Bins(args, Q2_y_Bin, z_pT_Bin, phi_h_Bin, phi_s_Set, k0_cut_Set, 
             print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
     if(hasattr(args, "timer")):
         args.timer.time_elapsed()
-
+        sys.stdout.flush()
+        
     def AveAndErr(_List, _Lerr):
         _Ave = sum(_List)/len(_List)
         _arr = array('d', _List)
@@ -954,6 +955,7 @@ def make_plot(args):
         converted = "" if(("phi" not in str(args.variable)) or args.use_radian) else f" rads = {x*ROOT.TMath.RadToDeg():.1f} degs"
         print(f"{color.BOLD}Running ({args.variable}) Point {color.BBLUE}{num+1:>3}{color.END_B} of {color.BGREEN}{len(x_range)}{color.END_B}... {color.END}({args.variable} = {x:.5f}{converted})")
         print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+        sys.stdout.flush()
         kwargs[f"{args.variable}_CS"] = str(x)
         if(args.scan):
             output = Scan_RC_in_Bins(args, Q2_y_Bin=args.Q2_y_bin, z_pT_Bin=args.z_pT_bin, phi_h_Bin=x, phi_s_Set=phi_s, k0_cut_Set=k0_cut, Num_of_SubBins=args.scan_num)
