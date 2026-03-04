@@ -4,12 +4,18 @@ import os
 import sys
 import re
 import json
-import math
 import argparse
 import ROOT
 
 ROOT.gROOT.SetBatch(1)
 ROOT.TH1.AddDirectory(0)
+
+# Grid styling (requested: avoid blank white background)
+ROOT.gStyle.SetPadGridX(1)
+ROOT.gStyle.SetPadGridY(1)
+ROOT.gStyle.SetGridColor(17)
+ROOT.gStyle.SetGridStyle(3)
+ROOT.gStyle.SetGridWidth(1)
 
 # ------------------------------------------------------------
 # User-provided plotting/binning utilities (incorporated directly)
@@ -18,12 +24,14 @@ import ROOT
 import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, Get_Num_of_z_pT_Rows_and_Columns
+from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns
 from Binning_Dictionaries import Full_Bin_Definition_Array
 sys.path.remove(script_dir)
 del script_dir
-color_mapper  = {"1": ROOT.kRed, "2": ROOT.kBlue, "3": ROOT.kMagenta, "4": ROOT.kGreen, "5": ROOT.kOrange+3, "6": ROOT.kAzure, "7": ROOT.kOrange}
+
+color_mapper  = {"1": ROOT.kRed, "2": ROOT.kBlue, "3": ROOT.kMagenta, "4": ROOT.kGreen, "5": ROOT.kOrange+3, "6": ROOT.kAzure+10, "7": ROOT.kOrange}
 marker_mapper = {"1": ROOT.kFullDotLarge, "2": ROOT.kFullSquare, "3": ROOT.kFullTriangleUp, "4": ROOT.kFullTriangleDown, "5": ROOT.kFullDiamond, "6": ROOT.kFullCrossX, "7": ROOT.kFullThreeTriangles}
+
 def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
     key = f"(Q2_y_Bin_{Q2_y_Bin})-(z_pT_Bin_{z_pT_Bin})"
     if(all(str(bins) not in ["0", "-1", "All"] for bins in [Q2_y_Bin, z_pT_Bin])):
@@ -57,58 +65,144 @@ class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.
 def parse_args():
     p = argparse.ArgumentParser(description="Make slide-optimized mosaic plots from the fit-parameter JSON output.", formatter_class=RawDefaultsHelpFormatter)
 
-    p.add_argument("json_file", help="Input JSON file produced by your fit workflow.")
+    p.add_argument("-js", "-json", "--json_file",
+                   type=str,
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
+                   help="Input JSON file produced by your fit workflow.\n")
 
-    p.add_argument("-L", "--list_fit_sets", action="store_true", help="List available fit-set keys in the JSON and exit.")
-    p.add_argument("-f", "--fit_set", default="", help="Top-level JSON key to use (e.g. 'Fit_Pars_from_3D_Bayesian_(Normalized)'). If blank, auto-selects a non-empty fit-set (prefers '(Normalized)' if present).")
+    p.add_argument("-L", "--list_fit_sets",
+                   action="store_true",
+                   help="List available fit-set keys in the JSON and exit.\n")
+    p.add_argument("-f", "--fit_set",
+                   default="Fit_Pars_from_3D_Bayesian",
+                   help="Top-level JSON key to use.\n")
 
-    p.add_argument("-x", "--x_mode", choices=["z", "pt"], required=True, help="Choose X axis: 'z' plots vs z center, 'pt' plots vs pT center.")
-    p.add_argument("-y", "--y_pars", nargs="+", default=["Fit_Par_B", "Fit_Par_C"], help="Fit parameters to plot (each produces a separate mosaic canvas).")
-    p.add_argument("-e", "--err_suffix", default="_ERR", help="Error key suffix (e.g. Fit_Par_B + _ERR -> Fit_Par_B_ERR).")
+    p.add_argument("-x", "--x_mode",
+                   choices=["z", "pt", "pT"],
+                   default="z",
+                   help="Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center.\n")
+    p.add_argument("-y", "--y_pars",
+                   nargs="+",
+                   default=["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"],
+                   help="Fit parameters to plot (each produces a separate mosaic canvas).\n")
+    p.add_argument("-err", "--err_suffix",
+                   default="_ERR",
+                   help="Error key suffix (e.g. Fit_Par_B + _ERR -> Fit_Par_B_ERR).\n")
 
-    p.add_argument("-q", "--q2y_count", type=int, default=17, help="Number of Q2-y bins in the mosaic layout.")
-    p.add_argument("-R", "--layout_rows", default="4,4,4,3,2", help="Comma-separated pads per row from bottom->top (ragged, right-aligned).")
+    p.add_argument("-q", "--q2y_count",
+                   type=int,
+                   default=17,
+                   help="Number of Q2-y bins in the mosaic layout.\n")
+    p.add_argument("-R", "--layout_rows",
+                   default="4,4,4,3,2",
+                   help="Comma-separated pads per row from bottom->top (ragged, right-aligned).\n")
 
-    p.add_argument("-o", "--out_dir", default=".", help="Output directory.")
-    p.add_argument("-O", "--out_stem", default="mosaic", help="Output file stem.")
-    p.add_argument("-F", "--formats", default="png", help="Comma-separated output formats (e.g. 'png,pdf').")
-    p.add_argument("-w", "--overwrite", action="store_true", help="Overwrite existing output files.")
+    p.add_argument("-n", "--name",
+                   default="Mosaic_Image",
+                   help="Filename prefix for outputs written to the current directory.\n")
+    p.add_argument("-F", "--formats",
+                   choices=["png", "pdf"],
+                   default="png",
+                   help="Output format (png or pdf). Re-run the script if you want the other format too.\n")
 
-    p.add_argument("-W", "--canvas_width", type=int, default=1600, help="Canvas width in pixels.")
-    p.add_argument("-H", "--canvas_height", type=int, default=2000, help="Canvas height in pixels.")
+    # Increased defaults further (requested): make the mosaic less cramped
+    p.add_argument("-W", "--canvas_width",
+                   type=int,
+                   default=2800,
+                   help="Canvas width in pixels.\n")
+    p.add_argument("-H", "--canvas_height",
+                   type=int,
+                   default=3400,
+                   help="Canvas height in pixels.\n")
 
-    p.add_argument("-X", "--global_x_range", nargs=2, type=float, default=None, help="Override global X range: XMIN XMAX.")
-    p.add_argument("-m", "--y_range_mode", choices=["global", "auto"], default="global", help="Y range policy: 'global' shared across pads (default), or 'auto' per-pad tight range.")
-    p.add_argument("-Y", "--global_y_range", nargs=2, type=float, default=None, help="Override global Y range: YMIN YMAX (applies when y_range_mode='global').")
+    p.add_argument("-X", "--global_x_range",
+                   nargs=2,
+                   type=float,
+                   default=None,
+                   help="Override global X range: XMIN XMAX.\n")
+    p.add_argument("-m", "--y_range_mode",
+                   choices=["global", "auto"],
+                   default="global",
+                   help="Y range policy: 'global' shared across pads (default), or 'auto' per-pad tight range.\n")
+    p.add_argument("-Y", "--global_y_range",
+                   nargs=2,
+                   type=float,
+                   default=None,
+                   help="Override global Y range: YMIN YMAX (applies when y_range_mode='global').\n")
 
-    p.add_argument("-b", "--frame_line_width", type=int, default=3, help="Bold frame/border thickness for each pad.")
-    p.add_argument("-g", "--grid", action="store_true", help="Enable pad grid.")
+    p.add_argument("-b", "--frame_line_width",
+                   type=int,
+                   default=3,
+                   help="Bold frame/border thickness for each pad.\n")
+    p.add_argument("-g", "--grid",
+                   action="store_true",
+                   help="Enable pad grid.\n")
 
-    p.add_argument("-l", "--label_mode", choices=["outer", "all"], default="outer", help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.")
-    p.add_argument("-k", "--pad_label_mode", choices=["none", "bin", "bin_Q2", "bin_Q2y"], default="bin_Q2", help="Per-pad label: none, bin only, bin+Q2 range, or bin+Q2+y ranges.")
-    p.add_argument("-K", "--pad_label_size", type=float, default=0.08, help="Per-pad label TLatex size (NDC).")
-    p.add_argument("-a", "--pad_label_x", type=float, default=0.03, help="Per-pad label X position (NDC).")
-    p.add_argument("-A", "--pad_label_y", type=float, default=0.95, help="Per-pad label Y position (NDC).")
+    p.add_argument("-l", "--label_mode",
+                   choices=["outer", "all"],
+                   default="outer",
+                   help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.\n")
+    p.add_argument("-k", "--pad_label_mode",
+                   choices=["none", "bin", "bin_Q2", "bin_Q2y"],
+                   default="bin_Q2y",
+                   help="Per-pad label: none, bin only, bin+Q2 range, or bin+Q2+y ranges.\n")
 
-    p.add_argument("-T", "--title_text", default="", help="Optional user-provided extra title text to include in the global title.")
-    p.add_argument("-M", "--title_mode", choices=["none", "auto", "text_only"], default="auto", help="Global title policy: none, auto-built title, or text_only.")
-    p.add_argument("-n", "--fit_set_label", default="", help="Optional friendly label for the fit_set (used in title). If blank, uses fit_set string.")
-    p.add_argument("-s", "--title_size", type=float, default=0.035, help="Global title TLatex size (NDC).")
-    p.add_argument("-p", "--title_x", type=float, default=0.01, help="Global title X position (NDC).")
-    p.add_argument("-P", "--title_y", type=float, default=0.99, help="Global title Y position (NDC).")
+    # Centered per-pad labels + slightly smaller default (requested)
+    p.add_argument("-K", "--pad_label_size",
+                   type=float,
+                   default=0.070,
+                   help="Per-pad label TLatex size (NDC).\n")
+    p.add_argument("-a", "--pad_label_x",
+                   type=float,
+                   default=0.50,
+                   help="Per-pad label X position (NDC).\n")
+    p.add_argument("-A", "--pad_label_y",
+                   type=float,
+                   default=0.965,
+                   help="Per-pad label Y position (NDC).\n")
 
-    p.add_argument("-t", "--test", action="store_true", help="Parse JSON, build point maps, and print summaries; do not write output files.")
-    p.add_argument("-v", "--verbose", action="store_true", help="Verbose logging.")
+    p.add_argument("-T", "--title_text",
+                   default="",
+                   help="Optional extra title text to include in the global title.\n")
+    p.add_argument("-M", "--title_mode",
+                   choices=["none", "auto", "text_only"],
+                   default="auto",
+                   help="Global title policy: none, auto-built title, or text_only.\n")
+    p.add_argument("-fs", "--fit_set_label",
+                   default="",
+                   help="Optional friendly label for the fit_set (used in title). If blank, uses fit_set-derived default.\n")
+
+    # Slightly smaller default title size (after increased canvas size)
+    p.add_argument("-s", "--title_size",
+                   type=float,
+                   default=0.028,
+                   help="Global title TLatex size (NDC).\n")
+
+    p.add_argument("-p", "--title_x",
+                   type=float,
+                   default=0.01,
+                   help="Global title X position (NDC).\n")
+    p.add_argument("-P", "--title_y",
+                   type=float,
+                   default=0.99,
+                   help="Global title Y position (NDC).\n")
+
+    p.add_argument("-t", "--test",
+                   action="store_true",
+                   help="Parse JSON, build point maps, and print summaries; do not write output files.\n")
+    p.add_argument("-v", "--verbose",
+                   action="store_true",
+                   help="Verbose logging.\n")
 
     return p.parse_args()
 
 # ------------------------------------------------------------
 # Small helpers
 # ------------------------------------------------------------
-def load_json(json_path):
-    if(not os.path.isfile(json_path)):
-        raise SystemExit(f"{color.Error}ERROR: JSON file not found:{color.END_R} {json_path}{color.END}")
-    with open(json_path, "r") as jf:
+def load_json(args):
+    if(not os.path.isfile(args.json_file)):
+        raise SystemExit(f"{color.Error}ERROR: JSON file not found:{color.END_R} {args.json_file}{color.END}")
+    with open(args.json_file, "r") as jf:
         return json.load(jf)
 
 def list_fit_sets(json_obj):
@@ -160,7 +254,8 @@ def parse_layout_rows(layout_rows_str):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} --layout_rows contains non-positive values: {rows}{color.END}")
     return rows
 
-def build_layout_map(q2y_count, layout_rows):
+def build_layout_map(args):
+    layout_rows = parse_layout_rows(args.layout_rows)
     max_cols = max(layout_rows)
     nrows    = len(layout_rows)
     mapping  = {}
@@ -170,11 +265,11 @@ def build_layout_map(q2y_count, layout_rows):
         col_start = max_cols - ncol
         for ii in range(ncol):
             col = (max_cols - 1) - ii
-            if(bin_num > q2y_count):
+            if(bin_num > args.q2y_count):
                 break
             mapping[bin_num] = (row, col, col_start)
             bin_num += 1
-        if(bin_num > q2y_count):
+        if(bin_num > args.q2y_count):
             break
     return mapping, max_cols, nrows
 
@@ -185,20 +280,16 @@ def pad_is_outer(row, col, col_start, max_cols, nrows):
     is_rightmost_present = (col == (max_cols - 1))
     return is_bottom, is_leftmost_present, is_rightmost_present, is_top
 
-def ensure_outdir(out_dir):
-    if((out_dir is not None) and (str(out_dir).strip() != "") and (not os.path.isdir(out_dir))):
-        os.makedirs(out_dir, exist_ok=True)
-
 # ------------------------------------------------------------
 # JSON -> binnings/styles (via Construct_JSON_Info) -> grouping
 # ------------------------------------------------------------
-def build_info_map(fit_dict, verbose=False):
+def build_info_map(args, fit_dict):
     info_map = {}
     for key_str in fit_dict.keys():
         q2y_bin, zpt_bin = parse_inner_key(key_str)
         Construct_JSON_Info(Q2_y_Bin=str(q2y_bin), z_pT_Bin=str(zpt_bin), return_info=info_map)
-    if(verbose):
-        print(color.CYAN, f"[INFO] Built info_map entries: {len(info_map)}", color.END)
+    if(args.verbose):
+        print(f"{color.CYAN}[INFO] Built info_map entries: {len(info_map)}{color.END}")
     return info_map
 
 def group_by_q2y(fit_dict):
@@ -224,14 +315,14 @@ def build_q2y_ranges(grouped, info_map):
             q2y_ranges[q2y_bin] = {"Q2range": info_map[first_key]["Q2range"], "y_range": info_map[first_key]["y_range"]}
     return q2y_ranges
 
-def compute_global_x_range(grouped, info_map, x_mode):
+def compute_global_x_range(args, grouped, info_map):
     xmin = None
     xmax = None
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
             if(key_str not in info_map):
                 continue
-            xval = info_map[key_str]["z_range"][0] if(x_mode == "z") else info_map[key_str]["pTrange"][0]
+            xval = info_map[key_str]["z_range"][0] if(args.x_mode == "z") else info_map[key_str]["pTrange"][0]
             xval = float(xval)
             if((xmin is None) or (xval < xmin)):
                 xmin = xval
@@ -241,12 +332,15 @@ def compute_global_x_range(grouped, info_map, x_mode):
         return 0.0, 1.0
     if(xmin == xmax):
         return xmin - 1.0, xmax + 1.0
-    return xmin, xmax
 
-def compute_global_y_range(grouped, fit_dict, y_par, err_suffix):
+    # Expand x-range beyond outermost points (requested)
+    pad = 0.06 * (xmax - xmin)
+    return xmin - pad, xmax + pad
+
+def compute_global_y_range(args, grouped, fit_dict, y_par):
     ymin = None
     ymax = None
-    err_key = f"{y_par}{err_suffix}"
+    err_key = f"{y_par}{args.err_suffix}"
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
             if(key_str not in fit_dict):
@@ -266,12 +360,14 @@ def compute_global_y_range(grouped, fit_dict, y_par, err_suffix):
         return 0.0, 1.0
     if(ymin == ymax):
         return ymin - 1.0, ymax + 1.0
-    pad = 0.10 * (ymax - ymin)
+
+    # Slightly more padding (requested: avoid cramped/clipped look)
+    pad = 0.12 * (ymax - ymin)
     return ymin - pad, ymax + pad
 
-def build_series_for_q2y(q2y_bin, grouped, fit_dict, info_map, x_mode, y_par, err_suffix):
+def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
     series_map = {}
-    err_key = f"{y_par}{err_suffix}"
+    err_key = f"{y_par}{args.err_suffix}"
     if(q2y_bin not in grouped):
         return series_map
     for zpt_bin, key_str in grouped[q2y_bin]:
@@ -281,10 +377,10 @@ def build_series_for_q2y(q2y_bin, grouped, fit_dict, info_map, x_mode, y_par, er
         if((y_par not in entry) or (err_key not in entry)):
             continue
         inf  = info_map[key_str]
-        xval = inf["z_range"][0] if(x_mode == "z") else inf["pTrange"][0]
+        xval = inf["z_range"][0] if(args.x_mode == "z") else inf["pTrange"][0]
         yval = entry[y_par]
         yerr = entry[err_key]
-        if(x_mode == "z"):
+        if(args.x_mode == "z"):
             series_id = str(inf["pT_group"])
             scolor    = inf["pT_color"]
             smarker   = inf["pT_marker"]
@@ -298,6 +394,34 @@ def build_series_for_q2y(q2y_bin, grouped, fit_dict, info_map, x_mode, y_par, er
     for sid in series_map.keys():
         series_map[sid]["points"].sort(key=lambda tt: tt[0])
     return series_map
+
+# ------------------------------------------------------------
+# Title logic
+# ------------------------------------------------------------
+def Get_Default_Y_Title(y_par, fit_set):
+    y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
+    base = y_title_map.get(str(y_par), str(y_par))
+    if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_title_map)):
+        base = f"{base} from the Cross Section Fits"
+    return base
+
+def Get_Default_FitSet_Title(fit_set):
+    fs = str(fit_set)
+    fs = fs.replace("Fit_Pars_from_", "")
+    fs_clean = fs.replace("(Normalized)", "")
+    mm_dim = re.search(r"(\d+)D", fs_clean)
+    dim_tag = f"{mm_dim.group(1)}D" if(mm_dim is not None) else ""
+    has_RC = (re.search(r"(^|_)RC(_|$)", fs_clean) is not None) or ("_RC_" in fs_clean) or ("RC_" in fs_clean) or ("_RC" in fs_clean)
+    if("Bayesian" in fs_clean):
+        method = "Bayesian Unfolding"
+    elif("Bin" in fs_clean):
+        method = "Bin-by-bin Acceptance Corrected"
+    else:
+        method = fs_clean.strip("_")
+    core = f"{dim_tag} {method}".strip()
+    if(has_RC):
+        core = f"{core} with Radiative Corrections"
+    return core
 
 # ------------------------------------------------------------
 # Drawing
@@ -314,63 +438,84 @@ def build_global_title(args, fit_set, y_par):
         return ""
     if(args.title_mode == "text_only"):
         return str(args.title_text)
-    fit_label = args.fit_set_label if(str(args.fit_set_label).strip() != "") else str(fit_set)
-    parts = []
-    if(str(args.title_text).strip() != ""):
-        parts.append(str(args.title_text))
-    parts.append(str(fit_label))
-    parts.append(f"x={args.x_mode}")
-    parts.append(f"y={y_par}")
-    return "  |  ".join(parts)
 
-def draw_global_title(canvas, title_text, title_x, title_y, title_size):
+    if(str(args.fit_set_label).strip() != ""):
+        fit_label = str(args.fit_set_label)
+    else:
+        fit_label = Get_Default_FitSet_Title(fit_set)
+
+    x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    y_label = Get_Default_Y_Title(y_par, fit_set)
+
+    # Requested: line 1 = moment vs variable, line 2 = method
+    line1 = f"{y_label} vs {x_label}"
+    line2 = f"{fit_label}"
+
+    if(str(args.title_text).strip() != ""):
+        line1 = f"{args.title_text} {line1}"
+
+    return f"#splitline{{{line1}}}{{{line2}}}"
+
+def draw_global_title(args, canvas, title_text):
     if(str(title_text).strip() == ""):
         return
     canvas.cd()
     tex = ROOT.TLatex()
     tex.SetNDC(True)
     tex.SetTextAlign(13)
-    tex.SetTextSize(float(title_size))
-    tex.DrawLatex(float(title_x), float(title_y), str(title_text))
+    tex.SetTextFont(42)
+    tex.SetTextSize(float(args.title_size))
+    tex.DrawLatex(float(args.title_x), float(args.title_y), str(title_text))
 
 def draw_pad_label(args, q2y_bin, q2y_ranges):
     if(args.pad_label_mode == "none"):
         return
     lab = ROOT.TLatex()
     lab.SetNDC(True)
-    lab.SetTextAlign(13)
+
+    # Requested: centered above each plot + lighter font + slightly smaller
+    lab.SetTextAlign(23)
+    lab.SetTextFont(42)
     lab.SetTextSize(float(args.pad_label_size))
+
     x0 = float(args.pad_label_x)
     y0 = float(args.pad_label_y)
-    line_step = 1.15 * float(args.pad_label_size)
+    line_step = 1.10 * float(args.pad_label_size)
 
-    lab.DrawLatex(x0, y0, f"Q2-y Bin {q2y_bin}")
+    # Requested: Q^{2} notation in the bin label
+    lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {q2y_bin}")
     if(args.pad_label_mode == "bin"):
         return
-
     if(q2y_bin not in q2y_ranges):
         return
 
     Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
-    lab.DrawLatex(x0, y0 - line_step, f"Q^{{2}}: [{Q2min:.3g}, {Q2max:.3g}]")
+    lab.DrawLatex(x0, y0 - line_step, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
     if(args.pad_label_mode == "bin_Q2"):
         return
 
     ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
     ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
-    lab.DrawLatex(x0, y0 - 2.0*line_step, f"y: [{ymin:.3g}, {ymax:.3g}]")
+    lab.DrawLatex(x0, y0 - 2.0*line_step, f"{ymin:.2f} < y < {ymax:.2f}")
 
-def draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, x_range, y_range):
-    rows = parse_layout_rows(args.layout_rows)
-    mapping, max_cols, nrows = build_layout_map(args.q2y_count, rows)
-
+def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x_range, y_range):
+    mapping, max_cols, nrows = build_layout_map(args)
     c1 = ROOT.TCanvas(f"c_mosaic_{y_par}", f"c_mosaic_{y_par}", int(args.canvas_width), int(args.canvas_height))
     c1.SetFillColor(0)
     c1.SetMargin(0.0, 0.0, 0.0, 0.0)
 
+    if(not hasattr(c1, "_keepalive")):
+        c1._keepalive = []
+
     xmin, xmax = float(x_range[0]), float(x_range[1])
     gymin, gymax = float(y_range[0]), float(y_range[1])
+
+    # Reserve space at TOP for the global title (requested: remove bottom whitespace)
+    title_space = 0.090 if(args.title_mode != "none") else 0.00
+
+    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    y_axis_title = Get_Default_Y_Title(y_par, fit_set)
 
     for q2y_bin in range(1, int(args.q2y_count) + 1):
         if(q2y_bin not in mapping):
@@ -379,23 +524,27 @@ def draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, x_range, y
         row, col, col_start = mapping[q2y_bin]
         x0 = float(col) / float(max_cols)
         x1 = float(col + 1) / float(max_cols)
-        y0 = float(row) / float(nrows)
-        y1 = float(row + 1) / float(nrows)
+
+        # Fix: pack mosaic into [0, 1-title_space] so we don't leave bottom whitespace
+        y0 = (float(row) / float(nrows)) * (1.0 - title_space)
+        y1 = (float(row + 1) / float(nrows)) * (1.0 - title_space)
 
         pad = ROOT.TPad(f"pad_q2y_{q2y_bin}_{y_par}", f"pad_q2y_{q2y_bin}_{y_par}", x0, y0, x1, y1)
         pad.SetFillColor(0)
         pad.SetFrameLineWidth(int(args.frame_line_width))
         pad.SetTickx(1)
         pad.SetTicky(1)
-        if(args.grid):
-            pad.SetGrid(1, 1)
+
+        # Requested: each subplot includes grid lines
+        pad.SetGrid(1, 1)
 
         is_bottom, is_leftmost_present, is_rightmost_present, is_top = pad_is_outer(row, col, col_start, max_cols, nrows)
 
-        left_margin   = 0.14 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.14 if(args.label_mode == "all") else 0.0)
-        bottom_margin = 0.14 if((args.label_mode == "outer") and (is_bottom)) else (0.14 if(args.label_mode == "all") else 0.0)
-        right_margin  = 0.02 if((args.label_mode == "outer") and (is_rightmost_present)) else (0.02 if(args.label_mode == "all") else 0.0)
-        top_margin    = 0.02 if((args.label_mode == "outer") and (is_top)) else (0.02 if(args.label_mode == "all") else 0.0)
+        # Fix: increase margins so axis titles/labels are not clipped
+        left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else 0.03)
+        bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else 0.03)
+        right_margin  = 0.03
+        top_margin    = 0.05
 
         pad.SetLeftMargin(float(left_margin))
         pad.SetBottomMargin(float(bottom_margin))
@@ -405,10 +554,26 @@ def draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, x_range, y
         pad.Draw()
         pad.cd()
 
-        series_map = build_series_for_q2y(q2y_bin, grouped, fit_dict, info_map, args.x_mode, y_par, args.err_suffix)
-        mg = ROOT.TMultiGraph()
+        # Always draw a frame so pads never look empty
+        frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
+        c1._keepalive.append(frame)
 
+        frame.SetTitle("")
+        frame.GetXaxis().SetTitle(x_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_bottom))) else "")
+        frame.GetYaxis().SetTitle(y_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_leftmost_present))) else "")
+
+        # Slightly smaller axis text to prevent clipping
+        frame.GetXaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_bottom) else 0.0)
+        frame.GetYaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+        frame.GetXaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_bottom) else 0.0)
+        frame.GetYaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+
+        frame.GetXaxis().SetNdivisions(505)
+        frame.GetYaxis().SetNdivisions(505)
+
+        series_map = build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par)
         sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
+
         for sid in sid_list:
             pts = series_map[sid]["points"]
             gr  = ROOT.TGraphErrors(len(pts))
@@ -416,42 +581,8 @@ def draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, x_range, y
                 gr.SetPoint(ip, float(xx), float(yy))
                 gr.SetPointError(ip, 0.0, float(ey))
             style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"])
-            mg.Add(gr, "P")
-
-        mg.Draw("A")
-        mg.GetXaxis().SetLimits(float(xmin), float(xmax))
-
-        if(args.y_range_mode == "global"):
-            mg.GetYaxis().SetRangeUser(float(gymin), float(gymax))
-        else:
-            ymin = None
-            ymax = None
-            for sid in series_map.keys():
-                for xx, yy, ey, key_str in series_map[sid]["points"]:
-                    lo = yy - abs(ey)
-                    hi = yy + abs(ey)
-                    if((ymin is None) or (lo < ymin)):
-                        ymin = lo
-                    if((ymax is None) or (hi > ymax)):
-                        ymax = hi
-            if((ymin is None) or (ymax is None)):
-                ymin, ymax = gymin, gymax
-            if(ymin == ymax):
-                ymin, ymax = ymin - 1.0, ymax + 1.0
-            pad_y = 0.10 * (ymax - ymin)
-            mg.GetYaxis().SetRangeUser(float(ymin - pad_y), float(ymax + pad_y))
-
-        mg.GetXaxis().SetTitle("")
-        mg.GetYaxis().SetTitle("")
-        mg.GetXaxis().SetTitleSize(0.0)
-        mg.GetYaxis().SetTitleSize(0.0)
-
-        if(args.label_mode == "outer"):
-            mg.GetXaxis().SetLabelSize(0.06 if(is_bottom) else 0.0)
-            mg.GetYaxis().SetLabelSize(0.06 if(is_leftmost_present) else 0.0)
-        else:
-            mg.GetXaxis().SetLabelSize(0.06)
-            mg.GetYaxis().SetLabelSize(0.06)
+            gr.Draw("P L SAME")
+            c1._keepalive.append(gr)
 
         draw_pad_label(args, q2y_bin, q2y_ranges)
 
@@ -461,18 +592,71 @@ def draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, x_range, y
     c1.Update()
     return c1
 
-def save_canvas(canvas, out_paths, overwrite):
-    for out_path in out_paths:
-        if((not overwrite) and os.path.exists(out_path)):
-            raise SystemExit(f"{color.Error}ERROR:{color.END_R} Output exists (use --overwrite): {out_path}{color.END}")
-        canvas.SaveAs(out_path)
+def Validate_Output_Filename(filename):
+    forbidden = [' ', '"', "'", '=']
+    for ch in forbidden:
+        if(ch in str(filename)):
+            raise SystemExit(f"{color.Error}ERROR:{color.END_R} Forbidden character '{ch}' in output filename:{color.END} {filename}")
+    return
+
+def Get_Default_Y_FileTag(y_par, fit_set):
+    y_tag_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "CosPhiMoment", "Fit_Par_C": "Cos2PhiMoment"}
+    base_tag  = y_tag_map.get(str(y_par), sanitize_for_filename(str(y_par)))
+    if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_tag_map)):
+        base_tag = f"{base_tag}_XsecFits"
+    return sanitize_for_filename(base_tag)
+
+def Get_Default_FitSet_FileTag(fit_set):
+    fs = str(fit_set)
+    fs = fs.replace("Fit_Pars_from_", "")
+    is_norm = "(Normalized)" in fs
+    fs_clean = fs.replace("(Normalized)", "")
+
+    mm_dim = re.search(r"(\d+)D", fs_clean)
+    dim_tag = f"{mm_dim.group(1)}D" if(mm_dim is not None) else ""
+
+    has_rc = (re.search(r"(^|_)RC(_|$)", fs_clean) is not None) or ("_RC_" in fs_clean) or ("RC_" in fs_clean) or ("_RC" in fs_clean)
+
+    if("Bayesian" in fs_clean):
+        method_tag = "BayesianUnfold"
+    elif("Bin" in fs_clean):
+        method_tag = "BinByBinAccCorr"
+    else:
+        method_tag = sanitize_for_filename(fs_clean)
+
+    tag = f"{dim_tag}_{method_tag}" if(dim_tag != "") else f"{method_tag}"
+    if(has_rc):
+        tag = f"{tag}_RC"
+    if(is_norm):
+        tag = f"{tag}_Norm"
+
+    return sanitize_for_filename(tag)
+
+def Build_Output_Filename(args, fit_set, y_par):
+    stem  = sanitize_for_filename(args.name)
+    fs_tag = Get_Default_FitSet_FileTag(fit_set)
+    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
+    filename = f"{stem}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    Validate_Output_Filename(filename)
+    return filename
+
+def save_canvas(args, canvas, fit_set, y_par):
+    filename = Build_Output_Filename(args, fit_set, y_par)
+    canvas.SaveAs(filename)
+    return filename
 
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
 def main():
     args = parse_args()
-    json_obj = load_json(args.json_file)
+    print(f"\n{color.BBLUE}Beginning to run 'Make_Full_Moment_Plots_Mosaic_From_JSON.py'{color.END}\n")
+    timer = RuntimeTimer()
+    timer.start()
+    args.timer = timer
+    args.x_mode = str(args.x_mode).lower()
+    json_obj = load_json(args)
 
     if(args.list_fit_sets):
         print("Fit sets in JSON:")
@@ -486,7 +670,7 @@ def main():
         if(fit_set == ""):
             raise SystemExit(f"{color.Error}ERROR:{color.END_R} No non-empty fit_set found in JSON (excluding Meta_Data_of_Last_Run). Use --fit_set.{color.END}")
         if(args.verbose):
-            print(color.YELLOW, f"[INFO] Auto-selected fit_set = '{fit_set}'", color.END)
+            print(f"{color.BYELLOW}[INFO] Auto-selected fit_set = '{fit_set}'{color.END}")
 
     if(fit_set not in json_obj):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Requested --fit_set '{fit_set}' not found in JSON.{color.END}")
@@ -495,55 +679,50 @@ def main():
     if((not isinstance(fit_dict, dict)) or (len(fit_dict) == 0)):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Fit set '{fit_set}' is empty or not a dict.{color.END}")
 
-    grouped   = group_by_q2y(fit_dict)
-    info_map  = build_info_map(fit_dict, verbose=args.verbose)
+    grouped    = group_by_q2y(fit_dict)
+    info_map   = build_info_map(args, fit_dict)
     q2y_ranges = build_q2y_ranges(grouped, info_map)
 
     if(args.verbose):
-        print(color.CYAN, f"[INFO] Using fit_set: {fit_set}", color.END)
-        print(color.CYAN, f"[INFO] Q2-y bins present: {sorted(list(grouped.keys()))}", color.END)
-        print(color.CYAN, f"[INFO] Total fit entries: {len(fit_dict)}", color.END)
-
-    ensure_outdir(args.out_dir)
+        print(f"{color.CYAN}[INFO] Using fit_set: {fit_set}{color.END}")
+        print(f"{color.CYAN}[INFO] Q2-y bins present: {sorted(list(grouped.keys()))}{color.END}")
+        print(f"{color.CYAN}[INFO] Total fit entries: {len(fit_dict)}{color.END}")
 
     if(args.global_x_range is not None):
         xmin, xmax = float(args.global_x_range[0]), float(args.global_x_range[1])
     else:
-        xmin, xmax = compute_global_x_range(grouped, info_map, args.x_mode)
+        xmin, xmax = compute_global_x_range(args, grouped, info_map)
 
     if(args.verbose):
-        print(color.CYAN, f"[INFO] Global X range: [{xmin}, {xmax}]", color.END)
-
-    fmts = [ff.strip() for ff in str(args.formats).split(",") if(ff.strip() != "")]
+        print(f"{color.CYAN}[INFO] Global X range: [{xmin}, {xmax}]{color.END}")
 
     for y_par in args.y_pars:
         if(args.y_range_mode == "global"):
             if(args.global_y_range is not None):
                 gymin, gymax = float(args.global_y_range[0]), float(args.global_y_range[1])
             else:
-                gymin, gymax = compute_global_y_range(grouped, fit_dict, y_par, args.err_suffix)
+                gymin, gymax = compute_global_y_range(args, grouped, fit_dict, y_par)
             y_range = (gymin, gymax)
         else:
             y_range = (0.0, 1.0)
 
         if(args.test):
-            print(color.YELLOW, f"[TEST] Would draw: fit_set='{fit_set}' x_mode='{args.x_mode}' y_par='{y_par}' entries={len(fit_dict)} x_range=[{xmin},{xmax}] y_mode='{args.y_range_mode}'", color.END)
+            fake_name = Build_Output_Filename(args, fit_set, y_par)
+            print(f"{color.BYELLOW}[TEST] Would draw: fit_set='{fit_set}' x_mode='{args.x_mode}' y_par='{y_par}' -> {color.BCYAN}{fake_name}{color.END}")
             continue
 
-        canv = draw_mosaic(grouped, fit_dict, info_map, q2y_ranges, args, y_par, (xmin, xmax), y_range)
-
+        canv = draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, (xmin, xmax), y_range)
         title_text = build_global_title(args, fit_set, y_par)
-        draw_global_title(canv, title_text, args.title_x, args.title_y, args.title_size)
+        draw_global_title(args, canv, title_text)
         canv.Update()
-
-        fit_set_tag = sanitize_for_filename(fit_set)
-        stem = f"{args.out_stem}_{fit_set_tag}_{args.x_mode}_{y_par}"
-        out_paths = [os.path.join(args.out_dir, f"{stem}.{ff}") for ff in fmts]
-        save_canvas(canv, out_paths, args.overwrite)
+        out_name = save_canvas(args, canv, fit_set, y_par)
 
         if(args.verbose):
-            for op in out_paths:
-                print(color.GREEN, f"[INFO] Wrote: {op}", color.END)
+            print(f"{color.GREEN}[INFO] Wrote: {out_name}{color.END}")
 
-if __name__ == "__main__":
+    print(f"\n{color.BBLUE}Finished running 'Make_Full_Moment_Plots_Mosaic_From_JSON.py'{color.END}\n")
+    args.timer.stop()
+
+if(__name__ == "__main__"):
     main()
+
