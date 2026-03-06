@@ -65,130 +65,124 @@ def ansi_to_html(text):
     # text = text.replace('\n', '<br>\n')
     return text
 
-# def send_email(subject, body, recipient):
-#     # Send an email via the system mail command.
-#     subprocess.run(["mail", "-s", subject, recipient], input=body.encode(), check=False)
-
 def send_email(subject, body, recipient):
     # Send an email via the system mail command.
     html_body = ansi_to_html(body)
     subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
     # subprocess.run(["mail", "--append-header", "Content-Type: text/html", "-s", subject, recipient], input=html_body.encode(), check=False)
 
-
-
 import ROOT
 import argparse
 
-
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
 def parse_args():
     p = argparse.ArgumentParser(description=f"""{color.BOLD}Assign_Uncertainties_to_unfolding.py analysis script:{color.END}
     Meant for looking at the histograms in the output ROOT files from 'Multi5D_Bayes_RooUnfold_SIDIS_dedicated_script.py' and 'Just_RooUnfold_SIDIS_richcap.py'.
     The primary purpose will be to assign uncertainties by comparing the baseline results to the unfolding tests.
-""", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-# """, formatter_class=argparse.RawTextHelpFormatter)#formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
+""", formatter_class=RawDefaultsHelpFormatter)
+    
     # saving / test modes
     p.add_argument('-ns', '--test', '--time', '--no-save', action='store_true', dest='test',
-                   help="Run full code but without saving any files.")
+                   help="Run full code but without saving any files.\n")
     p.add_argument('-r', '--root', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_Lower_Acceptance_Cut_AND_Errors_done_with_kCovToy.root",
-                   help="Name of ROOT input file.")
+                   help="Name of ROOT input file.\n")
     p.add_argument('-sf', '--single_file', action='store_true', dest='single_file',
-                   help="Forces all histograms to come from one source (impacts the closure tests that try to draw from multiple files).")
+                   help="Forces all histograms to come from one source (impacts the closure tests that try to draw from multiple files).\n")
     
     p.add_argument('-ff', '--file_format', type=str, default=".png", choices=['.png', '.pdf', '.root'],
-                   help="Output File Formats.")
+                   help="Output File Formats.\n")
 
     p.add_argument('-so', '--smearing_option', type=str, default="Smear", choices=["Smear", "''"],
-                  help="Smearing options for unfolding.")
+                  help="Smearing options for unfolding.\n")
     
     # simulation / modulation / closure
     p.add_argument('-sim', '--simulation', action='store_true', dest='sim',
-                   help="Use reconstructed MC instead of experimental data.")
+                   help="Use reconstructed MC instead of experimental data.\n")
     p.add_argument('-mod', '--modulation', action='store_true', dest='mod',
-                   help="Use modulated MC files to create response matrices.")
+                   help="Use modulated MC files to create response matrices.\n")
     p.add_argument('-mod_solo', '--modulation_solo', action='store_true', dest='mod_solo',
-                   help="Use modulated MC files to create response matrices, but will not compare to other files (use to get around the `--use_errors_json` restrictions).")
+                   help="Use modulated MC files to create response matrices, but will not compare to other files (use to get around the `--use_errors_json` restrictions).\n")
     p.add_argument('-close', '--closure',  action='store_true', dest='closure',
-                   help="Run Closure Test (unfold modulated MC with itself).")
+                   help="Run Closure Test (unfold modulated MC with itself).\n")
     p.add_argument('-data', '--data_compare',  action='store_true', dest='data',
-                   help="Compares Data distributions to MC (can run with `-mod` to modify the MC with the injected modulations and acceptance weights).")
+                   help="Compares Data distributions to MC (can run with `-mod` to modify the MC with the injected modulations and acceptance weights).\n")
 
     p.add_argument('-rb', '--remake_bin_by_bin',  action='store_true', dest='remake',
-                   help="Remakes bin-by-bin acceptance corrections for 'Mod_Test' and 'Sim_Test' while weighing the modulated MC to the same statistics as the normal MC.")
+                   help="Remakes bin-by-bin acceptance corrections for 'Mod_Test' and 'Sim_Test' while weighing the modulated MC to the same statistics as the normal MC.\n")
 
     # # fitting / output control
     p.add_argument('-nf', '--no-fit', action='store_true', dest='no_fit',
-                   help="Disable fitting of plots.")
+                   help="Disable fitting of plots.\n")
     p.add_argument('-fr', '--fit_root', type=str, default=None,
-                   help="Optional ROOT file to save fit outputs (fitted histograms, fit functions, and fit parameter vectors). If omitted, fit outputs are not written to a ROOT file.")
+                   help="Optional ROOT file to save fit outputs (fitted histograms, fit functions, and fit parameter vectors). If omitted, fit outputs are not written to a ROOT file.\n")
     
     p.add_argument('-t', '--title', type=str,
-                   help="Adds an extra title to the histograms.")
+                   help="Adds an extra title to the histograms.\n")
 
     p.add_argument('-sn', '--save_name', type=str, default="",
-                   help="Adds an extra string to the end of the file names that the images will be saved as.")
+                   help="Adds an extra string to the end of the file names that the images will be saved as.\n")
 
     p.add_argument('-evgen', '--EvGen', action='store_true',
-                   help="Runs with EvGen instead of clasdis files.")
+                   help="Runs with EvGen instead of clasdis files.\n")
 
     p.add_argument('-u', '--unfold', type=str, default="Bayesian", 
-                   help="Histogram type option.")
+                   help="Histogram type option.\n")
 
     p.add_argument('-d', '--dimensions', type=str, default="3D", 
-                   help="Unfolding Dimensions option.")
+                   help="Unfolding Dimensions option.\n")
 
     p.add_argument('-b', '-q2_y', '--bins', nargs="+", type=str, default=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'],
-                   help="List of Q2-y bin indices to run.")
+                   help="List of Q2-y bin indices to run.\n")
 
     p.add_argument('-z_pt', '--z_pt', nargs="+", type=int, 
-                   help="List of z-pT bin indices to run. (Will run all z-pT bins if select ones are not given)")
+                   help="List of z-pT bin indices to run.\n(Will run all z-pT bins if select ones are not given)\n")
 
     p.add_argument('-all', '--all_z_pt', action='store_true',
-                   help="Draws all possible z-pT plots together in one image.")
+                   help="Draws all possible z-pT plots together in one image.\n")
 
     p.add_argument('-si', '--show_integral', action='store_true',
-                   help="Shows the integrals of the phi_h distributions in the `--all_z_pt` image option.")
+                   help="Shows the integrals of the phi_h distributions in the `--all_z_pt` image option.\n")
     
     p.add_argument('-v', '--verbose', action='store_true',
-                   help="Prints each Histogram name to be saved.")
+                   help="Prints each Histogram name to be saved.\n")
 
     p.add_argument('-e', '--email', action='store_true',
-                   help="Sends an email when the script is done running (if selected).")
+                   help="Sends an email when the script is done running (if selected).\n")
     
     p.add_argument('-em', '--email_message', type=str, default="", 
-                   help="Adds an extra user-defined message to emails sent with the `--email` option.")
+                   help="Adds an extra user-defined message to emails sent with the `--email` option.\n")
 
     p.add_argument('-n', '--normalize', action='store_true',
-                   help="Forces Comparison plots to be normalized using 'Normalize_To_Shared_Bins'. (Only used with `-sim` and `-mod`)")
+                   help="Forces Comparison plots to be normalized using 'Normalize_To_Shared_Bins'.\n(Only used with `-sim` and `-mod`)\n")
 
     p.add_argument('-ue',  '--use_errors', action='store_true',
-                   help="Applies uncertainties to the baseline histograms based on their differences to their comparisons. (Calculated during comparisons — will update later to use the output files too)")
+                   help="Applies uncertainties to the baseline histograms based on their differences to their comparisons.\n(Calculated during comparisons — will update later to use the output files too)\n")
 
     # p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences_FirstOrderAcc.json", 
     #                help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
     
     p.add_argument('-uej', '--use_errors_json', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Mod_Test_Unfolding_Bin_Differences.json", 
-                   help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected. (Is not used for the `--mod` option)")
+                   help="Will apply uncertainties to the baseline histograms based on the file given with this argument if the `--use_errors` option is selected.\n(Is not used for the `--mod` option)\n")
 
     p.add_argument('-ie', '--invert_errors', action='store_true', 
-                   help="Inverts the asymmetric errors from the JSON files so that the direction it is applied is reversed (meant to allow me to assign the errors to the acceptance weighted fits).")
+                   help="Inverts the asymmetric errors from the JSON files so that the direction it is applied is reversed (meant to allow me to assign the errors to the acceptance weighted fits).\n")
     
     p.add_argument('-rad', '--radiation_correction', action='store_true', 
-                   help="Applies Radiative Corrections.")
+                   help="Applies Radiative Corrections.\n")
     p.add_argument('-fi', '--fewer_images', action='store_true', 
-                   help="Skips saving some images that might not be needed.")
+                   help="Skips saving some images that might not be needed.\n")
     p.add_argument('-c', '--compare', action='store_true', 
-                   help="Compares the same histograms from different ROOT file sources.")
+                   help="Compares the same histograms from different ROOT file sources.\n")
     p.add_argument('-r2', '--root_compare', type=str, default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Unfolded_Histos_From_FirstOrderAcc_as_of_12_2_2025.root",
-                   help="Name of second ROOT input file for using with `--compare`.")
+                   help="Name of second ROOT input file for using with `--compare`.\n")
     p.add_argument('-ln1', '--legend_name_1', type=str, default=None,
-                   help="Custom Legend Name for histogram 1 (use with `-all` option).")
+                   help="Custom Legend Name for histogram 1 (use with `-all` option).\n")
     p.add_argument('-ln2', '--legend_name_2', type=str, default=None,
-                   help="Custom Legend Name for histogram 2 (use with `-all` option).")
+                   help="Custom Legend Name for histogram 2 (use with `-all` option).\n")
 
     p.add_argument('-mj', '-mjson', '--make_json', action='store_true', 
-                   help="Allows for new JSON files to be made (if not used, not JSON file will be outputted).")
+                   help="Allows for new JSON files to be made (if not used, no JSON file will be outputted).\n")
     
     return p.parse_args()
 
@@ -219,7 +213,7 @@ args = parse_args()
 #         os.dup2(old_stderr, 2)
 #         os.close(old_stdout)
 #         os.close(old_stderr)
-
+ 
 # # Use it like this:
 # silence_root_import()
 
@@ -233,7 +227,6 @@ Fit_Test = not args.no_fit
 if(args.remake and (args.unfold not in ["Bin"])):
     print(f"{color.RED}Option to use '--remake_bin_by_bin' requires Bin-by-Bin corrections to be selected.{color.END}")
     args.unfold = "Bin"
-
 
 Standard_Histogram_Title_Addition = ""
 if(args.sim):
@@ -267,9 +260,7 @@ if((args.file_format != ".png") and Saving_Q):
     print(f"\n{color.BGREEN}Save Option was not set to output .png files. Save format is: {color.ERROR}{args.file_format}{color.END}\n")
 
 # # 'Binning_Method' is defined in 'MyCommonAnalysisFunction_richcap'
-
 Q2_y_Bin_List = args.bins
-
 if(Q2_y_Bin_List != ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']):
     print(f"\n{color.BOLD}Running with the following Q2-y Bins:\t{color.GREEN}{Q2_y_Bin_List}{color.END}\n")
 
@@ -280,16 +271,26 @@ print(f"\n{color.BOLD}Starting RG-A SIDIS Analysis{color.END}\n\n")
 
 
 
+def legend_proxy_lep(h, linewidth=5, name_suffix="_legproxy"):
+    # Return a histogram-like proxy suitable for legend option 'lep' without modifying the original histogram.
+    if(not h):
+        return None
+    # Clone so it carries line+marker+fill attributes used by 'lep'
+    p = h.Clone(h.GetName() + name_suffix)
+    p.SetDirectory(0)  # detach from any ROOT file/dir
+    # Make sure it doesn't accidentally show stats/title if ever drawn
+    p.SetStats(0)
+    p.SetTitle("")
+    # Thicken ONLY the proxy line
+    p.SetLineWidth(max(linewidth, int(h.GetLineWidth())))
+    return p
+
 
 ################################################################################################################################################
 ##### Individual Image/Histogram Functions #####################################################################################################
 ################################################################################################################################################
 
 import json
-# def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertainty_File_In=args.use_errors_json):
-#     # Something was going wrong when I updated this function
-#     return Histo_In
-
 def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertainty_File_In=args.use_errors_json):
     # Modify the bin uncertainties of a histogram using precomputed values
     # from a JSON file. If any condition fails, return the unmodified histogram.
@@ -815,7 +816,6 @@ def Normalize_To_Shared_Bins(histo1, histo2, threshold=0.0, include_under_over=F
     # Returns two cloned histograms scaled so that the sum over shared bins equals 1 for each.
     # A "shared" bin is one where both histograms have content strictly greater than 'threshold'.
     # Errors scale automatically via TH1::Scale.
-
     # Basic checks
     if((not histo1) or (not histo2)):
         print(f"{color.Error}ERROR:{color.END} Normalize_To_Shared_Bins(): one or both histograms are None.")
@@ -1097,16 +1097,12 @@ def Make_New_BbB_Sim(ROOT_IN_MODULATED, HISTO_NAME_INPUT):
         Original_Title_bbb = f"#splitline{{{Original_Title_bbb}}}{{Remade these plots after the acceptance weights were already applied}}"
     bbb_sim_cor.SetTitle(Original_Title_bbb)
     tdf_histo__sim.SetTitle(f"#splitline{{{tdf_histo__sim.GetTitle()}}}{{Scaled to Normal Generated MC}}")
-
+    
     bbb_sim_cor.SetLineColor(28)
     bbb_sim_cor.SetMarkerColor(28)
-    
     if(args.verbose):
         print(f"{color.BOLD}Created/scaled histograms:{color.END}\n\t{bbb_sim_cor.GetName()}\nand\n\t{tdf_histo__sim.GetName()}")
-
     return bbb_sim_cor, tdf_histo__sim
-
-
 
 Unfolding_Diff_Data = {}
 def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, legend_labels=("Histogram 1", "Histogram 2"), output_prefix="Compare_", SAVE=args.save_name, Format=args.file_format, TITLE=Standard_Histogram_Title_Addition, Q2y_str="1", zPT_str="1", Unfolding_Diff_Data_In=Unfolding_Diff_Data, Return_Histos=False):
@@ -1173,7 +1169,7 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         histo1.SetTitle(f"#splitline{{{histo1.GetTitle()}}}{{{TITLE}}}")
 
     if(histo1.GetLineColor() == histo2.GetLineColor()):
-        histo2.SetLineColor((histo2.GetLineColor() + 2) if(histo2.GetLineColor() != 28) else 26)
+        histo2.SetLineColor((histo2.GetLineColor() + 2) if(histo2.GetLineColor() not in [30, 28]) else 26)
     histo1.SetLineWidth(3)
     histo2.SetLineWidth(2)
     
@@ -1312,14 +1308,10 @@ def Compare_TH1D_Histograms(ROOT_In_1, HISTO_NAME_1, ROOT_In_2, HISTO_NAME_2, le
         return True, Unfolding_Diff_Data_In
 
 
-
-
 ################################################################################################################################################
 ##### Individual Image/Histogram Functions ^ ###################################################################################################
 ##### Large/Combined Image Function          ###################################################################################################
-################################################################################################################################################
-
-
+################################################################################################################################################ 
 def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, Unfolding_Diff_Data_Input={}, Q2_Y_Bin=1, Plot_Orientation="z_pT"):
 
     HISTO_NAME = f"\n{color.ERROR}ERROR{color.END}\n"
@@ -1496,6 +1488,8 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
     ####  Canvas (Main) Creation End ######################################################################################################################################################################
     #######################################################################################################################################################################################################
         legend[Canvas_Name] = ROOT.TLegend(0.01, 0.01, 0.99, 0.99)
+        if(not hasattr(legend[Canvas_Name], "_proxies")):
+            legend[Canvas_Name]._proxies = []
         Legend_Header = f"#splitline{{#scale[2]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}{{#scale[1.5]{{Plots Shown}}}}"
         if(args.normalize):
             Legend_Header = f"#splitline{{{Legend_Header}}}{{Plots were normalized}}"
@@ -1511,13 +1505,25 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         if(args.mod or args.sim or args.closure or args.data):
             if(canvas_num   == 0):
                 for ii, label in enumerate(Legend_Labels):
-                    legend[Canvas_Name].AddEntry(Saved_Histos[f"histo{ii+1}_1"], label, "lep")
+                    proxy = legend_proxy_lep(Saved_Histos[f"histo{ii+1}_1"])
+                    legend[Canvas_Name]._proxies.append(proxy)  # keep alive
+                    legend[Canvas_Name].AddEntry(proxy, label, "lep")
+                    # legend[Canvas_Name].AddEntry(Saved_Histos[f"histo{ii+1}_1"], label, "lep")
             elif(canvas_num == 1):
-                legend[Canvas_Name].AddEntry(Saved_Histos[f"h_diff_1"],        f"#scale[0.85]{{#splitline{{Differences Between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}",         "lep")
+                # legend[Canvas_Name].AddEntry(Saved_Histos[f"h_diff_1"],        f"#scale[0.85]{{#splitline{{Differences Between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}",         "lep")
+                proxy = legend_proxy_lep(Saved_Histos[f"h_diff_1"])
+                legend[Canvas_Name]._proxies.append(proxy)
+                legend[Canvas_Name].AddEntry(proxy, f"#scale[0.85]{{#splitline{{Differences Between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}",         "lep")
             else:
-                legend[Canvas_Name].AddEntry(Saved_Histos[f"h_uncertainty_1"], f"#scale[0.85]{{#splitline{{Modeled Uncertainty between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}", "lep")
+                proxy = legend_proxy_lep(Saved_Histos[f"h_uncertainty_1"])
+                legend[Canvas_Name]._proxies.append(proxy)
+                legend[Canvas_Name].AddEntry(proxy, f"#scale[0.85]{{#splitline{{Modeled Uncertainty between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}", "lep")
+                # legend[Canvas_Name].AddEntry(Saved_Histos[f"h_uncertainty_1"], f"#scale[0.85]{{#splitline{{Modeled Uncertainty between}}{{#splitline{{'{Legend_Labels[0]}' and}}{{'{Legend_Labels[1]}'}}}}}}", "lep")
         else:
-            legend[Canvas_Name].AddEntry(Saved_Histos["1"], Legend_Labels[0], "lep")
+            proxy = legend_proxy_lep(Saved_Histos[f"1"])
+            legend[Canvas_Name]._proxies.append(proxy)
+            legend[Canvas_Name].AddEntry(proxy, Legend_Labels[0], "lep")
+            # legend[Canvas_Name].AddEntry(Saved_Histos["1"], Legend_Labels[0], "lep")
         Draw_Canvas(All_z_pT_Canvas_cd_1_Upper[Canvas_Name], 1, 0.15)
         Blank = Saved_Histos[f"h_diff_1" if(args.mod or args.sim or args.closure or args.data) else "1"].Clone("EMPTY")
         Blank.SetTitle("")
@@ -1528,9 +1534,7 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
         for z_pT in range(1, Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=int(Q2_Y_Bin))[1]+1):
             if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT, BINNING_METHOD=Binning_Method)):
                 continue
-
             integral_1, integral_2, integral_single = None, None, None
-
             cd_number_of_z_pT_all_together = z_pT
             if(Plot_Orientation in ["z_pT"]):
                 All_z_pT_Canvas_cd_2_z_pT_Bin = All_z_pT_Canvas_cd_2[Canvas_Name].cd(cd_number_of_z_pT_all_together)
@@ -1678,8 +1682,6 @@ def z_pT_Images_Together_For_Comparisons(ROOT_Input_In=None, ROOT_Mod_In=None, U
 ################################################################################################################################################
 ##### Large/Combined Image Function ############################################################################################################
 ################################################################################################################################################
-
-
 to_be_saved_count = 0
 if(args.data and (args.unfold not in ["rdf"])):
     print(f"{color.Error}Setting 'unfold' argument to 'rdf' for Data to MC comparison.{color.END}\n")

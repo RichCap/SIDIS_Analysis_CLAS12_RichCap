@@ -257,8 +257,11 @@ def Apply_PreBin_Uncertainties(Histo_In, Q2_y_Bin=None, z_pT_Bin=None, Uncertain
     g_asym.SetLineColor(Histo_In.GetLineColor())
     g_asym.SetMarkerColor(Histo_In.GetMarkerColor())
     g_asym.SetLineWidth(Histo_In.GetLineWidth())
+    Normalize_Factor = 1.0 if(not hasattr(Histo_In, "Normalize_Factor")) else Histo_In.Normalize_Factor
     for i, entry in enumerate(bin_data, start=1):
-        uncertainty = float(entry.get("uncertainty", 0.0))
+        uncertainty = float(entry.get("scale_to_nominal", 0.0))*float(entry.get("uncertainty", 0.0))
+        if(Normalize_Factor != 0):
+            uncertainty = uncertainty/Normalize_Factor
         current_err = float(Histo_In.GetBinError(i))
         sys_mag     = ROOT.sqrt(max([current_err**2, uncertainty**2 + current_err**2]))
         if(invert_errors):
