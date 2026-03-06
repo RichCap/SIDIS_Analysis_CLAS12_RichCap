@@ -108,11 +108,13 @@ def parse_args():
     # Increased defaults further (requested): make the mosaic less cramped
     p.add_argument("-W", "--canvas_width",
                    type=int,
+                   # default=2800,
                    default=2800,
                    help="Canvas width in pixels.\n")
     p.add_argument("-H", "--canvas_height",
                    type=int,
-                   default=3400,
+                   # default=3400,
+                   default=3200,
                    help="Canvas height in pixels.\n")
 
     p.add_argument("-X", "--global_x_range",
@@ -143,9 +145,9 @@ def parse_args():
                    default="outer",
                    help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.\n")
     p.add_argument("-k", "--pad_label_mode",
-                   choices=["none", "bin", "bin_Q2", "bin_Q2y"],
-                   default="bin_Q2y",
-                   help="Per-pad label: none, bin only, bin+Q2 range, or bin+Q2+y ranges.\n")
+                   choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
+                   default="Q2y_only",
+                   help="Per-pad label: none, bin only, bin+Q2 range, bin+Q2+y ranges, or just the Q2+y ranges.\n")
 
     # Centered per-pad labels + slightly smaller default (requested)
     p.add_argument("-K", "--pad_label_size",
@@ -160,6 +162,10 @@ def parse_args():
                    type=float,
                    default=0.965,
                    help="Per-pad label Y position (NDC).\n")
+
+    p.add_argument("-leg", "--draw_legends",
+                   action="store_true",
+                   help="Draw per-pad text-only legends for the variable not used on the x-axis.\n")
 
     p.add_argument("-T", "--title_text",
                    default="",
@@ -332,8 +338,6 @@ def compute_global_x_range(args, grouped, info_map):
         return 0.0, 1.0
     if(xmin == xmax):
         return xmin - 1.0, xmax + 1.0
-
-    # Expand x-range beyond outermost points (requested)
     pad = 0.06 * (xmax - xmin)
     return xmin - pad, xmax + pad
 
@@ -360,8 +364,6 @@ def compute_global_y_range(args, grouped, fit_dict, y_par):
         return 0.0, 1.0
     if(ymin == ymax):
         return ymin - 1.0, ymax + 1.0
-
-    # Slightly more padding (requested: avoid cramped/clipped look)
     pad = 0.12 * (ymax - ymin)
     return ymin - pad, ymax + pad
 
@@ -426,11 +428,11 @@ def Get_Default_FitSet_Title(fit_set):
 # ------------------------------------------------------------
 # Drawing
 # ------------------------------------------------------------
-def style_graph(gr, color_val, marker_val):
+def style_graph(gr, color_val, marker_val, line_width=2):
     gr.SetLineColor(int(color_val))
     gr.SetMarkerColor(int(color_val))
     gr.SetMarkerStyle(int(marker_val))
-    gr.SetLineWidth(2)
+    gr.SetLineWidth(line_width)
     gr.SetMarkerSize(1.0)
 
 def build_global_title(args, fit_set, y_par):
@@ -446,14 +448,10 @@ def build_global_title(args, fit_set, y_par):
 
     x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     y_label = Get_Default_Y_Title(y_par, fit_set)
-
-    # Requested: line 1 = moment vs variable, line 2 = method
     line1 = f"{y_label} vs {x_label}"
     line2 = f"{fit_label}"
-
     if(str(args.title_text).strip() != ""):
         line1 = f"{args.title_text} {line1}"
-
     return f"#splitline{{{line1}}}{{{line2}}}"
 
 def draw_global_title(args, canvas, title_text):
@@ -472,31 +470,28 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
         return
     lab = ROOT.TLatex()
     lab.SetNDC(True)
-
-    # Requested: centered above each plot + lighter font + slightly smaller
     lab.SetTextAlign(23)
     lab.SetTextFont(42)
     lab.SetTextSize(float(args.pad_label_size))
-
     x0 = float(args.pad_label_x)
     y0 = float(args.pad_label_y)
     line_step = 1.10 * float(args.pad_label_size)
-
-    # Requested: Q^{2} notation in the bin label
+    Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
+    Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
+    ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
+    ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
+    if(args.pad_label_mode == "Q2y_only"):
+        lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+        lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
+        return
     lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {q2y_bin}")
     if(args.pad_label_mode == "bin"):
         return
     if(q2y_bin not in q2y_ranges):
         return
-
-    Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
-    Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
     lab.DrawLatex(x0, y0 - line_step, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
     if(args.pad_label_mode == "bin_Q2"):
         return
-
-    ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
-    ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
     lab.DrawLatex(x0, y0 - 2.0*line_step, f"{ymin:.2f} < y < {ymax:.2f}")
 
 def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x_range, y_range):
@@ -511,40 +506,90 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
     xmin, xmax = float(x_range[0]), float(x_range[1])
     gymin, gymax = float(y_range[0]), float(y_range[1])
 
-    # Reserve space at TOP for the global title (requested: remove bottom whitespace)
     title_space = 0.090 if(args.title_mode != "none") else 0.00
-
     x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+    y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
+
+    # -------------------------------------------------------------------------
+    #  Variable TPad widths per row so plot-area width is identical
+    #  even when left_margin is larger on the "y-axis label" pad.
+    #  This changes ONLY the TPad placement (x0/x1), not the plot logic.
+    # -------------------------------------------------------------------------
+    row_bins = {}
+    for q2y_bin in mapping.keys():
+        row, col, col_start = mapping[q2y_bin]
+        if(row not in row_bins):
+            row_bins[row] = []
+        row_bins[row].append((col, q2y_bin, col_start))
+    for row in row_bins.keys():
+        row_bins[row].sort(key=lambda tt: tt[0])  # left->right
+
+    x_edges = {}
+    right_margin = 0.03
+    left_small   = 0.03
+    left_big     = 0.22
+
+    for row in row_bins.keys():
+        pads = row_bins[row]
+        n_present = len(pads)
+        target_total = float(n_present) / float(max_cols)
+        x_start = 1.0 - target_total
+
+        big_flags = []
+        for col, q2y_bin, col_start in pads:
+            is_leftmost_present = (col == col_start)
+            big_flags.append((args.label_mode == "all") or ((args.label_mode == "outer") and is_leftmost_present))
+
+        n_big = sum([1 for bb in big_flags if(bb)])
+        n_small = n_present - n_big
+
+        if((args.label_mode == "all") or (n_big == 0)):
+            width_each = target_total / float(n_present)
+            widths = [width_each for _ in range(n_present)]
+        else:
+            plot_frac_small = 1.0 - left_small - right_margin
+            plot_frac_big   = 1.0 - left_big   - right_margin
+            ratio = plot_frac_small / plot_frac_big
+            width_small = target_total / (float(n_small) + float(n_big) * ratio)
+            width_big = width_small * ratio
+            widths = [(width_big if(big_flags[i]) else width_small) for i in range(n_present)]
+
+        cursor = x_start
+        for i, (col, q2y_bin, col_start) in enumerate(pads):
+            x0 = cursor
+            cursor = cursor + widths[i]
+            x1 = cursor
+            if(i == (n_present - 1)):
+                x1 = x_start + target_total
+                cursor = x1
+            x_edges[q2y_bin] = (float(x0), float(x1))
 
     for q2y_bin in range(1, int(args.q2y_count) + 1):
         if(q2y_bin not in mapping):
             continue
 
         row, col, col_start = mapping[q2y_bin]
-        x0 = float(col) / float(max_cols)
-        x1 = float(col + 1) / float(max_cols)
 
-        # Fix: pack mosaic into [0, 1-title_space] so we don't leave bottom whitespace
+        # Use compensated x0/x1 (instead of uniform col/max_cols)
+        x0, x1 = x_edges[q2y_bin]
+
         y0 = (float(row) / float(nrows)) * (1.0 - title_space)
         y1 = (float(row + 1) / float(nrows)) * (1.0 - title_space)
 
-        pad = ROOT.TPad(f"pad_q2y_{q2y_bin}_{y_par}", f"pad_q2y_{q2y_bin}_{y_par}", x0, y0, x1, y1)
+        pad = ROOT.TPad(f"pad_q2y_{q2y_bin}_{y_par}", f"pad_q2y_{q2y_bin}_{y_par}", float(x0), float(y0), float(x1), float(y1))
         pad.SetFillColor(0)
         pad.SetFrameLineWidth(int(args.frame_line_width))
         pad.SetTickx(1)
         pad.SetTicky(1)
-
-        # Requested: each subplot includes grid lines
         pad.SetGrid(1, 1)
 
         is_bottom, is_leftmost_present, is_rightmost_present, is_top = pad_is_outer(row, col, col_start, max_cols, nrows)
 
-        # Fix: increase margins so axis titles/labels are not clipped
-        left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else 0.03)
-        bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else 0.03)
-        right_margin  = 0.03
-        top_margin    = 0.05
+        left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else (0.03 - 0.02))
+        bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else (0.03 - 0.02))
+        right_margin  = (0.03 - 0.02)
+        top_margin    = (0.05 - 0.02)
 
         pad.SetLeftMargin(float(left_margin))
         pad.SetBottomMargin(float(bottom_margin))
@@ -554,7 +599,6 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         pad.Draw()
         pad.cd()
 
-        # Always draw a frame so pads never look empty
         frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
         c1._keepalive.append(frame)
 
@@ -562,7 +606,6 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         frame.GetXaxis().SetTitle(x_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_bottom))) else "")
         frame.GetYaxis().SetTitle(y_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_leftmost_present))) else "")
 
-        # Slightly smaller axis text to prevent clipping
         frame.GetXaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_bottom) else 0.0)
         frame.GetYaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
         frame.GetXaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_bottom) else 0.0)
@@ -580,9 +623,50 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
             for ip, (xx, yy, ey, key_str) in enumerate(pts):
                 gr.SetPoint(ip, float(xx), float(yy))
                 gr.SetPointError(ip, 0.0, float(ey))
-            style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"])
+            style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
             gr.Draw("P L SAME")
             c1._keepalive.append(gr)
+
+        if(args.draw_legends):
+            legend_title = "P_{T} Bins" if(args.x_mode == "z") else "z Bins"
+            legend_entries = []
+            for sid in sid_list:
+                pts = series_map[sid]["points"]
+                if(len(pts) == 0):
+                    continue
+                key0 = pts[0][3]
+                if(key0 not in info_map):
+                    continue
+                other_val = float(info_map[key0]["pTrange"][0]) if(args.x_mode == "z") else float(info_map[key0]["z_range"][0])
+                legend_entries.append((other_val, int(series_map[sid]["color"])))
+            legend_entries.sort(key=lambda tt: tt[0])
+
+            if(len(legend_entries) > 0):
+                leg_x1 = 0.98
+                # leg_x0 = 0.82
+                leg_x0 = 0.78
+                # leg_y1 = 0.84
+                leg_y1 = 0.89
+                entry_h = 0.055
+                nlines = int(2*len(legend_entries)) + 1
+                leg_y0 = leg_y1 - entry_h * float(nlines)
+                if(leg_y0 < 0.12):
+                    leg_y0 = 0.12
+                leg = ROOT.TLegend(float(leg_x0), float(leg_y0), float(leg_x1), float(leg_y1))
+                # leg.SetBorderSize(0)
+                leg.SetBorderSize(1)
+                # leg.SetFillStyle(0)
+                leg.SetFillStyle(1001)
+                leg.SetTextFont(42)
+                # leg.SetTextSize(0.045)
+                leg.SetTextSize(0.055)
+                leg.SetHeader(str(legend_title), "C")
+                for val, colv in legend_entries:
+                    ent = leg.AddEntry(0, f"{val:.3f}", "")
+                    if(ent):
+                        ent.SetTextColor(int(colv))
+                leg.Draw("SAME")
+                c1._keepalive.append(leg)
 
         draw_pad_label(args, q2y_bin, q2y_ranges)
 
@@ -656,8 +740,9 @@ def main():
     timer.start()
     args.timer = timer
     args.x_mode = str(args.x_mode).lower()
+    if("pdf" in args.formats):
+        args.frame_line_width = max([1, args.frame_line_width - 2])
     json_obj = load_json(args)
-
     if(args.list_fit_sets):
         print("Fit sets in JSON:")
         for kk in list_fit_sets(json_obj):
@@ -692,6 +777,13 @@ def main():
         xmin, xmax = float(args.global_x_range[0]), float(args.global_x_range[1])
     else:
         xmin, xmax = compute_global_x_range(args, grouped, info_map)
+
+    if(args.draw_legends):
+        xspan = xmax - xmin
+        if(xspan > 0.0):
+            xmax = xmax + 0.30 * xspan
+        else:
+            xmax = xmax + 1.0
 
     if(args.verbose):
         print(f"{color.CYAN}[INFO] Global X range: [{xmin}, {xmax}]{color.END}")
