@@ -330,6 +330,7 @@ def silence_root_import():
 ##==========##==========##     Unfolding Fit Function V2     ##==========##==========##==========##==========##==========##==========##==========##==========##
 ###############################################################################################################################################################
 from functools import partial
+import numpy as np
 def func_fit(params, x, y):
     A, B, C = params
     y_pred = [A*(1 + B*(ROOT.cos(xi)) + C*(ROOT.cos(2*xi))) for xi in x]
@@ -339,7 +340,7 @@ def nelder_mead(func, x0, args=(), max_iter=1000, tol=1e-6):
     simplex = [x0]
     for i in range(N):
         point = list(x0)
-        point[i] = x0[i] + 1.0
+        point[i] = x0[i] * 1.1
         simplex.append(point)
     for _ in range(max_iter):
         simplex.sort(key=lambda point: func(point, *args))
@@ -371,7 +372,7 @@ def Full_Calc_Fit(Histo):
             x_data.append(Histo.GetBinCenter(ii))
             y_data.append(Histo.GetBinContent(ii))
         # Perform optimization using the Nelder-Mead method
-        initial_guess = [1e6, 1, 1]  # Initial guess for A, B, C
+        initial_guess = [np.mean(y_data), 1, 1]  # Initial guess for A, B, C
         optim_params = nelder_mead(partial(func_fit, x=x_data, y=y_data), initial_guess)
         # Extract the optimized parameters
         A_opt, B_opt, C_opt = optim_params
@@ -858,8 +859,8 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
         if("_(Normalized)" in str(Histo_To_Fit.GetName())):
             print(f"{color.Error}Normalization was already applied to {color.END_B}'{Histo_To_Fit.GetName()}'{color.END_R} (skipping right to fitting){color.END}")
         else:
-            if(args.verbose):
-                print(f"{color.BBLUE}Applying Normalization for Differential Cross Section before fitting...{color.END}")
+            # if(args.verbose):
+            print(f"{color.BBLUE}Applying Normalization for Differential Cross Section before fitting...{color.END}")
             Histo_To_Fit = ApplyCS_Norm(args, Histo_To_Fit, Q2_y_Bin=q2y_Bin, z_pT_Bin=zpT_Bin)
     elif(Allow_Normalization and args.CrossSection_Norm):
         print(f"{color.Error}Cannot Normalize {color.END_B}'{Histo_To_Fit.GetName()}'{color.Error} without the kinematic bin numbers (were attempted to be given as: {color.END_B}'{Special}'{color.Error}){color.END}")
@@ -3189,6 +3190,7 @@ def main():
     except:
         Crash_Report(args, crash_message=f"The Fitting/RC Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
+
 
 if(__name__ == "__main__"):
     main()
