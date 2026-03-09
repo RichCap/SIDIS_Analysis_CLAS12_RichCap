@@ -88,7 +88,20 @@ def parse_args():
     parser.add_argument('-rR', '-read_root', '-bc', '--get_BC_factors',
                         action='store_true', 
                         help=f"Reads the ROOT files from '--root_file_out' to get the BC factors for each bin.\n{color.BOLD}Will write the results to the '--json_file_out' JSON file if not running in '--test' mode.{color.END}\n")
-    
+
+    parser.add_argument('-mpi', '--make_plot_images',
+                        action='store_true',
+                        help="Optional: make a visualization plot (Center vs Average sub-bin contents vs nominal phi_h bin) from the existing JSON output.\n")
+    parser.add_argument('-n', '-sn', '--image_name',
+                        default="",
+                        type=str,
+                        help="Optional prefix added to the output filename for the BC sub-bin comparison plot.\n")
+    parser.add_argument('-ff', '--File_Format',
+                        default="pdf",
+                        type=str,
+                        choices=["png", "pdf"],
+                        help="Output format for the BC sub-bin comparison plot.\n")
+
     return parser.parse_args()
     
 def silence_root_import():
@@ -162,7 +175,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_
         end_time, total_time, rate_line = args.timer.stop(count_label=Count_Type, count_value=final_count, return_Q=True)
     args_list = ""
     for name, value in vars(args).items():
-        if(str(name) in ["email", "email_message", "timer", "root_file_out", "file", "json_file_out"]):
+        if(str(name) in ["email", "email_message", "timer", "root_file_out", "file", "json_file_out", "Save_Name"]):
             continue
         if((str(name) in ["check_dataframe"]) and (args.get_BC_factors)):
             continue
@@ -172,6 +185,8 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_
             continue
         if((str(name) in ["json_file_in"]) and (not args.json_weights)):
             continue
+        if((str(name) in ["image_name", "File_Format"]) and (not args.make_plot_images)):
+            continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
     email_body = f"""
@@ -180,10 +195,11 @@ The 'BC_Corrections_Script.py' script has {'finished running.' if(not (Crashed o
 
 {args.email_message}
 
-Input:
-{args.root_file_out if(args.get_BC_factors) else args.file}
-Output:
-{args.json_file_out if((not args.histogram) or args.get_BC_factors) else  args.root_file_out}
+Input(s):
+{f'{args.root_file_out}\n{args.json_file_out}' if(args.make_plot_images and args.get_BC_factors) else args.json_file_out if(args.make_plot_images) else args.root_file_out if(args.get_BC_factors) else args.file}
+Output(s):
+{f'{args.json_file_out}\n{getattr(args, "Save_Name", None)}' if(args.make_plot_images and args.get_BC_factors) else getattr(args, "Save_Name", None) if(args.make_plot_images) else args.json_file_out if((not args.histogram) or args.get_BC_factors) else  args.root_file_out}
+
 
 Arguments:
 {args_list}
@@ -952,7 +968,93 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
     return out, Count_of_Nominal_Bins
 
-
+# ------------------------------------------------------------
+# Optional plot: Center vs Average vs nominal phi_h bin
+# ------------------------------------------------------------
+def Plot_BC_Subbin_Inputs_From_JSON(args):
+    if((args.Q2_y_Bin in [-1, None]) or (args.z_pT_Bin in [-1, None])):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} '--make_plot_images' requires a single '--Q2_y_Bin' and '--z_pT_Bin' (not -1). Skipping plot.{color.END}\n")
+    json_path = str(args.json_file_out)
+    if(not os.path.exists(json_path)):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
+    data = load_json_file(json_path)
+    if((not isinstance(data, dict)) or ("results" not in data) or (not isinstance(data["results"], dict))):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not have the expected schema with a top-level 'results' dict.\n{color.END}File Input Was: {json_path}\n")
+    results = data["results"]
+    # Build output histograms: 24 nominal phi bins (1..24)
+    hname_center = f"h_center_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
+    hname_ave    = f"h_ave_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
+    title_base = f"#splitline{{BC Factor Sub-bin Inputs}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({args.Q2_y_Bin}-{args.z_pT_Bin})}}}}"
+    h_center = ROOT.TH1D(hname_center, f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
+    h_ave    = ROOT.TH1D(hname_ave,    f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
+    # Fill from JSON
+    max_y, min_y = 0.0, 0.0
+    for phi_bin in range(1, 24 + 1):
+        nom_key = f"Bin ({args.Q2_y_Bin}-{args.z_pT_Bin}-{phi_bin})"
+        entry = results.get(nom_key, {})
+        # Defaults to 0 if missing
+        c_val, c_err = 0.0, 0.0
+        a_val, a_err = 0.0, 0.0
+        if(isinstance(entry, dict)):
+            csb = entry.get("Center Sub-Bin", {})
+            if(isinstance(csb, dict)):
+                try:
+                    c_val = float(csb.get("Content", 0.0))
+                except Exception:
+                    c_val = 0.0
+                try:
+                    c_err = float(csb.get("Error", 0.0))
+                except Exception:
+                    c_err = 0.0
+            try:
+                a_val = float(entry.get("ave", 0.0))
+            except Exception:
+                a_val = 0.0
+            try:
+                a_err = float(entry.get("ave_err", 0.0))
+            except Exception:
+                a_err = 0.0
+        h_center.SetBinContent(phi_bin, c_val)
+        h_center.SetBinError(phi_bin,   c_err)
+        h_ave.SetBinContent(phi_bin,    a_val)
+        h_ave.SetBinError(phi_bin,      a_err)
+        max_y = max([max_y, c_val + c_err, a_val + a_err])
+        min_y = min([min_y, c_val - c_err, a_val - a_err])
+    # Style (different colors, same pad)
+    h_center.SetLineColor(ROOT.kSpring + 10)
+    h_center.SetMarkerColor(ROOT.kSpring + 10)
+    h_center.SetMarkerStyle(20)
+    h_center.SetLineWidth(2)
+    h_ave.SetLineColor(ROOT.kViolet + 1)
+    h_ave.SetMarkerColor(ROOT.kViolet + 1)
+    h_ave.SetMarkerStyle(21)
+    h_ave.SetLineWidth(2)
+    h_ave.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
+    Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Subbin_Comparisons_for_Q2_y_Bin_{args.Q2_y_Bin}_z_pT_Bin_{args.z_pT_Bin}'
+    c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
+    pad = c.cd()
+    # pad.SetBottomMargin(float(bottom_margin))
+    pad.SetTopMargin(0.175)
+    pad.SetLeftMargin(0.125)
+    pad.SetRightMargin(0.025)
+    # Draw both on the same pad
+    h_ave.Draw("E1")
+    h_center.Draw("E1 SAME")
+    # leg = ROOT.TLegend(0.62, 0.76, 0.88, 0.88)
+    leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
+    leg.SetBorderSize(0)
+    leg.SetFillStyle(0)
+    leg.AddEntry(h_center, "#scale[2]{Center Sub-Bin Content}", "lep")
+    leg.AddEntry(h_ave,    "#scale[2]{Average Sub-Bin Content}", "lep")
+    leg.Draw()
+    args.Save_Name = f'{Save_Name}.{args.File_Format}'
+    if(not args.test):
+        c.SaveAs(args.Save_Name)
+        print(f"\n{color.BGREEN}Saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
+    else:
+        print(f"\n{color.BBLUE}WOULD HAVE saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
+    return args
+    
 if(__name__ == "__main__"):
     args = parse_args()
     if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
@@ -975,7 +1077,7 @@ if(__name__ == "__main__"):
     List_of_BCBins, Total_Num_SBin = {}, 0
     if(args.get_BC_factors):
         List_of_BCBins, Total_Num_SBin = Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, write_full_diagnostics=False)
-    else:
+    elif(not args.make_plot_images):
         if(args.use_file_name and ("*" not in str(args.file))):
             name_insert = str(args.file).split("/")[-1]
             name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
@@ -1008,5 +1110,8 @@ if(__name__ == "__main__"):
             Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
         else:
             List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
+    if(args.make_plot_images):
+        args = Plot_BC_Subbin_Inputs_From_JSON(args)
+        Total_Num_SBin += 1
 
-    Construct_Email(args, final_count=Total_Num_SBin, Count_Type='Histograms' if(args.histogram) else 'Sub-bins')
+    Construct_Email(args, final_count=Total_Num_SBin, Count_Type=f"{'Histograms' if(args.histogram) else 'Sub-bins'}{'/Image(s)' if(args.make_plot_images) else ''}")
