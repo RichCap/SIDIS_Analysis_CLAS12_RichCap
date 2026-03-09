@@ -73,27 +73,6 @@ class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.
 def parse_args():
     p = argparse.ArgumentParser(description="Make slide-optimized mosaic plots from the fit-parameter JSON output.", formatter_class=RawDefaultsHelpFormatter)
 
-    p.add_argument("-js", "-json", "--json_file",
-                   type=str,
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
-                   # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
-                   help="Input JSON file produced by your fit workflow.\n")
-
-    p.add_argument("-L", "--list_fit_sets",
-                   action="store_true",
-                   help="List available fit-set keys in the JSON and exit.\n")
-    p.add_argument("-f", "--fit_set",
-                   default="Fit_Pars_from_3D_Bayesian",
-                   help="Top-level JSON key to use.\n")
-
-    p.add_argument("-x", "--x_mode",
-                   choices=["z", "pt", "pT"],
-                   default="z",
-                   help="Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center.\n")
-    p.add_argument("-y", "--y_pars",
-                   nargs="+",
-                   default=["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"],
-                   help="Fit parameters to plot (each produces a separate mosaic canvas).\n")
     p.add_argument("-err", "--err_suffix",
                    default="_ERR",
                    help="Error key suffix (e.g. Fit_Par_B + _ERR -> Fit_Par_B_ERR).\n")
@@ -106,45 +85,23 @@ def parse_args():
                    default="4,4,4,3,2",
                    help="Comma-separated pads per row from bottom->top (ragged, right-aligned).\n")
 
-    p.add_argument("-n", "--name",
-                   default="Mosaic_Image",
-                   help="Filename prefix for outputs written to the current directory.\n")
-    p.add_argument("-F", "--formats",
-                   choices=["png", "pdf"],
-                   default="png",
-                   help="Output format (png or pdf). Re-run the script if you want the other format too.\n")
-
-    # Increased defaults further (requested): make the mosaic less cramped
-    p.add_argument("-W", "--canvas_width",
-                   type=int,
-                   # default=2800,
-                   default=2800,
-                   help="Canvas width in pixels.\n")
-    p.add_argument("-H", "--canvas_height",
-                   type=int,
-                   # default=3400,
-                   default=3200,
-                   help="Canvas height in pixels.\n")
-
     p.add_argument("-X", "--global_x_range",
                    nargs=2,
                    type=float,
                    default=None,
                    help="Override global X range: XMIN XMAX.\n")
+    
     p.add_argument("-m", "--y_range_mode",
                    choices=["global", "auto"],
                    default="global",
                    help="Y range policy: 'global' shared across pads (default), or 'auto' per-pad tight range.\n")
+    
     p.add_argument("-Y", "--global_y_range",
                    nargs=2,
                    type=float,
                    default=None,
                    help="Override global Y range: YMIN YMAX (applies when y_range_mode='global').\n")
 
-    p.add_argument("-b", "--frame_line_width",
-                   type=int,
-                   default=3,
-                   help="Bold frame/border thickness for each pad.\n")
     p.add_argument("-g", "--grid",
                    action="store_true",
                    help="Enable pad grid.\n")
@@ -153,10 +110,6 @@ def parse_args():
                    choices=["outer", "all"],
                    default="outer",
                    help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.\n")
-    p.add_argument("-k", "--pad_label_mode",
-                   choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
-                   default="Q2y_only",
-                   help="Per-pad label: none, bin only, bin+Q2 range, bin+Q2+y ranges, or just the Q2+y ranges.\n")
 
     # Centered per-pad labels + slightly smaller default (requested)
     p.add_argument("-K", "--pad_label_size",
@@ -172,13 +125,6 @@ def parse_args():
                    default=0.965,
                    help="Per-pad label Y position (NDC).\n")
 
-    p.add_argument("-leg", "--draw_legends",
-                   action="store_true",
-                   help="Draw per-pad text-only legends for the variable not used on the x-axis.\n")
-
-    p.add_argument("-T", "--title_text",
-                   default="",
-                   help="Optional extra title text to include in the global title.\n")
     p.add_argument("-M", "--title_mode",
                    choices=["none", "auto", "text_only"],
                    default="auto",
@@ -202,6 +148,74 @@ def parse_args():
                    default=0.99,
                    help="Global title Y position (NDC).\n")
 
+
+    p.add_argument("-W", "--canvas_width",
+                   type=int,
+                   # default=2800,
+                   default=2800,
+                   help="Canvas width in pixels.\n")
+    p.add_argument("-H", "--canvas_height",
+                   type=int,
+                   # default=3400,
+                   default=3200,
+                   help="Canvas height in pixels.\n")
+    
+    p.add_argument("-b", "--frame_line_width",
+                   type=int,
+                   default=3,
+                   help="Bold frame/border thickness for each pad.\n")
+
+    p.add_argument("-T", "--title_text",
+                   default="",
+                   help="Optional extra title text to include in the global title.\n")
+
+    p.add_argument("-leg", "--draw_legends",
+                   action="store_true",
+                   help="Draw per-pad text-only legends for the variable not used on the x-axis.\n")
+
+    p.add_argument("-t", "--test",
+                   action="store_true",
+                   help="Parse JSON, build point maps, and print summaries; do not write output files.\n")
+    p.add_argument("-v", "--verbose",
+                   action="store_true",
+                   help="Verbose logging.\n")
+
+    p.add_argument("-n", "--name",
+                   default="Mosaic_Image",
+                   help="Filename prefix for outputs written to the current directory.\n")
+    p.add_argument("-F", "--formats",
+                   choices=["png", "pdf"],
+                   default="png",
+                   help="Output format (png or pdf). Re-run the script if you want the other format too.\n")
+    
+    p.add_argument("-js", "-json", "--json_file",
+                   type=str,
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
+                   # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
+                   help="Input JSON file produced by your fit workflow.\n")
+
+    p.add_argument("-L", "--list_fit_sets",
+                   action="store_true",
+                   help="List available fit-set keys in the JSON and exit.\n")
+    p.add_argument("-f", "--fit_set",
+                   default="Fit_Pars_from_3D_Bayesian",
+                   help="Top-level JSON key to use.\n")
+
+    p.add_argument("-y", "--y_pars",
+                   nargs="+",
+                   default=["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"],
+                   help="Fit parameters to plot (each produces a separate mosaic canvas).\n")
+    
+    p.add_argument("-x", "--x_mode",
+                   choices=["z", "pt", "pT"],
+                   default="z",
+                   help="Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center.\n")
+
+    p.add_argument("-k", "--pad_label_mode",
+                   choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
+                   default="Q2y_only",
+                   help="Per-pad label: none, bin only, bin+Q2 range, bin+Q2+y ranges, or just the Q2+y ranges.\n")
+
     p.add_argument("-sb", "--single_bin",
                    action="store_true",
                    help="Draw a single Q2-y bin as a standalone plot (does not modify mosaic generation).\n")
@@ -220,13 +234,6 @@ def parse_args():
     p.add_argument("-wm", "--draw_preliminary_watermark",
                    action="store_true",
                    help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
-
-    p.add_argument("-t", "--test",
-                   action="store_true",
-                   help="Parse JSON, build point maps, and print summaries; do not write output files.\n")
-    p.add_argument("-v", "--verbose",
-                   action="store_true",
-                   help="Verbose logging.\n")
 
     return p.parse_args()
 
@@ -737,49 +744,53 @@ def FitSet_Has_BC(fit_set):
 def Build_SingleBin_Subtitle(args, fit_set):
     has_rc = FitSet_Has_RC(fit_set)
     has_bc = FitSet_Has_BC(fit_set)
-
     if(has_bc and has_rc):
         subtitle = "With BC + RC Factors"
         if((str(args.title_text).strip() != "")):
-            subtitle = f"{subtitle} -- {str(args.title_text).strip()}"
+            subtitle = f"{subtitle} #topbar {str(args.title_text).strip()}"
         return subtitle
     if(has_rc):
         subtitle = "With RC Factors"
         if((str(args.title_text).strip() != "")):
-            subtitle = f"{subtitle} -- {str(args.title_text).strip()}"
+            subtitle = f"{subtitle} #topbar {str(args.title_text).strip()}"
         return subtitle
     if(has_bc):
         subtitle = "With BC Corrections"
         return subtitle
     return ""
 
-def Build_SingleBin_Title_Line(args, fit_set, y_par):
-    x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
     y_label = Get_Default_Y_Title(y_par, fit_set)
     y_label = y_label.replace(" from the Cross Section Fits", "")
-    return f"CLAS12 Preliminary --- {y_label} vs {x_label}"
-
-def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
-    line1 = Build_SingleBin_Title_Line(args, fit_set, y_par)
+    line1 = f"CLAS12 Preliminary #topbar {y_label}"
     line2 = Build_SingleBin_Subtitle(args, fit_set)
-
     canvas.cd()
     tex = ROOT.TLatex()
     tex.SetNDC(True)
-    tex.SetTextAlign(23)
-
-    # Fixed, readable sizes for the single-bin title block (avoid the oversized/unreadable behavior)
-    size1 = 0.045
-    size2 = 0.032
-
+    # Title block sizes (subtitle ~5-10% larger vs previous version)
+    size1 = 0.050
+    size2 = 0.037
+    y_top = 0.965
+    # Main title: centered
+    tex.SetTextAlign(13)
     tex.SetTextFont(62)
     tex.SetTextSize(size1)
-    tex.DrawLatex(0.50, 0.975, str(line1))
-
+    try:
+        lm = float(canvas.GetLeftMargin())
+    except Exception:
+        lm = 0.14
+    tex.DrawLatex(lm-0.04, y_top, str(line1))
+    # Subtitle: indented (left-aligned) + more vertical separation from line1
     if((str(line2).strip() != "")):
+        try:
+            lm = float(canvas.GetLeftMargin())
+        except Exception:
+            lm = 0.14
+        x_sub = lm #+ 0.18
+        tex.SetTextAlign(13)
         tex.SetTextFont(42)
         tex.SetTextSize(size2)
-        tex.DrawLatex(0.50, 0.935, str(line2))
+        tex.DrawLatex(float(x_sub), float(y_top - 1.15*size1), str(line2))
 
 def Draw_SingleBin_Preliminary_Watermark(args):
     if(not args.draw_preliminary_watermark):
@@ -788,10 +799,10 @@ def Draw_SingleBin_Preliminary_Watermark(args):
     wm.SetNDC(True)
     wm.SetTextAlign(22)
     wm.SetTextFont(62)
-    wm.SetTextSize(0.12)
-    wm.SetTextAngle(30)
+    wm.SetTextSize(0.135)
+    wm.SetTextAngle(-30)
     try:
-        wm.SetTextColorAlpha(ROOT.kRed, 0.12)
+        wm.SetTextColorAlpha(ROOT.kRed, 0.10)
     except Exception:
         wm.SetTextColor(ROOT.kRed)
     wm.DrawLatex(0.52, 0.50, "PRELIMINARY")
@@ -828,10 +839,13 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
     lab.SetNDC(True)
     lab.SetTextAlign(13)
     lab.SetTextFont(42)
-    lab.SetTextSize(0.040)
+    lab.SetTextSize(0.03)
 
-    x0 = 0.14
-    y0 = 0.93
+    lm = ROOT.gPad.GetLeftMargin()
+    tm = ROOT.gPad.GetTopMargin()
+
+    x0 = float(lm) + 0.02
+    y0 = 1.0 - float(tm) - 0.02
     step = 0.055
 
     lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
@@ -869,22 +883,40 @@ def Draw_SingleBin_Legend(args, series_map, info_map):
 
     # Requirement: if > 6 entries, add a column (not a row)
     ncols = 3 if(len(entries) <= 6) else 4
-    nrows = int((len(entries) + ncols - 1) / ncols)
 
-    # Keep legend inside the pad and above the x-axis area
-    leg_x0 = 0.08
-    leg_x1 = 0.92
-    leg_y0 = 0.03
-    leg_y1 = leg_y0 + 0.055 * float(nrows) + 0.045
-    if(leg_y1 > 0.28):
-        leg_y1 = 0.28
+    lm = ROOT.gPad.GetLeftMargin()
+    rm = ROOT.gPad.GetRightMargin()
+    bm = ROOT.gPad.GetBottomMargin()
+    tm = ROOT.gPad.GetTopMargin()
 
-    leg = ROOT.TLegend(float(leg_x0), float(leg_y0), float(leg_x1), float(leg_y1))
+    leg_x1 = float(lm)
+    leg_x2 = 1.0 - float(rm)
+
+    leg_y1 = 0.125
+    if(leg_y1 <= float(bm)):
+        leg_y1 = float(bm) + 0.01
+
+    legend_height = 0.25
+    leg_y2 = leg_y1 + legend_height
+
+    top_limit = 1.0 - float(tm) - 0.02
+    if(leg_y2 > top_limit):
+        leg_y2 = top_limit
+
+    leg = ROOT.TLegend(float(leg_x1), float(leg_y1), float(leg_x2), float(leg_y2))
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.SetTextFont(42)
-    leg.SetTextSize(0.034)
+    leg.SetTextSize(0.025)
     leg.SetNColumns(int(ncols))
+    try:
+        leg.SetColumnSeparation(0.10)
+    except Exception:
+        pass
+    try:
+        leg.SetMargin(0.20)
+    except Exception:
+        pass
 
     return (leg, entries)
 
@@ -896,22 +928,25 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     if(not hasattr(c1, "_keepalive")):
         c1._keepalive = []
 
-    # Reserve top space for title block
-    pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 0.86)
+    # Macro-style: single pad fills the canvas, with a reduced top margin for the title block.
+    # Only allocate enough room for the subtitle if it actually exists.
+    subtitle_tmp = Build_SingleBin_Subtitle(args, fit_set)
+    # top_margin = 0.22 if((str(subtitle_tmp).strip() != "")) else 0.18
+    top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
+
+    pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 1.0)
     pad.SetFillColor(0)
     pad.SetGrid(1, 1)
-    pad.SetTickx(1)
-    pad.SetTicky(1)
+    # pad.SetTickx(1) # This adds exta tick marks on the oposite axis (i.e., on the top and bottom sides of the image)
+    # pad.SetTicky(1) # This adds exta tick marks on the oposite axis (i.e., on the left and right sides of the image)
     pad.SetLeftMargin(0.14)
-    pad.SetBottomMargin(0.13)
+    pad.SetBottomMargin(0.12)
     pad.SetRightMargin(0.04)
-    pad.SetTopMargin(0.06)
+    pad.SetTopMargin(top_margin)
     pad.Draw()
     pad.cd()
-
     xmin, xmax = float(x_range[0]), float(x_range[1])
     gymin, gymax = float(y_range[0]), float(y_range[1])
-
     x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     y_axis_title = Get_Default_Y_Title(y_par, fit_set)
     y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
@@ -923,19 +958,22 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     frame.GetXaxis().SetTitle(x_axis_title)
     frame.GetYaxis().SetTitle(y_axis_title)
 
-    # Smaller, closer to the reference style
-    frame.GetXaxis().SetTitleSize(0.050)
-    frame.GetYaxis().SetTitleSize(0.050)
-    frame.GetXaxis().SetLabelSize(0.042)
-    frame.GetYaxis().SetLabelSize(0.042)
-
-    frame.GetXaxis().SetNdivisions(505)
-    frame.GetYaxis().SetNdivisions(505)
+    # Closer to your reference formatting
+    frame.GetXaxis().SetTitleSize(0.035)
+    frame.GetYaxis().SetTitleSize(0.035)
+    frame.GetXaxis().SetLabelSize(0.025)
+    frame.GetYaxis().SetLabelSize(0.025)
+    # frame.GetXaxis().SetTitleSize(0.045)
+    # frame.GetYaxis().SetTitleSize(0.045)
+    # frame.GetXaxis().SetLabelSize(0.040)
+    # frame.GetYaxis().SetLabelSize(0.040)
+    # frame.GetXaxis().SetNdivisions(505)
+    # frame.GetYaxis().SetNdivisions(505)
 
     series_map = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
     sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
 
-    # Watermark (optional)
+    # Watermark (optional) UNDER the data
     Draw_SingleBin_Preliminary_Watermark(args)
 
     graphs_by_sid = {}
@@ -946,8 +984,11 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         for ip, (xx, yy, ey, key_str) in enumerate(pts):
             gr.SetPoint(ip, float(xx), float(yy))
             gr.SetPointError(ip, 0.0, float(ey))
-        style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
-        gr.Draw("P L SAME")
+        style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=1 if("pdf" not in str(args.formats)) else 1)
+        # gr.SetMarkerSize(0.5)
+        # gr.SetLineWidth(1)
+
+        gr.Draw("P E1 L SAME")
         c1._keepalive.append(gr)
         graphs_by_sid[sid] = gr
 
@@ -960,18 +1001,23 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
             gr = graphs_by_sid.get(sid, None)
             if(gr is None):
                 continue
-            # Show both marker and line in the legend sample
             ent = leg.AddEntry(gr, str(label), "LP")
             if(ent):
                 ent.SetTextColor(int(colv))
+                try:
+                    ent.SetTextSize(0.030)
+                except Exception:
+                    pass
         leg.Draw("SAME")
         c1._keepalive.append(leg)
 
+    # Title/subtitle in the pad top margin
+    Draw_SingleBin_Title_Block(args, pad, fit_set, y_par)
+
+    pad.Modified()
     pad.Update()
     c1.cd()
-    c1.Update()
-
-    Draw_SingleBin_Title_Block(args, c1, fit_set, y_par)
+    c1.Modified()
     c1.Update()
     return c1
 
@@ -1094,11 +1140,11 @@ def main():
     else:
         xmin, xmax = compute_global_x_range(args, grouped, info_map)
 
-    if((args.single_bin)):
-        if((args.single_q2y_bin is None)):
+    if(args.single_bin):
+        if(args.single_q2y_bin is None):
             raise SystemExit(f"{color.Error}ERROR:{color.END_R} --single_bin requires --single_q2y_bin to be set.{color.END}")
         q2y_bin = int(args.single_q2y_bin)
-        if((q2y_bin not in grouped)):
+        if(q2y_bin not in grouped):
             raise SystemExit(f"{color.Error}ERROR:{color.END_R} Requested Q2-y bin {q2y_bin} is not present in this fit_set.{color.END}")
 
         if(args.verbose):
@@ -1169,4 +1215,4 @@ def main():
 
 if(__name__ == "__main__"):
     main()
-    
+
