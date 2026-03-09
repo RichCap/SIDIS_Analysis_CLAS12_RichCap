@@ -5,6 +5,7 @@ import argparse
 import ROOT, numpy, re
 import traceback
 import os
+from pathlib import Path
 
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
@@ -14,102 +15,82 @@ from ExtraAnalysisCodeValues import *
 sys.path.remove(script_dir)
 del script_dir
 
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
 def parse_args():
-    parser = argparse.ArgumentParser(description="Creates BC Corrections from MC GEN Bins.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    
+    parser = argparse.ArgumentParser(description="Creates BC Corrections from MC GEN Bins.", formatter_class=RawDefaultsHelpFormatter)
     parser.add_argument('-t', '--test',
                         action='store_true', 
-                        help='Run as test.')
-    
-    parser.add_argument('-clasdis', '--use_clasdis',
+                        help='Run as test.\n')
+    parser.add_argument('-gdf', '-clasdis', '--use_clasdis',
                         action='store_true', 
-                        help='Run with clasdis instead of EvGen (assumes that the EvGen weight should be used by default unless this argument is used).')
-    
+                        help='Run with clasdis instead of EvGen (assumes that the EvGen weight should be used by default unless this argument is used).\n')
     parser.add_argument('-nb', '--num_sub_bins',
                         default=5,
                         type=int,
-                        help="Number of sub-bins used per Q2-y-z-pT bin. Must be a positive, odd number.")
-    
+                        help="Number of sub-bins used per Q2-y-z-pT bin. Must be a positive, odd number.\n")
     parser.add_argument('-q2y', '-Q2y', '--Q2_y_Bin',
                         default=-1,
                         type=int,
                         choices=[x for x in range(-1, 18) if(x != 0)],
-                        help="Selected Q2-y Bin to run. Use '-1' to run all bins.")
-    
+                        help="Selected Q2-y Bin to run. Use '-1' to run all bins.\n")
     parser.add_argument('-zpt', '-zpT', '--z_pT_Bin',
                         default=-1,
                         type=int,
-                        help="Selected z-pT Bin (for any given Q2-y Bin) to run. Use '-1' to run all bins. Does not automatically reject incompatible combinations of the '--Q2_y_Bin' and '--z_pT_Bin' options.")
-    
+                        help=f"Selected z-pT Bin (for any given Q2-y Bin) to run. Use '-1' to run all bins.\n{color.BOLD}Does not automatically reject incompatible combinations of the '--Q2_y_Bin' and '--z_pT_Bin' options.{color.END}\n")
     parser.add_argument('-phit', '-phih', '-phi_t', '-phi_h', '--phih_Bin',
                         default=-1,
                         type=int,
-                        choices=[x for x in range(-1, 16) if(x != 0)],
-                        help="Selected phi_t Bin to run (each bin is given in increments of 15 degrees). Use '-1' to run all bins.")
-    
+                        choices=[x for x in range(-1, 25) if(x != 0)],
+                        help="Selected phi_t Bin to run (each bin is given in increments of 15 degrees). Use '-1' to run all bins.\n")
     parser.add_argument('-f', '--file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb-EvGen-LUND_EvGen_richcap_GEMC-9729_4.hipo.root",
                         type=str, 
-                        help="Path to MC GEN ROOT file used to create the BC corrections. Use EvGen files so that a difference in the modulations is actually observable in the 4D sub-bins.")
-    
+                        help=f"Path to MC GEN ROOT file used to create the BC corrections.\n{color.BOLD}Use EvGen files so that a difference in the modulations is actually observable in the 4D sub-bins.{color.END}\n")
     parser.add_argument('-cdf', '--check_dataframe',
                         action='store_true', 
-                        help='Prints full contents of the RDataFrame to see available branches.')
-    
+                        help='Prints full contents of the RDataFrame to see available branches.\n')
     parser.add_argument('-v', '--verbose',
                         action='store_true', 
-                        help='Print more information while running.')
-
+                        help='Print more information while running.\n')
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',
-                        help='Use the json weights (for physics injections) given by the `--json_file` argument.')
-    
+                        help='Use the json weights (for physics injections) given by the `--json_file` argument.\n')
     parser.add_argument('-jsf_in', '--json_file_in',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
                         type=str,
-                        help='JSON file path for using `json_weights`.')
-
+                        help="JSON file path for using '--json_weights'.\n")
     parser.add_argument('-jf', '--json_file_out',
                         default="Sub_Bin_Contents_for_BC_Correction.json",
                         type=str,
-                        help='Output JSON file where the bin contents will be saved.')
-
+                        help='Output JSON file where the bin contents will be saved.\n')
     parser.add_argument('-hi', '-histo', '--histogram',
                         action='store_true',
-                        help='Use ROOT histograms to get the weighted bin contents per sub-bin (instead of the per-bin sum of weight counts).')
-
+                        help='Use ROOT histograms to get the weighted bin contents per sub-bin (instead of the per-bin sum of weight counts).\n')
     parser.add_argument('-rf', '--root_file_out',
                         default="ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root",
                         type=str,
-                        help="Output ROOT file where the sub-bin histograms will be saved if the '--histogram' option is selected.")
-
+                        help="Output ROOT file where the sub-bin histograms will be saved if the '--histogram' option is selected.\n")
     parser.add_argument('-ufn', '--use_file_name',
                         action='store_true',
-                        help="If the '--file' argument does not include a '*' in its path, this argument will assume that a single file is being used and that it should be added to the output JSON or ROOT file's names (the default option of just using the '--json_file_out' and '--root_file_out' will be applied if multiple files are given)")
-    
+                        help="If the '--file' argument does not include a '*' in its path, this argument will assume that a single file is being used and that it should be added to the output JSON or ROOT file's names.\nThe default option of just using the '--json_file_out' and '--root_file_out' will be applied if multiple files are given.\n")
     parser.add_argument('-ht', '--histo_title',
                         default="",
                         type=str,
-                        help="Optional histogram title addition (use with the '--histogram' option).")
-
+                        help="Optional histogram title addition (use with the '--histogram' option).\n")
     parser.add_argument('-e', '--email',
                         action='store_true', 
-                        help='Send Email message when the script finishes running.')
-    
+                        help='Send Email message when the script finishes running.\n')
     parser.add_argument('-em', '--email_message',
                         default="",
                         type=str,
-                        help="Optional Email message that can be added to the default notification from '--email'.")
-
+                        help="Optional Email message that can be added to the default notification from '--email'.\n")
     parser.add_argument('-rR', '-read_root', '-bc', '--get_BC_factors',
                         action='store_true', 
-                        help="Reads the ROOT files from '--root_file_out' to get the BC factors for each bin (will write the results to the '--json_file_out' JSON file if not running in '--test' mode).")
-    
+                        help=f"Reads the ROOT files from '--root_file_out' to get the BC factors for each bin.\n{color.BOLD}Will write the results to the '--json_file_out' JSON file if not running in '--test' mode.{color.END}\n")
     
     return parser.parse_args()
     
-
-
 def silence_root_import():
     script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
     sys.path.append(script_dir)
@@ -136,7 +117,6 @@ def silence_root_import():
     sys.path.remove(script_dir)
     del script_dir
 
-
 # import math
 # import array
 # import copy
@@ -145,54 +125,68 @@ import time
 
 
 import subprocess
-def ansi_to_html(text):
-    # Converts ANSI escape sequences (from the `color` class) into HTML span tags with inline CSS (Unsupported codes are removed)
-    ansi_html_map = {'\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "",  # Styles
-                     '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "", # Colors
-                     '\033[0m': "", # Reset (closes span)
-                    }
-    sorted_codes = sorted(ansi_html_map.keys(), key=len, reverse=True)
+def ansi_to_plain(text):
+    ansi_plain_map = {'\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "", '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "", '\033[0m': ""}
+    sorted_codes = sorted(ansi_plain_map.keys(), key=len, reverse=True)
     for code in sorted_codes:
-        text = text.replace(code, ansi_html_map[code])
-    # Remove any stray/unsupported ANSI codes that might remain
+        text = text.replace(code, ansi_plain_map[code])
     text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', text)
     return text
 
 def send_email(subject, body, recipient):
-    # Send an email via the system mail command.
-    html_body = ansi_to_html(body)
-    subprocess.run(["mail", "-s", subject, recipient], input=html_body.encode(), check=False)
+    plain_body = ansi_to_plain(body)
+    subprocess.run(["mail", "-s", subject, recipient], input=plain_body.encode(), check=False)
 
+def Update_Email(args, update_name="", update_message="", verbose_override=False):
+    update_email = ""
+    if(update_message not in [""]):
+        update_email = f"""{update_message}
+{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}"""
+    elif(update_name not in [""]):
+        update_email = f"""
+{color.BCYAN}{update_name}{color.END_B} is done running...{color.END}
+{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}
 
-def Construct_Email(args, timer):
-    start_time = timer.start_find(return_Q=True)
+"""
+    if(update_email not in [""]):
+        args.email_message = f"{args.email_message}\n{update_email}"
+        if(args.verbose or verbose_override):
+            print(update_email)
+
+def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_Type="Images"):
+    start_time = args.timer.start_find(return_Q=True)
     start_time = start_time.replace("Ran", "Started running")
-    end_time, total_time, rate_line = timer.stop(return_Q=True)
+    if(final_count is None):
+        end_time, total_time, rate_line = args.timer.stop(return_Q=True)
+    else:
+        end_time, total_time, rate_line = args.timer.stop(count_label=Count_Type, count_value=final_count, return_Q=True)
+    args_list = ""
+    for name, value in vars(args).items():
+        if(str(name) in ["email", "email_message", "timer", "root_file_out", "file", "json_file_out"]):
+            continue
+        if((str(name) in ["check_dataframe"]) and (args.get_BC_factors)):
+            continue
+        if((str(name) in ["phih_Bin"]) and (args.histogram or (not args.get_BC_factors))):
+            continue
+        if((str(name) in ["histo_title"]) and ((not args.histogram) or args.get_BC_factors)):
+            continue
+        if((str(name) in ["json_file_in"]) and (not args.json_weights)):
+            continue
+        args_list = f"""{args_list}
+--{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
     email_body = f"""
-The 'BC_Corrections_Script.py' script has finished running.
+The 'BC_Corrections_Script.py' script has {'finished running.' if(not (Crashed or Warning)) else f'{color.ERROR}CRASHED!{color.END}' if(not Warning) else f'{color.BYELLOW}GIVEN A WARNING MESSAGE{color.END}'}
 {start_time}
 
 {args.email_message}
 
-Ran with the following arguments:
---test                          --> {args.test}
---use_clasdis                   --> {args.use_clasdis}
---num_sub_bins                  --> {args.num_sub_bins}{f'''
---root_file_out       (Input)   --> {args.root_file_out}''' if(args.get_BC_factors) else f'''
---file                (Input)   --> {args.file}
---check_dataframe               --> {args.check_dataframe}'''}
---verbose                       --> {args.verbose}
---json_weights                  --> {args.json_weights}
---json_file_in      {'          ' if(args.json_weights) else '(Not Used)'}  --> {args.json_file_in}
---histogram                     --> {args.histogram}
---get_BC_factors                --> {args.get_BC_factors}
---use_file_name                 --> {args.use_file_name}
---Q2_y_Bin                      --> {args.Q2_y_Bin}
---z_pT_Bin                      --> {args.z_pT_Bin}{f'''
---phih_Bin                      --> {args.phih_Bin}
---json_file_out      (Output)   --> {args.json_file_out}''' if((not args.histogram) or args.get_BC_factors) else f'''
---root_file_out      (Output)   --> {args.root_file_out}
---histo_title                   --> "{args.histo_title}"'''}
+Input:
+{args.root_file_out if(args.get_BC_factors) else args.file}
+Output:
+{args.json_file_out if((not args.histogram) or args.get_BC_factors) else  args.root_file_out}
+
+Arguments:
+{args_list}
 
 {end_time}
 {total_time}
@@ -200,16 +194,37 @@ Ran with the following arguments:
     """
     
     if(args.email):
-        send_email(subject="Finished Running the 'BC_Corrections_Script.py' Code", body=email_body, recipient="richard.capobianco@uconn.edu")
-    print(email_body)
-    
-    print(f"""{color.BGREEN}{color_bg.YELLOW}
+        send_email(subject="Finished Running the 'BC_Corrections_Script.py' Code" if(not (Crashed or Warning)) else f"{'CRASH' if(Crashed) else 'ERROR'} REPORT: 'BC_Corrections_Script.py' Code {'Failed' if(Crashed) else 'is still running...'}", body=email_body, recipient="richard.capobianco@uconn.edu")
+    print(f"\n\n\n\n{color.BOLD}{color_bg.YELLOW}EMAIL MESSAGE TO SEND:{color.END}\n\n{email_body}\n")
+    if(Warning):
+        print(f"\n\n{color.BOLD}CONTNUE RUNNING...{color.END}\n\n")
+    elif(not Crashed):
+        print(f"""{color.BGREEN}{color_bg.YELLOW}
     \t                                   \t   
     \tThis code has now finished running.\t   
     \t                                   \t   {color.END}
     
     """)
+    else:
+        print(f"""{color.BYELLOW}{color_bg.RED}
+    \t                                   \t   
+    \t       This code has CRASHED!      \t   
+    \t                                   \t   {color.END}
+    
+    """)
 
+def Crash_Report(args, crash_message="The Code has CRASHED!", continue_run=False):
+    if(continue_run):
+        crash_message = f"\n{color.BYELLOW}ERROR WARNING!{color.END}\n{crash_message}\n\nCONTINUED RUNNING...\n"
+    else:
+        crash_message = f"\n{color.Error}CRASH WARNING!{color.END}\n{crash_message}\n"
+    print(crash_message, file=sys.stderr)
+    args.email_message = f"{args.email_message}\n{crash_message}\n"
+    Construct_Email(args, Crashed=(not continue_run), Warning=continue_run)
+    if(not continue_run):
+        sys.exit(1)
+    else:
+        print(f"\n\n{color.ERROR}WILL CONTINUE RUNNING THROUGH THE ERROR{color.END}\n\n")
 
 def load_json_file(path):
     # Load a JSON file and return its contents.
@@ -226,27 +241,22 @@ def load_json_file(path):
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Invalid JSON format in {file_path}: {e}") from e
 
-
 def save_dict_to_json(data_to_save, json_file="Sub_Bin_Contents_for_BC_Correction.json", lock_timeout_sec=120, stale_lock_sec=3600, verbose=False):
     # Concurrency protection:
     #   - Uses an atomic lock directory "<json_file>.lockdir" so multiple scripts can update the same JSON safely.
     #   - Writes via temp file + os.replace() for atomic file replacement (avoids partial writes).
-    #
     # Behavior:
     #   - Reads existing JSON (if any) and updates it with the keys from data_to_save (like dict.update()).
     #   - Never wipes the file unless the existing file is corrupted (then it is backed up and restarted as {}).
-
     if(not isinstance(data_to_save, dict)):
         raise TypeError("save_dict_to_json(...): data_to_save must be a dict")
-
     json_path = os.path.abspath(json_file)
     json_dir  = os.path.dirname(json_path)
     if((json_dir != "") and (not os.path.exists(json_dir))):
         os.makedirs(json_dir, exist_ok=True)
     lock_dir = f"{json_path}.lockdir"
     start_t  = time.time()
-    # Acquire lock (mkdir is atomic)
-    while(True):
+    while(True): # Acquire lock (mkdir is atomic)
         try:
             os.mkdir(lock_dir)
             owner_path = os.path.join(lock_dir, "owner.txt")
@@ -254,8 +264,7 @@ def save_dict_to_json(data_to_save, json_file="Sub_Bin_Contents_for_BC_Correctio
                 ofile.write(f"pid={os.getpid()}\n")
                 ofile.write(f"epoch={time.time():.6f}\n")
             break
-        except FileExistsError:
-            # Stale lock handling (best-effort cleanup)
+        except FileExistsError: # Stale lock handling (best-effort cleanup)
             try:
                 lock_age = time.time() - os.path.getmtime(lock_dir)
                 if(lock_age > float(stale_lock_sec)):
@@ -301,8 +310,7 @@ def save_dict_to_json(data_to_save, json_file="Sub_Bin_Contents_for_BC_Correctio
         if(verbose):
             print(f"Updated JSON: {json_path}")
             print(f"  Keys written/overwritten: {len(data_to_save)}")
-    finally:
-        # Release lock (best effort)
+    finally: # Release lock (best effort)
         try:
             owner_path = os.path.join(lock_dir, "owner.txt")
             if(os.path.exists(owner_path)):
@@ -315,12 +323,53 @@ def save_dict_to_json(data_to_save, json_file="Sub_Bin_Contents_for_BC_Correctio
             pass
     return True
 
-
+def Flatten_Fit_Pars_For_CPP_Map(Fit_Pars_In, args, prefer_normalized=True):
+    # Supports:
+    #   (A) NEW format: Fit_Pars_from_3D_Bayesian{...} or Fit_Pars_from_3D_Bayesian_(Normalized){...}
+    #   (B) OLD format: {"A_1_1": ..., "B_1_1": ..., "C_1_1": ..., ...}
+    # Returns a flat dict: {"A_Q2y_zpt": float, "B_Q2y_zpt": float, "C_Q2y_zpt": float}
+    if(not isinstance(Fit_Pars_In, dict)):
+        Crash_Report(args, crash_message=f"{color.Error}The Code has CRASHED!\nFlatten_Fit_Pars_For_CPP_Map(...): Fit_Pars_In must be a dict{color.END}")
+    key_norm = "Fit_Pars_from_3D_RC_Bayesian_(Normalized)"
+    key_raw  = "Fit_Pars_from_3D_Bayesian"
+    Fit_Block = None
+    if((prefer_normalized) and (key_norm in Fit_Pars_In) and isinstance(Fit_Pars_In[key_norm], dict)):
+        Fit_Block = Fit_Pars_In[key_norm]
+        if(args.verbose):
+            print(f"{color.BBLUE}Using JSON group: {color.BPINK}{key_norm}{color.END}")
+    elif((key_raw in Fit_Pars_In) and isinstance(Fit_Pars_In[key_raw], dict)):
+        Fit_Block = Fit_Pars_In[key_raw]
+        if(args.verbose):
+            print(f"{color.BBLUE}Using JSON group: {color.BPINK}{key_raw}{color.END}")
+    # --- NEW format detected ---
+    if(Fit_Block is not None):
+        Fit_Pars_Out = {}
+        for bin_key, par_dict in Fit_Block.items():
+            if(not isinstance(par_dict, dict)):
+                continue
+            match = re.search(r"\(Q2_y_Bin_(\d+)\)-\(z_pT_Bin_(\d+)\)", str(bin_key))
+            if(not match):
+                continue
+            Q2y = int(match.group(1))
+            zpt = int(match.group(2))
+            for tag, json_name in [("A", "Fit_Par_A"), ("B", "Fit_Par_B"), ("C", "Fit_Par_C")]:
+                if(json_name in par_dict):
+                    try:
+                        val = float(par_dict[json_name])
+                    except Exception:
+                        continue
+                    if(not numpy.isfinite(val)):
+                        continue
+                    Fit_Pars_Out[f"{tag}_{Q2y}_{zpt}"] = val
+        return Fit_Pars_Out
+    # --- OLD format fallback (already flat) ---
+    # Expect keys like "A_9_1", "B_9_1", "C_9_1" -> float
+    return Fit_Pars_In
 
 # =========================
 # Binning Dictionary
 # =========================
-from Binning_Dictionaries import Full_Bin_Definition_Array, Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
+from Binning_Dictionaries import Full_Bin_Definition_Array # , Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
 
 def Load_RDataFrame(args):
     print(f"\n{color.BBLUE}Running with File: {color.BPINK}{args.file.split('/')[-1]}{color.END}\n")
@@ -558,32 +607,35 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     if("Event_Weight" in gdf.GetColumnNames()):
         print(f"\n{color.Error}WARNING: 'Event_Weight' is already defined in the RDataFrame...{color.END}\n")
     elif(args.json_weights):
-        # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
         print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file: {color.BPINK}{str(args.json_file_in).split('/')[-1]}{color.END}\n")
-        Fit_Pars = load_json_file(args.json_file_in)
-        # Build the C++ initialization string
-        cpp_map_str = "{"
-        for key, val in Fit_Pars.items():
-            cpp_map_str += f'{{"{key}", {val}}},'
-        cpp_map_str += "}"
+        Fit_Pars_Raw  = load_json_file(args.json_file_in)
+        Fit_Pars_Flat = Flatten_Fit_Pars_For_CPP_Map(Fit_Pars_Raw, args, prefer_normalized=True)
+        # Build the C++ initialization string (flat map: "A_#_#", "B_#_#", "C_#_#")
+        cpp_items = []
+        for key, val in Fit_Pars_Flat.items():
+            try:
+                vv = float(val)
+            except Exception:
+                continue
+            if(not numpy.isfinite(vv)):
+                continue
+            cpp_items.append(f'{{"{key}", {vv}}}')
+        cpp_map_str = "{" + ",".join(cpp_items) + "}"
         ROOT.gInterpreter.Declare(f"""
         #include <map>
         #include <string>
         #include <cmath>
+        #include "TMath.h"
         std::map<std::string, double> Fit_Pars = {cpp_map_str};
-        double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h) {{
-            // build the keys dynamically
-            // std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
+        double ComputeWeight(int Q2_y_Bin, int z_pT_Bin, double phi_h){{
+            std::string keyA = "A_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
             std::string keyB = "B_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
             std::string keyC = "C_" + std::to_string(Q2_y_Bin) + "_" + std::to_string(z_pT_Bin);
-            // safely retrieve parameters (default = 0)
-            // double Par_A = Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 0.0;
-            double Par_B = Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0;
-            double Par_C = Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0;
-            // calculate weight
+            double Par_A = (Fit_Pars.count(keyA) ? Fit_Pars[keyA] : 1.0);
+            double Par_B = (Fit_Pars.count(keyB) ? Fit_Pars[keyB] : 0.0);
+            double Par_C = (Fit_Pars.count(keyC) ? Fit_Pars[keyC] : 0.0);
             double phi_rad = phi_h * TMath::DegToRad();
-            double weight  = (1.0 + Par_B * std::cos(phi_rad) + Par_C * std::cos(2.0 * phi_rad));
-            return weight;
+            return Par_A*(1.0 + Par_B*std::cos(phi_rad) + Par_C*std::cos(2.0*phi_rad));
         }}""")
         gdf = gdf.Define("Event_Weight", f"{Default_Weights}*ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
     else:
@@ -592,9 +644,7 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     gdf = gdf.Filter("(Q2_y_SUB_BINs  != -1) && (z_pT_SUB_BINs  != -1) && (phi_t_SUB_BINs != -1)") # Remove all events outside my nominal binning scheme
     return gdf
 
-    
-
-def Evaluate_Weights(List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In, args, timer):
+def Evaluate_Weights(List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In, args):
     if(not args.test):
         print(f"{color.BCYAN}Triggering Event Evaluation on {color.END_B}{len(Full_Run__List_In)}{color.BCYAN} Sub-Bins...{color.END}\n")
         # One trigger for everything
@@ -602,24 +652,21 @@ def Evaluate_Weights(List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In, ar
         for (nom_name, sub_name), ptr in SumOfWeights_L_In.items():
             List_of_BCBins_In[nom_name][sub_name] = float(ptr.GetValue())
         print(f"{color.BGREEN}Evaluations are Complete{color.END}")
-        print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+        print(f"{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
         # for     ii in List_of_BCBins_In:
         #     for jj in List_of_BCBins_In[ii]:
         #         print(f"List_of_BCBins_In['{ii}']['{jj}'] = {List_of_BCBins_In[ii][jj]}")
         print(f"{color.BBLUE}Saving To JSON File: {color.BPINK}{args.json_file_out}{color.END}")
         save_dict_to_json(data_to_save=List_of_BCBins_In, json_file=args.json_file_out)
-        timer.time_elapsed()
+        args.timer.time_elapsed()
     elif(args.verbose):
         print(f"\n{color.RED}Running as a test (no event evaluations)...{color.END}\n")
-        timer.time_elapsed()
+        args.timer.time_elapsed()
     else:
-        print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
+        print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
     SumOfWeights_L_In.clear()
     Full_Run__List_In.clear()
     return List_of_BCBins_In, SumOfWeights_L_In, Full_Run__List_In
-
-
-
 
 def Get_Bin_Contents_for_BC(args):
     print(f"\n{color.BGREEN}Looping through sub-bins...{color.END}\n")
@@ -654,14 +701,12 @@ def Get_Bin_Contents_for_BC(args):
                             Full_Run__List.append(sumw)
                             if(args.verbose):
                                 print(f"\t\t{color.BOLD}Collected Sub-{sub_bin_name}{color.END}")
-                                print(f"\t\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+                                print(f"\t\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
                 print(f"\t{color.BBLUE}Collected all sub-bins in {Nominal_bin_name}{color.END}")
                 Total_Num_SBin += len(Full_Run__List)
-                List_of_BCBins, SumOfWeights_L, Full_Run__List = Evaluate_Weights(List_of_BCBins, SumOfWeights_L, Full_Run__List, args, timer)
+                List_of_BCBins, SumOfWeights_L, Full_Run__List = Evaluate_Weights(List_of_BCBins, SumOfWeights_L, Full_Run__List, args)
     print(f"\n{color.BGREEN}Done Collecting all the bin event counts {color.END_B}(Total Number of Sub-bins Collected = {Total_Num_SBin}){color.END}")
     return List_of_BCBins, Total_Num_SBin
-
-
 
 def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
     # Build ONE TH2D for a single (Q2_y_Bin, z_pT_Bin)
@@ -682,7 +727,6 @@ def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
     hist_ptr    = gdf.Histo2D(hmodel, "Full_SUB_BIN_idx", "phi_t_bin", "Event_Weight")
     return hist_ptr
     
-
 def Create_Histograms_for_BC(args):
     print(f"\n{color.BGREEN}Creating Sub-Bin Histograms...{color.END}\n")
     List_of_Histos = {}
@@ -699,9 +743,8 @@ def Create_Histograms_for_BC(args):
             Nominal_bin_name = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
             List_of_Histos[Nominal_bin_name] = Make_SubBin_TH2_SumW(gdf_z_pT_Bin, args, Q2_y_Bin, z_pT_Bin)
     print(f"\n{color.BBLUE}Done Creating All Sub-bin Histograms {color.END_B}(Total = {len(List_of_Histos)}){color.END}")
-    print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    print(f"{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
     return List_of_Histos
-
 
 def Evaluate_And_Write_Histograms(hist_ptrs, args):
     # Evaluate all booked histograms in ONE trigger, then write them all at once
@@ -723,9 +766,9 @@ def Evaluate_And_Write_Histograms(hist_ptrs, args):
         os.makedirs(out_dir, exist_ok=True)
     write_mode = "UPDATE" if(os.path.exists(out_path)) else "RECREATE"
     print(f"\n{color.BBLUE}{'Updating the' if(write_mode == 'UPDATE') else 'Creating a new'} ROOT file: {color.BPINK}{args.root_file_out}{color.END}")
-    print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
     ROOT.RDF.RunGraphs(ptr_list)
-    print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
     fout = ROOT.TFile(out_path, write_mode)
     if((fout is None) or (fout.IsZombie())):
         raise RuntimeError(f"Evaluate_And_Write_Histograms(...): failed to open ROOT file: {out_path}")
@@ -737,9 +780,6 @@ def Evaluate_And_Write_Histograms(hist_ptrs, args):
     fout.Close()
     print(f"\n{color.BGREEN}ROOT FILE HAS BEEN SAVED{color.END}\n")
     return len(hist_ptrs)
-
-
-
 
 def parse_histogram_name(hist_name):
     # Expected name pattern from Make_SubBin_TH2_SumW:
@@ -897,37 +937,31 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
             Count_of_Nominal_Bins += 1
         if(verbose):
             print(f"{color.BBLUE}Processed histogram for (Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}){color.END_B} -> 24 nominal phi bins{color.END}")
-        print(f"{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+        print(f"{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
 
     fin.Close()
     print(f"\n{color.BGREEN}Done Accessing the ROOT File{color.END_B} (Total Num of Nominal Bins Processed = {Count_of_Nominal_Bins}){color.END}")
     if(not args.test):
         print(f"{color.BBLUE}Saving To JSON File: {color.BPINK}{args.json_file_out}{color.END}")
         save_dict_to_json(data_to_save=out, json_file=args.json_file_out)
-        timer.time_elapsed()
+        args.timer.time_elapsed()
     elif(args.verbose):
         print(f"\n{color.RED}Running as a test (no JSON file save)...{color.END}\n")
-        timer.time_elapsed()
+        args.timer.time_elapsed()
     else:
-        print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
+        print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}\n")
     return out, Count_of_Nominal_Bins
 
 
-
-
-
 if(__name__ == "__main__"):
-    
     args = parse_args()
-    
     if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
         print(f"\n{color.Error}ERROR: Number of sub-bins must a positive, odd number for this script to work properly{color.END}\n")
         sys.exit(0)
-    
     print(f"\n{color.BBLUE}Ready to Run BC Correction Script...{color.END}\n")
         
-    timer = RuntimeTimer()
-    timer.start()
+    args.timer = RuntimeTimer()
+    args.timer.start()
     silence_root_import()
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -936,10 +970,8 @@ if(__name__ == "__main__"):
     ROOT.gStyle.SetPadGridY(1)
     ROOT.gStyle.SetOptStat(0)
     ROOT.gROOT.SetBatch(1)
-
     if(args.test):
         print(f"\t{color.Error}Running as a test of the script...{color.END}\n")
-
     List_of_BCBins, Total_Num_SBin = {}, 0
     if(args.get_BC_factors):
         List_of_BCBins, Total_Num_SBin = Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, write_full_diagnostics=False)
@@ -953,9 +985,7 @@ if(__name__ == "__main__"):
                 print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
         elif(args.use_file_name and args.verbose):
             print(f"\n{color.Error}Will Not Update Output File Names if multiple files are inputed at the same time.{color.END}")
-            
         gdf = Load_RDataFrame(args)
-        
         if(args.check_dataframe):
             print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
             for num, ii in enumerate(gdf.GetColumnNames()):
@@ -973,15 +1003,10 @@ if(__name__ == "__main__"):
             # mn  = gdf.Min("phi_t_SUB_BINs").GetValue()
             # mx  = gdf.Max("phi_t_SUB_BINs").GetValue()
             # print(f"phi_t_SUB_BINs \n min: {mn}\nmax: {mx}")
-
         if(args.histogram):
             List_of_BCBins = Create_Histograms_for_BC(args)
             Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
         else:
             List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
-    args.email_message = f"""{args.email_message}
-    
-The Total Number of {'Histograms Created' if(args.histogram) else 'Sub-bins Collected'} = {Total_Num_SBin}
-"""
-    Construct_Email(args, timer)
-    
+
+    Construct_Email(args, final_count=Total_Num_SBin, Count_Type='Histograms' if(args.histogram) else 'Sub-bins')
