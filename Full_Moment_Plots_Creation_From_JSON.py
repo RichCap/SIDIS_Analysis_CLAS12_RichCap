@@ -16,6 +16,14 @@ ROOT.gStyle.SetPadGridY(1)
 ROOT.gStyle.SetGridColor(17)
 ROOT.gStyle.SetGridStyle(3)
 ROOT.gStyle.SetGridWidth(1)
+# ────── Readability fixes for y-axis + title
+# ROOT.gStyle.SetLabelSize(0.18,  "y")      # bigger, easier to read
+# ROOT.gStyle.SetLabelSize(0.038, "y")      # bigger, easier to read
+ROOT.gStyle.SetLabelFont(62, "y")         # Helvetica bold → looks "thicker"
+ROOT.gStyle.SetTitleX(0.58)
+ROOT.gStyle.SetTitleFont(62)              # bold title too
+# ROOT.gStyle.SetLabelSize(0.15,  "x")      # optional but nice for x-axis
+# ROOT.gStyle.SetLabelSize(0.035, "x")      # optional but nice for x-axis
 
 # ------------------------------------------------------------
 # User-provided plotting/binning utilities (incorporated directly)
@@ -526,15 +534,13 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         row_bins[row].sort(key=lambda tt: tt[0])  # left->right
 
     x_edges = {}
-    right_margin = 0.03
-    left_small   = 0.03
+    right_margin = 0.03 - 0.03
+    left_small   = 0.03 - 0.03
     left_big     = 0.22
 
     for row in row_bins.keys():
         pads = row_bins[row]
         n_present = len(pads)
-        target_total = float(n_present) / float(max_cols)
-        x_start = 1.0 - target_total
 
         big_flags = []
         for col, q2y_bin, col_start in pads:
@@ -545,15 +551,18 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         n_small = n_present - n_big
 
         if((args.label_mode == "all") or (n_big == 0)):
-            width_each = target_total / float(n_present)
+            width_each = 1.0 / float(max_cols)
             widths = [width_each for _ in range(n_present)]
         else:
             plot_frac_small = 1.0 - left_small - right_margin
             plot_frac_big   = 1.0 - left_big   - right_margin
             ratio = plot_frac_small / plot_frac_big
-            width_small = target_total / (float(n_small) + float(n_big) * ratio)
+            width_small = 1.0 / (float(max_cols - 1) + float(ratio))
             width_big = width_small * ratio
             widths = [(width_big if(big_flags[i]) else width_small) for i in range(n_present)]
+
+        target_total = sum(widths)
+        x_start = 1.0 - target_total
 
         cursor = x_start
         for i, (col, q2y_bin, col_start) in enumerate(pads):
@@ -561,14 +570,13 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
             cursor = cursor + widths[i]
             x1 = cursor
             if(i == (n_present - 1)):
-                x1 = x_start + target_total
+                x1 = 1.0
                 cursor = x1
             x_edges[q2y_bin] = (float(x0), float(x1))
 
     for q2y_bin in range(1, int(args.q2y_count) + 1):
         if(q2y_bin not in mapping):
             continue
-
         row, col, col_start = mapping[q2y_bin]
 
         # Use compensated x0/x1 (instead of uniform col/max_cols)
@@ -586,10 +594,14 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
 
         is_bottom, is_leftmost_present, is_rightmost_present, is_top = pad_is_outer(row, col, col_start, max_cols, nrows)
 
-        left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else (0.03 - 0.02))
-        bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else (0.03 - 0.02))
-        right_margin  = (0.03 - 0.02)
-        top_margin    = (0.05 - 0.02)
+        # left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else (0.03 - 0.02))
+        # bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else (0.03 - 0.02))
+        # right_margin  = (0.03 - 0.02)
+        # top_margin    = (0.05 - 0.02)
+        left_margin   = 0.22 if((args.label_mode == "outer") and (is_leftmost_present)) else (0.22 if(args.label_mode == "all") else 0)
+        bottom_margin = 0.20 if((args.label_mode == "outer") and (is_bottom)) else (0.20 if(args.label_mode == "all") else 0)
+        right_margin  = 0
+        top_margin    = 0
 
         pad.SetLeftMargin(float(left_margin))
         pad.SetBottomMargin(float(bottom_margin))
@@ -606,10 +618,14 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         frame.GetXaxis().SetTitle(x_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_bottom))) else "")
         frame.GetYaxis().SetTitle(y_axis_title if((args.label_mode == "all") or ((args.label_mode == "outer") and (is_leftmost_present))) else "")
 
-        frame.GetXaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_bottom) else 0.0)
-        frame.GetYaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
-        frame.GetXaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_bottom) else 0.0)
-        frame.GetYaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+        # frame.GetXaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_bottom) else 0.0)
+        # frame.GetYaxis().SetTitleSize(0.060 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+        # frame.GetXaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_bottom) else 0.0)
+        # frame.GetYaxis().SetLabelSize(0.050 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+        frame.GetXaxis().SetTitleSize(0.080 if((args.label_mode == "all") or is_bottom) else 0.0)
+        frame.GetYaxis().SetTitleSize(0.080 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
+        frame.GetXaxis().SetLabelSize(0.070 if((args.label_mode == "all") or is_bottom) else 0.0)
+        frame.GetYaxis().SetLabelSize(0.070 if((args.label_mode == "all") or is_leftmost_present) else 0.0)
 
         frame.GetXaxis().SetNdivisions(505)
         frame.GetYaxis().SetNdivisions(505)
@@ -735,7 +751,7 @@ def save_canvas(args, canvas, fit_set, y_par):
 # ------------------------------------------------------------
 def main():
     args = parse_args()
-    print(f"\n{color.BBLUE}Beginning to run 'Make_Full_Moment_Plots_Mosaic_From_JSON.py'{color.END}\n")
+    print(f"\n{color.BBLUE}Beginning to run 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
     timer = RuntimeTimer()
     timer.start()
     args.timer = timer
@@ -812,7 +828,7 @@ def main():
         if(args.verbose):
             print(f"{color.GREEN}[INFO] Wrote: {out_name}{color.END}")
 
-    print(f"\n{color.BBLUE}Finished running 'Make_Full_Moment_Plots_Mosaic_From_JSON.py'{color.END}\n")
+    print(f"\n{color.BBLUE}Finished running 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
     args.timer.stop()
 
 if(__name__ == "__main__"):
