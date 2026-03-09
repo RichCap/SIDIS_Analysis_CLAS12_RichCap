@@ -75,7 +75,8 @@ def parse_args():
 
     p.add_argument("-js", "-json", "--json_file",
                    type=str,
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
+                   # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
                    help="Input JSON file produced by your fit workflow.\n")
 
     p.add_argument("-L", "--list_fit_sets",
@@ -200,6 +201,25 @@ def parse_args():
                    type=float,
                    default=0.99,
                    help="Global title Y position (NDC).\n")
+
+    p.add_argument("-sb", "--single_bin",
+                   action="store_true",
+                   help="Draw a single Q2-y bin as a standalone plot (does not modify mosaic generation).\n")
+    p.add_argument("-qb", "--single_q2y_bin",
+                   type=int,
+                   default=1,
+                   help="Q2-y bin number to draw when --single_bin is enabled.\n")
+    p.add_argument("-SW", "--single_canvas_width",
+                   type=int,
+                   default=1200,
+                   help="Single-bin canvas width in pixels.\n")
+    p.add_argument("-SH", "--single_canvas_height",
+                   type=int,
+                   default=1100,
+                   help="Single-bin canvas height in pixels.\n")
+    p.add_argument("-wm", "--draw_preliminary_watermark",
+                   action="store_true",
+                   help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
 
     p.add_argument("-t", "--test",
                    action="store_true",
@@ -422,6 +442,7 @@ def Get_Default_FitSet_Title(fit_set):
     mm_dim = re.search(r"(\d+)D", fs_clean)
     dim_tag = f"{mm_dim.group(1)}D" if(mm_dim is not None) else ""
     has_RC = (re.search(r"(^|_)RC(_|$)", fs_clean) is not None) or ("_RC_" in fs_clean) or ("RC_" in fs_clean) or ("_RC" in fs_clean)
+    has_BC = (re.search(r"(^|_)BC(_|$)", fs_clean) is not None) or ("_BC_" in fs_clean) or ("BC_" in fs_clean) or ("_BC" in fs_clean)
     if("Bayesian" in fs_clean):
         method = "Bayesian Unfolding"
     elif("Bin" in fs_clean):
@@ -429,7 +450,11 @@ def Get_Default_FitSet_Title(fit_set):
     else:
         method = fs_clean.strip("_")
     core = f"{dim_tag} {method}".strip()
-    if(has_RC):
+    if(has_BC and has_RC):
+        core = f"{core} with BC Corrections and Radiative Corrections"
+    elif(has_BC):
+        core = f"{core} with BC Corrections"
+    elif(has_RC):
         core = f"{core} with Radiative Corrections"
     return core
 
@@ -692,6 +717,264 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
     c1.Update()
     return c1
 
+# ------------------------------------------------------------
+# Single-bin output (standalone) helpers
+# ------------------------------------------------------------
+def FitSet_Has_RC(fit_set):
+    fs = str(fit_set)
+    fs = fs.replace("Fit_Pars_from_", "")
+    fs_clean = fs.replace("(Normalized)", "")
+    has_RC = (re.search(r"(^|_)RC(_|$)", fs_clean) is not None) or ("_RC_" in fs_clean) or ("RC_" in fs_clean) or ("_RC" in fs_clean)
+    return has_RC
+
+def FitSet_Has_BC(fit_set):
+    fs = str(fit_set)
+    fs = fs.replace("Fit_Pars_from_", "")
+    fs_clean = fs.replace("(Normalized)", "")
+    has_BC = (re.search(r"(^|_)BC(_|$)", fs_clean) is not None) or ("_BC_" in fs_clean) or ("BC_" in fs_clean) or ("_BC" in fs_clean)
+    return has_BC
+
+def Build_SingleBin_Subtitle(args, fit_set):
+    has_rc = FitSet_Has_RC(fit_set)
+    has_bc = FitSet_Has_BC(fit_set)
+
+    if(has_bc and has_rc):
+        subtitle = "With BC + RC Factors"
+        if((str(args.title_text).strip() != "")):
+            subtitle = f"{subtitle} -- {str(args.title_text).strip()}"
+        return subtitle
+    if(has_rc):
+        subtitle = "With RC Factors"
+        if((str(args.title_text).strip() != "")):
+            subtitle = f"{subtitle} -- {str(args.title_text).strip()}"
+        return subtitle
+    if(has_bc):
+        subtitle = "With BC Corrections"
+        return subtitle
+    return ""
+
+def Build_SingleBin_Title_Line(args, fit_set, y_par):
+    x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    y_label = Get_Default_Y_Title(y_par, fit_set)
+    y_label = y_label.replace(" from the Cross Section Fits", "")
+    return f"CLAS12 Preliminary --- {y_label} vs {x_label}"
+
+def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
+    line1 = Build_SingleBin_Title_Line(args, fit_set, y_par)
+    line2 = Build_SingleBin_Subtitle(args, fit_set)
+
+    canvas.cd()
+    tex = ROOT.TLatex()
+    tex.SetNDC(True)
+    tex.SetTextAlign(23)
+
+    # Fixed, readable sizes for the single-bin title block (avoid the oversized/unreadable behavior)
+    size1 = 0.045
+    size2 = 0.032
+
+    tex.SetTextFont(62)
+    tex.SetTextSize(size1)
+    tex.DrawLatex(0.50, 0.975, str(line1))
+
+    if((str(line2).strip() != "")):
+        tex.SetTextFont(42)
+        tex.SetTextSize(size2)
+        tex.DrawLatex(0.50, 0.935, str(line2))
+
+def Draw_SingleBin_Preliminary_Watermark(args):
+    if(not args.draw_preliminary_watermark):
+        return
+    wm = ROOT.TLatex()
+    wm.SetNDC(True)
+    wm.SetTextAlign(22)
+    wm.SetTextFont(62)
+    wm.SetTextSize(0.12)
+    wm.SetTextAngle(30)
+    try:
+        wm.SetTextColorAlpha(ROOT.kRed, 0.12)
+    except Exception:
+        wm.SetTextColor(ROOT.kRed)
+    wm.DrawLatex(0.52, 0.50, "PRELIMINARY")
+
+def Compute_SingleBin_AutoYRange(series_map):
+    ymin = None
+    ymax = None
+    for sid in series_map.keys():
+        for xx, yy, ey, key_str in series_map[sid]["points"]:
+            lo = float(yy) - abs(float(ey))
+            hi = float(yy) + abs(float(ey))
+            if((ymin is None) or (lo < ymin)):
+                ymin = lo
+            if((ymax is None) or (hi > ymax)):
+                ymax = hi
+    if((ymin is None) or (ymax is None)):
+        return (-1.0, 1.0)
+    if(ymin == ymax):
+        return (ymin - 1.0, ymax + 1.0)
+    span = ymax - ymin
+    ymin = ymin - 0.35 * span
+    ymax = ymax + 0.10 * span
+    return (ymin, ymax)
+
+def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
+    if(q2y_bin not in q2y_ranges):
+        return
+    Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
+    Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
+    yminv = float(q2y_ranges[q2y_bin]["y_range"][1])
+    ymaxv = float(q2y_ranges[q2y_bin]["y_range"][2])
+
+    lab = ROOT.TLatex()
+    lab.SetNDC(True)
+    lab.SetTextAlign(13)
+    lab.SetTextFont(42)
+    lab.SetTextSize(0.040)
+
+    x0 = 0.14
+    y0 = 0.93
+    step = 0.055
+
+    lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+    lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+
+def Draw_SingleBin_Legend(args, series_map, info_map):
+    # Legend entries show the full bin width of the variable NOT on the x-axis
+    other_is_pT = (str(args.x_mode).lower() == "z")
+    entries = []
+
+    for sid in series_map.keys():
+        pts = series_map[sid]["points"]
+        if(len(pts) == 0):
+            continue
+        key0 = pts[0][3]
+        if(key0 not in info_map):
+            continue
+        if(other_is_pT):
+            cen = float(info_map[key0]["pTrange"][0])
+            vmin = float(info_map[key0]["pTrange"][1])
+            vmax = float(info_map[key0]["pTrange"][2])
+            label = f"{vmin:.2f} < P_{{T}} < {vmax:.2f}"
+        else:
+            cen = float(info_map[key0]["z_range"][0])
+            vmin = float(info_map[key0]["z_range"][1])
+            vmax = float(info_map[key0]["z_range"][2])
+            label = f"{vmin:.2f} < z < {vmax:.2f}"
+        colv = int(series_map[sid]["color"])
+        entries.append((cen, label, colv, sid))
+
+    entries.sort(key=lambda tt: tt[0])
+
+    if(len(entries) == 0):
+        return None
+
+    # Requirement: if > 6 entries, add a column (not a row)
+    ncols = 3 if(len(entries) <= 6) else 4
+    nrows = int((len(entries) + ncols - 1) / ncols)
+
+    # Keep legend inside the pad and above the x-axis area
+    leg_x0 = 0.08
+    leg_x1 = 0.92
+    leg_y0 = 0.03
+    leg_y1 = leg_y0 + 0.055 * float(nrows) + 0.045
+    if(leg_y1 > 0.28):
+        leg_y1 = 0.28
+
+    leg = ROOT.TLegend(float(leg_x0), float(leg_y0), float(leg_x1), float(leg_y1))
+    leg.SetBorderSize(0)
+    leg.SetFillStyle(0)
+    leg.SetTextFont(42)
+    leg.SetTextSize(0.034)
+    leg.SetNColumns(int(ncols))
+
+    return (leg, entries)
+
+def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, x_range, y_range):
+    c1 = ROOT.TCanvas(f"c_single_{y_par}_{q2y_bin}", f"c_single_{y_par}_{q2y_bin}", int(args.single_canvas_width), int(args.single_canvas_height))
+    c1.SetFillColor(0)
+    c1.SetMargin(0.0, 0.0, 0.0, 0.0)
+
+    if(not hasattr(c1, "_keepalive")):
+        c1._keepalive = []
+
+    # Reserve top space for title block
+    pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 0.86)
+    pad.SetFillColor(0)
+    pad.SetGrid(1, 1)
+    pad.SetTickx(1)
+    pad.SetTicky(1)
+    pad.SetLeftMargin(0.14)
+    pad.SetBottomMargin(0.13)
+    pad.SetRightMargin(0.04)
+    pad.SetTopMargin(0.06)
+    pad.Draw()
+    pad.cd()
+
+    xmin, xmax = float(x_range[0]), float(x_range[1])
+    gymin, gymax = float(y_range[0]), float(y_range[1])
+
+    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+    y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
+
+    frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
+    c1._keepalive.append(frame)
+
+    frame.SetTitle("")
+    frame.GetXaxis().SetTitle(x_axis_title)
+    frame.GetYaxis().SetTitle(y_axis_title)
+
+    # Smaller, closer to the reference style
+    frame.GetXaxis().SetTitleSize(0.050)
+    frame.GetYaxis().SetTitleSize(0.050)
+    frame.GetXaxis().SetLabelSize(0.042)
+    frame.GetYaxis().SetLabelSize(0.042)
+
+    frame.GetXaxis().SetNdivisions(505)
+    frame.GetYaxis().SetNdivisions(505)
+
+    series_map = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
+    sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
+
+    # Watermark (optional)
+    Draw_SingleBin_Preliminary_Watermark(args)
+
+    graphs_by_sid = {}
+
+    for sid in sid_list:
+        pts = series_map[sid]["points"]
+        gr  = ROOT.TGraphErrors(len(pts))
+        for ip, (xx, yy, ey, key_str) in enumerate(pts):
+            gr.SetPoint(ip, float(xx), float(yy))
+            gr.SetPointError(ip, 0.0, float(ey))
+        style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
+        gr.Draw("P L SAME")
+        c1._keepalive.append(gr)
+        graphs_by_sid[sid] = gr
+
+    Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges)
+
+    leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
+    if(leg_pack is not None):
+        leg, entries = leg_pack
+        for cen, label, colv, sid in entries:
+            gr = graphs_by_sid.get(sid, None)
+            if(gr is None):
+                continue
+            # Show both marker and line in the legend sample
+            ent = leg.AddEntry(gr, str(label), "LP")
+            if(ent):
+                ent.SetTextColor(int(colv))
+        leg.Draw("SAME")
+        c1._keepalive.append(leg)
+
+    pad.Update()
+    c1.cd()
+    c1.Update()
+
+    Draw_SingleBin_Title_Block(args, c1, fit_set, y_par)
+    c1.Update()
+    return c1
+
 def Validate_Output_Filename(filename):
     forbidden = [' ', '"', "'", '=']
     for ch in forbidden:
@@ -716,6 +999,7 @@ def Get_Default_FitSet_FileTag(fit_set):
     dim_tag = f"{mm_dim.group(1)}D" if(mm_dim is not None) else ""
 
     has_rc = (re.search(r"(^|_)RC(_|$)", fs_clean) is not None) or ("_RC_" in fs_clean) or ("RC_" in fs_clean) or ("_RC" in fs_clean)
+    has_bc = (re.search(r"(^|_)BC(_|$)", fs_clean) is not None) or ("_BC_" in fs_clean) or ("BC_" in fs_clean) or ("_BC" in fs_clean)
 
     if("Bayesian" in fs_clean):
         method_tag = "BayesianUnfold"
@@ -725,6 +1009,8 @@ def Get_Default_FitSet_FileTag(fit_set):
         method_tag = sanitize_for_filename(fs_clean)
 
     tag = f"{dim_tag}_{method_tag}" if(dim_tag != "") else f"{method_tag}"
+    if(has_bc):
+        tag = f"{tag}_BC"
     if(has_rc):
         tag = f"{tag}_RC"
     if(is_norm):
@@ -741,8 +1027,22 @@ def Build_Output_Filename(args, fit_set, y_par):
     Validate_Output_Filename(filename)
     return filename
 
+def Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin):
+    stem  = sanitize_for_filename(args.name)
+    fs_tag = Get_Default_FitSet_FileTag(fit_set)
+    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
+    filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    Validate_Output_Filename(filename)
+    return filename
+
 def save_canvas(args, canvas, fit_set, y_par):
     filename = Build_Output_Filename(args, fit_set, y_par)
+    canvas.SaveAs(filename)
+    return filename
+
+def save_single_canvas(args, canvas, fit_set, y_par, q2y_bin):
+    filename = Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin)
     canvas.SaveAs(filename)
     return filename
 
@@ -794,6 +1094,42 @@ def main():
     else:
         xmin, xmax = compute_global_x_range(args, grouped, info_map)
 
+    if((args.single_bin)):
+        if((args.single_q2y_bin is None)):
+            raise SystemExit(f"{color.Error}ERROR:{color.END_R} --single_bin requires --single_q2y_bin to be set.{color.END}")
+        q2y_bin = int(args.single_q2y_bin)
+        if((q2y_bin not in grouped)):
+            raise SystemExit(f"{color.Error}ERROR:{color.END_R} Requested Q2-y bin {q2y_bin} is not present in this fit_set.{color.END}")
+
+        if(args.verbose):
+            print(f"{color.CYAN}[INFO] Single-bin mode enabled: Q2-y bin = {q2y_bin}{color.END}")
+            print(f"{color.CYAN}[INFO] Global X range: [{xmin}, {xmax}]{color.END}")
+
+        for y_par in args.y_pars:
+            if((str(y_par) == "Fit_Par_B")):
+                y_range = (-0.8, 0.125)
+            elif((str(y_par) == "Fit_Par_C")):
+                y_range = (-0.3, 0.25)
+            else:
+                series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
+                y_range = Compute_SingleBin_AutoYRange(series_map_tmp)
+
+            if(args.test):
+                fake_name = Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin)
+                print(f"{color.BYELLOW}[TEST] Would draw SINGLE BIN: fit_set='{fit_set}' x_mode='{args.x_mode}' y_par='{y_par}' q2y_bin='{q2y_bin}' -> {color.BCYAN}{fake_name}{color.END}")
+                continue
+
+            canv = draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, (xmin, xmax), y_range)
+            canv.Update()
+            out_name = save_single_canvas(args, canv, fit_set, y_par, q2y_bin)
+
+            if(args.verbose):
+                print(f"{color.GREEN}[INFO] Wrote: {out_name}{color.END}")
+
+        print(f"\n{color.BBLUE}Finished running 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
+        args.timer.stop()
+        return
+
     if(args.draw_legends):
         xspan = xmax - xmin
         if(xspan > 0.0):
@@ -833,4 +1169,4 @@ def main():
 
 if(__name__ == "__main__"):
     main()
-
+    
