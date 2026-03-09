@@ -29,6 +29,10 @@ def parse_args():
                         default=5,
                         type=int,
                         help="Number of sub-bins used per Q2-y-z-pT bin. Must be a positive, odd number.\n")
+    parser.add_argument('-nbphi', '--num_phi_sub_bins',
+                        default=0,
+                        type=int,
+                        help=f"Addition number of sub-bins used per phi_h bin.\n{color.ERROR}Will add this number to '--num_sub_bins' to get a new total number of sub-bins used for phi_h specifically.{color.END}{color.YELLOW}\n(The default value of '0' means that the same number of bins are used for each variable)\n{color.END_e}The final total must still be a positive, odd number.{color.END}\n")
     parser.add_argument('-q2y', '-Q2y', '--Q2_y_Bin',
                         default=-1,
                         type=int,
@@ -57,7 +61,8 @@ def parse_args():
                         action='store_true',
                         help='Use the json weights (for physics injections) given by the `--json_file` argument.\n')
     parser.add_argument('-jsf_in', '--json_file_in',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
                         type=str,
                         help="JSON file path for using '--json_weights'.\n")
     parser.add_argument('-jf', '--json_file_out',
@@ -73,7 +78,7 @@ def parse_args():
                         help="Output ROOT file where the sub-bin histograms will be saved if the '--histogram' option is selected.\n")
     parser.add_argument('-ufn', '--use_file_name',
                         action='store_true',
-                        help="If the '--file' argument does not include a '*' in its path, this argument will assume that a single file is being used and that it should be added to the output JSON or ROOT file's names.\nThe default option of just using the '--json_file_out' and '--root_file_out' will be applied if multiple files are given.\n")
+                        help="If the '--file' argument does not include a '*' in its path, this argument will assume that a single file is being used and that it should be added to the output JSON/ROOT file's names.\nThe default option of just using the '--json_file_out' and '--root_file_out' will be applied if multiple files are given.\n")
     parser.add_argument('-ht', '--histo_title',
                         default="",
                         type=str,
@@ -346,7 +351,8 @@ def Flatten_Fit_Pars_For_CPP_Map(Fit_Pars_In, args, prefer_normalized=True):
     # Returns a flat dict: {"A_Q2y_zpt": float, "B_Q2y_zpt": float, "C_Q2y_zpt": float}
     if(not isinstance(Fit_Pars_In, dict)):
         Crash_Report(args, crash_message=f"{color.Error}The Code has CRASHED!\nFlatten_Fit_Pars_For_CPP_Map(...): Fit_Pars_In must be a dict{color.END}")
-    key_norm = "Fit_Pars_from_3D_RC_Bayesian_(Normalized)"
+    # key_norm = "Fit_Pars_from_3D_RC_Bayesian_(Normalized)"
+    key_norm = "Fit_Pars_from_3D_RC_Bayesian"
     key_raw  = "Fit_Pars_from_3D_Bayesian"
     Fit_Block = None
     if((prefer_normalized) and (key_norm in Fit_Pars_In) and isinstance(Fit_Pars_In[key_norm], dict)):
@@ -544,7 +550,11 @@ return vals2;""")
         # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="3D")))
         # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",      str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="5D")))
     
-    print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}({color.ERROR}{args.num_sub_bins}{color.END_B} per variable){color.END}\n")
+    print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}({color.ERROR}{args.num_sub_bins}{color.END_B} per variable){color.END}")
+    if(args.num_phi_sub_bins > 0):
+        print(f"\t{color.Error}Making with {color.END_B}{args.num_phi_sub_bins + args.num_sub_bins}{color.Error} phi_h sub-bins{color.END}\n")
+    else:
+        print("")
     Find_Q2_y_Bin_Ranges = """
 if(Q2_Y_Bin < 1) { return -1; }
 double q2min=0., q2max=0., ymin=0., ymax=0.;
@@ -607,13 +617,13 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     gdf = gdf.Define("phi_t_bin", """
     if(phi_t < 360){ return int(phi_t/15) + 1; }
     else { return 1; } """)
-    delta_phi_Sbin = float(15.0/float(args.num_sub_bins))
+    delta_phi_Sbin = float(15.0/float(args.num_sub_bins+args.num_phi_sub_bins))
     gdf = gdf.Define("phi_t_SUB_BINs", f" int((phi_t - 15*(phi_t_bin - 1))/{delta_phi_Sbin}) + 1 ")
 
     gdf = gdf.Define("Full_SUB_BIN_idx", f"""
     if( (Q2_y_SUB_BINs < 0) || (z_pT_SUB_BINs < 0) || (phi_t_SUB_BINs < 0) ){{ return -1; }}
     int q2y_idx = (Q2_y_SUB_BINs - 1)*{args.num_sub_bins}*{args.num_sub_bins};
-    int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.num_sub_bins};
+    int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.num_sub_bins+args.num_phi_sub_bins};
     return zpT_idx + phi_t_SUB_BINs;
     """)
     
@@ -709,7 +719,7 @@ def Get_Bin_Contents_for_BC(args):
                     gdf_Q2y_SBin         = gdf_phih_Bin.Filter(f"Q2_y_SUB_BINs == {Q2y_Sbin}")
                     for     zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
                         gdf_zpT_SBin     = gdf_Q2y_SBin.Filter(f"z_pT_SUB_BINs == {zpT_Sbin}")
-                        for phi_Sbin in range(1, int(args.num_sub_bins+1)):
+                        for phi_Sbin in range(1, int((args.num_sub_bins+args.num_phi_sub_bins)+1)):
                             gdf_phi_SBin = gdf_zpT_SBin.Filter(f"phi_t_SUB_BINs == {phi_Sbin}")
                             sub_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})-({phih_bin}-{phi_Sbin})"
                             sumw = gdf_phi_SBin.Sum("Event_Weight") # Book the action; do NOT GetValue() yet
@@ -729,18 +739,21 @@ def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
     #   X axis: Full_SUB_BIN_idx
     #   Y axis: phi_t_bin (1..24)
     #   Weight: Event_Weight
-    Nsub = int(args.num_sub_bins**5)
-    hist_name   = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
-    hist_titl   = f"#splitline{{{root_color.Bold}{{Generated #phi_{{h}} vs Sub-Bin Indexes from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
-    hist_titl   = f"#splitline{{{hist_titl}}}{{Made for Q^{{2}}-y-z-P_{{T}} Bin: ({Q2_y_Bin}-{z_pT_Bin})}}"
-    hist_titl   = f"#splitline{{{hist_titl}}}{{Number of Sub-Bins Per Variable = {args.num_sub_bins}}}"
+    Nsub = int((args.num_sub_bins**4)*(args.num_sub_bins+args.num_phi_sub_bins))
+    hist_name     = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
+    hist_titl     = f"#splitline{{{root_color.Bold}{{Generated #phi_{{h}} vs Sub-Bin Indexes from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
+    if(args.num_phi_sub_bins > 0):
+        hist_name = f"{hist_name}-(Extra phi_h SubBins={args.num_phi_sub_bins})"
+        hist_titl = f"#splitline{{{hist_titl}}}{{#scale[0.75]{{#phi_{{h}} Uniquely Used {args.num_sub_bins+args.num_phi_sub_bins} Sub-Bins instead}}}}"
+    hist_titl     = f"#splitline{{{hist_titl}}}{{Made for Q^{{2}}-y-z-P_{{T}} Bin: ({Q2_y_Bin}-{z_pT_Bin})}}"
+    # hist_titl     = f"#splitline{{{hist_titl}}}{{Number of Sub-Bins Per Variable = {args.num_sub_bins}}}"
     if(args.json_weights):
-      hist_titl = f"#splitline{{{hist_titl}}}{{Used Injected Modulation Weights}}"
+      hist_titl   = f"#splitline{{{hist_titl}}}{{Used Injected Modulation Weights}}"
     if(args.histo_title not in ["", None]):
-      hist_titl = f"#splitline{{{hist_titl}}}{{{args.histo_title}}}"
-    hist_titl   = f"{hist_titl}; Sub-Bin Indexes; #phi_{{h}} Bins"
-    hmodel      = (hist_name, hist_titl, int(Nsub+2), -0.5, Nsub+1.5, 24, 0.5, 24.5)
-    hist_ptr    = gdf.Histo2D(hmodel, "Full_SUB_BIN_idx", "phi_t_bin", "Event_Weight")
+      hist_titl   = f"#splitline{{{hist_titl}}}{{{args.histo_title}}}"
+    hist_titl     = f"{hist_titl}; Sub-Bin Indexes; #phi_{{h}} Bins"
+    hmodel        = (hist_name, hist_titl, int(Nsub+2), -0.5, Nsub+1.5, 24, 0.5, 24.5)
+    hist_ptr      = gdf.Histo2D(hmodel, "Full_SUB_BIN_idx", "phi_t_bin", "Event_Weight")
     return hist_ptr
     
 def Create_Histograms_for_BC(args):
@@ -757,6 +770,8 @@ def Create_Histograms_for_BC(args):
                 continue
             gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
             Nominal_bin_name = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
+            if(args.num_phi_sub_bins > 0):
+                Nominal_bin_name = f"{Nominal_bin_name}-(Extra phi_h SubBins={args.num_phi_sub_bins})"
             List_of_Histos[Nominal_bin_name] = Make_SubBin_TH2_SumW(gdf_z_pT_Bin, args, Q2_y_Bin, z_pT_Bin)
     print(f"\n{color.BBLUE}Done Creating All Sub-bin Histograms {color.END_B}(Total = {len(List_of_Histos)}){color.END}")
     print(f"{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
@@ -799,12 +814,17 @@ def Evaluate_And_Write_Histograms(hist_ptrs, args):
 
 def parse_histogram_name(hist_name):
     # Expected name pattern from Make_SubBin_TH2_SumW:
-    #   "Histogram Bin (Q2y-zpt)-(Num SubBins=N)"
-    # Returns: (Q2_y_Bin, z_pT_Bin, num_sub_bins) or (None, None, None) if no match.
+    #   "Histogram Bin (Q2y-zpt)-(Num SubBins=N)-(Extra phi_h SubBins=N)"
+    # Returns: (Q2_y_Bin, z_pT_Bin, num_sub_bins, extra_phi) or (None, None, None, None) if no match.
     match = re.search(r"Histogram Bin \((\d+)-(\d+)\)-\(Num SubBins=(\d+)\)", str(hist_name))
     if(not match):
-        return None, None, None
-    return int(match.group(1)), int(match.group(2)), int(match.group(3))
+        return None, None, None, None
+    Q2y = int(match.group(1))
+    zpt = int(match.group(2))
+    nsub = int(match.group(3))
+    match_phi = re.search(r"\-\(Extra phi_h SubBins=(\d+)\)", str(hist_name))
+    extra_phi = int(match_phi.group(1)) if(match_phi) else 0
+    return Q2y, zpt, nsub, extra_phi
 
 def mean_and_weighted_mean(contents, errors):
     if(len(contents) != len(errors)):
@@ -868,12 +888,13 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         raise FileNotFoundError(f"ROOT file does not exist: {root_path}")
 
     num_sub_bins = int(args.num_sub_bins)
-    Nsub = int(num_sub_bins**5)
+    Nsub = int((num_sub_bins**4)*(num_sub_bins+args.num_phi_sub_bins))
     full_center_idx = int((Nsub)/2)+1
     
     # Output: one value per nominal bin
-    out = {"meta": { "root_file": str(root_path), "num_sub_bins": int(num_sub_bins), "Nsub_per_nominal_bin": int(Nsub), "center_subbin": int(full_center_idx),
-                     "definition": {"bc_factor": "avg_subbin_content / center_subbin_content", "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)"}
+    out = {"meta": { "root_file": str(root_path), "num_sub_bins": int(num_sub_bins), "extra_num_phi_sub_bins": int(args.num_phi_sub_bins), "Nsub_per_nominal_bin": int(Nsub), "center_subbin": int(full_center_idx),
+                     "definition": {"bc_factor": "avg_subbin_content / center_subbin_content", "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)"},
+                     "email_message": args.email_message
                    },
            "results":       {},
            "full_contents": {}
@@ -905,7 +926,7 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         h = fin.Get(hist_name)
         if(h is None):
             continue
-        Q2_y_Bin, z_pT_Bin, nsub_in_name = parse_histogram_name(hist_name)
+        Q2_y_Bin, z_pT_Bin, nsub_in_name, extra_phi_in_name = parse_histogram_name(hist_name)
         if(None in [Q2_y_Bin, z_pT_Bin]):
             if(verbose):
                 print(f"\t{color.RED}Skipping unrecognized histogram name: {color.ERROR}{hist_name}{color.END}")
@@ -913,12 +934,12 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         if((args.Q2_y_Bin not in [-1, None, Q2_y_Bin]) or (args.z_pT_Bin not in [-1, None, z_pT_Bin])):
             if(verbose):
                 print(f"\t{color.RED}Skipping unselected histogram bin: {color.ERROR}{hist_name}{color.END}")
-            continue
-          
+            continue   
         if((nsub_in_name is not None) and (int(nsub_in_name) != int(num_sub_bins))):
             print(f"\n{color.Error}WARNING: num_sub_bins mismatch in {hist_name}: name has {nsub_in_name}, args has {num_sub_bins}{color.END}\n")
             raise ValueError("Compute_BC_Factors_From_SubBin_Histograms Warning: num_sub_bins mismatch in hist_name.")
-
+        if((extra_phi_in_name is not None) and (int(extra_phi_in_name) != int(args.num_phi_sub_bins))):
+            Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END} ROOT file histogram '{hist_name}' was made with Extra phi_h SubBins={extra_phi_in_name}, but you ran with --num_phi_sub_bins={args.num_phi_sub_bins}. This will break center-subbin logic.\n")
         xax = h.GetXaxis()
         yax = h.GetYaxis()
         for phi_nom in range(1, 24 + 1):
@@ -1060,6 +1081,10 @@ if(__name__ == "__main__"):
     if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
         print(f"\n{color.Error}ERROR: Number of sub-bins must a positive, odd number for this script to work properly{color.END}\n")
         sys.exit(0)
+    if((args.num_phi_sub_bins < 0) or ((args.num_sub_bins+args.num_phi_sub_bins)%2 == 0)):
+        print(f"\n{color.Error}ERROR: Number of extra phi_h sub-bins cannot be negative and the total must still be a positive, odd number for this script to work properly{color.END}\n")
+        sys.exit(0)
+    
     print(f"\n{color.BBLUE}Ready to Run BC Correction Script...{color.END}\n")
         
     args.timer = RuntimeTimer()

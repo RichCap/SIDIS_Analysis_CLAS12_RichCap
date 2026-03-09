@@ -65,11 +65,10 @@ def main():
     timer.start()
 
     target = args.directory if(not args.clasdis) else "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.*clasdis*"
-    command_template = args.command
-    if(args.clasdis and ("BC_Corrections_Script.py" in str(command_template)) and not any(clas_com in str(command_template) for clas_com in ["-clasdis", "--use_clasdis"])):
-        command_template = f"{command_template} --use_clasdis"
-    if(("BC_Corrections_Script.py" in str(command_template)) and not any(file_com in str(command_template) for file_com in ["-f ", "--file "])):
-        command_template = f"{command_template} --file "
+    if(args.clasdis and ("BC_Corrections_Script.py" in str(args.command)) and not any(clas_com in str(args.command) for clas_com in ["-clasdis", "--use_clasdis"])):
+        args.command = f"{args.command} --use_clasdis"
+    if(("BC_Corrections_Script.py" in str(args.command)) and not any(file_com in str(args.command) for file_com in ["-f ", "--file "])):
+        args.command = f"{args.command} --file "
         
     # Build file list from either directory or glob
     if(os.path.isdir(target)):
@@ -81,7 +80,7 @@ def main():
         print(f"Error: no files found for '{target}'")
         return
 
-    base_cmd = shlex.split(command_template)
+    base_cmd = shlex.split(args.command)
 
     if(args.parallel):
 
@@ -94,14 +93,19 @@ def main():
         log_dir_run = "/lustre24/expphy/volatile/clas12/richcap/BC_Log_and_Old_Files/"
         os.makedirs(log_dir_run, exist_ok=True)
 
-        print(f"\n{color.BBLUE}Parallel mode enabled{color.END}")
-        print(f"\tMax concurrent jobs = {max_jobs}")
-        print(f"\tLog directory       = {log_dir_run}\n")
-
         # In the original sequential logic, the final file is treated specially (and only run with --email).
         # To preserve that behavior, parallel mode runs all but the final file in parallel, then handles the final file as before.
         files_to_run = files[:-1]
 
+        parallel_email_text = f"""
+{color.BBLUE}Parallel mode enabled{color.END}
+    Max Concurrent jobs    = {max_jobs}
+    Log Output Directory   = {log_dir_run}
+    Number of Files to Run = {len(files)}
+"""
+        print(parallel_email_text)
+        args.run_context_line = f"{args.run_context_line}\n{parallel_email_text}"
+        
         running = []  # list of dicts: {"proc":..., "fh":..., "log":..., "filepath":..., "num":...}
         num_started = 0
         num_done    = 0
@@ -211,8 +215,7 @@ def main():
             StartTimePrint = str(timer.start_find(return_Q=True)).replace("Ran", "Started running")
             ElaspTimePrint = "\n".join(timer.time_elapsed(return_Q=True))
             Email_output = f"""This was the last file to be run with the command: 
-{args.command} "files..."
-
+{args.command} "files"
 
 {StartTimePrint}
 {ElaspTimePrint}
@@ -238,8 +241,7 @@ def main():
             StartTimePrint = str(timer.start_find(return_Q=True)).replace("Ran", "Started running")
             ElaspTimePrint = "\n".join(timer.time_elapsed(return_Q=True))
             Email_output = f"""This was the last file to be run with the command: 
-{args.command} "files..."
-
+{args.command} "files"
 
 {StartTimePrint}
 {ElaspTimePrint}
