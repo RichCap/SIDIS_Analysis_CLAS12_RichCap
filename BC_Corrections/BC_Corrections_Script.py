@@ -97,6 +97,9 @@ def parse_args():
     parser.add_argument('-mpi', '--make_plot_images',
                         action='store_true',
                         help="Optional: make a visualization plot (Center vs Average sub-bin contents vs nominal phi_h bin) from the existing JSON output.\n")
+    parser.add_argument('-mpbc', '--make_plot_BC_factor',
+                        action='store_true',
+                        help="Optional: also make a BC Factor vs nominal phi_h bin plot from the existing JSON output.\nRequires the same single '--Q2_y_Bin' and '--z_pT_Bin' as '--make_plot_images'.\n")
     parser.add_argument('-n', '-sn', '--image_name',
                         default="",
                         type=str,
@@ -1075,6 +1078,80 @@ def Plot_BC_Subbin_Inputs_From_JSON(args):
     else:
         print(f"\n{color.BBLUE}WOULD HAVE saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
     return args
+
+def Plot_BC_Factor_From_JSON(args):
+    if((args.Q2_y_Bin in [-1, None]) or (args.z_pT_Bin in [-1, None])):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} '--make_plot_BC_factor' requires a single '--Q2_y_Bin' and '--z_pT_Bin' (not -1). Skipping plot.{color.END}\n")
+    json_path = str(args.json_file_out)
+    if(not os.path.exists(json_path)):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
+    data = load_json_file(json_path)
+    if((not isinstance(data, dict)) or ("results" not in data) or (not isinstance(data["results"], dict))):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not have the expected schema with a top-level 'results' dict.\n{color.END}File Input Was: {json_path}\n")
+
+    results = data["results"]
+
+    hname_bc = f"h_bc_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
+    title_base = f"#splitline{{BC Factor}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({args.Q2_y_Bin}-{args.z_pT_Bin})}}}}"
+    h_bc = ROOT.TH1D(hname_bc, f"{title_base}; #phi_{{h}} Bin; BC Factor", 24, 0.5, 24.5)
+
+    max_y, min_y = 0.0, 0.0
+    for phi_bin in range(1, 24 + 1):
+        nom_key = f"Bin ({args.Q2_y_Bin}-{args.z_pT_Bin}-{phi_bin})"
+        entry = results.get(nom_key, {})
+
+        bc_val, bc_err = 0.0, 0.0
+        if(isinstance(entry, dict)):
+            try:
+                bc_val = float(entry.get("BC_Factor", 0.0))
+            except Exception:
+                bc_val = 0.0
+            try:
+                bc_err = float(entry.get("BC_Factor_Err", 0.0))
+            except Exception:
+                bc_err = 0.0
+
+        if(not numpy.isfinite(bc_val)):
+            bc_val = 0.0
+        if((not numpy.isfinite(bc_err)) or (bc_err < 0.0)):
+            bc_err = 0.0
+
+        h_bc.SetBinContent(phi_bin, bc_val)
+        h_bc.SetBinError(phi_bin,   bc_err)
+
+        max_y = max([max_y, bc_val + bc_err])
+        min_y = min([min_y, bc_val - bc_err])
+
+    # Style (single histogram, same general look/feel)
+    h_bc.SetLineColor(ROOT.kAzure + 1)
+    h_bc.SetMarkerColor(ROOT.kAzure + 1)
+    h_bc.SetMarkerStyle(20)
+    h_bc.SetLineWidth(2)
+    h_bc.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
+
+    Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Factor_for_Q2_y_Bin_{args.Q2_y_Bin}_z_pT_Bin_{args.z_pT_Bin}'
+    c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
+    pad = c.cd()
+    pad.SetTopMargin(0.175)
+    pad.SetLeftMargin(0.125)
+    pad.SetRightMargin(0.025)
+
+    h_bc.Draw("E1")
+
+    leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
+    leg.SetBorderSize(0)
+    leg.SetFillStyle(0)
+    leg.AddEntry(h_bc, "#scale[2]{BC Factor}", "lep")
+    leg.Draw()
+
+    args.Save_Name_BC_Factor = f'{Save_Name}.{args.File_Format}'
+    if(not args.test):
+        c.SaveAs(args.Save_Name_BC_Factor)
+        print(f"\n{color.BGREEN}Saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
+    else:
+        print(f"\n{color.BBLUE}WOULD HAVE saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
+
+    return args
     
 if(__name__ == "__main__"):
     args = parse_args()
@@ -1138,5 +1215,10 @@ if(__name__ == "__main__"):
     if(args.make_plot_images):
         args = Plot_BC_Subbin_Inputs_From_JSON(args)
         Total_Num_SBin += 1
+        if(args.make_plot_BC_factor):
+            args = Plot_BC_Factor_From_JSON(args)
+            Total_Num_SBin += 1
+            if(hasattr(args, "Save_Name_BC_Factor")):
+                args.Save_Name = f"{args.Save_Name}\n{args.Save_Name_BC_Factor}"
 
     Construct_Email(args, final_count=Total_Num_SBin, Count_Type=f"{'Histograms' if(args.histogram) else 'Sub-bins'}{'/Image(s)' if(args.make_plot_images) else ''}")

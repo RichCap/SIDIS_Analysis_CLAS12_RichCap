@@ -117,7 +117,7 @@ def parse_args():
                    type=str,
                    default=["Bayesian"],
                    choices=["(Bin)", "Bayesian"],
-                   help=f"Acceptance Correction Method Options. Select 'Bayesian' for Full Unfolding or '(Bin)' for Bin-by-Bin Corrections.\n{color.BOLD}If RC corrections are applied, this option will not limit you to just using the acceptance-corrected histograms—will just narrow which distributions the RC correction is applied to.\n{color.Error}WARNING: Only applies to runs where the unfolding was already done (i.e., when you are loading plots from a TTree or fitting).{color.END}\n")
+                   help=f"Acceptance Correction Method Options. Select 'Bayesian' for Full Unfolding or '(Bin)' for Bin-by-Bin Corrections.\n{color.BOLD}If RC or BC corrections are applied, this option will not limit you to just using the acceptance-corrected histograms—will just narrow which distributions the other corrections are applied to.\n{color.Error}WARNING: Only applies to runs where the unfolding was already done (i.e., when you are loading plots from a TTree or fitting).{color.END}\n")
 
     p.add_argument('-sec', '--run_sectors',
                    action='store_true',
@@ -164,6 +164,10 @@ def parse_args():
     p.add_argument('-rc', '--Apply_RC',
                    action='store_true',
                    help="Apply RC Corrections.")
+    
+    p.add_argument('-bc', '--Apply_BC',
+                   action='store_true',
+                   help=f"Use the BC Corrections.\n{color.Error}WARNING:{color.END_R} As of 7/8/2026, this feature only works if the corrections are loaded in existing files (does not create new histograms by applying the corrections within this script).{color.END}\n")
     
     p.add_argument('-au', '--Add_Uncertainties',
                    action='store_true',
@@ -864,7 +868,7 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
             Histo_To_Fit = ApplyCS_Norm(args, Histo_To_Fit, Q2_y_Bin=q2y_Bin, z_pT_Bin=zpT_Bin)
     elif(Allow_Normalization and args.CrossSection_Norm):
         print(f"{color.Error}Cannot Normalize {color.END_B}'{Histo_To_Fit.GetName()}'{color.Error} without the kinematic bin numbers (were attempted to be given as: {color.END_B}'{Special}'{color.Error}){color.END}")
-    if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian"]) and (Fitting in ["default", "Default"]) and args.fit):
+    if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian", "BC_Bayesian", "BC_RC_Bayesian"]) and (Fitting in ["default", "Default"]) and args.fit):
         A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Histo_To_Fit)
         fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
 
@@ -1773,7 +1777,7 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
         var = keys_split[5]
         par = par.replace("(Fit_Par_", "")
         var = var.replace(")", "")
-        if(cor_type not in method):
+        if(cor_type not in [method]):
             # print(f"{color.RED}Wrong Correction Method{color.END}")
             continue
         q2_y_bin = q2_y_bin.replace("Q2_y_Bin_", "")
@@ -3025,21 +3029,24 @@ def Load_TTree(args):
     args.timer.time_elapsed()
     return args, List_of_All_Histos_For_Unfolding
 
-def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
-    TTree_Name = args.root
-    if((args.fit and args.Use_TTree) or args.Apply_RC):
+def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
+    # TTree_Name = args.root
+    if((args.fit and args.Use_TTree) or args.Apply_RC): # does not include 'Apply_BC' because it always assumes that the BC corrections already exist—this function is only useful for the BC corrections in so far as fitting is concerned
         fits_included    = args.remake_fit
+        BC_fits_included = not args.Apply_BC # if args.Apply_BC = False, then there is no need to create the BC fits anyway
         RC_fits_included = not args.Apply_RC # if args.Apply_RC = False, then there is no need to create the RC fits anyway
         RC_included      = not args.Apply_RC # checks to see if the RC plots were already created (but not fit)
         for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
             if("(Fit_Par" in str(List_of_All_Histos_For_Unfolding_ii)):
                 fits_included    = True
+            if("(Fit_Par_B)_(BC" in str(List_of_All_Histos_For_Unfolding_ii)):
+                BC_fits_included = True
             if("(Fit_Par_B)_(RC" in str(List_of_All_Histos_For_Unfolding_ii)):
                 RC_fits_included = True
                 RC_included      = True
             if(")_(RC_Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)):
                 RC_included      = True
-            if(fits_included and RC_fits_included):
+            if(fits_included and RC_fits_included and BC_fits_included):
                 break
         if(args.remake_fit):
             fits_included = False
@@ -3048,8 +3055,12 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
             print(f"{color.BOLD}Not running RC... Did not check for RC fits.{color.END}")
         else:
             print(f"{color.BLUE}RC Unfolding Fits Already Included?     -> {color.BGREEN if(RC_fits_included) else color.Error}{RC_fits_included}{color.END}")
+        if(not args.Apply_BC):
+            print(f"{color.BOLD}Not running BC... Did not check for BC fits.{color.END}")
+        else:
+            print(f"{color.BLUE}BC Unfolding Fits Already Included?     -> {color.BGREEN if(BC_fits_included) else color.Error}{BC_fits_included}{color.END}")
 
-        if((not (fits_included and RC_fits_included)) or args.remake_fit):
+        if((not (fits_included and RC_fits_included and BC_fits_included)) or args.remake_fit):
             print(f"\n{color.BBLUE}Making the fits...{color.END}\n")
             script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
             sys.path.append(script_dir)
@@ -3065,6 +3076,8 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                 if("Bin_All)"  in str(List_of_All_Histos_For_Unfolding_ii)):
                     continue
                 if("_EvGen"    in str(List_of_All_Histos_For_Unfolding_ii)):
+                    continue
+                if(("BC_"      in str(List_of_All_Histos_For_Unfolding_ii)) and (not args.Apply_BC)):
                     continue
                 if(args.EvGen and ("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
                     Histo_clasdis        = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
@@ -3096,7 +3109,6 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                     Hist_AcceptanceRatio.SetLineStyle(1)
                     Histogram_Fit_List_All[Histo_Name_ratio] = Hist_AcceptanceRatio
                     fit_count += 1
-                # if(("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) or ("(Bin)" in str(List_of_All_Histos_For_Unfolding_ii))):
                 if(any(acceptable_unfold in str(List_of_All_Histos_For_Unfolding_ii) for acceptable_unfold in args.Unfold_Methods)):
                     Histo_Original       = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
                     Histo_Name_General   = Histo_Original.GetName()
@@ -3119,10 +3131,8 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                     print(f"Fitting for: {color.BOLD}{List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
                     Histo_Name_Rad_Cor          = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
                     RC_RooUnfolded_TTree_Histos = Histo_Original.Clone(Histo_Name_Rad_Cor)
-                    if(TTree_Name in ["/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Unfolded_Histos_From_Just_RooUnfold_SIDIS_richcap_No_Acceptance_Cut.root"]):
-                        RC_RooUnfolded_TTree_Histos.Rebin(2)
                     if((not fits_included) and args.fit):
-                        RooUnfolded_TTree_Histos, Unfolded_TTree_Fit_Function, Chi_Squared_TTree, TTree_Fit_Par_A, TTree_Fit_Par_B, TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=Histo_Original, Method="RC_Bayesian" if("RC_Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
+                        RooUnfolded_TTree_Histos, Unfolded_TTree_Fit_Function, Chi_Squared_TTree, TTree_Fit_Par_A, TTree_Fit_Par_B, TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=Histo_Original, Method=f'{"BC_" if("BC" in str(List_of_All_Histos_For_Unfolding_ii)) else ""}{"RC_Bayesian" if("RC_Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "Bin"}', Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
                         Histogram_Fit_List_All[str(Histo_Name_General)]                                                = RooUnfolded_TTree_Histos.Clone(str(Histo_Name_General))
                         Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function")]   = Unfolded_TTree_Fit_Function.Clone(str(Histo_Name_General).replace(Dimensions_Original, "Fit_Function"))
                         Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Chi_Squared")]    = Chi_Squared_TTree
@@ -3131,7 +3141,7 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
                         Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
                         fit_count += 1
                         #FIND SINGLE FILE FITS
-                    if(args.Apply_RC and ((not RC_included) or ("RC_Bin" in Histo_Name_Rad_Cor))):
+                    if(args.Apply_RC and ("BC_" not in str(List_of_All_Histos_For_Unfolding_ii)) and ((not RC_included) or ("RC_Bin" in Histo_Name_Rad_Cor))):
                         RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
                         RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
                         RC_RooUnfolded_TTree_Histos, RC_Unfolded_TTree_Fit_Function, RC_Chi_Squared_TTree, RC_TTree_Fit_Par_A, RC_TTree_Fit_Par_B, RC_TTree_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RC_RooUnfolded_TTree_Histos, Method="RC_Bayesian" if("Bayesian" in str(List_of_All_Histos_For_Unfolding_ii)) else "RC_Bin", Special=[Q2_Y_Bin_Fitting, Z_PT_Bin_Fitting], args=args)
@@ -3162,7 +3172,7 @@ def Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding):
         args.timer.time_elapsed()
         return Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
     else:
-        print("Conditions for running 'Create_Fits_and_Apply_RC' were not set...\nNeed to run: '(args.fit and args.Use_TTree) or args.Apply_RC'")
+        print("Conditions for running 'Create_Fits_and_Apply_RC_and_BC' were not set...\nNeed to run: '(args.fit and args.Use_TTree) or args.Apply_RC'")
         return List_of_All_Histos_For_Unfolding
 
 def main():
@@ -3178,19 +3188,22 @@ def main():
         except:
             Crash_Report(args, crash_message=f"The Unfolding Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     try:
-        List_of_All_Histos_For_Unfolding = Create_Fits_and_Apply_RC(args, List_of_All_Histos_For_Unfolding)
+        List_of_All_Histos_For_Unfolding = Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding)
         if(not ((args.fit and args.Use_TTree) or args.Apply_RC)):
             List_of_All_Histos_For_Unfolding =  Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding)
         if(args.save_json and args.fit):
             for acceptable_unfold in args.Unfold_Methods:
-                acceptable_unfold       = str(acceptable_unfold.replace("(", "")).replace(")", "")
-                args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=acceptable_unfold)
+                acceptable_unfold           = str(acceptable_unfold.replace("(", "")).replace(")", "")
+                args, Fit_Pars_JSON         = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=acceptable_unfold)
                 if(args.Apply_RC):
-                    args, Fit_Pars_JSON = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"RC_{acceptable_unfold}")
+                    args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"RC_{acceptable_unfold}")
+                    if(args.Apply_BC):
+                        args, Fit_Pars_JSON = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_RC_{acceptable_unfold}")
+                elif(args.Apply_BC):
+                    args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_{acceptable_unfold}")
     except:
-        Crash_Report(args, crash_message=f"The Fitting/RC Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
+        Crash_Report(args, crash_message=f"{color.Error}The Fitting/RC Code has CRASHED!\n{color.END_R}ERROR MESSAGE:\n\n{color.END}{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
-
 
 if(__name__ == "__main__"):
     main()
