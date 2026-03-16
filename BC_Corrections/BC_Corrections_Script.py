@@ -61,7 +61,8 @@ def parse_args():
                         action='store_true',
                         help='Use the json weights (for physics injections) given by the `--json_file` argument.\n')
     parser.add_argument('-jsf_in', '--json_file_in',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_Final_File_Before_the_Collaboration_Meeting.json",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
                         type=str,
                         help="JSON file path for using '--json_weights'.\n")
@@ -510,7 +511,7 @@ return vals2;""")
     if({bin_condition}){{ return {Q2_y}; }}"""
         Q2_y_Bin_Def = f"""{Q2_y_Bin_Def}
     return 0;"""
-        gdf = gdf.Define("Q2_Y_Bin", Q2_y_Bin_Def)
+        gdf = gdf.Redefine("Q2_Y_Bin", Q2_y_Bin_Def) if(gdf.HasColumn("Q2_Y_Bin")) else gdf.Define("Q2_Y_Bin", Q2_y_Bin_Def)
         ##########################################################################################################################################################################################
         ##########################################################################################################################################################################################
         def z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="All"):
@@ -549,7 +550,60 @@ return vals2;""")
         # gdf = gdf.Define("z_pT_Bin_Y_bin",                  "All_MultiDim_Y_bin[0]")
         # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",   "All_MultiDim_Y_bin[1]")
         # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",        "All_MultiDim_Y_bin[2]")
-        gdf = gdf.Define("z_pT_Bin_Y_bin",                str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D")))
+        gdf = gdf.Redefine("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D"))) if(gdf.HasColumn("z_pT_Bin_Y_bin")) else gdf.Define("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D")))
+        # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="3D")))
+        # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",      str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="5D")))
+
+    if(any(var not in gdf.GetColumnNames() for var in ["Q2_Y_Bin", "z_pT_Bin_Y_bin"])):
+        print(f"{color.RED}WARNING{color.END}: ROOT file is missing the binning variables.\n")
+        Q2_y_Bin_Def = ""
+        for Q2_y in range(1, 18):
+            Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[f'Q2-y={Q2_y}, Q2-y']
+            bin_condition= f"(Q2 < {Q2_max}) && (Q2 > {Q2_min}) && (y < {y_max}) && (y > {y_min})"
+            Q2_y_Bin_Def = f"""{Q2_y_Bin_Def}
+    if({bin_condition}){{ return {Q2_y}; }}"""
+        Q2_y_Bin_Def = f"""{Q2_y_Bin_Def}
+    return 0;"""
+        gdf = gdf.Redefine("Q2_Y_Bin", Q2_y_Bin_Def) if(gdf.HasColumn("Q2_Y_Bin")) else gdf.Define("Q2_Y_Bin", Q2_y_Bin_Def)
+        ##########################################################################################################################################################################################
+        ##########################################################################################################################################################################################
+        def z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="All"):
+            if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
+                print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function z_pT_Bin_Standard_Def_Function(Variable_Type='{Variable_Type}', Bin_Version='{Bin_Version}').\nFix input to use anything other than the default calculations of z and pT.")
+                Variable_Type  = ""
+            Q2_xB_Bin_event_name = "".join(["Q2_xB_Bin" if(Bin_Version not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q2_y_Bin" if(("y_" in Bin_Version) or (Bin_Version == "4")) else "Q2_Y_Bin", "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in ["", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
+            z_pT_Bin_event_name  = "".join(["z_pT_Bin",                                                                                                                                                          "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in [""])                                               else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
+            z_pT_Bin_Standard_Def = "".join([str(New_z_pT_and_MultiDim_Binning_Code), """
+                double z_event_val  = """, "smeared_vals[8]"  if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "z",  "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
+                double pT_event_val = """, "smeared_vals[10]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "pT", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", f""";
+                int z_pT_Bin_event_val = 0;
+                int Phih_Bin_event_val = 0;
+                int MultiDim3D_Bin_val = 0;
+                int MultiDim5D_Bin_val = 0;
+                if({Q2_xB_Bin_event_name} != 0){{
+                    z_pT_Bin_event_val = Find_z_pT_Bin({Q2_xB_Bin_event_name}, z_event_val, pT_event_val);
+                    if(z_pT_Bin_event_val == 0){{ MultiDim3D_Bin_val = 0; MultiDim5D_Bin_val = 0; }}
+                    else{{
+                        if(Phi_h_Bin_Values[{Q2_xB_Bin_event_name}][z_pT_Bin_event_val][0] == 1){{ Phih_Bin_event_val = 1; }}
+                        else{{Phih_Bin_event_val = Find_phi_h_Bin(""", str(Q2_xB_Bin_event_name), """, z_pT_Bin_event_val, """, "smeared_vals[11]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "phi_t", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """);}
+                        MultiDim3D_Bin_val = Phi_h_Bin_Values[""",     str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][1] + Phih_Bin_event_val;
+                        MultiDim5D_Bin_val = Phi_h_Bin_Values[""",     str(Q2_xB_Bin_event_name), """][z_pT_Bin_event_val][2] + Phih_Bin_event_val;
+                    }
+                }
+                else{ z_pT_Bin_event_val = 0; MultiDim3D_Bin_val = 0; MultiDim5D_Bin_val = 0; }
+                """, f"""
+                // Refinement of Migration/Overflow Bins
+                if((({Q2_xB_Bin_event_name} == 1) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 2) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 3) && ((z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 4) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 5) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 6) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 7) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 8) && ((z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 9) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 10) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 11) && ((z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 12) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 13) && ((z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 14) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 15) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 16) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 23) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 17) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30)))){{
+                    z_pT_Bin_event_val = 0; MultiDim3D_Bin_val = 0; MultiDim5D_Bin_val = 0;
+                }}
+                """, "return z_pT_Bin_event_val;" if(Var_return in ["z_pT", "2D"]) else "return MultiDim3D_Bin_val;" if(Var_return in ["3D"]) else "return MultiDim5D_Bin_val;" if(Var_return in ["5D"]) else """std::vector<int> z_pT_and_MultiDim_Bins = {z_pT_Bin_event_val, MultiDim3D_Bin_val, MultiDim5D_Bin_val};
+                return z_pT_and_MultiDim_Bins;"""])
+            return z_pT_Bin_Standard_Def
+        # gdf = gdf.Define("All_MultiDim_Y_bin",              str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="All")))
+        # gdf = gdf.Define("z_pT_Bin_Y_bin",                  "All_MultiDim_Y_bin[0]")
+        # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t",   "All_MultiDim_Y_bin[1]")
+        # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",        "All_MultiDim_Y_bin[2]")
+        gdf = gdf.Redefine("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D"))) if(gdf.HasColumn("z_pT_Bin_Y_bin")) else gdf.Define("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D")))
         # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="3D")))
         # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",      str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="5D")))
     
@@ -630,7 +684,7 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     return zpT_idx + phi_t_SUB_BINs;
     """)
     
-    Default_Weights = "1.0" if(args.use_clasdis) else "weight"
+    Default_Weights = "1.0"# if(args.use_clasdis) else "weight"
     if(args.use_clasdis):
         print(f"\n{color.BBLUE}Using clasdis File(s){color.END}\n")
     if("Event_Weight" in gdf.GetColumnNames()):

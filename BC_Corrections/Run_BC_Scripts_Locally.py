@@ -20,9 +20,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run a command on each file in a directory or glob pattern", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-d", "--directory",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb*EvGen*",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb*EvGen*",
+                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New,richcap}_No_Rad*V[0-9]*Part*.root",
                         type=str,
-                        help="Directory path OR glob pattern of files to process.")
+                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.")
 
     parser.add_argument("-check", "--check",
                         action="store_true",
@@ -57,6 +58,64 @@ def parse_args():
 
     return parser.parse_args()
 
+def expand_brace_patterns(pattern):
+    pattern = str(pattern)
+    brace_start = pattern.find("{")
+    if(brace_start == -1):
+        return [pattern]
+
+    depth = 0
+    brace_end = -1
+    for index, char in enumerate(pattern[brace_start:], start=brace_start):
+        if(char == "{"):
+            depth += 1
+        elif(char == "}"):
+            depth -= 1
+            if(depth == 0):
+                brace_end = index
+                break
+
+    if(brace_end == -1):
+        return [pattern]
+
+    prefix = pattern[:brace_start]
+    suffix = pattern[brace_end + 1:]
+    body   = pattern[brace_start + 1:brace_end]
+
+    options = []
+    current = []
+    depth   = 0
+    for char in body:
+        if((char == ",") and (depth == 0)):
+            options.append("".join(current))
+            current = []
+            continue
+        if(char == "{"):
+            depth += 1
+        elif(char == "}"):
+            depth -= 1
+        current.append(char)
+    options.append("".join(current))
+
+    expanded_patterns = []
+    for option in options:
+        expanded_patterns.extend(expand_brace_patterns(f"{prefix}{option}{suffix}"))
+    return expanded_patterns
+
+def build_file_list(target):
+    if(os.path.isdir(target)):
+        return [os.path.join(target, name) for name in os.listdir(target) if(os.path.isfile(os.path.join(target, name)))]
+
+    expanded_targets = expand_brace_patterns(target)
+
+    files = []
+    seen  = set()
+    for expanded_target in expanded_targets:
+        for filepath in glob.glob(expanded_target):
+            if(os.path.isfile(filepath) and (filepath not in seen)):
+                files.append(filepath)
+                seen.add(filepath)
+    return files
 
 def main():
 
@@ -70,11 +129,8 @@ def main():
     if(("BC_Corrections_Script.py" in str(args.command)) and not any(file_com in str(args.command) for file_com in ["-f ", "--file "])):
         args.command = f"{args.command} --file "
         
-    # Build file list from either directory or glob
-    if(os.path.isdir(target)):
-        files = [os.path.join(target, name) for name in os.listdir(target) if(os.path.isfile(os.path.join(target, name)))]
-    else: # treat as glob
-        files = [p for p in glob.glob(target) if(os.path.isfile(p))]
+    # Build file list from either directory or glob/brace-expanded glob
+    files = build_file_list(target)
 
     if(not files):
         print(f"Error: no files found for '{target}'")
@@ -210,8 +266,6 @@ def main():
         if(len(files) > 0):
             filepath = files[-1]
             command  = base_cmd + [filepath]
-            # print("Running:", " ".join(command))
-            # print("\n\nLAST ONE\n\n")
             StartTimePrint = str(timer.start_find(return_Q=True)).replace("Ran", "Started running")
             ElaspTimePrint = "\n".join(timer.time_elapsed(return_Q=True))
             Email_output = f"""This was the last file to be run with the command: 
@@ -235,9 +289,7 @@ def main():
 
     for num, filepath in enumerate(files):
         command = base_cmd + [filepath]
-        # print("Running:", " ".join(command))
         if((num+1) == len(files)):
-            # print("\n\nLAST ONE\n\n")
             StartTimePrint = str(timer.start_find(return_Q=True)).replace("Ran", "Started running")
             ElaspTimePrint = "\n".join(timer.time_elapsed(return_Q=True))
             Email_output = f"""This was the last file to be run with the command: 
