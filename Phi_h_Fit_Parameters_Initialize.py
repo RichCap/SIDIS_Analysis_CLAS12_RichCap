@@ -1905,8 +1905,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("7", "17"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.2,
+        "B_limits":  [-0.23, -0.15],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -1953,8 +1953,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("7", "23"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.2,
+        "B_limits":  [-0.23, -0.15],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -2417,8 +2417,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("9", "13"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.24,
+        "B_limits":  [-0.4, -0.2],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -3577,16 +3577,16 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("14", "22"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.15,
+        "B_limits":  [-0.3, -0.1],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
     ("14", "23"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.2,
+        "B_limits":  [-0.3, -0.1],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -3689,8 +3689,8 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("15", "4"): {
-        "B_initial": None,
-        "B_limits":  None,
+        "B_initial": -0.1,
+        "B_limits":  [-0.3, -0.05],
         "C_initial": None,
         "C_limits":  None,
         "Allow_Multiple_Fits":   True,
@@ -3769,10 +3769,10 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits_C": True
     },
     ("15", "15"): {
-        "B_initial": None,
-        "B_limits":  None,
-        "C_initial": None,
-        "C_limits":  None,
+        "B_initial": -0.2,
+        "B_limits":  [-0.4, -0.15],
+        "C_initial": -0.1,
+        "C_limits":  [-0.2, -0.05],
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },

@@ -971,17 +971,22 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                 Fitting_Function.SetParameter(2, Par_initial_C)
                                 Fitting_Function.SetParLimits(2, min(Par__range__C), max(Par__range__C))
                         elif((Q2_y_Bin_Special, z_pT_Bin_Special) in special_fit_parameters_set):
+                            if((Q2_y_Bin_Special, z_pT_Bin_Special, "BC") in special_fit_parameters_set):
+                                bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "BC")]
+                            elif((Q2_y_Bin_Special, z_pT_Bin_Special, "RC") in special_fit_parameters_set):
+                                bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "RC")]
+                            else:
                                 bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special)]
-                                if(bin_settings.get("B_initial") is not None):
-                                    Fitting_Function.SetParameter(1, bin_settings["B_initial"])
-                                    if(bin_settings.get("B_limits")):
-                                        Fitting_Function.SetParLimits(1, *sorted(bin_settings["B_limits"]))
-                                if(bin_settings.get("C_initial") is not None):
-                                    Fitting_Function.SetParameter(2, bin_settings["C_initial"])
-                                    if(bin_settings.get("C_limits")):
-                                        Fitting_Function.SetParLimits(2, *sorted(bin_settings["C_limits"]))
-                                Allow_Multiple_Fits   = bin_settings.get("Allow_Multiple_Fits",   True)
-                                Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)                        
+                            if(bin_settings.get("B_initial") is not None):
+                                Fitting_Function.SetParameter(1, bin_settings["B_initial"])
+                                if(bin_settings.get("B_limits")):
+                                    Fitting_Function.SetParLimits(1, *sorted(bin_settings["B_limits"]))
+                            if(bin_settings.get("C_initial") is not None):
+                                Fitting_Function.SetParameter(2, bin_settings["C_initial"])
+                                if(bin_settings.get("C_limits")):
+                                    Fitting_Function.SetParLimits(2, *sorted(bin_settings["C_limits"]))
+                            Allow_Multiple_Fits   = bin_settings.get("Allow_Multiple_Fits",   True)
+                            Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)                        
                     except:
                         print(f"\n{color.Error}ERROR in Fitting_Phi_Function() for 'Special' arguement...\n{color.END_B}Traceback:\n{str(traceback.format_exc())}{color.END}\n")
                 else:

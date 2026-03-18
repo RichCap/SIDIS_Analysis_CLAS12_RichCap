@@ -93,6 +93,8 @@ if(Use_TTree):
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_ZerothOrder_as_of_12_11_2025_Copy_First_Order_Errors.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_ZerothOrder_as_of_12_11_2025.root"
     TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_Fixed_Unfolded_Histos_From_FirstOrder_as_of_12_11_2025_Copy_First_Order_Errors.root"
+
+    TTree_Name   = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root"
     
 
 
@@ -265,7 +267,7 @@ else:
 print(color.BBLUE, "\nSmear option selected is:", "No Smear" if(str(Smearing_Options) in ["", "no_smear"]) else str(Smearing_Options.replace("_s", "S")).replace("s", "S"), color.END, "\n")
 
 File_Save_Format = ".png"
-File_Save_Format = ".root"
+# File_Save_Format = ".root" # Uncomment this line for the file format that will allow for the best images (after some local processing)
 # File_Save_Format = ".pdf"
 
 
@@ -9480,6 +9482,7 @@ if((Fit_Test and Use_TTree) or Apply_RC):
                     Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_B")]      = TTree_Fit_Par_B
                     Histogram_Fit_List_All[str(Histo_Name_General).replace(Dimensions_Original, "Fit_Par_C")]      = TTree_Fit_Par_C
                     fit_count += 1
+                    #FIND SINGLE FILE FITS
     
                 RC_Par_A, RC_Err_A, RC_Par_B, RC_Err_B, RC_Par_C, RC_Err_C = Find_RC_Fit_Params(Q2_y_bin=Q2_Y_Bin_Fitting, z_pT_bin=Z_PT_Bin_Fitting, root_in="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root", cache_in=None, cache_out=None, quiet=True)
                 RC_RooUnfolded_TTree_Histos = Apply_RC_Factor_Corrections(hist=RC_RooUnfolded_TTree_Histos, Par_A=RC_Par_A, Par_B=RC_Par_B, Par_C=RC_Par_C, use_param_errors=True, Par_A_err=RC_Err_A, Par_B_err=RC_Err_B, Par_C_err=RC_Err_C, param_cov=None)
@@ -9591,6 +9594,8 @@ if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in 
     JSON_Name = f"Fit_Pars_from_{'3D' if(Var_Type == 'MultiDim_z_pT_Bin_Y_bin_phi_t') else '1D'}_{Cor_Type}.json"
     if("_with_kCovToy" in TTree_Name):
         JSON_Name = JSON_Name.replace(f"{Cor_Type}.json", f"{Cor_Type}_with_Toys.json")
+    if("Response_Matrices_from_RDataFrames" in TTree_Name):
+        JSON_Name = f"NEW_{JSON_Name}"
     if(Sim_Test):
         JSON_Name = f"Sim_Test_{JSON_Name}"
     if(Mod_Test):
@@ -9601,8 +9606,8 @@ if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in 
             par, method, smear_line, q2_y_bin, z_pt_bin, var = List_of_All_Histos_For_Unfolding_ii.split(")_(")
             par = par.replace("(Fit_Par_", "")
             var = var.replace(")", "")
-            if("A" in par):
-                continue
+            # if("A" in par):
+            #     continue
             if("=Smear" not in smear_line):
                 print(f"{color.RED}Missing Smearing{color.END}")
                 continue
@@ -9615,7 +9620,8 @@ if((Fit_Test and Saving_Q) and (all(str(bin_in) in Q2_xB_Bin_List for bin_in in 
             q2_y_bin = q2_y_bin.replace("Q2_y_Bin_", "")
             z_pt_bin = z_pt_bin.replace("z_pT_Bin_", "")
             val, err = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
-            Fit_Pars_JSON[f"{par}_{q2_y_bin}_{z_pt_bin}"] = val
+            Fit_Pars_JSON[f"{par}_{q2_y_bin}_{z_pt_bin}"]     = val
+            Fit_Pars_JSON[f"{par}_ERR_{q2_y_bin}_{z_pt_bin}"] = err
     #         print(f"\n{List_of_All_Histos_For_Unfolding_ii} --> {val} (±{err})")
     # print(f"\n{color.BOLD}Looking at 'Fit_Pars_JSON' (len = {len(Fit_Pars_JSON)}){color.END}\n")
     # for ii in Fit_Pars_JSON:
@@ -10234,6 +10240,7 @@ for variable in Variable_List:
                                 if(str(PAR_HISTO_MASTER_NAME_VS_PT) not in Pars_Legends):
                                     Pars_Legends[PAR_HISTO_MASTER_NAME_VS_PT]     = ROOT.TLegend(0.55, 0.1, 0.9, 0.425)
 
+                                print(f"\n\n{color.Error}WARNING: Set the 'Find_Q2_y_z_pT_Bin_Stats' function to use the Bin Center's due to missing 2D histograms. Update back later.{color.END}\n\n")
                                 for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
                                     if(skip_condition_z_pT_bins(Q2_Y_BIN=BIN_NUM, Z_PT_BIN=z_pT_Bin, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=Common_Int_Bins)):
                                         continue
@@ -10245,10 +10252,12 @@ for variable in Variable_List:
                                         PAR_FIND_NAME = "".join(["(", str(Parameter), ")_(", str(Method), ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_", str(z_pT_Bin), ")_(", str(Variable), ")"])
                                     # if((fits_included and RC_fits_included) and Mod_Test):
                                     #     PAR_FIND_NAME = f"{PAR_FIND_NAME}_(Mod_Test)"
-                                    Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][1], 3)
-                                    PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][1], 3)
-                                    # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
-                                    # PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
+                                    
+                                    # # The lines below should be used to give the statistical centers of the bins
+                                    # Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][1], 3)
+                                    # PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][1], 3)
+                                    Z_BIN_VALUE   = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][1], 3)
+                                    PT_BIN_VALUE  = round(Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][1], 3)
                                     Z_BIN         = str(Z_BIN_VALUE)
                                     PT_BIN        = str(PT_BIN_VALUE)
 
@@ -10257,10 +10266,11 @@ for variable in Variable_List:
                                     Z_BIN         = str(Z_BIN_VALUE_Title)
                                     PT_BIN        = str(PT_BIN_VALUE_Title)
 
-                                    Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][0])/2, 3)
-                                    PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][0])/2, 3)
-                                    # Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
-                                    # PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
+                                    # # The lines below should be used to give the statistical centers of the bins
+                                    # Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][0][0])/2, 3)
+                                    # PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin_Find=z_pT_Bin, List_Of_Histos_For_Stats_Search=List_of_All_Histos_For_Unfolding, Smearing_Q=smear, DataType="bbb" if(Cut in ["Cut", "UnCut", ""]) else f"bbb)_({Cut}")[1][1][0])/2, 3)
+                                    Z_BIN_WIDTH   = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][0][0])/2, 3)
+                                    PT_BIN_WIDTH  = round((Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][2] - Find_Q2_y_z_pT_Bin_Stats(BIN_NUM, z_pT_Bin)[1][1][0])/2, 3)
 
                                     # PAR_FIND_NAME        = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_pT_Bin_",      str(z_pT_Bin), ")_(", str(Variable), ")"])
                                     # PAR_HISTO_NAME_VS_Z  = "".join(["(", str(Parameter), ")_(", str(Method) if((not Sim_Test) or (str(Method) not in ["rdf"])) else "mdf", ")_(SMEAR=", str(smear), ")_(Q2_y_Bin_", str(BIN_NUM), ")_(z_Bin_Center_",  str(PT_BIN),   ")_(", str(Variable), ")_VS_Z"])

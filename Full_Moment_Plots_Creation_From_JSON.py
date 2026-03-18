@@ -190,7 +190,8 @@ def parse_args():
     
     p.add_argument("-js", "-json", "--json_file",
                    type=str,
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_Final_File_Before_the_Collaboration_Meeting.json",
+                   # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_New_File_with_BC.json",
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_NEW_FULL_Normalization_AND_FULL_Fits.json",
                    help="Input JSON file produced by your fit workflow.\n")
 
@@ -234,6 +235,14 @@ def parse_args():
     p.add_argument("-wm", "--draw_preliminary_watermark",
                    action="store_true",
                    help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
+
+    p.add_argument("-xe", "--x_error_bars",
+                   action="store_true",
+                   help="Replace connecting lines between points with x-error bars sized to a fraction of the x-bin width.\n")
+    p.add_argument("-xf", "--x_error_fraction",
+                   type=float,
+                   default=(1.0/3.0),
+                   help="Fraction of the x-variable bin width to use for the FULL x-error-bar length (ex = 0.5*fraction*bin_width).\n")
 
     return p.parse_args()
 
@@ -670,9 +679,19 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
             gr  = ROOT.TGraphErrors(len(pts))
             for ip, (xx, yy, ey, key_str) in enumerate(pts):
                 gr.SetPoint(ip, float(xx), float(yy))
-                gr.SetPointError(ip, 0.0, float(ey))
+                xerr = 0.0
+                if(args.x_error_bars):
+                    if(str(args.x_mode).lower() == "z"):
+                        xw = float(info_map[key_str]["z_range"][2]) - float(info_map[key_str]["z_range"][1])
+                    else:
+                        xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                    xerr = 0.5 * float(args.x_error_fraction) * float(xw)
+                gr.SetPointError(ip, float(xerr), float(ey))
             style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
-            gr.Draw("P L SAME")
+            draw_opt = "P L SAME"
+            if(args.x_error_bars):
+                draw_opt = "P E1 SAME"
+            gr.Draw(draw_opt)
             c1._keepalive.append(gr)
 
         if(args.draw_legends):
@@ -983,12 +1002,24 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         gr  = ROOT.TGraphErrors(len(pts))
         for ip, (xx, yy, ey, key_str) in enumerate(pts):
             gr.SetPoint(ip, float(xx), float(yy))
-            gr.SetPointError(ip, 0.0, float(ey))
+            xerr = 0.0
+            if(args.x_error_bars):
+                if(str(args.x_mode).lower() == "z"):
+                    xw = float(info_map[key_str]["z_range"][2]) - float(info_map[key_str]["z_range"][1])
+                else:
+                    xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                xerr = 0.5 * float(args.x_error_fraction) * float(xw)
+            gr.SetPointError(ip, float(xerr), float(ey))
         style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=1 if("pdf" not in str(args.formats)) else 1)
         # gr.SetMarkerSize(0.5)
         # gr.SetLineWidth(1)
 
-        gr.Draw("P E1 L SAME")
+        if(gr.GetLineColor() != ROOT.kGreen):
+            continue
+        draw_opt = "P E1 L SAME"
+        if(args.x_error_bars):
+            draw_opt = "P E1 SAME"
+        gr.Draw(draw_opt)
         c1._keepalive.append(gr)
         graphs_by_sid[sid] = gr
 
@@ -1001,7 +1032,12 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
             gr = graphs_by_sid.get(sid, None)
             if(gr is None):
                 continue
-            ent = leg.AddEntry(gr, str(label), "LP")
+            if(gr.GetLineColor() != ROOT.kGreen):
+                continue
+            leg_opt = "LP"
+            if(args.x_error_bars):
+                leg_opt = "PE"
+            ent = leg.AddEntry(gr, str(label), leg_opt)
             if(ent):
                 ent.SetTextColor(int(colv))
                 try:

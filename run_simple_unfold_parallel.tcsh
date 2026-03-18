@@ -39,17 +39,20 @@ endif
 set script     = "./Simple_RooUnfold_SelfContained.py"
 set njobs      = 17
 set log_dir    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding"
-# set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
-# set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
-set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
-set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
+set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
+set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
+# set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
+# set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
 
 # Arguments for the Python script (easily changeable here)
 # set args       = "-bi 1 -nt 1 -smear -u3D -e -em \"Test of parallel running\""
 # set args       = '-r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)"'
-set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa'
-set emsg  = 'Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree.'
-set title = 'Applied the 0th Order Acceptance Weights'
+# set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa'
+# set emsg  = 'Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree.'
+# set title = 'Applied the 0th Order Acceptance Weights'
+set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root'
+set emsg  = 'Finished running Unfolding with the Baseline Response Matricies, but from the file that also has the 0th Order Acceptance Weights available. Reran to use the most recent set of successful batched files. Was running as background parallel jobs in tmuxTTree.'
+set title = 'Used the Pass 2 PID Refinements'
 
 # Optional: limit concurrent jobs if machine is overloaded (set to 0 = unlimited)
 set max_concurrent = 0   # 0 = run all 17 at once; e.g. 8 = limit to 8 running at a time
@@ -111,5 +114,7 @@ echo " Quick summary of runtimes and peak memory:"
 echo "------------------------------------------"
 grep -H "Elapsed\|Maximum resident" $log_dir/${time_prefix}*.time | grep -v Average | sort -t: -k2
 echo "===================================================================="
+
+echo "$emsg See the log files in $log_dir/${log_prefix}* for details." | mail -s "Finished running all parallel Simple_RooUnfold_SelfContained.py tasks" "richard.capobianco@uconn.edu"
 
 exit 0

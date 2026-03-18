@@ -80,21 +80,25 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
         charge  =  args_in.charge  if(hasattr(args_in, "charge"))  else charge_in
     Bin_Width_Area_Scale, _ = Bin_Area_by_Widths_Calc(args=args_custom, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=phi_t_bin)
     Luminosity = lumi(args_custom.charge)
+    Normalize_Factor = 1.0
     if(args_custom.verbose):
         print(f"Luminosity = {Luminosity}")
     if(Histo is not None):
         if(Bin_Width_Area_Scale != 0.0):
             Histo.Scale(1.0/Bin_Width_Area_Scale)
+            Normalize_Factor *= Bin_Width_Area_Scale
         else:
             print(f"\n{color.Error}Failed to scale histogram: {color.END_B}{Histo.GetName()}{color.END}\n")
             raise ValueError(f"Failed to scale histogram to 'Bin_Width_Area_Scale'. Bin Area = 0.")
         if(Luminosity != 0.0):
             Histo.Scale(1.0/Luminosity)
+            Normalize_Factor *= Luminosity
         else:
             print(f"\n{color.Error}Failed to scale histogram: {color.END_B}{Histo.GetName()}{color.END}\n")
             raise ValueError(f"Failed to scale histogram to 'Luminosity'. Luminosity = 0.")
         if(Rename_Axis):
             Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
+    Histo.Normalize_Factor = Normalize_Factor
     return Histo, Bin_Width_Area_Scale, Luminosity
     
 if(__name__ == "__main__"):

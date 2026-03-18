@@ -20,10 +20,10 @@ class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.
 def parse_args():
     parser = argparse.ArgumentParser(description="Creates BC Corrections from MC GEN Bins.", formatter_class=RawDefaultsHelpFormatter)
     parser.add_argument('-t', '--test',
-                        action='store_true', 
+                        action='store_true',
                         help='Run as test.\n')
     parser.add_argument('-gdf', '-clasdis', '--use_clasdis',
-                        action='store_true', 
+                        action='store_true',
                         help='Run with clasdis instead of EvGen (assumes that the EvGen weight should be used by default unless this argument is used).\n')
     parser.add_argument('-nb', '--num_sub_bins',
                         default=5,
@@ -49,13 +49,13 @@ def parse_args():
                         help="Selected phi_t Bin to run (each bin is given in increments of 15 degrees). Use '-1' to run all bins.\n")
     parser.add_argument('-f', '--file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb-EvGen-LUND_EvGen_richcap_GEMC-9729_4.hipo.root",
-                        type=str, 
+                        type=str,
                         help=f"Path to MC GEN ROOT file used to create the BC corrections.\n{color.BOLD}Use EvGen files so that a difference in the modulations is actually observable in the 4D sub-bins.{color.END}\n")
     parser.add_argument('-cdf', '--check_dataframe',
-                        action='store_true', 
+                        action='store_true',
                         help='Prints full contents of the RDataFrame to see available branches.\n')
     parser.add_argument('-v', '--verbose',
-                        action='store_true', 
+                        action='store_true',
                         help='Print more information while running.\n')
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',
@@ -85,14 +85,14 @@ def parse_args():
                         type=str,
                         help="Optional histogram title addition (use with the '--histogram' option).\n")
     parser.add_argument('-e', '--email',
-                        action='store_true', 
+                        action='store_true',
                         help='Send Email message when the script finishes running.\n')
     parser.add_argument('-em', '--email_message',
                         default="",
                         type=str,
                         help="Optional Email message that can be added to the default notification from '--email'.\n")
     parser.add_argument('-rR', '-read_root', '-bc', '--get_BC_factors',
-                        action='store_true', 
+                        action='store_true',
                         help=f"Reads the ROOT files from '--root_file_out' to get the BC factors for each bin.\n{color.BOLD}Will write the results to the '--json_file_out' JSON file if not running in '--test' mode.{color.END}\n")
 
     parser.add_argument('-mpi', '--make_plot_images',
@@ -112,7 +112,7 @@ def parse_args():
                         help="Output format for the BC sub-bin comparison plot.\n")
 
     return parser.parse_args()
-    
+
 def silence_root_import():
     script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
     sys.path.append(script_dir)
@@ -144,7 +144,6 @@ def silence_root_import():
 # import copy
 import json
 import time
-
 
 import subprocess
 def ansi_to_plain(text):
@@ -217,7 +216,7 @@ Arguments:
 {total_time}
 {rate_line}
     """
-    
+
     if(args.email):
         send_email(subject="Finished Running the 'BC_Corrections_Script.py' Code" if(not (Crashed or Warning)) else f"{'CRASH' if(Crashed) else 'ERROR'} REPORT: 'BC_Corrections_Script.py' Code {'Failed' if(Crashed) else 'is still running...'}", body=email_body, recipient="richard.capobianco@uconn.edu")
     print(f"\n\n\n\n{color.BOLD}{color_bg.YELLOW}EMAIL MESSAGE TO SEND:{color.END}\n\n{email_body}\n")
@@ -225,17 +224,17 @@ Arguments:
         print(f"\n\n{color.BOLD}CONTNUE RUNNING...{color.END}\n\n")
     elif(not Crashed):
         print(f"""{color.BGREEN}{color_bg.YELLOW}
-    \t                                   \t   
-    \tThis code has now finished running.\t   
+    \t                                   \t
+    \tThis code has now finished running.\t
     \t                                   \t   {color.END}
-    
+
     """)
     else:
         print(f"""{color.BYELLOW}{color_bg.RED}
-    \t                                   \t   
-    \t       This code has CRASHED!      \t   
+    \t                                   \t
+    \t       This code has CRASHED!      \t
     \t                                   \t   {color.END}
-    
+
     """)
 
 def Crash_Report(args, crash_message="The Code has CRASHED!", continue_run=False):
@@ -422,13 +421,13 @@ auto epsilon = (1 - y - 0.25*(gamma*gamma)*(y*y))/(1 - y + 0.5*(y*y) + 0.25*(gam
 std::vector<double> vals = {epipX.M(), epipX.M2(), Q2, xB, v, W2, W, y, z, epsilon};
 return vals;""")
         gdf = gdf.Define('MM',  'vals[0]') # Missing Mass
-        gdf = gdf.Define('MM2', 'vals[1]') # Missing Mass Squared 
+        gdf = gdf.Define('MM2', 'vals[1]') # Missing Mass Squared
         gdf = gdf.Define('Q2',  'vals[2]') # lepton momentum transfer squared
         gdf = gdf.Define('xB',  'vals[3]') # fraction of the proton momentum that is carried by the struck quark
         gdf = gdf.Define('W',   'vals[6]') # center-of-mass energy
         gdf = gdf.Define('y',   'vals[7]') # energy fraction of the incoming lepton carried by the virtual photon
         gdf = gdf.Define('z',   'vals[8]') # energy fraction of the virtual photon carried by the outgoing hadron
-        gdf = gdf.Define("vals2", """    
+        gdf = gdf.Define("vals2", """
 auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, 10.6, 0);
 auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
 auto eleM   = ROOT::Math::PxPyPzMVector(ex,     ey,   ez,       0);
@@ -502,7 +501,7 @@ return vals2;""")
         gdf = gdf.Define('pT',    'vals2[0]')    # transverse momentum of the final state hadron
         gdf = gdf.Define('phi_t', 'vals2[1]')    # Most important angle (between lepton and hadron planes)
         gdf = gdf.Define('xF',    'vals2[2]')    # x Feynmann
-    
+
         Q2_y_Bin_Def = ""
         for Q2_y in range(1, 18):
             Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[f'Q2-y={Q2_y}, Q2-y']
@@ -606,7 +605,7 @@ return vals2;""")
         gdf = gdf.Redefine("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D"))) if(gdf.HasColumn("z_pT_Bin_Y_bin")) else gdf.Define("z_pT_Bin_Y_bin", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="2D")))
         # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="3D")))
         # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",      str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="5D")))
-    
+
     print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}({color.ERROR}{args.num_sub_bins}{color.END_B} per variable){color.END}")
     if(args.num_phi_sub_bins > 0):
         print(f"\t{color.Error}Making with {color.END_B}{args.num_phi_sub_bins + args.num_sub_bins}{color.Error} phi_h sub-bins{color.END}\n")
@@ -683,7 +682,7 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.num_sub_bins+args.num_phi_sub_bins};
     return zpT_idx + phi_t_SUB_BINs;
     """)
-    
+
     Default_Weights = "1.0"# if(args.use_clasdis) else "weight"
     if(args.use_clasdis):
         print(f"\n{color.BBLUE}Using clasdis File(s){color.END}\n")
@@ -812,7 +811,7 @@ def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
     hmodel        = (hist_name, hist_titl, int(Nsub+2), -0.5, Nsub+1.5, 24, 0.5, 24.5)
     hist_ptr      = gdf.Histo2D(hmodel, "Full_SUB_BIN_idx", "phi_t_bin", "Event_Weight")
     return hist_ptr
-    
+
 def Create_Histograms_for_BC(args):
     print(f"\n{color.BGREEN}Creating Sub-Bin Histograms...{color.END}\n")
     List_of_Histos = {}
@@ -889,29 +888,47 @@ def mean_and_weighted_mean(contents, errors):
     len_content = len(contents)
     if(len_content == 0):
         return None
+
     # --- unweighted mean ---
-    sum_c, sum_e2 = 0.0, 0.0
-    for c,e in zip(contents, errors):
-        sum_c  += c
+    sum_c = 0.0
+    for c in contents:
+        sum_c += c
+    mean = (sum_c / len_content)
+
+    # --- standard deviation of the bin contents (NEW default uncertainty) ---
+    sum_sq_diff = 0.0
+    for c in contents:
+        sum_sq_diff += ((c - mean)*(c - mean))
+    stddev_of_bin_contents = ROOT.TMath.Sqrt(sum_sq_diff / len_content) if(len_content > 0) else 0.0
+
+    # --- old propagated mean error from sub-bin bin errors (renamed, no longer default) ---
+    sum_e2 = 0.0
+    for e in errors:
         sum_e2 += (e*e)
-    mean     = (sum_c / len_content)
-    mean_err = (ROOT.TMath.Sqrt(sum_e2) / len_content)
+    mean_err_from_bin_errors = (ROOT.TMath.Sqrt(sum_e2) / len_content)
+
     # --- weighted mean (inverse-variance) ---
     num, den = 0.0, 0.0
-    for c,e in zip(contents, errors):
-        if(e <= 0.0): 
+    for c, e in zip(contents, errors):
+        if(e <= 0.0):
             continue
         w    = (1.0 / (e*e))
         num += (c * w)
         den += w
     if(den > 0.0):
-        wmean     = (num / den)
-        wmean_err = ROOT.TMath.Sqrt(1.0 / den)
+        wmean = (num / den)
+        weighted_mean_err_from_bin_errors = ROOT.TMath.Sqrt(1.0 / den)
     else:
-        wmean     = float("nan")
-        wmean_err = float("nan")
-    return {"ave": mean, "ave_err": mean_err, "weighted_ave": wmean, "weighted_ave_err": wmean_err}
+        wmean = float("nan")
+        weighted_mean_err_from_bin_errors = float("nan")
 
+    return {"ave": mean,
+            "ave_err": stddev_of_bin_contents,
+            "weighted_ave": wmean,
+            "weighted_ave_err": stddev_of_bin_contents,
+            "stddev_of_bin_contents": stddev_of_bin_contents,
+            "ave_err_from_bin_errors": mean_err_from_bin_errors,
+            "weighted_ave_err_from_bin_errors": weighted_mean_err_from_bin_errors}
 
 def BC_ratio_and_error(val_num, err_num, val_den, err_den):
     if(val_den == 0.0):
@@ -926,7 +943,7 @@ def BC_ratio_and_error(val_num, err_num, val_den, err_den):
         rel_err2 += (err_den / val_den)**2
     ratio_err = abs(ratio) * ROOT.TMath.Sqrt(rel_err2)
     return ratio, ratio_err
-  
+
 # ------------------------------------------------------------
 # Core: read histograms and compute per-nominal-bin outputs
 # ------------------------------------------------------------
@@ -947,14 +964,25 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
     num_sub_bins = int(args.num_sub_bins)
     Nsub = int((num_sub_bins**4)*(num_sub_bins+args.num_phi_sub_bins))
     full_center_idx = int((Nsub)/2)+1
-    
+
     # Output: one value per nominal bin
-    out = {"meta": { "root_file": str(root_path), "num_sub_bins": int(num_sub_bins), "extra_num_phi_sub_bins": int(args.num_phi_sub_bins), "Nsub_per_nominal_bin": int(Nsub), "center_subbin": int(full_center_idx),
-                     "definition": {"bc_factor": "avg_subbin_content / center_subbin_content", "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)"},
+    out = {"meta": { "root_file": str(root_path),
+                     "num_sub_bins": int(num_sub_bins),
+                     "extra_num_phi_sub_bins": int(args.num_phi_sub_bins),
+                     "Nsub_per_nominal_bin": int(Nsub),
+                     "center_subbin": int(full_center_idx),
+                     "definition": {"bc_factor": "avg_subbin_content / center_subbin_content",
+                                    "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)",
+                                    "ave_err": "population standard deviation of the sub-bin contents (new default uncertainty)",
+                                    "weighted_ave_err": "population standard deviation of the sub-bin contents (new default uncertainty also used for the weighted average entry)",
+                                    "ave_err_from_bin_errors": "old propagated mean error from the sub-bin bin errors",
+                                    "weighted_ave_err_from_bin_errors": "old inverse-variance weighted mean error from the sub-bin bin errors",
+                                    "nominal_bin": "sum of all sub-bin contents, with nominal error from quadrature of the sub-bin bin errors when available"},
                      "email_message": args.email_message
                    },
-           "results":       {},
-           "full_contents": {}
+           "results": {},
+           "full_contents": {},
+           "nominal_contents": {}
           }
 
     print(f"\n{color.BBLUE}Opening ROOT file: {color.BPINK}{root_path}{color.END}")
@@ -962,11 +990,11 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         print(f"\tnum_sub_bins={num_sub_bins}  => Nsub={Nsub}")
         print(f"\tcenter Full_SUB_BIN_idx={full_center_idx}")
     print("")
-    
+
     fin = ROOT.TFile.Open(str(root_path), "READ")
     if((fin is None) or (fin.IsZombie())):
         raise RuntimeError(f"Failed to open ROOT file: {root_path}")
-        
+
     # Collect all TH2 histograms by iterating keys
     keys = fin.GetListOfKeys()
     hist_names = []
@@ -991,7 +1019,7 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
         if((args.Q2_y_Bin not in [-1, None, Q2_y_Bin]) or (args.z_pT_Bin not in [-1, None, z_pT_Bin])):
             if(verbose):
                 print(f"\t{color.RED}Skipping unselected histogram bin: {color.ERROR}{hist_name}{color.END}")
-            continue   
+            continue
         if((nsub_in_name is not None) and (int(nsub_in_name) != int(num_sub_bins))):
             print(f"\n{color.Error}WARNING: num_sub_bins mismatch in {hist_name}: name has {nsub_in_name}, args has {num_sub_bins}{color.END}\n")
             raise ValueError("Compute_BC_Factors_From_SubBin_Histograms Warning: num_sub_bins mismatch in hist_name.")
@@ -1024,6 +1052,21 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
                         out["results"][nom_key]["Center Sub-Bin"] = {"Content": content, "Error": error}
                 nonBinContentsList.append(content)
                 nonBin_Errors_List.append(error)
+
+            try:
+                nominal_content = 0.0
+                nominal_err_sq  = 0.0
+                for content_val, error_val in zip(nonBinContentsList, nonBin_Errors_List):
+                    nominal_content += content_val
+                    nominal_err_sq  += (error_val*error_val)
+                nominal_info = {"Content": nominal_content, "Error": ROOT.TMath.Sqrt(nominal_err_sq)}
+                out["results"][nom_key]["Nominal Bin"] = nominal_info
+                out["nominal_contents"][nom_key] = nominal_info
+            except Exception as Nominal_Bin_Exception:
+                if(verbose):
+                    print(f"{color.BYELLOW}WARNING:{color.END} Could not save nominal bin content/error for {nom_key}. Continuing without it.")
+                    print(f"\t{Nominal_Bin_Exception}")
+
             out["results"][nom_key].update(mean_and_weighted_mean(nonBinContentsList, nonBin_Errors_List))
             BC_norm, BC_norm_err = BC_ratio_and_error(out["results"][nom_key]["ave"],          out["results"][nom_key]["ave_err"],          out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
             BC_Wave, BC_Wave_err = BC_ratio_and_error(out["results"][nom_key]["weighted_ave"], out["results"][nom_key]["weighted_ave_err"], out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
@@ -1206,7 +1249,7 @@ def Plot_BC_Factor_From_JSON(args):
         print(f"\n{color.BBLUE}WOULD HAVE saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
 
     return args
-    
+
 if(__name__ == "__main__"):
     args = parse_args()
     if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
@@ -1215,9 +1258,9 @@ if(__name__ == "__main__"):
     if((args.num_phi_sub_bins < 0) or ((args.num_sub_bins+args.num_phi_sub_bins)%2 == 0)):
         print(f"\n{color.Error}ERROR: Number of extra phi_h sub-bins cannot be negative and the total must still be a positive, odd number for this script to work properly{color.END}\n")
         sys.exit(0)
-    
+
     print(f"\n{color.BBLUE}Ready to Run BC Correction Script...{color.END}\n")
-        
+
     args.timer = RuntimeTimer()
     args.timer.start()
     silence_root_import()
@@ -1276,3 +1319,4 @@ if(__name__ == "__main__"):
                 args.Save_Name = f"{args.Save_Name}\n{args.Save_Name_BC_Factor}"
 
     Construct_Email(args, final_count=Total_Num_SBin, Count_Type=f"{'Histograms' if(args.histogram) else 'Sub-bins'}{'/Image(s)' if(args.make_plot_images) else ''}")
+

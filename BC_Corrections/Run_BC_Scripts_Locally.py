@@ -21,7 +21,8 @@ def parse_args():
 
     parser.add_argument("-d", "--directory",
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb*EvGen*",
-                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New,richcap}_No_Rad*V[0-9]*Part*.root",
+                        # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New,richcap}_No_Rad*V[0-9]*Part*.root",
+                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New_V2,New_V3,Groups_Batch_[1-9],Groups_Batch_1[0-6]}_No_Rad*Part*.root",
                         type=str,
                         help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.")
 
