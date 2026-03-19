@@ -683,9 +683,12 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     return zpT_idx + phi_t_SUB_BINs;
     """)
 
-    Default_Weights = "1.0"# if(args.use_clasdis) else "weight"
+    # Default_Weights = "1.0"# if(args.use_clasdis) else "weight"
+    Default_Weights = "1.0" if(args.use_clasdis) else "Weight" if(gdf.HasColumn("Weight")) else "weight" if(gdf.HasColumn("weight")) else "1.0"
     if(args.use_clasdis):
         print(f"\n{color.BBLUE}Using clasdis File(s){color.END}\n")
+    elif(Default_Weights in ["1.0"]):
+        Crash_Report(args, crash_message=f"\n{color.Error}WARNING: The default event weights for the proper EvGen events were missing...\n{color.END_R}Should not run the EvGen events with the proper event handling.{color.END}\n", continue_run=False)
     if("Event_Weight" in gdf.GetColumnNames()):
         print(f"\n{color.Error}WARNING: 'Event_Weight' is already defined in the RDataFrame...{color.END}\n")
     elif(args.json_weights):
@@ -1280,10 +1283,11 @@ if(__name__ == "__main__"):
         if(args.use_file_name and ("*" not in str(args.file))):
             name_insert = str(args.file).split("/")[-1]
             name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
+            name_insert = str(name_insert).replace(".root", "")
             args.json_file_out = str(args.json_file_out).replace(".json", f"_{name_insert}.json")
             args.root_file_out = str(args.root_file_out).replace(".root", f"_{name_insert}.root")
-            if(args.verbose):
-                print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
+            # if(args.verbose):
+            print(f"\n{color.BOLD}Updating Output File Names to insert: {color.RED}{name_insert}{color.END}")
         elif(args.use_file_name and args.verbose):
             print(f"\n{color.Error}Will Not Update Output File Names if multiple files are inputed at the same time.{color.END}")
         gdf = Load_RDataFrame(args)

@@ -16,46 +16,49 @@ from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 sys.path.remove(script_dir)
 del script_dir
 
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run a command on each file in a directory or glob pattern", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Run a command on each file in a directory or glob pattern", formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument("-d", "--directory",
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new6.inb*EvGen*",
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New,richcap}_No_Rad*V[0-9]*Part*.root",
-                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New_V2,New_V3,Groups_Batch_[1-9],Groups_Batch_1[0-6]}_No_Rad*Part*.root",
+                        # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{New_V2,New_V3,Groups_Batch_[1-9],Groups_Batch_1[0-6]}_No_Rad*Part*.root",
+                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/LUND_EvGen_Iterative_*{richcap,New,New_V2,New_V3,Groups_Batch_[1-9],Groups_Batch_[1-2][0-9]}_No_Rad*Part*.root",
                         type=str,
-                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.")
+                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.\n")
 
     parser.add_argument("-check", "--check",
                         action="store_true",
-                        help="Stop if a command exits non-zero.")
+                        help="Stop if a command exits non-zero.\n")
 
     parser.add_argument("-c", "--command",
                         default="lt",
                         type=str,
-                        help="Command to run. The default command is just 'lt'—must at least set to 'BC_Corrections_Script.py' to run the actual code.")
+                        help="Command to run. The default command is just 'lt'—must at least set to 'BC_Corrections_Script.py' to run the actual code.\n")
 
     parser.add_argument("-e", '--email',
                         action="store_true",
-                        help="Passes an email argument to the last command.")
+                        help="Passes an email argument to the last command.\n")
 
     parser.add_argument("-gdf", '--clasdis',
                         action="store_true",
-                        help="Runs clasdis default files instead of EvGen files (overwrites the '--directory' argument automatically).")
+                        help="Runs clasdis default files instead of EvGen files (overwrites the '--directory' argument automatically).\n")
 
     parser.add_argument("-p", "--parallel",
                         action="store_true",
-                        help="Enable parallel execution mode (default is sequential).")
+                        help="Enable parallel execution mode (default is sequential).\n")
 
     parser.add_argument("-j", "--max_jobs",
                         default=4,
                         type=int,
-                        help="Maximum number of simultaneous jobs when running in parallel mode.")
+                        help="Maximum number of simultaneous jobs when running in parallel mode.\n")
 
     parser.add_argument("-rcl", "--run_context_line",
                         default="Ran in tmuxPython",
                         type=str,
-                        help="Custom line to include at the end of the Email_output string (replaces the hardcoded 'Ran in tmux...' line).")
+                        help="Custom line to include at the end of the Email_output string (replaces the hardcoded 'Ran in tmux...' line).\n")
 
     return parser.parse_args()
 
