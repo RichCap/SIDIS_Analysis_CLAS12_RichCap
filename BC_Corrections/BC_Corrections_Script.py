@@ -84,6 +84,9 @@ def parse_args():
                         default="",
                         type=str,
                         help="Optional histogram title addition (use with the '--histogram' option).\n")
+    parser.add_argument('-nz', '--non_zero_bin_averages',
+                        action='store_true',
+                        help="Optional: calculate the average sub-bin contents and their standard deviations using only sub-bins with non-zero content.\n")
     parser.add_argument('-e', '--email',
                         action='store_true',
                         help='Send Email message when the script finishes running.\n')
@@ -100,7 +103,10 @@ def parse_args():
                         help="Optional: make a visualization plot (Center vs Average sub-bin contents vs nominal phi_h bin) from the existing JSON output.\n")
     parser.add_argument('-mpbc', '--make_plot_BC_factor',
                         action='store_true',
-                        help="Optional: also make a BC Factor vs nominal phi_h bin plot from the existing JSON output.\nRequires the same single '--Q2_y_Bin' and '--z_pT_Bin' as '--make_plot_images'.\n")
+                        help="Optional: also make a BC Factor vs nominal phi_h bin plot from the existing JSON output.\nRequires the same single '--Q2_y_Bin' and '--z_pT_Bin' as '--make_plot_images' unless using '--make_plot_Q2_y_images'.\n")
+    parser.add_argument('-mpq2y', '--make_plot_Q2_y_images',
+                        action='store_true',
+                        help="Optional: make combined z-pT image canvases for each selected Q2-y bin from the existing JSON output.\nWorks with '--make_plot_images' and/or '--make_plot_BC_factor'.\n")
     parser.add_argument('-n', '-sn', '--image_name',
                         default="",
                         type=str,
@@ -193,7 +199,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_
             continue
         if((str(name) in ["json_file_in"]) and (not args.json_weights)):
             continue
-        if((str(name) in ["image_name", "File_Format"]) and (not args.make_plot_images)):
+        if((str(name) in ["image_name", "File_Format"]) and (not (args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images))):
             continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
@@ -204,9 +210,9 @@ The 'BC_Corrections_Script.py' script has {'finished running.' if(not (Crashed o
 {args.email_message}
 
 Input(s):
-{f'{args.root_file_out}\n{args.json_file_out}' if(args.make_plot_images and args.get_BC_factors) else args.json_file_out if(args.make_plot_images) else args.root_file_out if(args.get_BC_factors) else args.file}
+{f'{args.root_file_out}\n{args.json_file_out}' if((args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images) and args.get_BC_factors) else args.json_file_out if(args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images) else args.root_file_out if(args.get_BC_factors) else args.file}
 Output(s):
-{f'{args.json_file_out}\n{getattr(args, "Save_Name", None)}' if(args.make_plot_images and args.get_BC_factors) else getattr(args, "Save_Name", None) if(args.make_plot_images) else args.json_file_out if((not args.histogram) or args.get_BC_factors) else  args.root_file_out}
+{f'{args.json_file_out}\n{getattr(args, "Save_Name", None)}' if((args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images) and args.get_BC_factors) else getattr(args, "Save_Name", None) if(args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images) else args.json_file_out if((not args.histogram) or args.get_BC_factors) else  args.root_file_out}
 
 
 Arguments:
@@ -885,34 +891,58 @@ def parse_histogram_name(hist_name):
     extra_phi = int(match_phi.group(1)) if(match_phi) else 0
     return Q2y, zpt, nsub, extra_phi
 
-def mean_and_weighted_mean(contents, errors):
+def mean_and_weighted_mean(contents, errors, include_zero_bins=True):
     if(len(contents) != len(errors)):
         raise ValueError("contents and errors must have the same length")
     len_content = len(contents)
     if(len_content == 0):
         return None
 
+    filtered_contents = []
+    filtered_errors   = []
+    for content, error in zip(contents, errors):
+        if(include_zero_bins or (content != 0.0)):
+            filtered_contents.append(content)
+            filtered_errors.append(error)
+
+    if(len(filtered_contents) == 0):
+        return {"ave": 0.0,
+                "ave_err": 0.0,
+                "weighted_ave": 0.0,
+                "weighted_ave_err": 0.0,
+                "stddev_of_bin_contents": 0.0,
+                "ave_err_from_bin_errors": 0.0,
+                "weighted_ave_err_from_bin_errors": 0.0,
+                "num_bins_used_for_averages": 0,
+                "num_bins_available_for_averages": len_content,
+                "non_zero_bin_averages_used": (not include_zero_bins)}
+
+    len_filtered_content = len(filtered_contents)
+
     # --- unweighted mean ---
     sum_c = 0.0
-    for c in contents:
+    for c in filtered_contents:
         sum_c += c
-    mean = (sum_c / len_content)
+    mean = (sum_c / len_filtered_content)
 
-    # --- standard deviation of the bin contents (NEW default uncertainty) ---
+    # --- standard deviation of the bin contents ---
     sum_sq_diff = 0.0
-    for c in contents:
+    for c in filtered_contents:
         sum_sq_diff += ((c - mean)*(c - mean))
-    stddev_of_bin_contents = ROOT.TMath.Sqrt(sum_sq_diff / len_content) if(len_content > 0) else 0.0
+    stddev_of_bin_contents = ROOT.TMath.Sqrt(sum_sq_diff / len_filtered_content) if(len_filtered_content > 0) else 0.0
+
+    # --- standard error of the mean (NEW default uncertainty) ---
+    standard_error_of_mean = (stddev_of_bin_contents / ROOT.TMath.Sqrt(len_filtered_content)) if(len_filtered_content > 0) else 0.0
 
     # --- old propagated mean error from sub-bin bin errors (renamed, no longer default) ---
     sum_e2 = 0.0
-    for e in errors:
+    for e in filtered_errors:
         sum_e2 += (e*e)
-    mean_err_from_bin_errors = (ROOT.TMath.Sqrt(sum_e2) / len_content)
+    mean_err_from_bin_errors = (ROOT.TMath.Sqrt(sum_e2) / len_filtered_content)
 
     # --- weighted mean (inverse-variance) ---
     num, den = 0.0, 0.0
-    for c, e in zip(contents, errors):
+    for c, e in zip(filtered_contents, filtered_errors):
         if(e <= 0.0):
             continue
         w    = (1.0 / (e*e))
@@ -926,12 +956,15 @@ def mean_and_weighted_mean(contents, errors):
         weighted_mean_err_from_bin_errors = float("nan")
 
     return {"ave": mean,
-            "ave_err": stddev_of_bin_contents,
+            "ave_err": standard_error_of_mean,
             "weighted_ave": wmean,
-            "weighted_ave_err": stddev_of_bin_contents,
+            "weighted_ave_err": standard_error_of_mean,
             "stddev_of_bin_contents": stddev_of_bin_contents,
             "ave_err_from_bin_errors": mean_err_from_bin_errors,
-            "weighted_ave_err_from_bin_errors": weighted_mean_err_from_bin_errors}
+            "weighted_ave_err_from_bin_errors": weighted_mean_err_from_bin_errors,
+            "num_bins_used_for_averages": len_filtered_content,
+            "num_bins_available_for_averages": len_content,
+            "non_zero_bin_averages_used": (not include_zero_bins)}
 
 def BC_ratio_and_error(val_num, err_num, val_den, err_den):
     if(val_den == 0.0):
@@ -974,12 +1007,14 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
                      "extra_num_phi_sub_bins": int(args.num_phi_sub_bins),
                      "Nsub_per_nominal_bin": int(Nsub),
                      "center_subbin": int(full_center_idx),
+                     "include_zero_bins_in_averages": bool(include_zero_bins),
                      "definition": {"bc_factor": "avg_subbin_content / center_subbin_content",
                                     "avg": "mean over all sub-bins in the nominal bin (optionally includes zeros)",
-                                    "ave_err": "population standard deviation of the sub-bin contents (new default uncertainty)",
-                                    "weighted_ave_err": "population standard deviation of the sub-bin contents (new default uncertainty also used for the weighted average entry)",
-                                    "ave_err_from_bin_errors": "old propagated mean error from the sub-bin bin errors",
-                                    "weighted_ave_err_from_bin_errors": "old inverse-variance weighted mean error from the sub-bin bin errors",
+                                    "ave_err": "standard error of the mean from the selected sub-bin contents (new default uncertainty)",
+                                    "weighted_ave_err": "standard error of the mean from the selected sub-bin contents (new default uncertainty also used for the weighted average entry)",
+                                    "stddev_of_bin_contents": "population standard deviation of the selected sub-bin contents",
+                                    "ave_err_from_bin_errors": "old propagated mean error from the selected sub-bin bin errors",
+                                    "weighted_ave_err_from_bin_errors": "old inverse-variance weighted mean error from the selected sub-bin bin errors",
                                     "nominal_bin": "sum of all sub-bin contents, with nominal error from quadrature of the sub-bin bin errors when available"},
                      "email_message": args.email_message
                    },
@@ -992,6 +1027,7 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
     if(verbose):
         print(f"\tnum_sub_bins={num_sub_bins}  => Nsub={Nsub}")
         print(f"\tcenter Full_SUB_BIN_idx={full_center_idx}")
+        print(f"\tinclude_zero_bins_in_averages={include_zero_bins}")
     print("")
 
     fin = ROOT.TFile.Open(str(root_path), "READ")
@@ -1070,7 +1106,8 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
                     print(f"{color.BYELLOW}WARNING:{color.END} Could not save nominal bin content/error for {nom_key}. Continuing without it.")
                     print(f"\t{Nominal_Bin_Exception}")
 
-            out["results"][nom_key].update(mean_and_weighted_mean(nonBinContentsList, nonBin_Errors_List))
+            mean_info = mean_and_weighted_mean(nonBinContentsList, nonBin_Errors_List, include_zero_bins=include_zero_bins)
+            out["results"][nom_key].update(mean_info)
             BC_norm, BC_norm_err = BC_ratio_and_error(out["results"][nom_key]["ave"],          out["results"][nom_key]["ave_err"],          out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
             BC_Wave, BC_Wave_err = BC_ratio_and_error(out["results"][nom_key]["weighted_ave"], out["results"][nom_key]["weighted_ave_err"], out["results"][nom_key]["Center Sub-Bin"]["Content"], out["results"][nom_key]["Center Sub-Bin"]["Error"])
             out["results"][nom_key].update({"BC_Factor": BC_norm, "BC_Factor_Err": BC_norm_err, "BC_Factor_Wave": BC_Wave, "BC_Factor_Wave_Err": BC_Wave_err})
@@ -1095,26 +1132,30 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
 # ------------------------------------------------------------
 # Optional plot: Center vs Average vs nominal phi_h bin
 # ------------------------------------------------------------
-def Plot_BC_Subbin_Inputs_From_JSON(args):
-    if((args.Q2_y_Bin in [-1, None]) or (args.z_pT_Bin in [-1, None])):
+def Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=None, save_plot=True, q2_y_bin_override=None, z_pT_bin_override=None, json_data=None, draw_legend=True):
+    q2_y_bin_to_use = args.Q2_y_Bin if(q2_y_bin_override in [None]) else q2_y_bin_override
+    z_pT_bin_to_use = args.z_pT_Bin if(z_pT_bin_override in [None]) else z_pT_bin_override
+
+    if((q2_y_bin_to_use in [-1, None]) or (z_pT_bin_to_use in [-1, None])):
         Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} '--make_plot_images' requires a single '--Q2_y_Bin' and '--z_pT_Bin' (not -1). Skipping plot.{color.END}\n")
     json_path = str(args.json_file_out)
-    if(not os.path.exists(json_path)):
-        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
-    data = load_json_file(json_path)
-    if((not isinstance(data, dict)) or ("results" not in data) or (not isinstance(data["results"], dict))):
+    if(json_data in [None]):
+        if(not os.path.exists(json_path)):
+            Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
+        json_data = load_json_file(json_path)
+    if((not isinstance(json_data, dict)) or ("results" not in json_data) or (not isinstance(json_data["results"], dict))):
         Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not have the expected schema with a top-level 'results' dict.\n{color.END}File Input Was: {json_path}\n")
-    results = data["results"]
+    results = json_data["results"]
     # Build output histograms: 24 nominal phi bins (1..24)
-    hname_center = f"h_center_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
-    hname_ave    = f"h_ave_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
-    title_base = f"#splitline{{BC Factor Sub-bin Inputs}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({args.Q2_y_Bin}-{args.z_pT_Bin})}}}}"
+    hname_center = f"h_center_Q2y{q2_y_bin_to_use}_zpt{z_pT_bin_to_use}"
+    hname_ave    = f"h_ave_Q2y{q2_y_bin_to_use}_zpt{z_pT_bin_to_use}"
+    title_base = f"#splitline{{BC Factor Sub-bin Inputs}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({q2_y_bin_to_use}-{z_pT_bin_to_use})}}}}"
     h_center = ROOT.TH1D(hname_center, f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
     h_ave    = ROOT.TH1D(hname_ave,    f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
     # Fill from JSON
     max_y, min_y = 0.0, 0.0
     for phi_bin in range(1, 24 + 1):
-        nom_key = f"Bin ({args.Q2_y_Bin}-{args.z_pT_Bin}-{phi_bin})"
+        nom_key = f"Bin ({q2_y_bin_to_use}-{z_pT_bin_to_use}-{phi_bin})"
         entry = results.get(nom_key, {})
         # Defaults to 0 if missing
         c_val, c_err = 0.0, 0.0
@@ -1154,50 +1195,78 @@ def Plot_BC_Subbin_Inputs_From_JSON(args):
     h_ave.SetMarkerStyle(21)
     h_ave.SetLineWidth(2)
     h_ave.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
-    Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Subbin_Comparisons_for_Q2_y_Bin_{args.Q2_y_Bin}_z_pT_Bin_{args.z_pT_Bin}'
-    c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
-    pad = c.cd()
-    # pad.SetBottomMargin(float(bottom_margin))
-    pad.SetTopMargin(0.175)
-    pad.SetLeftMargin(0.125)
-    pad.SetRightMargin(0.025)
+
+    if(main_pad in [None]):
+        Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Subbin_Comparisons_for_Q2_y_Bin_{q2_y_bin_to_use}_z_pT_Bin_{z_pT_bin_to_use}'
+        c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
+        pad = c.cd()
+        # pad.SetBottomMargin(float(bottom_margin))
+        pad.SetTopMargin(0.175)
+        pad.SetLeftMargin(0.125)
+        pad.SetRightMargin(0.025)
+    else:
+        Save_Name = None
+        c = None
+        pad = main_pad
+        pad.cd()
+        pad.SetTopMargin(0.175)
+        pad.SetLeftMargin(0.125)
+        pad.SetRightMargin(0.025)
+
     # Draw both on the same pad
     h_ave.Draw("E1")
     h_center.Draw("E1 SAME")
-    # leg = ROOT.TLegend(0.62, 0.76, 0.88, 0.88)
-    leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
-    leg.SetBorderSize(0)
-    leg.SetFillStyle(0)
-    leg.AddEntry(h_center, "#scale[2]{Center Sub-Bin Content}", "lep")
-    leg.AddEntry(h_ave,    "#scale[2]{Average Sub-Bin Content}", "lep")
-    leg.Draw()
-    args.Save_Name = f'{Save_Name}.{args.File_Format}'
-    if(not args.test):
-        c.SaveAs(args.Save_Name)
-        print(f"\n{color.BGREEN}Saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
-    else:
-        print(f"\n{color.BBLUE}WOULD HAVE saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
-    return args
 
-def Plot_BC_Factor_From_JSON(args):
-    if((args.Q2_y_Bin in [-1, None]) or (args.z_pT_Bin in [-1, None])):
+    leg = None
+    if(draw_legend):
+        # leg = ROOT.TLegend(0.62, 0.76, 0.88, 0.88)
+        leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
+        leg.SetBorderSize(0)
+        leg.SetFillStyle(0)
+        leg.AddEntry(h_center, "#scale[2]{Center Sub-Bin Content}", "lep")
+        leg.AddEntry(h_ave,    "#scale[2]{Average Sub-Bin Content}", "lep")
+        leg.Draw()
+
+    pad.Modified()
+    pad.Update()
+
+    if(save_plot and (Save_Name not in [None])):
+        args.Save_Name = f'{Save_Name}.{args.File_Format}'
+        if(not args.test):
+            c.SaveAs(args.Save_Name)
+            print(f"\n{color.BGREEN}Saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
+        else:
+            print(f"\n{color.BBLUE}WOULD HAVE saved BC sub-bin comparison plot:{color.END} {color.BPINK}{args.Save_Name}{color.END}\n")
+        return args
+
+    return {"h_center": h_center,
+            "h_ave": h_ave,
+            "legend": leg,
+            "pad": pad}
+
+def Plot_BC_Factor_From_JSON(args, main_pad=None, save_plot=True, q2_y_bin_override=None, z_pT_bin_override=None, json_data=None, draw_legend=True):
+    q2_y_bin_to_use = args.Q2_y_Bin if(q2_y_bin_override in [None]) else q2_y_bin_override
+    z_pT_bin_to_use = args.z_pT_Bin if(z_pT_bin_override in [None]) else z_pT_bin_override
+
+    if((q2_y_bin_to_use in [-1, None]) or (z_pT_bin_to_use in [-1, None])):
         Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} '--make_plot_BC_factor' requires a single '--Q2_y_Bin' and '--z_pT_Bin' (not -1). Skipping plot.{color.END}\n")
     json_path = str(args.json_file_out)
-    if(not os.path.exists(json_path)):
-        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
-    data = load_json_file(json_path)
-    if((not isinstance(data, dict)) or ("results" not in data) or (not isinstance(data["results"], dict))):
+    if(json_data in [None]):
+        if(not os.path.exists(json_path)):
+            Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
+        json_data = load_json_file(json_path)
+    if((not isinstance(json_data, dict)) or ("results" not in json_data) or (not isinstance(json_data["results"], dict))):
         Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not have the expected schema with a top-level 'results' dict.\n{color.END}File Input Was: {json_path}\n")
 
-    results = data["results"]
+    results = json_data["results"]
 
-    hname_bc = f"h_bc_Q2y{args.Q2_y_Bin}_zpt{args.z_pT_Bin}"
-    title_base = f"#splitline{{BC Factor}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({args.Q2_y_Bin}-{args.z_pT_Bin})}}}}"
+    hname_bc = f"h_bc_Q2y{q2_y_bin_to_use}_zpt{z_pT_bin_to_use}"
+    title_base = f"#splitline{{BC Factor}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({q2_y_bin_to_use}-{z_pT_bin_to_use})}}}}"
     h_bc = ROOT.TH1D(hname_bc, f"{title_base}; #phi_{{h}} Bin; BC Factor", 24, 0.5, 24.5)
 
     max_y, min_y = 0.0, 0.0
     for phi_bin in range(1, 24 + 1):
-        nom_key = f"Bin ({args.Q2_y_Bin}-{args.z_pT_Bin}-{phi_bin})"
+        nom_key = f"Bin ({q2_y_bin_to_use}-{z_pT_bin_to_use}-{phi_bin})"
         entry = results.get(nom_key, {})
 
         bc_val, bc_err = 0.0, 0.0
@@ -1229,28 +1298,218 @@ def Plot_BC_Factor_From_JSON(args):
     h_bc.SetLineWidth(2)
     h_bc.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
 
-    Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Factor_for_Q2_y_Bin_{args.Q2_y_Bin}_z_pT_Bin_{args.z_pT_Bin}'
-    c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
-    pad = c.cd()
-    pad.SetTopMargin(0.175)
-    pad.SetLeftMargin(0.125)
-    pad.SetRightMargin(0.025)
+    if(main_pad in [None]):
+        Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Factor_for_Q2_y_Bin_{q2_y_bin_to_use}_z_pT_Bin_{z_pT_bin_to_use}'
+        c = ROOT.TCanvas(Save_Name, Save_Name, 1200, 800)
+        pad = c.cd()
+        pad.SetTopMargin(0.175)
+        pad.SetLeftMargin(0.125)
+        pad.SetRightMargin(0.025)
+    else:
+        Save_Name = None
+        c = None
+        pad = main_pad
+        pad.cd()
+        pad.SetTopMargin(0.175)
+        pad.SetLeftMargin(0.125)
+        pad.SetRightMargin(0.025)
 
     h_bc.Draw("E1")
 
-    leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
-    leg.SetBorderSize(0)
-    leg.SetFillStyle(0)
-    leg.AddEntry(h_bc, "#scale[2]{BC Factor}", "lep")
-    leg.Draw()
+    leg = None
+    if(draw_legend):
+        leg = ROOT.TLegend(0.38, 0.15, 0.64, 0.32)
+        leg.SetBorderSize(0)
+        leg.SetFillStyle(0)
+        leg.AddEntry(h_bc, "#scale[2]{BC Factor}", "lep")
+        leg.Draw()
 
-    args.Save_Name_BC_Factor = f'{Save_Name}.{args.File_Format}'
-    if(not args.test):
-        c.SaveAs(args.Save_Name_BC_Factor)
-        print(f"\n{color.BGREEN}Saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
-    else:
-        print(f"\n{color.BBLUE}WOULD HAVE saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
+    pad.Modified()
+    pad.Update()
 
+    if(save_plot and (Save_Name not in [None])):
+        args.Save_Name_BC_Factor = f'{Save_Name}.{args.File_Format}'
+        if(not args.test):
+            c.SaveAs(args.Save_Name_BC_Factor)
+            print(f"\n{color.BGREEN}Saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
+        else:
+            print(f"\n{color.BBLUE}WOULD HAVE saved BC factor plot:{color.END} {color.BPINK}{args.Save_Name_BC_Factor}{color.END}\n")
+        return args
+
+    return {"h_bc": h_bc,
+            "legend": leg,
+            "pad": pad}
+
+def _get_pad_for_bc_z_pT_bin(main_pad, z_pT_Bin, number_of_rows, number_of_cols):
+    pad_bin = main_pad.cd(z_pT_Bin)
+    pad_bin.SetFillColor(ROOT.kGray)
+    pad_bin.Divide(1, 1, 0, 0)
+    inner_pad = pad_bin.cd(1)
+    inner_pad.SetFillColor(0)
+    return inner_pad
+
+def Plot_BC_Q2_y_Images_Together_From_JSON(args):
+    json_path = str(args.json_file_out)
+    if(not os.path.exists(json_path)):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not exist.\n{color.END}File Input Was: {json_path}\n")
+    json_data = load_json_file(json_path)
+    if((not isinstance(json_data, dict)) or ("results" not in json_data) or (not isinstance(json_data["results"], dict))):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR:{color.END_R} JSON file does not have the expected schema with a top-level 'results' dict.\n{color.END}File Input Was: {json_path}\n")
+    Q2_y_Bin_Range = range(1, 18) if(args.Q2_y_Bin == -1) else [args.Q2_y_Bin]
+    Saved_Files = []
+    Total_Num_Images = 0
+    for Q2_Y_Bin in Q2_y_Bin_Range:
+        number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+        z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
+        if(args.make_plot_images):
+            Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Subbin_Comparisons_Together_for_Q2_y_Bin_{Q2_Y_Bin}'
+            canvas = ROOT.TCanvas(Save_Name, Save_Name, 3600, 3000)
+            canvas.Divide(2, 1, 0.01, 0.01)
+            canvas.SetFillColor(ROOT.kGray)
+            canvas.plot_store = []
+
+            left_pad = canvas.cd(1)
+            left_pad.SetFillColor(ROOT.kGray)
+            left_pad.SetPad(0.005, 0.015, 0.27, 0.985)
+            left_pad.Divide(1, 2, 0, 0)
+
+            title_pad = left_pad.cd(1)
+            title_pad.SetPad(0, 0.45, 1, 1)
+            title_pad.SetFillColor(ROOT.kGray)
+            title_pad.cd()
+            title_box = ROOT.TPaveText(0.05, 0.05, 0.95, 0.95, "NDC")
+            title_box.SetBorderSize(0)
+            title_box.SetFillStyle(0)
+            title_box.SetTextAlign(22)
+            title_box.SetTextFont(42)
+            title_box.SetTextSize(0.08)
+            title_box.AddText("BC Factor Sub-bin Inputs")
+            title_box.AddText(f"Q^{{2}}-y Bin = {Q2_Y_Bin}")
+            title_box.Draw()
+            canvas.title_store = title_box
+
+            legend_pad = left_pad.cd(2)
+            legend_pad.SetPad(0, 0, 1, 0.44)
+            legend_pad.SetFillColor(ROOT.kGray)
+
+            right_pad = canvas.cd(2)
+            right_pad.SetPad(0.28, 0.015, 0.995, 0.9975)
+            right_pad.SetFillColor(ROOT.kGray)
+            right_pad.Divide(number_of_cols, number_of_rows, 0.0001, 0.0001)
+
+            first_plot_objects = None
+            for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                    continue
+                if((args.z_pT_Bin not in [-1, z_pT_Bin])):
+                    continue
+                pad_bin = _get_pad_for_bc_z_pT_bin(right_pad, z_pT_Bin, number_of_rows, number_of_cols)
+                plot_objects = Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=pad_bin, save_plot=False, q2_y_bin_override=Q2_Y_Bin, z_pT_bin_override=z_pT_Bin, json_data=json_data, draw_legend=False)
+                canvas.plot_store.extend([plot_objects["h_center"], plot_objects["h_ave"]])
+                if(first_plot_objects in [None]):
+                    first_plot_objects = plot_objects
+
+            legend_pad.cd()
+            if(first_plot_objects not in [None]):
+                legend = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
+                legend.SetNColumns(1)
+                legend.SetBorderSize(0)
+                legend.SetFillStyle(0)
+                legend.SetTextFont(42)
+                legend.SetTextSize(0.08)
+                legend.AddEntry(first_plot_objects["h_center"], "#scale[0.75]{Center Sub-Bin Content}",  "lep")
+                legend.AddEntry(first_plot_objects["h_ave"],    "#scale[0.75]{Average Sub-Bin Content}", "lep")
+                legend.Draw()
+                canvas.legend_store = legend
+
+            canvas.cd()
+            canvas.Modified()
+            canvas.Update()
+
+            output_name = f'{Save_Name}.{args.File_Format}'
+            if(not args.test):
+                canvas.SaveAs(output_name)
+                print(f"\n{color.BGREEN}Saved combined BC sub-bin comparison plot:{color.END} {color.BPINK}{output_name}{color.END}\n")
+            else:
+                print(f"\n{color.BBLUE}WOULD HAVE saved combined BC sub-bin comparison plot:{color.END} {color.BPINK}{output_name}{color.END}\n")
+            Saved_Files.append(output_name)
+            Total_Num_Images += 1
+
+        if(args.make_plot_BC_factor):
+            Save_Name_BC = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Factor_Together_for_Q2_y_Bin_{Q2_Y_Bin}'
+            canvas_bc = ROOT.TCanvas(Save_Name_BC, Save_Name_BC, 3600, 3000)
+            canvas_bc.Divide(2, 1, 0.01, 0.01)
+            canvas_bc.SetFillColor(ROOT.kGray)
+            canvas_bc.plot_store = []
+
+            left_pad_bc = canvas_bc.cd(1)
+            left_pad_bc.SetFillColor(ROOT.kGray)
+            left_pad_bc.SetPad(0.005, 0.015, 0.27, 0.985)
+            left_pad_bc.Divide(1, 2, 0, 0)
+
+            title_pad_bc = left_pad_bc.cd(1)
+            title_pad_bc.SetPad(0, 0.45, 1, 1)
+            title_pad_bc.SetFillColor(ROOT.kGray)
+            title_pad_bc.cd()
+            title_box_bc = ROOT.TPaveText(0.05, 0.05, 0.95, 0.95, "NDC")
+            title_box_bc.SetBorderSize(0)
+            title_box_bc.SetFillStyle(0)
+            title_box_bc.SetTextAlign(22)
+            title_box_bc.SetTextFont(42)
+            title_box_bc.SetTextSize(0.08)
+            title_box_bc.AddText("BC Factor")
+            title_box_bc.AddText(f"Q^{{2}}-y Bin = {Q2_Y_Bin}")
+            title_box_bc.Draw()
+            canvas_bc.title_store = title_box_bc
+
+            legend_pad_bc = left_pad_bc.cd(2)
+            legend_pad_bc.SetPad(0, 0, 1, 0.44)
+            legend_pad_bc.SetFillColor(ROOT.kGray)
+
+            right_pad_bc = canvas_bc.cd(2)
+            right_pad_bc.SetPad(0.28, 0.015, 0.995, 0.9975)
+            right_pad_bc.SetFillColor(ROOT.kGray)
+            right_pad_bc.Divide(number_of_cols, number_of_rows, 0.0001, 0.0001)
+
+            first_bc_objects = None
+            for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                    continue
+                if((args.z_pT_Bin not in [-1, z_pT_Bin])):
+                    continue
+                pad_bin_bc = _get_pad_for_bc_z_pT_bin(right_pad_bc, z_pT_Bin, number_of_rows, number_of_cols)
+                plot_objects_bc = Plot_BC_Factor_From_JSON(args, main_pad=pad_bin_bc, save_plot=False, q2_y_bin_override=Q2_Y_Bin, z_pT_bin_override=z_pT_Bin, json_data=json_data, draw_legend=False)
+                canvas_bc.plot_store.append(plot_objects_bc["h_bc"])
+                if(first_bc_objects in [None]):
+                    first_bc_objects = plot_objects_bc
+
+            legend_pad_bc.cd()
+            if(first_bc_objects not in [None]):
+                legend_bc = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
+                legend_bc.SetNColumns(1)
+                legend_bc.SetBorderSize(0)
+                legend_bc.SetFillStyle(0)
+                legend_bc.SetTextFont(42)
+                legend_bc.SetTextSize(0.08)
+                legend_bc.AddEntry(first_bc_objects["h_bc"], "#scale[0.85]{BC Factor}", "lep")
+                legend_bc.Draw()
+                canvas_bc.legend_store = legend_bc
+
+            canvas_bc.cd()
+            canvas_bc.Modified()
+            canvas_bc.Update()
+
+            output_name_bc = f'{Save_Name_BC}.{args.File_Format}'
+            if(not args.test):
+                canvas_bc.SaveAs(output_name_bc)
+                print(f"\n{color.BGREEN}Saved combined BC factor plot:{color.END} {color.BPINK}{output_name_bc}{color.END}\n")
+            else:
+                print(f"\n{color.BBLUE}WOULD HAVE saved combined BC factor plot:{color.END} {color.BPINK}{output_name_bc}{color.END}\n")
+            Saved_Files.append(output_name_bc)
+            Total_Num_Images += 1
+
+    args.Num_Made_Plots = Total_Num_Images
+    args.Save_Name = "\n".join(Saved_Files)
     return args
 
 if(__name__ == "__main__"):
@@ -1278,8 +1537,8 @@ if(__name__ == "__main__"):
         print(f"\t{color.Error}Running as a test of the script...{color.END}\n")
     List_of_BCBins, Total_Num_SBin = {}, 0
     if(args.get_BC_factors):
-        List_of_BCBins, Total_Num_SBin = Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, write_full_diagnostics=False)
-    elif(not args.make_plot_images):
+        List_of_BCBins, Total_Num_SBin = Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=(not args.non_zero_bin_averages), write_full_diagnostics=False)
+    elif(not (args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images)):
         if(args.use_file_name and ("*" not in str(args.file))):
             name_insert = str(args.file).split("/")[-1]
             name_insert = str(name_insert.split("new6.")[-1]).replace(".hipo.root", "")
@@ -1313,14 +1572,21 @@ if(__name__ == "__main__"):
             Total_Num_SBin = Evaluate_And_Write_Histograms(List_of_BCBins, args)
         else:
             List_of_BCBins, Total_Num_SBin = Get_Bin_Contents_for_BC(args)
-    if(args.make_plot_images):
-        args = Plot_BC_Subbin_Inputs_From_JSON(args)
-        Total_Num_SBin += 1
+    if(args.make_plot_Q2_y_images):
+        args = Plot_BC_Q2_y_Images_Together_From_JSON(args)
+        Total_Num_SBin += getattr(args, "Num_Made_Plots", 0)
+    else:
+        if(args.make_plot_images):
+            args = Plot_BC_Subbin_Inputs_From_JSON(args)
+            Total_Num_SBin += 1
         if(args.make_plot_BC_factor):
             args = Plot_BC_Factor_From_JSON(args)
             Total_Num_SBin += 1
             if(hasattr(args, "Save_Name_BC_Factor")):
-                args.Save_Name = f"{args.Save_Name}\n{args.Save_Name_BC_Factor}"
+                if(hasattr(args, "Save_Name")):
+                    args.Save_Name = f"{args.Save_Name}\n{args.Save_Name_BC_Factor}"
+                else:
+                    args.Save_Name = str(args.Save_Name_BC_Factor)
 
-    Construct_Email(args, final_count=Total_Num_SBin, Count_Type=f"{'Histograms' if(args.histogram) else 'Sub-bins'}{'/Image(s)' if(args.make_plot_images) else ''}")
+    Construct_Email(args, final_count=Total_Num_SBin, Count_Type=f"{'Histograms' if(args.histogram) else 'Sub-bins'}{'/Image(s)' if(args.make_plot_images or args.make_plot_BC_factor or args.make_plot_Q2_y_images) else ''}")
 
