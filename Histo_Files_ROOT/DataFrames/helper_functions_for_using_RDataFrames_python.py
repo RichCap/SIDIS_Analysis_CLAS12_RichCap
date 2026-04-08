@@ -61,87 +61,6 @@ def BG_Cut_Function(dataframe="mdf"):
         return Background_Cuts_MC
     return "ERROR"
 
-# def Multi_Dim_Bin_Def(DF, Variables_To_Combine, Smearing_Q="", Data_Type="rdf", return_option="DF"):
-#     if(DF == "continue"):
-#         return "continue"
-#     if(list is not type(Variables_To_Combine) or len(Variables_To_Combine) <= 1):
-#         print(f"{color.Error}ERROR IN Multi_Dim_Bin_Def...\nImproper information was provided to combine multidimensional bins\n{color.END_R}Must provide a list of variables to combine with the input parameter: 'Variables_To_Combine'{color.END}")
-#         if(return_option == "DF"):
-#             return DF
-#         else:
-#             return Variables_To_Combine
-#     Vars_Data_Type_Output = [""] if((return_option != "DF_Res") or (Data_Type in ["rdf", "gdf"])) else ["" if("mear" not in Smearing_Q) else "_smeared", "_gen"]
-#     var_name, var_mins, var_maxs, var_bins = zip(*Variables_To_Combine)
-#     var_name, var_mins, var_maxs, var_bins = list(var_name), list(var_mins), list(var_maxs), list(var_bins)
-#     for list_invert in [var_name, var_mins, var_maxs, var_bins]:
-#         list_invert.reverse()
-#     Multi_Dim_Bin_Title, combined_bin_formula = {}, {}
-#     DF_Final = DF
-#     for var_type in Vars_Data_Type_Output:
-#         Multi_Dim_Bin_Title[var_type] = "Multi_Dim"
-#         for ii, var in enumerate(var_name):
-#             Multi_Dim_Bin_Title[var_type] += str("".join(["_", str(var).replace("_smeared", "")])).replace("_gen", "")
-#             if(var_type not in str(var)):
-#                 var_name[ii] = "".join([str(var), str(var_type)])
-#             if(var_type in [""]):
-#                 var_name[ii] = str((var).replace("_smeared", "")).replace("_gen", "")
-#             else:
-#                 var_name[ii] = str((var).replace("_smeared" if("gen" in str(var_type)) else "_gen", ""))
-#                 if(Smearing_Q != ""):
-#                     if(("_smeared" not in str(var_name[ii])) and ("_gen" not in str(var_name[ii]))):
-#                         var_name[ii] = "".join([str(var_name[ii]), "_smeared"])
-#             if((str(var_name[ii]) not in list(DF_Final.GetColumnNames())) and (str(var_name[ii]) not in DF_Final.GetColumnNames())):
-#                 print(f"\n{color.RED}ERROR IN 'Multi_Dim_Bin_Def': Variable '{var_name[ii]}' is not in the DataFrame (check code for errors){color.END}")
-#                 print(f"{color.RED}Available Variables include:\n{DF_Final.GetColumnNames()}{color.END}")
-#                 for column_name in DF_Final.GetColumnNames():
-#                     print(f"str(var_name[ii]) == str(column_name) --> {(str(var_name[ii]) == str(column_name))} {str(var_name[ii]) if(str(var_name[ii]) == str(column_name)) else ''}")
-
-#         Multi_Dim_Bin_Title[var_type] += str(var_type)
-#         combined_bin_formula[var_type] = f"int combined_bin{var_type} = "
-
-#         for ii, var in enumerate(var_name):
-#             if(combined_bin_formula[var_type]  != f"int combined_bin{var_type} = "):
-#                 combined_bin_formula[var_type] += " + "
-#             if("_Bin" not in str(var)):
-#                 norm_var = "int(((({0}{1} - {2})/({3} - {2}))*{4}))".format(var, var_type, var_mins[ii], var_maxs[ii], var_bins[ii])
-#             else:
-#                 norm_var = f"{var}{var_type}"
-#             var_bin_product = ""
-#             for jj in range(ii + 1, len(var_name)):
-#                 if(var_bins[jj] not in ["", 0]):
-#                     var_bin_product += f"*{var_bins[jj]}"
-#             combined_bin_formula[var_type] += "".join(["int({0}{1})"]).format(norm_var, var_bin_product)
-
-#         combined_bin_formula[var_type] += """ + 1;
-#         if("""
-#         for ii, var in enumerate(var_name):
-#             combined_bin_formula[var_type] += "".join([str(var), str(var_type), " < ", str(var_mins[ii]), " || ", str(var), str(var_type), " > ", str(var_maxs[ii])])
-#             if(ii != (len(var_name) - 1)):
-#                 combined_bin_formula[var_type] += " || "
-#         combined_bin_formula[var_type]     += "".join(["""){combined_bin""", str(var_type), """ = -1;}
-#         return combined_bin""", str(var_type), """;
-#         """])
-
-#         combined_bin_formula[var_type] = str(combined_bin_formula[var_type]).replace(" +  + ", " + ")
-#         combined_bin_formula[var_type] = str(combined_bin_formula[var_type]).replace("_smeared_gen",     "_gen")
-#         combined_bin_formula[var_type] = str(combined_bin_formula[var_type]).replace("_smeared_smeared", "_smeared")
-
-#         if(return_option == "DF"):
-#             try:
-#                 DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
-#             except:
-#                 print(f"\n{color.Error}ERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n{color.END_R}{traceback.format_exc()}{color.END}\n\n")
-
-#         elif(return_option == "DF_Res"):
-#             try:
-#                 DF_Final = DF_Final.Define(str(Multi_Dim_Bin_Title[var_type]), str(combined_bin_formula[var_type]))
-#             except:
-#                 print(f"\n{color.Error}ERROR IN FINAL STEP OF Multi_Dim_Bin_Def:\n{color.END_R}{traceback.format_exc()}{color.END}\n\n")
-
-#         else:
-#             return [str(Multi_Dim_Bin_Title[var_type]), -1.5, (math.prod(var_bins)) + 1.5, (math.prod(var_bins)) + 3]
-#     return DF_Final
-
 
 def Bin_Number_Variable_Function(DF, Variable, min_range, max_range, number_of_bins, DF_Type="rdf"):
     if(str(Variable) in DF.GetColumnNames()): # Already defined
@@ -634,8 +553,6 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
 
     if(len(Var_Input) == 4):
         Var_List = Var_Input[:]
-    # else:
-    #     Var_List = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_Input, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
 
     variable, Min_range, Max_range, Num_of_Bins = Var_List
     if(("smear" in Histo_Smear) and ("mear" not in variable)):
@@ -651,8 +568,6 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
 
     sdf = Bin_Number_Variable_Function(sdf, Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
-    # if(("Combined_" in variable) or ("Multi_Dim" in variable) or ("MultiDim" in variable)):
-    #     sdf = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_Input, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
     if(sdf == "continue"):
         return Histograms_All
 
@@ -856,8 +771,6 @@ if(__name__ == "__main__"):
     
         if(len(Var_Input) == 4):
             Var_List = Var_Input[:]
-        # else:
-        #     Var_List = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_Input, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="Bin")
     
         variable, Min_range, Max_range, Num_of_Bins = Var_List
         if(("smear" in Histo_Smear) and ("mear" not in variable)):
@@ -874,8 +787,6 @@ if(__name__ == "__main__"):
         Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
     
         # sdf = Bin_Number_Variable_Function(sdf, Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
-        # if(("Combined_" in variable) or ("Multi_Dim" in variable) or ("MultiDim" in variable)):
-        #     sdf = Multi_Dim_Bin_Def(DF=sdf, Variables_To_Combine=Var_Input, Smearing_Q=Histo_Smear, Data_Type=Histo_Data, return_option="DF_Res")
         # if(sdf == "continue"):
         #     return Histograms_All
     

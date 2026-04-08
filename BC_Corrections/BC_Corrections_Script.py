@@ -67,7 +67,8 @@ def parse_args():
                         type=str,
                         help="JSON file path for using '--json_weights'.\n")
     parser.add_argument('-jf', '--json_file_out',
-                        default="Sub_Bin_Contents_for_BC_Correction.json",
+                        # default="Sub_Bin_Contents_for_BC_Correction.json",
+                        default="Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json",
                         type=str,
                         help='Output JSON file where the bin contents will be saved.\n')
     parser.add_argument('-hi', '-histo', '--histogram',
@@ -116,6 +117,12 @@ def parse_args():
                         type=str,
                         choices=["png", "pdf"],
                         help="Output format for the BC sub-bin comparison plot.\n")
+    parser.add_argument('-bcz', '--BC_Zoom',
+                        action='store_true',
+                        help="When plotting the BC Factors with '--make_plot_BC_factor', this option will make it so the y-axis starts as 0.5 times the minimum point in the plot (instead of always at zero).\n")
+    parser.add_argument('-sbs', '--show_bin_stats',
+                        action='store_true',
+                        help="Optional: show the total events (nominal bin sum over all phi_h) as a text label on Type 1 sub-bin comparison plots.\n")
 
     return parser.parse_args()
 
@@ -1149,9 +1156,9 @@ def Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=None, save_plot=True, q2_y_bi
     # Build output histograms: 24 nominal phi bins (1..24)
     hname_center = f"h_center_Q2y{q2_y_bin_to_use}_zpt{z_pT_bin_to_use}"
     hname_ave    = f"h_ave_Q2y{q2_y_bin_to_use}_zpt{z_pT_bin_to_use}"
-    title_base = f"#splitline{{BC Factor Sub-bin Inputs}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({q2_y_bin_to_use}-{z_pT_bin_to_use})}}}}"
-    h_center = ROOT.TH1D(hname_center, f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
-    h_ave    = ROOT.TH1D(hname_ave,    f"{title_base}; #phi_{{h}} Bin; Sub-bin Contents", 24, 0.5, 24.5)
+    title_base = f"#splitline{{BC Factor Sub-Bin Inputs}}{{#scale[0.75]{{For Q^{{2}}-y-z-P_{{T}} Bin: ({q2_y_bin_to_use}-{z_pT_bin_to_use})}}}}"
+    h_center = ROOT.TH1D(hname_center, f"{title_base}; #phi_{{h}} Bin; Sub-Bin Contents", 24, 0.5, 24.5)
+    h_ave    = ROOT.TH1D(hname_ave,    f"{title_base}; #phi_{{h}} Bin; Sub-Bin Contents", 24, 0.5, 24.5)
     # Fill from JSON
     max_y, min_y = 0.0, 0.0
     for phi_bin in range(1, 24 + 1):
@@ -1227,6 +1234,28 @@ def Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=None, save_plot=True, q2_y_bi
         leg.AddEntry(h_ave,    "#scale[2]{Average Sub-Bin Content}", "lep")
         leg.Draw()
 
+    stat_box = None
+    if(args.show_bin_stats):
+        total_events = 0.0
+        for phi_bin in range(1, 25):
+            nom_key = f"Bin ({q2_y_bin_to_use}-{z_pT_bin_to_use}-{phi_bin})"
+            entry = results.get(nom_key, {})
+            if(isinstance(entry, dict)):
+                nom = entry.get("Nominal Bin", {})
+                if(isinstance(nom, dict)):
+                    try:
+                        total_events += float(nom.get("Content", 0.0))
+                    except Exception:
+                        pass
+        stat_box = ROOT.TPaveText(0.38, 0.35, 0.64, 0.42, "NDC")
+        stat_box.SetBorderSize(0)
+        stat_box.SetFillStyle(0)
+        stat_box.SetTextAlign(22)
+        stat_box.SetTextFont(42)
+        stat_box.SetTextSize(0.035)
+        stat_box.AddText(f"Sum of Events in All Sub-Bins: {int(total_events):,}")
+        stat_box.Draw()
+
     pad.Modified()
     pad.Update()
 
@@ -1242,7 +1271,8 @@ def Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=None, save_plot=True, q2_y_bi
     return {"h_center": h_center,
             "h_ave": h_ave,
             "legend": leg,
-            "pad": pad}
+            "pad": pad,
+            "stat_box": stat_box}
 
 def Plot_BC_Factor_From_JSON(args, main_pad=None, save_plot=True, q2_y_bin_override=None, z_pT_bin_override=None, json_data=None, draw_legend=True):
     q2_y_bin_to_use = args.Q2_y_Bin if(q2_y_bin_override in [None]) else q2_y_bin_override
@@ -1296,7 +1326,10 @@ def Plot_BC_Factor_From_JSON(args, main_pad=None, save_plot=True, q2_y_bin_overr
     h_bc.SetMarkerColor(ROOT.kAzure + 1)
     h_bc.SetMarkerStyle(20)
     h_bc.SetLineWidth(2)
-    h_bc.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
+    if(not args.BC_Zoom):
+        h_bc.GetYaxis().SetRangeUser(min([0.0, 0.8*min_y, 1.2*min_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
+    else:
+        h_bc.GetYaxis().SetRangeUser(max([0.0, 0.5*min_y if(abs(min_y) > 0) else 0.5*max_y]), max([0.0, 0.8*max_y, 1.2*max_y]))
 
     if(main_pad in [None]):
         Save_Name = f'{f"{args.image_name}_" if(args.image_name not in [""]) else ""}BC_Factor_for_Q2_y_Bin_{q2_y_bin_to_use}_z_pT_Bin_{z_pT_bin_to_use}'
@@ -1405,7 +1438,7 @@ def Plot_BC_Q2_y_Images_Together_From_JSON(args):
                     continue
                 pad_bin = _get_pad_for_bc_z_pT_bin(right_pad, z_pT_Bin, number_of_rows, number_of_cols)
                 plot_objects = Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=pad_bin, save_plot=False, q2_y_bin_override=Q2_Y_Bin, z_pT_bin_override=z_pT_Bin, json_data=json_data, draw_legend=False)
-                canvas.plot_store.extend([plot_objects["h_center"], plot_objects["h_ave"]])
+                canvas.plot_store.extend([plot_objects["h_center"], plot_objects["h_ave"], plot_objects["stat_box"]])
                 if(first_plot_objects in [None]):
                     first_plot_objects = plot_objects
 
