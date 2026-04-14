@@ -208,7 +208,9 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_
     for name, value in vars(args).items():
         if(str(name) in ["email", "email_message", "timer", "group_lists"]):
             continue
-        if((str(name) in ["new_dir", "cache_dir", "mss_dir"]) and (len(args.group) > 1)):
+        if((str(name) in ["parallel_log_dir", "parallel_jobs"]) and (args.run_mode not in "parallel")):
+            continue
+        if((str(name) in ["new_dir",  "cache_dir",  "mss_dir"]) and (len(args.group) > 1)):
             if(dir_lists == ""):
                 dir_lists = "Directories Per Group:"
                 for single_group in args.group:
@@ -281,7 +283,7 @@ def tmux_has_session(session_name):
     result = subprocess.run(["tmux", "has-session", "-t", session_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return result.returncode == 0
 
-def prompt_tmux_session(default_name="hadd_sidis"):
+def prompt_tmux_session(default_name="hadd_sidis", test_mode=False):
     while(True):
         session = input(f"\nEnter tmux session name to use [default: {default_name}]: ").strip() or default_name
         if(tmux_has_session(session)):
@@ -289,9 +291,12 @@ def prompt_tmux_session(default_name="hadd_sidis"):
             return session, False
         create = input(f"Session '{session}' does not exist. Create it? (y/N): ").strip().lower()
         if(create in ['y', 'yes']):
-            subprocess.run(["tmux", "new-session", "-d", "-s", session], check=False)
-            print(f"{color.BCYAN}Created new tmux session: {session}{color.END}")
-            return session, True
+            if(not test_mode):
+                subprocess.run(["tmux", "new-session", "-d", "-s", session], check=False)
+                print(f"{color.BCYAN}Created new tmux session: {session}{color.END}")
+            else:
+                print(f"{color.BCYAN}WOULD have created new tmux session: {session}\n{color.END}The session was not made since you are running in 'test' mode.\n")
+            return session, not test_mode
         print("Please choose a different name or type 'y' to create.")
 
 def tmux_send(session_name, command_str):
@@ -425,7 +430,7 @@ Source\t     = {source}{color.END}""")
             list_to_rerun, may_need_to_rerun, may_need_rerun_count, need_rerun_count = [], [], 0, 0
 
             for num, file in enumerate(sorted(cache_files[single_group])):
-                if(file == "Q2_1.5GeV"):
+                if(file in ["Q2_1.5GeV", "GEMC_5.12_Q2_1.5GeV_potential_bad_neutral_pid", "GEMC_5.12_potential_bad_neutral_pid"]):
                     continue
                 # Derive file_num from the cache file name
                 if("nSidis_00" not in file):
@@ -487,7 +492,7 @@ Source\t     = {source}{color.END}""")
             # Store per-group results
             per_group_results[f"{single_group}_{check_version}"] = {
                 "list_to_rerun": list_to_rerun,
-                "text_of_path_file": text_of_path_file,
+                "text_of_path_file": f'{text_of_path_file}\n{"\n".join(list_to_rerun)}\n\n',
                 "check_version": check_version,
                 "source": source,
                 "Type": Type,
@@ -508,7 +513,7 @@ Source\t     = {source}{color.END}""")
 
 def Save_Path_Files(args, per_group_results):
     save_count = 0
-    files_Saved = []
+    args.files_Saved = []
     Path_to_where_files_will_be_saved = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/"
 
     for key, data in per_group_results.items():
@@ -522,13 +527,14 @@ def Save_Path_Files(args, per_group_results):
                 Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
             else:
                 Path_file = str(f"TEMP_{Path_file}".replace("all.txt",  "SIDIS.txt"))
+                # Path_file = str(Path_file.replace("all.txt",  "SIDIS.txt"))
 
         ptxt_file = f'{Path_to_where_files_will_be_saved}{Path_file}'
         path_list = text_of_path_file
 
         print(f"\n\t{color.BCYAN}Saving: {color.BGREEN}{ptxt_file}{color.END}" if(not args.test) else f"\n\t{color.BLUE}WOULD have Saved: {color.END_B}{ptxt_file}{color.END}")
-        if(ptxt_file not in files_Saved):
-            files_Saved.append(ptxt_file)
+        if(ptxt_file not in args.files_Saved):
+            args.files_Saved.append(ptxt_file)
         else:
             Update_Email(args, update_message=f"\n{color.ERROR}ERROR: File{color.END_B} '{ptxt_file}' {color.ERROR}was already saved{color.END}!\n", verbose_override=True)
         if(args.test):
@@ -585,10 +591,10 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
 
         event_type = "epipX" if(check_version == "*qa") else "eppipX" if(check_version == "*wProton*") else "epippimX"
 
-        if((check_version not in ["*"]) and ("# Rerunning for" not in text_of_path_file)):
-            text_of_path_file = f"{text_of_path_file}\n# Rerunning for {event_type} events only\n"
-        for ii in list_to_rerun:
-            text_of_path_file = f"{text_of_path_file}{ii}\n"
+        # if((check_version not in ["*"]) and ("# Rerunning for" not in text_of_path_file)):
+        #     text_of_path_file = f"{text_of_path_file}\n# Rerunning for {event_type} events only\n"
+        # for ii in list_to_rerun:
+        #     text_of_path_file = f"{text_of_path_file}{ii}\n"
 
         # === SLURM / tmux handling (Combination_List) ===
         Combination_List = {
@@ -628,7 +634,7 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
         # === Per-command interactive tmux session selection ===
         if(not args.no_prompt):
             print(f"\n{color.BBLUE}Command for group: {single_group_and_check_version}{color.END}")
-            this_tmux_name, was_created = prompt_tmux_session(default_name=this_tmux_name)
+            this_tmux_name, was_created = prompt_tmux_session(default_name=this_tmux_name, test_mode=args.test)
             print(f"{color.BBLUE}Base tmux session chosen: {this_tmux_name}{color.END}")
         else:
             # tmux_name = "hadd_sidis"
@@ -720,7 +726,8 @@ def main():
     args, full_list_to_rerun, full_need_rerun_count, per_group_results = Check_For_Proccessed_Files(args, cache_files)
     if(args.new_text_files):
         args = Save_Path_Files(args, per_group_results)
-    full_command_str, tmux_running = Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
+    else:
+        full_command_str, tmux_running = Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
     Construct_Email(args, final_count=full_need_rerun_count, Count_Type="Files to rerun")
 
 if(__name__ == "__main__"):
