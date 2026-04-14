@@ -10,8 +10,11 @@ import org.jlab.jroot.ROOTFile
 import uconn.utils.pid.Candidate.Level
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
+import uconn.utils.pid.stefan.ProtonCandidate
 import my.Sugar
 import clasqa.QADB
+import groovy.json.JsonOutput
+import java.time.Instant
 
 long StartTime = System.nanoTime()
 
@@ -29,44 +32,13 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-def filename = "Data_sidis_epip_richcap.${suff}.new7.${outname}.root"
+def filename = "Data_sidis_epip_richcap.${suff}.new8.${outname}.root"
+def JSONname = "Charge_Summary_Data_sidis_epip_richcap.${suff}.new8.${outname}.json"
 
-// As of 1/18/2025:
+// As of 4/10/2025: new8 added the flags for finding the pi-/proton and now writes JSON files to store the accumulated charge from the QADB to calculate the luminosity later
 def ff = new ROOTFile(filename)
 
-// DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
-    // Added/renamed several variables to do this
-    // Removed detector/layer info now that it is built into the other variables
-    // Runs with 'new5'
-    // Also added "Num_Pions" to help control events where the electron is counted twice (in case that is a previously overlooked issue)
 def branches_string = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36'
-
-// // Included on 12/22/2025 for '.new6.' files
-// // Reconstructed PID Cut variations:
-//     // Electrons
-// branches_string += ':Full_norm_el/I:Full_tight_el/I:Full_mid_el/I:Full_loose_el/I'
-// branches_string += ':DC_VERTEX_norm_el/I:DC_VERTEX_tight_el/I:DC_VERTEX_mid_el/I:DC_VERTEX_loose_el/I'
-// branches_string += ':DC_FIDUCIAL_REG_norm_el/I:DC_FIDUCIAL_REG_tight_el/I:DC_FIDUCIAL_REG_mid_el/I:DC_FIDUCIAL_REG_loose_el/I'
-// branches_string += ':DC_FIDUCIAL_REG3_norm_el/I:DC_FIDUCIAL_REG3_tight_el/I:DC_FIDUCIAL_REG3_mid_el/I:DC_FIDUCIAL_REG3_loose_el/I'
-// branches_string += ':DC_FIDUCIAL_REG2_norm_el/I:DC_FIDUCIAL_REG2_tight_el/I:DC_FIDUCIAL_REG2_mid_el/I:DC_FIDUCIAL_REG2_loose_el/I'
-// branches_string += ':DC_FIDUCIAL_REG1_norm_el/I:DC_FIDUCIAL_REG1_tight_el/I:DC_FIDUCIAL_REG1_mid_el/I:DC_FIDUCIAL_REG1_loose_el/I'
-// branches_string += ':EC_FIDUCIAL_norm_el/I:EC_FIDUCIAL_tight_el/I:EC_FIDUCIAL_mid_el/I:EC_FIDUCIAL_loose_el/I'
-// branches_string += ':EC_SAMPLING_norm_el/I:EC_SAMPLING_tight_el/I:EC_SAMPLING_mid_el/I:EC_SAMPLING_loose_el/I'
-// branches_string += ':EC_OUTER_VS_INNER_norm_el/I:EC_OUTER_VS_INNER_tight_el/I:EC_OUTER_VS_INNER_mid_el/I:EC_OUTER_VS_INNER_loose_el/I'
-// branches_string += ':CC_NPHE_norm_el/I:PID_norm_el/I'
-//     // Pi+ Pions
-// branches_string += ':Full_norm_pip/I:Full_tight_pip/I:Full_mid_pip/I:Full_loose_pip/I'
-// branches_string += ':DELTA_VZ_norm_pip/I:DELTA_VZ_tight_pip/I:DELTA_VZ_mid_pip/I:DELTA_VZ_loose_pip/I'
-// branches_string += ':DC_FIDUCIAL_REG_norm_pip/I:DC_FIDUCIAL_REG_tight_pip/I:DC_FIDUCIAL_REG_mid_pip/I:DC_FIDUCIAL_REG_loose_pip/I'
-// branches_string += ':DC_FIDUCIAL_REG3_norm_pip/I:DC_FIDUCIAL_REG3_tight_pip/I:DC_FIDUCIAL_REG3_mid_pip/I:DC_FIDUCIAL_REG3_loose_pip/I'
-// branches_string += ':DC_FIDUCIAL_REG2_norm_pip/I:DC_FIDUCIAL_REG2_tight_pip/I:DC_FIDUCIAL_REG2_mid_pip/I:DC_FIDUCIAL_REG2_loose_pip/I'
-// branches_string += ':DC_FIDUCIAL_REG1_norm_pip/I:DC_FIDUCIAL_REG1_tight_pip/I:DC_FIDUCIAL_REG1_mid_pip/I:DC_FIDUCIAL_REG1_loose_pip/I'
-// branches_string += ':CHI2PID_CUT_norm_pip/I:CHI2PID_CUT_tight_pip/I:CHI2PID_CUT_mid_pip/I:CHI2PID_CUT_loose_pip/I'
-// branches_string += ':FORWARD_norm_pip/I:PID_norm_pip/I'
-// // Additional Variables for PID Cuts:
-// branches_string += ':pcal_energy:ecin_energy:ecout_energy:ele_DC_vertex_vz' // Electrons
-// branches_string += ':pip_chi2pid:pip_dvz'                                   // Pi+ Pions
-
 
 // Added as of 1/18/2026
 // Electrons (from isElectronFull)
@@ -96,6 +68,11 @@ branches_string += ':Min_PID_check_pip/I:Full_default_pip/I:Full_pass1_pip/I'
 // Extra variables used in the Pion PID refinement cuts (that were not already included in the initial `branches_string`)
 branches_string += ':DC_Edge_R1p:DC_Edge_R2p:DC_Edge_R3p'
 branches_string += ':PID_chi2pip:PionDeltaVz'
+
+// Added as of 4/10/2026
+// Flags for exclusive events
+branches_string += ':pim_present/I:proton_present/I'
+
 
 def tt = ff.makeTree('h22', 'title', branches_string)
 
@@ -1183,6 +1160,62 @@ def isPipFull(def pipCan, def DCEdgeCan){
     ];
 }
 
+// ------------------------------------------------------------
+// pi-/proton particle seaches (for basic identifications of exclusive events)
+// ------------------------------------------------------------
+def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ){
+    boolean hasProton = false;
+    boolean hasPim    = false;
+    for (int ipart_p = 1; ipart_p < Particle_Bank.getRows(); ipart_p++) {
+        def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+        if(canpro.isproton()){ hasProton = true; }
+        else {
+            def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+            if(canpim.ispim()){ hasPim = true; }
+        }
+        if(hasProton && hasPim){ // Found enough relevant particles (no more need to run furthur)
+            break
+        }
+    }
+    return [
+        hasProton  : hasProton,
+        hasPim     : hasPim
+    ];
+}
+
+
+def Create_JSON_Output(def QA_In, def StartTIME, def HIPO_Name, def File_Name, def JSON_Name, def Events_Total, def Events_True, def Pass_1_Cut_Events, def Multiple_Pions){
+    def finalAccumulatedCharge = QA_In.getAccumulatedCharge();
+    long RunTime = (System.nanoTime() - StartTIME)/1000000000;
+
+    def chargeInfo = [
+        input_file                 : HIPO_Name,
+        output_root                : File_Name,
+        accumulated_charge         : finalAccumulatedCharge,
+        total_events               : Events_Total,
+        events_after_PID_Cuts      : Events_True,
+        Pass_1_PID_Cut_events      : Pass_1_Cut_Events,
+        Multiple_Pions_Per_event   : Multiple_Pions,
+        RunTime_in_secs            : RunTime,
+        timestamp                  : Instant.now().toString()
+    ]
+
+    def jsonText = JsonOutput.prettyPrint(JsonOutput.toJson(chargeInfo))
+    new File(JSON_Name).text = jsonText
+
+    System.out.println("");
+    System.out.println("Total number of events found: " + Events_Total);
+    System.out.println("True number of events (i.e., those that would have survived the Pass 2 PID cuts) = " + Events_True);
+    System.out.println("Total number of events that survived the original Pass 1 PID cuts = " + Pass_1_Cut_Events);
+    System.out.println("");
+
+    System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions);
+    System.out.println("");
+
+    System.out.println("Wrote final accumulated charge to: ${JSON_Name}")
+    System.out.println("      Final charge for this file = ${finalAccumulatedCharge} nC")
+}
+
 
 GParsPool.withPool(2) {
 args.eachParallel{fname->
@@ -1227,6 +1260,7 @@ args.eachParallel{fname->
             
             def skipqadb = false // Reusing the QADB as of 12/16/2025
             if(ismc || skipqadb || qa.pass(run, evn)){
+                qa.accumulateCharge()
 
                 def canele = ElectronCandidate.getElectronCandidate(0, partb, ecb, ccb, trajb, isinb)
                 def ele    = canele.getLorentzVector()
@@ -1237,6 +1271,8 @@ args.eachParallel{fname->
                 if(electron_PIDs.Min_PID_check){ // A electron has been found (no refinement cuts added)
                     // elec_total_found += 1;
                     int pionCount = 0 // Counter for pions (helps control double-counted electrons)
+
+                    def Extra_Particle_Search = Search_Additional_Particles(partb, trajb, isinb)
                     
                     for(int ipart = 1; ipart < partb.getRows(); ipart++){
                         def canpip = PionCandidate.getPionCandidate(ipart,     partb, trajb, isinb)
@@ -1359,7 +1395,9 @@ args.eachParallel{fname->
                                     // Combined PID Refinement Cut Booleans:
                                     ConvertBoolean(pip_pion_PIDs.Min_PID_check),                ConvertBoolean(pip_pion_PIDs.Full_default),                 ConvertBoolean(pip_pion_PIDs.Full_pass1),
                                     // Extra Variables for the PID refinement cuts:
-                                    pip_pion_PIDs.DC_Edge_R1p, pip_pion_PIDs.DC_Edge_R2p,       pip_pion_PIDs.DC_Edge_R3p, pip_pion_PIDs.PID_chi2pip,       pip_pion_PIDs.PionDeltaVz)
+                                    pip_pion_PIDs.DC_Edge_R1p, pip_pion_PIDs.DC_Edge_R2p,       pip_pion_PIDs.DC_Edge_R3p, pip_pion_PIDs.PID_chi2pip,       pip_pion_PIDs.PionDeltaVz,
+                                    // Flags for exclusive events
+                                    ConvertBoolean(Extra_Particle_Search.hasPim),               ConvertBoolean(Extra_Particle_Search.hasProton))
 
                             if(pionCount > 1){ Multiple_Pions_Per_Electron += 1; }
                             if(pip_pion_PIDs.Full_default && electron_PIDs.Full_default){ true_events += 1; } // Made to count the difference caused by the Pass 2 PID refinement cuts
@@ -1377,14 +1415,8 @@ args.eachParallel{fname->
 }
 
 
-System.out.println("");
-System.out.println("Total number of events found: " + event_count);
-System.out.println("True number of events (i.e., those that would have survived the Pass 2 PID cuts) = " + true_events);
-System.out.println("Total number of events that survived the original Pass 1 PID cuts = " + pass1_cuts);
-System.out.println("");
+Create_JSON_Output(qa, StartTime, outname, filename, JSONname, event_count, true_events, pass1_cuts, Multiple_Pions_Per_Electron)
 
-System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions_Per_Electron);
-System.out.println("");
 
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
 

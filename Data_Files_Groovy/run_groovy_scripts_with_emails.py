@@ -3,7 +3,8 @@
 import argparse
 import glob
 import os
-import shutil
+# import shutil
+import shlex
 import socket
 import subprocess
 import sys
@@ -16,8 +17,6 @@ sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 sys.path.remove(script_dir)
 del script_dir
-
-timer = RuntimeTimer()
 
 SLURM_ARRAY_CHECK_DISABLED = False
 
@@ -36,6 +35,93 @@ OUTPUT_DIR_GEN_MC         = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pa
 OUTPUT_DIR_REC_MC         = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"
 
 
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential, SLURM array, or parallel run mode, with optional email summary (sequential only).", formatter_class=RawDefaultsHelpFormatter)
+
+    parser.add_argument("-m",    "-mode",    "--mode",
+                        dest="mode",
+                        choices=["sequential", "slurm", "parallel"],
+                        default="sequential",
+                        help="Run mode: sequential (local), slurm (submit array job), or parallel (multiple local jobs run simulataneously).\n")
+    parser.add_argument("-src",  "-source",  "--source",
+                        dest="source",
+                        default="clasdis",
+                        help="Input source preset: clasdis, evgen, data, rdf (rdf is alias for data).\n")
+    parser.add_argument("-mc",   "-mct",     "--mc-type",
+                        dest="mc_type",
+                        default="mdf",
+                        help="MC type preset for clasdis/evgen: rec/mdf or gen/gdf. Ignored for data/rdf.\n")
+    parser.add_argument("-evt",  "-event",   "--event-type",
+                        dest="event_type",
+                        default="epipX",
+                        help="Event type preset for clasdis and data/rdf: SIDIS/epipX, exclusive/epipN, proton/eppipX, DP/epippimX. Ignored for evgen (forced epipX).\n")
+
+    parser.add_argument("-ptxt", "-paths",   "--paths-txt",
+                        dest="paths_txt",
+                        default=None,
+                        help=f"Override the default TXT file list. If omitted, uses a built-in default based on --source in: {DEFAULT_PATHS_DIR}/\n")
+    parser.add_argument("-sp",   "-script",  "--script-path",
+                        dest="script_path",
+                        default=None,
+                        help="Override the Groovy script path directly. If omitted, uses a preset-based selection.\n")
+    parser.add_argument("-id",   "-jID",     "--job-id",
+                        dest="job_id",
+                        default=None,
+                        help="Job identifier (default is derived from presets + date; adds _Seq in sequential mode).\n")
+
+    parser.add_argument("-e",    "-mail",    "--email",
+                        dest="email",
+                        action="store_true",
+                        help=f"Send completion email to: {EMAIL_TO} (sequential mode only).\n")
+    parser.add_argument("-em",   "-message", "--email_message",
+                        dest="email_message",
+                        type=str,
+                        default=None,
+                        help="Extra message to send in email if selected (sequential mode only).\n")
+    parser.add_argument("-f",    "-file",    "--file",
+                        dest="files",
+                        action="append",
+                        default=None,
+                        help="Add an explicit input file (bypasses TXT expansion for that entry). Can be repeated.\n")
+    parser.add_argument("-ub",   "-uniq",    "--unique-batches",
+                        dest="unique_batches",
+                        type=str,
+                        default=None,
+                        help="Run only a unique set of file-indices (SLURM-style list like '1-5,7,10-12' or '1-10:2'). Applies to sequential (filter) and slurm (array spec).\n")
+    parser.add_argument("-saj",  "-aj",      "--slurm-array-jobid",
+                        dest="slurm_array_jobid",
+                        type=str,
+                        default=None,
+                        help="In sequential mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks).\n")
+
+    parser.add_argument("-st",   "-time",    "--slurm-time",
+                        dest="slurm_time",
+                        default=DEFAULT_SLURM_TIME,
+                        help="SLURM time limit for each job in slurm mode (HH:MM:SS).\n")
+    parser.add_argument("-cpu",  "-mem",     "--slurm-mem-per-cpu",
+                        dest="slurm_mem_per_cpu",
+                        default=DEFAULT_SLURM_MEM_PER_CPU,
+                        help="SLURM memory per CPU in slurm mode (e.g. '3GB', '4000M').\n")
+
+    parser.add_argument("-dr",   "-test",    "--dry-run",
+                        dest="dry_run",
+                        action="store_true",
+                        help="Do not execute local run-groovy or submit SLURM jobs; still expands file lists and prints planned actions (SLURM mode still requires approval).\n")
+    
+    parser.add_argument("-pj", "--parallel_jobs",
+                        type=int,
+                        default=4,
+                        help="Number of concurrent jobs when '--mode' parallel is used.\n")
+
+    parser.add_argument("-pld", "--parallel_log_dir",
+                        type=str,
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/parallel_logs/",
+                        help="Directory for per-job log files when '--mode' parallel is used.\n")
+
+    return parser.parse_args()
+
 def date_tag_m_d_yyyy():
     dt = datetime.now()
     return f"{dt.month}_{dt.day}_{dt.year}"
@@ -47,7 +133,7 @@ def normalize_source(src_in):
     ss = str(src_in).strip().lower()
     if(ss == "rdf"):
         ss = "data"
-    if(ss not in ["clasdis", "evgen", "data"]):
+    if(ss not in ["clasdis", "evgen", "data", "rho0"]):
         print(f"{color.RED}WARNING: Unrecognized --source value '{src_in}'. Defaulting to 'clasdis'.{color.END}")
         ss = "clasdis"
     return ss
@@ -86,6 +172,7 @@ def default_paths_txt_for_source(source_norm):
     paths_map = {
         "clasdis": os.path.join(DEFAULT_PATHS_DIR, "Paths_to_MC_clasdis_files_all.txt"),
         "evgen":   os.path.join(DEFAULT_PATHS_DIR, "Paths_to_MC_EvGen_files_all.txt"),
+        "rho0":    os.path.join(DEFAULT_PATHS_DIR, "Paths_to_MC_rho0_files_all.txt"),
         "data":    os.path.join(DEFAULT_PATHS_DIR, "Paths_to_REAL_Data_files_all.txt"),
     }
     return paths_map.get(source_norm, paths_map["clasdis"])
@@ -172,8 +259,7 @@ def dedupe_keep_order(paths_list):
 
 
 def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_norm):
-    # IMPORTANT: You will replace these placeholders with real Groovy scripts later.
-    # Explicitly kept generic so they are easy to search for and so undefined options are obvious.
+    # IMPORTANT: Replace these placeholders with real Groovy scripts later. Unfinished scripts were explicitly kept generic so they are easy to search for and so undefined options are obvious.
     presets = {
         "clasdis": {
             "mdf": {"epipX":    "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Batch_New.groovy",
@@ -189,6 +275,10 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
             "mdf":              "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_EvGen_epip_Batch.groovy",
             "gdf":              "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_EvGen.groovy",
         },
+        "rho0": {
+            "mdf":              "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_rho0.groovy",
+            "gdf":              "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_rho0.groovy",
+        },
         "data": {
             "epipX":            "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/REAL_Data/Data_TTree_epip_Batch_Pass2.groovy",
             "epipN":            PLACEHOLDER_GROOVY_SCRIPT,
@@ -203,7 +293,6 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
     if(source_norm == "data"):
         return presets["data"].get(event_type_norm, PLACEHOLDER_GROOVY_SCRIPT)
 
-    # clasdis
     if(source_norm not in presets):
         return PLACEHOLDER_GROOVY_SCRIPT
     if(mc_type_norm not in presets[source_norm]):
@@ -436,7 +525,6 @@ def build_slurm_array_script_text(script_path, manifest_path, job_name, email_ad
     return "\n".join(lines)
 
 
-
 def write_manifest_file(manifest_path, files_list):
     with open(manifest_path, "w") as out:
         for fp in files_list:
@@ -466,33 +554,11 @@ def estimate_peak_memory_children():
 def main():
     local_dir = os.path.dirname(os.path.abspath(__file__))
 
-    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential or SLURM array mode, with optional email summary (sequential only).", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    args = parse_args()
+    args.timer = RuntimeTimer()
+    args.timer.start()
 
-    parser.add_argument("-m",    "-mode",    "--mode",              dest="mode",       choices=["sequential", "slurm"], default="sequential",              help="Run mode: sequential (local) or slurm (submit array job).")
-    parser.add_argument("-src",  "-source",  "--source",            dest="source",                                      default="clasdis",                 help="Input source preset: clasdis, evgen, data, rdf (rdf is alias for data).")
-    parser.add_argument("-mc",   "-mct",     "--mc-type",           dest="mc_type",                                     default="mdf",                     help="MC type preset for clasdis/evgen: rec/mdf (default) or gen/gdf. Ignored for data/rdf.")
-    parser.add_argument("-evt",  "-event",   "--event-type",        dest="event_type",                                  default="epipX",                   help="Event type preset for clasdis and data/rdf: SIDIS/epipX (default), exclusive/epipN, proton/eppipX, DP/epippimX. Ignored for evgen (forced epipX).")
-
-    parser.add_argument("-ptxt", "-paths",   "--paths-txt",         dest="paths_txt",                                   default=None,                      help=f"Override the default TXT file list. If omitted, uses a built-in default based on --source in: {DEFAULT_PATHS_DIR}/")
-    parser.add_argument("-sp",   "-script",  "--script-path",       dest="script_path",                                 default=None,                      help="Override the Groovy script path directly. If omitted, uses a preset-based selection (currently placeholder until you fill it).")
-    parser.add_argument("-id",   "-jID",     "--job-id",            dest="job_id",                                      default=None,                      help="Job identifier (default is derived from presets + date; adds _Seq in sequential mode).")
-
-    parser.add_argument("-e",    "-mail",    "--email",             dest="email",                                       action="store_true",               help=f"Send completion email to: {EMAIL_TO} (sequential mode only).")
-    parser.add_argument("-em",   "-message", "--email_message",     dest="email_message",     type=str,                 default=None,                      help="Extra message to send in email if selected (sequential mode only).")
-    parser.add_argument("-f",    "-file",    "--file",              dest="files",             action="append",          default=None,                      help="Add an explicit input file (bypasses TXT expansion for that entry). Can be repeated.")
-    parser.add_argument("-ub",   "-uniq",    "--unique-batches",    dest="unique_batches",    type=str,                 default=None,                      help="Run only a unique set of file-indices (SLURM-style list like '1-5,7,10-12' or '1-10:2'). Applies to sequential (filter) and slurm (array spec).")
-    parser.add_argument("-saj",  "-aj",      "--slurm-array-jobid", dest="slurm_array_jobid", type=str,                 default=None,                      help="In sequential mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks).")
-
-    parser.add_argument("-st",   "-time",    "--slurm-time",        dest="slurm_time",                                  default=DEFAULT_SLURM_TIME,        help="SLURM time limit for each job in slurm mode (HH:MM:SS).")
-    parser.add_argument("-cpu",  "-mem",     "--slurm-mem-per-cpu", dest="slurm_mem_per_cpu",                           default=DEFAULT_SLURM_MEM_PER_CPU, help="SLURM memory per CPU in slurm mode (e.g. '3GB', '4000M').")
-
-    parser.add_argument("-dr",   "-test",    "--dry-run",           dest="dry_run",                                     action="store_true",               help="Do not execute local run-groovy or submit SLURM jobs; still expands file lists and prints planned actions (SLURM mode still requires approval).")
-
-    args = parser.parse_args()
-
-    timer.start()
-
-    start_time = timer.start_find(return_Q=True)
+    start_time = args.timer.start_find(return_Q=True)
 
     source_norm     = normalize_source(args.source)
     mc_type_norm    = normalize_mc_type(args.mc_type)
@@ -638,7 +704,7 @@ def main():
                     rc = 999
                     print(f"{color.Error}ERROR: failed to run command: {cmd}\nReason: {exc}{color.END}")
 
-            done_stamp = "\n".join(timer.time_elapsed(return_Q=True))
+            done_stamp = "\n".join(args.timer.time_elapsed(return_Q=True))
             done_stamp = f'({done_stamp.replace("\n", " ")})'
             done_stamp = done_stamp.replace(" Current", "Current")
             done_stamp = done_stamp.replace(". )", ".)")
@@ -657,8 +723,8 @@ def main():
             else:
                 print(f"{color.BBLUE}[INFO]{color.END} No active tasks remain in SLURM array job {args.slurm_array_jobid} (or coordination was disabled).")
 
-        start_time_str = timer.start_find(return_Q=True).replace("Ran", "Started running")
-        end_time_str, total_time_str, rate_line = timer.stop(return_Q=True)
+        start_time_str = args.timer.start_find(return_Q=True).replace("Ran", "Started running")
+        end_time_str, total_time_str, rate_line = args.timer.stop(return_Q=True)
 
         failures_block = "None"
         if(len(failed) > 0):
@@ -724,6 +790,101 @@ User Given Message:
                 print("\n--- DRY RUN: email sending disabled (no email would be sent) ---\n")
             else:
                 print("Email sending disabled (no email sent).")
+
+    elif(args.mode == "parallel"):
+        # === PARALLEL MODE ===
+        if(requested_batches is None):
+            batch_iterable = list(range(0, nfiles))
+        else:
+            batch_iterable = requested_batches
+
+        # Log directory (configurable)
+        log_dir = args.parallel_log_dir
+        os.makedirs(log_dir, exist_ok=True)
+
+        parallel_email_text = f"""
+{color.BBLUE}Parallel mode enabled{color.END}
+    Max Concurrent jobs    = {args.parallel_jobs}
+    Log Output Directory   = {log_dir}
+    Number of Files to Run = {len(batch_iterable)}
+"""
+        print(parallel_email_text)
+        args.email_message = f"{args.email_message}\n{parallel_email_text}" if(args.email_message) else parallel_email_text
+
+        running = []   # list of dicts: {"proc":..., "fh":..., "log":..., "filepath":..., "idx":...}
+        num_started = 0
+        num_done    = 0
+        num_fail    = 0
+
+        def start_job(job_num, filepath):
+            command = ["run-groovy", script_path_final, filepath]
+            base    = os.path.basename(filepath).replace(" ", "_")
+            log_p   = os.path.join(log_dir, f"job_{job_num:05d}_{base}.log")
+            fh      = open(log_p, "w")
+            fh.write(f"# {' '.join(shlex.quote(x) for x in command)}\n")
+            fh.flush()
+            proc    = subprocess.Popen(command, cwd=work_dir_final, stdout=fh, stderr=fh)
+            running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "idx": job_num})
+            print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(batch_iterable)}  ->  {base}")
+            return
+
+        def finish_job(item, rc):
+            nonlocal num_done, num_fail
+            num_done += 1
+            try:
+                item["fh"].close()
+            except Exception:
+                pass
+            base = os.path.basename(item["filepath"]).replace(" ", "_")
+            if(rc == 0):
+                print(f"{color.BGREEN}DONE {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base}")
+            else:
+                num_fail += 1
+                print(f"{color.Error}FAIL {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base} (rc={rc})")
+                print(f"\tlog: {item['log']}")
+            results.append({"index": item["idx"], "file": item["filepath"], "rc": rc})
+            return
+
+        # Start jobs
+        for num, filepath_idx in enumerate(batch_iterable):
+            filepath = expanded_files[filepath_idx] if isinstance(filepath_idx, int) else filepath_idx
+
+            while(len(running) >= args.parallel_jobs):
+                finished_index = None
+                finished_rc    = None
+                for ii, item in enumerate(running):
+                    rc = item["proc"].poll()
+                    if(rc is not None):
+                        finished_index = ii
+                        finished_rc    = rc
+                        break
+                if(finished_index is None):
+                    time.sleep(1.0)
+                    continue
+                finished_item = running.pop(finished_index)
+                finish_job(finished_item, finished_rc)
+            start_job(num, filepath)
+            num_started += 1
+
+        # Wait for remaining jobs
+        while(len(running) > 0):
+            finished_index = None
+            finished_rc    = None
+            for ii, item in enumerate(running):
+                rc = item["proc"].poll()
+                if(rc is not None):
+                    finished_index = ii
+                    finished_rc    = rc
+                    break
+            if(finished_index is None):
+                time.sleep(1.0)
+                continue
+            finished_item = running.pop(finished_index)
+            finish_job(finished_item, finished_rc)
+
+        # Reuse the same post-processing logic as sequential mode
+        failed = [rr for rr in results if(rr.get("rc", 0) != 0)] if(results) else []
+        overall_success = (len(failed) == 0)
 
     elif(args.mode == "slurm"):
         if(args.email):
@@ -795,8 +956,8 @@ User Given Message:
             print(f"{color.BBLUE}[INFO]{color.END} Submitted SLURM array job id: {slurm_jobid}")
             overall_success = True
 
-        start_time_str = timer.start_find(return_Q=True).replace("Ran", "Started running")
-        end_time_str, total_time_str, rate_line = timer.stop(return_Q=True)
+        start_time_str = args.timer.start_find(return_Q=True).replace("Ran", "Started running")
+        end_time_str, total_time_str, rate_line = args.timer.stop(return_Q=True)
 
         paths_txt_shown = used_paths_txt
         slurm_summary = f"""Script: {os.path.basename(__file__)}
@@ -830,7 +991,7 @@ Overall success: {overall_success}
 """)
 
     print(start_time)
-    timer.stop()
+    args.timer.stop()
     print("Done")
     sys.exit(0 if(overall_success) else 1)
 

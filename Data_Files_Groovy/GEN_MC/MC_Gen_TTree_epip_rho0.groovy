@@ -116,62 +116,29 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
 }
 
 // ------------------------------------------------------------
-// Find Parent rho0s
+// Find Parent rho0s (hard-coded search version)
 // ------------------------------------------------------------
 def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
     int nrows_lund = lund_in.getRows()
-    for (int i = 0; i < nrows_lund; i++) {
-        // Pull candidate from MC::Lund at row i
-        int   pid_lund = lund_in.getInt("pid",  i)
-        float px_lund  = lund_in.getFloat("px", i)
-        float py_lund  = lund_in.getFloat("py", i)
-        float pz_lund  = lund_in.getFloat("pz", i)
-
-        // Compare with values you already extracted from the other bank
-        boolean pidOK = (pid_lund == pid_in)
-        boolean pxOK   = nearlyEqual(px_lund, px_in, absTol, relTol)
-        boolean pyOK   = nearlyEqual(py_lund, py_in, absTol, relTol)
-        boolean pzOK   = nearlyEqual(pz_lund, pz_in, absTol, relTol)
-        // If this row does not match, continue searching
-        if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
-        // ---- Match found ----
-        int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
-        // Defensive check on parent index
-        if (parentIndex < 0 || parentIndex >= nrows_lund) {
-            System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
-            return 0
-        }
-        int parentPID = lund_in.getInt("pid", parentIndex)
-        // System.out.println("Matched LUND row = ${i}")
-        // System.out.println("parentPID = ${parentPID}")
-        def rho0_px = 0.0;
-        def rho0_py = 0.0;
-        def rho0_pz = 0.0;
-        def rho0_E  = 0.0;
-        def rho0_parent = 0;
-        if(parentPID == 113){   // rho0
-            // get rho0 kinematics
-            rho0_px = lund.getFloat("px", parentIndex);
-            rho0_py = lund.getFloat("py", parentIndex);
-            rho0_pz = lund.getFloat("pz", parentIndex);
-            def rhoVec = LorentzVector.withPID(113, rho0_px, rho0_py, rho0_pz);
-            rho0_E = rhoVec.e();
-            // grandparent
-            rho0_parent = findParentPIDFromLund(lund, 113, rho0_px, rho0_py, rho0_pz, ABS_TOL, REL_TOL);
-        }
-        return [
-            parentPID   : parentPID,
-            rho0_px     : rho0_px,
-            rho0_py     : rho0_py,
-            rho0_pz     : rho0_pz,
-            rho0_E      : rho0_E,
-            rho0_parent : rho0_parent]
+    for (int parentIndex = 0; parentIndex < nrows_lund; parentIndex++) {
+        if(lund_in.getInt("pid", parentIndex) == 113){ // rho0 is automatically considered to be the parent for this script
+            int parentPID   = lund_in.getInt("pid",   parentIndex)
+            def rho0_px     = lund.getFloat("px",     parentIndex);
+            def rho0_py     = lund.getFloat("py",     parentIndex);
+            def rho0_pz     = lund.getFloat("pz",     parentIndex);
+            def rho0_E      = lund.getFloat("energy", parentIndex);
+            def rho0_parent = lund.getFloat("parent", parentIndex);
+            return [
+                parentPID   : parentPID,
+                rho0_px     : rho0_px,
+                rho0_py     : rho0_py,
+                rho0_pz     : rho0_pz,
+                rho0_E      : rho0_E,
+                rho0_parent : rho0_parent]
+        } else { continue }
     }
-
     // ---- No match found ----
     System.out.println("ERROR - No matching particle found in LUND bank.")
-    System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
-
     return [
         parentPID   : 0,
         rho0_px     : 0.0,
