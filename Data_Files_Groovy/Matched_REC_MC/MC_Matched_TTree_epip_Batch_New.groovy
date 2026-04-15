@@ -174,8 +174,8 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
         if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
 
         // ---- Match found ----
-        int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
-
+        // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+        int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
             System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
@@ -217,7 +217,8 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
         // If this row does not match, continue searching
         if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
         // ---- Match found ----
-        int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+        // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+        int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
             System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
@@ -233,13 +234,13 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
         def rho0_parent = 0;
         if(parentPID == 113){   // rho0
             // get rho0 kinematics
-            rho0_px = lund.getFloat("px", parentIndex);
-            rho0_py = lund.getFloat("py", parentIndex);
-            rho0_pz = lund.getFloat("pz", parentIndex);
+            rho0_px = lund_in.getFloat("px", parentIndex);
+            rho0_py = lund_in.getFloat("py", parentIndex);
+            rho0_pz = lund_in.getFloat("pz", parentIndex);
             def rhoVec = LorentzVector.withPID(113, rho0_px, rho0_py, rho0_pz);
             rho0_E = rhoVec.e();
             // grandparent
-            rho0_parent = findParentPIDFromLund(lund, 113, rho0_px, rho0_py, rho0_pz, ABS_TOL, REL_TOL);
+            rho0_parent = findParentPIDFromLund(lund_in, 113, rho0_px, rho0_py, rho0_pz, ABS_TOL, REL_TOL);
         }
         return [
             parentPID   : parentPID,
@@ -1694,6 +1695,9 @@ args.eachParallel{fname->
             banks.each{event.read(it)}
 
             def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch) = banks
+
+            banks_gen.each{event.read(it)}
+            def (evb_gen, partb_gen, ecb_gen, ccb_gen, trajb_gen, scb_gen) = banks_gen
             
             def run            = runb.getInt("run",   0)
             def evn            = runb.getInt("event", 0)

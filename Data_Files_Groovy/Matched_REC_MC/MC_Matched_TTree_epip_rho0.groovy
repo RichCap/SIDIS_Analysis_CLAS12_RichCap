@@ -175,7 +175,8 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
         if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
 
         // ---- Match found ----
-        int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+        // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
+        int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
 
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
@@ -205,12 +206,12 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
     int nrows_lund = lund_in.getRows()
     for (int parentIndex = 0; parentIndex < nrows_lund; parentIndex++) {
         if(lund_in.getInt("pid", parentIndex) == 113){ // rho0 is automatically considered to be the parent for this script
-            int parentPID   = lund_in.getInt("pid",   parentIndex)
-            def rho0_px     = lund.getFloat("px",     parentIndex);
-            def rho0_py     = lund.getFloat("py",     parentIndex);
-            def rho0_pz     = lund.getFloat("pz",     parentIndex);
-            def rho0_E      = lund.getFloat("energy", parentIndex);
-            def rho0_parent = lund.getFloat("parent", parentIndex);
+            int parentPID   = lund_in.getInt("pid",      parentIndex);
+            def rho0_px     = lund_in.getFloat("px",     parentIndex);
+            def rho0_py     = lund_in.getFloat("py",     parentIndex);
+            def rho0_pz     = lund_in.getFloat("pz",     parentIndex);
+            def rho0_E      = lund_in.getFloat("energy", parentIndex);
+            def rho0_parent = lund_in.getFloat("parent", parentIndex);
             return [
                 parentPID   : parentPID,
                 rho0_px     : rho0_px,
@@ -1660,8 +1661,10 @@ args.eachParallel{fname->
         if(event.hasBanks(schemas)){
             
             banks.each{event.read(it)}
-
             def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch) = banks
+            
+            banks_gen.each{event.read(it)}
+            def (evb_gen, partb_gen, ecb_gen, ccb_gen, trajb_gen, scb_gen) = banks_gen
             
             def run            = runb.getInt("run",   0)
             def evn            = runb.getInt("event", 0)

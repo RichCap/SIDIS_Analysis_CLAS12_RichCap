@@ -289,6 +289,9 @@ def resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_nor
 
     if(source_norm == "evgen"):
         return presets["evgen"].get(mc_type_norm, PLACEHOLDER_GROOVY_SCRIPT)
+    
+    if(source_norm == "rho0"):
+        return presets["rho0"].get(mc_type_norm, PLACEHOLDER_GROOVY_SCRIPT)
 
     if(source_norm == "data"):
         return presets["data"].get(event_type_norm, PLACEHOLDER_GROOVY_SCRIPT)
@@ -882,9 +885,81 @@ User Given Message:
             finished_item = running.pop(finished_index)
             finish_job(finished_item, finished_rc)
 
-        # Reuse the same post-processing logic as sequential mode
+        # === REUSE THE SAME POST-PROCESSING + EMAIL LOGIC AS SEQUENTIAL MODE ===
         failed = [rr for rr in results if(rr.get("rc", 0) != 0)] if(results) else []
         overall_success = (len(failed) == 0)
+
+        peak_mem_str = estimate_peak_memory_children()
+
+        start_time_str = args.timer.start_find(return_Q=True).replace("Ran", "Started running")
+        end_time_str, total_time_str, rate_line = args.timer.stop(return_Q=True)
+
+        failures_block = "None"
+        if(len(failed) > 0):
+            failures_block = ""
+            for rr in failed:
+                failures_block = f"{failures_block}  [{rr['index']:05d}] rc={rr['rc']} file={rr['file']}\n"
+            failures_block = failures_block.rstrip("\n")
+
+        processed_block = ""
+        for rr in results:
+            line = f"[{rr['index']:05d}] {rr['file']} ({rr.get('done', 'N/A')}) [rc={rr['rc']}]"
+            processed_block = f"{processed_block}{line}\n"
+        processed_block = processed_block.rstrip("\n")
+
+        subject_status = "SUCCESS" if(overall_success) else "FAILURE"
+        subject        = f"[GroovyRunner] {subject_status} (mode=parallel, N={nfiles}, jobs={args.parallel_jobs}, job_id={job_id_final})"
+
+        paths_txt_shown = used_paths_txt
+        summary_block = f"""Script: {os.path.basename(__file__)}
+Mode: parallel
+Host: {socket.gethostname()}
+Job ID: {job_id_final}
+Source preset: {source_norm}
+MC type preset: {mc_type_norm}
+Event type preset: {event_type_norm}
+Groovy script ({script_path_reason}): {script_path_final}
+Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
+Work directory (preset): {work_dir_final}
+Total expanded files: {nfiles}
+Unique batches: {args.unique_batches}
+Parallel jobs: {args.parallel_jobs}
+Log directory: {args.parallel_log_dir}
+Dry run: {args.dry_run}
+Overall success: {overall_success}
+Approx. peak memory usage (children): {peak_mem_str}
+Failed items:
+{failures_block}
+"""
+
+        email_body = f"""{start_time_str}
+
+{summary_block}
+
+Files processed:
+{processed_block}
+
+{end_time_str}
+{total_time_str}
+{rate_line}
+"""
+        if(args.email_message is not None):
+            email_body = f"""
+User Given Message:
+{args.email_message}
+
+{email_body}
+
+"""
+        print(email_body)
+
+        if(args.email):
+            send_email(subject=subject, body=email_body, recipient=EMAIL_TO, dry_run=args.dry_run)
+        else:
+            if(args.dry_run):
+                print("\n--- DRY RUN: email sending disabled (no email would be sent) ---\n")
+            else:
+                print("Email sending disabled (no email sent).")
 
     elif(args.mode == "slurm"):
         if(args.email):

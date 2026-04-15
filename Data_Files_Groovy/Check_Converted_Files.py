@@ -90,7 +90,7 @@ def parse_args():
 
     parser.add_argument('-t', '--test',
                         action='store_true',
-                        help="Run test commands (prevents code from running/writing other script to just test this script's commands).\n")
+                        help="Run test commands (prevents code from running/writing other script to just test this script's commands — will also skip sending emails).\n")
 
     parser.add_argument('-dr', '--dry_run',
                         action='store_true',
@@ -107,6 +107,10 @@ def parse_args():
                         default="",
                         type=str,
                         help="Optional Email message that can be added to the default notification from '--email'.\n")
+    parser.add_argument('-emj', '--email_message_jobs',
+                        default="",
+                        type=str,
+                        help="Optional Email message is provided to the jobs submitted by this script.\nIs treated separately from the standard '--email_message' argument to avoid issues with this script's email constructor.\n")
     
     parser.add_argument('-n', '-fvm', '--file_version_main',
                         default=".new8.",
@@ -174,7 +178,7 @@ def send_email(subject, body, recipient):
     plain_body = ansi_to_plain(body)
     subprocess.run(["mail", "-s", subject, recipient], input=plain_body.encode(), check=False)
 
-def Update_Email(args, update_name="", update_message="", verbose_override=False, no_time=False):
+def Update_Email(args, update_name="", update_message="", verbose_override=False, no_time=not False):
     update_email = ""
     if(no_time):
         if(update_name not in [""]):
@@ -345,20 +349,20 @@ def command_to_use_run_groovy_scripts_with_emails(file_paths, args, src_type="cl
         slurm_cpu  = "3500M" if mc_type == "rec" else "3GB"
         slurm = f' -m slurm -st "{slurm_time}" -cpu "{slurm_cpu}"'
         arguments = f'-src "{src_type}" -mc "{mc_type}" -evt "{evt_type}"{array}{slurm}'
-        email = f' -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Extra Message: {args.email_message}." if args.email_message else ""}" '
+        email = f' -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Extra Message: {args.email_message_jobs}." if(args.email_message_jobs) else ""}" '
         commands = f"{command}{email}{arguments}; SQueue_format; "
     elif(args.run_mode == "parallel"):
         parallel = f' -m parallel -pj {args.parallel_jobs} --parallel_log_dir "{args.parallel_log_dir}"'
         arguments = f'-src "{src_type}" -mc "{mc_type}" -evt "{evt_type}"{array}{parallel}'
         if(slurmCancel):
             arguments += f" -saj {slurmCancel}"
-        email = f' -e -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\' (parallel mode).{f" Extra Message: {args.email_message}." if args.email_message else ""}" '
+        email = f' -e -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\' (parallel mode).{f" Extra Message: {args.email_message_jobs}." if(args.email_message_jobs) else ""}" '
         commands = f"{command} {arguments}{email}; Done_at\n\n"
     else:  # local / sequential
         arguments = f'-src "{src_type}" -mc "{mc_type}" -evt "{evt_type}"{array}'
         if(slurmCancel):
             arguments += f" -saj {slurmCancel}"
-        email = f' -e -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Ran in {tmux_name}." if tmux_name else ""}{f" Extra Message: {args.email_message}." if args.email_message else ""}" '
+        email = f' -e -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Ran in {tmux_name}." if tmux_name else ""}{f" Extra Message: {args.email_message_jobs}." if(args.email_message_jobs) else ""}" '
         commands = f"{command} {arguments}{email}; Done_at\n\n"
 
     return f"{color.BGREEN}{commands}lt; Done_at{color.END}"
@@ -523,6 +527,8 @@ def Save_Path_Files(args, per_group_results):
         if(check_version != "*"):
             if("GEN_MC" in data["new_dir"]):
                 Path_file = f"GEN_{Path_file}"
+            if("Q2_1.5GeV" in data["cache_dir"]):
+                Path_file = f"Q2_Cut_{Path_file}"
             if(check_version not in ["*", "*qa"]):
                 Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
             else:
@@ -584,6 +590,8 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
         if(check_version != "*"):
             if("GEN_MC" in new_dir):
                 Path_file = f"GEN_{Path_file}"
+            if("Q2_1.5GeV" in cache_dir):
+                Path_file = f"Q2_Cut_{Path_file}"
             if(check_version not in ["*", "*qa"]):
                 Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
             else:
@@ -679,12 +687,14 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
             print(f"   {cmd}")
         approve = input(f"\n{color.BOLD}Dispatch ALL these commands to their respective tmux sessions now? (y/N): {color.END}").strip().lower()
         if(approve not in ['y', 'yes']):
-            Update_Email(args, update_message=f"{color.BYELLOW}Dispatch cancelled by user.{color.END}", verbose_override=True, no_time=False)
+            # Update_Email(args, update_message=f"{color.BYELLOW}Dispatch cancelled by user.{color.END}", verbose_override=True, no_time=not False)
+            Crash_Report(args, crash_message=f"{color.Error}Dispatch cancelled by user.{color.END}", continue_run=False)
             return full_command_str, tmux_running
 
     # === Direct tmux dispatch ===
     print(f"{color.BCYAN}Dispatching to respective tmux sessions...{color.END}")
     for _, tmux_name, cmd, _ in dispatch_plan:
+        cmd = ansi_to_plain(cmd)
         for line in cmd.splitlines():
             line = line.strip()
             if(not (line and line.startswith("#"))):
@@ -693,7 +703,7 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
                     if(subcmd):
                         tmux_send(tmux_name, subcmd)
 
-    Update_Email(args, update_message=f"{color.BGREEN}All commands successfully dispatched to their tmux sessions.{color.END}", verbose_override=True, no_time=False)
+    Update_Email(args, update_message=f"{color.BGREEN}All commands successfully dispatched to their tmux sessions.{color.END}", verbose_override=True, no_time=not False)
     return full_command_str, tmux_running
 
 def main():
@@ -714,6 +724,7 @@ def main():
         sys.exit(0)
     
     if(args.test):
+        args.email = False # Never send emails during a test run
         print(f"""{color.Error}{color_bg.YELLOW}
     \t                                   \t
     \t         Running as a TEST         \t
