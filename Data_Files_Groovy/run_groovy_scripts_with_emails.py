@@ -829,6 +829,7 @@ User Given Message:
             proc    = subprocess.Popen(command, cwd=work_dir_final, stdout=fh, stderr=fh)
             running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "idx": job_num})
             print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(batch_iterable)}  ->  {base}")
+            print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
             return
 
         def finish_job(item, rc):

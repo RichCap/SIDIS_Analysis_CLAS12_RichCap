@@ -506,10 +506,12 @@ Source\t     = {source}{color.END}""")
 
             tot_rerun = may_need_rerun_count + need_rerun_count
             rerun_str_output = f"""
-\t\t\t\t{color.RED}may_need_rerun_count  = {may_need_rerun_count}{color.END}
-\t\t\t\t{color.RED}need_rerun_count      = {need_rerun_count}{color.END}
-\t\t\t\t{color.RED}total to rerun        = {tot_rerun}{color.END}
-\t\t\t\t{color.RED}total to rerun (Full) = {color.UNDERLINE}{full_need_rerun_count}{color.END}
+\t\t\t\t{color.RED}(May) Need Rerun Count  = {may_need_rerun_count}{color.END}
+\t\t\t\t{color.RED}Will Need to Run Count  = {need_rerun_count}{color.END}
+\t\t\t\t{color.RED}Total to Run (Group)    = {tot_rerun}{color.END}
+\t\t\t\t{color.BOLD}Total Avaliable (Group) = {len(cache_files[single_group])}{color.END}
+\t\t\t\t{color.RED}Total to Run (Full)     = {color.UNDERLINE}{full_need_rerun_count}{color.END}
+
 """
             Update_Email(args, update_message=rerun_str_output, verbose_override=True)
 

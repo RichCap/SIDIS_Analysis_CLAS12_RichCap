@@ -1217,26 +1217,26 @@ def Create_JSON_Output(def QA_In, def StartTIME, def HIPO_Name, def File_Name, d
 }
 
 
+QADB qa = new QADB("latest")
+qa.checkForDefect('TotalOutlier')     // these choices match the criteria of `OkForAsymmetry`
+qa.checkForDefect('TerminalOutlier')
+qa.checkForDefect('MarginalOutlier')
+qa.checkForDefect('SectorLoss')
+qa.checkForDefect('Misc')
+[ // list of runs with `Misc` defect that are allowed by `OkForAsymmetry`
+  5046, 5047, 5051, 5128, 5129, 5130, 5158, 5159,
+  5160, 5163, 5165, 5166, 5167, 5168, 5169, 5180,
+  5181, 5182, 5183, 5400, 5448, 5495, 5496, 5505,
+  5567, 5610, 5617, 5621, 5623, 6736, 6737, 6738,
+  6739, 6740, 6741, 6742, 6743, 6744, 6746, 6747,
+  6748, 6749, 6750, 6751, 6753, 6754, 6755, 6756,
+  6757
+].each{ run -> qa.allowMiscBit(run) }
+// after this, just use `qa.pass(run, evn)` for each event (instead of `qa.OkForAsymmetry(run, evn)`)
+
 GParsPool.withPool(2) {
 args.eachParallel{fname->
     println(fname)
-    QADB qa = new QADB("latest")
-    qa.checkForDefect('TotalOutlier')     // these choices match the criteria of `OkForAsymmetry`
-    qa.checkForDefect('TerminalOutlier')
-    qa.checkForDefect('MarginalOutlier')
-    qa.checkForDefect('SectorLoss')
-    qa.checkForDefect('Misc')
-    [ // list of runs with `Misc` defect that are allowed by `OkForAsymmetry`
-      5046, 5047, 5051, 5128, 5129, 5130, 5158, 5159,
-      5160, 5163, 5165, 5166, 5167, 5168, 5169, 5180,
-      5181, 5182, 5183, 5400, 5448, 5495, 5496, 5505,
-      5567, 5610, 5617, 5621, 5623, 6736, 6737, 6738,
-      6739, 6740, 6741, 6742, 6743, 6744, 6746, 6747,
-      6748, 6749, 6750, 6751, 6753, 6754, 6755, 6756,
-      6757
-    ].each{ run -> qa.allowMiscBit(run) }
-    // after this, just use `qa.pass(run, evn)` for each event (instead of `qa.OkForAsymmetry(run, evn)`)
-
 
     def reader = new HipoReader()
     reader.open(fname)
