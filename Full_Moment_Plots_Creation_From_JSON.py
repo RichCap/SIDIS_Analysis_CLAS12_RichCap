@@ -5,6 +5,8 @@ import sys
 import re
 import json
 import argparse
+import pickle
+import numpy as np
 import ROOT
 
 ROOT.gROOT.SetBatch(1)
@@ -237,6 +239,11 @@ def parse_args():
                    action="store_true",
                    help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
 
+    p.add_argument("-sp", "--spline_prefix",
+                   type=str,
+                   default=None,
+                   help="Prefix used to load spline overlays: {spline_prefix}_{fit_set}_{y_par}.pkl.\n")
+
     p.add_argument("-xe", "--x_error_bars",
                    action="store_true",
                    help="Replace connecting lines between points with x-error bars sized to a fraction of the x-bin width.\n")
@@ -442,6 +449,88 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         series_map[sid]["points"].sort(key=lambda tt: tt[0])
     return series_map
 
+def load_spline_models(args, fit_set):
+    spline_models = {}
+    if(args.spline_prefix is None):
+        return spline_models
+    if(str(args.spline_prefix).strip() in ["", "None", "none"]):
+        return spline_models
+    for y_par in args.y_pars:
+        pkl_file = f"{args.spline_prefix}_{fit_set}_{y_par}.pkl"
+        if(not os.path.isfile(pkl_file)):
+            print(f"{color.BYELLOW}[INFO] Missing spline file for {y_par}: {pkl_file}{color.END}")
+            continue
+        try:
+            with open(pkl_file, "rb") as pklf:
+                spline_obj = pickle.load(pklf)
+        except Exception as ee:
+            print(f"{color.Error}WARNING:{color.END_R} Failed to load spline file '{pkl_file}': {ee}{color.END}")
+            continue
+        if(isinstance(spline_obj, dict)):
+            if("rbf" in spline_obj):
+                spline_obj = spline_obj["rbf"]
+            elif("spline" in spline_obj):
+                spline_obj = spline_obj["spline"]
+        if(spline_obj is None):
+            continue
+        spline_models[y_par] = spline_obj
+        if(args.verbose):
+            print(f"{color.GREEN}[INFO] Loaded spline for {y_par}: {pkl_file}{color.END}")
+    return spline_models
+
+def build_spline_graph(args, spline_models, info_map, q2y_bin, sid, series_map, y_par):
+    if(y_par not in spline_models):
+        return None
+    if(sid not in series_map):
+        return None
+    pts = series_map[sid]["points"]
+    if(len(pts) == 0):
+        return None
+    key0 = pts[0][3]
+    if(key0 not in info_map):
+        return None
+
+    q2_center = float(info_map[key0]["Q2range"][0])
+    y__center = float(info_map[key0]["y_range"][0])
+    z__center = float(info_map[key0]["z_range"][0])
+    pT_center = float(info_map[key0]["pTrange"][0])
+
+    x_min = min([float(xx) for xx, yy, ey, key_str in pts])
+    x_max = max([float(xx) for xx, yy, ey, key_str in pts])
+    if(x_min == x_max):
+        return None
+
+    x_grid = np.linspace(float(x_min), float(x_max), 200)
+    if(str(args.x_mode).lower() == "z"):
+        query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center)])
+    else:
+        query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+
+    try:
+        y_grid = spline_models[y_par](query_points)
+    except Exception:
+        try:
+            y_grid = spline_models[y_par](np.asarray(query_points, dtype=float))
+        except Exception:
+            return None
+
+    y_grid = np.asarray(y_grid).reshape(-1)
+    if(len(y_grid) != len(x_grid)):
+        return None
+
+    gr_spline = ROOT.TGraph(len(x_grid))
+    for ip, (xx, yy) in enumerate(zip(x_grid, y_grid)):
+        gr_spline.SetPoint(ip, float(xx), float(yy))
+
+    gr_spline.SetLineColorAlpha(int(series_map[sid]["color"]), 0.45)
+    # gr_spline.SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
+    gr_spline.SetLineWidth(0)
+    gr_spline.SetLineStyle(7)
+    gr_spline.SetMarkerColorAlpha(int(series_map[sid]["color"]), 0.45)
+    gr_spline.SetMarkerSize(1)
+    gr_spline.SetMarkerStyle(29)
+    return gr_spline
+
 # ------------------------------------------------------------
 # Title logic
 # ------------------------------------------------------------
@@ -544,7 +633,7 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
         return
     lab.DrawLatex(x0, y0 - 2.0*line_step, f"{ymin:.2f} < y < {ymax:.2f}")
 
-def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x_range, y_range):
+def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x_range, y_range, spline_models={}):
     mapping, max_cols, nrows = build_layout_map(args)
     c1 = ROOT.TCanvas(f"c_mosaic_{y_par}", f"c_mosaic_{y_par}", int(args.canvas_width), int(args.canvas_height))
     c1.SetFillColor(0)
@@ -676,6 +765,11 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
 
         for sid in sid_list:
+            gr_spline = build_spline_graph(args, spline_models, info_map, q2y_bin, sid, series_map, y_par)
+            if(gr_spline is not None):
+                gr_spline.Draw("P L SAME")
+                c1._keepalive.append(gr_spline)
+
             pts = series_map[sid]["points"]
             gr  = ROOT.TGraphErrors(len(pts))
             for ip, (xx, yy, ey, key_str) in enumerate(pts):
@@ -940,7 +1034,7 @@ def Draw_SingleBin_Legend(args, series_map, info_map):
 
     return (leg, entries)
 
-def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, x_range, y_range):
+def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, x_range, y_range, spline_models={}):
     c1 = ROOT.TCanvas(f"c_single_{y_par}_{q2y_bin}", f"c_single_{y_par}_{q2y_bin}", int(args.single_canvas_width), int(args.single_canvas_height))
     c1.SetFillColor(0)
     c1.SetMargin(0.0, 0.0, 0.0, 0.0)
@@ -1000,6 +1094,14 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
 
     for sid in sid_list:
         pts = series_map[sid]["points"]
+        if(int(series_map[sid]["color"]) != ROOT.kGreen):
+            continue
+
+        gr_spline = build_spline_graph(args, spline_models, info_map, int(q2y_bin), sid, series_map, y_par)
+        if(gr_spline is not None):
+            gr_spline.Draw("P L SAME")
+            c1._keepalive.append(gr_spline)
+
         gr  = ROOT.TGraphErrors(len(pts))
         for ip, (xx, yy, ey, key_str) in enumerate(pts):
             gr.SetPoint(ip, float(xx), float(yy))
@@ -1015,8 +1117,6 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         # gr.SetMarkerSize(0.5)
         # gr.SetLineWidth(1)
 
-        if(gr.GetLineColor() != ROOT.kGreen):
-            continue
         draw_opt = "P E1 L SAME"
         if(args.x_error_bars):
             draw_opt = "P E1 SAME"
@@ -1135,9 +1235,8 @@ def save_single_canvas(args, canvas, fit_set, y_par, q2y_bin):
 def main():
     args = parse_args()
     print(f"\n{color.BBLUE}Beginning to run 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
-    timer = RuntimeTimer()
-    timer.start()
-    args.timer = timer
+    args.timer = RuntimeTimer()
+    args.timer.start()
     args.x_mode = str(args.x_mode).lower()
     if("pdf" in args.formats):
         args.frame_line_width = max([1, args.frame_line_width - 2])
@@ -1163,9 +1262,10 @@ def main():
     if((not isinstance(fit_dict, dict)) or (len(fit_dict) == 0)):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Fit set '{fit_set}' is empty or not a dict.{color.END}")
 
-    grouped    = group_by_q2y(fit_dict)
-    info_map   = build_info_map(args, fit_dict)
-    q2y_ranges = build_q2y_ranges(grouped, info_map)
+    grouped       = group_by_q2y(fit_dict)
+    info_map      = build_info_map(args, fit_dict)
+    q2y_ranges    = build_q2y_ranges(grouped, info_map)
+    spline_models = load_spline_models(args, fit_set)
 
     if(args.verbose):
         print(f"{color.CYAN}[INFO] Using fit_set: {fit_set}{color.END}")
@@ -1202,7 +1302,7 @@ def main():
                 print(f"{color.BYELLOW}[TEST] Would draw SINGLE BIN: fit_set='{fit_set}' x_mode='{args.x_mode}' y_par='{y_par}' q2y_bin='{q2y_bin}' -> {color.BCYAN}{fake_name}{color.END}")
                 continue
 
-            canv = draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, (xmin, xmax), y_range)
+            canv = draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, q2y_bin, (xmin, xmax), y_range, spline_models=spline_models)
             canv.Update()
             out_name = save_single_canvas(args, canv, fit_set, y_par, q2y_bin)
 
@@ -1238,7 +1338,7 @@ def main():
             print(f"{color.BYELLOW}[TEST] Would draw: fit_set='{fit_set}' x_mode='{args.x_mode}' y_par='{y_par}' -> {color.BCYAN}{fake_name}{color.END}")
             continue
 
-        canv = draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, (xmin, xmax), y_range)
+        canv = draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, (xmin, xmax), y_range, spline_models=spline_models)
         title_text = build_global_title(args, fit_set, y_par)
         draw_global_title(args, canv, title_text)
         canv.Update()
