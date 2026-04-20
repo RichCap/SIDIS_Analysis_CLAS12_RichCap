@@ -300,35 +300,36 @@ def main():
         if(len(points) == 0):
             Update_Email(args, update_message=f"{color.Error}[WARNING] No valid data points found for {y_par}{color.END}", verbose_override=True, no_time=True)
             continue
-        median_err = np.median(stds) if(len(stds) > 0) else 1.0
-        smoothing = args.smoothing_factor * (median_err ** 2)
+
+        # === PER-POINT UNCERTAINTY WEIGHTING IS NOW THE DEFAULT ===
+        # alpha = sigma^2 for each point (RBFInterpolator uses this directly)
+        alpha = stds ** 2
+        smoothing = args.smoothing_factor * np.mean(alpha)   # overall multiplier
+
         if(args.test):
-            print(f"{color.CYAN}{y_par}: {len(points)} points | median err = {median_err:.5f} | smoothing = {smoothing:.2e}{color.END}")
+            print(f"{color.CYAN}{y_par}: {len(points)} points | median err = {np.median(stds):.5f} | effective smoothing = {smoothing:.2e}{color.END}")
             continue
-        # Build the spline with your chosen configuration
         rbf = RBFInterpolator(points, values, kernel=args.kernel, smoothing=smoothing, epsilon=args.epsilon)
         config = {"kernel": args.kernel,
                   "smoothing_factor": args.smoothing_factor,
-                  "smoothing": smoothing,
+                  "effective_smoothing": smoothing,
                   "epsilon": args.epsilon,
                   "fit_set": fit_set,
                   "y_par": y_par,
-                  "n_points": len(points)
-                  }
+                  "n_points": len(points),
+                  "per_point_weighting": True
+                 }
 
-        # 1. Python-friendly pickle (ready-to-use spline)
         pkl_file = f"{args.output_prefix}_{fit_set}_{y_par}.pkl"
         with(open(pkl_file, "wb") as f):
             pickle.dump({"rbf": rbf, "config": config, "points": points, "values": values}, f)
 
-        # 2. C++-friendly npz (points + full config for later reconstruction)
         npz_file = f"{args.output_prefix}_{fit_set}_{y_par}.npz"
         np.savez(npz_file, **config, points=points, values=values)
 
         Update_Email(args, update_message=f"{color.GREEN}SAVED {y_par} → {pkl_file} (Python) + {npz_file} (C++){color.END}", verbose_override=True, no_time=True)
-
-    Update_Email(args, update_message=f"\n{color.BBLUE}All 4D spline functions built and saved with full configuration.{color.END}\n", verbose_override=True, no_time=True)
-    Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_Type="Files")
+    Update_Email(args, update_message=f"\n{color.BBLUE}All 4D spline functions built with per-point uncertainty weighting.{color.END}\n", verbose_override=True, no_time=True)
+    Construct_Email(args, Crashed=False, Warning=False)
 
 if(__name__ == "__main__"):
     main()

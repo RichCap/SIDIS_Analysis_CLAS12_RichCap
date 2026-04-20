@@ -71,7 +71,6 @@ def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
 # ------------------------------------------------------------
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
-
 def parse_args():
     p = argparse.ArgumentParser(description="Make slide-optimized mosaic plots from the fit-parameter JSON output.", formatter_class=RawDefaultsHelpFormatter)
 
@@ -82,16 +81,19 @@ def parse_args():
     p.add_argument("-q", "--q2y_count",
                    type=int,
                    default=17,
-                   help="Number of Q2-y bins in the mosaic layout.\n")
+                   # help="Number of Q2-y bins in the mosaic layout.\n")
+                   help=argparse.SUPPRESS)
     p.add_argument("-R", "--layout_rows",
                    default="4,4,4,3,2",
-                   help="Comma-separated pads per row from bottom->top (ragged, right-aligned).\n")
+                   # help="Comma-separated pads per row from bottom->top (ragged, right-aligned).\n"
+                   help=argparse.SUPPRESS)
 
     p.add_argument("-X", "--global_x_range",
                    nargs=2,
                    type=float,
                    default=None,
-                   help="Override global X range: XMIN XMAX.\n")
+                   # help="Override global X range: XMIN XMAX.\n")
+                   help=argparse.SUPPRESS)
     
     p.add_argument("-m", "--y_range_mode",
                    choices=["global", "auto"],
@@ -111,26 +113,31 @@ def parse_args():
     p.add_argument("-l", "--label_mode",
                    choices=["outer", "all"],
                    default="outer",
-                   help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.\n")
+                   # help="Tick label policy: 'outer' shows labels only on outer pads, 'all' shows labels on every pad.\n")
+                   help=argparse.SUPPRESS)
 
     # Centered per-pad labels + slightly smaller default (requested)
     p.add_argument("-K", "--pad_label_size",
                    type=float,
                    default=0.070,
-                   help="Per-pad label TLatex size (NDC).\n")
+                   # help="Per-pad label TLatex size (NDC).\n")
+                   help=argparse.SUPPRESS)
     p.add_argument("-a", "--pad_label_x",
                    type=float,
                    default=0.50,
-                   help="Per-pad label X position (NDC).\n")
+                   # help="Per-pad label X position (NDC).\n")
+                   help=argparse.SUPPRESS)
     p.add_argument("-A", "--pad_label_y",
                    type=float,
                    default=0.965,
-                   help="Per-pad label Y position (NDC).\n")
+                   # help="Per-pad label Y position (NDC).\n")
+                   help=argparse.SUPPRESS)
 
     p.add_argument("-M", "--title_mode",
                    choices=["none", "auto", "text_only"],
                    default="auto",
-                   help="Global title policy: none, auto-built title, or text_only.\n")
+                   # help="Global title policy: none, auto-built title, or text_only.\n")
+                   help=argparse.SUPPRESS)
     p.add_argument("-fs", "--fit_set_label",
                    default="",
                    help="Optional friendly label for the fit_set (used in title). If blank, uses fit_set-derived default.\n")
@@ -139,16 +146,19 @@ def parse_args():
     p.add_argument("-s", "--title_size",
                    type=float,
                    default=0.028,
-                   help="Global title TLatex size (NDC).\n")
+                   # help="Global title TLatex size (NDC).\n")
+                   help=argparse.SUPPRESS)
 
     p.add_argument("-p", "--title_x",
                    type=float,
                    default=0.01,
-                   help="Global title X position (NDC).\n")
+                   # help="Global title X position (NDC).\n")
+                   help=argparse.SUPPRESS)
     p.add_argument("-P", "--title_y",
                    type=float,
                    default=0.99,
-                   help="Global title Y position (NDC).\n")
+                   # help="Global title Y position (NDC).\n")
+                   help=argparse.SUPPRESS)
 
 
     p.add_argument("-W", "--canvas_width",
@@ -202,7 +212,8 @@ def parse_args():
                    action="store_true",
                    help="List available fit-set keys in the JSON and exit.\n")
     p.add_argument("-f", "--fit_set",
-                   default="Fit_Pars_from_3D_Bayesian",
+                   # default="Fit_Pars_from_3D_Bayesian",
+                   default="Fit_Pars_from_3D_BC_RC_Bayesian",
                    help="Top-level JSON key to use.\n")
 
     p.add_argument("-y", "--y_pars",
@@ -211,9 +222,9 @@ def parse_args():
                    help="Fit parameters to plot (each produces a separate mosaic canvas).\n")
     
     p.add_argument("-x", "--x_mode",
-                   choices=["z", "pt", "pT"],
+                   choices=["z", "pt", "pT", "Q2", "q2", "y", "xB", "xb"],
                    default="z",
-                   help="Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center.\n")
+                   help=f"Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center, etc.\n{color.RED}'Q2'/'q2', 'y', and 'xB'/'xb' all only work with the '--Spline_Only' images (as of 4/17/2026).{color.END}\n")
 
     p.add_argument("-k", "--pad_label_mode",
                    choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
@@ -251,7 +262,31 @@ def parse_args():
                    type=float,
                    default=(1.0/3.0),
                    help="Fraction of the x-variable bin width to use for the FULL x-error-bar length (ex = 0.5*fraction*bin_width).\n")
-
+    
+    p.add_argument("-so", "--Spline_Only",
+                   action="store_true",
+                   help="Create Plots of just the Spline Fit Functions.\n")
+    p.add_argument("-fq2", "-fQ2", "--Fixed_Q2",
+                   nargs="+",
+                   default=[2.2],
+                   help="Fixed Q2 kinematics for the '--Spline_Only' Image Option.\n")
+    p.add_argument("-fy", "--Fixed_y",
+                   nargs="+",
+                   default=[0.7],
+                   help="Fixed y kinematics for the '--Spline_Only' Image Option.\n")
+    p.add_argument("-fz", "--Fixed_z",
+                   nargs="+",
+                   default=[0.555],
+                   help="Fixed z kinematics for the '--Spline_Only' Image Option.\n")
+    p.add_argument("-fpt", "-fpT", "--Fixed_pT",
+                   nargs="+",
+                   default=[0.135],
+                   help="Fixed pT kinematics for the '--Spline_Only' Image Option.\n")
+    p.add_argument("-fxb", "-fxB", "--Fixed_xB",
+                   nargs="+",
+                   default=None,
+                   help=f"Fixed xB kinematics for the '--Spline_Only' Image Option.\n{color.RED}Note: Will replace either the 'Fixed_Q2' or 'Fixed_y'.{color.END}\n")
+    
     return p.parse_args()
 
 # ------------------------------------------------------------
@@ -478,7 +513,7 @@ def load_spline_models(args, fit_set):
             print(f"{color.GREEN}[INFO] Loaded spline for {y_par}: {pkl_file}{color.END}")
     return spline_models
 
-def build_spline_graph(args, spline_models, info_map, q2y_bin, sid, series_map, y_par):
+def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
     if(y_par not in spline_models):
         return None
     if(sid not in series_map):
@@ -765,7 +800,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
 
         for sid in sid_list:
-            gr_spline = build_spline_graph(args, spline_models, info_map, q2y_bin, sid, series_map, y_par)
+            gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
             if(gr_spline is not None):
                 gr_spline.Draw("P L SAME")
                 c1._keepalive.append(gr_spline)
@@ -1094,10 +1129,10 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
 
     for sid in sid_list:
         pts = series_map[sid]["points"]
-        if(int(series_map[sid]["color"]) != ROOT.kGreen):
-            continue
+        # if(int(series_map[sid]["color"]) != ROOT.kGreen):
+        #     continue
 
-        gr_spline = build_spline_graph(args, spline_models, info_map, int(q2y_bin), sid, series_map, y_par)
+        gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
         if(gr_spline is not None):
             gr_spline.Draw("P L SAME")
             c1._keepalive.append(gr_spline)
@@ -1229,6 +1264,252 @@ def save_single_canvas(args, canvas, fit_set, y_par, q2y_bin):
     canvas.SaveAs(filename)
     return filename
 
+
+def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
+    Conversion_Factor = 0.0502731 # From xB = Q2/(2*M*E*y) -> Conversion_Factor = 1/(2*M*E)
+    if(Var_out == "xB"):
+        return (Conversion_Factor*(Q2_in/y_in))  if((None not in [Q2_in,  y_in]) and (y_in  != 0)) else xB_in
+    if(Var_out == "y"):
+        return (Conversion_Factor*(Q2_in/xB_in)) if((None not in [Q2_in, xB_in]) and (xB_in != 0)) else y_in
+    if(Var_out == "Q2"):
+        return ((xB_in*y_in)/Conversion_Factor)  if( None not in [xB_in,  y_in])                   else Q2_in
+    return None
+
+def Spline_Plots_Only(args, spline_models):
+    # Fixed kinematic grids (with float conversion as you added)
+    Q2_grid = [float(val) for val in getattr(args, "Fixed_Q2", [2.2])]
+    y__grid = [float(val) for val in getattr(args, "Fixed_y",  [0.7])]
+    z__grid = [float(val) for val in getattr(args, "Fixed_z",  [0.555])]
+    pT_grid = [float(val) for val in getattr(args, "Fixed_pT", [0.135])]
+
+    x_min, x_max = 0.05, 1.0
+    xB_is_Q2, xB_is__y = False, False
+
+    if(args.x_mode in ["Q2", "q2"]):
+        x_min, x_max = 2.0, 7.9
+        if(getattr(args, "Fixed_xB", None) is not None):
+            y__grid      = [float(val) for val in args.Fixed_xB]
+            args.Fixed_y = [float(val) for val in args.Fixed_xB]
+            xB_is__y     = True
+    if(args.x_mode in ["y"]):
+        x_min, x_max = 0.35, 0.75
+        if(getattr(args, "Fixed_xB", None) is not None):
+            Q2_grid       = [float(val) for val in args.Fixed_xB]
+            args.Fixed_Q2 = [float(val) for val in args.Fixed_xB]
+            xB_is_Q2      = True
+    if args.x_mode in ["xB", "xb"]:
+        x_min, x_max = 0.134061, 0.722104
+
+    legend_title = "#scale[1.25]{Fixed Kinematics}"
+    if((len(Q2_grid) == 1) and ((str(args.x_mode).lower() != "q2") or xB_is_Q2)):
+        legend_title = f"#splitline{{{legend_title}}}{{{'Q^{2}' if(not xB_is_Q2) else 'x_{B}'} = {Q2_grid[0]}}}"
+    if((len(y__grid) == 1) and ((str(args.x_mode).lower() != "y")  or xB_is__y)):
+        legend_title = f"#splitline{{{legend_title}}}{{{'y'     if(not xB_is__y) else 'x_{B}'} = {y__grid[0]}}}"
+    if((len(z__grid) == 1) and (str(args.x_mode).lower() != "z")):
+        legend_title = f"#splitline{{{legend_title}}}{{z = {z__grid[0]}}}"
+    if((len(pT_grid) == 1) and (str(args.x_mode).lower() != "pt")):
+        legend_title = f"#splitline{{{legend_title}}}{{P_{{T}} = {pT_grid[0]}}}"
+    x_grid = np.linspace(float(x_min), float(x_max), 200)
+    # Build all query points
+    Line_Num, query_points = 0, {}
+    for             Q2_val in Q2_grid:
+        for         y__val in y__grid:
+            for     z__val in z__grid:
+                for pT_val in pT_grid:
+                    Line_Num += 1
+                    Q2_stack = np.full(len(x_grid), Q2_val) if(str(args.x_mode).lower() != "q2") else x_grid
+                    y__stack = np.full(len(x_grid), y__val) if(str(args.x_mode).lower() != "y")  else x_grid
+                    z__stack = np.full(len(x_grid), z__val) if(str(args.x_mode).lower() != "z")  else x_grid
+                    pT_stack = np.full(len(x_grid), pT_val) if(str(args.x_mode).lower() != "pt") else x_grid
+                    if(args.x_mode in ["xB", "xb"]):
+                        y__stack = x_grid # spline was trained on y, so we convert internally
+                    query_points[f"Line_Num_{Line_Num}"] = {"column_stack": np.column_stack([Q2_stack, y__stack, z__stack, pT_stack]),
+                                                            "Values": {"Q2":     Q2_val if(str(args.x_mode).lower() != "q2") else "Plotting",
+                                                                       "y":      y__val if(str(args.x_mode).lower() != "y")  else "Plotting",
+                                                                       "z":      z__val if(str(args.x_mode).lower() != "z")  else "Plotting",
+                                                                       "pT":     pT_val if(str(args.x_mode).lower() != "pt") else "Plotting",
+                                                                       "xB": "Plotting" if(str(args.x_mode).lower() == "xb") else "See Q2" if(xB_is_Q2) else "See y" if(xB_is__y) else Convert_xB_var(Q2_in=Q2_val, y_in=y__val, Var_out="xB") if(str(args.x_mode).lower() not in ["q2", "y"]) else "Effected by Plotting"}
+                                                            }
+
+    # Create canvases and draw
+    y_grid, gr_spline, canvas_spline, legends, line_bins = {}, {}, {}, {}, {}
+    for y_par in args.y_pars:
+        if(y_par not in spline_models):
+            print(f"{color.BYELLOW}[INFO] No spline loaded for {y_par}. Skipping.{color.END}")
+            continue
+        if(str(y_par) == "Fit_Par_B"):
+            y_min, y_max = -0.8, 0.125
+        elif(str(y_par) == "Fit_Par_C"):
+            y_min, y_max = -0.3, 0.25
+        else:
+            y_min, y_max = 0.0, 0.0
+
+        Titles_y = Get_Default_Y_Title(y_par, str(args.fit_set).strip())
+        Titles = ""
+        if("from the Cross Section Fits" not in Titles_y):
+            Titles = f"#splitline{{CLAS12 Preliminary #topbar {Titles_y}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}"
+        else:
+            Titles_y = Titles_y.replace(" from the Cross Section Fits", "")
+            Titles = f"#splitline{{#splitline{{CLAS12 Preliminary #topbar {Titles_y}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}}}{{Made From Normalized Cross Sections}}"
+        Titles = f"{Titles}; {'Q^{2} [GeV^{2}]' if(str(args.x_mode).lower() == 'q2') else 'y' if(str(args.x_mode).lower() == 'y') else 'z' if(str(args.x_mode).lower() == 'z') else 'P_{T} [GeV]' if(str(args.x_mode).lower() == 'pt') else 'x_{B}' if(str(args.x_mode).lower() == 'xb') else 'ERROR'}; {Titles_y}"
+        # Legend
+        leg_x1 = 0.75
+        leg_x0 = 0.0 # 0.25
+        leg_y1 = 0.89
+        entry_h = 0.055
+        nlines = int(2 * len(query_points)) + 1
+        leg_y0 = leg_y1 - entry_h * float(nlines)
+        if(leg_y0 < 0.12):
+            leg_y0 = 0.12
+        legends[y_par] = ROOT.TLegend(float(leg_x0), float(leg_y0), float(leg_x1), float(leg_y1))
+        legends[y_par].SetBorderSize(1)
+        legends[y_par].SetFillStyle(1001)
+        legends[y_par].SetTextFont(42)
+        legends[y_par].SetTextSize(0.055)
+        legends[y_par].SetHeader(str(legend_title), "C")
+
+        y_grid[y_par], gr_spline[y_par] = {}, {}
+        color_loop = -1
+        for Line_Num, Line in enumerate(query_points):
+            try:
+                y_grid[y_par][Line] = spline_models[y_par](query_points[Line]["column_stack"])
+            except Exception:
+                try:
+                    y_grid[y_par][Line] = spline_models[y_par](np.asarray(query_points[Line]["column_stack"], dtype=float))
+                except Exception:
+                    raise SystemExit(f"{color.Error}ERROR:{color.END} Spline evaluation failed for {y_par} line {Line_Num}")
+            # Convert x-axis back to xB if needed
+            x_vals = query_points[Line]["column_stack"][:, 0] if(str(args.x_mode).lower() == "q2") else query_points[Line]["column_stack"][:, 1] if(str(args.x_mode).lower() == "y") else query_points[Line]["column_stack"][:, 2] if(str(args.x_mode).lower() == "z") else query_points[Line]["column_stack"][:, 3]
+            if(args.x_mode in ["xB", "xb"]):
+                x_vals = np.array([Convert_xB_var(xB_in=val, Q2_in=Q2_grid[0] if(len(Q2_grid) == 1) else None, y_in=y__grid[0] if(len(y__grid) == 1) else None, Var_out="xB") for val in x_vals])
+            gr_spline[y_par][Line] = ROOT.TGraph(len(x_vals))
+            for ip, (xx, yy) in enumerate(zip(x_vals, y_grid[y_par][Line])):
+                gr_spline[y_par][Line].SetPoint(ip, float(xx), float(yy))
+                if(str(y_par) not in ["Fit_Par_B", "Fit_Par_C"]):
+                    y_min = min(y_min, yy)
+                    y_max = max(y_max, yy)
+            # Color from your existing mapper
+            color_index = Line_Num % len(color_mapper)
+            color_gr = color_mapper[str(color_index + 1)] if(str(color_index + 1) in color_mapper) else ROOT.kRed
+            if(color_index == 0):
+                color_loop += 1
+                gr_spline[y_par][Line].SetLineStyle(7)
+            else:
+                gr_spline[y_par][Line].SetLineStyle((11-color_index) if(color_index not in [0, 4]) else 2)
+            color_gr += color_loop
+            gr_spline[y_par][Line].SetLineColorAlpha(int(color_gr), 0.95)
+            gr_spline[y_par][Line].SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
+            gr_spline[y_par][Line].SetMarkerColorAlpha(int(color_gr), 0.95)
+            if(str(color_loop) in marker_mapper):
+                gr_spline[y_par][Line].SetMarkerSize(0.5)
+                gr_spline[y_par][Line].SetMarkerStyle(marker_mapper[str(color_loop)])
+            else:
+                gr_spline[y_par][Line].SetMarkerSize(0)
+                gr_spline[y_par][Line].SetMarkerStyle(8)
+            # gr_spline[y_par][Line].SetMarkerStyle(29)
+            gr_spline[y_par][Line].SetName(f"{y_par}_{Line}")
+            gr_spline[y_par][Line].SetTitle(Titles)
+            gr_spline[y_par][Line].GetXaxis().SetTitleSize(0.035)
+            gr_spline[y_par][Line].GetYaxis().SetTitleSize(0.035)
+            gr_spline[y_par][Line].GetXaxis().SetLabelSize(0.025)
+            gr_spline[y_par][Line].GetYaxis().SetLabelSize(0.025)
+            # Build legend entry
+            Entry_Title = ""
+            if("See" in query_points[Line]["Values"]["xB"]):
+                if("Q2" in query_points[Line]["Values"]["xB"]):
+                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["Q2"]}' if("Plotting" not in query_points[Line]["Values"]["Q2"]) else ""
+                if("y"  in query_points[Line]["Values"]["xB"]):
+                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["y"]}'  if("Plotting" not in query_points[Line]["Values"]["y"])  else ""
+            else:
+                for plot_var in query_points[Line]["Values"]:
+                    if(getattr(args, f"Fixed_{plot_var}") is None):
+                        continue
+                    elif(len(getattr(args, f"Fixed_{plot_var}")) < 2):
+                        continue
+                    plot_var_title = plot_var if(plot_var in ["y", "z"]) else "Q^{2}" if(plot_var == "Q2") else "P_{T}" if(plot_var == "pT") else "x_{B}" if(plot_var in ["xB"]) else "Error"
+                    if("Plotting" not in str(query_points[Line]["Values"][plot_var])):
+                        Entry_Title = f'{plot_var_title} = {query_points[Line]["Values"][plot_var]}' if(Entry_Title == "") else f'#splitline{{{Entry_Title}}}{{{plot_var_title} = {query_points[Line]["Values"][plot_var]}}}'
+            if(Entry_Title != ""):
+                legends[y_par].AddEntry(gr_spline[y_par][Line], Entry_Title, "lp")
+        # Create and save canvas
+        Save_Name = f"{'' if(args.name in ['Mosaic_Image', '']) else f'{args.name}_'}Spline_Image_{args.spline_prefix}_{str(args.fit_set).strip()}_{y_par}_vs_{args.x_mode}"
+
+        canvas_spline[Save_Name] = ROOT.TCanvas(Save_Name, Save_Name, int(args.single_canvas_width), int(args.single_canvas_height))
+        canvas_spline[Save_Name].SetFillColor(0)
+        # canvas_spline[Save_Name].SetMargin(0.0, 0.0, 0.0, 0.0)
+        canvas_spline[Save_Name].Divide(2, 1)
+        canvas_spline[Save_Name].cd(1)
+
+        if(not hasattr(canvas_spline[Save_Name], "_keepalive")):
+            canvas_spline[Save_Name]._keepalive = {}
+
+        # Graph pad
+        # pad_graph = ROOT.TPad(f"pad_graph_{Save_Name}", f"pad_graph_{Save_Name}", 0.0, 0.0, 0.73, 1.0)
+        pad_graph = canvas_spline[Save_Name].cd(1) # ROOT.TPad(f"pad_graph_{Save_Name}", f"pad_graph_{Save_Name}", 0.0, 0.0, 1.0, 1.0)
+        pad_graph.SetFillColor(0)
+        pad_graph.SetPad(0.00, 0.00, 0.75, 1.00)
+        # pad_graph.SetGrid(1, 1)
+        pad_graph.SetLeftMargin(0.14)
+        pad_graph.SetBottomMargin(0.13)
+        pad_graph.SetRightMargin(0.03)
+        pad_graph.SetTopMargin(0.12)
+        pad_graph.Draw()
+        pad_graph.cd()
+
+        frame = pad_graph.DrawFrame(float(x_min), float(y_min), float(x_max), float(y_max))
+        frame.SetTitle(Titles)
+        frame.GetXaxis().SetTitleSize(0.045)
+        frame.GetYaxis().SetTitleSize(0.045)
+        frame.GetXaxis().SetLabelSize(0.035)
+        frame.GetYaxis().SetLabelSize(0.035)
+        canvas_spline[Save_Name]._keepalive["Frame"] = frame
+
+        for Line in gr_spline[y_par]:
+            pad_graph.Draw()
+            pad_graph.cd()
+            gr_spline[y_par][Line].GetYaxis().SetRangeUser(y_min, y_max)
+            gr_spline[y_par][Line].Draw("P L SAME")
+        if(str(args.x_mode).lower() in ["q2", "y"]):
+            Bin_centers = {"1": 2.2, "2": 2.65, "3": 3.3, "4": 4.5, "5": 6.6} if(str(args.x_mode).lower() == "q2") else {"1": 0.4, "2": 0.5, "3": 0.6, "4": 0.7}
+            for ii in Bin_centers:
+                if(f"{y_par}_bins_{ii}" not in line_bins):
+                    line_bins[f"{y_par}_bins_{ii}"] = ROOT.TLine(Bin_centers[ii], y_min, Bin_centers[ii], y_max)
+                    line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(color_mapper[ii], 0.45)
+                    line_bins[f"{y_par}_bins_{ii}"].SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
+                pad_graph.cd()
+                line_bins[f"{y_par}_bins_{ii}"].Draw("SAME")
+            canvas_spline[Save_Name]._keepalive["Bin_Lines"] = line_bins
+
+        Draw_SingleBin_Preliminary_Watermark(args)
+
+        canvas_spline[Save_Name].cd(2)
+        # Legend pad
+        pad_legend = canvas_spline[Save_Name].cd(2) # ROOT.TPad(f"pad_legend_{Save_Name}", f"pad_legend_{Save_Name}", 0.73, 0.0, 1.0, 1.0)
+        pad_legend.SetPad(0.75, 0.00, 1.00, 1.00)
+        # pad_legend.SetFillColor(0)
+        # pad_legend.SetLeftMargin(0.05)
+        # pad_legend.SetRightMargin(0.05)
+        # pad_legend.SetTopMargin(0.10)
+        # pad_legend.SetBottomMargin(0.10)
+        pad_legend.Draw()
+        pad_legend.cd()
+        legends[y_par].Draw("SAME")
+
+        canvas_spline[Save_Name]._keepalive["TPad"] = {"Graph_Pad": pad_graph, "Legend_Pad": pad_legend}
+        canvas_spline[Save_Name].cd()
+        canvas_spline[Save_Name].Modified()
+        canvas_spline[Save_Name].Update()
+
+        if(not args.test):
+            print(f"\n{color.BGREEN}Saving: {color.BPINK if('png' in args.formats) else color.END_B}{Save_Name}.{args.formats}{color.END}")
+            canvas_spline[Save_Name].SaveAs(f"{Save_Name}.{args.formats}")
+        else:
+            print(f"\n{color.BBLUE}Would have Saved: {color.BPINK if('png' in args.formats) else color.END_B}{Save_Name}.{args.formats}{color.END}")
+
+    args.timer.stop()
+    return canvas_spline
+
+
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
@@ -1258,6 +1539,15 @@ def main():
     if(fit_set not in json_obj):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Requested --fit_set '{fit_set}' not found in JSON.{color.END}")
 
+    spline_models = load_spline_models(args, fit_set)
+    if(args.Spline_Only):
+        if(args.spline_prefix is None):
+            raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} Did not select a spline function file.\n\tMust set a value for {color.END_B}'--spline_prefix'{color.END}\n")
+        else:
+            return Spline_Plots_Only(args, spline_models)
+    elif(args.x_mode in ["Q2", "q2", "y", "xB", "xb"]):
+        raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} The variable {color.END_B}'{args.x_mode}'{color.END_R} only works for the '--Spline_Only' images (as of 4/17/2026){color.END}\n")
+
     fit_dict = json_obj[fit_set]
     if((not isinstance(fit_dict, dict)) or (len(fit_dict) == 0)):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Fit set '{fit_set}' is empty or not a dict.{color.END}")
@@ -1265,7 +1555,6 @@ def main():
     grouped       = group_by_q2y(fit_dict)
     info_map      = build_info_map(args, fit_dict)
     q2y_ranges    = build_q2y_ranges(grouped, info_map)
-    spline_models = load_spline_models(args, fit_set)
 
     if(args.verbose):
         print(f"{color.CYAN}[INFO] Using fit_set: {fit_set}{color.END}")
