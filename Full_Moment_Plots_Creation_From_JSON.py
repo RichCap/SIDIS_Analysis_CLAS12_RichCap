@@ -8,6 +8,8 @@ import argparse
 import pickle
 import numpy as np
 import ROOT
+# import traceback
+# # traceback.format_exc()
 
 ROOT.gROOT.SetBatch(1)
 ROOT.TH1.AddDirectory(0)
@@ -71,6 +73,7 @@ def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
 # ------------------------------------------------------------
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
+
 def parse_args():
     p = argparse.ArgumentParser(description="Make slide-optimized mosaic plots from the fit-parameter JSON output.", formatter_class=RawDefaultsHelpFormatter)
 
@@ -254,6 +257,11 @@ def parse_args():
                    type=str,
                    default=None,
                    help="Prefix used to load spline overlays: {spline_prefix}_{fit_set}_{y_par}.pkl.\n")
+    
+    p.add_argument("-dm", "--dimension_mode",
+                   choices=["4D", "5D", "4D_xB"],
+                   default="4D",
+                   help="Spline dimensionality used when loading overlays:\n  4D     = Q², y, z, pT\n  5D     = Q², y, z, pT, xB\n  4D_xB  = xB, y, z, pT (Q² replaced)\n")
 
     p.add_argument("-xe", "--x_error_bars",
                    action="store_true",
@@ -484,6 +492,16 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         series_map[sid]["points"].sort(key=lambda tt: tt[0])
     return series_map
 
+def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
+    Conversion_Factor = 0.0502731 # From xB = Q2/(2*M*E*y) -> Conversion_Factor = 1/(2*M*E)
+    if(Var_out == "xB"):
+        return (Conversion_Factor*(Q2_in/y_in))  if((None not in [Q2_in,  y_in]) and (y_in  != 0)) else xB_in
+    if(Var_out == "y"):
+        return (Conversion_Factor*(Q2_in/xB_in)) if((None not in [Q2_in, xB_in]) and (xB_in != 0)) else y_in
+    if(Var_out == "Q2"):
+        return ((xB_in*y_in)/Conversion_Factor)  if( None not in [xB_in,  y_in])                   else Q2_in
+    return None
+
 def load_spline_models(args, fit_set):
     spline_models = {}
     if(args.spline_prefix is None):
@@ -491,7 +509,8 @@ def load_spline_models(args, fit_set):
     if(str(args.spline_prefix).strip() in ["", "None", "none"]):
         return spline_models
     for y_par in args.y_pars:
-        pkl_file = f"{args.spline_prefix}_{fit_set}_{y_par}.pkl"
+        # UPDATED: include dimension_mode in filename
+        pkl_file = f"{args.spline_prefix}_{args.dimension_mode}_{fit_set}_{y_par}.pkl"
         if(not os.path.isfile(pkl_file)):
             print(f"{color.BYELLOW}[INFO] Missing spline file for {y_par}: {pkl_file}{color.END}")
             continue
@@ -510,7 +529,7 @@ def load_spline_models(args, fit_set):
             continue
         spline_models[y_par] = spline_obj
         if(args.verbose):
-            print(f"{color.GREEN}[INFO] Loaded spline for {y_par}: {pkl_file}{color.END}")
+            print(f"{color.GREEN}[INFO] Loaded {args.dimension_mode} spline for {y_par}: {pkl_file}{color.END}")
     return spline_models
 
 def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
@@ -536,11 +555,26 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
         return None
 
     x_grid = np.linspace(float(x_min), float(x_max), 200)
-    if(str(args.x_mode).lower() == "z"):
-        query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center)])
-    else:
-        query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
 
+    # UPDATED: build correct query points based on dimension_mode
+    if(str(args.x_mode).lower() == "z"):
+        if(args.dimension_mode == "4D"):
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center)])
+        elif(args.dimension_mode == "5D"):
+            xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center), np.full(len(x_grid), xB_center)])
+        elif(args.dimension_mode == "4D_xB"):
+            xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
+            query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center)])
+    else:
+        if(args.dimension_mode == "4D"):
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+        elif(args.dimension_mode == "5D"):
+            xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid, np.full(len(x_grid), xB_center)])
+        elif(args.dimension_mode == "4D_xB"):
+            xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
+            query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
     try:
         y_grid = spline_models[y_par](query_points)
     except Exception:
@@ -558,7 +592,6 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
         gr_spline.SetPoint(ip, float(xx), float(yy))
 
     gr_spline.SetLineColorAlpha(int(series_map[sid]["color"]), 0.45)
-    # gr_spline.SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
     gr_spline.SetLineWidth(0)
     gr_spline.SetLineStyle(7)
     gr_spline.SetMarkerColorAlpha(int(series_map[sid]["color"]), 0.45)
@@ -1264,17 +1297,7 @@ def save_single_canvas(args, canvas, fit_set, y_par, q2y_bin):
     canvas.SaveAs(filename)
     return filename
 
-
-def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
-    Conversion_Factor = 0.0502731 # From xB = Q2/(2*M*E*y) -> Conversion_Factor = 1/(2*M*E)
-    if(Var_out == "xB"):
-        return (Conversion_Factor*(Q2_in/y_in))  if((None not in [Q2_in,  y_in]) and (y_in  != 0)) else xB_in
-    if(Var_out == "y"):
-        return (Conversion_Factor*(Q2_in/xB_in)) if((None not in [Q2_in, xB_in]) and (xB_in != 0)) else y_in
-    if(Var_out == "Q2"):
-        return ((xB_in*y_in)/Conversion_Factor)  if( None not in [xB_in,  y_in])                   else Q2_in
-    return None
-
+ 
 def Spline_Plots_Only(args, spline_models):
     # Fixed kinematic grids (with float conversion as you added)
     Q2_grid = [float(val) for val in getattr(args, "Fixed_Q2", [2.2])]
@@ -1283,9 +1306,9 @@ def Spline_Plots_Only(args, spline_models):
     pT_grid = [float(val) for val in getattr(args, "Fixed_pT", [0.135])]
 
     x_min, x_max = 0.05, 1.0
-    xB_is_Q2, xB_is__y = False, False
-
-    if(args.x_mode in ["Q2", "q2"]):
+    xB_is_Q2, xB_is__y = False, False # Probably should remove these later (xB should be being handled differently now than when these conditions were first introduced — probably outdated now)
+                                      # Current Best Practices: Do not use 'Fixed_xB' — let it just be determined by Q2 and y when not plotting
+    if(str(args.x_mode).lower() == "q2"):
         x_min, x_max = 2.0, 7.9
         if(getattr(args, "Fixed_xB", None) is not None):
             y__grid      = [float(val) for val in args.Fixed_xB]
@@ -1297,19 +1320,32 @@ def Spline_Plots_Only(args, spline_models):
             Q2_grid       = [float(val) for val in args.Fixed_xB]
             args.Fixed_Q2 = [float(val) for val in args.Fixed_xB]
             xB_is_Q2      = True
-    if args.x_mode in ["xB", "xb"]:
+    if(args.x_mode in ["xB", "xb"]):
         x_min, x_max = 0.134061, 0.722104
-
+    x_grid = np.linspace(float(x_min), float(x_max), 200)
+    Q2_varies_with_xB, y__varies_with_xB = False, False
     legend_title = "#scale[1.25]{Fixed Kinematics}"
     if((len(Q2_grid) == 1) and ((str(args.x_mode).lower() != "q2") or xB_is_Q2)):
-        legend_title = f"#splitline{{{legend_title}}}{{{'Q^{2}' if(not xB_is_Q2) else 'x_{B}'} = {Q2_grid[0]}}}"
+        if(str(args.x_mode).lower() == "xb"):
+            Q2_varies_with_xB = True
+            legend_title = f"#splitline{{{legend_title}}}{{Q^{{2}} Varies with x_{{B}}}}"
+        else:
+            legend_title = f"#splitline{{{legend_title}}}{{{'Q^{2}' if(not xB_is_Q2) else 'x_{B}'} = {Q2_grid[0]}}}"
     if((len(y__grid) == 1) and ((str(args.x_mode).lower() != "y")  or xB_is__y)):
-        legend_title = f"#splitline{{{legend_title}}}{{{'y'     if(not xB_is__y) else 'x_{B}'} = {y__grid[0]}}}"
-    if((len(z__grid) == 1) and (str(args.x_mode).lower() != "z")):
+        if((str(args.x_mode).lower() == "xb") and (not Q2_varies_with_xB)):
+            y__varies_with_xB = True
+            legend_title = f"#splitline{{{legend_title}}}{{y Varies with x_{{B}}}}"
+        else:
+            legend_title = f"#splitline{{{legend_title}}}{{{'y'     if(not xB_is__y) else 'x_{B}'} = {y__grid[0]}}}"
+    if((len(z__grid) == 1) and (str(args.x_mode).lower()  != "z")):
         legend_title = f"#splitline{{{legend_title}}}{{z = {z__grid[0]}}}"
-    if((len(pT_grid) == 1) and (str(args.x_mode).lower() != "pt")):
+    if((len(pT_grid) == 1) and (str(args.x_mode).lower()  != "pt")):
         legend_title = f"#splitline{{{legend_title}}}{{P_{{T}} = {pT_grid[0]}}}"
-    x_grid = np.linspace(float(x_min), float(x_max), 200)
+    if(Q2_varies_with_xB or y__varies_with_xB):
+        print("\n\n")
+        print(f"Q2_varies_with_xB = {Q2_varies_with_xB}")
+        print(f"y__varies_with_xB = {y__varies_with_xB}")
+        print(f"legend_title      = {legend_title}\n\n")
     # Build all query points
     Line_Num, query_points = 0, {}
     for             Q2_val in Q2_grid:
@@ -1321,16 +1357,54 @@ def Spline_Plots_Only(args, spline_models):
                     y__stack = np.full(len(x_grid), y__val) if(str(args.x_mode).lower() != "y")  else x_grid
                     z__stack = np.full(len(x_grid), z__val) if(str(args.x_mode).lower() != "z")  else x_grid
                     pT_stack = np.full(len(x_grid), pT_val) if(str(args.x_mode).lower() != "pt") else x_grid
-                    if(args.x_mode in ["xB", "xb"]):
-                        y__stack = x_grid # spline was trained on y, so we convert internally
-                    query_points[f"Line_Num_{Line_Num}"] = {"column_stack": np.column_stack([Q2_stack, y__stack, z__stack, pT_stack]),
-                                                            "Values": {"Q2":     Q2_val if(str(args.x_mode).lower() != "q2") else "Plotting",
-                                                                       "y":      y__val if(str(args.x_mode).lower() != "y")  else "Plotting",
+                    if(args.dimension_mode == "5D"):
+                        if(str(args.x_mode).lower() == "xb"):
+                            xB_stack = x_grid
+                            if(len(Q2_grid) < 2):   # Assumes that Q2 is set to default values → let it vary with xB
+                                Q2_stack = np.array([Convert_xB_var(xB_in=xb, Q2_in=Q2_val, y_in=y__val, Var_out="Q2") for xb in xB_stack])
+                                # Q2_varies_with_xB = True
+                            elif(len(y__grid) < 2): # Assumes that y  is set to default values → let it vary with xB
+                                y__stack = np.array([Convert_xB_var(xB_in=xb, Q2_in=Q2_val, y_in=y__val, Var_out="y")  for xb in xB_stack])
+                                # y__varies_with_xB = True
+                            else:
+                                raise SystemExit(f"{color.Error}ERROR:{color.END} Cannot plot xB while fixing BOTH Q2 and y.\n")
+                        elif(str(args.x_mode).lower() in ["y", "q2"]):
+                            if(str(args.x_mode).lower() in ["q2"]): #   Q2 is varying → xB must vary with it (fixed y)
+                                xB_stack = np.array([Convert_xB_var(Q2_in=qq, y_in=y__val, Var_out="xB") for qq in Q2_stack])
+                            else:                                   #    y is varying → xB must vary with it (fixed Q2)
+                                xB_stack = np.array([Convert_xB_var(Q2_in=Q2_val, y_in=yy, Var_out="xB") for yy in y__stack])
+                        else:                                       # Varying z or pT → xB is fixed by Q2 and y
+                            xB_stack = np.full(len(x_grid), Convert_xB_var(Q2_in=Q2_val, y_in=y__val, Var_out="xB"))
+                        column_stack = np.column_stack([Q2_stack, y__stack, z__stack, pT_stack, xB_stack])
+                    elif(args.dimension_mode == "4D_xB"):
+                        if(str(args.x_mode).lower() == "xb"):
+                            xB_stack = x_grid
+                            if(len(Q2_grid) < 2):   # Assumes that Q2 is set to default values → let it vary with xB
+                                Q2_stack = np.array([Convert_xB_var(xB_in=xb, Q2_in=Q2_val, y_in=y__val, Var_out="Q2") for xb in xB_stack])
+                                # Q2_varies_with_xB = True
+                            elif(len(y__grid) < 2): # Assumes that y  is set to default values → let it vary with xB
+                                y__stack = np.array([Convert_xB_var(xB_in=xb, Q2_in=Q2_val, y_in=y__val, Var_out="y")  for xb in xB_stack])
+                                # y__varies_with_xB = True
+                            else:
+                                raise SystemExit(f"{color.Error}ERROR:{color.END} Cannot plot xB while fixing BOTH Q2 and y.\n")
+                        elif(str(args.x_mode).lower() in ["y", "q2"]):
+                            if(str(args.x_mode).lower() in ["q2"]): #   Q2 is varying → xB must vary with it (fixed y)
+                                xB_stack = np.array([Convert_xB_var(Q2_in=qq, y_in=y__val, Var_out="xB") for qq in Q2_stack])
+                            else:                                   #    y is varying → xB must vary with it (fixed Q2)
+                                xB_stack = np.array([Convert_xB_var(Q2_in=Q2_val, y_in=yy, Var_out="xB") for yy in y__stack])
+                        else:                                       # Varying z or pT → xB is fixed by Q2 and y
+                            xB_stack = np.full(len(x_grid), Convert_xB_var(Q2_in=Q2_val, y_in=y__val, Var_out="xB"))
+                        column_stack = np.column_stack([xB_stack, y__stack, z__stack, pT_stack])
+                    else:  # 4D — This version does not care about xB
+                        column_stack = np.column_stack([Q2_stack, y__stack, z__stack, pT_stack])
+                    query_points[f"Line_Num_{Line_Num}"] = {"column_stack": column_stack,
+                                                            "Values": {"Q2": "Plotting" if(str(args.x_mode).lower() == "q2") else Q2_val                if(not Q2_varies_with_xB) else "Effected by Plotting",
+                                                                       "y":  "Plotting" if(str(args.x_mode).lower() == "y")  else y__val                if(not y__varies_with_xB) else "Effected by Plotting",
                                                                        "z":      z__val if(str(args.x_mode).lower() != "z")  else "Plotting",
                                                                        "pT":     pT_val if(str(args.x_mode).lower() != "pt") else "Plotting",
-                                                                       "xB": "Plotting" if(str(args.x_mode).lower() == "xb") else "See Q2" if(xB_is_Q2) else "See y" if(xB_is__y) else Convert_xB_var(Q2_in=Q2_val, y_in=y__val, Var_out="xB") if(str(args.x_mode).lower() not in ["q2", "y"]) else "Effected by Plotting"}
+                                                                       "xB": "Plotting" if(str(args.x_mode).lower() == "xb") else "See Q2" if(xB_is_Q2) else "See y" if(xB_is__y) else "Effected by Plotting" if(str(args.x_mode).lower() in ["y", "q2"]) else Convert_xB_var(Q2_in=Q2_val, y_in=y__val, Var_out="xB")
+                                                                      }
                                                             }
-
     # Create canvases and draw
     y_grid, gr_spline, canvas_spline, legends, line_bins = {}, {}, {}, {}, {}
     for y_par in args.y_pars:
@@ -1376,12 +1450,13 @@ def Spline_Plots_Only(args, spline_models):
             except Exception:
                 try:
                     y_grid[y_par][Line] = spline_models[y_par](np.asarray(query_points[Line]["column_stack"], dtype=float))
-                except Exception:
-                    raise SystemExit(f"{color.Error}ERROR:{color.END} Spline evaluation failed for {y_par} line {Line_Num}")
-            # Convert x-axis back to xB if needed
-            x_vals = query_points[Line]["column_stack"][:, 0] if(str(args.x_mode).lower() == "q2") else query_points[Line]["column_stack"][:, 1] if(str(args.x_mode).lower() == "y") else query_points[Line]["column_stack"][:, 2] if(str(args.x_mode).lower() == "z") else query_points[Line]["column_stack"][:, 3]
-            if(args.x_mode in ["xB", "xb"]):
-                x_vals = np.array([Convert_xB_var(xB_in=val, Q2_in=Q2_grid[0] if(len(Q2_grid) == 1) else None, y_in=y__grid[0] if(len(y__grid) == 1) else None, Var_out="xB") for val in x_vals])
+                except Exception as ee:
+                    raise SystemExit(f"{color.Error}ERROR:{color.END} Spline evaluation failed for {y_par} line {Line_Num}.\nException:\t{ee}\n")
+            x_vals = x_grid # np.array(val for val in x_grid)
+            # # Convert x-axis back to xB if needed
+            # x_vals = query_points[Line]["column_stack"][:, 0] if(str(args.x_mode).lower() == "q2") else query_points[Line]["column_stack"][:, 1] if(str(args.x_mode).lower() == "y") else query_points[Line]["column_stack"][:, 2] if(str(args.x_mode).lower() == "z") else query_points[Line]["column_stack"][:, 3] if(args.dimension_mode == "4D") else query_points[Line]["column_stack"][:, 0] if(args.dimension_mode == "4D_xB") else query_points[Line]["column_stack"][:, 4]
+            # if(args.x_mode in ["xB", "xb"]):
+            #     x_vals = np.array([Convert_xB_var(xB_in=val, Q2_in=Q2_grid[0] if(len(Q2_grid) == 1) else None, y_in=y__grid[0] if(len(y__grid) == 1) else None, Var_out="xB") for val in x_vals])
             gr_spline[y_par][Line] = ROOT.TGraph(len(x_vals))
             for ip, (xx, yy) in enumerate(zip(x_vals, y_grid[y_par][Line])):
                 gr_spline[y_par][Line].SetPoint(ip, float(xx), float(yy))
@@ -1415,11 +1490,11 @@ def Spline_Plots_Only(args, spline_models):
             gr_spline[y_par][Line].GetYaxis().SetLabelSize(0.025)
             # Build legend entry
             Entry_Title = ""
-            if("See" in query_points[Line]["Values"]["xB"]):
-                if("Q2" in query_points[Line]["Values"]["xB"]):
-                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["Q2"]}' if("Plotting" not in query_points[Line]["Values"]["Q2"]) else ""
-                if("y"  in query_points[Line]["Values"]["xB"]):
-                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["y"]}'  if("Plotting" not in query_points[Line]["Values"]["y"])  else ""
+            if("See"    in str(query_points[Line]["Values"]["xB"])):
+                if("Q2" in str(query_points[Line]["Values"]["xB"])):
+                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["Q2"]}' if("Plotting" not in str(query_points[Line]["Values"]["Q2"])) else ""
+                if("y"  in str(query_points[Line]["Values"]["xB"])):
+                    Entry_Title = f'x_{{B}} = {query_points[Line]["Values"]["y"]}'  if("Plotting" not in str(query_points[Line]["Values"]["y"]))  else ""
             else:
                 for plot_var in query_points[Line]["Values"]:
                     if(getattr(args, f"Fixed_{plot_var}") is None):
@@ -1469,12 +1544,13 @@ def Spline_Plots_Only(args, spline_models):
             pad_graph.cd()
             gr_spline[y_par][Line].GetYaxis().SetRangeUser(y_min, y_max)
             gr_spline[y_par][Line].Draw("P L SAME")
-        if(str(args.x_mode).lower() in ["q2", "y"]):
-            Bin_centers = {"1": 2.2, "2": 2.65, "3": 3.3, "4": 4.5, "5": 6.6} if(str(args.x_mode).lower() == "q2") else {"1": 0.4, "2": 0.5, "3": 0.6, "4": 0.7}
+        if((str(args.x_mode).lower() in ["q2", "y", "xb"]) and (args.draw_legends)): # `draw_legends` is used here just to make these bin lines be optional — probably should change the argument later to not get confused since this image type always draws a TLegend and these lines have nothing to do with it
+            Bin_centers = {"1": 2.2, "2": 2.65, "3": 3.3, "4": 4.5, "5": 6.6} if(str(args.x_mode).lower() == "q2") else {"1": 0.4, "2": 0.5, "3": 0.6, "4": 0.7} if(str(args.x_mode).lower() == "y") else {'1': 0.27650205, '2': 0.22120164, '3': 0.1843347, '4': 0.15800117, '5': 0.33305929, '6': 0.26644743, '7': 0.22203953, '8': 0.19031959, '9': 0.41475307, '10': 0.33180246, '11': 0.27650205, '12': 0.23700176, '13': 0.56557238, '14': 0.4524579, '15': 0.37704825, '16': 0.32318421, '17': 0.82950615, '18': 0.66360492, '19': 0.5530041, '20': 0.47400351}
             for ii in Bin_centers:
                 if(f"{y_par}_bins_{ii}" not in line_bins):
                     line_bins[f"{y_par}_bins_{ii}"] = ROOT.TLine(Bin_centers[ii], y_min, Bin_centers[ii], y_max)
-                    line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(color_mapper[ii], 0.45)
+                    color_ii = (int(ii)%len(color_mapper)) + 1
+                    line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(color_mapper[str(color_ii)], 0.45)
                     line_bins[f"{y_par}_bins_{ii}"].SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
                 pad_graph.cd()
                 line_bins[f"{y_par}_bins_{ii}"].Draw("SAME")
@@ -1508,7 +1584,6 @@ def Spline_Plots_Only(args, spline_models):
 
     args.timer.stop()
     return canvas_spline
-
 
 # ------------------------------------------------------------
 # Main

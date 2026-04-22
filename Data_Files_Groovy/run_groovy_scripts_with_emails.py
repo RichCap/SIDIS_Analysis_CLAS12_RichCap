@@ -104,6 +104,11 @@ def parse_args():
                         dest="slurm_mem_per_cpu",
                         default=DEFAULT_SLURM_MEM_PER_CPU,
                         help="SLURM memory per CPU in slurm mode (e.g. '3GB', '4000M').\n")
+    parser.add_argument("-sn",   "-ejn",     "--extra_job_name",
+                        type=str,
+                        default=None,
+                        help="Optionally adds more text to the slurm array job names (changes job names in all modes, but should only functionally effect the slurm run mode).\nShould be useful if submitting similar slurm jobs while others are still running.\n")
+    
 
     parser.add_argument("-dr",   "-test",    "--dry-run",
                         dest="dry_run",
@@ -612,7 +617,9 @@ def main():
         job_id_final = build_default_job_id(source_norm, mc_type_norm, event_type_norm, args.mode)
     else:
         job_id_final = str(args.job_id).strip()
-
+    if(getattr(args, "extra_job_name", None) is not None):
+        job_id_final = f"{str(args.extra_job_name)}_{job_id_final}"
+        
     if((args.script_path is None) or (str(args.script_path).strip() == "")):
         script_path_final = resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_norm)
         script_path_reason = "preset"
@@ -820,13 +827,16 @@ User Given Message:
         num_fail    = 0
 
         def start_job(job_num, filepath):
-            command = ["run-groovy", script_path_final, filepath]
-            base    = os.path.basename(filepath).replace(" ", "_")
-            log_p   = os.path.join(log_dir, f"job_{job_num:05d}_{base}.log")
-            fh      = open(log_p, "w")
+            command   = ["run-groovy", script_path_final, filepath]
+            base      = os.path.basename(filepath).replace(" ", "_")
+            if("g" in str(args.mc_type)):
+                log_p = os.path.join(log_dir, f"job_gen_{job_num:05d}_{base}.log")
+            else:
+                log_p = os.path.join(log_dir, f"job_{job_num:05d}_{base}.log")
+            fh        = open(log_p, "w")
             fh.write(f"# {' '.join(shlex.quote(x) for x in command)}\n")
             fh.flush()
-            proc    = subprocess.Popen(command, cwd=work_dir_final, stdout=fh, stderr=fh)
+            proc      = subprocess.Popen(command, cwd=work_dir_final, stdout=fh, stderr=fh)
             running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "idx": job_num})
             print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(batch_iterable)}  ->  {base}")
             print(f"\t{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")

@@ -310,6 +310,12 @@ def tmux_send(session_name, command_str):
         print(f"{color.Error}Warning: Failed to send command to tmux session '{session_name}': {result.stderr.strip()}{color.END}")
     return result.returncode == 0
 
+def local_send(command_str):
+    result = subprocess.run(command_str, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    if(result.returncode != 0):
+        print(f"{color.Error}Warning: Failed to run command: {result.stderr.strip()}{color.END}")
+    return result.returncode == 0
+
 def is_incomplete_root_file(filename, args):
     # Fast check for truncated / crashed-while-writing ROOT files.
     # Returns True if the file is incomplete/corrupted from a crash.
@@ -346,7 +352,7 @@ def command_to_use_run_groovy_scripts_with_emails(file_paths, args, src_type="cl
         array += " -dr"
     if(args.run_mode == "slurm"):
         slurm_time = "20:00:00"
-        slurm_cpu  = "3500M" if mc_type == "rec" else "3GB"
+        slurm_cpu  = "4GB" # "3500M" if(mc_type == "rec") else "3GB"
         slurm = f' -m slurm -st "{slurm_time}" -cpu "{slurm_cpu}"'
         arguments = f'-src "{src_type}" -mc "{mc_type}" -evt "{evt_type}"{array}{slurm}'
         email = f' -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Extra Message: {args.email_message_jobs}." if(args.email_message_jobs) else ""}" '
@@ -642,16 +648,19 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
         slurmCancel_num = Combination_List[f"{tmux_running}"]["scancel"]
 
         # === Per-command interactive tmux session selection ===
-        if(not args.no_prompt):
+        if((not args.no_prompt) and (str(args.run_mode) not in ["slurm"])):
             print(f"\n{color.BBLUE}Command for group: {single_group_and_check_version}{color.END}")
             this_tmux_name, was_created = prompt_tmux_session(default_name=this_tmux_name, test_mode=args.test)
             print(f"{color.BBLUE}Base tmux session chosen: {this_tmux_name}{color.END}")
+        elif(str(args.run_mode) in ["slurm"]):
+            this_tmux_name = "local"
+            was_created = False
         else:
             # tmux_name = "hadd_sidis"
             was_created = False
 
         # === Per-command interactive scancel prompt ===
-        if((not args.no_prompt) and (not args.scancel_ids)):
+        if(((not args.no_prompt) and (not args.scancel_ids)) and (str(args.run_mode) not in ["slurm"])):
             print("")
             scancel_for_this = prompt_for_scancel_id(single_group_and_check_version, this_tmux_name)
             if(scancel_for_this):
@@ -669,18 +678,17 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
             print(f"\n\n\t{color.BCYAN}Suggested path file content for {single_group_and_check_version}:{color.END}\n")
             print(f"{text_of_path_file}\n")
 
-    # === Final full command summary (first listing) ===
-    print(f"\n\n\n{color.BOLD}=== FULL COMMAND PLAN FOR 'run_groovy_scripts_with_emails.py' ==={color.END}")
-    for group, tmux_sess, cmd, _ in dispatch_plan:
-        print(f"{color.BBLUE}Group: {group} → tmux: {tmux_sess}{color.END}")
-        print(f"   {cmd}\n")
-
     print(f"{color.BOLD}echo 'Done'{color.END}\n")
 
     if(args.test):
+        # === Final full command summary (first listing) ===
+        print(f"\n\n\n{color.BOLD}=== FULL COMMAND PLAN FOR 'run_groovy_scripts_with_emails.py' ==={color.END}")
+        for group, tmux_sess, cmd, _ in dispatch_plan:
+            print(f"{color.BBLUE}Group: {group} → tmux: {tmux_sess}{color.END}")
+            print(f"   {cmd}\n")
         Update_Email(args, update_message=f"{color.BGREEN}Done with dry run commands.{color.END}", verbose_override=True, no_time=False)
         return full_command_str, tmux_running
-
+        
     # === Final user approval (second listing + cancel opportunity) ===
     if(not args.no_prompt):
         print(f"{color.BOLD}=== FINAL REVIEW BEFORE DISPATCH ==={color.END}")
@@ -694,7 +702,7 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
             return full_command_str, tmux_running
 
     # === Direct tmux dispatch ===
-    print(f"{color.BCYAN}Dispatching to respective tmux sessions...{color.END}")
+    print(f"{color.BCYAN}Dispatching commands...{color.END}")
     for _, tmux_name, cmd, _ in dispatch_plan:
         cmd = ansi_to_plain(cmd)
         for line in cmd.splitlines():
@@ -703,9 +711,12 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
                 for subcmd in line.split(';'):
                     subcmd = subcmd.strip()
                     if(subcmd):
-                        tmux_send(tmux_name, subcmd)
+                        if((str(tmux_name).lower() == "local") or (str(args.run_mode) in ["slurm"])):
+                            local_send(subcmd)
+                        else:
+                            tmux_send(tmux_name, subcmd)
 
-    Update_Email(args, update_message=f"{color.BGREEN}All commands successfully dispatched to their tmux sessions.{color.END}", verbose_override=True, no_time=not False)
+    Update_Email(args, update_message=f"{color.BGREEN}All commands successfully dispatched.{color.END}", verbose_override=True, no_time=not False)
     return full_command_str, tmux_running
 
 def main():

@@ -19,7 +19,7 @@ sys.path.remove(script_dir)
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
 def parse_args():
-    p = argparse.ArgumentParser(description="Create_Continuous_4D_Moments_From_JSON.py: Build tunable 4D continuous spline functions from the same JSON files used in 'Full_Moment_Plots_Creation_From_JSON.py'.", formatter_class=RawDefaultsHelpFormatter)
+    p = argparse.ArgumentParser(description="Create_Continuous_4D_Moments_From_JSON.py: Build tunable continuous spline functions (4D / 5D / 4D_xB) from the same JSON files used in 'Full_Moment_Plots_Creation_From_JSON.py'.", formatter_class=RawDefaultsHelpFormatter)
 
     p.add_argument("-v", "--verbose",
                    action="store_true",
@@ -51,7 +51,13 @@ def parse_args():
     
     p.add_argument("-o", "--output_prefix",
                    default="Continuous_Moments",
-                   help="Prefix for output files (e.g. Continuous_Moments_Fit_Pars_from_3D_Bayesian_Fit_Par_B.pkl).\n")
+                   help="Prefix for output files.\n")
+
+    # === NEW DIMENSION MODE ===
+    p.add_argument("-dm", "--dimension_mode",
+                   choices=["4D", "5D", "4D_xB"],
+                   default="4D",
+                   help="Spline dimensionality:\n  4D     = Q², y, z, pT (original)\n  5D     = Q², y, z, pT, xB\n  4D_xB  = xB, y, z, pT (xB replaces Q²)\n")
 
     # === TUNING KNOBS ===
     p.add_argument("-s", "--smoothing_factor",
@@ -61,7 +67,7 @@ def parse_args():
     p.add_argument("-k", "--kernel",
                    choices=["thin_plate_spline", "cubic", "multiquadric", "inverse", "gaussian", "linear"],
                    default="thin_plate_spline",
-                   help="Kernel type for the RBF spline (thin_plate_spline is the direct 4D cubic analogue).\n")
+                   help="Kernel type for the RBF spline.\n")
     p.add_argument("-eps", "--epsilon",
                    type=float,
                    default=None,
@@ -237,11 +243,20 @@ def build_info_map(fit_dict):
         Construct_JSON_Info(str(q2y_bin), str(zpt_bin), return_info=info_map)
     return info_map
 
+def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
+    Conversion_Factor = 0.0502731 # From xB = Q2/(2*M*E*y) -> Conversion_Factor = 1/(2*M*E)
+    if(Var_out == "xB"):
+        return (Conversion_Factor*(Q2_in/y_in))  if((None not in [Q2_in,  y_in]) and (y_in  != 0)) else xB_in
+    if(Var_out == "y"):
+        return (Conversion_Factor*(Q2_in/xB_in)) if((None not in [Q2_in, xB_in]) and (xB_in != 0)) else y_in
+    if(Var_out == "Q2"):
+        return ((xB_in*y_in)/Conversion_Factor)  if( None not in [xB_in,  y_in])                   else Q2_in
+    return None
 
 # ------------------------------------------------------------
-# Build 4D data points (exact same extraction used in the mosaic plots)
+# Build data points for any dimension mode
 # ------------------------------------------------------------
-def build_4d_data(fit_dict, info_map, y_par, err_suffix):
+def build_data(fit_dict, info_map, y_par, err_suffix, dimension_mode):
     points = []
     values = []
     stds = []
@@ -257,10 +272,20 @@ def build_4d_data(fit_dict, info_map, y_par, err_suffix):
         Pt_val = inf["pTrange"][0]
         val = float(entry[y_par])
         err = float(entry[f"{y_par}{err_suffix}"])
-        points.append([Q2, y_val, z_val, Pt_val])
+
+        if(dimension_mode == "4D"):
+            points.append([Q2, y_val, z_val, Pt_val])
+        elif(dimension_mode == "5D"):
+            xB = Convert_xB_var(Q2_in=Q2, y_in=y_val, Var_out="xB")
+            points.append([Q2, y_val, z_val, Pt_val, xB])
+        elif(dimension_mode == "4D_xB"):
+            xB = Convert_xB_var(Q2_in=Q2, y_in=y_val, Var_out="xB")
+            points.append([xB, y_val, z_val, Pt_val])
+
         values.append(val)
         stds.append(err)
     return (np.array(points, dtype=float), np.array(values, dtype=float), np.array(stds, dtype=float))
+
 
 # ------------------------------------------------------------
 # Main
@@ -269,7 +294,7 @@ def main():
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
-    print(f"\n{color.BBLUE}=== Building tunable 4D spline functions ==={color.END}\n")
+    print(f"\n{color.BBLUE}=== Building tunable spline functions ({args.dimension_mode} mode) ==={color.END}\n")
     json_obj = load_json(args)
     if(args.list_fit_sets):
         print("Fit sets in JSON:")
@@ -291,24 +316,24 @@ def main():
     info_map = build_info_map(fit_dict)
 
     if((args.verbose) or (args.email)):
-        Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}{color.END}", verbose_override=False, no_time=True)
+        Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}\n[INFO] Dimension mode: {args.dimension_mode}{color.END}", verbose_override=False, no_time=True)
 
     y_pars = ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
 
     for y_par in y_pars:
-        points, values, stds = build_4d_data(fit_dict, info_map, y_par, args.err_suffix)
+        points, values, stds = build_data(fit_dict, info_map, y_par, args.err_suffix, args.dimension_mode)
         if(len(points) == 0):
             Update_Email(args, update_message=f"{color.Error}[WARNING] No valid data points found for {y_par}{color.END}", verbose_override=True, no_time=True)
             continue
 
-        # === PER-POINT UNCERTAINTY WEIGHTING IS NOW THE DEFAULT ===
-        # alpha = sigma^2 for each point (RBFInterpolator uses this directly)
+        # === PER-POINT UNCERTAINTY WEIGHTING ===
         alpha = stds ** 2
-        smoothing = args.smoothing_factor * np.mean(alpha)   # overall multiplier
+        smoothing = args.smoothing_factor * np.mean(alpha)
 
         if(args.test):
             print(f"{color.CYAN}{y_par}: {len(points)} points | median err = {np.median(stds):.5f} | effective smoothing = {smoothing:.2e}{color.END}")
             continue
+
         rbf = RBFInterpolator(points, values, kernel=args.kernel, smoothing=smoothing, epsilon=args.epsilon)
         config = {"kernel": args.kernel,
                   "smoothing_factor": args.smoothing_factor,
@@ -317,18 +342,21 @@ def main():
                   "fit_set": fit_set,
                   "y_par": y_par,
                   "n_points": len(points),
-                  "per_point_weighting": True
+                  "per_point_weighting": True,
+                  "dimension_mode": args.dimension_mode
                  }
 
-        pkl_file = f"{args.output_prefix}_{fit_set}_{y_par}.pkl"
+        mode_str = args.dimension_mode
+        pkl_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.pkl"
         with(open(pkl_file, "wb") as f):
             pickle.dump({"rbf": rbf, "config": config, "points": points, "values": values}, f)
 
-        npz_file = f"{args.output_prefix}_{fit_set}_{y_par}.npz"
+        npz_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.npz"
         np.savez(npz_file, **config, points=points, values=values)
 
         Update_Email(args, update_message=f"{color.GREEN}SAVED {y_par} → {pkl_file} (Python) + {npz_file} (C++){color.END}", verbose_override=True, no_time=True)
-    Update_Email(args, update_message=f"\n{color.BBLUE}All 4D spline functions built with per-point uncertainty weighting.{color.END}\n", verbose_override=True, no_time=True)
+
+    Update_Email(args, update_message=f"\n{color.BBLUE}All spline functions built ({args.dimension_mode} mode) with per-point uncertainty weighting.{color.END}\n", verbose_override=True, no_time=True)
     Construct_Email(args, Crashed=False, Warning=False)
 
 if(__name__ == "__main__"):

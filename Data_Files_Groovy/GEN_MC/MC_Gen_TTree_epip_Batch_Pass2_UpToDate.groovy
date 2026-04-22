@@ -13,6 +13,20 @@ import uconn.utils.pid.stefan.PionCandidate
 import my.Sugar
 // import clasqa.QADB
 
+import org.jlab.jnp.hipo4.data.Schema
+
+// Clock Time & Runtime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+def formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
+def startClock = LocalDateTime.now()
+System.out.println("");
+System.out.println("");
+System.out.println("=== Script STARTED at: " + startClock.format(formatter) + " ===")
+System.out.println("");
+System.out.println("");
+
 long StartTime = System.nanoTime()
 
 Sugar.enable()
@@ -50,9 +64,30 @@ def Q2_nocut_Count = 0
 def Q2_SIDIS_Count = 0
 
 
+// ======================================================================
+// Robust parent index getter — works on ANY numeric type for MC::Lund.parent
+// ======================================================================
+def getParentIndex(Bank lundBank, int row){
+    // if(lundBank == null || !lundBank.hasEntry("parent")) return 0
+    Schema schema = lundBank.getSchema()
+    int colType = schema.getType("parent")
+    switch (colType) {
+        case 0:  return lundBank.getByte("parent",  row)
+        case 1:  return lundBank.getInt("parent",   row)
+        case 2:  return lundBank.getShort("parent", row)
+        case 3:  return (int) lundBank.getFloat("parent", row)
+        default:
+            System.out.println("WARNING: Unknown type for MC::Lund.parent = $colType (row $row)");
+            return lundBank.getShort("parent", row)   // safe fallback
+    }
+}
+
 // Tolerances for float comparisons (tune as needed)
 final double ABS_TOL = 1e-6
 final double REL_TOL = 1e-4
+// Make them visible inside GPars parallel closures
+this.ABS_TOL = ABS_TOL
+this.REL_TOL = REL_TOL
 
 // Helper: robust float compare (absolute + relative)
 boolean nearlyEqual(double a, double b, double absTol, double relTol) {
@@ -93,7 +128,8 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
 
         // ---- Match found ----
         // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
-        int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
+        // int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
+        int parentIndex = getParentIndex(lund_in, i)
 
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
@@ -137,7 +173,8 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
         if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
         // ---- Match found ----
         // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
-        int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
+        // int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
+        int parentIndex = getParentIndex(lund_in, i)
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
             System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
@@ -349,6 +386,11 @@ System.out.println("Total number of   SIDIS   events found with Q2 > 1.5        
 System.out.println("");
 
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
+
+def endClock = LocalDateTime.now()
+System.out.println("");
+System.out.println("=== Script FINISHED at: " + endClock.format(formatter) + " ===")
+System.out.println("");
 
 if(RunTime > 60){
     RunTime = RunTime/60;
