@@ -74,9 +74,10 @@ def lumi(charge):
     return factor
 
 # 4.09744e+07 nC came from /lustre24/expphy/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis/nSidis_* (as of 8/1/2025)
-def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15, Rename_Axis=False, args_in=None, charge_in=4.09744e+07, verbose_in=False):
+# 35023407.601823784 nC (or ~3.50234e+07 nC) came from `Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json` as of 4/22/2026 (see '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/' for the log file)
+def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15, Rename_Axis=False, args_in=None, charge_in=35023407.601823784, verbose_in=False):
     class args_custom:
-        verbose = (args_in.verbose if(hasattr(args_in, "verbose")) else verbose_in) or (Histo is None)
+        verbose = (args_in.verbose if(hasattr(args_in, "verbose")) else verbose_in) or ((Histo is None) and getattr(args_in, "verbose", True))
         charge  =  args_in.charge  if(hasattr(args_in, "charge"))  else charge_in
     Bin_Width_Area_Scale, _ = Bin_Area_by_Widths_Calc(args=args_custom, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=phi_t_bin)
     Luminosity = lumi(args_custom.charge)
@@ -98,7 +99,7 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
             raise ValueError(f"Failed to scale histogram to 'Luminosity'. Luminosity = 0.")
         if(Rename_Axis):
             Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
-    Histo.Normalize_Factor = Normalize_Factor
+        Histo.Normalize_Factor = Normalize_Factor
     return Histo, Bin_Width_Area_Scale, Luminosity
     
 if(__name__ == "__main__"):

@@ -37,7 +37,8 @@ import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns
-from Binning_Dictionaries import Full_Bin_Definition_Array
+from Binning_Dictionaries             import Full_Bin_Definition_Array
+from Cross_Section_Normalization      import Cross_Section_Normalization
 sys.path.remove(script_dir)
 del script_dir
 
@@ -253,6 +254,10 @@ def parse_args():
                    action="store_true",
                    help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
 
+    p.add_argument("-cs", "-cs_A", "--apply_A_corr",
+                   action="store_true",
+                   help=f"Apply Cross Section Normalization to the 'Fit_Par_A' measurements.\n{color.Error}WARNING: Do not run with the '_(Normalized)' Fit Sets{color.END}.\n")
+
     p.add_argument("-sp", "--spline_prefix",
                    type=str,
                    default=None,
@@ -449,6 +454,11 @@ def compute_global_y_range(args, grouped, fit_dict, y_par):
                 continue
             yv = float(entry[y_par])
             ye = float(entry[err_key])
+            if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
+                _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+                if((str(Bin_Width_Area_Scale) not in ["0", "None", None]) and (str(Luminosity) not in ["0", "None", None])):
+                    yv = yv/(Bin_Width_Area_Scale*Luminosity)
+                    ye = ye/(Bin_Width_Area_Scale*Luminosity)
             lo = yv - abs(ye)
             hi = yv + abs(ye)
             if((ymin is None) or (lo < ymin)):
@@ -456,6 +466,7 @@ def compute_global_y_range(args, grouped, fit_dict, y_par):
             if((ymax is None) or (hi > ymax)):
                 ymax = hi
     if((ymin is None) or (ymax is None)):
+        print(f"\n{color.Error}WARNING (compute_global_y_range): ymin, ymax = {ymin}, {ymax}{color.END}\n")
         return 0.0, 1.0
     if(ymin == ymax):
         return ymin - 1.0, ymax + 1.0
@@ -475,8 +486,13 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
             continue
         inf  = info_map[key_str]
         xval = inf["z_range"][0] if(args.x_mode == "z") else inf["pTrange"][0]
-        yval = entry[y_par]
-        yerr = entry[err_key]
+        yval = float(entry[y_par])
+        yerr = float(entry[err_key])
+        if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
+            _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+            if((str(Bin_Width_Area_Scale) not in ["0", "None", None]) and (str(Luminosity) not in ["0", "None", None])):
+                yval = yval/(Bin_Width_Area_Scale*Luminosity)
+                yerr = yerr/(Bin_Width_Area_Scale*Luminosity)
         if(args.x_mode == "z"):
             series_id = str(inf["pT_group"])
             scolor    = inf["pT_color"]
@@ -1298,7 +1314,7 @@ def save_single_canvas(args, canvas, fit_set, y_par, q2y_bin):
     return filename
 
  
-def Spline_Plots_Only(args, spline_models):
+def Spline_Plots_Only(args, spline_models, y_ranges=None):
     # Fixed kinematic grids (with float conversion as you added)
     Q2_grid = [float(val) for val in getattr(args, "Fixed_Q2", [2.2])]
     y__grid = [float(val) for val in getattr(args, "Fixed_y",  [0.7])]
@@ -1411,20 +1427,23 @@ def Spline_Plots_Only(args, spline_models):
         if(y_par not in spline_models):
             print(f"{color.BYELLOW}[INFO] No spline loaded for {y_par}. Skipping.{color.END}")
             continue
-        if(str(y_par) == "Fit_Par_B"):
-            y_min, y_max = -0.8, 0.125
-        elif(str(y_par) == "Fit_Par_C"):
-            y_min, y_max = -0.3, 0.25
+        if(y_ranges is not None):
+            y_min, y_max = y_ranges[y_par]
         else:
-            y_min, y_max = 0.0, 0.0
+            if(str(y_par) == "Fit_Par_B"):
+                y_min, y_max = -0.8, 0.125
+            elif(str(y_par) == "Fit_Par_C"):
+                y_min, y_max = -0.3, 0.25
+            else:
+                y_min, y_max = 0.0, 0.0
 
         Titles_y = Get_Default_Y_Title(y_par, str(args.fit_set).strip())
         Titles = ""
         if("from the Cross Section Fits" not in Titles_y):
-            Titles = f"#splitline{{CLAS12 Preliminary #topbar {Titles_y}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}"
+            Titles = f"#splitline{{#scale[1.75]{{CLAS12 Preliminary #topbar {Titles_y}}}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}"
         else:
             Titles_y = Titles_y.replace(" from the Cross Section Fits", "")
-            Titles = f"#splitline{{#splitline{{CLAS12 Preliminary #topbar {Titles_y}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}}}{{Made From Normalized Cross Sections}}"
+            Titles = f"#splitline{{#splitline{{#scale[1.75]{{CLAS12 Preliminary #topbar {Titles_y}}}}}{{{Build_SingleBin_Subtitle(args, str(args.fit_set).strip())}}}}}{{Made From Normalized Cross Sections}}"
         Titles = f"{Titles}; {'Q^{2} [GeV^{2}]' if(str(args.x_mode).lower() == 'q2') else 'y' if(str(args.x_mode).lower() == 'y') else 'z' if(str(args.x_mode).lower() == 'z') else 'P_{T} [GeV]' if(str(args.x_mode).lower() == 'pt') else 'x_{B}' if(str(args.x_mode).lower() == 'xb') else 'ERROR'}; {Titles_y}"
         # Legend
         leg_x1 = 0.75
@@ -1461,8 +1480,8 @@ def Spline_Plots_Only(args, spline_models):
             for ip, (xx, yy) in enumerate(zip(x_vals, y_grid[y_par][Line])):
                 gr_spline[y_par][Line].SetPoint(ip, float(xx), float(yy))
                 if(str(y_par) not in ["Fit_Par_B", "Fit_Par_C"]):
-                    y_min = min(y_min, yy)
-                    y_max = max(y_max, yy)
+                    y_min = min([y_min, yy, 0.8*yy, 1.2*yy])
+                    y_max = max([y_max, yy, 0.8*yy, 1.2*yy])
             # Color from your existing mapper
             color_index = Line_Num % len(color_mapper)
             color_gr = color_mapper[str(color_index + 1)] if(str(color_index + 1) in color_mapper) else ROOT.kRed
@@ -1614,15 +1633,6 @@ def main():
     if(fit_set not in json_obj):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Requested --fit_set '{fit_set}' not found in JSON.{color.END}")
 
-    spline_models = load_spline_models(args, fit_set)
-    if(args.Spline_Only):
-        if(args.spline_prefix is None):
-            raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} Did not select a spline function file.\n\tMust set a value for {color.END_B}'--spline_prefix'{color.END}\n")
-        else:
-            return Spline_Plots_Only(args, spline_models)
-    elif(args.x_mode in ["Q2", "q2", "y", "xB", "xb"]):
-        raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} The variable {color.END_B}'{args.x_mode}'{color.END_R} only works for the '--Spline_Only' images (as of 4/17/2026){color.END}\n")
-
     fit_dict = json_obj[fit_set]
     if((not isinstance(fit_dict, dict)) or (len(fit_dict) == 0)):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Fit set '{fit_set}' is empty or not a dict.{color.END}")
@@ -1630,6 +1640,27 @@ def main():
     grouped       = group_by_q2y(fit_dict)
     info_map      = build_info_map(args, fit_dict)
     q2y_ranges    = build_q2y_ranges(grouped, info_map)
+
+    spline_models = load_spline_models(args, fit_set)
+    if(args.Spline_Only):
+        y_range = {}
+        for y_par in ['Fit_Par_B', 'Fit_Par_C']:
+            if(args.y_range_mode == "global"):
+                if(args.global_y_range is not None):
+                    gymin, gymax = float(args.global_y_range[0]), float(args.global_y_range[1])
+                else:
+                    gymin, gymax = compute_global_y_range(args, grouped, fit_dict, y_par)
+                y_range[y_par] = (gymin, gymax)
+            else:
+                y_range[y_par] = (0.0, 1.0)
+            # y_range[y_par] = (0.0, 0.0)
+        y_range["Fit_Par_A"] = (0.0, 0.0)
+        if(args.spline_prefix is None):
+            raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} Did not select a spline function file.\n\tMust set a value for {color.END_B}'--spline_prefix'{color.END}\n")
+        else:
+            return Spline_Plots_Only(args, spline_models, y_ranges=y_range)
+    elif(args.x_mode in ["Q2", "q2", "y", "xB", "xb"]):
+        raise SystemExit(f"\n{color.Error}ERROR:{color.END_R} The variable {color.END_B}'{args.x_mode}'{color.END_R} only works for the '--Spline_Only' images (as of 4/17/2026){color.END}\n")
 
     if(args.verbose):
         print(f"{color.CYAN}[INFO] Using fit_set: {fit_set}{color.END}")
