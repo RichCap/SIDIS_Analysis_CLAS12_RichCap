@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Gen_epipX_clasdis_4_22_2026
+#SBATCH --job-name=No_Cut_MC_Gen_epipX_clasdis_4_22_2026
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
@@ -9,10 +9,10 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=4GB
 #SBATCH --time=20:00:00
-#SBATCH --array=0-539
+#SBATCH --array=0-352
 
 TASK_ID="${SLURM_ARRAY_TASK_ID}"
-MANIFEST="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/TEMP_Q2_Cut_GEN_Paths_to_MC_clasdis_files_SIDIS.txt"
+MANIFEST="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/TEMP_GEN_Paths_to_MC_clasdis_files_SIDIS.txt"
 GROOVY_SCRIPT="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/GEN_MC/MC_Gen_TTree_epip_Batch_Pass2_UpToDate.groovy"
 WORK_DIR="/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/"
 
