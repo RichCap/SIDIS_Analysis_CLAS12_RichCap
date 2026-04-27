@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys
+# import sys
+# import os
 import argparse
 
 PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",   "MultiDim_Q2_y_z_pT_phi_h_gen", "MultiDim_Q2_y_z_pT_phi_h_smeared", "MultiDim_z_pT_Bin_Y_bin_phi_t", "MultiDim_z_pT_Bin_Y_bin_phi_t_gen", "MultiDim_z_pT_Bin_Y_bin_phi_t_smeared",           "Q2_xB_Bin_smeared",    "z_pT_Bin_smeared"],
@@ -14,42 +15,104 @@ PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",  
                             "CutRefinements":     ["CHI2PID_CUT_strict_pip", "EC_SAMPLING_TRIANGLE_pass1_el", "My_pip_DC_Fiducial_Cuts_Layer_18", "My_pip_DC_Fiducial_Cuts_Layer_36", "My_pip_DC_Fiducial_Cuts_Layer_6", "Sector_PCal_Fiducial_Cuts", "Valerii_DC_Fiducial_Cuts_ele_DC_18", "Valerii_DC_Fiducial_Cuts_ele_DC_18_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_18_tight", "Valerii_DC_Fiducial_Cuts_ele_DC_36", "Valerii_DC_Fiducial_Cuts_ele_DC_36_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_36_tight", "Valerii_DC_Fiducial_Cuts_ele_DC_6", "Valerii_DC_Fiducial_Cuts_ele_DC_6_loose", "Valerii_DC_Fiducial_Cuts_ele_DC_6_tight", "Valerii_PCal_Fiducial_Cuts", "Valerii_PCal_Fiducial_Cuts_loose", "Valerii_PCal_Fiducial_Cuts_tight", "valerii_PCAL_knockout_cut"],
 }
 
-parser = argparse.ArgumentParser(description="Make ROOT output from SIDIS RDataFrame: histo/data/tree/test/time")
+
+from datetime import datetime
+from MyCommonAnalysisFunction_richcap import color, color_bg, variable_Title_name, RuntimeTimer, silence_root_import#, root_color
+from ExtraAnalysisCodeValues          import *
+
+import ROOT
+import math
+# import array
+# import copy
+import traceback
+
+silence_root_import()
+
+class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
+    pass
+parser = argparse.ArgumentParser(description="Make ROOT output from SIDIS RDataFrame: histo/data/tree/test/time", formatter_class=RawDefaultsHelpFormatter)
 # base data type
-parser.add_argument('data_type', choices=['rdf','mdf','gdf','pdf'], 
-                    help='rdf=Real, mdf=MC REC, gdf=MC GEN, pdf=matched MC only')
+parser.add_argument('data_type',
+                    choices=['rdf','mdf','gdf','pdf'], 
+                    help='Required to run. Selects which type of data file is being used (experimental data vs MC).\nrdf=Real, mdf=MC REC, gdf=MC GEN, pdf=matched MC only\n')
 # what kind of output
-parser.add_argument('-o', '--output-type', choices=['histo','data','tree','test','time'], default='histo',
-                    help="histo (default), data/tree, test (print histo names), time")
+parser.add_argument('-o', '--output-type',
+                    choices=['histo','data','tree','test','time'],
+                    default='histo',
+                    help="histo (default), data/tree, test (print histo names), time\n")
 # input file or directory (optional when output-type is histo)
-parser.add_argument('-f','--file', dest='file_location',
-                    help='Full path to input file(s)')
-parser.add_argument('-t',      '--test',         action='store_true', help='Same as running "-o time" -> Overwrites "output_type" option')
-parser.add_argument('-v',      '--verbose',      action='store_true', help='Prints more information while running.')
-# flags for your old substring lists:
+parser.add_argument('-f','--file',
+                    dest='file_location',
+                    help='Full path to input file(s).\n')
+parser.add_argument('-v', '--verbose',
+                    action='store_true',
+                    help='Prints more information while running.\n')
+parser.add_argument('-t', '--test',
+                    action='store_true',
+                    help='Same as running "-o time" -> Overwrites "output_type" option\n')
+# flags for old substring lists:
 parser.add_argument('-s',      '--sidis',        action='store_true', help='Runs only SIDIS Code (ignores the dedicated Momentum Correction/Smearing code)')
 parser.add_argument('-mom',    '--mom-cor',      action='store_true', help='Runs only the Momentum Correction columns/histograms (ignores all unneeded SIDIS code)')
 parser.add_argument('-no-mom', '--no-mom-cor',   action='store_true', help='Disable momentum corrections')
 parser.add_argument('-TP',     '--tag-proton',   action='store_true', help='Enable tagged-proton option')
 parser.add_argument('-nsmear', '--no-smear',     action='store_true', help='Turn off smearing')
-parser.add_argument('-w',      '--use-weight',   type=str,    choices=["None", "mod", "close", "closure",  "weighed", "use_weight", "Q4"], default="None",
-                    help='Applies a weight factor to plots depending on choice (default="None" -> no weight, "Q4" -> weighed with Q2^2, and all other options just uses closure tests weights)')
-parser.add_argument('-SF',     '--smear-factor', type=float,                 default=0.75,
-                    help='Smear factor for MC (default 0.75)')
-parser.add_argument('-SF-FX',  '--smear-FX',     action='store_true', help="Applies FX's smear function (overwrites other smearing options)")
-parser.add_argument('-p',      '--pass-version', type=int,    choices=[1,2], default=2,
-                    help='Pass version: 1 or 2 (default 2)')
-parser.add_argument('--old-pass',                action='store_true', help='Use Old Versions of Pass files (i.e., Use_New_PF = not args.old_pass)')
-parser.add_argument('-sfid',   '--skip-fiducial',             choices=[f'FC{i}' for i in range(0,10)] + [f'FC_{i}' for i in range(10,15)] + ["None"], default="FC_14",
-                    help='Select one Skip-Fiducial config (FC0…FC_14, "None") -> Default="FC_14"')
-parser.add_argument('-e',      '--events',       type=int,
-                    help='Maximum number of events that will be saved (can be used to reduce the size of the output files - defaults to full file if no number is given)')
-parser.add_argument('-c',      '--cuts',         type=str,
-                    help='String used to add additional cuts that will automatically be applied before the outputs are run')
-parser.add_argument('-cc',     '--count-cuts',   action='store_true', help='Count the number of events before/after applying analysis cuts (the "before" number preceeds any cuts made by the "--cuts" argument)')
-parser.add_argument('-eg', '--exclude-groups',   nargs="+",                  default=[],
-                    help=f"Groups of variables that will be excluded from the Snapshot unless they are included here. Available: 'All' or {list(PREDEFINED_COLUMN_GROUPS.keys())}")
-parser.add_argument('-sn',     '--save_name',    type=str,            help="String that can be added to the output file's name")
+parser.add_argument('-w',      '--use-weight',
+                    type=str,
+                    choices=["None", "mod", "close", "closure", "weighed", "use_weight", "Q4"],
+                    default="None",
+                    help='Applies a weight factor to plots depending on choice.\nDefault="None" -> no weight, "Q4" -> weighed with Q2^2, and all other options just uses closure tests weights.\n')
+parser.add_argument('-SF',     '--smear-factor',
+                    type=float,
+                    default=0.75,
+                    help='Smear factor for MC.\n')
+parser.add_argument('-SF-FX',  '--smear-FX',
+                    action='store_true',
+                    help="Applies FX's smear function (overwrites other smearing options).\n")
+parser.add_argument('-p',      '--pass-version',
+                    type=int,
+                    choices=[1,2],
+                    default=2,
+                    help='Pass version: 1 or 2.\n')
+parser.add_argument('-old-pass', '--old_pass',
+                    action='store_true',
+                    help='Use Old Versions of Pass files (i.e., Use_New_PF = not args.old_pass).\n')
+parser.add_argument('-sfid', '--skip-fiducial',
+                    choices=[f'FC{i}' for i in range(0,10)] + [f'FC_{i}' for i in range(10,15)] + ["None"],
+                    default="FC_14",
+                    help='Select one Skip-Fiducial config (FC0…FC_14, "None") -> Default="FC_14".\n')
+parser.add_argument('-e', '--events',
+                    type=int,
+                    help='Maximum number of events that will be saved (can be used to reduce the size of the output files - defaults to full file if no number is given).\n')
+parser.add_argument('-c', '--cuts',
+                    type=str,
+                    help='String used to add additional cuts that will automatically be applied before the outputs are run.\n')
+parser.add_argument('-cc', '--count-cuts',
+                    action='store_true',
+                    help='Count the number of events before/after applying analysis cuts (the "before" number preceeds any cuts made by the "--cuts" argument).\n')
+parser.add_argument('-eg', '--exclude-groups',
+                    nargs="+",
+                    default=[],
+                    help=f"Groups of variables that will be excluded from the Snapshot unless they are included here. Available: 'All' or {list(PREDEFINED_COLUMN_GROUPS.keys())}.\n")
+parser.add_argument('-sn', '--save_name',
+                    type=str,
+                    help="String that can be added to the output file's name. Use as version number.\n")
+parser.add_argument('-cn', '--Common_Name',
+                    type=str,
+                    default="Final_Analysis_Iterations_I0_",
+                    help=f"String that acts as the base name for the output file. Replaces an older hard-coded string.\n{color.BBLUE}Should ALWAYS end with '_' for the best string formatting.{color.END}\n")
+parser.add_argument('-mac', '--matching_criteria',
+                    type=str,
+                    choices=['', "P12T6", "P8T6", "P10T8", "Bank"],
+                    default='',
+                    help=f"""Type of criteria used to match the MC REC particles to the MC GEN {color.Error}(Only works with 'mdf' files){color.END}.
+{color.BBLUE}Will remove all other type of criteria branches if a non-default branch is used (otherwise they are all kept).{color.END}
+Options:
+    ''      -> Default Criteria
+    'P12T6' -> My Criteria with: Phi=12, Theta=6
+    'P8T6'  -> My Criteria with: Phi=8,  Theta=6
+    'P10T8' -> My Criteria with: Phi=10, Theta=8
+    'Bank'  -> Uses the matching criteria stored in the file banks (has a unique 'Match_Quality' variable for each particle)
+    """)
 args = parser.parse_args()
 
 
@@ -98,10 +161,6 @@ else:
 
 if(datatype in ['gdf']):
     Mom_Correction_Q = False
-
-
-from datetime import datetime
-from MyCommonAnalysisFunction_richcap import color, color_bg, root_color, variable_Title_name, RuntimeTimer
 
 
 if((not run_Mom_Cor_Code) and (not Run_With_Smear) and ("mdf" in str(datatype))):
@@ -165,42 +224,6 @@ if("All" not in args.exclude_groups):
 else:
     print(f"{color.Error}Not Excluding Any Variables from the Snapshot Output...{color.END}\n\n")
     
-import ROOT 
-import math
-import array
-import copy
-import traceback
-import os
-
-from ExtraAnalysisCodeValues import *
-
-def silence_root_import():
-    # Flush Python’s buffers so dup2 doesn’t duplicate partial output
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-    # Save original file descriptors
-    old_stdout = os.dup(1)
-    old_stderr = os.dup(2)
-
-    try:
-        # Redirect stdout and stderr to /dev/null at the OS level
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-
-        # Perform the noisy import
-        import RooUnfold
-
-    finally:
-        # Restore the original file descriptors
-        os.dup2(old_stdout, 1)
-        os.dup2(old_stderr, 2)
-        os.close(old_stdout)
-        os.close(old_stderr)
-
-silence_root_import()
 
 if(str(file_location) == 'all'):
     print("\nRunning all files together...\n")
@@ -210,12 +233,12 @@ if(str(file_location) == 'time'):
 new_variation_cut_mode = False
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num = str(file_location)
-    if(any(new_files in file_num for new_files in [".new6.", ".new7."])):
+    if(any(new_files in file_num for new_files in [".new6.", ".new7.", ".new8."])):
         new_variation_cut_mode = True
         file_num = (file_num.split("/"))[-1]
         file_num = (file_num.split(".hipo"))[0]
         file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "SIDIS"
-        file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7."))[-1]
+        file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7." if(".new7." in file_num) else ".new8."))[-1]
         file_num = file_num.replace("nSidis_00", "")
         mc = "EvGen_" if("EvGen" in file_num) else ""
         background = "45nA_" if ("45nA" in file_num) else "50nA_" if ("50nA" in file_num) else ""
@@ -306,12 +329,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                             
     print(f"\nLoading File(s): {files_used_for_data_frame}")
     
-    # if(output_all_histo_names_Q):
-    #     print(f"{color.BOLD}Columns of the RDataFrame when first loaded:{color.END}")
-    #     for ii in range(0, len(rdf.GetColumnNames()), 1):
-    #         print(f"{str((rdf.GetColumnNames())[ii])} (type -> {rdf.GetColumnType(rdf.GetColumnNames()[ii])})")
-    #     print(f"\tTotal length= {str(len(rdf.GetColumnNames()))}\n\n")
-    
     print(f"{color.BOLD}\nDefining pre-made functions to be used within the RDataFrame{color.END}")
     # ROOT.gInterpreter.Declare(New_Fiducial_DC_Cuts_Functions)
     ROOT.gInterpreter.Declare(Pion_Energy_Loss_Cor_Function)
@@ -319,192 +336,84 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ROOT.gInterpreter.Declare(Rotation_Matrix)
     # ROOT.gInterpreter.Declare(New_Integrated_z_pT_and_MultiDim_Binning_Code)
     
-    
-    
     ##========================================================================##
     ##====================##     Timing Information     ##====================##
-    ##========================================================================##
-
     timer = RuntimeTimer()
     timer.start()
-
-    ##========================================================================##
     ##====================##     Timing Information     ##====================##
     ##========================================================================##
-    
     
     ###########################################################
     #################     Final ROOT File     #################
     
     ROOT_File_Output_Name = "Data_REC"
-
-
-    # Changed 'Extra_Name' to 'Common_Name' on 7/25/2025
-    
-    Common_Name = f"Plots_for_Maria{Cut_Configuration_Name}_V1_"
-        # Ran on 4/10/2025
-            # Running with 'Integrate' bin cuts AND normal cuts
-            # Running 1D Missing Mass Histograms along with other options selected during the last run (i.e., see f"New_Integrated_Bins_Test{Cut_Configuration_Name}_V1_")
-            # Will run with the Cut_Configuration_Name option '_FC_14'
-            # Purpose: Produce plots requested by Maria for DOE update
-
-
-    Common_Name = f"Plots_for_Maria{Cut_Configuration_Name}_V2_"
-        # Ran on 4/15/2025
-            # Same as f"Plots_for_Maria{Cut_Configuration_Name}_V1_" but removed the Missing Mass Plots and added back the sector dependent plots
-    
-
-    Common_Name = f"Plots_for_Maria{Cut_Configuration_Name}_V3_"
-        # Ran on 4/19/2025
-            # Same as f"Plots_for_Maria{Cut_Configuration_Name}_V2_" but ran with the additional MC files with 45nA Background Merging Setting
-                # rdf option was not run - use 'V2' for rdf
-
-    Common_Name = f"Sector_Integrated_Tests{Cut_Configuration_Name}_V1_"
-        # Ran on 4/28/2025
-            # Running Sector-dependent unfolding with cuts instead of 2D histograms (to allow for Bayesian unfolding)
-                # Turned off the sector vs phi_h 2D plots
-                # Not running sector cuts on the kinematic plots (i.e., particle momentum/angle plots)
-            # Running with Integrate Bins (for Q2/y/xB vs Moments plots) only
-            # Running 3D unfolding via z_pT_phi_h_Binning
-            # gdf option does not include the sector cuts at all (for migrations between sectors)
-
-    Common_Name = f"Sector_Integrated_Tests{Cut_Configuration_Name}_V2_"
-        # Ran on 5/1/2025
-            # Same as V1 but ran with Tagged Proton and Fixed the "Integrate" bin cuts (was not using the smeared bins for mdf files)
-
-
-    Common_Name = f"Sector_Tests{Cut_Configuration_Name}_V1_"
-        # Ran on 5/9/2025
-            # Similar to as Sector_Integrated_Tests{Cut_Configuration_Name}_V2_ but removed the "Integrate" bin cuts (will move those cuts to a later part of the code for integration after unfolding)
-                # Still using electron sector cuts
-            # Ran with more (and larger) MC files
-            # Planning to run Modulated Closure Test Update
-        # On 7/18/2025 -> Ran with EvGen
-    
-    # Common_Name = f"MM_vs_W_Test{Cut_Configuration_Name}_"
-    #     # Ran on 6/11/2025
-    #         # Just plotting MM vs W as a request from group (just done with rdf)
-    #         # Turned off all non-standard SIDIS cuts (except for the fiducial ones given by 'Cut_Configuration_Name')
-
-    Common_Name = f"Sector_Tests{Cut_Configuration_Name}_V2_"
-        # Ran on 7/22/2025 -> with EvGen
-            # Same as f"Sector_Tests{Cut_Configuration_Name}_V1_" but with additional plot of MM vs W
-
-    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V2_"
-        # Ran on 9/18/2025 -> with EvGen
-            # Removed many 'unnecessary' variables (can control with arguments) to make the files smaller and will be running with the new EvGen files (with their proper weights)
-
-    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_"
-        # Ran on 9/18/2025 -> with EvGen
-            # Same as f"Acceptance_Tests{Cut_Configuration_Name}_V2_" but included the sector variables (needed for cuts)
-
-    Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V4_"
-        # Ran on 11/13/2025
-            # Same as f"Acceptance_Tests{Cut_Configuration_Name}_V3_" but included the PID information in the dataframe outputs
-
-    if(datatype in ["gdf"]):
-        Common_Name = "Sector_Tests_V2_"
-            # Ran on 8/1/2025
-                # Same as Common_Name = f"Sector_Tests{Cut_Configuration_Name}_V2_" but without the 'Cut_Configuration_Name' in name
-                # Removed MM Cuts
-                # Ran with all EvGen files but ONLY /w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-clasdis-9040_7.hipo.root for clasdis
-
-        Common_Name = "Acceptance_Tests_V2_"
-            # Ran on 9/18/2025 -> with EvGen
-                # Same as Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V2_" but without the 'Cut_Configuration_Name' in name
-
-        Common_Name = "Acceptance_Tests_V3_"
-            # Ran on 9/18/2025 -> with EvGen
-                # Same as Common_Name = f"Acceptance_Tests{Cut_Configuration_Name}_V3_" but without the 'Cut_Configuration_Name' in name
-
-
-    Common_Name = f"PID_Tests{Cut_Configuration_Name}_V1_"
-        # Ran on 2/8/2026
-            # Used updated files ('.new6.' and '.new7.') with PID variation cuts included in the RDataFrame
-    
-
-    if((datatype in ["rdf"]) and (not Mom_Correction_Q)):
-        Common_Name = f"Uncorrected_{Common_Name}"
-        # Not applying momentum corrections (despite them being available)
-    
-    
-    if(run_Mom_Cor_Code):
-        # # # See File_Name_Updates.md file for notes on versions older than "New_Smear_V9_"
-        
-        Common_Name = "Update_Cors_and_Cuts_V1_"
-        # Ran on 11/4/2024
-        # Same smearing functions as in 'New_Smear_V13_' but cuts and momentum corrections are up-to-date as of Common_Name = f"New_Fiducial_Cut_Test_FC_14_V13_"
-
-        if((datatype in ["rdf"]) and (not Mom_Correction_Q)):
-            Common_Name = f"Uncorrected_{Common_Name}"
-            # Not applying momentum corrections (despite them being available)
-            
-        if((smear_factor != "0.75") and ("".join([str(smear_factor).replace(".", ""), "_V"]) not in Common_Name)):
-            Common_Name = Common_Name.replace("_V", "".join(["_", str(smear_factor).replace(".", ""), "_V"]))
-            # Same as the last version of Common_Name to be run but with any value of smear_factor not being equal to the default value of 0.75
-            
+    if((datatype not in ["gdf"]) and (Cut_Configuration_Name not in str(args.Common_Name))):
+        args.Common_Name = f"{args.Common_Name}{Cut_Configuration_Name}_"
+    if(args.save_name):
+        args.Common_Name = f"{args.Common_Name}{args.save_name}_"
+    if((datatype in ["rdf"]) and (not Mom_Correction_Q)): # Not applying momentum corrections (despite them being available)
+        args.Common_Name = f"Uncorrected_{args.Common_Name}"
     if(Use_Weight):
         if(not Q4_Weight): # Using the modulations of the Generated Monte Carlo
-            Common_Name = f"{Common_Name}Modulated_"
+            args.Common_Name = f"{args.Common_Name}_Modulated_"
         else:              # Using the Q4 wieghts
-            Common_Name = f"{Common_Name}Q4_Wieght_"
-            
-            
+            args.Common_Name = f"{args.Common_Name}_Q4_Wieght_"
     if(Use_Pass_2):
-        # Option added with "New_Bin_Tests_V5_" on 1/29/2024
-        Common_Name = f"Pass_2_{Common_Name}"
-        # Ran with "New_Smearing_V7_" on 2/14/2024
-            # Ran to test smearing code (smearing function returns unsmeared 4-vector since no smearing function has been run yet)
-            # Includes no momentum corrections
-            
+        args.Common_Name = f"Pass_2_{args.Common_Name}" if(all(passV not in str(args.Common_Name) for passV in ["Pass_2", "P2"])) else args.Common_Name
         print(f"\n\n\t{color.BBLUE}Using Pass 2 Version of Data/MC Files{color.END}")
-        
     if(Tag_Proton):
-        # Option added with "New_Fiducial_Cut_Test_V2_" on 7/29/2024
-        Common_Name = f"Tagged_Proton_{Common_Name}"
+        args.Common_Name = f"Tagged_Proton_{args.Common_Name}" if(all(tag not in str(args.Common_Name) for tag in ["Tagged_Proton_", "TP"])) else args.Common_Name
         print(f"\n\n\t{color.Error}Tagging Proton{color.END}")
-    
+    if((args.matching_criteria not in ['']) and (datatype in ['mdf', "pdf"])):
+        print(f"\n{color.Error}Not using the default particle matching criteria.\n{color.END_R}Using Criteria: {color.END_B}{args.matching_criteria}\n{color.END_b}Will also be excluding theses branches in the final output:{color.END}")
+        List_of_Match_Banks = [
+            "ex_gen_P12T6", "ey_gen_P12T6", "ez_gen_P12T6", "eE_gen_P12T6", "PID_el_P12T6",
+            "pipx_gen_P12T6", "pipy_gen_P12T6", "pipz_gen_P12T6", "pipE_gen_P12T6", "PID_pip_P12T6",
+            "Par_PID_el_P12T6", "Par_PID_pip_P12T6",
+            "ex_gen_P8T6", "ey_gen_P8T6", "ez_gen_P8T6", "eE_gen_P8T6", "PID_el_P8T6",
+            "pipx_gen_P8T6", "pipy_gen_P8T6", "pipz_gen_P8T6", "pipE_gen_P8T6", "PID_pip_P8T6",
+            "Par_PID_el_P8T6", "Par_PID_pip_P8T6",
+            "ex_gen_P10T8", "ey_gen_P10T8", "ez_gen_P10T8", "eE_gen_P10T8", "PID_el_P10T8",
+            "pipx_gen_P10T8", "pipy_gen_P10T8", "pipz_gen_P10T8", "pipE_gen_P10T8", "PID_pip_P10T8",
+            "Par_PID_el_P10T8", "Par_PID_pip_P10T8",
+            "ex_gen_P10T4", "ey_gen_P10T4", "ez_gen_P10T4", "eE_gen_P10T4", "PID_el_P10T4",
+            "pipx_gen_P10T4", "pipy_gen_P10T4", "pipz_gen_P10T4", "pipE_gen_P10T4", "PID_pip_P10T4",
+            "Par_PID_el_P10T4", "Par_PID_pip_P10T4",
+            "ex_gen_Bank", "ey_gen_Bank", "ez_gen_Bank", "eE_gen_Bank", "PID_el_Bank",
+            "pipx_gen_Bank", "pipy_gen_Bank", "pipz_gen_Bank", "pipE_gen_Bank", "PID_pip_Bank",
+            "Par_PID_el_Bank", "Par_PID_pip_Bank",
+        ]
+        num = 0
+        for branch in List_of_Match_Banks:
+            if(branch not in exclude_vars):
+                num += 1
+                print(f"\t{num+1:>2.0f}) {branch}")
+                exclude_vars.append(branch)
+        args.Common_Name = f"{args.Common_Name}{args.matching_criteria}_" if(str(args.matching_criteria) not in str(args.Common_Name)) else args.Common_Name
     if(datatype == 'rdf'):
-        ROOT_File_Output_Name     = "".join(["SIDIS_epip_Data_REC_",                      str(Common_Name), str(file_num), ".root"])
-    if(datatype == 'mdf'):
-        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_Matched_",                    str(Common_Name), str(file_num), ".root"])
+        ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_Data_REC_{args.Common_Name}{file_num}.root"
+    if(datatype in ['mdf', "pdf"]):
+        ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_MC{'_Only_' if(datatype == 'pdf') else '_'}Matched_{args.Common_Name}{file_num}.root"
         if((not Run_With_Smear) and (not run_Mom_Cor_Code)):
-            ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Matched_",      "Unsmeared_", str(Common_Name), str(file_num), ".root"])
+            ROOT_File_Output_Name = f"DataFrame_SIDIS_epip_MC{'_Only_' if(datatype == 'pdf') else '_'}Matched_Unsmeared_{args.Common_Name}{file_num}.root"
     if(datatype == 'gdf'):
-        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_GEN_",                        str(Common_Name), str(file_num), ".root"])
-    if(datatype == 'pdf'):
-        ROOT_File_Output_Name     = "".join(["SIDIS_epip_MC_Only_Matched_",               str(Common_Name), str(file_num), ".root"])
-        if((not Run_With_Smear) and (not run_Mom_Cor_Code)):
-            ROOT_File_Output_Name = "".join(["SIDIS_epip_MC_Only_Matched_", "Unsmeared_", str(Common_Name), str(file_num), ".root"])
-
-    if(args.save_name):
-        ROOT_File_Output_Name = f"DataFrame_{args.save_name}_{ROOT_File_Output_Name}"
-    else:
-        ROOT_File_Output_Name = f"DataFrame_{ROOT_File_Output_Name}"
+        ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_MC_GEN_{args.Common_Name}{file_num}.root"
 
     print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
-    
     
     #################     Final ROOT File     #################
     ###########################################################
     
-    
     ################################################################     Done Loading Data Files     ################################################################
-    ##                                                                                                                                                             ##
     ##-------------------------------------------------------------------------------------------------------------------------------------------------------------##
-    ##                                                                                                                                                             ##
     ############################################################    Particle Momentum Correction Code    ############################################################
-    
     
     # New_z_pT_and_MultiDim_Binning_Code = """ See ExtraAnalysisCodeValues.py for details
     # Correction_Code_Full_In = """ See ExtraAnalysisCodeValues.py for details
-    
     if(not Mom_Correction_Q):
         print(f"\n\n{color.Error if(datatype in ['rdf']) else color.RED}Not running with Momentum Corrections{color.END}\n")
     else:
         print(f"\n\n{color.BBLUE}Running with Momentum Corrections{color.END}\n")
-
-        
         
     ###################################################################################################################################################################
     #################################################################   End of Momentum Corrections   #################################################################
@@ -541,6 +450,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("pipy", "py")
     if("pipz" not in rdf.GetColumnNames()):
         rdf = rdf.Define("pipz", "pz")
+
+    if((args.matching_criteria not in ['']) and (datatype in ['mdf', "pdf"])):
+        print(f"\n\n{color.Error}REDEFINING THE MATCHED PARTICLE CRITERIA...{color.END}\n\n")
+        for var_match in ["ex_gen", "ey_gen", "ez_gen", "eE_gen", "PID_el", "pipx_gen", "pipy_gen", "pipz_gen", "pipE_gen", "PID_pip", "Par_PID_el", "Par_PID_pip"]:
+            rdf = rdf.Redefine(var_match, f"{var_match}_{args.matching_criteria}")
         
     if(((Mom_Correction_Q) or True) and (str(datatype) in ["rdf", "mdf"]) and Use_Pass_2):
         print(f"{color.BBLUE}\nApplying Pass 2 (Forward Detector) Energy Loss Corrections to the Pi+ Pion\n{color.END}")
@@ -556,6 +470,25 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     
     if('calc' not in files_used_for_data_frame):
+
+        #####################  rho0 Particles  #####################
+        if(all(rho_var not in rdf.GetColumnNames() for rho_var in ["rho0", "rho0th", "rho0Phi"]) and all(rho_var in rdf.GetColumnNames() for rho_var in ["rho0_px", "rho0_py", "rho0_pz", "Par_PID_pip"])):
+            print(f"\n{color.BBLUE}Defining the rho0 kinematics{color.END}\n")
+            rdf = rdf.Define("rho0", f"""double rho0 = 0.0;
+            if(Par_PID_pip == 113){{ rho0 = sqrt(rho0_px*rho0_px + rho0_py*rho0_py + rho0_pz*rho0_pz); }}
+            return rho0; """)
+            rdf = rdf.Define("rho0th", f"""double rho0th = 0.0;
+            if(Par_PID_pip == 113){{ rho0th = atan2(sqrt(rho0_px*rho0_px + rho0_py*rho0_py), rho0_pz)*TMath::RadToDeg(); }}
+            return rho0th; """)
+            rdf = rdf.Define("rho0Phi", f"""double rho0Phi = 0.0;
+            if(Par_PID_pip == 113){{ 
+                auto rhoV = ROOT::Math::PxPyPzMVector(rho0_px, rho0_py, rho0_pz, 0.77526);
+                rho0Phi = rhoV.Phi()*TMath::RadToDeg();
+                if(rho0Phi < 0){{rho0Phi += 360;}}
+            }}
+            return rho0Phi; """)
+        else:
+            print(f"\n{color.Error}rho0 kinematics are NOT available{color.END}\n")
 
         #####################     Momentum     #####################
         try:
@@ -701,7 +634,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             print(f"\n{color.BOLD}Creating variables for Valerii's (New) Fiducial Cuts{color.END}")
             rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A', Particle="ele")
             rdf = Sangbaek_and_Valerii_Fiducial_Cuts(Data_Frame_Input=rdf, fidlevel='N/A', Particle="pip")
-        
         if(datatype not in ["rdf"]):
             print(f"\n{color.BOLD}CONDITIONS FOR IDENTIFYING BACKGROUND EVENTS:\n{color.END}\tBG_Cut_Function(dataframe='{datatype}') = {color.GREEN}{BG_Cut_Function(dataframe=str(datatype))}{color.END}")
         
@@ -719,8 +651,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(("PID_pip == 0" not in str(BG_string)) and ("(PID_pip != 211)" not in str(BG_string))):
                 print(f"\n{color.Error}WARNINING: May be missing the unmatched PI+ PION background cuts\n\t{color.UNDERLINE}RUN WITH CAUTION{color.END}\n")
             del BG_string
-            
-        
+
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("vals_gen", "".join(["""
             auto beam_gen    = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
@@ -755,7 +686,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = rdf.Define('z_gen',   'vals_gen[8]')
             # rdf = rdf.Define('epsilon_gen', 'vals_gen[9]')
             
-            
             PID_Interpertation_Code = """
             int pid_to_index(int pid) {
                 using namespace std;
@@ -781,11 +711,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = rdf.Define("PID_el_idx",  "pid_to_index(PID_el)")
             rdf = rdf.Define("PID_pip_idx", "pid_to_index(PID_pip)")
         
-    
     ##############################################################################
     ##=====##  The above calculations used to be run in the groovy code  ##=====##
     ##############################################################################
-    
     
     
     ####################################################################################################################################################################
@@ -795,7 +723,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ####################################################################################################################################################################
     
     # Rotation_Matrix = """ See ExtraAnalysisCodeValues.py for details
-    
     rdf = rdf.Define("vals2", "".join(["""
     auto fe     = dppC(ex, ey, ez, esec, 0, """,         "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
     auto fpip   = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
@@ -903,23 +830,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     rdf = rdf.Define('pT',    'vals2[0]')    # transverse momentum of the final state hadron
     rdf = rdf.Define('phi_t', 'vals2[1]')    # Most important angle (between lepton and hadron planes)
     rdf = rdf.Define('xF',    'vals2[2]')    # x Feynmann
-
-    # rdf = rdf.Define('pipx_CM','vals2[3]') # CM pi+ x-momentum
-    # rdf = rdf.Define('pipy_CM','vals2[4]') # CM pi+ y-momentum
-    # rdf = rdf.Define('pipz_CM','vals2[5]') # CM pi+ z-momentum
-
-    # rdf = rdf.Define('qx_CM','vals2[6]') # CM q x-momentum
-    # rdf = rdf.Define('qy_CM','vals2[7]') # CM q y-momentum
-    # rdf = rdf.Define('qz_CM','vals2[8]') # CM q z-momentum
-
-    # rdf = rdf.Define('beamX_CM','vals2[9]')  # CM beam x-momentum
-    # rdf = rdf.Define('beamY_CM','vals2[10]') # CM beam y-momentum
-    # rdf = rdf.Define('beamZ_CM','vals2[11]') # CM beam z-momentum
-
-    # rdf = rdf.Define('eleX_CM','vals2[12]') # CM scattered electron x-momentum
-    # rdf = rdf.Define('eleY_CM','vals2[13]') # CM scattered electron y-momentum
-    # rdf = rdf.Define('eleZ_CM','vals2[14]') # CM scattered electron z-momentum
-    
     Run_Uncorrected_phi_t_Info_Q = False
     
     if((datatype in ["rdf"]) and (Mom_Correction_Q) and Run_Uncorrected_phi_t_Info_Q):
@@ -951,13 +861,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         std::vector<double> Uncorrected_Phi_h_Info = {phi_h_uncorrected, Delta_phi_h, Percent_Phi_h};
 
         return Uncorrected_Phi_h_Info;"""]))
-        
-        
         # rdf = rdf.Define('phi_t_uncorrected', 'Uncorrected_phi_t_Info[0]')
         rdf = rdf.Define('Delta_phi_t',       'Uncorrected_phi_t_Info[1]')
         rdf = rdf.Define('Percent_phi_t',     'Uncorrected_phi_t_Info[2]')
-    
-    
     if(datatype in ["mdf", "pdf"]):
         rdf = rdf.Define("vals2_gen", "".join(["""
         auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, """, str(Beam_Energy), """, 0);
@@ -1063,9 +969,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define('pT_gen',    'vals2_gen[0]')
         rdf = rdf.Define('phi_t_gen', 'vals2_gen[1]')
         rdf = rdf.Define('xF_gen',    'vals2_gen[2]')
-    
-    
-    
+
     #################################################################################################################################################################
     ###################################################       Done with Center-of-Mass/Boosted Frame (Main)       ###################################################
     ###----------##----------##----------##----------##-----------------------------------------------------------##----------##----------##----------##----------###
@@ -1079,58 +983,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##---------------------------------##=========================================##---------------------------------##
     ##===============================================================================================================##
     
-    
     # smear_factor = "0.75"
-    
-    smearing_function = "".join(["""
-        //=======================================================================//
-        //=================//     Simple Smearing Factor      //=================//
-        //=======================================================================//
-        auto smear_func = [&](TLorentzVector V4, int ivec){
-            // True generated values (i.e., values of the unsmeared TLorentzVector)
-            double M_rec   = V4.M();
-            double P_rec   = V4.P();
-            double Th_rec  = V4.Theta();
-            double Phi_rec = V4.Phi();
-            
-            double P_gen   = V4.P();
-            double Th_gen  = V4.Theta();
-            double Phi_gen = V4.Phi();
-            if(ivec == 0){ // Electron
-                auto ele_gen_M = ROOT::Math::PxPyPzMVector(ex_gen,   ey_gen,   ez_gen,   0);
-                TLorentzVector ele_gen_V4(ex_gen,   ey_gen,   ez_gen,   ele_gen_M.E());
-                P_gen   = ele_gen_V4.P();
-                Th_gen  = ele_gen_V4.Theta();
-                Phi_gen = ele_gen_V4.Phi();
-            }
-            if(ivec == 1){ // Pi+ Pion
-                auto pip_gen_M = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-                TLorentzVector pip_gen_V4(pipx_gen, pipy_gen, pipz_gen, pip_gen_M.E());
-                P_gen   = pip_gen_V4.P();
-                Th_gen  = pip_gen_V4.Theta();
-                Phi_gen = pip_gen_V4.Phi();
-            }
-            
-            
-            // Calculate resolutions
-            // double smear_factor = 0.8;
-            double smear_factor = """, str(smear_factor), """;
-            double P_new_rec    = P_rec   + smear_factor*(P_rec   - P_gen);
-            double Th_new_rec   = Th_rec  + smear_factor*(Th_rec  - Th_gen);
-            double Phi_new_rec  = Phi_rec + smear_factor*(Phi_rec - Phi_gen);
-            Th_new_rec  = Th_rec;
-            Phi_new_rec = Phi_rec;
-            
-
-            // Making the smeared TLorentzVector:
-            TLorentzVector V4_smear(V4.X(), V4.Y(), V4.Z(), V4.E());
-            V4_smear.SetE(TMath::Sqrt(P_new_rec*P_new_rec + M_rec*M_rec));
-            V4_smear.SetRho(   P_new_rec);
-            V4_smear.SetTheta(Th_new_rec);
-            V4_smear.SetPhi( Phi_new_rec);
-            return V4_smear;
-        };"""]) 
-    # smearing_function = smearing_function if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
     smearing_function = smearing_function_SF(smear_factor, Use_Pass_2) if((smear_factor not in ["FX"]) and (datatype not in ["rdf", "gdf"])) else """
         //===========================================================================//
         //=================//     Smearing Function (From FX)     //=================//
@@ -1182,7 +1035,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             V4_new.SetPhi( smeared_Phi );
             return V4_new;
         };""" if(datatype not in ["rdf", "gdf"]) else ""
-    
     
     if((run_Mom_Cor_Code) and (str(datatype) not in ["rdf", "gdf"])):
         rdf = rdf.Define("el_no_cor_smeared", "".join(["""
@@ -2041,8 +1893,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(done_Q != 'yes'):
                 # Failed to get a new definition
                 return Data_Frame
-            
-            
+                 
     def Smear_Compare_Variable(DataFrame, Variable_Input):
         if(DataFrame == "continue"):
             return DataFrame
@@ -2089,16 +1940,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##---------------------------------##===================================##---------------------------------##
     ##=========================================================================================================##
     
-    
-    
-    
+
     if(Use_Weight):
         if(not Q4_Weight):
             print(f"{color.BGREEN}\n{color_bg.BLUE}Running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...{color.END}\n\n")
             ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##====================================##     Event Weighing Begin     ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
             rdf = rdf.Define('Event_Weight', "".join(["""
             """, "".join([""" 
@@ -2110,33 +1957,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             """])  if((datatype in ["mdf", "gdf", "pdf"]) and Use_Weight)             else "auto Event_Weight = 1;", """
             return Event_Weight;
             """]))
-            # if(datatype in ["mdf", "pdf"]):
-            #     rdf = rdf.Define('Event_Weight_gen', """
-            #     auto   Par_B_Test_gen   = -0.050;
-            #     auto   Par_C_Test_gen   =  0.025;
-            #     auto   PHI_H_gen        = phi_t_gen*TMath::DegToRad();
-            #     auto   Event_Weight_gen = 1 + Par_B_Test_gen*TMath::Cos(PHI_H_gen) + Par_C_Test_gen*TMath::Cos(2*PHI_H_gen);
-            #     return Event_Weight_gen;
-            #     """)
-            #     rdf = rdf.Define('Event_Weight_smeared', """
-            #     auto   Par_B_Test_smeared   = -0.050;
-            #     auto   Par_C_Test_smeared   =  0.025;
-            #     auto   PHI_H_smeared        = smeared_vals[11]*TMath::DegToRad();
-            #     auto   Event_Weight_smeared = 1 + Par_B_Test_smeared*TMath::Cos(PHI_H_smeared) + Par_C_Test_smeared*TMath::Cos(2*PHI_H_smeared);
-            #     return Event_Weight_smeared;
-            #     """)
             ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##====================================##      Event Weighing End      ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
         else:
             print(f"{color.BGREEN}\n{color_bg.BLUE}Running 'Q4 Weight' for weighing the Monte Carlo distributions...{color.END}\n\n")
-            
             ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##====================================##     Event Weighing Begin     ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
             rdf = rdf.Define('Event_Weight', "".join(["".join(["""
             auto   Q4           = Q2*Q2;""" if(datatype in ["gdf"]) else """
@@ -2146,13 +1973,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             return Event_Weight;
             """]))
             ##==========================================================================================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##====================================##      Event Weighing End      ##====================================##
-            ##------------------------------------##==============================##------------------------------------##
             ##==========================================================================================================##
     elif(datatype in ["mdf", "gdf", "pdf"]):
         print(f"{color.BOLD}\nNOT running 'Closure Test' for Modulated Monte Carlo Generated phi_h distributions...{color.END}\n\n")
-    
     
     ##==========================================================================================================##
     ##---------------------------------##====================================##---------------------------------##
@@ -2194,7 +2018,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Pel_Cors = el_gen - eleC.P();", """
         return Delta_Pel_Cors;"""]))
 
-
     rdf = rdf.Define("Delta_Ppip_Cors", "".join(["""
         auto fe   = dppC(ex, ey, ez, esec, 0, """,         "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
@@ -2231,7 +2054,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Ppip_Cors = pip_gen - pipC.P();", """
         return Delta_Ppip_Cors;"""]))
     
-
     ############################################################################################
     ####====================================================================================####
     ##==========##==========##      ∆Theta Calculations (Normal)      ##==========##==========##
@@ -2270,7 +2092,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
         return Delta_Theta_el_Cors;"""]))
 
-
     rdf = rdf.Define("Delta_Theta_pip_Cors",  "".join(["""
         auto fe   = dppC(ex,   ey,   ez,   esec,   0, """, "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
         auto fpip = dppC(pipx, pipy, pipz, pipsec, 1, """, "0" if((not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4"), """) + 1;
@@ -2302,8 +2123,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         """,  "" if(str(datatype) not in ["mdf", "pdf"] or True) else "Delta_Theta_pip_Cors = (180/3.1415926)*(pipth_gen - pipC.Theta());", """
 
         return Delta_Theta_pip_Cors;"""]))
-
-    
 
     ###############################################################################################
     ####=======================================================================================####
@@ -2488,8 +2307,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
             return Delta_Theta_pip_Cors_smeared;"""]))
     
-    
-    
     ########################################################################################
     ####================================================================================####
     ##==========##==========##         ∆P/P Smear Factors         ##==========##==========##
@@ -2505,7 +2322,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         rdf = rdf.Define("Dele_SF", "abs(el  - smeared_vals[15])/el")
         rdf = rdf.Define("Dpip_SF", "abs(pip - smeared_vals[19])/pip")
 
-        
     print("Kinematic Variables have been calculated.")
     
     if(output_all_histo_names_Q):
@@ -2519,8 +2335,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
     ###################################################################################################################################################################
     ###################################################       Done with Calculating (All) Kinematic Variables       ###################################################
-    ###                                              ##-------------------------------------------------------------##                                              ###
-    ###----------------------------------------------##-------------------------------------------------------------##----------------------------------------------###
     ###                                              ##-------------------------------------------------------------##                                              ###
     ###################################################                  Making Cuts to DataFrames                  ###################################################
     ###################################################################################################################################################################
@@ -2649,18 +2463,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         // cut_up   = 1.1*cut_up;
         // cut_down = 0.9*cut_down;
         return (MM_Vector.M() < cut_up && MM_Vector.M() > cut_down);"""])
-        
         return output
-    
     
     ####################################################################################################################################################################
     ###################################################                Done Making Cuts to DataFrames                ###################################################
     ###                                              ##--------------------------------------------------------------##                                              ###
-    ###----------------------------------------------##--------------------------------------------------------------##----------------------------------------------###
-    ###                                              ##--------------------------------------------------------------##                                              ###
     ###################################################                  Defining Kinematic Binning                  ###################################################
     ####################################################################################################################################################################
-    
     
     def Q2_xB_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2"):
 
@@ -2670,7 +2479,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             
         Q2_xB_For_Binning = "".join(["smeared_vals[2]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "Q2", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", ", ", "smeared_vals[3]" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "xB", "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
 
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -2720,7 +2528,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         }
         return Q2_xB_Bin_New;"""])
         
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -2814,7 +2621,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     
         # Q2 and xB Binning (See Table 4.2 on page 18 of "A multidimensional study of SIDIS π+ beam spin asymmetry over a wide range of kinematics" - Stefan Diehl)
         if(Bin_Version in ["OG", "Stefan"]):
@@ -2848,7 +2654,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             }
             return Q2_xB_Bin_New;"""])
             
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     
@@ -3100,10 +2905,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             //=====// Migration Bins //=====//======================================================//
             //=====//================//=====//======================================================//
 
-
             return Q2_Y_Bin_New;"""])
         
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     
@@ -3222,30 +3025,18 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-            
         # Turns off the kinematic binning options by assigning every 'Q2_xB_Bin_New' to be 1 (should run faster when the kinematic binning is not necessary)
         if(Bin_Version in ["Off", "off"]):
             Q2_xB_Bin_Def = """
             int Q2_xB_Bin_New = 1;
             return Q2_xB_Bin_New;"""
-            
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-            
-
         return Q2_xB_Bin_Def
-        
-        
-        
-        
+
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
         
-        
-        
-        
+
     def z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="2"):
         if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
             print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function z_pT_Bin_Standard_Def_Function(Variable_Type='{Variable_Type}', Bin_Version='{Bin_Version}').\nFix input to use anything other than the default calculations of z and pT.")
@@ -3254,11 +3045,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         Q2_xB_Bin_event_name = "".join(["Q2_xB_Bin" if(Bin_Version not in ["4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "Q2_y_Bin" if(("y_" in Bin_Version) or (Bin_Version == "4")) else "Q2_Y_Bin", "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in ["", "4", "y_bin", "y_Bin", "5", "Y_bin", "Y_Bin"]) else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
         z_pT_Bin_event_name  = "".join(["z_pT_Bin",                                                                                                                                                          "".join(["_", str(Bin_Version)]) if(str(Bin_Version) not in [""])                                               else "" , "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
         
-        # if(str(Q2_xB_Bin_event_name) not in rdf.GetColumnNames()):
-        #     print("".join(["The Q2-xB Bin: ", color.RED, str(Q2_xB_Bin_event_name), color.END, " was not recognized by the function z_pT_Bin_Standard_Def_Function(Variable_Type='", str(Variable_Type), "', Bin_Version='", str(Bin_Version), "').\nNeed to correctly define the Q2-xB bin (using Q2_xB_Bin_2 as default).."]))
-        #     Q2_xB_Bin_event_name = "Q2_xB_Bin_2"
-        
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -3424,9 +3210,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 }    
             }
             return z_pT_Bin_event_val;"""])
-        
-        
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+         
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -3534,20 +3318,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     z_pT_Bin_event_val = 0;
                     return z_pT_Bin_event_val; // Cannot create z-pT Bins without propper Q2-xB Bins
                 }
-                else{ 
-                    // Using a default number of bins for any event within one of the new Q2-xB bins
-                    Num_z_Borders = 8; Num_pT_Borders = 8;
-                }
-                if(Q2_xB_Bin_event_val == 0){
-                    Num_z_Borders  = 1; Num_pT_Borders = 1;
-                }
-                if(Num_z_Borders == 0){
-                    Num_z_Borders = 1; Num_pT_Borders = 1;
-                }
-
+                else{ Num_z_Borders = 8; Num_pT_Borders = 8; } // Using a default number of bins for any event within one of the new Q2-xB bins
+                if(Q2_xB_Bin_event_val == 0){ Num_z_Borders  = 1; Num_pT_Borders = 1; }
+                if(Num_z_Borders == 0){ Num_z_Borders = 1; Num_pT_Borders = 1; }
                 int z_pT_Bin_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
                                         // based on the number of times the loop has run
-
                 // Determining z-pT Bins
                 for(int zbin = 1; zbin < Num_z_Borders; zbin++){
                     if(z_pT_Bin_event_val != 0){continue;     // If the bin has already been assigned, this line will end the loop.
@@ -3557,16 +3332,13 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         // Found the correct z bin
                         for(int pTbin = 0; pTbin < Num_pT_Borders - 1; pTbin++){
                             if(z_pT_Bin_event_val != 0){continue;}    // If the bin has already been assigned, this line will end the loop. (Same reason as above)
-
                             if(pT_event_val > Borders_function(Q2_xB_Bin_event_val, 1, pTbin) && pT_event_val < Borders_function(Q2_xB_Bin_event_val, 1, pTbin+1)){
                                 // Found the correct pT bin
                                 z_pT_Bin_event_val = z_pT_Bin_count; 
                                 // The value of the z_pT_Bin has been set
                                 return z_pT_Bin_event_val;
                             }
-                            else{
-                                z_pT_Bin_count = z_pT_Bin_count + 1; // Checking the next bin
-                            }
+                            else{ z_pT_Bin_count = z_pT_Bin_count + 1; } // Checking the next bin
                         }
                     }
                     else{
@@ -3577,7 +3349,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 }
                 return z_pT_Bin_event_val;"""])
             
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -3622,7 +3393,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     std::vector<int> z_pT_and_MultiDim_Bins = {{z_pT_Bin_event_val, MultiDim3D_Bin_val, MultiDim5D_Bin_val}};
     return z_pT_and_MultiDim_Bins;"""])
             
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
         
@@ -3800,43 +3570,22 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 //==========================//
                 //=====//   z Bins   //=====//
                 //==========================//
-                if(Q2_y_Bin_event_val == 2  || Q2_y_Bin_event_val == 4 || Q2_y_Bin_event_val == 5 || Q2_y_Bin_event_val == 8 || Q2_y_Bin_event_val == 9 || Q2_y_Bin_event_val == 10){
-                    Num_z_Borders = 7;
-                }
-                if(Q2_y_Bin_event_val == 1  || Q2_y_Bin_event_val == 3 || Q2_y_Bin_event_val == 6 || Q2_y_Bin_event_val == 7 || Q2_y_Bin_event_val == 13 || Q2_y_Bin_event_val == 14 || Q2_y_Bin_event_val == 16 || Q2_y_Bin_event_val == 17 || Q2_y_Bin_event_val == 11){
-                    Num_z_Borders = 6;
-                }
-                if(Q2_y_Bin_event_val == 12 || Q2_y_Bin_event_val == 15){
-                    Num_z_Borders = 5;
-                }
+                if(Q2_y_Bin_event_val == 2  || Q2_y_Bin_event_val == 4 || Q2_y_Bin_event_val == 5 || Q2_y_Bin_event_val == 8 || Q2_y_Bin_event_val == 9 || Q2_y_Bin_event_val == 10){ Num_z_Borders = 7; }
+                if(Q2_y_Bin_event_val == 1  || Q2_y_Bin_event_val == 3 || Q2_y_Bin_event_val == 6 || Q2_y_Bin_event_val == 7 || Q2_y_Bin_event_val == 13 || Q2_y_Bin_event_val == 14 || Q2_y_Bin_event_val == 16 || Q2_y_Bin_event_val == 17 || Q2_y_Bin_event_val == 11){ Num_z_Borders = 6; }
+                if(Q2_y_Bin_event_val == 12 || Q2_y_Bin_event_val == 15){ Num_z_Borders = 5; }
                 //===========================//
                 //=====//   pT Bins   //=====//
                 //===========================//
-                if(Q2_y_Bin_event_val == 1  || Q2_y_Bin_event_val == 2  || Q2_y_Bin_event_val == 3){
-                    Num_pT_Borders = 8;
-                }
-                if(Q2_y_Bin_event_val == 4  || Q2_y_Bin_event_val == 5  || Q2_y_Bin_event_val == 6  || Q2_y_Bin_event_val == 7  || Q2_y_Bin_event_val == 9 || Q2_y_Bin_event_val == 10 || Q2_y_Bin_event_val == 11){
-                    Num_pT_Borders = 7;
-                }
-                if(Q2_y_Bin_event_val == 8  || Q2_y_Bin_event_val == 12 || Q2_y_Bin_event_val == 13 || Q2_y_Bin_event_val == 14 || Q2_y_Bin_event_val == 15){
-                    Num_pT_Borders = 6;
-                }
-                if(Q2_y_Bin_event_val == 16 || Q2_y_Bin_event_val == 17){
-                    Num_pT_Borders = 5;
-                }
+                if(Q2_y_Bin_event_val == 1  || Q2_y_Bin_event_val == 2  || Q2_y_Bin_event_val == 3){ Num_pT_Borders = 8; }
+                if(Q2_y_Bin_event_val == 4  || Q2_y_Bin_event_val == 5  || Q2_y_Bin_event_val == 6  || Q2_y_Bin_event_val == 7  || Q2_y_Bin_event_val == 9 || Q2_y_Bin_event_val == 10 || Q2_y_Bin_event_val == 11){ Num_pT_Borders = 7; }
+                if(Q2_y_Bin_event_val == 8  || Q2_y_Bin_event_val == 12 || Q2_y_Bin_event_val == 13 || Q2_y_Bin_event_val == 14 || Q2_y_Bin_event_val == 15){ Num_pT_Borders = 6; }
+                if(Q2_y_Bin_event_val == 16 || Q2_y_Bin_event_val == 17){ Num_pT_Borders = 5; }
                 
-                
-                
-                if(Q2_y_Bin_event_val == 0){
-                    Num_z_Borders  = 1; Num_pT_Borders = 1;
-                }
-                if(Num_z_Borders == 0){
-                    Num_z_Borders = 1; Num_pT_Borders = 1;
-                }
+                if(Q2_y_Bin_event_val == 0){ Num_z_Borders  = 1; Num_pT_Borders = 1; }
+                if(Num_z_Borders == 0){ Num_z_Borders = 1; Num_pT_Borders = 1; }
 
                 int z_pT_Bin_count = 1; // This is a dummy variable used by the loops to correctly assign the bin number
                                         // based on the number of times the loop has run
-
                 // Determining z-pT Bins
                 for(int zbin = 1; zbin < Num_z_Borders; zbin++){
                     if(z_pT_Bin_event_val != 0){continue;     // If the bin has already been assigned, this line will end the loop.
@@ -3849,13 +3598,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
 
                             if(pT_event_val > Borders_function(Q2_y_Bin_event_val, 1, pTbin) && pT_event_val < Borders_function(Q2_y_Bin_event_val, 1, pTbin+1)){
                                 // Found the correct pT bin
-                                z_pT_Bin_event_val = z_pT_Bin_count; 
-                                // The value of the z_pT_Bin has been set
+                                z_pT_Bin_event_val = z_pT_Bin_count; // The value of the z_pT_Bin has been set
                                 return z_pT_Bin_event_val;
                             }
-                            else{
-                                z_pT_Bin_count = z_pT_Bin_count + 1; // Checking the next bin
-                            }
+                            else{ z_pT_Bin_count = z_pT_Bin_count + 1; } // Checking the next bin
                         }
                     }
                     else{
@@ -3865,34 +3611,19 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     }    
                 }
                 return z_pT_Bin_event_val;"""])
-
-
-    
-    
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-        
         # Turns off the kinematic binning options by assigning every 'z_pT_Bin_event_val' to be 1 (should run faster when the kinematic binning is not necessary)
         if(Bin_Version in ["Off", "off"]):
             z_pT_Bin_Standard_Def = """
             int z_pT_Bin_event_val = 1;
             return z_pT_Bin_event_val;"""
-            
     #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-    #################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-        
         return z_pT_Bin_Standard_Def
         
         
-        
-        
-        
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
-    
     
     def Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type=""):
         # Only defined for the 'y_bin' binning option
@@ -3966,14 +3697,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
         return Q2_y_z_pT_4D_Bin_Def
     
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
     
-        
     #############################################################################
     #####################      Matched Bin Definitions      #####################
-
     def Multi_Dim_Bin_Def(DF, Variables_To_Combine, Smearing_Q="", Data_Type=datatype, return_option="DF"):
         if(DF == "continue"):
             return "continue"
@@ -4060,14 +3788,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 return [str(Multi_Dim_Bin_Title[var_type]), -1.5, (math.prod(var_bins)) + 1.5, (math.prod(var_bins)) + 3]
         return DF_Final
 
-
 ##########################################################################################################################################################################################
 ##########################################################################################################################################################################################
     
     ###################################################################################################################################################################
     ###################################################                 Done With Kinematic Binning                 ###################################################
-    ###                                              ##-------------------------------------------------------------##                                              ###
-    ###----------------------------------------------##-------------------------------------------------------------##----------------------------------------------###
     ###                                              ##-------------------------------------------------------------##                                              ###
     ###################################################          Defining Helpful Functions for Histograms          ###################################################
     ###################################################################################################################################################################
@@ -4148,7 +3873,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             z_pT_BinList_Name, Filter_2 = "None - Events without a bin",                                                      "".join([str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter)])
         if(z_pT_Bin_Filter  > 0):
             z_pT_BinList_Name, Filter_2 = "".join([variable_Title_name(z_pT_Bin_Filter_str),   ": ", str(z_pT_Bin_Filter)]),  "".join([str(z_pT_Bin_Filter_str), " == ", str(z_pT_Bin_Filter)])
-            
             
         if(Filter_2 != ""):
             Filter_Name = f"{Filter_1} && {Filter_2}"
@@ -4338,7 +4062,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##==========##  General Cuts (End)  ##==========##
         ##################################################
         
-        
         ##====================================================##
         ##----------## Smearing Variables (Start) ##----------##
         ##====================================================##
@@ -4355,11 +4078,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         ##----------##  Smearing Variables (End)  ##----------##
         ##====================================================##
 
-
         ###########################################
-        ##=======================================##
         ##==========## Final Outputs ##==========##
-        ##=======================================##
         ###########################################
 
         ##==========## Cut Name ##==========##
@@ -4389,9 +4109,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     ##################################################################################################################################################################
     ###################################################          Done Making the Functions for Histograms          ###################################################
     ###                                              ##------------------------------------------------------------##                                              ###
-    ###----------------------------------------------##------------------------------------------------------------##----------------------------------------------###
-    ###                                              ##------------------------------------------------------------##                                              ###
-    ##################################################################################################################################################################
     ###################################################                    Choices For Graphing                    ###################################################
     ##################################################################################################################################################################
     
@@ -4407,77 +4124,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         print(f"{color.RED}\nNOT Running Momentum Correction/Smearing Histograms{color.END}")
         print(f"{color.BBLUE}Running the Default Histograms for the SIDIS Analysis (i.e., Normal 1D/2D/3D Histograms and/or Unfolding Histograms){color.END}")
 
-    
-    # # Cut Naming Conventions:
-        # 1) 'no_cut' --> no new cuts are applied (only cuts are made during particle identification (PID))
-        # 2) 'Mom' --> (See below)
-          # 1.25 < pip < 5
-          # 5 < elth < 35
-          # 5 < pipth < 35"
-        # 3) 'SIDIS' --> (See below)
-          # y < 0.75
-          # xF > 0
-          # W > 2
-          # Q2 > 1
-        # 4) 'all' --> Combination of 'Mom', 'SIDIS', with an additional Missing Mass cut of: "MM > 1.5"
-          # Do not combine with "Mom" or "SIDIS" separately as doing so will be meaningless (combination is already built in) 
-        # 5) 'Valerii_Cut' --> Valerii's Fiducial cuts to remove bad detectors
-        # 6) 'Q2'  -> New Q2 cut of "Q2 > 2"
-        
-    # # Other than 'no_cut', all of the above cuts can be combined separately by adding them to the str in cut_list as a suffix of another cut
-    # # # Example:
-        # # cut_list = ["no_cut", "cut_all", "cut_Mom_SIDIS"]
-          # # The first two cuts in the above list are the same as describles in entry (1) and (4) in the list above. The 3rd entry is a combination of "Mom" and "SIDIS" where both cuts are applied together (order doesn't matter). This combination can be done with any of the cuts given in the list above (except 'no_cut') and can be done with as many of them as desired (no limits to number of cuts that can be added to one entry).
-    
-#     cut_list = ['no_cut']
-#     # cut_list = []
-#     # cut_list.append('no_cut_Integrate')
-#     # cut_list.append('no_cut_eS1o')
-# #     if(not run_Mom_Cor_Code):
-# #         # cut_list.append('no_cut_eS1a')
-# #         cut_list.append('no_cut_eS1o')
-#     if(datatype not in ["gdf"]):
-#         # cut_list = ['cut_Complete_SIDIS']
-#         cut_list = []
-#         # cut_list.append('cut_Complete_SIDIS_Integrate')
-#         cut_list.append('cut_Complete_SIDIS')
-#         for sec_cut in [1, 2, 3, 4, 5, 6]:
-#             # cut_list.append(f'cut_Complete_SIDIS_Integrate_eS{sec_cut}o')
-#             cut_list.append(f'cut_Complete_SIDIS_eS{sec_cut}o')
-#         if(Tag_Proton):
-#             cut_list.append('cut_Complete_SIDIS_Proton')
-#             # cut_list.append('cut_Complete_SIDIS_Proton_Integrate')
-#             # cut_list.append('cut_Complete_SIDIS_RevPro')
-#             # cut_list.append('cut_Complete_SIDIS_RevPro_Integrate')
-#             for sec_cut in [1, 2, 3, 4, 5, 6]:
-#                 # cut_list.append(f'cut_Complete_SIDIS_Proton_Integrate_eS{sec_cut}o')
-#                 cut_list.append(f'cut_Complete_SIDIS_Proton_eS{sec_cut}o')
-#         if(run_Mom_Cor_Code):
-# #             cut_list = ['cut_Complete_EDIS']
-#             cut_list.append('cut_Complete_EDIS')
-#             # cut_list.append('cut_Complete_EDIS_Binned')
-#             # cut_list.append('cut_Complete_SIDIS_Binned')
-# #         else:
-# #             # cut_list.append('cut_Complete_SIDIS_eS1a')
-# #             cut_list.append('cut_Complete_SIDIS_eS1o')
-# #             # # cut_list.append('cut_Complete_MM')
-# #             # cut_list.append('cut_Complete_EDIS')
-#     # if(datatype not in ["rdf"]):
-#     #     if(datatype not in ["gdf"]):
-#     #         # cut_list.append('cut_Complete_MM_Gen')
-#     #         cut_list.append('cut_Complete_SIDIS_Gen')
-#     #         cut_list.append('cut_Complete_SIDIS_Exgen')
-#     #     cut_list.append('cut_Gen')
-#     #     cut_list.append('cut_Exgen')
-    
-#     print(f"{color.BBLUE}\nCuts in use: {color.END}")
-#     for cuts in cut_list:
-#         print(f"\t(*) {cuts}")
-        
-    
-    #####################       Cut Choices       #####################
-    ###################################################################
-    
     
     ###############################################################
     #####################     Bin Choices     #####################
@@ -4501,6 +4147,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # If a Q2-xB bin is missing from this list, then that bin will be skipped when making the histograms
     
     # # binning_option_list = ["", "2"]
+    # # binning_option_list = ["2"]
     # # binning_option_list = ["2", "3"]
     # binning_option_list = ["Off"]
     # # binning_option_list = ["Off", "y_bin"]
@@ -4541,7 +4188,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         binning_option_list = ["Y_bin"]
         List_of_Q2_xB_Bins_to_include = [-1]
         
-
     # Conditions to make the 5D unfolding plots
     Use_5D_Response_Matrix = (binning_option_list == ["Y_bin"]) and (-1 in List_of_Q2_xB_Bins_to_include) and (not run_Mom_Cor_Code)
     # Use_5D_Response_Matrix = not False
@@ -4622,9 +4268,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 if(Use_5D_Response_Matrix):
                     rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h_smeared",            "All_MultiDim_Y_bin_smeared[2]")
                 # rdf = rdf.Define("MultiDim_Q2_Y_Bin_z_pT_Bin_Y_bin_phi_t_smeared",  "All_MultiDim_Y_bin_smeared[2]")
-            
-            
-    
+                 
     print(f"{color.BBLUE}\nBinning Scheme(s) in use: {color.END}")
     for binning in binning_option_list:
         print("".join(["\t(*) ", "Stefan's binning scheme" if(binning in ["", "Stefan"]) else "Modified binning scheme (developed from Stefan's version)" if(binning in ["2", "OG"]) else "New (rectangular) binning scheme" if(binning in ["3", "Square"]) else "New Q2-y binning scheme" if(binning in ["5", "Y_bin", "Y_Bin"]) else "Q2-y binning scheme (main)" if(binning in ["4", "y_bin", "y_Bin"]) else "".join(["Binning Scheme - ", str(binning)])]))
@@ -4633,7 +4277,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     # smearing_options_list = ["", "smear"]
     smearing_options_list = ["smear"]
     # smearing_options_list = [""]
-    
     
     if((run_Mom_Cor_Code) and (datatype in ["mdf"])):
         # When running the momentum correction/smearing code, the smearing options list should include "smear"
@@ -4675,7 +4318,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 print(f"\t\t{color.BYELLOW}CRITERIA ={color.END} {CRITERIA}\n")
         else:
             print("\nUse '--verbose' argument to see the cut branch definitions\n")
-
+    
     if(args.verbose):
         print(f"\n{color.BOLD}Print all (currently) defined content of the RDataFrame:{color.END}")
         for ii in range(0, len(rdf.GetColumnNames()), 1):
@@ -4742,4 +4385,3 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     
 else:
     print("\nERROR: No valid datatype selected...\n")
-    
