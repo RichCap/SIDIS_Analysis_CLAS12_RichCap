@@ -147,6 +147,29 @@ class RuntimeTimer:
         else:
             print(f"{end_time}\n{total_time}\n{rate_line}\n\n")
 
+
+def silence_root_import():
+    import sys, os
+    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    sys.path.append(script_dir)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    old_stdout = os.dup(1)
+    old_stderr = os.dup(2)
+    try:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+        import RooUnfold
+    finally:
+        os.dup2(old_stdout, 1)
+        os.dup2(old_stderr, 2)
+        os.close(old_stdout)
+        os.close(old_stderr)
+    sys.path.remove(script_dir)
+    del script_dir
+
 ###################=========================###################
 ##===============##     Variable Titles     ##===============##
 ###################=========================###################
