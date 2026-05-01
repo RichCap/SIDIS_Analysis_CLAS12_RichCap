@@ -544,9 +544,14 @@ def variable_Title_name(variable):
         output  = "F_{UU}^{cos#phi_{h}}"
     if(variable == "F_UU_cos_2phih"):
         output  = "F_{UU}^{cos2#phi_{h}}"
+    if(variable == "rho0"):
+        output  = "p_{#rho^{0}}"
+    if(variable == "rho0th"):
+        output  = "#theta_{#rho^{0}}"
+    if(variable == "rho0Phi"):
+        output  = "#phi_{#rho^{0}}"
 
-
-
+    
     if("Bin_4D" in variable):
         output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
     if("Bin_5D" in variable):
