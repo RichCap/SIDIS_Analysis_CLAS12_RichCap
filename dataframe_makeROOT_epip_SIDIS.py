@@ -347,8 +347,8 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     #################     Final ROOT File     #################
     
     ROOT_File_Output_Name = "Data_REC"
-    if((datatype not in ["gdf"]) and (Cut_Configuration_Name not in str(args.Common_Name))):
-        args.Common_Name = f"{args.Common_Name}{Cut_Configuration_Name}_"
+    # if((datatype not in ["gdf"]) and (Cut_Configuration_Name not in str(args.Common_Name))):
+    #     args.Common_Name = f"{args.Common_Name}{Cut_Configuration_Name}_"
     if(args.save_name):
         args.Common_Name = f"{args.Common_Name}{args.save_name}_"
     if((datatype in ["rdf"]) and (not Mom_Correction_Q)): # Not applying momentum corrections (despite them being available)
@@ -390,7 +390,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                 print(f"\t{num+1:>2.0f}) {branch}")
                 exclude_vars.append(branch)
         args.Common_Name = f"{args.Common_Name}{args.matching_criteria}_" if(str(args.matching_criteria) not in str(args.Common_Name)) else args.Common_Name
-        args.Common_Name = f"{args.Common_Name}{file_type}_" if(file_type not in ["SIDIS", ""]) else args.Common_Name
+    args.Common_Name = f"{args.Common_Name}{file_type}_" if(file_type not in ["SIDIS", ""]) else args.Common_Name
     if(datatype == 'rdf'):
         ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_Data_REC_{args.Common_Name}{file_num}.root"
     if(datatype in ['mdf', "pdf"]):
@@ -399,6 +399,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ROOT_File_Output_Name = f"DataFrame_SIDIS_epip_MC{'_Only_' if(datatype == 'pdf') else '_'}Matched_Unsmeared_{args.Common_Name}{file_num}.root"
     if(datatype == 'gdf'):
         ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_MC_GEN_{args.Common_Name}{file_num}.root"
+    
     ROOT_File_Output_Name = ROOT_File_Output_Name.replace("__", "_")
     print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
     
@@ -640,10 +641,10 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         
         # if(datatype in ["gdf"]):
         #     if("MM" in str(BG_Cut_Function(dataframe="mdf"))):
-        #         print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.5 required)\n{color.END}")
-        #         rdf = rdf.Filter("MM > 1.5")
+        #         print(f"{color.BGREEN}\nMAKING A DEFAULT CUT ON GENERATED MISSING MASS (MM > 1.8 required)\n{color.END}")
+        #         rdf = rdf.Filter("MM > 1.8")
         #     else:
-        #         print(f"{color.Error}\n{color.UNDERLINE}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.5 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
+        #         print(f"{color.Error}\n{color.UNDERLINE}NOT{color.END_R} making the default cut on Generated Missing Mass (MM_gen > 1.8 is not currently being considered as background based on BG_Cut_Function(dataframe='mdf'))\n{color.END}")
                 
         if(datatype in ["mdf"]):
             BG_string = BG_Cut_Function(dataframe="mdf")
@@ -3941,23 +3942,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             DF_Out = DF_Out.Filter("(PID_el != 0 && PID_pip != 0) && PID_pip != 211")
             
         # if(Data_Type in ["gen", "mdf"]):
-        #     DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
+        #     DF_Out = DF_Out.Filter("sqrt(MM2_gen) > 1.8")
 
 
         if((Cut_Choice in ["cut_Gen"])         and (Data_Type not in ["rdf"])):
             cutname         = "Generated MM Cut"
             if(Titles_or_DF == 'DF'):
                 if(Data_Type in ["gdf"]):
-                    DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                    DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.8")
                 else:
-                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.5")       
+                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.8")       
         elif((Cut_Choice in ["cut_Exgen"])     and (Data_Type not in ["rdf"])):
             cutname         = "Generated MM Cut (Exclusive Events)"
             if(Titles_or_DF == 'DF'):
                 if(Data_Type in ["gdf"]):
-                    DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                    DF_Out  = DF_Out.Filter("sqrt(MM2) < 185")
                 else:
-                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
+                    DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.8")
         elif((Data_Type not in ["gdf", "gen"]) and ("no_cut" not in str(Cut_Choice))):
             if("Complete"   in Cut_Choice):
                 cutname     = "Complete Set of "
@@ -3983,9 +3984,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     cutname = "".join([cutname, "SIDIS "])
                     if(Titles_or_DF == 'DF'):
                         if(("smear" in Smearing_Q) and (Data_Type != "rdf")):
-                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) > 1.8")
                         else:
-                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.8")
                 if("Proton" in Cut_Choice):
                     cutname = f"{cutname} (Proton Cut) "
                     if(Titles_or_DF == 'DF'):
@@ -4011,23 +4012,23 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     cutname = "".join([cutname, "(Inverted MM) "])
                     if(Titles_or_DF == 'DF'):
                         if("smear" in Smearing_Q   and Data_Type != "rdf"):
-                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) < 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(smeared_vals[1]) < 1.8")
                         else:
-                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.8")
                 if(("Gen" in Cut_Choice)           and (Data_Type not in ["rdf"])):
                     cutname = "".join([cutname, "(Gen MM) "])
                     if(Titles_or_DF == 'DF'):
                         if(Data_Type in ["gdf"]):
-                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) > 1.8")
                         else:
-                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) > 1.8")
                 if(("Exgen" in Cut_Choice)         and (Data_Type not in ["rdf"])):
                     cutname = "".join([cutname, "(Exclusive Gen MM) "])
                     if(Titles_or_DF == 'DF'):
                         if(Data_Type in ["gdf"]):
-                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2) < 1.8")
                         else:
-                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.5")
+                            DF_Out  = DF_Out.Filter("sqrt(MM2_gen) < 1.8")
                 cutname = "".join([cutname, "Cuts"])
                 if(Skipped_Fiducial_Cuts != Default_Cut_Option):
                     cutname = "".join([cutname, f" (Skipped these Fiducial Cuts: {Skipped_Fiducial_Cuts})"])

@@ -2236,7 +2236,7 @@ def smearing_function_SF(smear_factor=0.75, Use_Pass_2_Function=False):
 
 
 
-
+Default_MM_Cut = 1.8
 # Conditions for (Monte Carlo) Background Events
 # # Convension Used in this list:
     # # (*) If ANY of the statements given in 'List_of_Cuts' are true, the event will be considered 'background'
@@ -2253,7 +2253,7 @@ def BG_Cut_Function(dataframe="mdf"):
         Background_Cuts_MC = ""
         # List_of_Cuts = ["MM_gen < 1.5", "PID_el != 11", "PID_pip != 211"]
         List_of_Cuts = []
-        List_of_Cuts.append("MM_gen < 1.5")
+        List_of_Cuts.append(f"MM_gen < {Default_MM_Cut}")
         List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
@@ -2789,8 +2789,8 @@ def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
         raise ValueError(f"Define_Cut_Variations_With_Smeared_Kinematics(): df_type must be 'rdf', 'mdf', or 'gdf' (got '{df_type}')")
 
     # Apply default MM cut
-    KinCuts_Unsm = f"({KinCuts_Unsm_base}) && (sqrt(MM2) > 1.5)"
-    KinCuts_Smr  = f"({KinCuts_Smr_base})  && ({MMExpr_Smr} > 1.5)"
+    KinCuts_Unsm = f"({KinCuts_Unsm_base}) && (sqrt(MM2) > {Default_MM_Cut})"
+    KinCuts_Smr  = f"({KinCuts_Smr_base})  && ({MMExpr_Smr} > {Default_MM_Cut})"
 
 
     # =========================================================================================================
@@ -2911,7 +2911,8 @@ def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
     # ----------------------------
     # Missing-mass variations (rdf: unsmeared, mdf: smeared)
     # ----------------------------
-    for mm_thr, mm_tag in [(1.25, "MM_loose"), (1.75, "MM_tight")]:
+    # for mm_thr, mm_tag in [(1.25, "MM_loose"), (1.75, "MM_tight")]:
+    for mm_thr, mm_tag in [(0.0, "MM_None"), (1.1, "MM_loosest"), (1.35, "MM_loose"), (1.5, "MM_medium"), (2.0, "MM_tight")]:
         KinBlock_mm = f"{KinBlock_noMM} && ({MMExpr_Smr} > {mm_thr})"
         df_out      = df_out.Define(f"{cut_def_sm_name}_{mm_tag}", f"({KinBlock_mm}) && {PID_base} && {NonPID_base}")
         cut_branches.append([f"{cut_def_sm_name}_{mm_tag}",        f"({KinBlock_mm}) && {PID_base} && {NonPID_base}"])

@@ -512,7 +512,28 @@ def build_log_paths(log_dir, output_dir, job_base, file_index, input_file, prima
     err_path    = os.path.join(primary_dir, err_name)
     return log_path, err_path
 
-def build_email_summary(args, variant_settings, files, results, output_dir, log_dir):
+
+def estimate_peak_memory_children():
+    peak_mem_str = "Unknown"
+    try:
+        import resource
+        usage   = resource.getrusage(resource.RUSAGE_CHILDREN)
+        peak_kb = usage.ru_maxrss
+        if((peak_kb is not None) and (peak_kb > 0)):
+            peak_mb = float(peak_kb) / 1024.0
+            if(peak_mb < 1024.0):
+                peak_mem_str = f"{peak_mb:.2f} MB"
+            else:
+                peak_gb      = peak_mb / 1024.0
+                peak_mem_str = f"{peak_gb:.2f} GB"
+        else:
+            peak_mem_str = "Unavailable"
+    except Exception:
+        peak_mem_str = "Unavailable"
+    return peak_mem_str
+
+
+def build_email_summary(args, variant_settings, files, results, output_dir, log_dir, Peak_Mem=None):
     total_jobs  = len(results)
     done_jobs   = sum(1 for result in results if(result["returncode"] == 0))
     fail_jobs   = sum(1 for result in results if(result["returncode"] != 0))
@@ -524,6 +545,8 @@ def build_email_summary(args, variant_settings, files, results, output_dir, log_
     lines.append(f"Files Failed:    {fail_jobs}")
     lines.append(f"Output Dir:      {output_dir}")
     lines.append(f"Log Dir:         {log_dir}")
+    if(Peak_Mem is not None):
+        lines.append(f"Peak Mem Used:   {Peak_Mem}")
     Update_Email(args, update_message="\n".join(lines), verbose_override=None, no_time=True) # `verbose_override=None` forces the function to suppress the print message even if `verbose` is `True`
     Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_Type="Files")
 
@@ -544,6 +567,7 @@ Running dataframe helper
     print(f"{color.BOLD}Main Script:{color.END}       {args.main_script}")
     print(f"{color.BOLD}Matching Criteria:{color.END} {args.matching_criteria if(args.matching_criteria) else '<default>'}")
     print("")
+
 
 
 def run_sequential(args, variant_settings, files, output_dir, log_dir):
@@ -710,7 +734,9 @@ def main():
     else:
         results = run_sequential(args, variant_settings, files, output_dir, log_dir)
     print(f"{color.BOLD}Run complete.{color.END}")
-    build_email_summary(args, variant_settings, files, results, output_dir, log_dir)
+    # === NEW: Track peak memory used by all child jobs ===
+    peak_mem_str = estimate_peak_memory_children()
+    build_email_summary(args, variant_settings, files, results, output_dir, log_dir, Peak_Mem=peak_mem_str)
 
 
 if(__name__ == "__main__"):

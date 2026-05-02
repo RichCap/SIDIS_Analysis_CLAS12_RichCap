@@ -1451,7 +1451,7 @@ def Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=1, Integration_Bins_Q=False)
 ##==========##==========##     Missing Mass Lines for z-pT Histograms      ##==========##==========##==========##==========##==========##==========##
 #####################################################################################################################################################
 
-def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT", Q2_y_value_pick="Center", Binning_Method_Input=Binning_Method):
+def MM_z_pT_Draw(z_val=0.1, MM_val=1.8, Q2_y_Bin=1, pT_Input="pT", Q2_y_value_pick="Center", Binning_Method_Input=Binning_Method):
     # If z_val="pT", then this function will return 2 equations to plot z as a function of pT (use when pT is on the x-axis)
         # Any other input will plot pT as a function of z
         # These options will only return 1 equation
@@ -1583,7 +1583,7 @@ def MM_z_pT_Draw(z_val=0.1, MM_val=1.5, Q2_y_Bin=1, pT_Input="pT", Q2_y_value_pi
 def Draw_the_MM_Cut_Lines(MM_z_pT_legend, MM_z_pT_borders={}, Q2_Y_Bin=1, Plot_Orientation="pT_z"):
     if(Plot_Orientation in ["pT_z"]):
         for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center", "Center_N"]:
-            MM = 0.93956 if(Q2_y_value_pick_ii in ["Center_N"]) else 1.5
+            MM = 0.93956 if(Q2_y_value_pick_ii in ["Center_N"]) else 1.8
             pT_function     = MM_z_pT_Draw(z_val="function", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
             z_values_step   = 0.001
             num_decimals    = 3
@@ -1614,7 +1614,7 @@ def Draw_the_MM_Cut_Lines(MM_z_pT_legend, MM_z_pT_borders={}, Q2_Y_Bin=1, Plot_O
         MM_z_pT_legend.Draw("same")
     else:
         for Q2_y_value_pick_ii in ["Minimum", "Maximum", "Center", "Center_N"]:
-            MM = 0.93956 if(Q2_y_value_pick_ii in ["Center_N"]) else 1.5
+            MM = 0.93956 if(Q2_y_value_pick_ii in ["Center_N"]) else 1.8
             z_function_p, z_function_m = MM_z_pT_Draw(z_val="pT", MM_val=MM, Q2_y_Bin=Q2_Y_Bin, pT_Input="pT", Q2_y_value_pick=str(Q2_y_value_pick_ii))
             pT_Max = 0.95 if(str(Q2_Y_Bin) in ["12"]) else 1.05 if(str(Q2_Y_Bin) in ["8", "15", "17"]) else 1.15 if(str(Q2_Y_Bin) in ["4", "11", "16"]) else 1.50
             while(pT_Max > 0):
