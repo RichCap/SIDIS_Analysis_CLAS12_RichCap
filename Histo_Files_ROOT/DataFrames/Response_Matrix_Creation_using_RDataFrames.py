@@ -58,8 +58,8 @@ def parse_args():
     parser.add_argument('-bID', '--batch_id',
                         type=int,
                         default=1,
-                        choices=range(0, 109),
-                        help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: 108 — 0 runs all batches together).\n")
+                        # choices=range(0, 109),
+                        help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: See File_Batches.py — 0 runs all batches together).\n")
     parser.add_argument('-numF', '-nf', '--number_of_files',
                         type=int,
                         default=-1,
@@ -473,7 +473,7 @@ if(__name__ == "__main__"):
         sys.exit(1)
         # print(f"\n{color.BGREEN}WILL be using EvGen Files{color.END}\n")
     
-    JSON_WEIGHT_FILE = args.json_file
+    # JSON_WEIGHT_FILE = args.json_file
     
     # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
     print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
@@ -496,12 +496,17 @@ if(__name__ == "__main__"):
         rdf_all = combine_batches(rdf_batch, args.number_of_files)
         all_root_files = build_all_root_files(mdf_all, gdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
 
+    lundrho_MC = False
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
+            if(("lundrho" in str(jj)) and ("rdf" not in str(ii))):
+                lundrho_MC = True
         print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
-        
+    if(args.unfold_5D and lundrho_MC):
+        Update_Email(args, update_message=f"{color.Error}WARNING: Cannot run the 5D response matrices with the lundrho files (as of 5/2/2026)\n\t{color.END}Turning off this option now...", verbose_override=True)
+        args.unfold_5D = False
     args.num_rdf_files = len(all_root_files["rdf"])
     args.num_MC_files  = len(all_root_files["mdf_clasdis"])
     
@@ -761,7 +766,7 @@ if(__name__ == "__main__"):
         elif(args.json_weights):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
             Update_Email(args, update_message=f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file.{color.END}\n", verbose_override=True)
-            with open(JSON_WEIGHT_FILE) as f:
+            with open(args.json_file) as f:
                 Fit_Pars = json.load(f)
                 # Build the C++ initialization string
                 cpp_map_str = "{"
@@ -862,10 +867,10 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}rdf{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False,                                                           Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights,                                               Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(not args.cut) else '_extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights,                                               Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
                 if(args.Use_EvGen):
                     Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}", verbose_override=True)
                     Histograms_All = make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not args.cut) else '_extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
@@ -938,7 +943,7 @@ if(__name__ == "__main__"):
                         continue # Skip the rho0 plots using data
                     Use_Smear = (data not in ["rdf", "gdf"]) and ("rho0" not in str(Vars))
                     # print(f"{data} ==> {Use_Smear}")
-                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=use_weight, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title)
+                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(not args.cut) else '_extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=use_weight, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not lundrho_MC) or ("rdf" in str(data))) else "lundrho")
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END})'", verbose_override=True)
             if(args.Use_EvGen):
                 for Vars in List_of_2D_Plots:

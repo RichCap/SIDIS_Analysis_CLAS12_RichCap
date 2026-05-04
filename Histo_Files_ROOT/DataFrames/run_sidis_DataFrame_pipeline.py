@@ -88,15 +88,11 @@ def parse_args():
                         # help="Base ROOT output name.\n")
                         help=argparse.SUPPRESS)
 
-    # Batching hints
-    parser.add_argument('-rpb', '--rdf_per_batch',
+    # Batching controls
+    parser.add_argument('-nb', '--num_batches',
                         type=int,
-                        default=3,
-                        help="Approximate RDF files per batch (hint for make_batches mode).\n")
-    parser.add_argument('-mpb', '--mc_per_batch',
-                        type=int,
-                        default=12,
-                        help="Approximate total MC files per batch (hint for make_batches mode).\n")
+                        default=150,
+                        help="Number of normal batches to create. Last batch will be reserved for lundrho-MC files.\n")
 
     # Directories
     parser.add_argument('-wd', '--work_dir',
@@ -212,6 +208,8 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None, Count_
             continue
         if((getattr(args, "mode", None) == "make_batches") and (str(name) not in ["name_in", "rdf_per_batch", "mc_per_batch", "rdf_dir", "mdf_dir", "gdf_dir", "batch_file", "num_batches", "mode"])):
             continue
+        if((getattr(args, "mode", None) != "slurm")        and ("slurm" in str(name))):
+            continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
     email_body = f"""
@@ -324,6 +322,25 @@ def collect_files(dir_path, pattern="*.root"):
     files = glob.glob(os.path.join(dir_path, pattern), recursive=True)
     return sorted([os.path.abspath(f) for f in files])
 
+def estimate_peak_memory_children():
+    peak_mem_str = "Unknown"
+    try:
+        import resource
+        usage   = resource.getrusage(resource.RUSAGE_CHILDREN)
+        peak_kb = usage.ru_maxrss
+        if((peak_kb is not None) and (peak_kb > 0)):
+            peak_mb = float(peak_kb) / 1024.0
+            if(peak_mb < 1024.0):
+                peak_mem_str = f"{peak_mb:.2f} MB"
+            else:
+                peak_gb      = peak_mb / 1024.0
+                peak_mem_str = f"{peak_gb:.2f} GB"
+        else:
+            peak_mem_str = "Unavailable"
+    except Exception:
+        peak_mem_str = "Unavailable"
+    return peak_mem_str
+
 def split_evenly(files, n_batches):
     if(not files or n_batches <= 0):
         return [[]]
@@ -343,39 +360,46 @@ def make_batches_mode(args):
     gdf_files = collect_files(args.gdf_dir, args.name_in)
     if(not rdf_files):
         Crash_Report(args, crash_message=f"{color.Error}No RDF files found - cannot generate batches.{color.END}")
-    num_batches = max(1, len(rdf_files) // args.rdf_per_batch)
-    if(mdf_files):
-        num_batches = min(num_batches, len(mdf_files))
-    if(gdf_files):
-        num_batches = min(num_batches, len(gdf_files))
-    rdf_chunks = split_evenly(rdf_files, num_batches)
-    mdf_chunks = split_evenly(mdf_files, num_batches)
-    gdf_chunks = split_evenly(gdf_files, num_batches)
-    # def to_relative(flist, base):
-    #     return [os.path.relpath(f, base) for f in flist]
-    # rdf_batch = {i+1: to_relative(chunk, DATAFRAMES_BASE) for i, chunk in enumerate(rdf_chunks) if chunk}
-    # mdf_batch = {i+1: to_relative(chunk, DATAFRAMES_BASE) for i, chunk in enumerate(mdf_chunks) if chunk}
-    # gdf_batch = {i+1: to_relative(chunk, DATAFRAMES_BASE) for i, chunk in enumerate(gdf_chunks) if chunk}
+    # Determine number of normal batches
+    num_normal_batches = max(1, args.num_batches if(getattr(args, "num_batches", len(rdf_files)) < len(rdf_files)) else len(rdf_files))
+    # Separate LUND files (lowercase "lund" anywhere in filename) from both MDF and GDF
+    lund_mdf   = [f for f in mdf_files if("lund" in os.path.basename(f).lower())]
+    lund_gdf   = [f for f in gdf_files if("lund" in os.path.basename(f).lower())]
+    normal_mdf = [f for f in mdf_files if(f not in lund_mdf)]
+    normal_gdf = [f for f in gdf_files if(f not in lund_gdf)]
+    # Split normal files evenly across the first (N-1) batches
+    num_normal = max(1, num_normal_batches - 1)
+    rdf_chunks = split_evenly(rdf_files,  num_normal_batches)
+    mdf_chunks = split_evenly(normal_mdf, num_normal)
+    gdf_chunks = split_evenly(normal_gdf, num_normal)
+    # LUND batch goes at the end (batch N)
+    lund_batch_num = num_normal_batches
+    lund_mdf_batch = {lund_batch_num: [os.path.abspath(f) for f in lund_mdf]}
+    lund_gdf_batch = {lund_batch_num: [os.path.abspath(f) for f in lund_gdf]}
     def to_absolute(flist):
         return [os.path.abspath(f) for f in flist]
-    rdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(rdf_chunks) if chunk}
-    mdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(mdf_chunks) if chunk}
-    gdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(gdf_chunks) if chunk}
+    rdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(rdf_chunks) if(chunk)}
+    mdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(mdf_chunks) if(chunk)}
+    gdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(gdf_chunks) if(chunk)}
+    # Merge LUND batch
+    mdf_batch.update(lund_mdf_batch)
+    gdf_batch.update(lund_gdf_batch)
     with open(args.batch_file, "w") as f:
         f.write("# Auto-generated by run_sidis_DataFrame_pipeline.py on {}\n".format(datetime.now().strftime("%m-%d-%Y %H:%M:%S")))
         f.write("rdf_batch = {}\n".format(rdf_batch))
         f.write("mdf_batch = {}\n".format(mdf_batch))
         f.write("gdf_batch = {}\n".format(gdf_batch))
-        f.write(f"# {num_batches} batches - RDF:{len(rdf_files)} MDF:{len(mdf_files)} GDF:{len(gdf_files)}\n")
-    args.rdf_per_batch = len(rdf_files) // num_batches if(num_batches > 0) else 0
-    args.mc_per_batch  = len(mdf_files) // num_batches if(num_batches > 0) else 0
-    # args.mc_per_batch  = (len(mdf_files) + len(gdf_files)) // num_batches if(num_batches > 0) else 0
-    args.num_batches = num_batches
+        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + 1 LUND-only) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lund_mdf)} LUND_GDF:{len(lund_gdf)}\n")
+    # Update args for reporting
+    args.rdf_per_batch =  len(rdf_files) // num_normal_batches if(num_normal_batches > 0) else 0
+    args.mc_per_batch  = len(normal_mdf) // num_normal         if(num_normal > 0) else 0
+    args.num_batches   = num_normal_batches
     Update_Email(args, update_message=f"""
-{color.BGREEN}Successfully generated {color.END_B}{args.batch_file}{color.BGREEN} with {color.END_B}{num_batches}{color.BGREEN} batches.{color.END}
-   RDF files: {len(rdf_files)}
-   MDF files: {len(mdf_files)}
-   GDF files: {len(gdf_files)}""", verbose_override=True, no_time=True)
+{color.BGREEN}Successfully generated {color.END_B}{args.batch_file}{color.BGREEN} with {color.END_B}{num_normal_batches}{color.BGREEN} batches.{color.END}
+   Normal batches : {num_normal}
+   RDF files      : {len(rdf_files)} ({args.rdf_per_batch} per normal batch)
+   Normal MDF/GDF : {len(normal_mdf)} ({args.mc_per_batch} per normal batch)
+   LUND MDF/GDF   : {len(lund_mdf)}""", verbose_override=True, no_time=True)
     Construct_Email(args)
 
 def build_main_command(args, batch_id, output_dir):
@@ -490,7 +514,8 @@ def finish_job(job_item, results, args):
 
 def run_local_batches(args):
     if(args.mode == "parallel"):
-        base_output = ensure_directory(os.path.join(args.scratch_dir, "Response_Matrices_Batches"))
+        # base_output = ensure_directory(os.path.join(args.scratch_dir, "Response_Matrices_Batches"))
+        base_output = ensure_directory(args.scratch_dir)
     else:
         base_output = ensure_directory(args.work_dir)
     batch_output_dir = ensure_directory(os.path.join(base_output, args.run_subdir_name))
@@ -551,7 +576,9 @@ def run_local_batches(args):
             hadd_cmd = ["hadd", "-f", merged_file] + batch_files
             subprocess.run(hadd_cmd, check=True)
             Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
-
+    # === NEW: Track peak memory used by all child jobs ===
+    peak_mem_str = estimate_peak_memory_children()
+    Update_Email(args, update_message=f"{color.BBLUE}Peak memory used by child jobs: {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
     Construct_Email(args)
 
 def run_slurm_mode(args):

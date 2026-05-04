@@ -120,7 +120,7 @@ def BG_Cut_Function(dataframe="mdf"):
     else:
         Background_Cuts_MC = ""
         List_of_Cuts = []
-        List_of_Cuts.append("MM_gen < 1.5")
+        List_of_Cuts.append("MM_gen < 1.8")
         List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
@@ -777,7 +777,7 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
     return df_in, args, histos_to_save
 
 
-def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Var_Input, Q2_y_bin_num, Use_Weight, Histograms_All, file_location, output_type, Res_Binning_2D_z_pT=["z_pT_Bin_Y_bin", -0.5, 37.5, 38], custom_title=None):
+def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Var_Input, Q2_y_bin_num, Use_Weight, Histograms_All, file_location, output_type, Res_Binning_2D_z_pT=["z_pT_Bin_Y_bin", -0.5, 37.5, 38], custom_title=None, custom_tag=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(not _guard_gdf_cut(Histo_Data, Histo_Cut)):
@@ -817,6 +817,9 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
 
     Histo_Name    =    finalize_histo_name((Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name)
     Histo_Name_1D = finalize_histo_name_1d((Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name, Histo_Group)
+    if(custom_tag is not None):
+        Histo_Name    = f"{Histo_Name}_({custom_tag})"
+        Histo_Name_1D = f"{Histo_Name_1D}_({custom_tag})"
 
     # Cut_Line_l2 = f"#scale[1.15]{{Cut: {Cut_Choice_Title(Cut_Type=Histo_Cut)}}}"
     Cut_Line_l2 = f"#scale[1.15]{{Cut: {Cut_Flag_to_Title(cut_flag=Histo_Cut)}}}"
@@ -959,7 +962,7 @@ return z_pT_Bin_event_val;
     return z_pT_Bin_Standard_Def
 
 
-def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None):
+def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(not _guard_gdf_cut(Histo_Data, Histo_Cut)):
@@ -984,7 +987,7 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
             Var_X[0] = Var_X[0].replace("_smeared", "")
         if("smeared" in str(Var_Y[0])):
             Var_Y[0] = Var_Y[0].replace("_smeared", "")
-    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"})_(Q2_{'y' if('Valerii' not in Binning) else 'xB'}_z_pT_Bin_All)_({Var_X[0]})_({Var_Y[0]}){'_(Weighed)' if(Use_Weight) else ''}"""
+    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"})_(Q2_{'y' if('Valerii' not in Binning) else 'xB'}_z_pT_Bin_All)_({Var_X[0]})_({Var_Y[0]}){f'_({custom_tag})' if(custom_tag is not None) else ''}"""
     Data_Title = f"#color[{root_color.Blue}]{{Experimental}}" if('rdf' in Histo_Data) else f"#color[{root_color.Red}]{{Reconstructed MC}}" if('mdf' in Histo_Data) else f"#color[{root_color.Green}]{{Generated MC}}"
     if("mear" in str(Histo_Smear)):
         Data_Title = f"Smeared {Data_Title}"
@@ -996,8 +999,8 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
     # print(f"DEBUG - Columns in {Histo_Data} dataframe: {[c for c in sdf.GetColumnNames() if('smeared' in c)]}")
     # print(f"\tDEBUG - TH2D_Name = {TH2D_Name}")
     if(Use_Weight):
-        Histograms_All[f"{TH2D_Name}_Weighed"] = sdf.Histo3D((f"{TH2D_Name}_Weighed", f"{Full_Title}; Weighed",  Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]), "Event_Weight")
-    Histograms_All[TH2D_Name]                  = sdf.Histo3D((TH2D_Name,                 Full_Title,             Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]))
+        Histograms_All[f"{TH2D_Name}_(Weighed)"] = sdf.Histo3D((f"{TH2D_Name}_(Weighed)", f"{Full_Title}; Weighed", Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]), "Event_Weight")
+    Histograms_All[TH2D_Name]                    = sdf.Histo3D((TH2D_Name,                   Full_Title,            Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]))
     return Histograms_All
     
 
