@@ -290,7 +290,7 @@ def _guard_datatype_and_smear(Histo_Data, Histo_Smear):
 def _guard_gdf_cut(Histo_Data, Histo_Cut):
     if(Histo_Data != "gdf"):
         return True
-    allowed = (["no_cut", "cut_Gen", "cut_Exgen", "no_cut_Integrate"] + [f"no_cut_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")] + [f"no_cut_Integrate_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")])
+    allowed = (["no_cut", "cut_Gen", "cut_Exgen", "no_cut_Integrate", "no_cut_Extra"] + [f"no_cut_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")] + [f"no_cut_Integrate_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")])
     if(Histo_Cut in allowed):
         return True
     print(f"{color.Error}SKIP:{color.END_R} cut '{Histo_Cut}' is not allowed for gdf{color.END}")

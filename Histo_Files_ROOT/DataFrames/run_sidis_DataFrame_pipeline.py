@@ -91,7 +91,7 @@ def parse_args():
     # Batching controls
     parser.add_argument('-nb', '--num_batches',
                         type=int,
-                        default=150,
+                        default=171,
                         help="Number of normal batches to create. Last batch will be reserved for lundrho-MC files.\n")
 
     # Directories
