@@ -31,11 +31,21 @@ def parse_args():
                         default="",
                         help="Extra suffix added to output filenames.\n")
     parser.add_argument('-f1', '--file1',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_without_rho0_Final_Analysis_Iterations_I0_All.root",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_without_rho0_with_phi_t_Final_Analysis_Iterations_I0_All.root",
                         help="Path to first ROOT file (e.g. the reject-cut version).\n")
     parser.add_argument('-f2', '--file2',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Required_rho0_with_Only_2D_Final_Analysis_Iterations_I0_All.root",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Required_rho0_with_Only_2D_with_phi_t_Final_Analysis_Iterations_I0_All.root",
                         help="Path to second ROOT file (e.g. the accept-cut version).\n")
+    parser.add_argument('-q2y', '--Q2_y_Bin_Select',
+                        type=int,
+                        help=f"Use to select a Q2-y Bin for the 'together' z-pT bin images.\n{color.Error}NOTE: This argument is NOT the one used by the individual bin images.{color.END}\n")
+    parser.add_argument('-q2yI', '--Q2_y_Bin_Individual',
+                        type=str,
+                        choices=["All", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"],
+                        help=f"Use to select a Q2-y Bin for the individual bin images.\n{color.Error}NOTE: Providing this argument will cause the code to produce an image for only one selected bin.{color.END}\n")
+    parser.add_argument('-zpt', '--z_pT_Bin_Individual',
+                        type=str,
+                        help=f"Use to select a z-pT Bin for the individual bin images.\n{color.RED}NOTE: This argument works with the '--Q2_y_Bin_Individual' argument to produce individual images.\n{color.END}Providing this argument can cause the code to produce an image for only one selected bin if the input is 'All' (otherwise, you must also specify a value for '--Q2_y_Bin_Individual' to allow the code to work).\n{color.Error}WARNING: This argument does not ensure the combined Q2-y-z-pT bin selected actually exists — user must verify their inputs themselves to avoid crashes.{color.END}\n")
     parser.add_argument('-v', '--verbose',
                         action='store_true',
                         help="Print extra runtime information.\n")
@@ -50,7 +60,7 @@ def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None):
     if((file_path_2 is None) or (str(file_path_2) in ["None"])):
         return file1
     file2 = ROOT.TFile.Open(file_path_2, "READ")
-    print(f"\n{color.BOLD}Combining the following files:{color.END}\n\t{file_path_1}\t(Used for no rho/clasdis)\n\t{file_path_2}\t(used for rho0)\n")
+    print(f"\n{color.BOLD}Combining the following files:{color.END}\n\t{file_path_1}\n\t\t(Used for no rho/clasdis)\n\t{file_path_2}\n\t\t(Used for rho0)\n")
     combined = ROOT.TMemFile("combined_in_memory", "CREATE")
     for key in file1.GetListOfKeys():
         hname = key.GetName()
@@ -95,7 +105,7 @@ def lund_norm(hh, Normalize_Q):
         return hh
 
 def HistoName_Return(df_in, Return_Name_or_Histo="Name", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="el_smeared", Var_Y="elPhi_smeared", lundrho=False, Weighed="_(Weighed)"):
-    if((data not in ["mdf"]) or any("rho0" in vars for vars in [Var_X, Var_Y])):
+    if((data not in ["mdf"]) or any(any(no_smear_var in vars for vars in [Var_X, Var_Y]) for no_smear_var in ["rho0", "Par_PID_pip", "pim_present"])):
         smear = "''" # Do not smear
         Var_X = Var_X.replace("_smeared", "")
         Var_Y = Var_Y.replace("_smeared", "")
@@ -178,6 +188,12 @@ def Return_Match_Vars(Input_Var="el", Input_Var_2D=None):
         return "z", "pT"
     if(Input_Var in ["MM", "W"]):
         return "MM", "W"
+    if(Input_Var in ["phi_t"]):
+        return "phi_t", "phi_t"
+    if(Input_Var in ["rho0_parent"]):
+        return "rho0_parent", "Par_PID_pip"
+    if(Input_Var in ["Par_PID_pip", "pim_present"]):
+        return "Par_PID_pip", "pim_present"
     return X_Var, Y_Var
 
 color_mapper  = {"1": ROOT.kRed, "2": ROOT.kBlue, "3": ROOT.kMagenta, "4": ROOT.kGreen, "5": ROOT.kOrange+3, "6": ROOT.kAzure+10, "7": ROOT.kOrange}
@@ -324,6 +340,8 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
         Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho=False, Weighed="")
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
         if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
+            All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
+            All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].GetYaxis().SetRangeUser(1, 8.5)
             All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
         else:
             raise SystemError("Could not make the 2D Q2-y Histogram\n")
@@ -335,6 +353,7 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
         Kinematic_2D_Pad.cd(2)
         Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho=False, Weighed="")
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
         if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
             All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].GetXaxis().SetRangeUser(0, 1.2)
             All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
@@ -351,7 +370,6 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
     for Q2_Y_Bin in Q2_Y_Bin_Range:
         Save_Name = f"Comparisons_of_{Plot_Var}_for_Q2_Y_Bin_{Q2_Y_Bin}"
         # canvas = All_z_pT_Canvas[Save_Name]
-        q2_tag = str(Q2_Y_Bin)
         All_z_pT_Canvas_cd_2 = All_z_pT_Canvas[Save_Name].cd(2)
         number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
         z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
@@ -403,7 +421,7 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
                         All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].Draw("hist E0" if(num == 0) else "hist E0 same")
                     ROOT.gPad.Update()
             except:
-                print(f"{color.Error}Error in Drawing {Plot_Var} Plots for Bin ({q2_tag}-{z_pT_Bin}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+                print(f"{color.Error}Error in Drawing {Plot_Var} Plots for Bin ({Q2_Y_Bin}-{z_pT_Bin}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
         All_z_pT_Canvas[Save_Name].cd()
         All_z_pT_Canvas[Save_Name].Modified()
         All_z_pT_Canvas[Save_Name].Update()
@@ -431,13 +449,192 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
     return All_z_pT_Canvas
 
 
+def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin="All", Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=[False, True], Plot_Var="el", Draw_Type="rhoscale"):
+    Plot_Title   = variable_Title_name(Plot_Var) # Automatically adds the 'smearing' or 'gen' title as appropriate
+    X_Var, Y_Var = Return_Match_Vars(Input_Var=Plot_Var, Input_Var_2D=None)
+    All_z_pT_Canvas = {}
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
+    Save_Name = f"Comparisons_of_{Plot_Var}_for_Q2_Y_Bin_{Q2_Y_Bin}"
+    All_z_pT_Canvas[Save_Name] = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800), Size_Y=int(1500), cd_Space=0.01)
+    All_z_pT_Canvas[Save_Name].SetFillColor(ROOT.kGray)
+    if(args.verbose):
+        print(f"{color.BBLUE}Creating TCanvas: {color.END_B}{Save_Name}{color.BBLUE}...{color.END}")
+    All_z_pT_Canvas_cd_1 = All_z_pT_Canvas[Save_Name].cd(1)
+    All_z_pT_Canvas_cd_1.SetFillColor(ROOT.kGray)
+    All_z_pT_Canvas_cd_1.SetPad(xlow=0.005, ylow=0.015, xup=0.27, yup=0.985)
+    All_z_pT_Canvas_cd_1.Divide(1, 2, 0, 0)
+    
+    All_z_pT_Canvas_cd_1_Upper = All_z_pT_Canvas_cd_1.cd(1)
+    All_z_pT_Canvas_cd_1_Upper.SetPad(xlow=0, ylow=0.425, xup=1, yup=1)
+    All_z_pT_Canvas_cd_1_Upper.Divide(1, 2, 0.001, 0.001)
+    
+    All_z_pT_Canvas_cd_1_Lower = All_z_pT_Canvas_cd_1.cd(2)
+    All_z_pT_Canvas_cd_1_Lower.SetPad(xlow=0, ylow=0, xup=1, yup=0.42)
+    All_z_pT_Canvas_cd_1_Lower.Divide(1, 1, 0, 0)
+    All_z_pT_Canvas_cd_1_Lower.cd(1).SetPad(xlow=0.035, ylow=0.025, xup=0.95, yup=0.975)
+    
+    All_z_pT_Canvas_cd_2 = All_z_pT_Canvas[Save_Name].cd(2)
+    All_z_pT_Canvas_cd_2.SetPad(xlow=0.28, ylow=0.015, xup=0.995, yup=0.9975)
+    All_z_pT_Canvas_cd_2.SetFillColor(ROOT.kGray)
+    
+    ####  Canvas (Main) Creation End ###############################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    hist_store = {"Names": []}
+    for                    data_comp in Data_Compare:
+        for                 cut_comp in Cut_Compare:
+            for           smear_comp in Smear_Compare:
+                for      weight_comp in Weighed_Compare:
+                    for lundrho_comp in lundrho_Compare:
+                        HistoName = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Name", data=data_comp, cut=cut_comp, smear=smear_comp, Var_X=X_Var, Var_Y=Y_Var, lundrho=lundrho_comp, Weighed=weight_comp)
+                        if((HistoName is not None) and (HistoName not in hist_store["Names"])):
+                            hist_store["Names"].append(HistoName)
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Filling Canvas (Left)  ###################################################################################################################################################################################################################################################################################################################################################################################
+    Q2_y_borders = {}
+    ################################################################
+    ###    Legends     ###
+    pad_leg = All_z_pT_Canvas[Save_Name].cd(1).cd(2).cd(1)
+    pad_leg.SetFillColor(ROOT.kGray)
+    pad_leg.cd()
+    ROOT.gStyle.SetOptStat(0)
+    if(not hasattr(All_z_pT_Canvas[Save_Name], "legend_store")):
+        All_z_pT_Canvas[Save_Name].legend_store = {}
+        All_z_pT_Canvas[Save_Name].histos_store = {}
+    leg = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
+    leg.SetNColumns(1)
+    leg.SetBorderSize(0)
+    leg.SetFillStyle(0)
+    leg.SetTextFont(42)
+    leg.SetTextSize(0.10)
+    for num, names in enumerate(hist_store["Names"]):
+        All_z_pT_Canvas[Save_Name].legend_store[f"dummy_{names}_Bin_{Q2_Y_Bin}"] = ROOT.TH1F(f"dummy_{names}_Bin_{Q2_Y_Bin}", "", 1, 0, 1)
+        All_z_pT_Canvas[Save_Name].legend_store[f"dummy_{names}_Bin_{Q2_Y_Bin}"].SetLineColor(find_color(num+1))
+        legend_name = legend_naming(names)
+        leg.AddEntry(All_z_pT_Canvas[Save_Name].legend_store[f"dummy_{names}_Bin_{Q2_Y_Bin}"], legend_name, "l")
+    leg.Draw("same")
+    All_z_pT_Canvas[Save_Name].legend_store["legend"] = leg
+    pad_leg.Modified()
+    pad_leg.Update()
+    ###    Legends     ###
+    ################################################################
+    ### 2D Kinematics  ###
+    All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(2).SetFillColor(ROOT.kGray)
+    Kinematic_2D_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(1)
+    Kinematic_2D_Pad.Divide(2, 1, 0.01, 0.01)
+    Kinematic_2D_Pad.cd(1)
+    Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho=False, Weighed="")
+    All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
+    if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin if(str(Q2_Y_Bin) not in ['0']) else 'All'} #topbar z-P_{{T}} Bin {z_pT_Bin if(str(z_pT_Bin) not in ['0']) else 'All'}}}}}")
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].GetYaxis().SetRangeUser(1, 8.5)
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
+    else:
+        raise SystemError("Could not make the 2D Q2-y Histogram\n")
+    for Q2_Y_Bin_ii in range(1, 18, 1):
+        if(Q2_Y_Bin_ii not in Q2_y_borders):
+            Q2_y_borders[Q2_Y_Bin_ii] = Draw_Q2_Y_Bins(Input_Bin=Q2_Y_Bin_ii, line_width=3 if("png" in args.File_Save_Format) else 1)
+        for line in Q2_y_borders[Q2_Y_Bin_ii]:
+            line.Draw("same")
+    Kinematic_2D_Pad.cd(2)
+    Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho=False, Weighed="")
+    All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
+    All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin if(str(Q2_Y_Bin) not in ['0']) else 'All'} #topbar z-P_{{T}} Bin {z_pT_Bin if(str(z_pT_Bin) not in ['0']) else 'All'}}}}}")
+    if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].GetXaxis().SetRangeUser(0, 1.2)
+        All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
+    else:
+        raise SystemError("Could not make the 2D z-pT Histogram\n")
+    Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=Q2_Y_Bin, Set_Max_Y=1.2, Set_Max_X=1.2, Plot_Orientation_Input="z_pT", line_size_overwrite=3 if("png" in args.File_Save_Format) else 1)
+    ### 2D Kinematics  ###
+    ################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Filling Canvas (Right) - Individual z-pT Bin   ###########################################################################################################################################################################################################################################################################################################################################################
+    All_z_pT_Canvas_cd_2 = All_z_pT_Canvas[Save_Name].cd(2)
+    try:
+        All_z_pT_Canvas_cd_2.SetFillColor(ROOT.kGray)
+        All_z_pT_Canvas_cd_2.Divide(1, 1, 0, 0)
+        All_z_pT_Canvas_cd_2.cd(1)
+        using_log = False
+        if(Plot_Var in ["rho0_parent", "Par_PID_pip", "Par_PID_el"]):
+            ROOT.gPad.SetLogy(1)
+            using_log = True
+        else:
+            ROOT.gPad.SetLogy(0)
+        Draw_Canvas(All_z_pT_Canvas_cd_2, 1, 0.15)
+        ROOT.gStyle.SetOptStat(0)
+        Min_Content, Max_Content = 0, 0
+        for num, names in enumerate(hist_store["Names"]):
+            All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] = Slice_Histos_for_Plotting(rdf_in.Get(names), Var_Plot=Plot_Var, Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
+            if(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] is None):
+                continue
+            All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] = lund_norm(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"], Draw_Type)
+            All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].SetLineColor(find_color(num+1))
+            All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].SetLineWidth(3 if("png" in args.File_Save_Format) else 1)
+            All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].SetTitle(f"#splitline{{{Plot_Title} Plots}}{{For Q^{{2}}-y Bin: {Q2_Y_Bin} #topbar z-P_{{T}} Bin: {z_pT_Bin}}}")
+            if("TH1" in str(type(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"]))):
+                xaxis_title = All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetXaxis().GetTitle()
+                if((Plot_Var in xaxis_title) and (Plot_Title not in xaxis_title)):
+                    All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetXaxis().SetTitle(Plot_Title)
+            else:
+                xaxis_title = All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetXaxis().GetTitle()
+                yaxis_title = All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetYaxis().GetTitle()
+                if((X_Var in xaxis_title) and (variable_Title_name(X_Var) not in xaxis_title)):
+                    All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetXaxis().SetTitle(variable_Title_name(X_Var))
+                if((Y_Var in yaxis_title) and (variable_Title_name(Y_Var) not in yaxis_title)):
+                    All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetYaxis().SetTitle(variable_Title_name(Y_Var))
+            Max_Content = max([Max_Content, 1.2*(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetBinContent(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetMaximumBin()))])
+            Min_Content = min([Min_Content, 1.2*(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetBinContent(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetMinimumBin()))])
+            if(using_log and (Min_Content == 0)):
+                Min_Content = 1e-4
+        for num, names in enumerate(hist_store["Names"]):
+            if(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] is None):
+                continue
+            if(Draw_Type == "Normalized"):
+                All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].DrawNormalized("hist E0" if(num == 0) else "hist E0 same")
+            else:
+                All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetYaxis().SetRangeUser(Min_Content, Max_Content)
+                All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].Draw("hist E0" if(num == 0) else "hist E0 same")
+            ROOT.gPad.Update()
+    except:
+        print(f"{color.Error}Error in Drawing {Plot_Var} Plots for Bin ({Q2_Y_Bin}-{z_pT_Bin}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+    All_z_pT_Canvas[Save_Name].cd()
+    All_z_pT_Canvas[Save_Name].Modified()
+    All_z_pT_Canvas[Save_Name].Update()
+    ####  Filling Canvas (Right) End ###############################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Saving Canvases  #########################################################################################################################################################################################################################################################################################################################################################################################
+    print("\nSaving...\n")
+    out_name = f"Comparisons_of_{Plot_Var}_for_Individual_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"
+    if(args.name):
+        out_name = f"{out_name}_{args.name}{args.File_Save_Format}"
+    else:
+        out_name = f"{out_name}{args.File_Save_Format}"
+    if(not args.dry_run):
+        All_z_pT_Canvas[Save_Name].SaveAs(out_name)
+        print(f"{color.BOLD}Saved: {color.BBLUE}{out_name}{color.END}")
+    else:
+        print(f"{color.Error}Would be Saving: {color.BCYAN}{out_name}{color.END}")
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    return All_z_pT_Canvas
+
 if(__name__ == "__main__"):
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
     combined_file = Create_Combined_Memory_File(args.file1, args.file2, var_restrict=args.var)
     args.timer.time_elapsed()
-    Kinematic_1D_Compare_in_z_pT_Images_Together(combined_file, args, Q2_Y_Bin_Range=range(2, 3, 1), Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS_Extra"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=[False, True], Plot_Var=args.var, Draw_Type="rhoscale")
+    compare_to_lund = [False, True] if(args.var not in ["rho0_parent", "Par_PID_pip"]) else [False]
+    if((getattr(args, "Q2_y_Bin_Individual", None) is None) and (getattr(args, "z_pT_Bin_Individual", None) not in ["All", "0", 0])):
+        print(f"\n{color.BOLD}Running the {color.BBLUE}'Kinematic_1D_Compare_in_z_pT_Images_Together()'{color.END_B} function...{color.END}\n")
+        run_range = range(1, 18) if(getattr(args, "Q2_y_Bin_Select", None) is None) else [args.Q2_y_Bin_Select]
+        Kinematic_1D_Compare_in_z_pT_Images_Together(combined_file, args, Q2_Y_Bin_Range=run_range, Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS_Extra"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
+    else:
+        print(f"\n{color.BOLD}Running the {color.BBLUE}'Kinematic_Compare_in_Individual_Bins()'{color.END_B} function...{color.END}\n")
+        Input_Q2y = getattr(args, "Q2_y_Bin_Individual", "All") if(getattr(args, "Q2_y_Bin_Individual", "All") is not None) else "All"
+        Input_zpT = getattr(args, "z_pT_Bin_Individual", "All") if(getattr(args, "z_pT_Bin_Individual", "All") is not None) else "All"
+        Kinematic_Compare_in_Individual_Bins(combined_file, args, Q2_Y_Bin=Input_Q2y, z_pT_Bin=Input_zpT, Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS_Extra"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
     combined_file.Close()
     args.timer.stop()
     print("\nDone\n")
