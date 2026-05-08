@@ -6,36 +6,38 @@ Binning_Method = "_Y_bin"
 
 
 class color:
-    CYAN      = '\033[96m'
-    PURPLE    = '\033[95m'
-    PINK      = '\033[35m'
-    BLUE      = '\033[94m'
-    YELLOW    = '\033[93m'
-    GREEN     = '\033[92m'
-    RED       = '\033[91m'
-    DARKCYAN  = '\033[36m'
-    BOLD      = '\033[1m'
-    LIGHT     = '\033[2m'
-    ITALIC    = '\033[3m'
-    UNDERLINE = '\033[4m'
-    BLINK     = '\033[5m'
-    DELTA     = '\u0394' # symbol
-    END       = '\033[0m'
-    ERROR     = '\033[91m\033[1m\033[4m'        # Combines RED, BOLD, and UNDERLINE
-    Error     = '\033[91m\033[1m'               # Same as ERROR but without UNDERLINE
-    BBLUE     = '\033[1m\033[94m'               # Combines BLUE and BOLD
-    BCYAN     = '\033[1m\033[96m'               # Combines CYAN and BOLD
-    BGREEN    = '\033[1m\033[92m'               # Combines GREEN and BOLD
-    BYELLOW   = '\033[1m\033[93m'               # Combines YELLOW and BOLD
-    BPINK     = '\033[1m\033[35m'               # Combines PINK and BOLD
-    BPURPLE   = '\033[1m\033[95m'               # Combines PURPLE and BOLD
-    END_B     = '\033[0m\033[1m'                # Combines END and BOLD
-    END_R     = '\033[0m\033[91m'               # Combines END and RED
-    END_C     = '\033[0m\033[96m'               # Combines END and CYAN
-    END_G     = '\033[0m\033[92m'               # Combines END and GREEN
-    END_b     = '\033[0m\033[94m'               # Combines END and BLUE
-    END_E     = '\033[0m\033[91m\033[1m\033[4m' # Combines END and ERROR
-    END_e     = '\033[0m\033[91m\033[1m'        # Combines END and Error
+    CYAN          = '\033[96m'
+    PURPLE        = '\033[95m'
+    PINK          = '\033[35m'
+    BLUE          = '\033[94m'
+    YELLOW        = '\033[93m'
+    GREEN         = '\033[92m'
+    RED           = '\033[91m'
+    DARKCYAN      = '\033[36m'
+    BOLD          = '\033[1m'
+    LIGHT         = '\033[2m'
+    ITALIC        = '\033[3m'
+    UNDERLINE     = '\033[4m'
+    BLINK         = '\033[5m'
+    DELTA         = '\u0394' # symbol
+    END           = '\033[0m'
+    ERROR         = '\033[91m\033[1m\033[4m'        # Combines RED, BOLD, and UNDERLINE
+    Error         = '\033[91m\033[1m'               # Same as ERROR but without UNDERLINE
+    BBLUE         = '\033[1m\033[94m'               # Combines BLUE and BOLD
+    BCYAN         = '\033[1m\033[96m'               # Combines CYAN and BOLD
+    BGREEN        = '\033[1m\033[92m'               # Combines GREEN and BOLD
+    BYELLOW       = '\033[1m\033[93m'               # Combines YELLOW and BOLD
+    BPINK         = '\033[1m\033[35m'               # Combines PINK and BOLD
+    BPURPLE       = '\033[1m\033[95m'               # Combines PURPLE and BOLD
+    BUNDERLINE    = '\033[1m\033[4m'                # Combines UNDERLINE and BOLD
+    END_B         = '\033[0m\033[1m'                # Combines END and BOLD
+    END_R         = '\033[0m\033[91m'               # Combines END and RED
+    END_C         = '\033[0m\033[96m'               # Combines END and CYAN
+    END_G         = '\033[0m\033[92m'               # Combines END and GREEN
+    END_b         = '\033[0m\033[94m'               # Combines END and BLUE
+    END_E         = '\033[0m\033[91m\033[1m\033[4m' # Combines END and ERROR
+    END_e         = '\033[0m\033[91m\033[1m'        # Combines END and Error
+    END_U         = '\033[0m\033[4m'                # Combines END and UNDERLINE
 
 
 class color_bg:
@@ -550,6 +552,28 @@ def variable_Title_name(variable):
         output  = "#theta_{#rho^{0}}"
     if(variable == "rho0Phi"):
         output  = "#phi_{#rho^{0}}"
+    if(variable == "rho0_parent"):
+        output  = "Parent PID of #rho^{0}"
+    if("Par_PID" in variable):
+        output  = "Parent PID of "
+        if("el"  in variable):
+            output = f"{output}electron"
+        if("pip" in variable):
+            output = f"{output}#pi^{{+}} pion"
+        if(len(variable) > 11):
+            criteria = str(variable.replace("Par_PID_el_", "")).replace("Par_PID_pip_", "")
+            output = f"{output} (From Match Criteria: {criteria})"
+    elif("PID_chi2pip" == variable):
+        output  = "#chi^{2} of #pi^{+} PID"
+    elif("PID"   in variable):
+        output  = "PID of "
+        if("el"  in variable):
+            output = f"{output}electron"
+        if("pip" in variable):
+            output = f"{output}#pi^{{+}} pion"
+        if(len(variable) > 7):
+            criteria = str(variable.replace("PID_el_", "")).replace("PID_pip_", "")
+            output = f"{output} (From Match Criteria: {criteria})"
 
     
     if("Bin_4D" in variable):
@@ -1315,11 +1339,11 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=
 ##=========================================================================================##
 ##=========================================================================================##
 
-def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False, Select_z_pT_bin=None, Select_color=ROOT.kRed, Select_size=6):
+def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=False, Plot_Orientation_Input="z_pT", Integration_Bins_Q=False, Select_z_pT_bin=None, Select_color=ROOT.kRed, Select_size=6, line_size_overwrite=None):
     z_pT_Bins_Borders = {}
     if(Integration_Bins_Q):
         bin_color = root_color.Black
-        line_size = 4
+        line_size = 4 if(line_size_overwrite is None) else line_size_overwrite
         for z_pT in range(1, 26, 1):
             y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In, Integration_Bins_Q=True)
             if(str(Select_z_pT_bin) == str(z_pT)):
@@ -1327,7 +1351,7 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
                 line_size = Select_size
             else:
                 bin_color = root_color.Black
-                line_size = 4
+                line_size = 4 if(line_size_overwrite is None) else line_size_overwrite
             if(Set_Max_Y):
                 if(Set_Max_Y < y_max):
                     y_max = Set_Max_Y
@@ -1360,7 +1384,10 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
             bin_color = 41 if(z_pT in Migration_Bin_2) else root_color.Black if(z_pT < (Migration_Bin_1 + 1)) else root_color.Red
             if(bin_color == root_color.Red):
                 break
-            line_size =  1 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
+            if(line_size_overwrite is None):
+                line_size =  1 if(z_pT in Migration_Bin_2) else 4 if(z_pT < (Migration_Bin_1 + 1)) else 2
+            else:
+                line_size = line_size_overwrite
             if(str(Select_z_pT_bin) == str(z_pT)):
                 bin_color = Select_color
                 line_size = Select_size
