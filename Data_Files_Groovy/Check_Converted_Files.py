@@ -77,7 +77,10 @@ def parse_args():
     parser.add_argument('-cc', '--check_cache',
                         action='store_true',
                         help="Check to see if all the available files are on the cache/how many are missing.\n")
-
+    parser.add_argument('-cco', '--check_cache_only',
+                        action='store_true',
+                        help=f"{color.BOLD}ONLY{color.END} check to see if all the available files are on the cache/how many are missing.\n{color.Error}Runs the same checks as '--check_cache' but then exits immediately after the checks are done.{color.END}\n")
+    
     # New run mode support
     parser.add_argument('-rm', '--run_mode',
                         default='local',
@@ -385,10 +388,14 @@ def Check_Files_To_Run_Missing_Only(args):
         mss_files[single_group]        = set(os.listdir(args.mss_dir[single_group]))
         cache_files[single_group]      = set(os.listdir(args.cache_dir[single_group]))
         missing_in_cache[single_group] = mss_files[single_group] - cache_files[single_group]
-        if(args.check_cache):
+        if(args.check_cache or getattr(args, "check_cache_only", False)):
             missing_message = f"\n{color.BOLD}No files are missing in the cache directory for group '{single_group}'.{color.END}\n"
             if(missing_in_cache[single_group]):
                 missing_message = f"Missing {len(missing_in_cache[single_group])} Files in the cache directory for group '{single_group}'.\nThe Missing Files are:\n"
+                if(args.verbose):
+                    for num, file in enumerate(sorted(missing_in_cache[single_group])):
+                        missing_message = f"{missing_message}\t{num+1:>4.0f}) {file}\n"
+                    missing_message = f"{missing_message}\nGroups Checked:\n"
                 for num, file in enumerate(sorted(missing_in_cache)):
                     missing_message = f"{missing_message}\t{num+1:>4.0f}) {file}\n"
             Update_Email(args, update_message=missing_message, verbose_override=True)
@@ -745,14 +752,18 @@ def main():
 
     """)
     args, _, cache_files, _ = Check_Files_To_Run_Missing_Only(args)
-    full_command_str = ""
-    tmux_running = 0
-    args, full_list_to_rerun, full_need_rerun_count, per_group_results = Check_For_Proccessed_Files(args, cache_files)
-    if(args.new_text_files):
-        args = Save_Path_Files(args, per_group_results)
+    if(getattr(args, "check_cache_only", False)):
+        Update_Email(args, update_message="Done Running the Script (selected the 'check_cache_only' run option to skip the rest of the script).", verbose_override=True)
+        Construct_Email(args)
     else:
-        full_command_str, tmux_running = Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
-    Construct_Email(args, final_count=full_need_rerun_count, Count_Type="Files to rerun")
+        full_command_str = ""
+        tmux_running = 0
+        args, full_list_to_rerun, full_need_rerun_count, per_group_results = Check_For_Proccessed_Files(args, cache_files)
+        if(args.new_text_files):
+            args = Save_Path_Files(args, per_group_results)
+        else:
+            full_command_str, tmux_running = Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
+        Construct_Email(args, final_count=full_need_rerun_count, Count_Type="Files to rerun")
 
 if(__name__ == "__main__"):
     main()
