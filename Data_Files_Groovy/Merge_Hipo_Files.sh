@@ -15,7 +15,7 @@ function display_help {
     echo "                      If not specified, the current working directory is used."
     echo "  -s  Optional: Identifier for input filenames. Defaults to 'inb-clasdis'. Put 'empty' if the files have no name string (will rename the output file to 'nb-clasdis-Q2_1.5')."
     echo "  -i  Optional: FULL path to search for input files. If provided, this REPLACES the default input directory."
-    echo "  -n  Optional: Expected file total per group (used for percentage calc). Defaults to 2000."
+    echo "  -n  Optional: Expected file total per group (used for percentage calc). Defaults to 1000."
     echo "  -h, --help          Display this help message and exit."
     echo "  -t, --test          Optional: If specified, the script will only count and print the number of input files instead of merging them."
     echo
@@ -43,7 +43,7 @@ test_mode=false
 output_directory="$(pwd)"
 string_identifier="inb-clasdis"
 custom_input_directory=""
-expected_total=2000
+expected_total=1000
 
 # Parse optional parameters
 while [[ $# -gt 0 ]]; do
