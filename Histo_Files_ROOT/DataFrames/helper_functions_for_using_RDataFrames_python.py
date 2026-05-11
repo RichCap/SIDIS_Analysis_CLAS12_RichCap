@@ -971,7 +971,8 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
         return Histograms_All
     if(("EDIS" in Histo_Cut)):
         return Histograms_All
-    Res_Binning_4D = ["Q2_y_z_pT_4D_Bins", -0.5, 546.5, 547] if('Valerii' not in Binning) else ["Q2_xB_z_pT_4D_Bin_Valerii", -0.5, 960.5, 961]
+    # Res_Binning_4D = ["Q2_y_z_pT_4D_Bins", -0.5, 546.5, 547] if('Valerii' not in Binning) else ["Q2_xB_z_pT_4D_Bin_Valerii", -0.5, 960.5, 961]
+    Res_Binning_4D = ["Q2_y_z_pT_4D_Bins", -0.5, 515.5, 516] if('Valerii' not in Binning) else ["Q2_xB_z_pT_4D_Bin_Valerii", -0.5, 960.5, 961]
     Var_X,  Var_Y  = Vars_Input
     if("mear" in str(Histo_Smear)):
         if("smeared" not in str(Res_Binning_4D[0])):

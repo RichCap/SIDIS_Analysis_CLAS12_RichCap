@@ -363,10 +363,10 @@ def make_batches_mode(args):
     # Determine number of normal batches
     num_normal_batches = max(1, args.num_batches if(getattr(args, "num_batches", len(rdf_files)) < len(rdf_files)) else len(rdf_files))
     # Separate LUND files (lowercase "lund" anywhere in filename) from both MDF and GDF
-    lund_mdf   = [f for f in mdf_files if("lund" in os.path.basename(f).lower())]
-    lund_gdf   = [f for f in gdf_files if("lund" in os.path.basename(f).lower())]
-    normal_mdf = [f for f in mdf_files if(f not in lund_mdf)]
-    normal_gdf = [f for f in gdf_files if(f not in lund_gdf)]
+    lund_mdf   = [f for f in mdf_files if("lundvpk" in os.path.basename(f).lower())]
+    lund_gdf   = [f for f in gdf_files if("lundvpk" in os.path.basename(f).lower())]
+    normal_mdf = [f for f in mdf_files if((f not in lund_mdf) and ("lund" not in os.path.basename(f).lower()))]
+    normal_gdf = [f for f in gdf_files if((f not in lund_gdf) and ("lund" not in os.path.basename(f).lower()))]
     # Split normal files evenly across the first (N-1) batches
     num_normal = max(1, num_normal_batches - 1)
     rdf_chunks = split_evenly(rdf_files,  num_normal_batches)

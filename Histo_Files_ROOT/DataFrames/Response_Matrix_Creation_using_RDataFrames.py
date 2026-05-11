@@ -15,6 +15,7 @@ script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues          import *
+from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
 sys.path.remove(script_dir)
 del script_dir
 
@@ -284,38 +285,47 @@ def Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""):
     if(str(Variable_Type) not in ["smear", "smeared", "GEN", "Gen", "gen", "", "norm", "normal", "default"]):
         print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function Q2_y_z_pT_4D_Bin_Def_Function(Variable_Type='{Variable_Type}').\nFix input to use anything other than the default calculations of the 4D kinematic bin.")
         Variable_Type   = ""
-        
     Q2_y_Bin_event_name = f"""Q2_Y_Bin{      "_smeared" if(str(Variable_Type) in ["smear", "smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen"]) else ""}"""
     z_pT_Bin_event_name = f"""z_pT_Bin_Y_bin{"_smeared" if(str(Variable_Type) in ["smear", "smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen"]) else ""}"""
-    
     Q2_y_z_pT_4D_Bin_Def = f"""
-    int Q2_y_Bin_event_val = {Q2_y_Bin_event_name};
-    int z_pT_Bin_event_val = {z_pT_Bin_event_name};
-    int Q2_y_z_pT_4D_Bin_event_val = 0;
-    if(Q2_y_Bin_event_val >  1){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
-    if(Q2_y_Bin_event_val >  2){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val >  3){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
-    if(Q2_y_Bin_event_val >  4){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val >  5){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val >  6){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
-    if(Q2_y_Bin_event_val >  7){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val >  8){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
-    if(Q2_y_Bin_event_val >  9){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
-    if(Q2_y_Bin_event_val > 10){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val > 11){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
-    if(Q2_y_Bin_event_val > 12){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
-    if(Q2_y_Bin_event_val > 13){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
-    if(Q2_y_Bin_event_val > 14){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
-    if(Q2_y_Bin_event_val > 15){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
-    if(Q2_y_Bin_event_val > 16){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+        int Q2_y_Bin_event_val = {Q2_y_Bin_event_name};
+        int z_pT_Bin_event_val = {z_pT_Bin_event_name};
+        if(Q2_y_Bin_event_val < 1 || z_pT_Bin_event_val < 1){{ return 0; }}"""
+    for bins_2d in Bin_Converter_4D_to_2D:
+        if("Q2_y_bin_" not in bins_2d):
+            break
+        q2y, zpt = bins_2d.split("_z_pT_bin_")
+        q2y = q2y.replace("Q2_y_bin_", "")
+        Q2_y_z_pT_4D_Bin_Def = f"""{Q2_y_z_pT_4D_Bin_Def}
+        if((Q2_y_Bin_event_val == {q2y:>2}) && (z_pT_Bin_event_val == {zpt:>2})) {{ return {Bin_Converter_4D_to_2D[bins_2d]:>3}; }}"""
+    Q2_y_z_pT_4D_Bin_Def = f"""{Q2_y_z_pT_4D_Bin_Def}
+        return 0;"""
+    # (New) Total number of bins: 515 — Does NOT include the migration bins in the grid (those bins are all set to the zero bin)
     
-    Q2_y_z_pT_4D_Bin_event_val += z_pT_Bin_event_val;
-    
-    if(Q2_y_Bin_event_val < 1 || z_pT_Bin_event_val < 1){{ Q2_y_z_pT_4D_Bin_event_val = 0; }}
-    
-    return Q2_y_z_pT_4D_Bin_event_val;
-    """
-    # Total number of bins: 546 — Includes the migration bins in the grid, but not the zero bin
+    # Q2_y_z_pT_4D_Bin_Def = f"""
+    # int Q2_y_Bin_event_val = {Q2_y_Bin_event_name};
+    # int z_pT_Bin_event_val = {z_pT_Bin_event_name};
+    # int Q2_y_z_pT_4D_Bin_event_val = 0;
+    # if(Q2_y_Bin_event_val >  1){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    # if(Q2_y_Bin_event_val >  2){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val >  3){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    # if(Q2_y_Bin_event_val >  4){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val >  5){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val >  6){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    # if(Q2_y_Bin_event_val >  7){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val >  8){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    # if(Q2_y_Bin_event_val >  9){{ Q2_y_z_pT_4D_Bin_event_val += 35; }}
+    # if(Q2_y_Bin_event_val > 10){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val > 11){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    # if(Q2_y_Bin_event_val > 12){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    # if(Q2_y_Bin_event_val > 13){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    # if(Q2_y_Bin_event_val > 14){{ Q2_y_z_pT_4D_Bin_event_val += 36; }}
+    # if(Q2_y_Bin_event_val > 15){{ Q2_y_z_pT_4D_Bin_event_val += 25; }}
+    # if(Q2_y_Bin_event_val > 16){{ Q2_y_z_pT_4D_Bin_event_val += 30; }}
+    # Q2_y_z_pT_4D_Bin_event_val += z_pT_Bin_event_val;
+    # if(Q2_y_Bin_event_val < 1 || z_pT_Bin_event_val < 1){{ Q2_y_z_pT_4D_Bin_event_val = 0; }}
+    # return Q2_y_z_pT_4D_Bin_event_val;
+    # """ # Total number of bins: 546 — Includes the migration bins in the grid, but not the zero bin
     return Q2_y_z_pT_4D_Bin_Def
 
 
@@ -446,8 +456,8 @@ if(__name__ == "__main__"):
     args.timer.start()
 
     args.make_2D_only =  args.make_2D_only and (not args.unfold_5D_only)
-    args.unfold_5D    =  args.unfold_5D     or      args.unfold_5D_only
-    args.make_2D      = (args.make_2D       or      args.make_2D_only) and (not args.unfold_5D_only)
+    args.unfold_5D    = (args.unfold_5D     or      args.unfold_5D_only) and (not args.make_2D_only)
+    args.make_2D      = (args.make_2D       or      args.make_2D_only)   and (not args.unfold_5D_only)
 
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -502,16 +512,18 @@ if(__name__ == "__main__"):
         rdf_all = combine_batches(rdf_batch, args.number_of_files)
         all_root_files = build_all_root_files(mdf_all, gdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
 
-    lundrho_MC = False
+    lundrho_MC, lundvpk_MC = False, False
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
             if(("lundrho" in str(jj)) and ("rdf" not in str(ii))):
                 lundrho_MC = True
+            if(("lundvpk" in str(jj)) and ("rdf" not in str(ii))):
+                lundvpk_MC = True
         print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
-    if(args.unfold_5D and lundrho_MC):
-        Update_Email(args, update_message=f"{color.Error}WARNING: Cannot run the 5D response matrices with the lundrho files (as of 5/2/2026)\n\t{color.END}Turning off this option now...", verbose_override=True)
+    if(args.unfold_5D and (lundrho_MC or lundvpk_MC)):
+        Update_Email(args, update_message=f"{color.Error}WARNING: Cannot run the 5D response matrices with the lundrho/lundvpk files (as of 5/2/2026)\n\t{color.END}Turning off this option now...", verbose_override=True)
         args.unfold_5D = False
     args.num_rdf_files = len(all_root_files["rdf"])
     args.num_MC_files  = len(all_root_files["mdf_clasdis"])
@@ -883,10 +895,10 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}rdf{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False,                                                           Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk")
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                            Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk")
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights,                                               Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not lundrho_MC) else "lundrho")
+                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights,                                               Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk")
                 if(args.Use_EvGen):
                     Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}", verbose_override=True)
                     Histograms_All = make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
@@ -943,10 +955,13 @@ if(__name__ == "__main__"):
             List_of_2D_Plots.append([MM_Binning,         W_Binning])
             List_of_2D_Plots.append([el_Binning,      elth_Binning])
             List_of_2D_Plots.append([el_Binning,     elPhi_Binning])
-            List_of_2D_Plots.append([elth_Binning,   elPhi_Binning])
+            # List_of_2D_Plots.append([elth_Binning,   elPhi_Binning])
             List_of_2D_Plots.append([pip_Binning,    pipth_Binning])
             List_of_2D_Plots.append([pip_Binning,   pipPhi_Binning])
-            List_of_2D_Plots.append([pipth_Binning, pipPhi_Binning])
+            # List_of_2D_Plots.append([pipth_Binning, pipPhi_Binning])
+
+            if(args.make_2D_only):
+                List_of_2D_Plots.append([["phi_t", 0, 360, 48], ["phi_t", 0, 360, 2]]) # Add the phi_t plots only when the 2D Histograms are the only plots being made
 
             if((args.make_2D_rho) and all((mdf_clasdis.HasColumn(needed_for_rho) and gdf_clasdis.HasColumn(needed_for_rho)) for needed_for_rho in ["rho0", "rho0th", "rho0Phi", "Par_PID_pip"])):
                 # === NEW RHO KINEMATICS (MC ONLY) ===
@@ -958,18 +973,21 @@ if(__name__ == "__main__"):
                 rhoPhi_Binning = ['rho0Phi', 0,      360,   360]
                 List_of_2D_Plots.append([rho_Binning,    rhoth_Binning])
                 List_of_2D_Plots.append([rho_Binning,   rhoPhi_Binning])
-                List_of_2D_Plots.append([rhoth_Binning, rhoPhi_Binning])
+                # List_of_2D_Plots.append([rhoth_Binning, rhoPhi_Binning])
+
+                List_of_2D_Plots.append([["rho0_parent",  -323.5, 3224.5, 3548],  ["Par_PID_pip", 111.5, 114.5, 3]])
+                List_of_2D_Plots.append([["Par_PID_pip", -3322.5, 3324.5, 6647],  ["pim_present", -1.5, 1.5, 3]])
                 # === END NEW RHO BLOCK ===
 
             for data, df, cut in [["rdf", rdf, args.cut_name_rdf], ["mdf", mdf_clasdis, args.cut_name_mdf], ["gdf", gdf_clasdis, args.cut_name_gdf]]:
                 use_weight = (('mdf' in data) or (('gdf' in data) and ((args.json_weights) or (args.spline_weights)))) and ('rdf' not in data)
                 for Vars in List_of_2D_Plots:
-                    if(("rho0" in str(Vars)) and (data not in ["mdf", "gdf"])):
+                    if(any(MC_only in str(Vars) for MC_only in ["rho0", "Par_PID"]) and (data not in ["mdf", "gdf"])):
                         print(f"{color.RED}Skipping ({data}) rho0 plot: {color.END}{str(Vars)}")
-                        continue # Skip the rho0 plots using data
-                    Use_Smear = (data not in ["rdf", "gdf"]) and ("rho0" not in str(Vars))
+                        continue # Skip the rho0 and PID plots using data
+                    Use_Smear = (data not in ["rdf", "gdf"]) and all(MC_only not in str(Vars) for MC_only in ["rho0", "Par_PID"])
                     # print(f"{data} ==> {Use_Smear}")
-                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=use_weight, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not lundrho_MC) or ("rdf" in str(data))) else "lundrho")
+                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=use_weight, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk")
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C})'{color.END}", verbose_override=True)
             if(args.Use_EvGen):
                 for Vars in List_of_2D_Plots:
