@@ -111,13 +111,14 @@ branches_string += ':pim_present_gen/I:proton_present_gen/I'
 branches_string += ':rho0_px:rho0_py:rho0_pz:rho0_E:rho0_parent/I'
 // Added as of 5/6/2026
 // NEW branches for mother chain, pi- kinematics, and exclusive rho flag
-// branches_string += ':rho0_2ndparent/I:exclusive_rho/I'
-branches_string += ':exclusive_rho/I'
+branches_string += ':rho0_grandparent/I:exclusive_rho/I'
 branches_string += ':pimx:pimy:pimz'
 branches_string += ':pimx_gen:pimy_gen:pimz_gen:Par_PID_pim/I'
 branches_string += ':prox:proy:proz'
 branches_string += ':prox_gen:proy_gen:proz_gen:Par_PID_pro/I'
 // // branches_string += ':pim_px:pim_py:pim_pz:pim_e:exclusive_rho/I:Par_PID_pim/I:rho_mother_chain/C'
+
+int rho0_grandparent = 0; // These files don't let the rho0 have a grandparent by definition, so this number is added as a dummy variable so that this script's outputs can still match the format used by clasdis
 
 // Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
     // Second update on 12/22/2025: Added PID cut branches and some of the missing variables to be able to manipulate them again in the ROOT output files
@@ -163,21 +164,25 @@ Integer ConvertBoolean(Boolean bool) {
 }
 
 // ======================================================================
-// Robust parent index getter — works on ANY numeric type for MC::Lund.parent
+// Returns the BANK ROW (0-based) of the parent.
+// Returns -1 if the particle has no parent (parent index == 0).
 // ======================================================================
 def getParentIndex(Bank lundBank, int row){
-    // if(lundBank == null || !lundBank.hasEntry("parent")) return 0
     Schema schema = lundBank.getSchema()
     int colType = schema.getType("parent")
+    int rawParent = 0
     switch (colType) {
-        case 0:  return lundBank.getByte("parent",  row)
-        case 1:  return lundBank.getInt("parent",   row)
-        case 2:  return lundBank.getShort("parent", row)
-        case 3:  return (int) lundBank.getFloat("parent", row)
+        case 0:  rawParent = lundBank.getByte("parent",  row); break
+        case 1:  rawParent = lundBank.getInt("parent",   row); break
+        case 2:  rawParent = lundBank.getShort("parent", row); break
+        case 3:  rawParent = (int) lundBank.getFloat("parent", row); break
         default:
-            System.out.println("WARNING: Unknown type for MC::Lund.parent = $colType (row $row)");
-            return lundBank.getShort("parent", row)   // safe fallback
+            System.out.println("WARNING: Unknown type for MC::Lund.parent = $colType (row $row)")
+            rawParent = lundBank.getShort("parent", row)
     }
+    if (rawParent <= 0) { return -1; } // no parent (beam electron, target proton, etc.)
+    // Convert LUND index (starts at 1) → bank row (starts at 0)
+    return rawParent - 1;
 }
 
 // ======================================================================
@@ -2134,7 +2139,7 @@ args.eachParallel{fname->
                                 ConvertBoolean(Extra_Particle_Search_gen.hasPim),           ConvertBoolean(Extra_Particle_Search_gen.hasProton),
                                 // rho0 Kinematics
                                 match_default.rho0_px,         match_default.rho0_py,       match_default.rho0_pz,         match_default.rho0_E,        match_default.rho0_parent,
-                                exclusive_rho_flag,
+                                rho0_grandparent,              exclusive_rho_flag,
                                 // π- Kinematics
                                 pim_px,     pim_py,     pim_pz,
                                 pim_px_gen, pim_py_gen, pim_pz_gen, parentPID_pim,

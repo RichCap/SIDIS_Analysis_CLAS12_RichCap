@@ -110,10 +110,24 @@ branches_string += ':pim_present/I:proton_present/I'
 branches_string += ':pim_present_gen/I:proton_present_gen/I'
 // rho0 Kinematics
 branches_string += ':rho0_px:rho0_py:rho0_pz:rho0_E:rho0_parent/I'
+// Added as of 5/6/2026
+// NEW branches for mother chain, pi- kinematics, and exclusive rho flag
+branches_string += ':rho0_grandparent/I:exclusive_rho/I'
+branches_string += ':pimx:pimy:pimz'
+branches_string += ':pimx_gen:pimy_gen:pimz_gen:Par_PID_pim/I'
+branches_string += ':prox:proy:proz'
+branches_string += ':prox_gen:proy_gen:proz_gen:Par_PID_pro/I'
+// // branches_string += ':pim_px:pim_py:pim_pz:pim_e:exclusive_rho/I:Par_PID_pim/I:rho_mother_chain/C'
 
 // Updated on 12/17/2025 (new feature): add independent generated-match branches for additional matching criteria configurations
     // Second update on 12/22/2025: Added PID cut branches and some of the missing variables to be able to manipulate them again in the ROOT output files
 def tt = ff.makeTree('h22', 'title', branches_string)
+
+// // Second tree for the rho mother chain (this avoids the fill() size limit)
+// def tt_mother = ff.makeTree('mother', 'rho mother chain', 'event/I:rho_mother_chain/C')
+// def rhoMotherChain = ""   // String for mother chain (reliable for large trees)
+// // // Explicit Branch registration (required for /C string branches in JROOT Groovy)
+// // tt_mother.Branch("rho_mother_chain", rhoMotherChain)
 
 // If print_extra_info = 1, then extra information will be printed while running this program (do not do unless trying to test certain information - will run less efficiently)
 // Let print_extra_info = 0 to run normally
@@ -142,6 +156,7 @@ def num_of_rec_pip_found = 0
 def Multiple_Pions_Per_Electron = 0
 
 def num_of_rho0_found = 0
+def num_of_excl__rho0 = 0
 
 // Helper: Converts booleans into integers (1 == true, 0 == false), or -1 if input is null.
 Integer ConvertBoolean(Boolean bool) {
@@ -150,23 +165,41 @@ Integer ConvertBoolean(Boolean bool) {
 }
 
 // ======================================================================
-// Robust parent index getter — works on ANY numeric type for MC::Lund.parent
+// Returns the BANK ROW (0-based) of the parent.
+// Returns -1 if the particle has no parent (parent index == 0).
 // ======================================================================
 def getParentIndex(Bank lundBank, int row){
-    // if(lundBank == null || !lundBank.hasEntry("parent")) return 0
     Schema schema = lundBank.getSchema()
-    // 0=BYTE, 1=SHORT, 2=INT, 3=FLOAT, etc.
     int colType = schema.getType("parent")
-    // System.out.println("colType = $colType");
+    int rawParent = 0
     switch (colType) {
-        case 0:  return lundBank.getByte("parent",  row)
-        case 1:  return lundBank.getInt("parent",   row)
-        case 2:  return lundBank.getShort("parent", row)
-        case 3:  return (int) lundBank.getFloat("parent", row)
+        case 0:  rawParent = lundBank.getByte("parent",  row); break
+        case 1:  rawParent = lundBank.getInt("parent",   row); break
+        case 2:  rawParent = lundBank.getShort("parent", row); break
+        case 3:  rawParent = (int) lundBank.getFloat("parent", row); break
         default:
-            System.out.println("WARNING: Unknown type for MC::Lund.parent = $colType (row $row)");
-            return lundBank.getShort("parent", row)   // safe fallback
+            System.out.println("WARNING: Unknown type for MC::Lund.parent = $colType (row $row)")
+            rawParent = lundBank.getShort("parent", row)
     }
+    if (rawParent <= 0) { return -1; } // no parent (beam electron, target proton, etc.)
+    // Convert LUND index (starts at 1) → bank row (starts at 0)
+    return rawParent - 1
+}
+
+// ======================================================================
+// Get full mother chain for rho0 (or any particle)
+// Walks up the parent indices collecting PIDs until root (parent <= 0)
+// ======================================================================
+def getFullMotherChain(Bank lund, int startRow) {
+    def chain = new java.util.ArrayList<Integer>()
+    int current = startRow
+    while (current >= 0 && current < lund.getRows()) {
+        chain.add(lund.getInt("pid", current))
+        int parentIdx = getParentIndex(lund, current)
+        if (parentIdx <= 0 || parentIdx == current || parentIdx >= lund.getRows()) { break }
+        current = parentIdx
+    }
+    return chain
 }
 
 // Tolerances for float comparisons (tune as needed)
@@ -184,9 +217,9 @@ boolean nearlyEqual(double a, double b, double absTol, double relTol) {
     return diff <= relTol * scale
 }
 
-// Finds the LUND particle matching the provided PID and momentum and returns the PID of its parent particle.
-// Returns 0 if no matching particle is found.
-Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
+// Finds the LUND particle matching the provided PID and momentum and returns BOTH the immediate parent PID and the grandparent PID.
+// Returns [parentPID: 0, grandparentPID: 0] if no matching particle is found.
+def findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in, float pz_in, double absTol, double relTol) {
 
     int nrows_lund = lund_in.getRows()
 
@@ -214,22 +247,26 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
             System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
-            return 0
+            return [parentPID: 0, grandparentPID: 0]
         }
 
         int parentPID = lund_in.getInt("pid", parentIndex)
 
+        // ---- Now get grandparent (parent of the parent) ----
+        int grandparentIndex = getParentIndex(lund_in, parentIndex)
+        int grandparentPID = 0
+        // Defensive check on grandparent index
+        if ((grandparentIndex > 0) && (grandparentIndex < nrows_lund) && (grandparentIndex != parentIndex)) { grandparentPID = lund_in.getInt("pid", grandparentIndex) }
+
         // System.out.println("Matched LUND row = ${i}")
-        // System.out.println("parentPID = ${parentPID}")
-
-        return parentPID
+        // System.out.println("parentPID = ${parentPID}, grandparentPID = ${grandparentPID}")
+        return [parentPID      : parentPID,
+                grandparentPID : grandparentPID]
     }
-
     // ---- No match found ----
     System.out.println("ERROR - No matching particle found in LUND bank.")
     System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
-
-    return 0
+    return [parentPID: 0, grandparentPID: 0]
 }
 
 // ------------------------------------------------------------
@@ -243,7 +280,6 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
         float px_lund  = lund_in.getFloat("px", i)
         float py_lund  = lund_in.getFloat("py", i)
         float pz_lund  = lund_in.getFloat("pz", i)
-
         // Compare with values you already extracted from the other bank
         boolean pidOK = (pid_lund == pid_in)
         boolean pxOK   = nearlyEqual(px_lund, px_in, absTol, relTol)
@@ -252,22 +288,27 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
         // If this row does not match, continue searching
         if (!(pidOK && pxOK && pyOK && pzOK)) { continue }
         // ---- Match found ----
-        // int parentIndex = lund_in.getByte("parent", i)  // 'parent' is type 'B'
-        // int parentIndex = lund_in.getShort("parent", i)  // 'parent' is type 'B'
         int parentIndex = getParentIndex(lund_in, i)
         // Defensive check on parent index
         if (parentIndex < 0 || parentIndex >= nrows_lund) {
-            System.out.println("WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
-            return 0
+            System.out.println("[findParent_rho]: WARNING - Matched particle found, but parent index is invalid: ${parentIndex}")
+            return [
+                parentPID       : 0,
+                rho0_px         : 0.0,
+                rho0_py         : 0.0,
+                rho0_pz         : 0.0,
+                rho0_E          : 0.0,
+                rho0_parent     : 0,
+                rho0_grandparent: 0
+            ]
         }
         int parentPID = lund_in.getInt("pid", parentIndex)
-        // System.out.println("Matched LUND row = ${i}")
-        // System.out.println("parentPID = ${parentPID}")
         def rho0_px = 0.0;
         def rho0_py = 0.0;
         def rho0_pz = 0.0;
         def rho0_E  = 0.0;
         def rho0_parent = 0;
+        def rho0_grandparent = 0;
         if(parentPID == 113){   // rho0
             // get rho0 kinematics
             rho0_px = lund_in.getFloat("px", parentIndex);
@@ -275,29 +316,58 @@ def findParent_rho(def lund_in, int pid_in, float px_in, float py_in, float pz_i
             rho0_pz = lund_in.getFloat("pz", parentIndex);
             def rhoVec = LorentzVector.withPID(113, rho0_px, rho0_py, rho0_pz);
             rho0_E = rhoVec.e();
-            // grandparent
-            rho0_parent = findParentPIDFromLund(lund_in, 113, rho0_px, rho0_py, rho0_pz, ABS_TOL, REL_TOL);
+            // DIRECT WALK UP THE CHAIN — no second call to findParentPIDFromLund
+            rho0_parent = parentPID;  // the PID of the rho0's parent
+            int grandparentIndex = getParentIndex(lund_in, parentIndex);
+            rho0_grandparent = 0;
+            if ((grandparentIndex > 0) && (grandparentIndex < nrows_lund) && (grandparentIndex != parentIndex)) { rho0_grandparent = lund_in.getInt("pid", grandparentIndex); }
         }
         return [
-            parentPID   : parentPID,
-            rho0_px     : rho0_px,
-            rho0_py     : rho0_py,
-            rho0_pz     : rho0_pz,
-            rho0_E      : rho0_E,
-            rho0_parent : rho0_parent]
+            parentPID       : parentPID,
+            rho0_px         : rho0_px,
+            rho0_py         : rho0_py,
+            rho0_pz         : rho0_pz,
+            rho0_E          : rho0_E,
+            rho0_parent     : rho0_parent,
+            rho0_grandparent: rho0_grandparent
+        ]
     }
-
-    // ---- No match found ----
+    // ---- No match found ---- 
     System.out.println("ERROR - No matching particle found in LUND bank.")
     System.out.println("Target Particle = (pid,px,py,pz)=(${pid_in},${px_in},${py_in},${pz_in})")
-
     return [
-        parentPID   : 0,
-        rho0_px     : 0.0,
-        rho0_py     : 0.0,
-        rho0_pz     : 0.0,
-        rho0_E      : 0.0,
-        rho0_parent : 0]
+        parentPID       : 0,
+        rho0_px         : 0.0,
+        rho0_py         : 0.0,
+        rho0_pz         : 0.0,
+        rho0_E          : 0.0,
+        rho0_parent     : 0,
+        rho0_grandparent: 0
+    ]
+}
+
+
+// ------------------------------------------------------------
+// Exclusive rho0 flag using type==1 (final-state particles only)
+// ------------------------------------------------------------
+def isExclusiveRho(Bank lund) {
+    int nEle = 0, nPip = 0, nPim = 0, nProt = 0; nOther = 0;
+    int rhoRow = -1;
+    int pipRow = -1, pimRow = -1;
+    int nrows = lund.getRows();
+    for (int i = 0; i < nrows; i++) {
+        int pid = lund.getInt("pid", i);
+        if (pid ==  113) { rhoRow = i; }
+        if (lund.getByte("type", i) != 1) { continue; }  // only final-state particles
+        if      (pid ==   11) { nEle++; }
+        else if (pid ==  211) { nPip++; pipRow = i; }
+        else if (pid == -211) { nPim++; pimRow = i; }
+        else if (pid == 2212) { nProt++; }
+        else                  { nOther++; }
+    }
+    if (nEle != 1 || nPip != 1 || nPim != 1 || nProt != 1) { return 0; }
+    if ((pipRow >= 0 && getParentIndex(lund, pipRow) == rhoRow) && (pimRow >= 0 && getParentIndex(lund, pimRow) == rhoRow)) { return 1; } // both pions must have rho0 as direct parent
+    return 0;
 }
 
 
@@ -330,7 +400,8 @@ def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_i
     matched_z_gen       = MCpart_in.getFloat("pz", gen_index);
     def matched_vec_gen = LorentzVector.withPID(pid_matched, matched_x_gen, matched_y_gen, matched_z_gen);
     matched_E_gen       = matched_vec_gen.e();
-    parentPID           = findParentPIDFromLund(lund_in, pid_matched, matched_x_gen, matched_y_gen, matched_z_gen, absTol, relTol);
+    def parentInfo      = findParentPIDFromLund(lund_in, pid_matched, matched_x_gen, matched_y_gen, matched_z_gen, absTol, relTol);
+    parentPID           = parentInfo.parentPID;
     return [
         pid_matched    : pid_matched,
         matched_x_gen  : matched_x_gen,
@@ -547,7 +618,12 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
     def rho0_pz = 0.0;
     def rho0_E  = 0.0;
     int rho0_parent = 0;
-    if(pid_matched_el  != 0){ parentPID_el = findParentPIDFromLund(lund, pid_matched_el,  matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  ABS_TOL, REL_TOL); }
+    int rho0_grandparent = 0;
+    // def rho_mother_chain = new java.util.ArrayList<Integer>();   // NEW
+    if(pid_matched_el  != 0){ 
+        def el_parentInfo = findParentPIDFromLund(lund, pid_matched_el,  matched_el_x_gen,  matched_el_y_gen,  matched_el_z_gen,  ABS_TOL, REL_TOL);
+        parentPID_el = el_parentInfo.parentPID; 
+        }
     if(pid_matched_pip != 0){ 
         if(look_for_rho){
             def parent_of_pip = findParent_rho(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL); 
@@ -557,7 +633,12 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
             rho0_pz           = parent_of_pip.rho0_pz;
             rho0_E            = parent_of_pip.rho0_E;
             rho0_parent       = parent_of_pip.rho0_parent;
-        } else { parentPID_pi = findParentPIDFromLund(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL); }
+            rho0_grandparent  = parent_of_pip.rho0_grandparent;
+            // rho_mother_chain  = parent_of_pip.rho_mother_chain;   // NEW: forward the chain
+        } else { 
+            def pip_parentInfo = findParentPIDFromLund(lund, pid_matched_pip, matched_pip_x_gen, matched_pip_y_gen, matched_pip_z_gen, ABS_TOL, REL_TOL);
+            parentPID_pi = pip_parentInfo.parentPID;
+        }
     }
 
     return [
@@ -583,7 +664,9 @@ def matchToGenerated(def MCpart,           def lund,  def list_of_matched_partic
         rho0_py           : rho0_py,
         rho0_pz           : rho0_pz,
         rho0_E            : rho0_E,
-        rho0_parent       : rho0_parent
+        rho0_parent       : rho0_parent,
+        rho0_grandparent  : rho0_grandparent,
+        // rho_mother_chain  : rho_mother_chain   // NEW: added to the returned map
     ]
 }
 
@@ -1657,32 +1740,75 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 // ------------------------------------------------------------
-// pi-/proton particle seaches (for basic identifications of exclusive events)
+// pi-/proton particle searches + π- kinematics (for exclusive events)
 // ------------------------------------------------------------
 def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ, def GenMC = false){
     boolean hasProton = false;
     boolean hasPim    = false;
+    float pim_px = 0.0f;
+    float pim_py = 0.0f;
+    float pim_pz = 0.0f;
+    float pim_e  = 0.0f;
+    float pro_px = 0.0f;
+    float pro_py = 0.0f;
+    float pro_pz = 0.0f;
+    float pro_e  = 0.0f;
     for (int ipart_p = 1; ipart_p < Particle_Bank.getRows(); ipart_p++) {
         if(GenMC){
             def pid_p_gen = Particle_Bank.getInt("pid", ipart_p)
-            if(pid_p_gen == 2212){ hasProton = true; }
-            if(pid_p_gen == -211){ hasPim = true; }
+            if(pid_p_gen == 2212){
+                hasProton = true;
+                pro_px = Particle_Bank.getFloat("px", ipart_p);
+                pro_py = Particle_Bank.getFloat("py", ipart_p);
+                pro_pz = Particle_Bank.getFloat("pz", ipart_p);
+                def proVec = LorentzVector.withPID(2212, pro_px, pro_py, pro_pz);
+                pro_e  = proVec.e();
+            }
+            if(pid_p_gen == -211){
+                hasPim = true;
+                pim_px = Particle_Bank.getFloat("px", ipart_p);
+                pim_py = Particle_Bank.getFloat("py", ipart_p);
+                pim_pz = Particle_Bank.getFloat("pz", ipart_p);
+                def pimVec = LorentzVector.withPID(-211, pim_px, pim_py, pim_pz);
+                pim_e  = pimVec.e();
+                // pim_e  = Particle_Bank.getFloat("energy", ipart_p);
+            }
         }
         else {
             def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-            if(canpro.isproton()){ hasProton = true; }
+            if(canpro.isproton()){ 
+                hasProton = true;
+                def proVec = canpro.getLorentzVector();
+                pro_px = proVec.px();
+                pro_py = proVec.py();
+                pro_pz = proVec.pz();
+                pro_e  = proVec.e();
+            }
             else {
                 def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-                if(canpim.ispim()){ hasPim = true; }
+                if(canpim.ispim()){
+                    hasPim = true;
+                    def pimVec = canpim.getLorentzVector();
+                    pim_px = pimVec.px();
+                    pim_py = pimVec.py();
+                    pim_pz = pimVec.pz();
+                    pim_e  = pimVec.e();
+                }
             }
         }
-        if(hasProton && hasPim){ // Found enough relevant particles (no more need to run furthur)
-            break
-        }
+        if(hasProton && hasPim){ break }
     }
     return [
         hasProton  : hasProton,
-        hasPim     : hasPim
+        hasPim     : hasPim,
+        pim_px     : pim_px,
+        pim_py     : pim_py,
+        pim_pz     : pim_pz,
+        pim_e      : pim_e,
+        pro_px     : pro_px,
+        pro_py     : pro_py,
+        pro_pz     : pro_pz,
+        pro_e      : pro_e
     ];
 }
 
@@ -1919,6 +2045,37 @@ args.eachParallel{fname->
                         int parentPID_el = match_default.parentPID_el
                         int parentPID_pi = match_default.parentPID_pi
 
+                        // NEW: get rho mother chain, pi-, and proton kinematics
+                        int exclusive_rho_flag = isExclusiveRho(lund)
+                        // rhoMotherChain = match_default.rho_mother_chain.join(",")
+                        float pim_px        = Extra_Particle_Search.pim_px
+                        float pim_py        = Extra_Particle_Search.pim_py
+                        float pim_pz        = Extra_Particle_Search.pim_pz
+                        // float pim_e      = Extra_Particle_Search.pim_e
+                        float pro_px        = Extra_Particle_Search.pro_px
+                        float pro_py        = Extra_Particle_Search.pro_py
+                        float pro_pz        = Extra_Particle_Search.pro_pz
+                        // float pro_e      = Extra_Particle_Search.pro_e
+                        float pim_px_gen    = Extra_Particle_Search_gen.pim_px
+                        float pim_py_gen    = Extra_Particle_Search_gen.pim_py
+                        float pim_pz_gen    = Extra_Particle_Search_gen.pim_pz
+                        // float pim_e_gen  = Extra_Particle_Search_gen.pim_e
+                        float pro_px_gen    = Extra_Particle_Search_gen.pro_px
+                        float pro_py_gen    = Extra_Particle_Search_gen.pro_py
+                        float pro_pz_gen    = Extra_Particle_Search_gen.pro_pz
+                        // float pro_e_gen  = Extra_Particle_Search_gen.pro_e
+                        // NEW: π⁻/proton parent PID (immediate parents only)
+                        int parentPID_pim = 0;
+                        int parentPID_pro = 0;
+                        if(Extra_Particle_Search_gen.hasPim){ 
+                            def pim_parentInfo = findParentPIDFromLund(lund, -211, Extra_Particle_Search_gen.pim_px, Extra_Particle_Search_gen.pim_py, Extra_Particle_Search_gen.pim_pz, ABS_TOL, REL_TOL);
+                            parentPID_pim = pim_parentInfo.parentPID;
+                        }
+                        if(Extra_Particle_Search_gen.hasPro){ 
+                            def pro_parentInfo = findParentPIDFromLund(lund, 2212, Extra_Particle_Search_gen.pro_px, Extra_Particle_Search_gen.pro_py, Extra_Particle_Search_gen.pro_pz, ABS_TOL, REL_TOL);
+                            parentPID_pro = pro_parentInfo.parentPID;
+                        }
+
                         //========================================================//
                         //====================// Print Info //====================//
                         //========================================================//
@@ -1992,8 +2149,6 @@ args.eachParallel{fname->
                         }
 
                         // Fill tree:
-                        // - default criteria fills existing branches
-                        // - additional criteria fill their new, independent branches
                         tt.fill(evn,      run,      beamCharge,        ex, ey, ez,        pipx, pipy, pipz,
                                 esec,     pipsec,   pionCount,         Hx, Hy, Hx_pip,    Hy_pip,
                                 V_PCal,             W_PCal,            U_PCal,
@@ -2062,10 +2217,22 @@ args.eachParallel{fname->
                                 ConvertBoolean(Extra_Particle_Search.hasPim),               ConvertBoolean(Extra_Particle_Search.hasProton),
                                 ConvertBoolean(Extra_Particle_Search_gen.hasPim),           ConvertBoolean(Extra_Particle_Search_gen.hasProton),
                                 // rho0 Kinematics
-                                match_default.rho0_px,         match_default.rho0_py,       match_default.rho0_pz,         match_default.rho0_E,        match_default.rho0_parent
+                                match_default.rho0_px,         match_default.rho0_py,       match_default.rho0_pz,         match_default.rho0_E,
+                                match_default.rho0_parent,     match_default.rho0_grandparent, exclusive_rho_flag,
+                                // NEW branches (pi-/proton kinematics)
+                                pim_px,     pim_py,     pim_pz,
+                                pim_px_gen, pim_py_gen, pim_pz_gen, parentPID_pim,
+                                pro_px,     pro_py,     pro_pz, 
+                                pro_px_gen, pro_py_gen, pro_pz_gen, parentPID_pro
                         )
-                        if(pionCount > 1){ Multiple_Pions_Per_Electron += 1 }
-                        if(parentPID_pi == 113) { num_of_rho0_found += 1 }
+                        // // Fill the separate mother-chain tree
+                        // if(rhoMotherChain != "") {
+                        //     System.out.println(rhoMotherChain);
+                        //     tt_mother.fill(evn, rhoMotherChain)
+                        // }
+                        if(pionCount           > 1)   { Multiple_Pions_Per_Electron += 1 }
+                        if(parentPID_pi       == 113) { num_of_rho0_found += 1 }
+                        if(exclusive_rho_flag == 1)   { num_of_excl__rho0 += 1 }
 
                     }
                     //==================================================//
@@ -2116,6 +2283,7 @@ System.out.println("");
 System.out.println("Number of times that Multiple Pions were found per Electron = " + Multiple_Pions_Per_Electron);
 System.out.println("");
 System.out.println("Number of rho0 Parents found                = " + num_of_rho0_found);
+System.out.println("Number of (Exclusive) rho0 Parents found    = " + num_of_excl__rho0);
 System.out.println("");
 System.out.println("Total number of failed yesbs.every() conditions  = " + num_of_yesbs_fail);
 
@@ -2141,5 +2309,6 @@ System.out.println(RunTime);
 System.out.println("");
 
 tt.write()
+// tt_mother.write()   // write the mother-chain tree
 ff.close()
 

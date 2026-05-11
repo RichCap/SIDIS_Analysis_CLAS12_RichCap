@@ -349,14 +349,14 @@ def is_incomplete_root_file(filename, args):
 
 def command_to_use_run_groovy_scripts_with_emails(file_paths, args, src_type="clasdis", mc_type="rec", evt_type="epipX", slurmCancel=None, tmux_name=""):
     commands = ""
-    command = "cd_Groovy; ./run_groovy_scripts_with_emails.py"
+    command = "cd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy; pwd; ./run_groovy_scripts_with_emails.py"
     array = f" -ptxt '{file_paths}'"
     if(args.dry_run):
         array += " -dr"
     if(args.run_mode == "slurm"):
         slurm_time = "20:00:00"
         slurm_cpu  = "4GB" # "3500M" if(mc_type == "rec") else "3GB"
-        slurm = f' -m slurm -st "{slurm_time}" -cpu "{slurm_cpu}"'
+        slurm = f' --no_approval -m slurm -st "{slurm_time}" -cpu "{slurm_cpu}"'
         arguments = f'-src "{src_type}" -mc "{mc_type}" -evt "{evt_type}"{array}{slurm}'
         email = f' -em "Ran with the Command: \'{arguments.replace(chr(34), chr(39))}\'.{f" Extra Message: {args.email_message_jobs}." if(args.email_message_jobs) else ""}" '
         commands = f"{command}{email}{arguments}; SQueue_format; "

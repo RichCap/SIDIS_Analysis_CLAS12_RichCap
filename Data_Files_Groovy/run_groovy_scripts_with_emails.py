@@ -115,6 +115,10 @@ def parse_args():
                         action="store_true",
                         help="Do not execute local run-groovy or submit SLURM jobs; still expands file lists and prints planned actions (SLURM mode still requires approval).\n")
     
+    parser.add_argument("-na",   "--no_approval",
+                        action="store_true",
+                        help="Passes approval automatically when the script would otherwise request follow-up user input.\n")
+    
     parser.add_argument("-pj", "--parallel_jobs",
                         type=int,
                         default=4,
@@ -827,6 +831,23 @@ User Given Message:
         num_fail    = 0
 
         def start_job(job_num, filepath):
+            # === SLURM array coordination (cancel or skip if needed) ===
+            if(args.slurm_array_jobid is not None):
+                state = query_slurm_array_task_state(args.slurm_array_jobid, job_num)
+                if(state == "IGNORE"):
+                    pass
+                elif(state is None):
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} not found; assuming completed and skipping.")
+                    return
+                elif(state == "PD"):
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} is pending; attempting to cancel.")
+                    cancelled = cancel_slurm_array_task(args.slurm_array_jobid, job_num)
+                    if(not cancelled):
+                        print(f"{color.BYELLOW}[INFO]{color.END} Could not cancel task {args.slurm_array_jobid}_{job_num}; skipping to avoid double-processing.")
+                        return
+                else:
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} is in state '{state}'; skipping to avoid double-processing.")
+                    return
             command   = ["run-groovy", script_path_final, filepath]
             base      = os.path.basename(filepath).replace(" ", "_")
             if("g" in str(args.mc_type)):
@@ -997,16 +1018,16 @@ User Given Message:
         print(f"{color.BBLUE}[INFO]{color.END} Proposed sbatch script path:\n{sbatch_path}\n")
         print(f"{color.BBLUE}[INFO]{color.END} Expanded file count (manifest lines): {nfiles} (array spec: {array_spec_str})")
         print(f"{color.BBLUE}[INFO]{color.END} Work directory (preset): {work_dir_final}")
-
-        try:
-            response = input("Approve this SLURM sbatch script (and allow it to be written + submitted)? [y/N]: ").strip().lower()
-        except EOFError:
-            response = "n"
-
-        if((response != "y") and (response != "yes")):
+        if(not args.no_approval):
+            try:
+                response = input("Approve this SLURM sbatch script (and allow it to be written + submitted)? [y/N]: ").strip().lower()
+            except EOFError:
+                response = "n"
+        else:
+            response = "y"
+        if(response not in ["y", "yes"]):
             print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without writing or submission.")
             sys.exit(1)
-
         if(args.dry_run):
             print("\n--- DRY RUN: approved SLURM script would now be written and submitted, but dry-run prevents writing/submission. ---\n")
             overall_success = True

@@ -16,6 +16,15 @@ import clasqa.QADB
 import groovy.json.JsonOutput
 import java.time.Instant
 
+// Clock Time & Runtime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+def formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
+def startClock = LocalDateTime.now()
+System.out.println("");
+System.out.println("=== Script STARTED at: " + startClock.format(formatter) + " ===")
+System.out.println("");
 long StartTime = System.nanoTime()
 
 Sugar.enable()
@@ -69,9 +78,11 @@ branches_string += ':Min_PID_check_pip/I:Full_default_pip/I:Full_pass1_pip/I'
 branches_string += ':DC_Edge_R1p:DC_Edge_R2p:DC_Edge_R3p'
 branches_string += ':PID_chi2pip:PionDeltaVz'
 
-// Added as of 4/10/2026
-// Flags for exclusive events
-branches_string += ':pim_present/I:proton_present/I'
+// Added as of 4/10/2026-5/9/2026
+branches_string += ':pim_present/I:proton_present/I:exclusive_rho/I'
+// Added as of 5/9/2026
+// NEW branches for pi-/proton kinematics
+branches_string += ':pimx:pimy:pimz:prox:proy:proz'
 
 
 def tt = ff.makeTree('h22', 'title', branches_string)
@@ -1161,25 +1172,79 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 // ------------------------------------------------------------
-// pi-/proton particle seaches (for basic identifications of exclusive events)
+// pi-/proton particle searches + π- kinematics + conservative exclusivity proxy (Data only)
 // ------------------------------------------------------------
 def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ){
     boolean hasProton = false;
     boolean hasPim    = false;
-    for (int ipart_p = 1; ipart_p < Particle_Bank.getRows(); ipart_p++) {
-        def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-        if(canpro.isproton()){ hasProton = true; }
-        else {
-            def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-            if(canpim.ispim()){ hasPim = true; }
+    float pim_px = 0.0f, pim_py = 0.0f, pim_pz = 0.0f;
+    float pro_px = 0.0f, pro_py = 0.0f, pro_pz = 0.0f;
+    int eleCount = 0;
+    int pipCount = 0;
+    int pimCount = 0;
+    int proCount = 0;
+    boolean isExclusive = true;
+    for (int ipart_p = 0; ipart_p < Particle_Bank.getRows(); ipart_p++) {
+        int pid = Particle_Bank.getInt("pid", ipart_p);
+        // === FAST FILTER: unknown particle type? → definitely not the exclusive event I am looking for ===
+        if ((pid != 11) && (pid != 22) && (pid != 2212) && (pid != -211) && (pid != 211)) { isExclusive = false; }
+        // Only run expensive candidate functions for particles that passed the fast filter
+        if (pid != 22) {               // photons are allowed but need no further checks
+            if (pid == 2212) {         // Proton
+                def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                if (canpro.isproton()) {
+                    proCount++;
+                    if (!hasProton) {
+                        def proVec = canpro.getLorentzVector();
+                        pro_px = proVec.px();
+                        pro_py = proVec.py();
+                        pro_pz = proVec.pz();
+                        hasProton = true;
+                    }
+                } else { isExclusive = false; }   // PID said proton but candidate rejected it
+
+            } else if (pid == -211) {  // π⁻
+                def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                if (canpim.ispim()) {
+                    pimCount++;
+                    if (!hasPim) {
+                        def pimVec = canpim.getLorentzVector();
+                        pim_px = pimVec.px();
+                        pim_py = pimVec.py();
+                        pim_pz = pimVec.pz();
+                        hasPim = true;
+                    }
+                } else { isExclusive = false; }
+            } else if ((pid == 211) && isExclusive) {   // π⁺ pion
+                def canpip = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                def DC_pip = DCEdgeCandidate.getDCEdgeCandidate(ipart_p, Particle_Bank, Traj_Bank);
+                def pip_pion_PIDs = isPipFull(canpip, DC_pip);
+                if (pip_pion_PIDs.Full_default) { pipCount++; }
+                else { isExclusive = false; }
+            } else if (pid == 11) {    // Electron
+                eleCount++;
+                // def canele = ElectronCandidate.getElectronCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                // def DC_ele = DCEdgeCandidate.getDCEdgeCandidate(ipart_p, Particle_Bank, Traj_Bank);
+                // def electron_PIDs = isElectronFull(canele, DC_ele);
+                // if (electron_PIDs.Full_default) { eleCount++; }
+                // else { isExclusive = false; }
+            }
         }
-        if(hasProton && hasPim){ // Found enough relevant particles (no more need to run furthur)
-            break
-        }
+        // non-exclusive violations
+        if (eleCount > 1 || pipCount > 1 || pimCount > 1 || proCount > 1) { isExclusive = false; }
+        // Early exit when I already have everything I need
+        if ((!isExclusive) && (hasProton && hasPim)) { break; }
     }
     return [
-        hasProton  : hasProton,
-        hasPim     : hasPim
+        hasProton   : hasProton,
+        hasPim      : hasPim,
+        pim_px      : pim_px,
+        pim_py      : pim_py,
+        pim_pz      : pim_pz,
+        pro_px      : pro_px,
+        pro_py      : pro_py,
+        pro_pz      : pro_pz,
+        isExclusive : isExclusive
     ];
 }
 
@@ -1284,7 +1349,7 @@ args.eachParallel{fname->
                             //     elec_events_found += 1;
                             //     elec_num_current   = elec_total_found;
                             // }
-                            pionCount += 1; // Increment pion counter
+                            pionCount += 1;
                             
                             def pip0 = canpip.getLorentzVector()
                             
@@ -1397,11 +1462,14 @@ args.eachParallel{fname->
                                     // Extra Variables for the PID refinement cuts:
                                     pip_pion_PIDs.DC_Edge_R1p, pip_pion_PIDs.DC_Edge_R2p,       pip_pion_PIDs.DC_Edge_R3p, pip_pion_PIDs.PID_chi2pip,       pip_pion_PIDs.PionDeltaVz,
                                     // Flags for exclusive events
-                                    ConvertBoolean(Extra_Particle_Search.hasPim),               ConvertBoolean(Extra_Particle_Search.hasProton))
+                                    ConvertBoolean(Extra_Particle_Search.hasPim),               ConvertBoolean(Extra_Particle_Search.hasProton),            ConvertBoolean(Extra_Particle_Search.isExclusive),
+                                    // NEW pi- kinematics
+                                    Extra_Particle_Search.pim_px, Extra_Particle_Search.pim_py, Extra_Particle_Search.pim_pz,
+                                    Extra_Particle_Search.pro_px, Extra_Particle_Search.pro_py, Extra_Particle_Search.pro_pz)
 
                             if(pionCount > 1){ Multiple_Pions_Per_Electron += 1; }
                             if(pip_pion_PIDs.Full_default && electron_PIDs.Full_default){ true_events += 1; } // Made to count the difference caused by the Pass 2 PID refinement cuts
-                            if(electron_PIDs.Full_pass1 && pip_pion_PIDs.Full_pass1){ pass1_cuts += 1; }      // Made to count the difference caused by the Pass 1 PID refinement cuts (i.e., the outdated cuts)
+                            if(electron_PIDs.Full_pass1   && pip_pion_PIDs.Full_pass1){   pass1_cuts  += 1; } // Made to count the difference caused by the Pass 1 PID refinement cuts (i.e., the outdated cuts)
                             event_count += 1;
                         }
                     }
@@ -1414,11 +1482,14 @@ args.eachParallel{fname->
 }
 }
 
-
 Create_JSON_Output(qa, StartTime, outname, filename, JSONname, event_count, true_events, pass1_cuts, Multiple_Pions_Per_Electron)
 
-
 long RunTime = (System.nanoTime() - StartTime)/1000000000;
+
+def endClock = LocalDateTime.now()
+System.out.println("");
+System.out.println("=== Script FINISHED at: " + endClock.format(formatter) + " ===")
+System.out.println("");
 
 if(RunTime > 60){
     RunTime = RunTime/60;
