@@ -574,6 +574,10 @@ def variable_Title_name(variable):
         if(len(variable) > 7):
             criteria = str(variable.replace("PID_el_", "")).replace("PID_pip_", "")
             output = f"{output} (From Match Criteria: {criteria})"
+    if(variable == "pim_present"):
+        output  = "Detected #pi^{-}"
+    if(variable == "proton_present"):
+        output  = "Detected Proton"
 
     
     if("Bin_4D" in variable):

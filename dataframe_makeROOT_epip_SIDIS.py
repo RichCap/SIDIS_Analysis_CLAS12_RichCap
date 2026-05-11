@@ -7,7 +7,7 @@ PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",  
                             "PID":                ["PID_el_idx","PID_pip_idx"],
                             # "PID":                ["Num_Pions",      "PID_el",   "PID_pip",        "PID_el_idx", "PID_pip_idx"],
                             "Sector":             ["esec_gen",   "pipsec_gen",   "pipPhi_Local", "elPhi_Local"],
-                            "Cartesian":          ["eE_gen",             "ex",   "ex_gen", "ey",       "ey_gen", "ez", "ez_gen",        "pipE_gen",       "pipx", "pipx_gen", "pipy", "pipy_gen", "pipz",     "pipz_gen"],
+                            "Cartesian":          ["eE_gen",             "ex",   "ex_gen", "ey",       "ey_gen", "ez", "ez_gen",        "pipE_gen",       "pipx", "pipx_gen", "pipy", "pipy_gen", "pipz", "pipz_gen",      "pimx", "pimx_gen", "pimy", "pimy_gen", "pimz", "pimz_gen",                "prox", "prox_gen", "proy", "proy_gen", "proz", "proz_gen"],
                             "MM2":                ["MM2",           "MM2_gen",   "MM2_smeared"],
                             "Event":              ["event",            "runN",    "beamCharge"],
                             "SmearingCorrection": ["DP_el_SF", "DP_el_SF_smeared",  "DP_pip_SF", "DP_pip_SF_smeared", "Dele_SF",  "Delta_Pel_Cors",         "Delta_Pel_Cors_smeared",  "Delta_Ppip_Cors", "Delta_Ppip_Cors_smeared",         "Delta_Theta_el_Cors", "Delta_Theta_el_Cors_smeared", "Delta_Theta_pip_Cors", "Delta_Theta_pip_Cors_smeared", "Dpip_SF", "Energy_Loss_Cor_Factor"],
@@ -237,7 +237,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         new_variation_cut_mode = True
         file_num = (file_num.split("/"))[-1]
         file_num = (file_num.split(".hipo"))[0]
-        file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "lundrho" if((".rho0." in file_num) or ("lundrho" in file_num)) else "SIDIS"
+        file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "lundvpk" if((".rho0." in file_num) and ("lundvpk" in file_num)) else "lundrho" if((".rho0." in file_num) or ("lundrho" in file_num)) else "SIDIS"
         file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7." if(".new7." in file_num) else ".new8."))[-1]
         file_num = file_num.replace("nSidis_00", "")
         mc = "EvGen_" if("EvGen" in file_num) else ""
@@ -279,7 +279,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC_Test-",                                            "EvGen_")).replace(".hipo.root", "")
             file_num = str(file_num.replace("/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new5.45nA.inb-EvGen-LUND_EvGen_richcap_GEMC-",                                                 "EvGen_")).replace(".hipo.root", "")
         # file_num = str(file_num.replace(".root", "")).replace("/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/Running_Pythia/", "")
-    
     
     ########################################################################################################################################################################
     ##==================================================================##============================##==================================================================##
@@ -399,7 +398,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             ROOT_File_Output_Name = f"DataFrame_SIDIS_epip_MC{'_Only_' if(datatype == 'pdf') else '_'}Matched_Unsmeared_{args.Common_Name}{file_num}.root"
     if(datatype == 'gdf'):
         ROOT_File_Output_Name     = f"DataFrame_SIDIS_epip_MC_GEN_{args.Common_Name}{file_num}.root"
-    
     ROOT_File_Output_Name = ROOT_File_Output_Name.replace("__", "_")
     print(f"\nFile being made is: {color.BOLD}{str(ROOT_File_Output_Name)}{color.END}")
     
@@ -531,7 +529,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             rdf = rdf.Define("elth_gen",  "atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
             rdf = rdf.Define("pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
         #####################     Phi Angle     #####################
-
         rdf = rdf.Define("elPhi", """
         auto ele = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
         auto elPhi = ele.Phi()*TMath::RadToDeg();
@@ -561,13 +558,11 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(elPhi_gen < 0){elPhi_gen += 360;}
             return elPhi_gen;""")
             rdf = rdf.Define("pipPhi_gen", """
-            auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipy_gen, 0.13957);
+            auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
             auto pipPhi_gen = pip0.Phi()*TMath::RadToDeg();
             if(pipPhi_gen < 0){pipPhi_gen += 360;}
             return pipPhi_gen;""")
-            
         #####################     Sectors (angle definitions)     #####################
-        
         if(datatype in ["mdf", "pdf"]):
             rdf = rdf.Define("esec_gen","""
             auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
@@ -591,8 +586,6 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             if(pip_phi >= -105 && pip_phi <  -45){pipsec_gen = 5;}
             if(pip_phi >= -165 && pip_phi < -105){pipsec_gen = 6;}
             return pipsec_gen;""")
-
-
         #####################     Other Values     #####################
 
         rdf = rdf.Define("vals", "".join(["""
@@ -1061,6 +1054,101 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
             auto pip_no_cor_smeared = pip0_no_cor_smeared.P();
             return pip_no_cor_smeared;
         """]))
+
+    #####################  pi-/Proton (Optional) Particles  #####################
+    for particle_extra in ["pim", "pro"]:
+        particle_extra_name, particle_extra_mass = ["pi-", 0.13957] if(particle_extra in ["pim"]) else ["Proton", 0.938272]
+        for bank in ["", "_gen"]:
+            if(all(extra_var not in rdf.GetColumnNames() for extra_var in [f"{particle_extra}{bank}", f"{particle_extra}th{bank}", f"{particle_extra}Phi{bank}"]) and all(extra_var in rdf.GetColumnNames() for extra_var in [f"{particle_extra}x{bank}", f"{particle_extra}y{bank}", f"{particle_extra}z{bank}", f"{particle_extra if('pro' not in particle_extra) else 'proton'}_present{bank}"])):
+                print(f"{color.BBLUE}Defining the{' ' if(bank in ['']) else ' Generated '}{particle_extra_name} kinematics{color.END}")
+                rdf = rdf.Define(f"{particle_extra}{bank}", f"""double {particle_extra}{bank} = 0.0;
+                if({particle_extra if('pro' not in particle_extra) else 'proton'}_present{bank} == 1){{ {particle_extra}{bank} = sqrt({particle_extra}x{bank}*{particle_extra}x{bank} + {particle_extra}y{bank}*{particle_extra}y{bank} + {particle_extra}z{bank}*{particle_extra}z{bank}); }}
+                return {particle_extra}{bank}; """)
+                rdf = rdf.Define(f"{particle_extra}th{bank}", f"""double {particle_extra}th{bank} = 0.0;
+                if({particle_extra if('pro' not in particle_extra) else 'proton'}_present{bank} == 1){{ {particle_extra}th{bank} = atan2(sqrt({particle_extra}x{bank}*{particle_extra}x{bank} + {particle_extra}y{bank}*{particle_extra}y{bank}), {particle_extra}z{bank})*TMath::RadToDeg(); }}
+                return {particle_extra}th{bank}; """)
+                rdf = rdf.Define(f"{particle_extra}Phi{bank}", f"""double {particle_extra}Phi{bank} = 0.0;
+                if({particle_extra if('pro' not in particle_extra) else 'proton'}_present{bank} == 1){{
+                    auto {particle_extra}V{bank} = ROOT::Math::PxPyPzMVector({particle_extra}x{bank}, {particle_extra}y{bank}, {particle_extra}z{bank}, {particle_extra_mass});
+                    {particle_extra}Phi{bank} = {particle_extra}V{bank}.Phi()*TMath::RadToDeg();
+                    if({particle_extra}Phi{bank} < 0){{{particle_extra}Phi{bank} += 360;}}
+                }}
+                return {particle_extra}Phi{bank}; """)
+                if(particle_extra in ['pim']):
+                    Full_pim_kinematics = f"""
+                    auto fe          = dppC(ex, ey, ez, esec, 0, {"0" if(("gen" in str(bank)) or (not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4")}) + 1;
+                    auto beam        = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
+                    auto targ        = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+                    auto ele{bank}   = ROOT::Math::PxPyPzMVector(ex{bank}*fe, ey{bank}*fe, ez{bank}*fe, 0);
+                    auto pim0{bank}  = ROOT::Math::PxPyPzMVector(pimx{bank}, pimy{bank}, pimz{bank}, 0.13957);
+                    auto epimX{bank} = beam + targ - ele{bank} - pim0{bank};
+                    auto q{bank}     = beam - ele{bank};
+                    auto z_pim{bank} = ((pim0{bank}.E())/(q{bank}.E()));
+                    TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
+                    TLorentzVector eleT{bank}(ex{bank}*fe, ey{bank}*fe, ez{bank}*fe, ele{bank}.E());
+                    TLorentzVector pimT{bank}(pimx{bank}, pimy{bank}, pimz{bank}, pim0{bank}.E());
+                    TLorentzVector lv_q{bank} = beamT - eleT{bank};
+                    ///////////////     Angles for Rotation     ///////////////
+                    double Theta_q{bank} = lv_q{bank}.Theta();
+                    double Phi_el{bank}  = eleT{bank}.Phi();
+                    ///////////////     Rotating to CM Frame     ///////////////
+                    auto pim0_Clone{bank} = Rot_Matrix(pimT{bank}, -1, Theta_q{bank}, Phi_el{bank});
+                    ///////////////     Saving CM components     ///////////////
+                    double pimx_1{bank} = pim0_Clone{bank}.X();
+                    double pimy_1{bank} = pim0_Clone{bank}.Y();
+                    double pimz_1{bank} = pim0_Clone{bank}.Z();
+                    // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
+                    double pT_pim{bank} = sqrt(pimx_1{bank}*pimx_1{bank} + pimy_1{bank}*pimy_1{bank});
+                    double phi_t_pim{bank} = pim0_Clone{bank}.Phi()*TMath::RadToDeg();
+                    if(phi_t_pim{bank} < 0){{phi_t_pim{bank} += 360;}}
+                    std::vector<double> pim_vals{bank} = {{epimX{bank}.M(), epimX{bank}.M2(), z_pim{bank}, pT_pim{bank}, phi_t_pim{bank}}};
+                    return pim_vals{bank};"""
+                    Full_pim_kinematics_list = [[bank, Full_pim_kinematics]]
+                    if((bank not in ["_gen"]) and (str(datatype) in ["mdf"])):
+                        print(f"{color.CYAN}Also defining the 'Smeared' {particle_extra_name} kinematics (smearing the electron and then calculating the corresponding electron-dependent variables){color.END}")
+                        Full_pim_kinematics_list.append(["_smeared", f"""{smearing_function}
+                    auto fe          = dppC(ex, ey, ez, esec, 0, {"0" if(not Mom_Correction_Q) else "2" if(not Use_Pass_2) else "4"}) + 1;
+                    auto beamM       = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
+                    auto targM       = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+                    auto eleM        = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+                    auto pimM        = ROOT::Math::PxPyPzMVector(pimx, pimy, pimz, 0.13957);
+                    TLorentzVector pim_smeared(pimx, pimy, pimz, pimM.E());
+                    TLorentzVector ele(ex*fe, ey*fe, ez*fe, eleM.E());
+                    TLorentzVector ele_smeared = smear_func(ele{");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"}
+                    TLorentzVector beam(0, 0, {Beam_Energy}, beamM.E());
+                    TLorentzVector targ(0, 0, 0, targM.E());
+                    auto epimX_smeared = beam + targ - ele_smeared - pim_smeared;
+                    auto q_smeared     = beam - ele_smeared;
+                    auto z_pim_smeared = ((pim_smeared.E())/(q_smeared.E()));
+                    TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
+                    ///////////////     Angles for Rotation     ///////////////
+                    double Theta_q_smeared = q_smeared.Theta();
+                    double Phi_el_smeared  = ele_smeared.Phi();
+                    ///////////////     Rotating to CM Frame     ///////////////
+                    auto pim0_Clone_smeared = Rot_Matrix(pim_smeared, -1, Theta_q_smeared, Phi_el_smeared);
+                    ///////////////     Saving CM components     ///////////////
+                    double pimx_1_smeared = pim0_Clone_smeared.X();
+                    double pimy_1_smeared = pim0_Clone_smeared.Y();
+                    double pimz_1_smeared = pim0_Clone_smeared.Z();
+                    // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
+                    double pT_pim_smeared = sqrt(pimx_1_smeared*pimx_1_smeared + pimy_1_smeared*pimy_1_smeared);
+                    double phi_t_pim_smeared = pim0_Clone_smeared.Phi()*TMath::RadToDeg();
+                    if(phi_t_pim_smeared < 0){{phi_t_pim_smeared += 360;}}
+                    std::vector<double> pim_vals_smeared = {{epimX_smeared.M(), epimX_smeared.M2(), z_pim_smeared, pT_pim_smeared, phi_t_pim_smeared}};
+                    return pim_vals_smeared;"""])
+                    for bank_ii, Full_pim_kinematics_ii in Full_pim_kinematics_list:
+                        rdf = rdf.Define(f"pim_vals{bank_ii}", Full_pim_kinematics_ii)
+                        rdf = rdf.Define(f'MM_pim{bank_ii}',    f'pim_vals{bank_ii}[0]')
+                        # rdf = rdf.Define(f'MM2_pim{bank_ii}', f'pim_vals{bank_ii}[1]')
+                        rdf = rdf.Define(f'z_pim{bank_ii}',     f'pim_vals{bank_ii}[2]')
+                        rdf = rdf.Define(f'pT_pim{bank_ii}',    f'pim_vals{bank_ii}[3]')
+                        rdf = rdf.Define(f'phi_t_pim{bank_ii}', f'pim_vals{bank_ii}[4]')
+                    del Full_pim_kinematics_list
+                    del Full_pim_kinematics
+            else:
+                print(f"{color.Error}{'' if(bank in ['']) else 'Generated '}{particle_extra_name} kinematics are NOT available{color.END}")
+    del particle_extra_name
+    del particle_extra_mass
     
     ##===============================================================================================================##
     ##---------------------------------##=========================================##---------------------------------##
