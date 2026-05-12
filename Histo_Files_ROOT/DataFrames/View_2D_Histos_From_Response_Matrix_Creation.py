@@ -31,11 +31,20 @@ def parse_args():
                         default="",
                         help="Extra suffix added to output filenames.\n")
     parser.add_argument('-f1', '--file1',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_without_rho0_with_phi_t_Final_Analysis_Iterations_I0_All.root",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_without_rho0_with_phi_t_Final_Analysis_Iterations_I0_All.root",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_Default_rho_Final_Analysis_Iterations_I0_All.root",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_V2Sbatch_Default_rho_Final_Analysis_Iterations_I0_05_11_2026.root",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_VSbatch_Exclusive_rho_Final_Analysis_Iterations_I0_05_11_2026.root",
                         help="Path to first ROOT file (e.g. the reject-cut version).\n")
     parser.add_argument('-f2', '--file2',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Required_rho0_with_Only_2D_with_phi_t_Final_Analysis_Iterations_I0_All.root",
                         help="Path to second ROOT file (e.g. the accept-cut version).\n")
+    parser.add_argument('-f3', '--file3',
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Required_rho0_with_Only_2D_with_phi_t_Final_Analysis_Iterations_I0_lundvpk_Batch.root",
+                        help="Path to third ROOT file (e.g. for the lundvpk files only).\n")
+    parser.add_argument('-usf', '--use_same_file',
+                        action='store_true',
+                        help="If provided, code will default to just using histograms from '--file1'.\n")
     parser.add_argument('-d', '--Data_Compare',
                         type=str,
                         default="mdf",
@@ -60,12 +69,15 @@ def parse_args():
     return parser.parse_args()
 
 
-def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None):
+def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None, file_path_3=None):
     file1 = ROOT.TFile.Open(file_path_1, "READ")
     if((file_path_2 is None) or (str(file_path_2) in ["None"])):
         return file1
     file2 = ROOT.TFile.Open(file_path_2, "READ")
-    print(f"\n{color.BOLD}Combining the following files:{color.END}\n\t{file_path_1}\n\t\t(Used for no rho/clasdis)\n\t{file_path_2}\n\t\t(Used for rho0)\n")
+    if((file_path_3 is not None) and (str(file_path_3) not in ["None"])):
+        print(f"\n{color.BOLD}Combining the following files:{color.END}\n\t{file_path_1}\n\t\t(Used for no rho/clasdis)\n\t{file_path_2}\n\t\t(Used for rho0)\n\t{file_path_3}\n\t\t(Used for new rho0 — lundvpk)\n")
+    else:
+        print(f"\n{color.BOLD}Combining the following files:{color.END}\n\t{file_path_1}\n\t\t(Used for no rho/clasdis)\n\t{file_path_2}\n\t\t(Used for rho0)\n")
     combined = ROOT.TMemFile("combined_in_memory", "CREATE")
     for key in file1.GetListOfKeys():
         hname = key.GetName()
@@ -74,7 +86,7 @@ def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None):
                 pass
             elif(f"({var_restrict})" not in hname.replace("_smeared", "")):
                 continue
-        if("(lundrho)" not in hname):
+        if(("(lundrho)" not in hname) and ("(lundvpk)" not in hname)):
             hist = key.ReadObj().Clone()
             if(hist):
                 hist.SetDirectory(combined)
@@ -89,6 +101,19 @@ def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None):
             if(hist):
                 hist.SetDirectory(combined)
                 hist.Write()
+    if((file_path_3 is not None) and (str(file_path_3) not in ["None"])):
+        file3 = ROOT.TFile.Open(file_path_3, "READ")
+        for key in file3.GetListOfKeys():
+            hname = key.GetName()
+            if(var_restrict is not None):
+                if(f"({var_restrict})" not in hname.replace("_smeared", "")):
+                    continue
+            if("(lundvpk)" in hname):
+                hist = key.ReadObj().Clone()
+                if(hist):
+                    hist.SetDirectory(combined)
+                    hist.Write()
+        file3.Close()
     file1.Close()
     file2.Close()
     combined.cd()
@@ -96,20 +121,35 @@ def Create_Combined_Memory_File(file_path_1, file_path_2, var_restrict=None):
     return combined
         
 def lund_norm(hh, Normalize_Q):
-    if((Normalize_Q in ["rhoscale"]) and ("(lundrho)" in str(hh.GetName()))):
-        # The numbers below were taken on 5/4/2026
-        # They represent all of the clasdis generated SIDIS events and all the rho0 (Harut's) events with the kinematics between the ranges of:
-        #     xB: 0.08 - 0.68
-        #     Q2: 0.90 - 8.50 (cuts/counts were made using the already created histograms — not event-level cuts)
-        # Harut's files are scaled so that they will make up 20% of the total number of SIDIS events generated by clasdis (i.e., without rho0 parents)
-        Num_clasdis_gdf_sidis = 1.181695e+10
-        Num_lundrho_gdf       = 9914785
+    if(Normalize_Q in ["rhoscale"]):
+        # if("(lundrho)" in str(hh.GetName())):
+        #     # The numbers below were taken on 5/4/2026
+        #     # They represent all of the clasdis generated SIDIS events and all the rho0 (Harut's) events with the kinematics between the ranges of:
+        #     #     xB: 0.08 - 0.68
+        #     #     Q2: 0.90 - 8.50 (cuts/counts were made using the already created histograms — not event-level cuts)
+        #     # Harut's files are scaled so that they will make up 20% of the total number of SIDIS events generated by clasdis (i.e., without rho0 parents)
+        #     Num_clasdis_gdf_sidis = 1.181695e+10
+        #     Num_lundrho_gdf       = 9914785
+        #     hh.Scale((Num_clasdis_gdf_sidis*0.2)/Num_lundrho_gdf)
+        #     return hh
+        # elif("(lundvpk)" in str(hh.GetName())):
+        #     # The numbers below were taken on 5/8/2026
+        #     # They represent all of the clasdis generated SIDIS events and all the (new) rho0 (Harut's) events with the kinematics between the ranges of:
+        #     #     xB: 0.08 - 0.68
+        #     #     Q2: 0.90 - 8.50 (cuts/counts were made using the already created histograms — not event-level cuts)
+        #     # Harut's files are scaled so that they will make up 20% of the total number of SIDIS events generated by clasdis (i.e., without rho0 parents)
+        #     Num_clasdis_gdf_sidis = 1.181695e+10
+        #     Num_lundvpk_gdf       = 9985114
+        #     hh.Scale((Num_clasdis_gdf_sidis*0.2)/Num_lundvpk_gdf)
+        #     return hh
+        # These newer numbers were taken from the fixed plots where `exclusive_rho!=1` for clasdis and `exclusive_rho==1` for Harut's files
+        Num_clasdis_gdf_sidis = 1.17679e+10
+        Num_lundrho_gdf       = 1.998e+07
         hh.Scale((Num_clasdis_gdf_sidis*0.2)/Num_lundrho_gdf)
-        return hh
-    else:
-        return hh
+    return hh
 
-def HistoName_Return(df_in, Return_Name_or_Histo="Name", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="el_smeared", Var_Y="elPhi_smeared", lundrho=False, Weighed="_(Weighed)"):
+
+def HistoName_Return(df_in, Return_Name_or_Histo="Name", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="el_smeared", Var_Y="elPhi_smeared", lundrho="", Weighed="_(Weighed)"):
     if((data not in ["mdf"]) or any(any(no_smear_var in vars for vars in [Var_X, Var_Y]) for no_smear_var in ["rho0", "Par_PID_pip", "pim_present"])):
         smear = "''" # Do not smear
         Var_X = Var_X.replace("_smeared", "")
@@ -120,8 +160,10 @@ def HistoName_Return(df_in, Return_Name_or_Histo="Name", data="mdf", cut="cut_Co
         if("_smeared" not in str(Var_Y)):
             Var_Y = f"{Var_Y}_smeared"
     name_to_find = f"(Normal_2D)_({data})_({cut})_(SMEAR={smear})_(Q2_y_z_pT_Bin_All)_({Var_X})_({Var_Y})"
-    if(lundrho):
+    if(lundrho not in [False, "", "False", "lundvpk"]):
         name_to_find = f"{name_to_find}_(lundrho)"
+    elif(lundrho not in [False, "", "False", "lundrho"]):
+        name_to_find = f"{name_to_find}_(lundvpk)"
     if(Weighed not in ['']):
         name_to_find = f"{name_to_find}{Weighed}" if("_(" in Weighed) else f"{name_to_find}_({Weighed})"
     if(name_to_find not in df_in.GetListOfKeys()):
@@ -194,11 +236,13 @@ def Return_Match_Vars(Input_Var="el", Input_Var_2D=None):
     if(Input_Var in ["MM", "W"]):
         return "MM", "W"
     if(Input_Var in ["phi_t"]):
-        return "phi_t", "phi_t"
+        return "phi_t", "exclusive_rho"
     if(Input_Var in ["rho0_parent"]):
         return "rho0_parent", "Par_PID_pip"
     if(Input_Var in ["Par_PID_pip", "pim_present"]):
         return "Par_PID_pip", "pim_present"
+    if(Input_Var in ["z1_plus_z2", "exclusive_rho"]):
+        return "z1_plus_z2", "exclusive_rho"
     return X_Var, Y_Var
 
 color_mapper  = {"1": ROOT.kRed, "2": ROOT.kBlue, "3": ROOT.kMagenta, "4": ROOT.kGreen, "5": ROOT.kOrange+3, "6": ROOT.kAzure+10, "7": ROOT.kOrange}
@@ -219,10 +263,10 @@ def legend_naming(names):
     source  = "Reconstructed MC" if("mdf" in str(names)) else "Generated MC" if("gdf" in str(names)) else "Experimental Data" if("rdf" in str(names)) else ""
     source2 = ""
     if("MC" in source):
-        source2 = "#rho^{0} Parent (Harut's Files)" if("lundrho" in names) else "clasdis SIDIS"
+        source2 = "#scale[0.8]{#rho^{0} Parent (Harut's New Files)}" if("lundvpk" in names) else "#rho^{0} Parent (Harut's Files)" if("lundrho" in names) else "clasdis SIDIS"
     return f"#splitline{{#scale[0.85]{{{source}}}}}{{#scale[0.65]{{{source2}}}}}"
 
-def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=range(1,18), Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=[False, True], Plot_Var="el", Plot_Orientation="z_pT", Draw_Type="rhoscale"):
+def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=range(1,18), Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS_Exclusive_rho"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=["", "lundrho", "lundvpk"], Plot_Var="el", Plot_Orientation="z_pT", Draw_Type="rhoscale"):
     Plot_Title   = variable_Title_name(Plot_Var) # Automatically adds the 'smearing' or 'gen' title as appropriate
     X_Var, Y_Var = Return_Match_Vars(Input_Var=Plot_Var, Input_Var_2D=None)
     All_z_pT_Canvas = {}
@@ -346,7 +390,7 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
         Kinematic_2D_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(2)
         Kinematic_2D_Pad.Divide(2, 1, 0.01, 0.01)
         Kinematic_2D_Pad.cd(1)
-        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho=False, Weighed="")
+        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
         if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
             All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
@@ -360,7 +404,7 @@ def Kinematic_1D_Compare_in_z_pT_Images_Together(rdf_in, args, Q2_Y_Bin_Range=ra
             for line in Q2_y_borders[Q2_Y_Bin_ii]:
                 line.Draw("same")
         Kinematic_2D_Pad.cd(2)
-        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho=False, Weighed="")
+        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
         if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
@@ -506,7 +550,7 @@ def Draw_Zoomed_Panels_For_Special_Vars(pad, histos_store, Min_Content, Max_Cont
     pad.Update()
     return True
 
-def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin="All", Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=[False, True], Plot_Var="el", Draw_Type="rhoscale"):
+def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin="All", Data_Compare=["mdf"], Cut_Compare=["cut_Complete_SIDIS_Exclusive_rho"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=["", "lundrho", "lundvpk"], Plot_Var="el", Draw_Type="rhoscale"):
     Plot_Title   = variable_Title_name(Plot_Var) # Automatically adds the 'smearing' or 'gen' title as appropriate
     X_Var, Y_Var = Return_Match_Vars(Input_Var=Plot_Var, Input_Var_2D=None)
     All_z_pT_Canvas = {}
@@ -586,13 +630,13 @@ def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin=
     Kinematic_2D_Pad.cd(1)
     plot_type = f"#color[{ROOT.kRed}]{{Reconstructed clasdis MC}}"
     if("mdf" in Data_Compare):
-        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho=False, Weighed="")
+        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
     elif("gdf" in Data_Compare):
         plot_type = f"#color[{ROOT.kGreen}]{{Generated clasdis MC}}"
-        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="gdf", cut="no_cut_Extra",             smear="''",    Var_X="Q2",         Var_Y="y",         lundrho=False, Weighed="")
+        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="gdf", cut="no_cut",             smear="''",    Var_X="Q2",         Var_Y="y",         lundrho="", Weighed="")
     else:
         plot_type = f"#color[{ROOT.kBlue}]{{Experimental Data}}"
-        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="rdf", cut="cut_Complete_SIDIS",       smear="''",    Var_X="Q2",         Var_Y="y",         lundrho=False, Weighed="")
+        Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="rdf", cut="cut_Complete_SIDIS_Exclusive_rho",       smear="''",    Var_X="Q2",         Var_Y="y",         lundrho="", Weighed="")
     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
     if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
         All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From {plot_type}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin if(str(Q2_Y_Bin) not in ['0']) else 'All'} #topbar z-P_{{T}} Bin {z_pT_Bin if(str(z_pT_Bin) not in ['0']) else 'All'}}}}}")
@@ -607,11 +651,11 @@ def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin=
             line.Draw("same")
     Kinematic_2D_Pad.cd(2)
     if("mdf" in Data_Compare):
-        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Extra", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho=False, Weighed="")
+        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
     elif("gdf" in Data_Compare):
-        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="gdf", cut="no_cut_Extra",             smear="''",    Var_X="z",         Var_Y="pT",         lundrho=False, Weighed="")
+        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="gdf", cut="no_cut",             smear="''",    Var_X="z",         Var_Y="pT",         lundrho="", Weighed="")
     else:
-        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="rdf", cut="cut_Complete_SIDIS",       smear="''",    Var_X="z",         Var_Y="pT",         lundrho=False, Weighed="")
+        Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=rdf_in, Return_Name_or_Histo="Hist", data="rdf", cut="cut_Complete_SIDIS_Exclusive_rho",       smear="''",    Var_X="z",         Var_Y="pT",         lundrho="", Weighed="")
     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From {plot_type}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin if(str(Q2_Y_Bin) not in ['0']) else 'All'} #topbar z-P_{{T}} Bin {z_pT_Bin if(str(z_pT_Bin) not in ['0']) else 'All'}}}}}")
     if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
@@ -642,6 +686,8 @@ def Kinematic_Compare_in_Individual_Bins(rdf_in, args, Q2_Y_Bin="All", z_pT_Bin=
             All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] = Slice_Histos_for_Plotting(rdf_in.Get(names), Var_Plot=Plot_Var, Q2y_Bin=Q2_Y_Bin, zpT_Bin=z_pT_Bin)
             if(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] is None):
                 continue
+            if("z1_plus_z2" in names):
+                All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].GetXaxis().SetRangeUser(0.01, 1.8)
             All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"] = lund_norm(All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"], Draw_Type)
             All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].SetLineColor(find_color(num+1))
             All_z_pT_Canvas[Save_Name].histos_store[f"{names}_Q2_Y_Bin_{Q2_Y_Bin}_z_pT_Bin_{z_pT_Bin}"].SetLineWidth(3 if("png" in args.File_Save_Format) else 1)
@@ -701,19 +747,25 @@ if(__name__ == "__main__"):
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
-    combined_file = Create_Combined_Memory_File(args.file1, args.file2, var_restrict=args.var)
+    if(args.use_same_file):
+        args.file2 = None
+        args.file3 = None
+        combined_file = ROOT.TFile.Open(args.file1, "READ")
+    else:
+        combined_file = Create_Combined_Memory_File(args.file1, args.file2, var_restrict=args.var, file_path_3=args.file3)
     args.timer.time_elapsed()
-    compare_to_lund = [False, True]       if(args.var not in ["rho0_parent", "Par_PID_pip"]) else [False]
-    data_compare    = [args.Data_Compare] if(args.var not in ["rho0_parent", "Par_PID_pip"]) else ["mdf", "gdf"]
+    # compare_to_lund = ["", "lundrho", "lundvpk"] if(args.var not in ["rho0_parent", "Par_PID_pip"]) else [""]
+    compare_to_lund = ["", "lundvpk"]            if(args.var not in ["rho0_parent", "Par_PID_pip"]) else [""]
+    data_compare    = [args.Data_Compare]        if(args.var not in ["rho0_parent", "Par_PID_pip"]) else ["mdf", "gdf"]
     if((getattr(args, "Q2_y_Bin_Individual", None) is None) and (getattr(args, "z_pT_Bin_Individual", None) not in ["All", "0", 0])):
         print(f"\n{color.BOLD}Running the {color.BBLUE}'Kinematic_1D_Compare_in_z_pT_Images_Together()'{color.END_B} function...{color.END}\n")
         run_range = range(1, 18) if(getattr(args, "Q2_y_Bin_Select", None) is None) else [args.Q2_y_Bin_Select]
-        Kinematic_1D_Compare_in_z_pT_Images_Together(combined_file, args, Q2_Y_Bin_Range=run_range,       Data_Compare=data_compare, Cut_Compare=["cut_Complete_SIDIS_Extra"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
+        Kinematic_1D_Compare_in_z_pT_Images_Together(combined_file, args, Q2_Y_Bin_Range=run_range,       Data_Compare=data_compare, Cut_Compare=["cut_Complete_SIDIS_Exclusive_rho"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
     else:
         print(f"\n{color.BOLD}Running the {color.BBLUE}'Kinematic_Compare_in_Individual_Bins()'{color.END_B} function...{color.END}\n")
         Input_Q2y = getattr(args, "Q2_y_Bin_Individual", "All") if(getattr(args, "Q2_y_Bin_Individual", "All") is not None) else "All"
         Input_zpT = getattr(args, "z_pT_Bin_Individual", "All") if(getattr(args, "z_pT_Bin_Individual", "All") is not None) else "All"
-        Kinematic_Compare_in_Individual_Bins(combined_file, args, Q2_Y_Bin=Input_Q2y, z_pT_Bin=Input_zpT, Data_Compare=data_compare, Cut_Compare=["cut_Complete_SIDIS_Extra"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
+        Kinematic_Compare_in_Individual_Bins(combined_file, args, Q2_Y_Bin=Input_Q2y, z_pT_Bin=Input_zpT, Data_Compare=data_compare, Cut_Compare=["cut_Complete_SIDIS_Exclusive_rho"], Smear_Compare=["smear"], Weighed_Compare=[""], lundrho_Compare=compare_to_lund, Plot_Var=args.var, Draw_Type="rhoscale")
     combined_file.Close()
     args.timer.stop()
     print("\nDone\n")

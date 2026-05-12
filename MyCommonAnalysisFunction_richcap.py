@@ -554,6 +554,8 @@ def variable_Title_name(variable):
         output  = "#phi_{#rho^{0}}"
     if(variable == "rho0_parent"):
         output  = "Parent PID of #rho^{0}"
+    if(variable == "rho0_grandparent"):
+        output  = "Grandparent PID of #rho^{0}"
     if("Par_PID" in variable):
         output  = "Parent PID of "
         if("el"  in variable):
@@ -578,8 +580,11 @@ def variable_Title_name(variable):
         output  = "Detected #pi^{-}"
     if(variable == "proton_present"):
         output  = "Detected Proton"
+    if(variable == "exclusive_rho"):
+        output  = "Conditions for Exclusive #rho^{0}"
+    if(variable == "z1_plus_z2"):
+        output  = "z_{1}+z_{2}"
 
-    
     if("Bin_4D" in variable):
         output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
     if("Bin_5D" in variable):
