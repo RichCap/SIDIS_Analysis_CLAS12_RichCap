@@ -456,17 +456,13 @@ def add_valerii_bins(rdf_in, var_type=""):
     rdf_tmp = rdf_tmp.Redefine(f"z_pT_Bin_Valerii{var_type}", f"""
     // Original Valerii scheme has 88 z-pT bins (8 z bins × 11 pT^2 bins). I keep only the inner z-bins (iz = 2..7) and pT^2 bins 1..10 for each of them, and reindex those surviving bins to be contiguous from 1..60.
     int bin_old = z_pT_Bin_Valerii{var_type};
-    if(bin_old <= 0){{
-        return 0;
-    }}
+    if(bin_old <= 0){{ return 0; }}
     // Decode (z index, pT index) in the original 8×11 layout
     int iz  = (bin_old - 1)/11 + 1; // 1..8
     int ipT = (bin_old - 1)%11 + 1; // 1..11
 
     // Migration bins in z (iz = 1 or 8) or in pT (ipT = 11) are mapped to 0
-    if((iz < 2) || (iz > 7) || (ipT < 1) || (ipT > 10)){{
-        return 0;
-    }}
+    if((iz < 2) || (iz > 7) || (ipT < 1) || (ipT > 10)){{ return 0; }}
 
     // Compact index: for each of the 6 kept z-bins (iz = 2..7) we have 10 pT bins (ipT = 1..10)
     // New index = ipT + 10*(iz - 2) ∈ [1,60]
@@ -474,38 +470,35 @@ def add_valerii_bins(rdf_in, var_type=""):
     return bin_new;""")
 
     rdf_tmp = rdf_tmp.Define(f"Q2_xB_z_pT_4D_Bin_Valerii{var_type}",  f"""
-    if((Q2_xB_Bin_Valerii{var_type} == 0) || (z_pT_Bin_Valerii{var_type} == 0)){{
-        return 0;
-    }}
+    if((Q2_xB_Bin_Valerii{var_type} == 0) || (z_pT_Bin_Valerii{var_type} == 0)){{ return 0; }}
     // After compaction there are 60 z-pT bins per physical Q2-xB bin
     int Q2_xB_z_pT_4D_Bin_Valerii_temp = z_pT_Bin_Valerii{var_type} + ((Q2_xB_Bin_Valerii{var_type} - 1) * 60);
     return Q2_xB_z_pT_4D_Bin_Valerii_temp; // Has up to 960+1 total bins 
     """)
 
     rdf_tmp = rdf_tmp.Define(f"Q2_xB_phi_t_3D_Bin_Valerii{var_type}",  f"""
-    if(Q2_xB_Bin_Valerii{var_type} == 0){{
-        return 0;
-    }}
+    if(Q2_xB_Bin_Valerii{var_type} == 0){{ return 0; }}
     int Q2_xB_phi_t_3D_Bin_Valerii_temp = {phi_t_col}_Bin;
     Q2_xB_phi_t_3D_Bin_Valerii_temp = Q2_xB_phi_t_3D_Bin_Valerii_temp + ((Q2_xB_Bin_Valerii{var_type} - 1) * 24);
     return Q2_xB_phi_t_3D_Bin_Valerii_temp; // Has up to 384+1 total bins 
     """)
     
     rdf_tmp = rdf_tmp.Define(f"z_pT_phi_t_3D_Bin_Valerii{var_type}",  f"""
-    if(z_pT_Bin_Valerii{var_type} == 0){{
-        return 0;
-    }}
+    if(z_pT_Bin_Valerii{var_type} == 0){{ return 0; }}
     int z_pT_phi_t_3D_Bin_Valerii_temp = {phi_t_col}_Bin;
     z_pT_phi_t_3D_Bin_Valerii_temp = z_pT_phi_t_3D_Bin_Valerii_temp + ((z_pT_Bin_Valerii{var_type} - 1) * 24);
     return z_pT_phi_t_3D_Bin_Valerii_temp; // Has up to 1440+1 total bins (60 z-pT × 24 φ-bins)
     """)
 
+    # Changed as of 5/12/2026
     rdf_tmp = rdf_tmp.Define(f"Q2_xB_z_pT_phi_t_5D_Bin_Valerii{var_type}",  f"""
-    if((Q2_xB_Bin_Valerii{var_type} == 0) || (z_pT_Bin_Valerii{var_type} == 0)){{
-        return 0;
-    }}
-    int Q2_xB_z_pT_phi_t_5D_Bin_Valerii_temp = {phi_t_col}_Bin + ((Q2_xB_z_pT_4D_Bin_Valerii{var_type} - 1) * 24);
-    return Q2_xB_z_pT_phi_t_5D_Bin_Valerii_temp; // Has up to 23040+1 total bins (16 × 60 × 24)
+    int Num_PHI_BINS = 12;
+    double bin_size  = 360.0/Num_PHI_BINS;
+    int PHI_BIN      = (int)({phi_t_col}/bin_size) + 1;
+    if({phi_t_col} == 360.0){{PHI_BIN = Num_PHI_BINS;}} // Include 360 in the last phi_h bin
+    if((Q2_xB_Bin_Valerii{var_type} == 0) || (z_pT_Bin_Valerii{var_type} == 0)){{ return 0; }}
+    int Q2_xB_z_pT_phi_t_5D_Bin_Valerii_temp = PHI_BIN + ((Q2_xB_z_pT_4D_Bin_Valerii{var_type} - 1) * Num_PHI_BINS);
+    return Q2_xB_z_pT_phi_t_5D_Bin_Valerii_temp; // Has up to 23040+1 total bins (16 × 60 × 24) — 11520+1 bins if(Num_PHI_BINS == 12)
     """)
 
     return rdf_tmp

@@ -92,7 +92,7 @@ def parse_args():
     parser.add_argument('-nb', '--num_batches',
                         type=int,
                         default=171,
-                        help="Number of normal batches to create. Last batch will be reserved for lundrho-MC files.\n")
+                        help="Number of normal batches to create. The last 2 batches will be reserved for lundrho- and lundvpk-MC files.\n")
 
     # Directories
     parser.add_argument('-wd', '--work_dir',
@@ -362,20 +362,23 @@ def make_batches_mode(args):
         Crash_Report(args, crash_message=f"{color.Error}No RDF files found - cannot generate batches.{color.END}")
     # Determine number of normal batches
     num_normal_batches = max(1, args.num_batches if(getattr(args, "num_batches", len(rdf_files)) < len(rdf_files)) else len(rdf_files))
-    # Separate LUND files (lowercase "lund" anywhere in filename) from both MDF and GDF
-    lund_mdf   = [f for f in mdf_files if("lundvpk" in os.path.basename(f).lower())]
-    lund_gdf   = [f for f in gdf_files if("lundvpk" in os.path.basename(f).lower())]
-    normal_mdf = [f for f in mdf_files if((f not in lund_mdf) and ("lund" not in os.path.basename(f).lower()))]
-    normal_gdf = [f for f in gdf_files if((f not in lund_gdf) and ("lund" not in os.path.basename(f).lower()))]
-    # Split normal files evenly across the first (N-1) batches
-    num_normal = max(1, num_normal_batches - 1)
+    # Separate LUND files from both MDF and GDF
+    lundvpk_mdf   = [f for f in mdf_files if("lundvpk" in os.path.basename(f).lower())]
+    lundvpk_gdf   = [f for f in gdf_files if("lundvpk" in os.path.basename(f).lower())]
+    lundrho_mdf   = [f for f in mdf_files if("lundrho" in os.path.basename(f).lower())]
+    lundrho_gdf   = [f for f in gdf_files if("lundrho" in os.path.basename(f).lower())]
+    normal_mdf    = [f for f in mdf_files if(((f not in lundvpk_mdf) and (f not in lundrho_mdf)) and ("lund" not in os.path.basename(f).lower()))]
+    normal_gdf    = [f for f in gdf_files if(((f not in lundvpk_gdf) and (f not in lundrho_gdf)) and ("lund" not in os.path.basename(f).lower()))]
+    # Split normal files evenly across the first (N-2) batches
+    num_normal = max(1, num_normal_batches - 2)
     rdf_chunks = split_evenly(rdf_files,  num_normal_batches)
     mdf_chunks = split_evenly(normal_mdf, num_normal)
     gdf_chunks = split_evenly(normal_gdf, num_normal)
-    # LUND batch goes at the end (batch N)
-    lund_batch_num = num_normal_batches
-    lund_mdf_batch = {lund_batch_num: [os.path.abspath(f) for f in lund_mdf]}
-    lund_gdf_batch = {lund_batch_num: [os.path.abspath(f) for f in lund_gdf]}
+    # LUND batch goes at the end (batch N-1, and N)
+    lund_mdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_mdf],
+                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_mdf]}
+    lund_gdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_gdf],
+                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_gdf]}
     def to_absolute(flist):
         return [os.path.abspath(f) for f in flist]
     rdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(rdf_chunks) if(chunk)}
@@ -389,17 +392,18 @@ def make_batches_mode(args):
         f.write("rdf_batch = {}\n".format(rdf_batch))
         f.write("mdf_batch = {}\n".format(mdf_batch))
         f.write("gdf_batch = {}\n".format(gdf_batch))
-        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + 1 LUND-only) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lund_mdf)} LUND_GDF:{len(lund_gdf)}\n")
+        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + 2 LUND-only) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lundvpk_mdf)}/{len(lundrho_mdf)} (lundvpk/lundrho) LUND_GDF:{len(lundvpk_gdf)}/{len(lundrho_gdf)} (lundvpk/lundrho)\n")
     # Update args for reporting
     args.rdf_per_batch =  len(rdf_files) // num_normal_batches if(num_normal_batches > 0) else 0
-    args.mc_per_batch  = len(normal_mdf) // num_normal         if(num_normal > 0) else 0
+    args.mc_per_batch  = len(normal_mdf) // num_normal         if(num_normal         > 0) else 0
     args.num_batches   = num_normal_batches
     Update_Email(args, update_message=f"""
 {color.BGREEN}Successfully generated {color.END_B}{args.batch_file}{color.BGREEN} with {color.END_B}{num_normal_batches}{color.BGREEN} batches.{color.END}
-   Normal batches : {num_normal}
-   RDF files      : {len(rdf_files)} ({args.rdf_per_batch} per normal batch)
-   Normal MDF/GDF : {len(normal_mdf)} ({args.mc_per_batch} per normal batch)
-   LUND MDF/GDF   : {len(lund_mdf)}""", verbose_override=True, no_time=True)
+   Normal batches  : {num_normal}
+   RDF files       : {len(rdf_files)} ({args.rdf_per_batch} per normal batch)
+   Normal MDF/GDF  : {len(normal_mdf)} ({args.mc_per_batch} per normal batch)
+   lundvpk MDF/GDF : {len(lundvpk_mdf)}
+   lundrho MDF/GDF : {len(lundrho_mdf)}""", verbose_override=True, no_time=True)
     Construct_Email(args)
 
 def build_main_command(args, batch_id, output_dir):
@@ -426,19 +430,17 @@ def build_main_command(args, batch_id, output_dir):
         cmd.extend(["--spline_file", args.spline_weight_file])
     if(args.hpp_weight_file and args.use_hpp):
         cmd.extend(["--hpp_input_file", args.hpp_weight_file])
-
-    name_for_batch = f"{args.name}_{args.name_in}_Batch{batch_id:03d}" if(args.name) else f"{args.name_in}_Batch{batch_id:03d}"
+    batch_str = f"{batch_id:03d}" if(isinstance(batch_id, int)) else str(batch_id)
+    name_for_batch = f"{args.name}_{args.name_in}_Batch{batch_str}" if(args.name) else f"{args.name_in}_Batch{batch_str}"
+    # name_for_batch = f"{args.name}_{args.name_in}_Batch{int(batch_id):03d}" if(args.name) else f"{args.name_in}_Batch{int(batch_id):03d}"
     name_for_batch = name_for_batch.replace("*",     "")
     name_for_batch = name_for_batch.replace(".root", "")
     cmd.extend(["-n", name_for_batch])
     cmd.extend(["-r", os.path.join(output_dir, args.root)])
-
     if(args.email_message_job):
-        cmd.extend(["-em", args.email_message_job])
-
+        cmd.extend(["-em", f'"{args.email_message_job}"'])
     if(args.extra):
         cmd.extend(args.extra)
-
     return cmd
 
 
@@ -606,7 +608,7 @@ def run_slurm_mode(args):
         f.write("#SBATCH --account=clas12\n")
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
-        f.write(f"#SBATCH --array=1-{num_batches}\n\n")
+        f.write(f"#SBATCH --array=1-{num_batches}%40\n\n")
         f.write(f'BATCH_ID=${{SLURM_ARRAY_TASK_ID}}\n')
         f.write(f'cd {batch_output_dir}\n')
         cmd_parts = build_main_command(args, "${BATCH_ID}", batch_output_dir)

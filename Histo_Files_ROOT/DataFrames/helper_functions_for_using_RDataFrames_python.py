@@ -257,7 +257,7 @@ def apply_background_filter(Histo_Data, Histo_Group, base_filter):
     current_filter = base_filter
     if(str(Background_Cuts_MC) not in ["", "ERROR"]):
         if("Background" in Histo_Group):
-            current_filter = f"({current_filter}) && ({Background_Cuts_MC})" if(current_filter not in [""]) else f"({Background_Cuts_MC})"
+            current_filter = f"({current_filter}) &&  ({Background_Cuts_MC})" if(current_filter not in [""]) else  f"({Background_Cuts_MC})"
         else:
             current_filter = f"({current_filter}) && !({Background_Cuts_MC})" if(current_filter not in [""]) else f"!({Background_Cuts_MC})"
             if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in current_filter)):
@@ -268,7 +268,6 @@ def apply_background_filter(Histo_Data, Histo_Group, base_filter):
     elif(str(Background_Cuts_MC) in ["ERROR"]):
         print(f"\n\n{color.Error}ERROR IN BG_Cut_Function(dataframe={Histo_Data}).\n\t{color.END_R}Check ExtraAnalysisCodeValues.py for details{color.END}\n\n")
     return current_filter
-
 
 
 def _filter_fieldnames(Histo_Smear, Ver="Y_bin"):
@@ -287,14 +286,18 @@ def _guard_datatype_and_smear(Histo_Data, Histo_Smear):
     return True
 
 
-def _guard_gdf_cut(Histo_Data, Histo_Cut):
+def _guard_gdf_cut(Histo_Data, Histo_Cut, args_in=None):
     if(Histo_Data != "gdf"):
         return True
     allowed = (["no_cut", "cut_Gen", "cut_Exgen", "no_cut_Integrate", "no_cut_Extra"] + [f"no_cut_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")] + [f"no_cut_Integrate_eS{n}{s}" for n in range(1, 7) for s in ("a", "o")])
+    allowed.extend(f"no_cut_{rho}{extra}" for rho in ["Remove_rho", "Require_rho", "Exclusive_rho", "Non_Exclusive_rho"] for extra in ["", "_Extra"])
     if(Histo_Cut in allowed):
         return True
-    print(f"{color.Error}SKIP:{color.END_R} cut '{Histo_Cut}' is not allowed for gdf{color.END}")
-    return False
+    if(getattr(args_in, "email_message", None) is not None):
+        args_in.email_message = f"{args.email_message}\n{color.Error}WARNING - SHOULD HAVE SKIPPED:{color.END_R} cut '{Histo_Cut}' is not allowed for gdf{color.END} — Will run anyway just in case...\n"
+    print(f"{color.Error}WARNING - SHOULD HAVE SKIPPED:{color.END_R} cut '{Histo_Cut}' is not allowed for gdf{color.END} — Will run anyway just in case...")
+    return True
+    # return False
 
 
 def _guard_rm_group_background(Histo_Group, Histo_Data):
@@ -321,34 +324,30 @@ def _write_and_tick(obj, key, file_location, output_type):
 # --- 5D Response Matrix: make exactly one request (single variable setup, one Histo_Group at a time) ---
 
 # def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Q2_y_z_pT_phi_h_5D_Binning, Use_Weight, Sliced_5D_Increment, Histograms_All, file_location, output_type):
-def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Q2_y_z_pT_phi_h_5D_Binning, Use_Weight, Sliced_5D_Increment, Histograms_All, custom_title=None):
+def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Q2_y_z_pT_phi_h_5D_Binning, Use_Weight, Sliced_5D_Increment, Histograms_All, custom_title=None, custom_tag=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(("EDIS" in Histo_Cut)):
         return Histograms_All
     if(not _guard_rm_group_background(Histo_Group, Histo_Data)):
         return Histograms_All
-
     variable, Min_range, Max_range, Num_of_Bins = Q2_y_z_pT_phi_h_5D_Binning
     if(("smear" in Histo_Smear) and ("mear" not in variable)):
         variable = f"{variable}_smeared"
     var_title = variable_Title_name(variable)
     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Q2_y_z_pT_phi_h_5D_Binning, Histo_Var_D2="None")
-
     Histo_Binning_Name = f"Binning-Type:'{Binning}'-[Q2-{'y' if('Valerii' not in Binning) else 'xB'}-Bin:All, z-PT-Bin:All]"
     Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name = build_group_tags(Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Histo_Binning_Name)
-
     base_title, rec_title_mdf = build_titles_5d(Histo_Group, Histo_Data, var_title, num_bins_text=Num_of_Bins, custom_line=custom_title, Ver=Binning)
-
     Histo_Name    = finalize_histo_name(   (Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name)
     Histo_Name_1D = finalize_histo_name_1d((Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name, Histo_Group)
-
+    if(custom_tag is not None):
+        Histo_Name    = f"{Histo_Name}_({custom_tag})"
+        Histo_Name_1D = f"{Histo_Name_1D}_({custom_tag})"
     Variable_Gen = f"{variable.replace('_smeared', '')}_gen"
     Variable_Rec = variable
-
     base_filter = "esec != -2"
     Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter)
-
     if(Histo_Data not in ["rdf", "gdf"]):
         if("Background" not in Histo_Group):
             Start_Bin = Min_range
@@ -365,18 +364,6 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
         Histograms_All[Histo_Name_1D] = sdf.Filter(Background_Filter).Histo1D((str(Histo_Name_1D), str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title), int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), "Event_Weight")
     else:
         Histograms_All[Histo_Name_1D] = sdf.Filter(Background_Filter).Histo1D((str(Histo_Name_1D), str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title), int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
-        
-    # _write_and_tick(Histograms_All, Histo_Name_1D, file_location, output_type)
-    # # print(Histo_Name_1D)
-    # if((Histo_Data in ["mdf"]) and ("Background" not in Histo_Group)):
-    #     Start_Bin = Min_range
-    #     Num_Slice = int(Num_of_Bins/Sliced_5D_Increment)
-    #     for Slice in range(1, Num_Slice + 1):
-    #         Histo_Name_Slice = f"{Histo_Name}_Slice_{Slice}_(Increment='{Sliced_5D_Increment}')"
-    #         _write_and_tick(Histograms_All, Histo_Name_Slice, file_location, output_type)
-    #         # print(Histo_Name_Slice)
-    #         Start_Bin += Sliced_5D_Increment
-
     return Histograms_All
 
 
@@ -786,10 +773,8 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         return Histograms_All
     if(("EDIS" in Histo_Cut)):
         return Histograms_All
-
     if(len(Var_Input) == 4):
         Var_List = Var_Input[:]
-
     variable, Min_range, Max_range, Num_of_Bins = Var_List
     if(("smear" in Histo_Smear) and ("mear" not in variable)):
         variable = f"{variable}_smeared"
@@ -800,30 +785,21 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     BIN_SIZE   = round((Max_range - Min_range)/Num_of_Bins, 4)
     use_normal = (Histo_Group == "Response_Matrix_Normal")
     Bin_Range  = f"Number of Bins: {Num_of_Bins} - Range (from Bin 1-{Num_of_Bins}): {Min_range} #rightarrow {Max_range} - Size: {BIN_SIZE} per bin" if(not use_normal) else f"Range: {Min_range} #rightarrow {Max_range} - Size: {BIN_SIZE} per bin"
-
     Histo_Var_RM_Name = Dimension_Name_Function(Histo_Var_D1=Var_List, Histo_Var_D2=Res_Binning_2D_z_pT)
-
     sdf = Bin_Number_Variable_Function(sdf, Variable=variable, min_range=Min_range, max_range=Max_range, number_of_bins=Num_of_Bins, DF_Type=Histo_Data)
     if(sdf == "continue"):
         return Histograms_All
-
     Q2_xB_Bin_Filter_str, z_pT_Bin_Filter_str = _filter_fieldnames(Histo_Smear, Ver=Binning)
-    # if((Q2_y_bin_num > 0) and ((Q2_xB_Bin_Filter_str in variable) or (("Bin" in variable) and ("Multi_Dim_z_pT_Bin" not in variable) and ("MultiDim_z_pT_Bin" not in variable)))):
-    #     return Histograms_All
-
     Histo_Binning = [Binning, "All" if(Q2_y_bin_num == -1) else str(Q2_y_bin_num), "All"]
     Histo_Binning_Name = f"Binning-Type:'{Histo_Binning[0]}'-[Q2-{'y' if('Valerii' not in Binning) else 'xB'}-Bin:{Histo_Binning[1]}, z-PT-Bin:{Histo_Binning[2]}]"
     Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name = build_group_tags(Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Histo_Binning_Name)
-
     Histo_Name    =    finalize_histo_name((Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name)
     Histo_Name_1D = finalize_histo_name_1d((Histo_Group_Name, Histo_Data_Name, Histo_Cut_Name, Histo_Smear_Name, Histo_Binning_Name), Histo_Var_RM_Name, Histo_Group)
     if(custom_tag is not None):
         Histo_Name    = f"{Histo_Name}_({custom_tag})"
         Histo_Name_1D = f"{Histo_Name_1D}_({custom_tag})"
-
-    # Cut_Line_l2 = f"#scale[1.15]{{Cut: {Cut_Choice_Title(Cut_Type=Histo_Cut)}}}"
     Cut_Line_l2 = f"#scale[1.15]{{Cut: {Cut_Flag_to_Title(cut_flag=Histo_Cut)}}}"
-    Bin_Line_l4 = f"Q^{{2}}-{'y' if('Valerii' not in Binning) else 'xB'} Bin: {Histo_Binning[1]}" # if(Q2_y_bin_num > 0) else ""
+    Bin_Line_l4 = f"Q^{{2}}-{'y' if('Valerii' not in Binning) else 'xB'} Bin: {Histo_Binning[1]}"
     var_t = variable_Title_name(variable)
     if((Histo_Group    == "Response_Matrix") and (("Combined_" not in variable) and ("Multi_Dim" not in variable) and ("MultiDim" not in variable) and ("Q2_y_z_pT_4D_Bins" not in variable) and ("Valerii" not in variable))):
         num_of_REC_bins, min_REC_bin, Max_REC_bin = (Num_of_Bins + 5), -1.5, (Num_of_Bins + 3.5)
@@ -852,13 +828,11 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     if((("Combined" in variable) or ("Multi_Dim" in variable) or ("MultiDim" in variable)) and (Q2_xB_Bin_Filter_str.replace("_smeared","") in variable)):
         extra = f"{Q2_xB_Bin_Filter_str.replace('_smeared','').replace('_gen','')}_gen != 0" if(Histo_Data in ["mdf", "gdf"]) else ""
         Bin_Filter = f"({Bin_Filter}) && ({Q2_xB_Bin_Filter_str} != 0{f' && {extra})' if(extra != '') else ')'}"
-
     if(Use_Weight):
         Histo_Name_Weighed = f"{Histo_Name}_(Weighed)"
         Histo_Name_1D_Weighed = f"{Histo_Name_1D}_(Weighed)"
     else:
         Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
-
     Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter)
     sdf_cut = sdf.Filter(Bin_Filter)
     # print(f"Histo_Group = {Histo_Group}")
@@ -892,21 +866,6 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
                 title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
                 Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), title_weight, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
             Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-
-    # # targets = []
-    # # if(Histo_Name in Histograms_All):
-    # #     targets.append(Histo_Name)
-    # # if(Histo_Name_1D in Histograms_All):
-    # #     targets.append(Histo_Name_1D)
-    # if(Histo_Name_Weighed in Histograms_All):
-    # #     targets.append(Histo_Name_Weighed)
-    #     Histograms_All[Histo_Name_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_Weighed].GetTitle()}}}{{Weighted}}")
-    # if(Histo_Name_1D_Weighed in Histograms_All):
-    # #     targets.append(Histo_Name_1D_Weighed)
-    #     Histograms_All[Histo_Name_1D_Weighed].SetTitle(f"#splitline{{{Histograms_All[Histo_Name_1D_Weighed].GetTitle()}}}{{Weighted}}")
-    # # for key in targets:
-    # #     # _write_and_tick(Histograms_All, key, file_location, output_type)
-    # #     safe_write(obj=Histograms_All[key], tfile=file_location)
     return Histograms_All
 
 
@@ -914,10 +873,8 @@ def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"):
     if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
         print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function Multi_Bin_Standard_Def_Function(Variable_Type='{Variable_Type}').\nFix input to use anything other than the default calculations of z and pT.")
         Variable_Type  = ""
-        
     Q2_xB_Bin_event_name = "".join(["Q2_Y_Bin",       "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
     z_pT_Bin_event_name  = "".join(["z_pT_Bin_Y_bin", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
-
     z_pT_Bin_Standard_Def = "".join([str(New_z_pT_and_MultiDim_Binning_Code), """
 double z_event_val  =  z""", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
 double pT_event_val = pT""", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
@@ -958,14 +915,13 @@ return MultiDim5D_Bin_val;
 """ if(Dimension in ["5D"]) else """
 return z_pT_Bin_event_val;
 """])
-    
     return z_pT_Bin_Standard_Def
 
 
-def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None):
+def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None, args_in=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
-    if(not _guard_gdf_cut(Histo_Data, Histo_Cut)):
+    if(not _guard_gdf_cut(Histo_Data, Histo_Cut, args_in)):
         return Histograms_All
     if(not _guard_rm_group_background(Histo_Group, Histo_Data)):
         return Histograms_All
