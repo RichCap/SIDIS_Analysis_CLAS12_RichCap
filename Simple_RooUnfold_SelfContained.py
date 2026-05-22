@@ -30,12 +30,7 @@ def parse_args():
     p.add_argument('-t', '-ns', '--test', '--time', '--no-save',
                    action='store_true',
                    dest='test',
-                   help="Run full code but without saving any files.")
-    p.add_argument('-r', '--root',
-                   type=str,
-                   default="Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root",
-                   help="Name of ROOT output file to be saved (must specify the FULL file name).\n")
-    
+                   help="Run full code but without saving any files.")    
     p.add_argument('-v', '--verbose',
                    action='store_true',
                    help="Verbose print mode.")
@@ -45,7 +40,7 @@ def parse_args():
     grp_smear.add_argument('-smear', '--smear',
                            action='store_true',
                            help="Unfold with smeared Monte Carlo only.")
-    grp_smear.add_argument('-no-smear', '--no-smear',
+    grp_smear.add_argument('-nos', '--no_smear',
                            action='store_true',
                            help="Unfold with unsmeared Monte Carlo only.")
 
@@ -53,34 +48,34 @@ def parse_args():
     p.add_argument('-wa', '--weighed_acceptance',
                    action='store_true',
                    dest='weighed_acceptance',
-                   help=f"Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only.\n{color.RED}WARNING:{color.END} This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).")
+                   help=f"Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only.\n{color.RED}WARNING:{color.END} This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).\n")
     p.add_argument('-sim', '--simulation',
                    action='store_true',
                    dest='sim',
-                   help="Use reconstructed MC instead of experimental data.")
+                   help="Use reconstructed MC instead of experimental data.\n")
     p.add_argument('-mod', '--modulation',
                    action='store_true',
                    dest='mod',
-                   help="Use modulated MC files to create response matrices.")
+                   help="Use modulated MC files to create response matrices.\n")
     p.add_argument('-close', '--closure', 
                    action='store_true',
                    dest='closure',
-                   help="Run Closure Test (unfold modulated MC with itself).")
+                   help="Run Closure Test (unfold modulated MC with itself).\n")
 
     # fitting / output control
     p.add_argument('-f', '-fit', '--fit',
                    action='store_true',
                    dest='fit',
-                   help="Enable fitting of plots. (Defaults to no fits)")
+                   help="Enable fitting of plots. (Defaults to no fits)\n")
     
     p.add_argument('-rf', '-nf', '--remake_fit',
                    action='store_true',
                    dest='remake_fit',
-                   help="Forces fitting of plots even if fits were already made (to be used with the '--Use_TTree' option).")
+                   help="Forces fitting of plots even if fits were already made (to be used with the '--Use_TTree' option).\n")
     
     p.add_argument('-N', '-csn', '--CrossSection_Norm',
                    action='store_true',
-                   help="Apply Cross Section Normalization before fitting.\nNormalization includes division by bin width.")
+                   help="Apply Cross Section Normalization before fitting.\nNormalization includes division by bin width.\n")
 
     # kinematic comparison & proton modes
     p.add_argument('-tp', '--tag-proton', 
@@ -94,23 +89,23 @@ def parse_args():
 
     p.add_argument('-cib', '-CIB', '--Common_Int_Bins',
                    action='store_true',
-                   help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins).\nOtherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.")
+                   help="If given then the code will only run the z-pT bins that have been designated to share the same ranges of z-pT (given by Common_Ranges_for_Integrating_z_pT_Bins).\nOtherwise, the code will run normally and include all z-pT bins for the given Q2-y bin.\n")
 
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations',
                    type=int,
-                   help="Number of Bayesian Iterations performed while Unfolding.\nDefaults to pre-set values in the code, but this argument allows them to be overwritten automatically.")
+                   help="Number of Bayesian Iterations performed while Unfolding.\nDefaults to pre-set values in the code, but this argument allows them to be overwritten automatically.\n")
 
     p.add_argument('-nt', '-ntoys', '--Num_Toys',
                    type=int,
                    default=500,
-                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...)).")
+                   help="Number of Toys used to estimate the unfolding errors (used with Unfolding_Histo.SetNToys(...)).\n")
 
     p.add_argument('-u1D', '--unfolding_1D',
                    action='store_true',
-                   help="Run 1D unfolding only. Will still run normally as long as the `--unfolding_3D` is not passed.")
+                   help="Run 1D unfolding only. Will still run normally as long as the `--unfolding_3D` is not passed.\n")
     p.add_argument('-u3D', '--unfolding_3D',
                    action='store_true',
-                   help="Run 3D unfolding only. Will still run normally as long as the `--unfolding_1D` is not passed.")
+                   help="Run 3D unfolding only. Will still run normally as long as the `--unfolding_1D` is not passed.\n")
     
     p.add_argument('-um', '--Unfold_Methods',
                    nargs="+",
@@ -132,38 +127,43 @@ def parse_args():
                    
     p.add_argument('-ti', '-title', '--title',
                    type=str,
-                   help="Adds an extra title to the histograms.")
+                   help="Adds an extra title to the histograms.\n")
 
     p.add_argument('-evgen', '--EvGen',
                    action='store_true',
-                   help="Runs with EvGen instead of clasdis files.")
+                   help="Runs with EvGen instead of clasdis files.\n")
 
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut',
                    type=float,
                    default=0.0005,
-                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding).")
+                   help="Cut made on acceptance (as the minimum acceptance before a bin is removed from unfolding).\n")
 
     p.add_argument('-e', '--email',
                    action='store_true',
-                   help="Sends an email to user when done running.")
+                   help="Sends an email to user when done running.\n")
     
     p.add_argument('-em', '--email_message',
                    type=str,
                    default="",
-                   help="Extra email message to be added when given (use with `--email`).")
+                   help="Extra email message to be added when given (use with `--email`).\n")
 
     p.add_argument('-sfin', '--single_file_input',
                    type=str,
                    default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrder.root",
-                   help="Path to the Input file.\n")
+                   help=f"{color.BOLD}Path to the {color.BLUE}{color.BUNDERLINE}INPUT{color.END_B} file.{color.END}\n")
+
+    p.add_argument('-r', '--root',
+                   type=str,
+                   default="Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root",
+                   help=f"{color.BOLD}Name of ROOT {color.BLUE}{color.BUNDERLINE}OUTPUT{color.END_B} file to be saved (must specify the FULL file name).{color.END}\n")
     
     p.add_argument('-ut', '--Use_TTree',
                    action='store_true',
-                   help="Load pre-made ROOT file (post-unfolding) for faster fits+RC Corrections. Control with the '--root' argument.")
+                   help=f"Load pre-made ROOT file ({color.BUNDERLINE}post-unfolding{color.END}) for faster fits+RC Corrections. Control with the '--root' argument.\n")
     
     p.add_argument('-rc', '--Apply_RC',
                    action='store_true',
-                   help="Apply RC Corrections.")
+                   help="Apply RC Corrections.\n")
     
     p.add_argument('-bc', '--Apply_BC',
                    action='store_true',
@@ -171,11 +171,11 @@ def parse_args():
     
     p.add_argument('-au', '--Add_Uncertainties',
                    action='store_true',
-                   help="Adds systematic uncertainties to histograms before fitting.")
+                   help="Adds systematic uncertainties to histograms before fitting.\n")
 
     p.add_argument('-sj', '--save_json',
                    action="store_true",
-                   help="Save Fit Parameters to JSON file.")
+                   help="Save Fit Parameters to JSON file.\n")
     
     p.add_argument('-oj', '--old_json',
                    action='store_true',
@@ -185,7 +185,7 @@ def parse_args():
     p.add_argument('bins',
                    nargs='*',
                    metavar='BIN',
-                   help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.")
+                   help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.\n")
 
     return p.parse_args()
 

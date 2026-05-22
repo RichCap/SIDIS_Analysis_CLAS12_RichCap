@@ -1431,7 +1431,8 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
             y_min, y_max = y_ranges[y_par]
         else:
             if(str(y_par) == "Fit_Par_B"):
-                y_min, y_max = -0.8, 0.125
+                # y_min, y_max = -0.8, 0.125
+                y_min, y_max = -0.2, 0.125
             elif(str(y_par) == "Fit_Par_C"):
                 y_min, y_max = -0.3, 0.25
             else:
@@ -1481,7 +1482,10 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
                 gr_spline[y_par][Line].SetPoint(ip, float(xx), float(yy))
                 if(str(y_par) not in ["Fit_Par_B", "Fit_Par_C"]):
                     y_min = min([y_min, yy, 0.8*yy, 1.2*yy])
+                    y_min = 0
                     y_max = max([y_max, yy, 0.8*yy, 1.2*yy])
+                elif(str(y_par) in ["Fit_Par_B"]):
+                    y_min = -0.2
             # Color from your existing mapper
             color_index = Line_Num % len(color_mapper)
             color_gr = color_mapper[str(color_index + 1)] if(str(color_index + 1) in color_mapper) else ROOT.kRed
@@ -1569,7 +1573,8 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
                 if(f"{y_par}_bins_{ii}" not in line_bins):
                     line_bins[f"{y_par}_bins_{ii}"] = ROOT.TLine(Bin_centers[ii], y_min, Bin_centers[ii], y_max)
                     color_ii = (int(ii)%len(color_mapper)) + 1
-                    line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(color_mapper[str(color_ii)], 0.45)
+                    # line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(color_mapper[str(color_ii)], 0.45)
+                    line_bins[f"{y_par}_bins_{ii}"].SetLineColorAlpha(ROOT.kGray+2, 0.45)
                     line_bins[f"{y_par}_bins_{ii}"].SetLineWidth(2 if("pdf" not in str(args.formats)) else 1)
                 pad_graph.cd()
                 line_bins[f"{y_par}_bins_{ii}"].Draw("SAME")

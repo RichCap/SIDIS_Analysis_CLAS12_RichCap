@@ -1223,6 +1223,7 @@ def Plot_BC_Subbin_Inputs_From_JSON(args, main_pad=None, save_plot=True, q2_y_bi
     # Draw both on the same pad
     h_ave.Draw("E1")
     h_center.Draw("E1 SAME")
+    # h_center.Draw("E1 SAME text")
 
     leg = None
     if(draw_legend):

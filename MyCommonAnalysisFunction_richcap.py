@@ -582,8 +582,18 @@ def variable_Title_name(variable):
         output  = "Detected Proton"
     if(variable == "exclusive_rho"):
         output  = "Conditions for Exclusive #rho^{0}"
+    if(variable == "exclusive_rho_full"):
+        output  = "(Full) Conditions for Exclusive #rho^{0}"
+    if(variable == "exclusive_rho_individual"):
+        output  = "(Individual) Conditions for Exclusive #rho^{0}"
     if(variable == "z1_plus_z2"):
         output  = "z_{1}+z_{2}"
+    if(variable == "W_pippim"):
+        output  = "Invariant Mass of Pions"
+    if(variable == "MM_pippim"):
+        output  = "MM_{ep#rightarrowe#pi^{+}#pi^{-}(X)}"
+    if(variable == "MM_pippimpro"):
+        output  = "MM_{ep#rightarrowep#pi^{+}#pi^{-}}"
 
     if("Bin_4D" in variable):
         output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])

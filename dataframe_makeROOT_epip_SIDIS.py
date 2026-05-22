@@ -1074,16 +1074,24 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     if({particle_extra}Phi{bank} < 0){{{particle_extra}Phi{bank} += 360;}}
                 }}
                 return {particle_extra}Phi{bank}; """)
+
                 if(particle_extra in ['pim']):
                     Full_pim_kinematics = f"""
-                    auto fe          = dppC(ex, ey, ez, esec, 0, {"0" if(("gen" in str(bank)) or (not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4")}) + 1;
-                    auto beam        = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
-                    auto targ        = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
-                    auto ele{bank}   = ROOT::Math::PxPyPzMVector(ex{bank}*fe, ey{bank}*fe, ez{bank}*fe, 0);
-                    auto pim0{bank}  = ROOT::Math::PxPyPzMVector(pimx{bank}, pimy{bank}, pimz{bank}, 0.13957);
-                    auto epimX{bank} = beam + targ - ele{bank} - pim0{bank};
-                    auto q{bank}     = beam - ele{bank};
-                    auto z_pim{bank} = ((pim0{bank}.E())/(q{bank}.E()));
+                    auto fe                = dppC(ex,     ey,   ez,   esec, 0, {"0" if(("gen" in str(bank)) or (not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4")}) + 1;
+                    auto fpip              = dppC(pipx, pipy, pipz, pipsec, 1, {"0" if(("gen" in str(bank)) or (not Mom_Correction_Q) or (str(datatype) in ["gdf"])) else ("1" if(str(datatype) in ['rdf']) else "2") if(not Use_Pass_2) else ("3" if(str(datatype) in ['rdf']) else "4")}) + 1;
+                    auto beam              = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
+                    auto targ              = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+                    auto ele{bank}         = ROOT::Math::PxPyPzMVector(ex{bank}*fe,       ey{bank}*fe,     ez{bank}*fe,   0);
+                    auto pip0{bank}        = ROOT::Math::PxPyPzMVector(pipx{bank}*fpip, pipy{bank}*fpip, pipz{bank}*fpip, 0.13957);
+                    auto pim0{bank}        = ROOT::Math::PxPyPzMVector(pimx{bank}, pimy{bank}, pimz{bank}, 0.13957);
+                    auto pro0{bank}        = ROOT::Math::PxPyPzMVector(prox{bank}, proy{bank}, proz{bank}, 0.938272);
+                    auto Wpippim{bank}     = pip0{bank} + pim0{bank};
+                    auto epimX{bank}       = beam + targ - ele{bank} - pim0{bank};
+                    auto epippimX{bank}    = beam + targ - ele{bank} - pip0{bank} - pim0{bank};
+                    auto epipproX{bank}    = beam + targ - ele{bank} - pip0{bank} - pro0{bank};
+                    auto epippimproX{bank} = beam + targ - ele{bank} - pip0{bank} - pim0{bank} - pro0{bank};
+                    auto q{bank}           = beam - ele{bank};
+                    auto z_pim{bank}       = ((pim0{bank}.E())/(q{bank}.E()));
                     TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
                     TLorentzVector eleT{bank}(ex{bank}*fe, ey{bank}*fe, ez{bank}*fe, ele{bank}.E());
                     TLorentzVector pimT{bank}(pimx{bank}, pimy{bank}, pimz{bank}, pim0{bank}.E());
@@ -1101,25 +1109,35 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     double pT_pim{bank} = sqrt(pimx_1{bank}*pimx_1{bank} + pimy_1{bank}*pimy_1{bank});
                     double phi_t_pim{bank} = pim0_Clone{bank}.Phi()*TMath::RadToDeg();
                     if(phi_t_pim{bank} < 0){{phi_t_pim{bank} += 360;}}
-                    std::vector<double> pim_vals{bank} = {{epimX{bank}.M(), epimX{bank}.M2(), z_pim{bank}, pT_pim{bank}, phi_t_pim{bank}}};
+                    std::vector<double> pim_vals{bank} = {{epimX{bank}.M(), epimX{bank}.M2(), z_pim{bank}, pT_pim{bank}, phi_t_pim{bank}, epippimX{bank}.M(), epippimproX{bank}.M(), epipproX{bank}.M(), Wpippim{bank}.M()}};
                     return pim_vals{bank};"""
                     Full_pim_kinematics_list = [[bank, Full_pim_kinematics]]
                     if((bank not in ["_gen"]) and (str(datatype) in ["mdf"])):
                         print(f"{color.CYAN}Also defining the 'Smeared' {particle_extra_name} kinematics (smearing the electron and then calculating the corresponding electron-dependent variables){color.END}")
                         Full_pim_kinematics_list.append(["_smeared", f"""{smearing_function}
                     auto fe          = dppC(ex, ey, ez, esec, 0, {"0" if(not Mom_Correction_Q) else "2" if(not Use_Pass_2) else "4"}) + 1;
+                    auto fpip        = dppC(pipx, pipy, pipz, pipsec, 1, {"0" if(not Mom_Correction_Q) else "2" if(not Use_Pass_2) else "4"}) + 1;
                     auto beamM       = ROOT::Math::PxPyPzMVector(0, 0, {Beam_Energy}, 0);
                     auto targM       = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
                     auto eleM        = ROOT::Math::PxPyPzMVector(ex*fe, ey*fe, ez*fe, 0);
+                    auto pipM        = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
                     auto pimM        = ROOT::Math::PxPyPzMVector(pimx, pimy, pimz, 0.13957);
+                    auto proM        = ROOT::Math::PxPyPzMVector(prox, proy, proz, 0.938272);
                     TLorentzVector pim_smeared(pimx, pimy, pimz, pimM.E());
+                    TLorentzVector pro_smeared(prox, proy, proz, proM.E());
                     TLorentzVector ele(ex*fe, ey*fe, ez*fe, eleM.E());
-                    TLorentzVector ele_smeared = smear_func(ele{");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"}
+                    TLorentzVector pipV(pipx*fpip, pipy*fpip, pipz*fpip, pipM.E());
+                    TLorentzVector ele_smeared  = smear_func(ele{ ");" if("ivec" not in str(smearing_function)) else ", 0);" if("stop_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 0, stop_over_smear, less_over_smear);"}
+                    TLorentzVector pip0_smeared = smear_func(pipV{");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"}
                     TLorentzVector beam(0, 0, {Beam_Energy}, beamM.E());
                     TLorentzVector targ(0, 0, 0, targM.E());
-                    auto epimX_smeared = beam + targ - ele_smeared - pim_smeared;
-                    auto q_smeared     = beam - ele_smeared;
-                    auto z_pim_smeared = ((pim_smeared.E())/(q_smeared.E()));
+                    auto Wpippim_smeared     = pip0_smeared + pim_smeared;
+                    auto epimX_smeared       = beam + targ - ele_smeared - pim_smeared;
+                    auto epippimX_smeared    = beam + targ - ele_smeared - pip0_smeared - pim_smeared;
+                    auto epipproX_smeared    = beam + targ - ele_smeared - pip0_smeared - pro_smeared;
+                    auto epippimproX_smeared = beam + targ - ele_smeared - pip0_smeared - pim_smeared - pro_smeared;
+                    auto q_smeared           = beam - ele_smeared;
+                    auto z_pim_smeared       = ((pim_smeared.E())/(q_smeared.E()));
                     TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
                     ///////////////     Angles for Rotation     ///////////////
                     double Theta_q_smeared = q_smeared.Theta();
@@ -1134,15 +1152,20 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     double pT_pim_smeared = sqrt(pimx_1_smeared*pimx_1_smeared + pimy_1_smeared*pimy_1_smeared);
                     double phi_t_pim_smeared = pim0_Clone_smeared.Phi()*TMath::RadToDeg();
                     if(phi_t_pim_smeared < 0){{phi_t_pim_smeared += 360;}}
-                    std::vector<double> pim_vals_smeared = {{epimX_smeared.M(), epimX_smeared.M2(), z_pim_smeared, pT_pim_smeared, phi_t_pim_smeared}};
+                    std::vector<double> pim_vals_smeared = {{epimX_smeared.M(), epimX_smeared.M2(), z_pim_smeared, pT_pim_smeared, phi_t_pim_smeared,  epippimX_smeared.M(), epippimproX_smeared.M(), epipproX_smeared.M(), Wpippim_smeared.M()}};
                     return pim_vals_smeared;"""])
+
                     for bank_ii, Full_pim_kinematics_ii in Full_pim_kinematics_list:
-                        rdf = rdf.Define(f"pim_vals{bank_ii}", Full_pim_kinematics_ii)
-                        rdf = rdf.Define(f'MM_pim{bank_ii}',    f'pim_vals{bank_ii}[0]')
-                        # rdf = rdf.Define(f'MM2_pim{bank_ii}', f'pim_vals{bank_ii}[1]')
-                        rdf = rdf.Define(f'z_pim{bank_ii}',     f'pim_vals{bank_ii}[2]')
-                        rdf = rdf.Define(f'pT_pim{bank_ii}',    f'pim_vals{bank_ii}[3]')
-                        rdf = rdf.Define(f'phi_t_pim{bank_ii}', f'pim_vals{bank_ii}[4]')
+                        rdf = rdf.Define(f"pim_vals{bank_ii}",     Full_pim_kinematics_ii)
+                        rdf = rdf.Define(f'MM_pim{bank_ii}',       f'pim_vals{bank_ii}[0]')
+                        # rdf = rdf.Define(f'MM2_pim{bank_ii}',    f'pim_vals{bank_ii}[1]')
+                        rdf = rdf.Define(f'z_pim{bank_ii}',        f'pim_vals{bank_ii}[2]')
+                        rdf = rdf.Define(f'pT_pim{bank_ii}',       f'pim_vals{bank_ii}[3]')
+                        rdf = rdf.Define(f'phi_t_pim{bank_ii}',    f'pim_vals{bank_ii}[4]')
+                        rdf = rdf.Define(f'MM_pippim{bank_ii}',    f'pim_vals{bank_ii}[5]')
+                        rdf = rdf.Define(f'MM_pippimpro{bank_ii}', f'pim_vals{bank_ii}[6]')
+                        rdf = rdf.Define(f'MM_pippro{bank_ii}',    f'pim_vals{bank_ii}[7]')
+                        rdf = rdf.Define(f'W_pippim{bank_ii}',     f'pim_vals{bank_ii}[8]')
                     del Full_pim_kinematics_list
                     del Full_pim_kinematics
             else:

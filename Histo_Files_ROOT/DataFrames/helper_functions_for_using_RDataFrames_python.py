@@ -47,6 +47,7 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
     cut_title_map = {
         "no_cut"                              : "No Cuts",
         "cut_Complete_SIDIS"                  : "Default SIDIS Cuts",
+        "cut_Complete_SIDIS_MM_None"          : "No Missing Mass Cut",
         "cut_Complete_SIDIS_MM_loose"         : "Missing Mass > 1.25 GeV (Loose)",
         "cut_Complete_SIDIS_MM_tight"         : "Missing Mass > 1.75 GeV (Tight)",
 
@@ -918,7 +919,7 @@ return z_pT_Bin_event_val;
     return z_pT_Bin_Standard_Def
 
 
-def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None, args_in=None):
+def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None, args_in=None, axis_Z="4D_Bin"):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(not _guard_gdf_cut(Histo_Data, Histo_Cut, args_in)):
@@ -929,6 +930,13 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
         return Histograms_All
     # Res_Binning_4D = ["Q2_y_z_pT_4D_Bins", -0.5, 546.5, 547] if('Valerii' not in Binning) else ["Q2_xB_z_pT_4D_Bin_Valerii", -0.5, 960.5, 961]
     Res_Binning_4D = ["Q2_y_z_pT_4D_Bins", -0.5, 515.5, 516] if('Valerii' not in Binning) else ["Q2_xB_z_pT_4D_Bin_Valerii", -0.5, 960.5, 961]
+    Binning_Axis_Tag = f"Q2_{'y' if('Valerii' not in Binning) else 'xB'}_z_pT_Bin_All"
+    if(axis_Z in ["exclusive_rho", "exclusive_rho_full"]):
+        Res_Binning_4D = [axis_Z, -1.5, 2.5, 4]
+        Binning_Axis_Tag = axis_Z
+    if(axis_Z in ["exclusive_rho_individual"]):
+        Res_Binning_4D = ["exclusive_rho_individual", -0.5, 63.5, 64]
+        Binning_Axis_Tag = "exclusive_rho_individual"
     Var_X,  Var_Y  = Vars_Input
     if("mear" in str(Histo_Smear)):
         if("smeared" not in str(Res_Binning_4D[0])):
@@ -944,7 +952,7 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
             Var_X[0] = Var_X[0].replace("_smeared", "")
         if("smeared" in str(Var_Y[0])):
             Var_Y[0] = Var_Y[0].replace("_smeared", "")
-    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"})_(Q2_{'y' if('Valerii' not in Binning) else 'xB'}_z_pT_Bin_All)_({Var_X[0]})_({Var_Y[0]}){f'_({custom_tag})' if(custom_tag is not None) else ''}"""
+    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"})_({Binning_Axis_Tag})_({Var_X[0]})_({Var_Y[0]}){f'_({custom_tag})' if(custom_tag is not None) else ''}"""
     Data_Title = f"#color[{root_color.Blue}]{{Experimental}}" if('rdf' in Histo_Data) else f"#color[{root_color.Red}]{{Reconstructed MC}}" if('mdf' in Histo_Data) else f"#color[{root_color.Green}]{{Generated MC}}"
     if("mear" in str(Histo_Smear)):
         Data_Title = f"Smeared {Data_Title}"

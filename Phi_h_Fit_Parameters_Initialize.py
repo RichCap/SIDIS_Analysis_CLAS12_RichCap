@@ -4301,17 +4301,13 @@ def display_fit_parameters(Q2_y_Bin_Special, z_pT_Bin_Special):
 
 def main():
     parser = argparse.ArgumentParser(description="Check fit parameters for specific bins in special_fit_parameters_set. In it, Parameter B refers to the Cos(phi) moment and Parameter C refers to the Cos(2*phi) moment.")
-    parser.add_argument(
-        "Q2_y_Bin_Special",
-        type=str,
-        help="The Q2-y bin number to search for (e.g., '1', '2', '3', ..., or '17')."
-    )
+    parser.add_argument("Q2_y_Bin_Special",
+                        type=str,
+                        help="The Q2-y bin number to search for (e.g., '1', '2', '3', ..., or '17').")
     
-    parser.add_argument(
-        "z_pT_Bin_Special",
-        type=str,
-        help="The z-pT bin number to search for."
-    )
+    parser.add_argument("z_pT_Bin_Special",
+                        type=str,
+                        help="The z-pT bin number to search for.")
 
     args = parser.parse_args()
     
@@ -4322,3 +4318,4 @@ if(__name__ == "__main__"):
     print("")
     main()
     print("")
+    
