@@ -169,7 +169,9 @@ def parse_args():
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.\n')
-    
+    parser.add_argument('-rrw', '--run_rho_weight',
+                        action='store_true', 
+                        help='Runs the rho0 normalization weights (will remove all exclusive rho0 events from the clasdis MC).\n')
     return parser.parse_args()
 
 import subprocess
@@ -482,7 +484,7 @@ def Create_z1_plus_z2(args, df, df_name="rdf"):
                 Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{df_name}' cannot define 'z1_plus_z2{col_type}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     return df
 
-def Make_exclusive_rho_Flags(args, df, dfname):
+def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
     if(( not df.HasColumn("exclusive_rho_full")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "pim_present", "proton_present"])):
         print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rho_full'){color.END}")
         df = df.Define("exclusive_rho_full", '''int exclusive_rho_full = exclusive_rho;
@@ -511,6 +513,18 @@ def Make_exclusive_rho_Flags(args, df, dfname):
                 return exclusive_rho_individual{smear};''')
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
+    if(getattr(args, "run_rho_weight", False) and (not df.HasColumn("exclusive_rho_weight")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho"])):
+        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 1.548698 if(lundrho_files in ["lundrho"]) else 1.840369 if(lundrho_files in ["lundvpk"]) else 1.0 
+        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 1.548698 if(lundrho_files in ["lundrho"]) else 1.840369 if(lundrho_files in ["lundvpk"]) else 1.0 
+        df = df.Define("exclusive_rho_weight", f'''double exclusive_rho_weight = 1.0;
+            if(exclusive_rho == 1){{ exclusive_rho_weight = {weight_wout_rho}; }}
+            if(exclusive_rho == 0){{ exclusive_rho_weight = {weight_with_rho}; }}
+            return exclusive_rho_weight;''')
+    else:
+        if(getattr(args, "run_rho_weight", False)):
+            Update_Email(args, update_message=f"\t{color.Error}WARNING: '{dfname}' is missing a proper definition of 'exclusive_rho_weight' (defaulting to a weight of 1.0)){color.END}", verbose_override=True, no_time=True)
+        df = df.Define("exclusive_rho_weight", f'''double exclusive_rho_weight = 1.0;
+            return exclusive_rho_weight;''')
     return df
 
 if(__name__ == "__main__"):
@@ -789,13 +803,15 @@ if(__name__ == "__main__"):
             mdf_clasdis = Create_z1_plus_z2(args, df=mdf_clasdis, df_name="mdf_clasdis")
             gdf_clasdis = Create_z1_plus_z2(args, df=gdf_clasdis, df_name="gdf_clasdis")
             rdf         = Make_exclusive_rho_Flags(args, rdf, "rdf")
-            mdf_clasdis = Make_exclusive_rho_Flags(args, mdf_clasdis, "mdf_clasdis")
-            gdf_clasdis = Make_exclusive_rho_Flags(args, gdf_clasdis, "gdf_clasdis")
+            mdf_clasdis = Make_exclusive_rho_Flags(args, mdf_clasdis, "mdf_clasdis", lundrho_files="lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else "")
+            gdf_clasdis = Make_exclusive_rho_Flags(args, gdf_clasdis, "gdf_clasdis", lundrho_files="lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else "")
             for smear_exclusive in ["exclusive_rho", "exclusive_rho_full", "exclusive_rho_individual"]:
                 if((mdf_clasdis.HasColumn(smear_exclusive)) and (not mdf_clasdis.HasColumn(f"{smear_exclusive}_smeared"))):
                     # Dummy columns to make later code easier to run...
                     mdf_clasdis = mdf_clasdis.Alias(f"{smear_exclusive}_smeared", smear_exclusive)
             if(args.Use_EvGen):
+                mdf_EvGen = Make_exclusive_rho_Flags(args, mdf_EvGen, "mdf_EvGen")
+                gdf_EvGen = Make_exclusive_rho_Flags(args, gdf_EvGen, "gdf_EvGen")
                 if(not mdf_EvGen.HasColumn("PID_pip")):
                     print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'PID_pip' — artifically defining as 211){color.END}")
                     mdf_EvGen = mdf_EvGen.Define("PID_pip", "211")
@@ -874,8 +890,8 @@ if(__name__ == "__main__"):
                 spline_cpp_code = f.read()
             ROOT.gInterpreter.Declare(spline_cpp_code)
             # Define Event_Weight using the new spline function (is based entirely on individual event kinematics)
-            gdf_clasdis         = gdf_clasdis.Define("Event_Weight", "ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)")
-            mdf_clasdis         = mdf_clasdis.Define("Event_Weight", "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
+            gdf_clasdis         = gdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)"                         if(gdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)")
+            mdf_clasdis         = mdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)" if(mdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
             mdf_clasdis         = mdf_clasdis.Define("W_pre",        "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
             if(args.use_hpp or args.angles_only_hpp):
                 if(args.angles_only_hpp):
@@ -920,12 +936,12 @@ if(__name__ == "__main__"):
                 }}
                 """)
             if(args.valerii_bins):
-                gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_xB_Bin_Valerii,     z_pT_Bin_Valerii,     phi_t)")
-                mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_xB_Bin_Valerii_gen, z_pT_Bin_Valerii_gen, phi_t_gen)")
+                gdf_clasdis = gdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeWeight(Q2_xB_Bin_Valerii,     z_pT_Bin_Valerii,     phi_t)"     if(gdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeWeight(Q2_xB_Bin_Valerii,     z_pT_Bin_Valerii,     phi_t)")
+                mdf_clasdis = mdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeWeight(Q2_xB_Bin_Valerii_gen, z_pT_Bin_Valerii_gen, phi_t_gen)" if(mdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeWeight(Q2_xB_Bin_Valerii_gen, z_pT_Bin_Valerii_gen, phi_t_gen)")
                 mdf_clasdis = mdf_clasdis.Define("W_pre",        "ComputeWeight(Q2_xB_Bin_Valerii_gen, z_pT_Bin_Valerii_gen, phi_t_gen)")
             else:
-                gdf_clasdis = gdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
-                mdf_clasdis = mdf_clasdis.Define("Event_Weight", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+                gdf_clasdis = gdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)"     if(gdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
+                mdf_clasdis = mdf_clasdis.Define("Event_Weight", "exclusive_rho_weight * ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)" if(mdf_clasdis.HasColumn("exclusive_rho_weight")) else "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
                 mdf_clasdis = mdf_clasdis.Define("W_pre",        "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             if(args.use_hpp or args.angles_only_hpp):
                 if(args.angles_only_hpp):
@@ -944,8 +960,8 @@ if(__name__ == "__main__"):
                     mdf_EvGen   = mdf_EvGen.Define("Event_Weight", "weight*ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
                     gdf_EvGen   = gdf_EvGen.Define("Event_Weight", "weight*ComputeWeight(Q2_Y_Bin,     z_pT_Bin_Y_bin,     phi_t)")
         else:
-            gdf_clasdis   = gdf_clasdis.Define("Event_Weight",  "1.0")
-            mdf_clasdis   = mdf_clasdis.Define("Event_Weight",  "1.0")
+            gdf_clasdis   = gdf_clasdis.Define("Event_Weight",  "exclusive_rho_weight" if(gdf_clasdis.HasColumn("exclusive_rho_weight")) else "1.0")
+            mdf_clasdis   = mdf_clasdis.Define("Event_Weight",  "exclusive_rho_weight" if(mdf_clasdis.HasColumn("exclusive_rho_weight")) else "1.0")
             mdf_clasdis   = mdf_clasdis.Define("W_pre",         "1.0")
             if(args.Use_EvGen):
                 mdf_EvGen = mdf_EvGen.Define("Event_Weight", "weight")
@@ -999,9 +1015,9 @@ if(__name__ == "__main__"):
                 Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=args.json_weights,                                           Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk")
                 if(args.Use_EvGen):
                     Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}", verbose_override=True)
-                    Histograms_All = make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+                    Histograms_All = make_rm_single(sdf=mdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
                     Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}", verbose_override=True)
-                    Histograms_All = make_rm_single(sdf=gdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
+                    Histograms_All = make_rm_single(sdf=gdf_EvGen, Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=True,                                                        Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title)
             Update_Email(args, update_name="'make_rm_single()'", verbose_override=True)
         else:
             Update_Email(args, update_message=f"{color.Error}Skipped the 3D Response Matricies{color.END}", verbose_override=True)

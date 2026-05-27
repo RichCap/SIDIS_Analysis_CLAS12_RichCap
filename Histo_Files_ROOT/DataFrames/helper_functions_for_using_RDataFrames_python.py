@@ -115,7 +115,7 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
     else:
         return old_title
 
-def BG_Cut_Function(dataframe="mdf"):
+def BG_Cut_Function(dataframe="mdf", rho_background=False):
     if(dataframe in ["rdf"]):
         return ""
     else:
@@ -126,6 +126,8 @@ def BG_Cut_Function(dataframe="mdf"):
         List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
         List_of_Cuts.append("PID_pip == 0")                   # Identifies unmatched particles
+        if(rho_background):
+            List_of_Cuts.append("exclusive_rho != 0")         # Identifies the exclusive rho0 events
         for cuts in List_of_Cuts:
             if(dataframe in ["gdf"]):
                 if("PID" in str(cuts)):
@@ -253,7 +255,7 @@ def build_titles_rm(Histo_Group, Histo_Data, variable_title, bin_text, Cut_Line,
     return title, t2
 
 
-def apply_background_filter(Histo_Data, Histo_Group, base_filter):
+def apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=False):
     Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
     current_filter = base_filter
     if(str(Background_Cuts_MC) not in ["", "ERROR"]):
@@ -348,7 +350,7 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
     Variable_Gen = f"{variable.replace('_smeared', '')}_gen"
     Variable_Rec = variable
     base_filter = "esec != -2"
-    Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter)
+    Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=sdf.HasColumn("exclusive_rho"))
     if(Histo_Data not in ["rdf", "gdf"]):
         if("Background" not in Histo_Group):
             Start_Bin = Min_range
@@ -358,11 +360,15 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
                 filt = f"{Background_Filter} && (({Variable_Rec} >= {Start_Bin}) && ({Variable_Rec} <= {Start_Bin + Sliced_5D_Increment}))"
                 if(Use_Weight):
                     Histograms_All[Histo_Name_Slice] = sdf.Filter(filt).Histo2D((str(Histo_Name_Slice), str(base_title), Sliced_5D_Increment, Start_Bin, Start_Bin + Sliced_5D_Increment, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen), "Event_Weight")
+                elif(sdf.HasColumn("exclusive_rho_weight")):
+                    Histograms_All[Histo_Name_Slice] = sdf.Filter(filt).Histo2D((str(Histo_Name_Slice), str(base_title), Sliced_5D_Increment, Start_Bin, Start_Bin + Sliced_5D_Increment, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen), "exclusive_rho_weight")
                 else:
                     Histograms_All[Histo_Name_Slice] = sdf.Filter(filt).Histo2D((str(Histo_Name_Slice), str(base_title), Sliced_5D_Increment, Start_Bin, Start_Bin + Sliced_5D_Increment, int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), str(Variable_Gen))
                 Start_Bin += Sliced_5D_Increment
     if(Use_Weight):
         Histograms_All[Histo_Name_1D] = sdf.Filter(Background_Filter).Histo1D((str(Histo_Name_1D), str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title), int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), "Event_Weight")
+    elif(sdf.HasColumn("exclusive_rho_weight")):
+        Histograms_All[Histo_Name_1D] = sdf.Filter(Background_Filter).Histo1D((str(Histo_Name_1D), str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title), int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec), "exclusive_rho_weight")
     else:
         Histograms_All[Histo_Name_1D] = sdf.Filter(Background_Filter).Histo1D((str(Histo_Name_1D), str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title), int(Num_of_Bins), Min_range, Max_range), str(Variable_Rec))
     return Histograms_All
@@ -394,23 +400,21 @@ def apply_weight_norm(df_in, bin_filter, use_weight=False, histo_data=None):
     else:
         # print("Event_Weight_raw already exists")
         sum_acc = df_cut.Sum("Event_Weight_raw").GetValue()
-
     # Safety check
     if(sum_acc == 0):
         print(f"{color.Error}WARNING: sum_acc == 0 inside apply_weight_norm() after cut:\n    {bin_filter}\nSkipping weight renormalization.{color.END}")
         return df_cut
-
     # Renormalization factor
     renorm = sum_pre / sum_acc
-
     # (Re)define Event_Weight with renormalization
+    Event_Weight_def = f"(W_pre * W_acc) * ({renorm})"
+    if(df_cut.HasColumn("exclusive_rho_weight")):
+        Event_Weight_def = f"{Event_Weight_def} * exclusive_rho_weight"
     if(df_cut.HasColumn("Event_Weight")):
-        df_cut = df_cut.Redefine("Event_Weight", f"(W_pre * W_acc) * ({renorm})")
+        df_cut = df_cut.Redefine("Event_Weight", Event_Weight_def)
     else:
-        df_cut = df_cut.Define("Event_Weight",   f"(W_pre * W_acc) * ({renorm})")
-
+        df_cut = df_cut.Define("Event_Weight",   Event_Weight_def)
     print(f"sum_final = {df_cut.Sum("Event_Weight").GetValue()}\n")
-        
     return df_cut
 
 _weight_norm_by_bins_call_idx   = 0
@@ -418,36 +422,32 @@ _weight_norm_by_bins_cpp_ready  = False
 def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=False, Valerii_binning=False):
     global _weight_norm_by_bins_call_idx
     global _weight_norm_by_bins_cpp_ready
-
+    default_Event_Weight = "1.0"
+    if(df_in.HasColumn("exclusive_rho_weight")):
+        default_Event_Weight = "exclusive_rho_weight"
     # Check weighting columns
     if((not df_in.HasColumn("W_pre")) or (not df_in.HasColumn("W_acc"))):
         print(f"{color.Error}ERROR: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
-        return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
-
+        return df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in
     if(not df_in.HasColumn("Event_Weight_raw")):
         if(verbose):
             print(f"{color.RED}WARNING: RDataframe is missing `Event_Weight_raw`. Defining with `W_pre` and `W_acc`.{color.END}")
         df_in = df_in.Define("Event_Weight_raw", "W_pre * W_acc")
-
     Bin4D_name  = "Q2_y_z_pT_4D_Bins" if(not Valerii_binning) else "Q2_xB_z_pT_4D_Bin_Valerii"
     Use_Smeared = ((Histo_Data_In == "mdf") and (df_in.HasColumn(f"{Bin4D_name}_smeared")) and (not Do_not_use_Smeared))
-
     if((not Use_Smeared) and (not df_in.HasColumn(Bin4D_name))):
         print(f"{color.Error}ERROR: RDataframe is missing `{Bin4D_name}`. Skipping weight renormalization.{color.END}")
-        return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
-
+        return df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in
     bin_rec  = f"{Bin4D_name}_smeared" if(Use_Smeared) else Bin4D_name
     bin_min  = 0
     bin_max  = 546 if(not Valerii_binning) else 960
     num_bins = bin_max - bin_min + 1
-
     # --- mdf: 2D renorm on (REC-bin, GEN-bin) ---
     if((Histo_Data_In == "mdf")):
         bin_gen = f"{Bin4D_name}_gen"
         if(not df_in.HasColumn(bin_gen)):
             print(f"{color.Error}ERROR: mdf RDataframe is missing `{bin_gen}` required for 2D weight renormalization. Skipping.{color.END}")
-            return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
-
+            return df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in
         # Declare C++ helper once (needed so RDF JIT can fetch the TH2D renorm map by name)
         if(not _weight_norm_by_bins_cpp_ready):
             try:
@@ -456,7 +456,6 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
                 #include "TROOT.h"
                 #include "TSeqCollection.h"
                 #include "TObject.h"
-
                 TH2D* _wn_get_h2(const char* name){
                     if(!gROOT) return nullptr;
                     TSeqCollection* lst = gROOT->GetListOfSpecials();
@@ -464,7 +463,6 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
                     TObject* obj = lst->FindObject(name);
                     return dynamic_cast<TH2D*>(obj);
                 }
-
                 double _wn_get_renorm2d(const char* name, int rec_bin, int gen_bin, int bin_min, int bin_max){
                     TH2D* h = _wn_get_h2(name);
                     if(!h) return 1.0;
@@ -478,37 +476,27 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
             except Exception as err:
                 print(f"{color.Error}ERROR: failed to declare C++ helpers for 2D weight renormalization.{color.END}\n{err}")
                 _weight_norm_by_bins_cpp_ready = False
-                return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
-
+                return df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in
         _weight_norm_by_bins_call_idx += 1
         tag = f"WN2D_{_weight_norm_by_bins_call_idx}"
-
         renorm_names = {}
-
         for group in ["Response_Matrix_Normal", "Background_Response_Matrix"]:
-            group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="")
+            group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="", rho_background=df_group.HasColumn("exclusive_rho"))
             if((group_filter is None) or (str(group_filter).strip() == "")):
                 group_filter = "1"
-
             df_group = df_in.Filter(group_filter)
-
             hpre_name = f"h_pre2d_{group}_{tag}"
             hacc_name = f"h_acc2d_{group}_{tag}"
             hren_name = f"renorm2d_{group}_{tag}"
-
             h_pre_ptr = df_group.Histo2D((hpre_name, f"{bin_rec} vs {bin_gen} Unweighed (Base); {bin_rec}; {bin_gen}", num_bins, bin_min-0.5, bin_max+0.5, num_bins, bin_min-0.5, bin_max+0.5), bin_rec, bin_gen, "W_pre")
             h_acc_ptr = df_group.Histo2D((hacc_name, f"{bin_rec} vs {bin_gen} Weighed (with Acceptance); {bin_rec}; {bin_gen}", num_bins, bin_min-0.5, bin_max+0.5, num_bins, bin_min-0.5, bin_max+0.5), bin_rec, bin_gen, "Event_Weight_raw")
-
             h_pre = h_pre_ptr.GetValue()
             h_acc = h_acc_ptr.GetValue()
-
             h_ren = h_pre.Clone(hren_name)
             h_ren.SetTitle(f"Renorm factors; {bin_rec}; {bin_gen}")
             h_ren.SetDirectory(0)
             ROOT.SetOwnership(h_ren, False)
-
             h_ren.Divide(h_acc)
-
             # Patch denom==0 cells to 1.0
             zero_cells = 0
             for ix in range(1, num_bins + 1):
@@ -516,54 +504,48 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
                     if(h_acc.GetBinContent(ix, iy) == 0.0):
                         h_ren.SetBinContent(ix, iy, 1.0)
                         zero_cells += 1
-
             if(zero_cells > 0):
                 print(f"{color.RED}WARNING: sum_acc==0 in {zero_cells} cells for {group} (2D) -> renorm set to 1.0{color.END}")
-
             ROOT.gROOT.GetListOfSpecials().Add(h_ren)
             renorm_names[group] = hren_name
-
         has_bg  = ("Background_Response_Matrix" in renorm_names)
         bg_cond = ""
         if(has_bg):
-            bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="")
+            bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="", rho_background=df_group.HasColumn("exclusive_rho"))
             if((bg_cond is None) or (str(bg_cond).strip() == "")):
                 has_bg  = False
                 bg_cond = ""
-
         normal_name = renorm_names["Response_Matrix_Normal"]
         if(has_bg):
             bg_name = renorm_names["Background_Response_Matrix"]
             expr = f"""
             const int rec_bin = static_cast<int>({bin_rec});
             const int gen_bin = static_cast<int>({bin_gen});
-            if({bg_cond}){{ return (W_pre * W_acc) * _wn_get_renorm2d("{bg_name}", rec_bin, gen_bin, {bin_min}, {bin_max}); }}
-            return (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
+            if({bg_cond}){{ return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{bg_name}", rec_bin, gen_bin, {bin_min}, {bin_max}); }}
+            return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
             """
         else:
             expr = f"""
             const int rec_bin = static_cast<int>({bin_rec});
             const int gen_bin = static_cast<int>({bin_gen});
-            return (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
+            return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
             """
-
         df_in = df_in.Redefine("Event_Weight", expr) if(df_in.HasColumn("Event_Weight")) else df_in.Define("Event_Weight", expr)
         return df_in
 
     # --- non-mdf: keep your existing 1D logic unchanged ---
     if((not df_in.HasColumn(bin_rec))):
         print(f"{color.Error}ERROR: RDataframe is missing `{bin_rec}`. Skipping weight renormalization.{color.END}")
-        return df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in
+        return df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in
 
     renorm_dict = {}
     for group in ["Response_Matrix_Normal", "Background_Response_Matrix"]:
         if((Histo_Data_In != "mdf") and (group == "Background_Response_Matrix")):
             continue
-        group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="")
+        group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="", rho_background=df_group.HasColumn("exclusive_rho"))
         df_group = df_in.Filter(group_filter)
         h_pre = df_group.Histo1D(("h_pre", f"{bin_rec} Unweighed (Base); {bin_rec}", num_bins, bin_min-0.5, bin_max+0.5), bin_rec, "W_pre")
         h_acc = df_group.Histo1D(("h_acc", f"{bin_rec} Weighed (with Acceptance); {bin_rec}", num_bins, bin_min-0.5, bin_max+0.5), bin_rec, "Event_Weight_raw")
-
         renorms = []
         for idx in range(bin_min, bin_max + 1):
             bin_content_pre = h_pre.GetBinContent(idx + 1)
@@ -581,17 +563,15 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
     has_bg    = ("Background_Response_Matrix" in renorm_dict)
     if(has_bg):
         cpp_code += f"const std::array<double,{num_bins}> renorms_bg {{{','.join(f'{x:.12g}' for x in renorm_dict['Background_Response_Matrix'])}}};\n"
-
     ROOT.gInterpreter.Declare(cpp_code)
-
     bg_cond = ""
     if(has_bg):
-        bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="")
+        bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="", rho_background=df_group.HasColumn("exclusive_rho"))
         expr = f"""
-        if({bg_cond}){{ return (W_pre * W_acc) * renorms_bg[{bin_rec} - {bin_min}]; }}
-        else {{ return (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}]; }}"""
+        if({bg_cond}){{ return {default_Event_Weight} * (W_pre * W_acc) * renorms_bg[{bin_rec} - {bin_min}]; }}
+        else {{ return {default_Event_Weight} * (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}]; }}"""
     else:
-        expr = f"return (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}];"
+        expr = f"return {default_Event_Weight} * (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}];"
 
     df_in = df_in.Redefine("Event_Weight", expr) if(df_in.HasColumn("Event_Weight")) else df_in.Define("Event_Weight", expr)
     return df_in
@@ -599,37 +579,33 @@ def weight_norm_by_bins(df_in, Histo_Data_In, verbose=False, Do_not_use_Smeared=
 def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=False, Valerii_binning=False):
     global _weight_norm_by_bins_call_idx
     global _weight_norm_by_bins_cpp_ready
-
+    default_Event_Weight = "1.0"
+    if(df_in.HasColumn("exclusive_rho_weight")):
+        default_Event_Weight = "exclusive_rho_weight"
     # Check weighting columns
     if((not df_in.HasColumn("W_pre")) or (not df_in.HasColumn("W_acc"))):
         # print(f"{color.Error}ERROR: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
-        return (df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
-
+        return (df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing either `W_pre` or `W_acc`. Skipping weight renormalization.{color.END}")
     if(not df_in.HasColumn("Event_Weight_raw")):
         if(args.verbose):
             print(f"{color.RED}WARNING: RDataframe is missing `Event_Weight_raw`. Defining with `W_pre` and `W_acc`.{color.END}")
         args.email_message = f"{args.email_message}\n{color.RED}WARNING FROM 'weight_norm_by_bins_wHisto()': RDataframe is missing `Event_Weight_raw`. Defining with `W_pre` and `W_acc`.{color.END}"
         df_in = df_in.Define("Event_Weight_raw", "W_pre * W_acc")
-
     Bin4D_name  = "Q2_y_z_pT_4D_Bins" if(not Valerii_binning) else "Q2_xB_z_pT_4D_Bin_Valerii"
     Use_Smeared = ((Histo_Data_In == "mdf") and (df_in.HasColumn(f"{Bin4D_name}_smeared")) and (not Do_not_use_Smeared))
-
     if((not Use_Smeared) and (not df_in.HasColumn(Bin4D_name))):
         # print(f"{color.Error}ERROR: RDataframe is missing `{Bin4D_name}`. Skipping weight renormalization.{color.END}")
-        return (df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing `{Bin4D_name}`. Skipping weight renormalization.{color.END}")
-
+        return (df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing `{Bin4D_name}`. Skipping weight renormalization.{color.END}")
     bin_rec  = f"{Bin4D_name}_smeared" if(Use_Smeared) else Bin4D_name
     bin_min  = 0
     bin_max  = 546 if(not Valerii_binning) else 960
     num_bins = bin_max - bin_min + 1
-
     # --- mdf: 2D renorm on (REC-bin, GEN-bin) ---
     if((Histo_Data_In == "mdf")):
         bin_gen = f"{Bin4D_name}_gen"
         if(not df_in.HasColumn(bin_gen)):
             # print(f"{color.Error}ERROR: mdf RDataframe is missing `{bin_gen}` required for 2D weight renormalization. Skipping.{color.END}")
-            return (df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: mdf RDataframe is missing `{bin_gen}` required for 2D weight renormalization. Skipping.{color.END}")
-
+            return (df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: mdf RDataframe is missing `{bin_gen}` required for 2D weight renormalization. Skipping.{color.END}")
         # Declare C++ helper once (needed so RDF JIT can fetch the TH2D renorm map by name)
         if(not _weight_norm_by_bins_cpp_ready):
             try:
@@ -658,7 +634,7 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
             except Exception as err:
                 # print(f"{color.Error}ERROR: failed to declare C++ helpers for 2D weight renormalization.{color.END}\n{err}")
                 _weight_norm_by_bins_cpp_ready = False
-                return (df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: failed to declare C++ helpers for 2D weight renormalization.{color.END}\n{err}")
+                return (df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: failed to declare C++ helpers for 2D weight renormalization.{color.END}\n{err}")
         _weight_norm_by_bins_call_idx += 1
         tag = f"WN2D_{_weight_norm_by_bins_call_idx}"
         renorm_names, histos_to_save = {}, {}
@@ -697,7 +673,7 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
         has_bg  = ("Background_Response_Matrix" in renorm_names)
         bg_cond = ""
         if(has_bg):
-            bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="")
+            bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="", rho_background=df_group.HasColumn("exclusive_rho"))
             if((bg_cond is None) or (str(bg_cond).strip() == "")):
                 has_bg  = False
                 bg_cond = ""
@@ -708,14 +684,14 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
             expr = f"""
             const int rec_bin = static_cast<int>({bin_rec});
             const int gen_bin = static_cast<int>({bin_gen});
-            if({bg_cond}){{ return (W_pre * W_acc) * _wn_get_renorm2d("{bg_name}", rec_bin, gen_bin, {bin_min}, {bin_max}); }}
-            return (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
+            if({bg_cond}){{ return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{bg_name}", rec_bin, gen_bin, {bin_min}, {bin_max}); }}
+            return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
             """
         else:
             expr = f"""
             const int rec_bin = static_cast<int>({bin_rec});
             const int gen_bin = static_cast<int>({bin_gen});
-            return (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
+            return {default_Event_Weight} * (W_pre * W_acc) * _wn_get_renorm2d("{normal_name}", rec_bin, gen_bin, {bin_min}, {bin_max});
             """
         df_in = df_in.Redefine("Event_Weight", expr) if(df_in.HasColumn("Event_Weight")) else df_in.Define("Event_Weight", expr)
         return df_in, args, histos_to_save
@@ -723,13 +699,13 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
     # --- non-mdf: keep your existing 1D logic unchanged ---
     if((not df_in.HasColumn(bin_rec))):
         # print(f"{color.Error}ERROR: RDataframe is missing `{bin_rec}`. Skipping weight renormalization.{color.END}")
-        return (df_in.Define("Event_Weight", "1.0") if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing `{bin_rec}`. Skipping weight renormalization.{color.END}")
+        return (df_in.Define("Event_Weight", default_Event_Weight) if(not df_in.HasColumn("Event_Weight")) else df_in, args, f"{color.Error}ERROR: RDataframe is missing `{bin_rec}`. Skipping weight renormalization.{color.END}")
 
     renorm_dict, histos_to_save = {}, {}
     for group in ["Response_Matrix_Normal", "Background_Response_Matrix"]:
         if((Histo_Data_In != "mdf") and (group == "Background_Response_Matrix")):
             continue
-        group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="")
+        group_filter = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group=group, base_filter="", rho_background=df_in.HasColumn("exclusive_rho"))
         df_group = df_in.Filter(group_filter)
         h_pre = df_group.Histo1D(("h_pre", f"{bin_rec} Unweighed (Base); {bin_rec}", num_bins, bin_min-0.5, bin_max+0.5), bin_rec, "W_pre")
         h_acc = df_group.Histo1D(("h_acc", f"{bin_rec} Weighed (with Acceptance); {bin_rec}", num_bins, bin_min-0.5, bin_max+0.5), bin_rec, "Event_Weight_raw")
@@ -755,12 +731,12 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
     ROOT.gInterpreter.Declare(cpp_code)
     bg_cond = ""
     if(has_bg):
-        bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="")
+        bg_cond = apply_background_filter(Histo_Data=Histo_Data_In, Histo_Group="Background_Response_Matrix", base_filter="", rho_background=df_in.HasColumn("exclusive_rho"))
         expr = f"""
-        if({bg_cond}){{ return (W_pre * W_acc) * renorms_bg[{bin_rec} - {bin_min}]; }}
-        else {{ return (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}]; }}"""
+        if({bg_cond}){{ return {default_Event_Weight} * (W_pre * W_acc) * renorms_bg[{bin_rec} - {bin_min}]; }}
+        else {{ return {default_Event_Weight} * (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}]; }}"""
     else:
-        expr = f"return (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}];"
+        expr = f"return {default_Event_Weight} * (W_pre * W_acc) * renorms_normal[{bin_rec} - {bin_min}];"
     df_in = df_in.Redefine("Event_Weight", expr) if(df_in.HasColumn("Event_Weight")) else df_in.Define("Event_Weight", expr)
     return df_in, args, histos_to_save
 
@@ -834,7 +810,7 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Histo_Name_1D_Weighed = f"{Histo_Name_1D}_(Weighed)"
     else:
         Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
-    Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter)
+    Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter, rho_background=sdf.HasColumn("exclusive_rho"))
     sdf_cut = sdf.Filter(Bin_Filter)
     # print(f"Histo_Group = {Histo_Group}")
     # sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
@@ -843,30 +819,46 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
             if(Use_Weight):
                 title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
                 Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo2D((str(Histo_Name_Weighed),    title_weight,  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf_cut.Histo2D((str(Histo_Name),              str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
+            if(sdf_cut.HasColumn("exclusive_rho_weight")):
+                Histograms_All[Histo_Name]                = sdf_cut.Histo2D((str(Histo_Name),              str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec), "exclusive_rho_weight")
+            else:
+                Histograms_All[Histo_Name]                = sdf_cut.Histo2D((str(Histo_Name),              str(title),  int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin,  int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Gen), str(Variable_Rec))
             if(title2 is not None):
                 if(Use_Weight):
                     title2_weight = f"#splitline{{{title2.split(';')[0]}}}{{Weighted}};{';'.join(title2.split(';')[1:])}"
                     Histograms_All[Histo_Name_1D_Weighed] = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), title2_weight, int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+                if(sdf_cut.HasColumn("exclusive_rho_weight")):
+                    Histograms_All[Histo_Name_1D]         = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "exclusive_rho_weight")
+                else:
+                    Histograms_All[Histo_Name_1D]         = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title2), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
                 title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
                 Histograms_All[Histo_Name_Weighed]        = sdf_cut.Histo3D((str(Histo_Name_Weighed),    title_weight, int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
                 Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), title_weight.replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name]                    = sdf_cut.Histo3D((str(Histo_Name),              str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+            if(sdf_cut.HasColumn("exclusive_rho_weight")):
+                Histograms_All[Histo_Name]                = sdf_cut.Histo3D((str(Histo_Name),              str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "exclusive_rho_weight")
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "exclusive_rho_weight")
+            else:
+                Histograms_All[Histo_Name]                = sdf_cut.Histo3D((str(Histo_Name),              str(title), int(num_of_GEN_bins), min_GEN_bin, Max_GEN_bin, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Gen),      str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", "; Counts"), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
     else:
         if(is_scalar_or_multidim(variable)):
             if(Use_Weight):
                 title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
                 Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo1D((str(Histo_Name_1D_Weighed), title_weight.replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
+            if(sdf_cut.HasColumn("exclusive_rho_weight")):
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec), "exclusive_rho_weight")
+            else:
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo1D((str(Histo_Name_1D),           str(title).replace(f"; {variable_Title_name(Res_Binning_2D_z_pT[0])}", ""), int(num_of_REC_bins), min_REC_bin, Max_REC_bin), str(Variable_Rec))
         else:
             if(Use_Weight):
                 title_weight = f"#splitline{{{title.split(';')[0]}}}{{Weighted}};{';'.join(title.split(';')[1:])}"
                 Histograms_All[Histo_Name_1D_Weighed]     = sdf_cut.Histo2D((str(Histo_Name_1D_Weighed), title_weight, int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "Event_Weight")
-            Histograms_All[Histo_Name_1D]                 = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
+            if(sdf_cut.HasColumn("exclusive_rho_weight")):
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]), "exclusive_rho_weight")
+            else:
+                Histograms_All[Histo_Name_1D]             = sdf_cut.Histo2D((str(Histo_Name_1D),           str(title), int(num_of_REC_bins), min_REC_bin, Max_REC_bin, int(Res_Binning_2D_z_pT[3]), Res_Binning_2D_z_pT[1], Res_Binning_2D_z_pT[2]), str(Variable_Rec), str(Res_Binning_2D_z_pT[0]))
     return Histograms_All
 
 
@@ -965,7 +957,10 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
     # print(f"\tDEBUG - TH2D_Name = {TH2D_Name}")
     if(Use_Weight):
         Histograms_All[f"{TH2D_Name}_(Weighed)"] = sdf.Histo3D((f"{TH2D_Name}_(Weighed)", f"{Full_Title}; Weighed", Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]), "Event_Weight")
-    Histograms_All[TH2D_Name]                    = sdf.Histo3D((TH2D_Name,                   Full_Title,            Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]))
+    if(sdf.HasColumn("exclusive_rho_weight")):
+        Histograms_All[TH2D_Name]                = sdf.Histo3D((TH2D_Name,                   Full_Title,            Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]), "exclusive_rho_weight")
+    else:
+        Histograms_All[TH2D_Name]                = sdf.Histo3D((TH2D_Name,                   Full_Title,            Var_X[3], Var_X[1], Var_X[2], Var_Y[3], Var_Y[1], Var_Y[2], Res_Binning_4D[3], Res_Binning_4D[1], Res_Binning_4D[2]), str(Var_X[0]), str(Var_Y[0]), str(Res_Binning_4D[0]))
     return Histograms_All
     
 
@@ -1087,7 +1082,7 @@ if(__name__ == "__main__"):
         else:
             Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
     
-        Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter)
+        Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter, rho_background=sdf.HasColumn("exclusive_rho"))
         # if(Histo_Data in ["mdf"]):
         #     if(is_scalar_or_multidim(variable)):
         #         if(Use_Weight):
