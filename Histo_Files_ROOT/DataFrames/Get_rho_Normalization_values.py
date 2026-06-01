@@ -75,9 +75,19 @@ def parse_args():
                         choices=['auto', '2D', '1D', '1D_dif'],
                         help="Drawing mode. 'auto' chooses based on --vars (Q2xB=2D, z-modes=1D by default).\n\t'1D_dif' draws 1D histograms, but to different canvases (like the '2D' mode).\n")
     parser.add_argument('-ztc', '--z_tot_cut',
+                        default=0.9,
+                        type=float,
+                        help='(Exclusive) Normalization cut for z_tot.\n')
+    parser.add_argument('-ztcs', '--z_tot_cut_SIDIS',
                         default=0.6,
                         type=float,
-                        help='Normalization cut for z_tot.\n')
+                        help='(SIDIS) Normalization cut for z_tot.\n')
+    parser.add_argument('-subbkg', '--subtract_background',
+                        action='store_true',
+                        help="Subtracts SIDIS background (modeled by normalized clasdis SIDIS) from the exclusive events in the experimental date.\n")
+    parser.add_argument('-addbkg', '--add_background',
+                        action='store_true',
+                        help="Adds SIDIS background (modeled by normalized clasdis SIDIS) to Harut's exclusive events.\n")
     return parser.parse_args()
 
 def check_histo_for_errors(hist, name, file_name):
@@ -196,6 +206,7 @@ def main_Get_rho_Normalization_values(args):
     h3d_mdf = file1.Get(hist_key3)
     proj_mdf_SIDIS = project_z_bins(h3d_mdf, "proj_mdf_SIDIS", sidis_bins)
     proj_mdf_excl  = project_z_bins(h3d_mdf, "proj_mdf_excl",  exclusive_bins)
+    proj_mdf_ebkg  = project_z_bins(h3d_mdf, "proj_mdf_ebkg",  excl_SIDIS_bkg)
 
     # === Loose projections for plotting that MATCH the normalization cuts ===
     # Full data for plotting = exclusive + SIDIS parts (same bins used in normalization)
@@ -235,41 +246,51 @@ def main_Get_rho_Normalization_values(args):
 
         # print(f"args.z_tot_cut = {args.z_tot_cut}")
         # print(f"args.x_min     = {args.x_min}")
-        min_x_plots   = proj_data_excl.GetXaxis().FindBin(args.x_min)
-        signal_x_low  = proj_data_excl.GetXaxis().FindBin(args.z_tot_cut)
-        # signal_x_high = proj_data_excl.GetXaxis().FindBin(1.2)
-        signal_x_high = proj_data_excl.GetXaxis().GetNbins()
+        min_x_plots        = proj_data_excl.GetXaxis().FindBin(args.x_min)
+        SIDIS_signal_x_low = proj_data_excl.GetXaxis().FindBin(args.z_tot_cut_SIDIS)
+        Exclz_signal_x_low = proj_data_excl.GetXaxis().FindBin(args.z_tot_cut)
+        signal_x_high = proj_data_excl.GetXaxis().FindBin(args.x_max)
+        # signal_x_high = proj_data_excl.GetXaxis().GetNbins()
         # print(f"min_x_plots   = {min_x_plots}")
-        # print(f"signal_x_low  = {signal_x_low}")
+        # print(f"SIDIS_signal_x_low  = {SIDIS_signal_x_low}")
         # print(f"signal_x_high = {signal_x_high}")
         y_bin_0 = proj_data_excl.GetYaxis().FindBin(0.0)
         y_bin_1 = proj_data_excl.GetYaxis().FindBin(1.0)
 
-        Y_mdf_clean  = proj_mdf_SIDIS.Integral(min_x_plots,  signal_x_low, y_bin_0, y_bin_0)
-        Y_data_clean = proj_data_SIDIS.Integral(min_x_plots, signal_x_low, y_bin_0, y_bin_0)
+        Y_mdf_clean  = proj_mdf_SIDIS.Integral(min_x_plots,  SIDIS_signal_x_low, y_bin_0, y_bin_0)
+        Y_data_clean = proj_data_SIDIS.Integral(min_x_plots, SIDIS_signal_x_low, y_bin_0, y_bin_0)
         N_sdf        = Y_data_clean / Y_mdf_clean if(Y_mdf_clean > 0) else 0.0
         
         data_excl_subt = proj_data_excl.Clone("data_excl_subt")
-        # for     x_val in range(0, proj_data_excl.GetXaxis().GetNbins()):
-        #     for y_val in range(0, proj_data_excl.GetYaxis().GetNbins()):
-        #         if(proj_data_excl.GetBinContent(x_val, y_val) > (N_sdf*proj_mdf_SIDIS.GetBinContent(x_val, y_val))):
-        #             data_excl_subt.SetBinContent(x_val, y_val, proj_data_excl.GetBinContent(x_val, y_val) - (N_sdf*proj_mdf_SIDIS.GetBinContent(x_val, y_val)))
-        #         else:
-        #             data_excl_subt.SetBinContent(x_val, y_val, 0)
-        
-        # N_data_vis  = proj_data_excl.Integral(signal_x_low,  signal_x_high, y_bin_1, y_bin_1)
-        N_data_vis  = data_excl_subt.Integral(signal_x_low,  signal_x_high, y_bin_1, y_bin_1)
-        N_harut_vis = proj_harut_excl.Integral(signal_x_low, signal_x_high, y_bin_1, y_bin_1)
-        N_data_side = proj_data_SIDIS.Integral(signal_x_low, signal_x_high, 0, -1)
+        if(args.subtract_background):
+            # for     y_val in range(0, proj_data_excl.GetYaxis().GetNbins()):
+            for x_val in range(0, proj_data_excl.GetXaxis().GetNbins()):
+                if(proj_data_excl.GetBinContent(x_val, y_bin_1) > (N_sdf*proj_mdf_ebkg.GetBinContent(x_val, y_bin_0))):
+                    data_excl_subt.SetBinContent(x_val, y_bin_1, proj_data_excl.GetBinContent(x_val, y_bin_1) - (N_sdf*proj_mdf_ebkg.GetBinContent(x_val, y_bin_0)))
+                else:
+                    data_excl_subt.SetBinContent(x_val, y_bin_1, 0)
+                # print(f"proj_data_excl.GetBinContent({x_val}, {y_bin_1})      = {proj_data_excl.GetBinContent(x_val, y_bin_1)}")
+                # print(f"N_sdf*proj_mdf_ebkg.GetBinContent({x_val}, {y_bin_0}) = {N_sdf*proj_mdf_ebkg.GetBinContent(x_val, y_bin_0)}")
+                # print(f"data_excl_subt.GetBinContent({x_val}, {y_bin_1}) = {proj_data_excl.GetBinContent(x_val, y_bin_1) - (N_sdf*proj_mdf_ebkg.GetBinContent(x_val, y_bin_0))}")
+                # print("")
+        true_harut_excl = proj_harut_excl.Clone("true_harut_excl")
+        if(args.add_background):
+            for x_val in range(0, proj_harut_excl.GetXaxis().GetNbins()):
+                proj_harut_excl.SetBinContent(x_val, y_bin_1, true_harut_excl.GetBinContent(x_val, y_bin_1) + (N_sdf*proj_mdf_ebkg.GetBinContent(x_val, y_bin_0)))
+
+        # N_data_vis  = proj_data_excl.Integral(Exclz_signal_x_low,  signal_x_high, y_bin_1, y_bin_1)
+        N_data_vis  = data_excl_subt.Integral(Exclz_signal_x_low,  signal_x_high, y_bin_1, y_bin_1)
+        N_harut_vis = proj_harut_excl.Integral(Exclz_signal_x_low, signal_x_high, y_bin_1, y_bin_1)
+        N_data_side = proj_data_SIDIS.Integral(Exclz_signal_x_low, signal_x_high, 0, -1)
 
         # mdf contributions around the exclusive region
-        N_mdf_side  = proj_mdf_SIDIS.Integral(signal_x_low, signal_x_high, y_bin_0, y_bin_0)
-        N_mdf_peak  = proj_mdf_SIDIS.Integral(signal_x_low, signal_x_high, y_bin_1, y_bin_1)
+        N_mdf_side  = proj_mdf_SIDIS.Integral(Exclz_signal_x_low, signal_x_high, y_bin_0, y_bin_0)
+        N_mdf_peak  = proj_mdf_SIDIS.Integral(Exclz_signal_x_low, signal_x_high, y_bin_1, y_bin_1)
 
         alpha = N_data_side / N_mdf_side  if(N_mdf_side  > 0) else 0.0
         N_edf = N_data_vis  / N_harut_vis if(N_harut_vis > 0) else 0.0
 
-        final_factor = N_edf / N_sdf              if(N_sdf       > 0) else 0.0
+        final_factor = N_edf / N_sdf      if(N_sdf       > 0) else 0.0
 
         # Print everything
         print(f"{ color.BOLD }N_data_vis (exclusive signal region)              : {N_data_vis:>12.0f}{color.END}")
@@ -382,7 +403,8 @@ def main_Get_rho_Normalization_values(args):
             proj_harut_1d.SetLineWidth(1)
             proj_harut_1d.SetLineStyle(2)
 
-            title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{Exclusive Region Cutoff was z_{{1}}+z_{{2}} > {args.z_tot_cut}}}}}"
+            # title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{Exclusive Region Cutoff was z_{{1}}+z_{{2}} > {args.z_tot_cut}}}}}"
+            title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{SIDIS Region Cutoff was z_{{1}}+z_{{2}} < {args.z_tot_cut_SIDIS}}}}}"
             proj_data__1d.SetTitle(f"#splitline{{{title}}}{{{args.title}}}")
             # proj_data__1d.GetXaxis().SetRangeUser(args.x_min, args.x_max)
             # proj_harut_1d.GetXaxis().SetRangeUser(args.x_min, args.x_max)
@@ -390,14 +412,19 @@ def main_Get_rho_Normalization_values(args):
             # Data Exclusive portion (using the same tight cut as normalization)
             # proj_data_full_for_plot.GetXaxis().SetRange(x_low1, x_high1)
             # hist_data_excl = proj_data_full_for_plot.ProjectionX("hist_data_excl", y_bin_1, y_bin_1)
-            # proj_data_excl.GetXaxis().SetRange(signal_x_low,  signal_x_high)
+            # proj_data_excl.GetXaxis().SetRange(Exclz_signal_x_low,  signal_x_high)
             # proj_data_excl.GetXaxis().SetRange(0, 0)
-            # hist_data_excl = proj_data_excl.ProjectionX("hist_data_excl", y_bin_1, y_bin_1)
+
+            
+            hist_data_wbkg = proj_data_excl.ProjectionX("hist_data_wbkg", y_bin_1, y_bin_1)
+            hist_data_wbkg.SetLineColor(ROOT.kOrange)
+            hist_data_wbkg.SetLineWidth(2)
+            hist_data_wbkg.SetLineStyle(2)
+            
             hist_data_excl = data_excl_subt.ProjectionX("hist_data_excl", y_bin_1, y_bin_1)
-            # proj_data_full_for_plot.GetXaxis().SetRange(0, 0)
-            hist_data_excl.SetLineColor(ROOT.kOrange)
+            hist_data_excl.SetLineColor(ROOT.kRed)
             hist_data_excl.SetLineWidth(2)
-            hist_data_excl.SetLineStyle(2)
+            hist_data_excl.SetLineStyle(1)
 
             # Data SIDIS portion (using the same tight cut as normalization)
             # proj_data_full_for_plot.GetXaxis().SetRange(x_low1, x_high1)
@@ -427,9 +454,16 @@ def main_Get_rho_Normalization_values(args):
             hist_clasdis_excl = proj_mdf_excl.ProjectionX("hist_clasdis_excl", y_bin_1, y_bin_1)
             # hist_clasdis_excl = proj_mdf_excl.ProjectionX("hist_clasdis_excl")
             hist_clasdis_excl.Scale(args.N_sdf)
-            hist_clasdis_excl.SetLineColor(ROOT.kOrange+3)
+            hist_clasdis_excl.SetLineColor(ROOT.kBlack)
             hist_clasdis_excl.SetLineWidth(1)
             hist_clasdis_excl.SetLineStyle(2)
+
+            
+            hist_clasdis_ebkg = proj_mdf_ebkg.ProjectionX("hist_clasdis_ebkg", y_bin_0, y_bin_0)
+            hist_clasdis_ebkg.Scale(args.N_sdf)
+            hist_clasdis_ebkg.SetLineColor(ROOT.kOrange+2)
+            hist_clasdis_ebkg.SetLineWidth(2)
+            hist_clasdis_ebkg.SetLineStyle(1)
 
             hist_combined = hist_clasdis_norm.Clone("hist_combined")
             hist_combined.Add(proj_harut_1d_norm)
@@ -437,8 +471,15 @@ def main_Get_rho_Normalization_values(args):
             hist_combined.SetLineWidth(2)
             hist_combined.SetLineStyle(1)
 
-            for hist_loop in [proj_data__1d, hist_clasdis_norm, proj_harut_1d, proj_harut_1d_norm, hist_combined, hist_data_excl, hist_data_sidis, hist_clasdis_excl]:
+            true_harut_1d = true_harut_excl.ProjectionX("true_harut_1d")
+            true_harut_1d.Scale(args.N_sdf)
+            true_harut_1d.SetLineColor(ROOT.kPink+2)
+            true_harut_1d.SetLineWidth(1)
+            true_harut_1d.SetLineStyle(2)
+
+            for hist_loop in [proj_data__1d, hist_clasdis_norm, proj_harut_1d, true_harut_1d, proj_harut_1d_norm, hist_combined, hist_data_excl, hist_data_wbkg, hist_data_sidis, hist_clasdis_excl]:
                 hist_loop.GetXaxis().SetRangeUser(max([args.x_min, 0.1]), args.x_max)
+                # hist_loop.GetXaxis().SetRangeUser(0.8, 1.05)
 
             out_file = f"Plot_of_{args.vars}_for_rho0_Norm_Combined_1D{suffix}.{fmt}"
             canvas = ROOT.TCanvas("c_combined", "", 900, 700)
@@ -447,49 +488,103 @@ def main_Get_rho_Normalization_values(args):
             ROOT.gStyle.SetAxisColor(16, 'xy')
             ROOT.gStyle.SetOptStat(0)
             Draw_Canvas(canvas, 1, left_add=0.125, right_add=0.025, up_add=0.1, down_add=0.075)
-            # canvas.cd(1)
+            y_max_cutoff = max([hist_clasdis_norm.GetMaximum(), hist_data_sidis.GetMaximum(), hist_clasdis_excl.GetMaximum()])
             # ROOT.gPad.SetLogy(1)
             # proj_data__1d.Draw("hist")
             hist_clasdis_norm.SetTitle(proj_data__1d.GetTitle())
+            hist_clasdis_norm.GetXaxis().SetTitle(str(hist_clasdis_norm.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
+            hist_clasdis_norm.GetYaxis().SetRangeUser(0, 1.05*y_max_cutoff)
             hist_clasdis_norm.Draw("hist same")
             # hist_combined.Draw("hist same")
             hist_data_sidis.Draw("hist same")
-            proj_harut_1d_norm.Draw("hist same")
-            hist_data_excl.Draw("hist same")
+            # proj_harut_1d_norm.Draw("hist same")
+            # # hist_data_excl.Draw("hist same")
+            # hist_data_wbkg.Draw("hist same")
             hist_clasdis_excl.Draw("hist same")
+            # hist_clasdis_ebkg.Draw("hist same")
+
+            Cutoff_Line  = ROOT.TLine(args.z_tot_cut_SIDIS, 0.0, args.z_tot_cut_SIDIS, y_max_cutoff)
+            Cutoff_Line.SetLineColor(ROOT.kGray+3)
+            Cutoff_Line.SetLineStyle(1)
+            Cutoff_Line.SetLineWidth(2)
+            Cutoff_Line.Draw("same")
+            
             legend_cd_1 = ROOT.TLegend(0.575, 0.10, 0.975, 0.45)
             legend_cd_1.SetFillStyle(0)
             legend_cd_1.SetBorderSize(0)
-            legend_cd_1.AddEntry(proj_data__1d,     "#scale[1.5]{Experimental Data (Full)}",                  "l")
-            legend_cd_1.AddEntry(hist_data_sidis,   "#scale[1.5]{Experimental Data (SIDIS)}",                 "l")
-            legend_cd_1.AddEntry(hist_clasdis_norm, "#scale[1.5]{clasdis SIDIS (Normalized)}",                "l")
-            legend_cd_1.AddEntry(hist_combined,     "#scale[1.5]{Combined MCs (Normalized)}",                 "l")
+            # # legend_cd_1.AddEntry(proj_data__1d,     "#scale[1.5]{Experimental Data (Full)}",                  "l")
+            # legend_cd_1.AddEntry(hist_data_sidis,   "#scale[1.5]{Experimental Data (SIDIS)}",                 "l")
+            # legend_cd_1.AddEntry(hist_clasdis_norm, "#scale[1.5]{clasdis SIDIS (Normalized)}",                "l")
+            # # legend_cd_1.AddEntry(hist_combined,     "#scale[1.5]{Combined MCs (Normalized)}",                 "l")
+            # legend_cd_1.AddEntry(hist_clasdis_excl, "#scale[1.5]{clasdis Exclusive #rho^{0} (Normalized)}",   "l")
+            legend_cd_1.AddEntry(hist_data_sidis,   "#scale[0.75]{#splitline{Experimental Data}{(SIDIS)}}",                 "l")
+            legend_cd_1.AddEntry(hist_clasdis_norm, "#scale[0.75]{#splitline{clasdis SIDIS}{(Normalized)}}",                "l")
+            legend_cd_1.AddEntry(hist_clasdis_excl, "#scale[0.75]{#splitline{clasdis Exclusive #rho^{0}}{(Normalized)}}",   "l")
             legend_cd_1.Draw("same")
             # canvas.cd(2)
             Draw_Canvas(canvas, 2, left_add=0.095, right_add=0.025, up_add=0.1, down_add=0.075)
             Shared_Title = proj_data__1d.GetTitle()
-            if(args.title not in ["", " "]):
-                Shared_Title = Shared_Title.replace(args.title, f"#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}")
-            else:
-                Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
+            Shared_Title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{Exclusive Region Cutoff was z_{{1}}+z_{{2}} > {args.z_tot_cut}}}}}"
+            Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
+            # if(args.title not in ["", " "]):
+            #     Shared_Title = Shared_Title.replace(args.title, f"#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}")
+            # else:
+            #     Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
             hist_clasdis_excl.SetTitle(Shared_Title)
             hist_clasdis_excl.GetXaxis().SetTitle(hist_clasdis_excl.GetXaxis().GetTitle().replace(" (Smeared)", ""))
-            hist_clasdis_excl.Draw("hist")
+            proj_harut_1d_norm.SetTitle(Shared_Title)
+            proj_harut_1d_norm.GetXaxis().SetTitle(proj_harut_1d_norm.GetXaxis().GetTitle().replace(" (Smeared)", ""))
+            hist_data_wbkg.SetTitle(Shared_Title)
+            hist_data_wbkg.GetXaxis().SetTitle(hist_data_wbkg.GetXaxis().GetTitle().replace(" (Smeared)", ""))
+            # hist_clasdis_excl.Draw("hist")
+
+            y_max_cutoff = max([hist_data_wbkg.GetMaximum(), proj_harut_1d_norm.GetMaximum(), hist_clasdis_ebkg.GetMaximum()])
+            hist_data_wbkg.GetYaxis().SetRangeUser(0, 1.15*y_max_cutoff)
+            hist_data_wbkg.Draw("hist")
             proj_harut_1d_norm.Draw("hist same")
-            hist_data_excl.Draw("hist same")
+            if(args.subtract_background):
+                hist_data_excl.Draw("hist same")
+                y_max_cutoff = max([hist_data_excl.GetMaximum(), y_max_cutoff])
+                # merged_excl_MCs = proj_harut_1d_norm.Clone("merged_excl_MCs")
+                # merged_excl_MCs.Add(hist_clasdis_ebkg)
+                # merged_excl_MCs.SetLineColor(ROOT.kViolet)
+                # merged_excl_MCs.Draw("hist same")
+            hist_clasdis_ebkg.Draw("hist same")
             # proj_harut_1d.Draw("hist same")
+            if(args.add_background):
+                true_harut_1d.Draw("hist same")
+                y_max_cutoff = max([true_harut_1d.GetMaximum(), y_max_cutoff])
             # hist_data_subt = data_excl_subt.ProjectionX("hist_data_subt", y_bin_1, y_bin_1)
             # hist_data_subt.GetXaxis().SetRangeUser(max([args.x_min, 0.01]), args.x_max)
             # hist_data_subt.Draw("hist same")
+
+            Cutoff_Line_Exclusive  = ROOT.TLine(args.z_tot_cut, 0.0, args.z_tot_cut, y_max_cutoff)
+            Cutoff_Line_Exclusive.SetLineColor(ROOT.kGray+3)
+            Cutoff_Line_Exclusive.SetLineStyle(1)
+            Cutoff_Line_Exclusive.SetLineWidth(2)
+            Cutoff_Line_Exclusive.Draw("same")
+            
             legend_cd_2 = ROOT.TLegend(0.575, 0.10, 0.975, 0.45)
             legend_cd_2.SetFillStyle(0)
             legend_cd_2.SetBorderSize(0)
-            legend_cd_2.AddEntry(proj_harut_1d_norm,"#scale[1.5]{Harut Exclusive MC (Normalized)}",           "l")
-            legend_cd_2.AddEntry(hist_data_excl,    "#scale[1.5]{Experimental Data (Exclusive #rho^{0}})",    "l")
-            legend_cd_2.AddEntry(hist_clasdis_excl, "#scale[1.5]{clasdis Exclusive #rho^{0} (Normalized)}",   "l")
-            # legend_cd_2.AddEntry(proj_harut_1d,     "#scale[1.5]{Harut Exclusive MC (Raw)}",                          "l")
-            # legend_cd_2.AddEntry(hist_clasdis_norm, "#scale[1.5]{clasdis SIDIS (Normalized to Data)}",                "l")
-            # legend_cd_2.AddEntry(hist_combined,     "#scale[1.5]{Combined MCs (Normalized to Data)}",                 "l")
+            if(args.add_background):
+                legend_cd_2.AddEntry(proj_harut_1d_norm, "#scale[2.0]{Harut Exclusive+clasdis SIDIS BKG}",    "l")
+                legend_cd_2.AddEntry(true_harut_1d,      "#scale[1.65]{Harut Exclusive MC (w/out SIDIS BKG)}","l")
+            else:
+                legend_cd_2.AddEntry(proj_harut_1d_norm,"#scale[4.0]{Harut Exclusive MC}",                "l")
+            # legend_cd_2.AddEntry(proj_harut_1d_norm,"#scale[1.5]{Harut Exclusive MC (Normalized)}",                "l")
+            if(args.subtract_background):
+                # legend_cd_2.AddEntry(hist_data_excl,"#scale[1.65]{Exclusive Experimental Data (w/out SIDIS BKG)}",   "l")
+                legend_cd_2.AddEntry(hist_data_excl,"#scale[2.65]{#splitline{Exclusive Experimental Data}{(w/out SIDIS BKG)}}",   "l")
+            legend_cd_2.AddEntry(hist_data_wbkg,    "#scale[2.65]{#splitline{Exclusive Experimental Data}{(with SIDIS BKG)}}",   "l")
+            # legend_cd_2.AddEntry(hist_data_excl,    "#scale[1.5]{Experimental Data (Exclusive #rho^{0}})",         "l")
+            # legend_cd_2.AddEntry(hist_clasdis_excl, "#scale[1.5]{clasdis Exclusive #rho^{0} (Normalized)}",        "l")
+            legend_cd_2.AddEntry(hist_clasdis_ebkg, "#scale[3.65]{#splitline{clasdis BKG SIDIS}{in Exclusive Region}}",   "l")
+            # legend_cd_2.AddEntry(hist_clasdis_ebkg, "#scale[1.575]{clasdis BKG SIDIS in Exclusive}",   "l")
+            # legend_cd_2.AddEntry(proj_harut_1d,     "#scale[1.5]{Harut Exclusive MC (Raw)}",                       "l")
+            # legend_cd_2.AddEntry(hist_clasdis_norm, "#scale[1.5]{clasdis SIDIS (Normalized to Data)}",             "l")
+            # legend_cd_2.AddEntry(hist_combined,     "#scale[1.5]{Combined MCs (Normalized to Data)}",              "l")
+
             legend_cd_2.Draw("same")
             
             # Coordinates are NDC because of the "NDC" option
