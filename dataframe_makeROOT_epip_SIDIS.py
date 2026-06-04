@@ -233,12 +233,12 @@ if(str(file_location) == 'time'):
 new_variation_cut_mode = False
 if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     file_num, file_type = str(file_location), ""
-    if(any(new_files in file_num for new_files in [".new6.", ".new7.", ".new8."])):
+    if(any(new_files in file_num for new_files in [".new6.", ".new7.", ".new8.", ".new9."])):
         new_variation_cut_mode = True
         file_num = (file_num.split("/"))[-1]
         file_num = (file_num.split(".hipo"))[0]
         file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "lundvpk" if((".rho0." in file_num) and ("lundvpk" in file_num)) else "lundrho" if((".rho0." in file_num) or ("lundrho" in file_num)) else "SIDIS"
-        file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7." if(".new7." in file_num) else ".new8."))[-1]
+        file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7." if(".new7." in file_num) else ".new8." if(".new8." in file_num) else ".new9."))[-1]
         file_num = file_num.replace("nSidis_00", "")
         mc = "EvGen_" if("EvGen" in file_num) else ""
         background = "45nA_" if ("45nA" in file_num) else "50nA_" if ("50nA" in file_num) else ""

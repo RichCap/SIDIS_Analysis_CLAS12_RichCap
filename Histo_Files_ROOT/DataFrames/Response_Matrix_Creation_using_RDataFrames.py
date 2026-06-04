@@ -88,7 +88,7 @@ def parse_args():
     parser.add_argument('-2Dz', '--z_axis_2D',
                         type=str,
                         default="4D_Bin",
-                        choices=["4D_Bin", "exclusive_rho", "exclusive_rho_individual"],
+                        choices=["4D_Bin", "exclusive_rho", "exclusive_rho_individual", "Q2_Y_Bin"],
                         help="Defines what variable will be used in the TH2D histograms.\n")
     parser.add_argument('-2Dr', '--make_2D_rho',
                         action='store_true',
@@ -492,24 +492,30 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
             return exclusive_rho_full;''')
     elif(not df.HasColumn("exclusive_rho_full")):
         Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full' due to missing columns{color.END}", verbose_override=True, no_time=True)
+    if(( not df.HasColumn("exclusive_rec")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho"])):
+        print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rec'){color.END}")
+        df = df.Define("exclusive_rec", '''return exclusive_rho;''')
+    elif(not df.HasColumn("exclusive_rec")):
+        Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rec' due to missing columns{color.END}", verbose_override=True, no_time=True)
     for smear in ["", "_smeared"]:
         if((smear in ["_smeared"]) and ("mdf" not in dfname)):
             continue # Only the mdf files use smearing
-        if(( not df.HasColumn(f"exclusive_rho_individual{smear}")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "pim_present", "proton_present", f"MM{smear}", f"MM_pippim{smear}"])):
+        if(( not df.HasColumn(f"exclusive_rho_individual{smear}")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "exclusive_rec", "pim_present", "proton_present", f"MM{smear}", f"MM_pippim{smear}"])):
             print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rho_individual{smear}'){color.END}")
             df = df.Define(f"exclusive_rho_individual{smear}", f'''int exclusive_rho_individual{smear} = 0;
                 if(exclusive_rho  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  1; }}
+                if(exclusive_rec  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  2; }}
                 if(pim_present    == 1){{
-                    exclusive_rho_individual{smear} =                              exclusive_rho_individual{smear} +  2; 
+                    exclusive_rho_individual{smear} =                              exclusive_rho_individual{smear} +  4; 
                     if((0.625 < W_pippim{smear}) && (W_pippim{smear} < 0.925)){{ 
-                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +  4;
+                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +  8;
                     }} // Pion Invariant Mass Cut around the rho0 mass (requires the π- kinematics)
                     if((0.85 < MM_pippim{smear}) && (MM_pippim{smear} < 1.05)){{ 
-                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +  8;
+                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} + 16;
                     }} // Missing Mass Cut around the proton mass for ep->eπ+π-(X) (Only applies when the π- is detected)
                 }}
-                if(proton_present == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 16; }}
-                if(MM{smear} > 1.8){{            exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 32; }} // This is my default MM Cut for my SIDIS Analysis (i.e., `exclusive_rho_individual < 32` --> likely exclusive events, while `exclusive_rho_individual > 32` --> likely SIDIS events)
+                if(proton_present == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 32; }}
+                if(MM{smear} > 1.8){{            exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 64; }} // This is my default MM Cut for my SIDIS Analysis (i.e., `exclusive_rho_individual < 64` --> likely exclusive events, while `exclusive_rho_individual > 64` --> likely SIDIS events)
                 return exclusive_rho_individual{smear};''')
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
@@ -1063,8 +1069,9 @@ if(__name__ == "__main__"):
             pT_Binning       = ['pT',        0,     1.05,   105]
             MM_Binning       = ['MM',      0.5,      4.5,    80]
             W_Binning        = ['W',      0.99,     4.99,    80]
-            List_of_2D_Plots = [[Q2_Binning,                xB_Binning]]
+            List_of_2D_Plots = []
             if(not args.make_2D_rho_normalization_only):
+                List_of_2D_Plots.append([Q2_Binning,        xB_Binning])
                 List_of_2D_Plots.append([Q2_Binning,         y_Binning])
                 List_of_2D_Plots.append([z_Binning,         pT_Binning])
                 List_of_2D_Plots.append([MM_Binning,         W_Binning])
@@ -1074,12 +1081,17 @@ if(__name__ == "__main__"):
                 List_of_2D_Plots.append([pip_Binning,    pipth_Binning])
                 List_of_2D_Plots.append([pip_Binning,   pipPhi_Binning])
                 # List_of_2D_Plots.append([pipth_Binning, pipPhi_Binning])
-                List_of_2D_Plots.append([["phi_t", 0, 360, 24],       ["exclusive_rho",      -1.5, 2.5, 4]])
-                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippim",           0.0, 4.5, 90]])
-                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippimpro",       -0.5, 4.0, 90]])
-                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["W_pippim",            0.0, 2.5, 50]])
-            List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho",      -1.5, 2.5, 4]])
-            List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho_full", -1.5, 2.5, 4]])
+                List_of_2D_Plots.append([["phi_t", 0, 360, 24],       ["exclusive_rho",             -1.5,   2.5,   4]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippim",                  0.0,   4.5,  90]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippimpro",              -0.5,   4.0,  90]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["W_pippim",                   0.0,   2.5,  50]])
+            if(str(args.z_axis_2D) in ["4D_Bin", "Q2_Y_Bin"]):
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho_individual",  -0.5, 127.5, 128]])
+                List_of_2D_Plots.append([["W_pippim", 0.0, 2.5,  50], ["exclusive_rho_individual",  -0.5, 127.5, 128]])
+            else:
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho",             -1.5,   2.5,   4]])
+            # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho",             -1.5,   2.5,   4]])
+            # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho_full",        -1.5,   2.5,   4]])
 
             if((args.make_2D_rho) and all((mdf_clasdis.HasColumn(needed_for_rho) and gdf_clasdis.HasColumn(needed_for_rho)) for needed_for_rho in ["rho0", "rho0th", "rho0Phi", "Par_PID_pip", "rho0_parent", "rho0_grandparent"])):
                 # === NEW RHO KINEMATICS (MC ONLY) ===
@@ -1107,7 +1119,9 @@ if(__name__ == "__main__"):
                         continue # Skip the rho0 and PID plots using data
                     Use_Smear = (data not in ["rdf", "gdf"]) and all(MC_only not in str(Vars) for MC_only in ["rho0", "Par_PID"])
                     # print(f"{data} ==> {Use_Smear}")
+                    # if(args.verbose):
                     Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=use_weight, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z=args.z_axis_2D)
+                    Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) plot for: {color.END_B}{str(Vars)}{color.END}", verbose_override=False, no_time=True)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C})'{color.END}", verbose_override=True)
             if(args.Use_EvGen):
                 for Vars in List_of_2D_Plots:

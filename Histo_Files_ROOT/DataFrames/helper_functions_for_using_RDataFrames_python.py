@@ -927,9 +927,12 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
         Res_Binning_4D = [axis_Z, -1.5, 2.5, 4]
         Binning_Axis_Tag = axis_Z
     if(axis_Z in ["exclusive_rho_individual"]):
-        Res_Binning_4D = ["exclusive_rho_individual", -0.5, 63.5, 64]
+        Res_Binning_4D = ["exclusive_rho_individual", -0.5, 127.5, 128]
         Binning_Axis_Tag = "exclusive_rho_individual"
-    Var_X,  Var_Y  = Vars_Input
+    if(axis_Z in ["Q2_Y_Bin"]):
+        Res_Binning_4D = ["Q2_Y_Bin", -0.5, 17.5, 18]
+        Binning_Axis_Tag = "Q2_Y_Bin"
+    Var_X, Var_Y = Vars_Input
     if("mear" in str(Histo_Smear)):
         if("smeared" not in str(Res_Binning_4D[0])):
             Res_Binning_4D[0] = f"{Res_Binning_4D[0]}_smeared"
