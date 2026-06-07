@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import ROOT
+import cppyy
 import sys
 ROOT.gROOT.SetBatch(True)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, root_color, color_bg, variable_Title_name, RuntimeTimer, Draw_Canvas
+from MyCommonAnalysisFunction_richcap import color, root_color, color_bg, variable_Title_name, RuntimeTimer, Draw_Canvas, silence_root_import
 sys.path.remove(script_dir)
 del script_dir
 import argparse
@@ -20,13 +21,15 @@ def parse_args():
                         action='store_true',
                         help="Print verbosely.\n")
     parser.add_argument('-f1', '--file1',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V5_Final_Analysis_Iterations_I0_All.root',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_Dynamic_W_pim_cut_rho_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_New_Dynamic_rho_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho_Normalizer_Default_rho_Final_Analysis_Iterations_I0_All.root',
                         help='Path to the ROOT file which contains the required clasdis/data histograms (without rho0).\n')
     parser.add_argument('-f2', '--file2',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V5_Final_Analysis_Iterations_I0_All.root',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_Dynamic_W_pim_cut_rho_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_New_Dynamic_rho_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho_Normalizer_Default_rho_Final_Analysis_Iterations_I0_All.root',
@@ -67,11 +70,11 @@ def parse_args():
     parser.add_argument('-v', '--vars',
                         default='z1z2',
                         # default='Q2xB',
-                        choices=['Q2xB', 'q2xb', 'z', 'z1z2'],
-                        help="Controls for which variables to use (either 'Q2 vs xB' or 'z1+z2').\n")
-    # parser.add_argument('-cz', '--clasdis_z1z2',
-    #                     action='store_true',
-    #                     help='Runs the z1+z2 plots with clasdis instead of data.\n')
+                        choices=['Q2xB', 'q2xb', 'z', 'z1z2', 'Wpions', 'Wp'],
+                        help="Controls for which variables to use (either 'Q2 vs xB', 'z1+z2', or fitted 'Wpions').\n")
+    parser.add_argument('-u2Dk', '--Use_2D_Kinematic_Binning',
+                        action='store_true',
+                        help=f"Uses the 'Q2_Y_Bin' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n\t{color.RED}As of 6/6/2026: Have not generalized it yet to other modes.{color.END}\n")
     parser.add_argument('-ol', '--old_lund',
                         action='store_true',
                         help="Use Harut's old files instead of the newer ones.\n")
@@ -107,10 +110,10 @@ def parse_args():
 
 def check_histo_for_errors(hist, name, file_name):
     if(not hist):
-        print(f"ERROR: Could not load histogram '{name}' from '{file_name}'")
+        print(f"\n{color.Error}ERROR: Could not load histogram '{name}' from '{file_name}'{color.END}\n")
         sys.exit(1)
     if(not hist.InheritsFrom("TH3")):
-        print(f"ERROR: Loaded object '{name}' is not TH3-compatible (got {hist.ClassName()})")
+        print(f"\n{color.Error}ERROR: Loaded object '{name}' is not TH3-compatible (got {hist.ClassName()}){color.END}\n")
         sys.exit(1)
 
 def Create_Images(args, Full_List_of_HistosB, Full_List_of_Factors, Kinematic_Bin="All", proj_data_full_for_plot=None):
@@ -370,6 +373,387 @@ def Create_Images(args, Full_List_of_HistosB, Full_List_of_Factors, Kinematic_Bi
     canvas.SaveAs(out_file)
     print(f"{color.BOLD}Saved combined 1D histogram canvas with legend to: {color.BPINK}{out_file}{color.END}")
     return canvas
+
+def Create_Diagnostic_Weight_Impact_Plots(args, h3d1, h3d2, h3d4, h3d_mdf, Full_List_of_Factors, project_z_bins):
+    if(getattr(args, "Kinematic_Bin_Select", "Full") not in ["Full", "All"]):
+        print(f"{color.Error}Warning: Diagnostic Weight Impact plots only run for Kinematic_Bin_Select='Full' or 'All'. Skipping.{color.END}")
+        return
+    print(f"\n{color.BOLD}Creating diagnostic weight impact plots (Full kinematic bins)...{color.END}")
+    non_all = [k for k in Full_List_of_Factors if(k != "All")]
+    if(non_all and getattr(args, "Kinematic_Bin_Select", "Full") == "Full"):
+        avg_sdf = sum(Full_List_of_Factors[k]["N_sdf"] for k in non_all)/len(non_all)
+        avg_edf = sum(Full_List_of_Factors[k]["N_edf"] for k in non_all)/len(non_all)
+        print(f"{color.BOLD}Average alpha_SIDIS (N_sdf): {avg_sdf:.6f}{color.END}")
+        print(f"{color.BOLD}Average N_rho (N_edf)     : {avg_edf:.6f}{color.END}")
+    yaxis = h3d_mdf.GetYaxis()
+    n_y = yaxis.GetNbins()
+    data_z = [b for b in range(64, n_y+1)]
+    clas_z = [b for b in range(64, n_y+1) if(b%2 == 0)]
+    haru_z = [b for b in range(64, n_y+1) if(b%2 == 1)]
+    proj_data_d = project_z_bins(h3d1, "proj_data_diag", data_z)
+    proj_clas_d = project_z_bins(h3d_mdf, "proj_clasdis_diag", clas_z)
+    proj_haru_d = project_z_bins(h3d2, "proj_harut_diag", haru_z)
+    if(None in [proj_data_d, proj_clas_d, proj_haru_d]):
+        print(f"{color.Error}Failed diagnostic projections{color.END}")
+        return
+    data_kin = proj_data_d.ProjectionY("data_kin_diag")
+    clas_raw = proj_clas_d.ProjectionY("clasdis_kin_raw")
+    haru_raw = proj_haru_d.ProjectionY("harut_kin_raw")
+    clas_to_data = clas_raw.Clone("clas_to_data")
+    haru_to_data = haru_raw.Clone("haru_to_data")
+    haru_to_clas = haru_raw.Clone("haru_to_clas")
+    use_global = getattr(args, "Kinematic_Bin_Select", "Full") == "All"
+    global_f = Full_List_of_Factors.get("All", None)
+    for bk in Full_List_of_Factors:
+        if(bk in ["All"]): continue
+        ibin = int(bk) + 1
+        if(use_global and global_f):
+            sdf = global_f["N_sdf"]
+            edf = global_f["N_edf"]
+            final_f = global_f["final_factor"]
+        else:
+            sdf = Full_List_of_Factors[bk]["N_sdf"]
+            edf = Full_List_of_Factors[bk]["N_edf"]
+            final_f = Full_List_of_Factors[bk]["final_factor"]
+        clas_to_data.SetBinContent(ibin, clas_raw.GetBinContent(ibin) * sdf)
+        haru_to_data.SetBinContent(ibin, haru_raw.GetBinContent(ibin) * edf)
+        haru_to_clas.SetBinContent(ibin, haru_raw.GetBinContent(ibin) * final_f)
+    data_kin.SetLineColor(ROOT.kRed); data_kin.SetLineWidth(2)
+    clas_to_data.SetLineColor(ROOT.kBlue); clas_to_data.SetLineWidth(2)
+    haru_to_data.SetLineColor(ROOT.kGreen+2); haru_to_data.SetLineWidth(3)
+    haru_to_clas.SetLineColor(ROOT.kMagenta); haru_to_clas.SetLineWidth(3)
+    for h in [data_kin, clas_to_data, haru_to_data, haru_to_clas]:
+        h.GetXaxis().SetTitle("Flattened 4D Kinematic Bin Index")
+        h.GetYaxis().SetTitle("Yield")
+    fmt = args.file_format.lower()
+    suffix = f"_{args.name}" if(args.name) else ""
+    c1 = ROOT.TCanvas("c_diag_data", "", 900, 600)
+    ROOT.gStyle.SetOptStat(0)
+    data_kin.Draw("hist")
+    clas_to_data.Draw("hist same")
+    haru_to_data.Draw("hist same")
+    leg1 = ROOT.TLegend(0.6, 0.7, 0.95, 0.9)
+    leg1.SetFillStyle(0); leg1.SetBorderSize(0)
+    leg1.AddEntry(data_kin, "Experimental Data (unscaled)", "l")
+    leg1.AddEntry(clas_to_data, "clasdis (scaled by N_sdf)", "l")
+    leg1.AddEntry(haru_to_data, "Harut (scaled by N_edf)", "l")
+    leg1.Draw("same")
+    c1.SaveAs(f"Diagnostic_Data_Level_Weight_Impact{suffix}.{fmt}")
+    print(f"{color.BOLD}Saved Data-level diagnostic: Diagnostic_Data_Level_Weight_Impact{suffix}.{fmt}{color.END}")
+    c2 = ROOT.TCanvas("c_diag_mc", "", 900, 600)
+    ROOT.gStyle.SetOptStat(0)
+    clas_to_data.Draw("hist")
+    haru_to_clas.Draw("hist same")
+    leg2 = ROOT.TLegend(0.6, 0.7, 0.95, 0.9)
+    leg2.SetFillStyle(0); leg2.SetBorderSize(0)
+    leg2.AddEntry(clas_to_data, "clasdis (to data level)", "l")
+    leg2.AddEntry(haru_to_clas, "Harut (to clasdis level)", "l")
+    leg2.Draw("same")
+    c2.SaveAs(f"Diagnostic_MC_Level_Weight_Impact{suffix}.{fmt}")
+    print(f"{color.BOLD}Saved MC-level diagnostic: Diagnostic_MC_Level_Weight_Impact{suffix}.{fmt}{color.END}")
+    def make_ratio(num, den, name, ttl):
+        r = num.Clone(name)
+        r.SetTitle(ttl)
+        r.SetLineColor(ROOT.kBlack); r.SetLineWidth(2)
+        avg_r = 0.0
+        nvalid = 0
+        for i in range(1, r.GetNbinsX()+1):
+            dval = den.GetBinContent(i)
+            rval = (num.GetBinContent(i)/dval*100) if(dval > 0) else 0.0
+            r.SetBinContent(i, rval)
+            if(dval > 0):
+                avg_r += rval
+                nvalid += 1
+        avg_r = avg_r/nvalid if nvalid else 0.0
+        c_r = ROOT.TCanvas(f"c_{name}", "", 900, 600)
+        ROOT.gStyle.SetOptStat(0)
+        r.Draw("hist")
+        box = ROOT.TPaveText(0.6, 0.8, 0.95, 0.9, "NDC")
+        box.SetFillColor(0); box.SetBorderSize(1)
+        box.AddText(f"Avg ratio: {avg_r:.2f}%")
+        box.Draw("same")
+        c_r.SaveAs(f"Diagnostic_Ratio_{name}{suffix}.{fmt}")
+        print(f"{color.BOLD}Saved ratio: Diagnostic_Ratio_{name}{suffix}.{fmt}{color.END}")
+        return r
+    r1 = make_ratio(haru_to_data, data_kin, "HarutToData_over_Data", "Harut(to-data)/Data x100")
+    r2 = make_ratio(clas_to_data, data_kin, "ClasdisToData_over_Data", "clasdis(to-data)/Data x100")
+    r3 = make_ratio(clas_to_data, haru_to_data, "ClasdisToData_over_HarutToData", "clasdis(to-data)/Harut(to-data) x100")
+    r4 = make_ratio(clas_to_data, haru_to_clas, "ClasdisToData_over_HarutToClasdis", "clasdis(to-data)/Harut(to-clasdis) x100")
+    if(getattr(args, "extra_root_save", False)):
+        root_name = f"Diagnostic_Weight_Impact_Histos_{args.name if args.name else 'UnNamed'}.root"
+        rf = ROOT.TFile.Open(root_name, "RECREATE")
+        if(rf and not rf.IsZombie()):
+            data_kin.Write(); clas_to_data.Write(); haru_to_data.Write(); haru_to_clas.Write()
+            r1.Write(); r2.Write(); r3.Write(); r4.Write()
+            rf.Close()
+            print(f"{color.BGREEN}Saved diagnostic histograms to {root_name}{color.END}")
+    print(f"{color.BOLD}Diagnostic weight impact plots completed.{color.END}\n")
+
+def project_z_bins_global(h3d, name, z_values_list, args=None, function_or_hist_integration="hist"):
+    if(not h3d):
+        return None
+    if(getattr(args, "legacy", False) and (function_or_hist_integration in ["hist"])):
+        proj_option = "yx" if(str(getattr(args, "vars", "z1z2")).lower() not in ["q2xb"]) else "xy"
+        zaxis = h3d.GetZaxis()
+    else:
+        proj_option = "zx"
+        zaxis = h3d.GetYaxis()
+    proj = None
+    for zval in z_values_list:
+        bin_num = zaxis.FindBin(zval)
+        zaxis.SetRange(bin_num, bin_num)
+        tmp = h3d.Project3D(proj_option)
+        if(proj is None):
+            proj = tmp.Clone(name)
+            proj.Reset()
+        else:
+            proj.Add(tmp)
+        tmp.Delete()
+    # zaxis.SetRange(0, 0)  # reset range
+    if((getattr(args, "extra_root_save", False)) and (proj is not None)):
+        args_name = getattr(args, "name", '')
+        root_name = f"{f'{args_name}_' if(args_name not in ['']) else ''}{name}.root"
+        for remove in ["(", ")", " "]:
+            root_name = root_name.replace(remove, "")
+        out_file = ROOT.TFile.Open(root_name, "RECREATE")
+        if((not out_file) or (out_file.IsZombie())):
+            raise OSError(f"Could not create ROOT file: {root_name}")
+        out_file.cd()
+        proj.Write(name)
+        out_file.Close()
+        print(f"{color.BGREEN}Saved a Sliced TH2D histogram as: {color.BBLUE}{root_name}{color.END}\n")
+    return proj
+
+def histo_setup_for_Wpions(args):
+    print(f"\n{color.BLUE}Getting the correct histograms...{color.END}\n")
+    hist_key___data  =  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(W_pippim)_(exclusive_rho_individual)"
+    hist_key__harut  =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
+    hist_key_clasdis = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
+
+    if(args.Use_2D_Kinematic_Binning or True): # As of 6/6/2026, these histograms always use the Q2-y bins only
+        hist_key___data  =  hist_key___data.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
+        hist_key__harut  =  hist_key__harut.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
+        hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
+
+    if(args.verbose):
+        print(f"Loading ROOT file: {args.file1}")
+        print(f"Loading histogram key 'hist_key___data'  = {hist_key___data}")
+        print(f"Loading histogram key 'hist_key__harut'  = {hist_key__harut}")
+        print(f"Loading histogram key 'hist_key_clasdis' = {hist_key_clasdis}")
+
+    file1 = ROOT.TFile.Open(args.file1)
+    if((not file1) or (file1.IsZombie())):
+        print(f"ERROR: Failed to open ROOT file: {args.file1}")
+        sys.exit(1)
+
+    h3__data = file1.Get(hist_key___data)
+    check_histo_for_errors(h3__data, hist_key___data,  args.file1)
+    h3_harut = file1.Get(hist_key__harut)
+    check_histo_for_errors(h3_harut, hist_key__harut,  args.file1)
+    h3___mdf = file1.Get(hist_key_clasdis)
+    check_histo_for_errors(h3___mdf, hist_key_clasdis, args.file1)
+    
+    print(f"{color.BGREEN}Successfully loaded all TH3D histograms and validated compatibility.{color.END}")
+    
+    args.Exclusive_bins = [87, 95, 119, 127, 215, 223, 247, 255]
+    args.SIDIS_BKG_bins = [92, 94, 124, 126, 220, 222, 252, 254]
+
+    # Data
+    proj__data_excl = project_z_bins_global(h3__data, "proj__data_excl", args.Exclusive_bins, args, function_or_hist_integration="func")
+    # Harut's MC
+    proj_harut_excl = project_z_bins_global(h3_harut, "proj_harut_excl", args.Exclusive_bins, args, function_or_hist_integration="func")
+    # clasdis MC (SIDIS BKG)
+    proj_mdf__exbkg = project_z_bins_global(h3___mdf, "proj_mdf__exbkg", args.SIDIS_BKG_bins, args, function_or_hist_integration="func")
+
+    return args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1
+
+def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1_data, fy1_harut, N_data_rho, N_harut_rho, n_rho):
+    fmt = args.file_format.lower()
+    suffix = f"_{args.name}" if(args.name) else ""
+    suffix = f"{suffix}_Bin_{getattr(args, 'Kinematic_Bin_Select', 'All')}"
+    # Data fit plot
+    c_data = ROOT.TCanvas("c_data_fit", "", 900, 600)
+    ROOT.gStyle.SetOptStat(0)
+    mass_data.Draw("hist")
+    mass_data.SetLineColor(ROOT.kCyan)
+    fy_data.SetLineColor(ROOT.kBlack)
+    fy_data.Draw("same")
+    fy1_data.SetLineColor(ROOT.kMagenta)
+    fy1_data.Draw("same")
+    # leg_d = ROOT.TLegend(0.55, 0.75, 0.95, 0.95)
+    leg_d = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
+    leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
+    leg_d.AddEntry(mass_data, "Experimental Data", "l")
+    leg_d.AddEntry(fy_data,   "Full Fit",          "l")
+    leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
+    leg_d.Draw("same")
+    # box_d = ROOT.TPaveText(0.15, 0.8, 0.55, 0.9, "NDC")
+    box_d = ROOT.TPaveText(0.575, 0.55, 0.9, 0.65, "NDC")
+    box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
+    box_d.SetTextAlign(22); box_d.SetTextFont(62); box_d.SetTextSize(0.025)
+    box_d.SetMargin(0.02)
+    box_d.AddText("Number of Experimental")
+    box_d.AddText("Exclusive #rho^{0} Events from Fit:")
+    box_d.AddText(f"{N_data_rho:.6f}")
+    box_d.Draw("same")
+    if(not args.no_save):
+        c_data.SaveAs(f"Wpions_Fit_Experimental_Data{suffix}.{fmt}")
+        print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
+    else:
+        print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
+    # Harut fit plot
+    c_harut = ROOT.TCanvas("c_harut_fit", "", 900, 600)
+    ROOT.gStyle.SetOptStat(0)
+    mass_harut.Draw("hist")
+    mass_harut.SetLineColor(ROOT.kGreen)
+    fy_harut.SetLineColor(ROOT.kBlack)
+    fy_harut.Draw("same")
+    fy1_harut.SetLineColor(ROOT.kMagenta)
+    fy1_harut.Draw("same")
+    # leg_h = ROOT.TLegend(0.55, 0.75, 0.95, 0.95)
+    leg_h = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
+    leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
+    leg_h.AddEntry(mass_harut, "Harut's Monte Carlo", "l")
+    leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
+    leg_h.AddEntry(fy1_harut,  "#rho^{0} Signal",     "l")
+    leg_h.Draw("same")
+    box_h = ROOT.TPaveText(0.575, 0.55, 0.9, 0.65, "NDC")
+    box_h.SetFillColor(0); box_h.SetBorderSize(1); box_h.SetFillStyle(1001)
+    box_h.SetTextAlign(22); box_h.SetTextFont(62); box_h.SetTextSize(0.025)
+    box_h.SetMargin(0.02)
+    box_h.AddText("Number of Harut's MC")
+    box_h.AddText("Exclusive #rho^{0} Events:")
+    box_h.AddText(f"{N_harut_rho:.6f}")
+    box_h.Draw("same")
+    if(not args.no_save):
+        c_harut.SaveAs(f"Wpions_Fit_Harut_MC{suffix}.{fmt}")
+        print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+    else:
+        print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+    # # Normalization summary
+    # c_sum = ROOT.TCanvas("c_summary", "", 900, 600)
+    # ROOT.gStyle.SetOptStat(0)
+    # pave = ROOT.TPaveText(0.1, 0.1, 0.9, 0.9, "NDC")
+    # pave.SetFillColor(0); pave.SetBorderSize(1)
+    # pave.AddText("Wpions Fit-Based rho0 Normalization")
+    # pave.AddText(f"N_data_rho (signal) = {N_data_rho:.2f}")
+    # pave.AddText(f"N_harut_rho (signal) = {N_harut_rho:.2f}")
+    # pave.AddText(f"n_rho = {n_rho:.6f}")
+    # pave.Draw()
+    # c_sum.SaveAs(f"Wpions_Fit_Normalization_Summary{suffix}.{fmt}")
+    # print(f"{color.BOLD}Saved Wpions normalization summary: Wpions_Fit_Normalization_Summary{suffix}.{fmt}{color.END}")
+    # if(getattr(args, "extra_root_save", False)):
+    #     root_name = f"Wpions_Fit_Normalization_Histos_{args.name if args.name else 'UnNamed'}.root"
+    #     rf = ROOT.TFile.Open(root_name, "RECREATE")
+    #     if(rf and not rf.IsZombie()):
+    #         mass_data.Write()
+    #         mass_harut.Write()
+    #         fy_data.Write()
+    #         fy_harut.Write()
+    #         rf.Close()
+    #         print(f"{color.BGREEN}Saved Wpions fit histograms to {root_name}{color.END}")
+
+def main_Get_rho_Normalization_values_Wpions(args):
+    print(f"\n{color.BBLUE}Starting Wpions fit-based rho0 normalization...{color.END}")
+    args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1 = histo_setup_for_Wpions(args)
+    args.x_min =  0.2 if(args.x_min == 0.08) else args.x_min
+    args.x_max =  2.0 if(args.x_max == 0.68) else args.x_max
+    # 1D projections used as input distributions for fit (adapted from existing logic)
+    if(getattr(args, "Kinematic_Bin_Select", "All") in ["All", "Full"]):
+        histo__data_Wpions = proj__data_excl.ProjectionX("histo__data_Wpions_Bin_All")
+        histo_harut_Wpions = proj_harut_excl.ProjectionX("histo_harut_Wpions_Bin_All")
+        histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX("histo_mdfbg_Wpions_Bin_All")
+    else:
+        histo_bin_num = proj__data_excl.GetYaxis().FindBin(int(getattr(args, "Kinematic_Bin_Select", 0)))
+        histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+        histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+        histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+    minValue = max([0.3, args.x_min])
+    maxValue = max([2.0, args.x_max])
+    # C++ fit functions (adapted from Nick's notebook)
+    ROOT.gInterpreter.Declare("""
+    #include <cmath>
+    #include "TMath.h"
+    class FunctionSet {
+    public:
+        double breit_wigner_1(double *x, double *par) {
+            double m = x[0];
+            double amp = par[0];
+            double mu = par[1];
+            double gamma = par[2];
+            return amp*TMath::BreitWigner(m, mu, gamma);
+        }
+        double breit_wigner_2(double *x, double *par) {
+            double m = x[0];
+            double amp = par[7];
+            double mu = par[8];
+            double gamma = par[9];
+            return amp*TMath::BreitWigner(m, mu, gamma);
+        }
+        double breit_wigner_3(double *x, double *par) {
+            double m = x[0];
+            double amp = par[10];
+            double mu = par[11];
+            double gamma = par[12];
+            return amp*TMath::BreitWigner(m, mu, gamma);
+        }
+        double background(double *xx, double *par) {
+            double m = xx[0];
+            double amp_bkg = par[3];
+            double xi = par[4];
+            double m0_bkg = par[5];
+            double m1_bkg = par[6];
+            double cc = m1_bkg-m0_bkg;
+            double c2 = cc*cc;
+            double x = cc - (m-m0_bkg);
+            double ybg = 0;
+            if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
+            return amp_bkg*ybg;
+        }
+        double total_function_f0(double *x, double *par) {
+            double bw1 = breit_wigner_1(x, par);
+            double bkg = background(x,par);
+            double bw2 = breit_wigner_2(x, par);
+            double bw3 = breit_wigner_3(x, par);
+            return bw1 + bkg + bw2 + bw3;
+        }
+    };
+    """)
+    funcs = cppyy.gbl.FunctionSet()
+    # withF0 = True
+    # Fit data
+    fy_data = ROOT.TF1("fy_data", funcs.total_function_f0, minValue, maxValue, 13)
+    # fy_data.SetParameters(200, 0.7, 0.2, 100, 1, 0.3, 1, 20, 1.2, 0.18, 20, 0.98, 0.18)  # old line - remove
+    # Use individual SetParameter calls (works for any number of parameters)
+    pars_data = [2000, 0.77, 0.2, 500, 1, 0.3, 1, 200, 1.2, 0.18, 200, 0.98, 0.18]
+    for i, p in enumerate(pars_data):
+        fy_data.SetParameter(i, p)
+        fy_data.SetParLimits(i, 0.5*p, 10*p)
+    histo__data_Wpions.Fit(fy_data, "Q")
+    fy1_data = ROOT.TF1("fy1_data", funcs.breit_wigner_1, minValue, maxValue, 3)
+    fy1_data.SetParameters(fy_data.GetParameter(0), fy_data.GetParameter(1), fy_data.GetParameter(2))
+    N_data_rho = fy1_data.Integral(minValue, maxValue)
+    # Same for Harut
+    fy_harut = ROOT.TF1("fy_harut", funcs.total_function_f0, minValue, maxValue, 13)
+    pars_harut = [2000, 0.77, 0.2, 10, 1, 0.3, 1, 20, 1.2, 0.18, 20, 0.98, 0.18]
+    for i, p in enumerate(pars_harut):
+        fy_harut.SetParameter(i, p)
+    histo_harut_Wpions.Fit(fy_harut, "Q")
+    fy1_harut = ROOT.TF1("fy1_harut", funcs.breit_wigner_1, minValue, maxValue, 3)
+    fy1_harut.SetParameters(fy_harut.GetParameter(0), fy_harut.GetParameter(1), fy_harut.GetParameter(2))
+    N_harut_rho = fy1_harut.Integral(minValue, maxValue)
+    n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
+    print("")
+    print(f"{ color.BBLUE}Fit-based normalization (Wpions):{color.END}")
+    print(f"{ color.BOLD }Kinematic Bin Used: {getattr(args, 'Kinematic_Bin_Select', 'All')}{color.END}")
+    print(f"{ color.BOLD }N_data_rho (Experimental exclusive signal)        : {N_data_rho:>12.0f}{color.END}")
+    print(f"{ color.BOLD }N_harut_rho (Harut's exclusive signal)            : {N_harut_rho:>12.0f}{color.END}")
+    print(f"{color.BGREEN}n_rho (brings Harut's files to data)              : {n_rho:>12.6f}{color.END}\n")
+    args.N_rho_fit = n_rho
+    Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_data, fy1_harut, N_data_rho, N_harut_rho, n_rho)
+    file1.Close()
+    return n_rho
+
 
 def main_Get_rho_Normalization_values(args):
     print(f"\n{color.BBLUE}Starting execution of {Name_of_Script}...{color.END}\n")
@@ -1062,6 +1446,10 @@ if(__name__ == "__main__"):
     args.timer.start()
     if(args.Kinematic_Bin_Select not in ["All", "Full"]):
         args.Kinematic_Bin_Select = int(args.Kinematic_Bin_Select)
-    main_Get_rho_Normalization_values(args)
+    if("W" in str(args.vars)):
+        silence_root_import()
+        main_Get_rho_Normalization_values_Wpions(args)
+    else:
+        main_Get_rho_Normalization_values(args)
     args.timer.stop()
 
