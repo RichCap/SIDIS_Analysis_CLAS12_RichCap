@@ -500,22 +500,23 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
     for smear in ["", "_smeared"]:
         if((smear in ["_smeared"]) and ("mdf" not in dfname)):
             continue # Only the mdf files use smearing
-        if(( not df.HasColumn(f"exclusive_rho_individual{smear}")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "exclusive_rec", "pim_present", "proton_present", f"MM{smear}", f"MM_pippim{smear}"])):
+        if(( not df.HasColumn(f"exclusive_rho_individual{smear}")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "exclusive_rec", "pim_present", "proton_present", f"z1_plus_z2{smear}", f"MM{smear}", f"MM_pippim{smear}"])):
             print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rho_individual{smear}'){color.END}")
             df = df.Define(f"exclusive_rho_individual{smear}", f'''int exclusive_rho_individual{smear} = 0;
-                if(exclusive_rho  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  1; }}
-                if(exclusive_rec  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  2; }}
+                if(exclusive_rho  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +   1; }}
+                if(exclusive_rec  == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +   2; }}
                 if(pim_present    == 1){{
-                    exclusive_rho_individual{smear} =                              exclusive_rho_individual{smear} +  4; 
+                    exclusive_rho_individual{smear} =                              exclusive_rho_individual{smear} +   4; 
                     if((0.625 < W_pippim{smear}) && (W_pippim{smear} < 0.925)){{ 
-                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +  8;
+                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +   8;
                     }} // Pion Invariant Mass Cut around the rho0 mass (requires the π- kinematics)
                     if((0.85 < MM_pippim{smear}) && (MM_pippim{smear} < 1.05)){{ 
-                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} + 16;
+                        exclusive_rho_individual{smear} =                          exclusive_rho_individual{smear} +  16;
                     }} // Missing Mass Cut around the proton mass for ep->eπ+π-(X) (Only applies when the π- is detected)
                 }}
-                if(proton_present == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 32; }}
-                if(MM{smear} > 1.8){{            exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 64; }} // This is my default MM Cut for my SIDIS Analysis (i.e., `exclusive_rho_individual < 64` --> likely exclusive events, while `exclusive_rho_individual > 64` --> likely SIDIS events)
+                if(proton_present == 1){{        exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  32; }}
+                if(z1_plus_z2{smear} > 0.9){{    exclusive_rho_individual{smear} = exclusive_rho_individual{smear} +  64; }}
+                if(MM{smear} > 1.8){{            exclusive_rho_individual{smear} = exclusive_rho_individual{smear} + 128; }} // This is my default MM Cut for my SIDIS Analysis (i.e., `exclusive_rho_individual < 128` --> likely exclusive events, while `exclusive_rho_individual > 128` --> likely SIDIS events)
                 return exclusive_rho_individual{smear};''')
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
@@ -1086,8 +1087,9 @@ if(__name__ == "__main__"):
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippimpro",              -0.5,   4.0,  90]])
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["W_pippim",                   0.0,   2.5,  50]])
             if(str(args.z_axis_2D) in ["4D_Bin", "Q2_Y_Bin"]):
-                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho_individual",  -0.5, 127.5, 128]])
-                List_of_2D_Plots.append([["W_pippim", 0.0, 2.5,  50], ["exclusive_rho_individual",  -0.5, 127.5, 128]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho_individual",  -0.5, 255.5, 256]])
+                List_of_2D_Plots.append([["W_pippim", 0.0, 2.5, 100], ["exclusive_rho_individual",  -0.5, 255.5, 256]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["W_pippim",                   0.0,   2.5, 100]])
             else:
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho",             -1.5,   2.5,   4]])
             # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho",             -1.5,   2.5,   4]])

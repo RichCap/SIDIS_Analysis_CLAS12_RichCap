@@ -927,7 +927,7 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
         Res_Binning_4D = [axis_Z, -1.5, 2.5, 4]
         Binning_Axis_Tag = axis_Z
     if(axis_Z in ["exclusive_rho_individual"]):
-        Res_Binning_4D = ["exclusive_rho_individual", -0.5, 127.5, 128]
+        Res_Binning_4D = ["exclusive_rho_individual", -0.5, 255.5, 256]
         Binning_Axis_Tag = "exclusive_rho_individual"
     if(axis_Z in ["Q2_Y_Bin"]):
         Res_Binning_4D = ["Q2_Y_Bin", -0.5, 17.5, 18]
