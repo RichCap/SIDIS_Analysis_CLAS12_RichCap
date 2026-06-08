@@ -45,7 +45,7 @@ def outname = args[0].split("/")[-1]
 
 // As of 4/10/2026: new8 adds pi-/proton flags and rho0 parent kinematics
     // The `rho0` file requires that a rho0 be found in the MC::Lund bank — made to run with files that were always simulating exclusive rho productions which (as of this update) do not have working `parent`/`daughter` indexes so the normal search method would miss the rho0s without making the special assumption
-def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.rho0.new8.${outname}.root")
+def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.rho0.new9.${outname}.root")
 
 // // As of 1/18/2026: new7 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
 // def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new7.${outname}.root")
@@ -111,7 +111,7 @@ branches_string += ':pim_present_gen/I:proton_present_gen/I'
 branches_string += ':rho0_px:rho0_py:rho0_pz:rho0_E:rho0_parent/I'
 // Added as of 5/6/2026
 // NEW branches for mother chain, pi- kinematics, and exclusive rho flag
-branches_string += ':rho0_grandparent/I:exclusive_rho/I'
+branches_string += ':rho0_grandparent/I:exclusive_rho/I:exclusive_rec/I'
 branches_string += ':pimx:pimy:pimz'
 branches_string += ':pimx_gen:pimy_gen:pimz_gen:Par_PID_pim/I'
 branches_string += ':prox:proy:proz'
@@ -156,6 +156,7 @@ def Multiple_Pions_Per_Electron = 0
 
 def num_of_rho0_found = 0
 def num_of_excl__rho0 = 0
+def num_of_Rexcl_rho0 = 0
 
 // Helper: Converts booleans into integers (1 == true, 0 == false), or -1 if input is null.
 Integer ConvertBoolean(Boolean bool) {
@@ -1666,23 +1667,28 @@ def isPipFull(def pipCan, def DCEdgeCan){
 }
 
 // ------------------------------------------------------------
-// pi-/proton particle searches + π- kinematics (for exclusive events)
+// pi-/proton particle searches + π- kinematics (for exclusive events) + reconstructed exclusivity proxy (exclusive_rec) for MC matched
 // ------------------------------------------------------------
 def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ, def GenMC = false){
     boolean hasProton = false;
     boolean hasPim    = false;
-    float pim_px = 0.0f;
-    float pim_py = 0.0f;
-    float pim_pz = 0.0f;
+    float pim_px = 0.0f, pim_py = 0.0f, pim_pz = 0.0f;
+    float pro_px = 0.0f, pro_py = 0.0f, pro_pz = 0.0f;
     float pim_e  = 0.0f;
-    float pro_px = 0.0f;
-    float pro_py = 0.0f;
-    float pro_pz = 0.0f;
     float pro_e  = 0.0f;
-    for (int ipart_p = 1; ipart_p < Particle_Bank.getRows(); ipart_p++) {
-        if(GenMC){
-            def pid_p_gen = Particle_Bank.getInt("pid", ipart_p)
-            if(pid_p_gen == 2212){
+    int eleCount = 0;
+    int pipCount = 0;
+    int pimCount = 0;
+    int proCount = 0;
+    boolean isExclusive = true;
+    for (int ipart_p = (GenMC ? 1 : 0); ipart_p < Particle_Bank.getRows(); ipart_p++) {
+        int pid = Particle_Bank.getInt("pid", ipart_p);
+        // === FAST FILTER: unknown particle type? → definitely not the exclusive event I am looking for ===
+        if ((pid != 11) && (pid != 22) && (pid != 2212) && (pid != -211) && (pid != 211)) { isExclusive = false; }
+        if (GenMC) {
+            // Generator-level: simple kinematics from bank (unchanged)
+            if (pid == 2212) {
+                proCount++;
                 hasProton = true;
                 pro_px = Particle_Bank.getFloat("px", ipart_p);
                 pro_py = Particle_Bank.getFloat("py", ipart_p);
@@ -1690,7 +1696,8 @@ def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ
                 def proVec = LorentzVector.withPID(2212, pro_px, pro_py, pro_pz);
                 pro_e  = proVec.e();
             }
-            if(pid_p_gen == -211){
+            if (pid == -211) {
+                pimCount++;
                 hasPim = true;
                 pim_px = Particle_Bank.getFloat("px", ipart_p);
                 pim_py = Particle_Bank.getFloat("py", ipart_p);
@@ -1700,40 +1707,61 @@ def Search_Additional_Particles(def Particle_Bank, def Traj_Bank, def InbendingQ
             }
         }
         else {
-            def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-            if(canpro.isproton()){ 
-                hasProton = true;
-                def proVec = canpro.getLorentzVector();
-                pro_px = proVec.px();
-                pro_py = proVec.py();
-                pro_pz = proVec.pz();
-                pro_e  = proVec.e();
+            // Reconstructed level: full conservative exclusivity proxy (identical to Data)
+            if (pid != 22) {               // photons are allowed but need no further checks
+                if (pid == 2212) {         // Proton
+                    def canpro = ProtonCandidate.getProtonCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                    if (canpro.isproton()) {
+                        proCount++;
+                        if (!hasProton) {
+                            def proVec = canpro.getLorentzVector();
+                            pro_px = proVec.px();
+                            pro_py = proVec.py();
+                            pro_pz = proVec.pz();
+                            pro_e  = proVec.e();
+                            hasProton = true;
+                        }
+                    } else { isExclusive = false; }   // PID said proton but candidate rejected it
+                } else if (pid == -211) {  // π⁻
+                    def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                    if (canpim.ispim()) {
+                        pimCount++;
+                        if (!hasPim) {
+                            def pimVec = canpim.getLorentzVector();
+                            pim_px = pimVec.px();
+                            pim_py = pimVec.py();
+                            pim_pz = pimVec.pz();
+                            pim_e  = pimVec.e();
+                            hasPim = true;
+                        }
+                    } else { isExclusive = false; }
+                } else if ((pid == 211) && isExclusive) {   // π⁺ pion
+                    def canpip = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
+                    def DC_pip = DCEdgeCandidate.getDCEdgeCandidate(ipart_p, Particle_Bank, Traj_Bank);
+                    def pip_pion_PIDs = isPipFull(canpip, DC_pip);
+                    if (pip_pion_PIDs.Full_default) { pipCount++; }
+                    else { isExclusive = false; }
+                } else if (pid == 11) { eleCount++; } // Electron
             }
-            else {
-                def canpim = PionCandidate.getPionCandidate(ipart_p, Particle_Bank, Traj_Bank, InbendingQ);
-                if(canpim.ispim()){
-                    hasPim = true;
-                    def pimVec = canpim.getLorentzVector();
-                    pim_px = pimVec.px();
-                    pim_py = pimVec.py();
-                    pim_pz = pimVec.pz();
-                    pim_e  = pimVec.e();
-                }
-            }
+            // non-exclusive violations
+            if (eleCount > 1 || pipCount > 1 || pimCount > 1 || proCount > 1) { isExclusive = false; }
+            // Early exit when I already have everything I need
+            if ((!isExclusive) && (hasProton && hasPim)) { break; }
         }
-        if(hasProton && hasPim){ break }
+        if (GenMC && hasProton && hasPim) { break; }
     }
     return [
-        hasProton  : hasProton,
-        hasPim     : hasPim,
-        pim_px     : pim_px,
-        pim_py     : pim_py,
-        pim_pz     : pim_pz,
-        pim_e      : pim_e,
-        pro_px     : pro_px,
-        pro_py     : pro_py,
-        pro_pz     : pro_pz,
-        pro_e      : pro_e
+        hasProton     : hasProton,
+        hasPim        : hasPim,
+        pim_px        : pim_px,
+        pim_py        : pim_py,
+        pim_pz        : pim_pz,
+        pim_e         : pim_e,
+        pro_px        : pro_px,
+        pro_py        : pro_py,
+        pro_pz        : pro_pz,
+        pro_e         : pro_e,
+        exclusive_rec : isExclusive
     ];
 }
 
@@ -2139,7 +2167,7 @@ args.eachParallel{fname->
                                 ConvertBoolean(Extra_Particle_Search_gen.hasPim),           ConvertBoolean(Extra_Particle_Search_gen.hasProton),
                                 // rho0 Kinematics
                                 match_default.rho0_px,         match_default.rho0_py,       match_default.rho0_pz,         match_default.rho0_E,        match_default.rho0_parent,
-                                rho0_grandparent,              exclusive_rho_flag,
+                                rho0_grandparent,              exclusive_rho_flag,          ConvertBoolean(Extra_Particle_Search.exclusive_rec), 
                                 // π- Kinematics
                                 pim_px,     pim_py,     pim_pz,
                                 pim_px_gen, pim_py_gen, pim_pz_gen, parentPID_pim,
@@ -2147,9 +2175,10 @@ args.eachParallel{fname->
                                 pro_px,     pro_py,     pro_pz, 
                                 pro_px_gen, pro_py_gen, pro_pz_gen, parentPID_pro
                         )
-                        if(pionCount           > 1)   { Multiple_Pions_Per_Electron += 1 }
-                        if(parentPID_pi       == 113) { num_of_rho0_found += 1 }
-                        if(exclusive_rho_flag == 1)   { num_of_excl__rho0 += 1 }
+                        if(pionCount                     > 1)   { Multiple_Pions_Per_Electron += 1 }
+                        if(parentPID_pi                 == 113) { num_of_rho0_found += 1 }
+                        if(exclusive_rho_flag           == 1)   { num_of_excl__rho0 += 1 }
+                        if(Extra_Particle_Search.exclusive_rec) { num_of_Rexcl_rho0 += 1 }
 
                     }
                     //==================================================//
@@ -2201,6 +2230,7 @@ System.out.println("Number of times that Multiple Pions were found per Electron 
 System.out.println("");
 System.out.println("Number of rho0 Parents found                = " + num_of_rho0_found);
 System.out.println("Number of (Exclusive) rho0 Parents found    = " + num_of_excl__rho0);
+System.out.println("Number of (Reconstructed) Exclusive rho0s   = " + num_of_Rexcl_rho0);
 System.out.println("");
 System.out.println("Total number of failed yesbs.every() conditions  = " + num_of_yesbs_fail);
 

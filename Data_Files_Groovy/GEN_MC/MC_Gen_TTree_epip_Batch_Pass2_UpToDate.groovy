@@ -39,8 +39,9 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-// Updated on 4/10/2025: new8 adds pi-/proton flags and rho0 parent kinematics (skipped new7 to bring `MC_GEN` up-to-date with `Data` and `MC_REC`)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new8.${outname}.root")
+// Updated on 4/10/2026: new8 adds pi-/proton flags and rho0 parent kinematics (skipped new7 to bring `MC_GEN` up-to-date with `Data` and `MC_REC`)
+    // 5/29/2026: new9 is the same as new8 — just reran to ensure the number of files stayed the same since the matched script needed to be updated after the number of files (potentially) changed
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new9.${outname}.root")
 
 // Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
 def branches_string = 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Par_PID_el/I:Par_PID_pip/I'

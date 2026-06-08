@@ -116,7 +116,8 @@ def parse_args():
                         help="Optional Email message is provided to the jobs submitted by this script.\nIs treated separately from the standard '--email_message' argument to avoid issues with this script's email constructor.\n")
     
     parser.add_argument('-n', '-fvm', '--file_version_main',
-                        default=".new8.",
+                        default=".new9.",
+                        # default=".new8.",
                         type=str,
                         help="File version name used to name the output ROOT files being checked/created.\n")
 
