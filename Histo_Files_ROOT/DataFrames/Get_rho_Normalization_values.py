@@ -574,20 +574,19 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     # Data fit plot
     c_data = ROOT.TCanvas("c_data_fit", "", 900, 600)
     ROOT.gStyle.SetOptStat(0)
+    mass_data.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}{{{args.title}}}")
     mass_data.Draw("hist")
     mass_data.SetLineColor(ROOT.kCyan)
     fy_data.SetLineColor(ROOT.kBlack)
     fy_data.Draw("same")
     fy1_data.SetLineColor(ROOT.kMagenta)
     fy1_data.Draw("same")
-    # leg_d = ROOT.TLegend(0.55, 0.75, 0.95, 0.95)
     leg_d = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
     leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
     leg_d.AddEntry(mass_data, "Experimental Data", "l")
     leg_d.AddEntry(fy_data,   "Full Fit",          "l")
     leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
     leg_d.Draw("same")
-    # box_d = ROOT.TPaveText(0.15, 0.8, 0.55, 0.9, "NDC")
     box_d = ROOT.TPaveText(0.575, 0.55, 0.9, 0.65, "NDC")
     box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
     box_d.SetTextAlign(22); box_d.SetTextFont(62); box_d.SetTextSize(0.025)
@@ -604,13 +603,14 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     # Harut fit plot
     c_harut = ROOT.TCanvas("c_harut_fit", "", 900, 600)
     ROOT.gStyle.SetOptStat(0)
+    mass_harut.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Harut's MC}}{{{args.title}}}")
+    mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
     mass_harut.Draw("hist")
     mass_harut.SetLineColor(ROOT.kGreen)
     fy_harut.SetLineColor(ROOT.kBlack)
     fy_harut.Draw("same")
     fy1_harut.SetLineColor(ROOT.kMagenta)
     fy1_harut.Draw("same")
-    # leg_h = ROOT.TLegend(0.55, 0.75, 0.95, 0.95)
     leg_h = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
     leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
     leg_h.AddEntry(mass_harut, "Harut's Monte Carlo", "l")
@@ -627,9 +627,9 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     box_h.Draw("same")
     if(not args.no_save):
         c_harut.SaveAs(f"Wpions_Fit_Harut_MC{suffix}.{fmt}")
-        print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+        print(f"{color.BOLD}Saved Wpions Harut fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
     else:
-        print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+        print(f"{color.Error}Would have saved Wpions Harut fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
     # # Normalization summary
     # c_sum = ROOT.TCanvas("c_summary", "", 900, 600)
     # ROOT.gStyle.SetOptStat(0)
@@ -670,74 +670,190 @@ def main_Get_rho_Normalization_values_Wpions(args):
         histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
     minValue = max([0.3, args.x_min])
     maxValue = max([2.0, args.x_max])
-    # C++ fit functions (adapted from Nick's notebook)
+    # # C++ fit functions (adapted from Nick's notebook)
+    # ROOT.gInterpreter.Declare("""
+    # #include <cmath>
+    # #include "TMath.h"
+    # class FunctionSet {
+    # public:
+    #     double breit_wigner_1(double *x, double *par) {
+    #         double m = x[0];
+    #         double amp = par[0];
+    #         double mu = par[1];
+    #         double gamma = par[2];
+    #         return amp*TMath::BreitWigner(m, mu, gamma);
+    #     }
+    #     double breit_wigner_2(double *x, double *par) {
+    #         double m = x[0];
+    #         double amp = par[7];
+    #         double mu = par[8];
+    #         double gamma = par[9];
+    #         return amp*TMath::BreitWigner(m, mu, gamma);
+    #     }
+    #     double breit_wigner_3(double *x, double *par) {
+    #         double m = x[0];
+    #         double amp = par[10];
+    #         double mu = par[11];
+    #         double gamma = par[12];
+    #         return amp*TMath::BreitWigner(m, mu, gamma);
+    #     }
+    #     double background(double *xx, double *par) {
+    #         double m = xx[0];
+    #         double amp_bkg = par[3];
+    #         double xi = par[4];
+    #         double m0_bkg = par[5];
+    #         double m1_bkg = par[6];
+    #         double cc = m1_bkg-m0_bkg;
+    #         double c2 = cc*cc;
+    #         double x = cc - (m-m0_bkg);
+    #         double ybg = 0;
+    #         if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
+    #         return amp_bkg*ybg;
+    #     }
+    #     double total_function_f0(double *x, double *par) {
+    #         double bw1 = breit_wigner_1(x, par);
+    #         double bkg = background(x,par);
+    #         double bw2 = breit_wigner_2(x, par);
+    #         double bw3 = breit_wigner_3(x, par);
+    #         return bw1 + bkg + bw2 + bw3;
+    #     }
+    # };
+    # """)
     ROOT.gInterpreter.Declare("""
-    #include <cmath>
+    #include <cmath> 
     #include "TMath.h"
-    class FunctionSet {
-    public:
-        double breit_wigner_1(double *x, double *par) {
-            double m = x[0];
-            double amp = par[0];
-            double mu = par[1];
-            double gamma = par[2];
-            return amp*TMath::BreitWigner(m, mu, gamma);
-        }
-        double breit_wigner_2(double *x, double *par) {
-            double m = x[0];
-            double amp = par[7];
-            double mu = par[8];
-            double gamma = par[9];
-            return amp*TMath::BreitWigner(m, mu, gamma);
-        }
-        double breit_wigner_3(double *x, double *par) {
-            double m = x[0];
-            double amp = par[10];
-            double mu = par[11];
-            double gamma = par[12];
-            return amp*TMath::BreitWigner(m, mu, gamma);
-        }
-        double background(double *xx, double *par) {
-            double m = xx[0];
-            double amp_bkg = par[3];
-            double xi = par[4];
-            double m0_bkg = par[5];
-            double m1_bkg = par[6];
-            double cc = m1_bkg-m0_bkg;
-            double c2 = cc*cc;
-            double x = cc - (m-m0_bkg);
-            double ybg = 0;
-            if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
-            return amp_bkg*ybg;
-        }
-        double total_function_f0(double *x, double *par) {
-            double bw1 = breit_wigner_1(x, par);
-            double bkg = background(x,par);
-            double bw2 = breit_wigner_2(x, par);
-            double bw3 = breit_wigner_3(x, par);
-            return bw1 + bkg + bw2 + bw3;
-        }
-    };
+    ROOT::Math::Functor foo(const std::function<double(double const *)> &x, int num) { return ROOT::Math::Functor(x,num); }
+    //ROOT::Math::Functor foo(GlobalChi2 x, int num) { return ROOT::Math::Functor(x,num); }
+        class FunctionSet {
+            public:
+            double breit_wigner_1(double *x, double *par) {
+                double m = x[0];
+                double amp = par[0];
+                double mu = par[1];
+                double gamma = par[2];
+                return amp*TMath::BreitWigner(m, mu, gamma);   
+            }
+                double breit_wigner_2(double *x, double *par) {
+                    double m = x[0];
+                    double amp = par[7];
+                    double mu = par[8];
+                    double gamma = par[9];
+                    return amp*TMath::BreitWigner(m, mu, gamma);
+                }
+                double breit_wigner_3(double *x, double *par) {
+                    double m = x[0];
+                    double amp = par[10];
+                    double mu = par[11];
+                    double gamma = par[12];
+                    return amp*TMath::BreitWigner(m, mu, gamma);
+                }
+    
+            double background(double *xx, double *par) {
+                double m = xx[0];
+                double amp_bkg = par[3];
+                double xi = par[4];
+                double m0_bkg = par[5];
+                double m1_bkg = par[6];
+                double cc = m1_bkg-m0_bkg;
+                double c2 = cc*cc;
+                double x = cc - (m-m0_bkg);
+                double ybg = 0;
+                if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
+                return amp_bkg*ybg;
+            }
+    
+            double background_only(double *xx, double *par) { // used for testing
+                double m = xx[0];
+                double amp_bkg = par[0];
+                double xi = par[1];
+                double m0_bkg = par[2];
+                double m1_bkg = par[3];
+                double cc = m1_bkg-m0_bkg;
+                double c2 = cc*cc;
+                double x = cc - (m-m0_bkg);
+                double ybg = 0;
+                if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
+                return amp_bkg*ybg;
+            }
+    
+            double total_function(double *x, double *par) {
+                double m = x[0];
+                double amp1 = par[0];
+                double m01 = par[1];
+                double G01 = par[2];
+                double amp_bkg = par[3];
+                double xi = par[4];
+                double m0_bkg = par[5];
+                double m1_bkg = par[6];
+                double amp2 = par[7];
+                double m02 = par[8];
+                double G02 = par[9];
+                // Evaluate the first Breit-Wigner function
+                double bw1 = breit_wigner_1(x, par);
+                double bkg = background(x,par);
+                double bw2 = breit_wigner_2(x, par);
+                //std::cout << bw1 << " " << bkg << " " << bw2 << endl;
+                // Return the sum of the two Breit-Wigner functions and the background
+                return bw1+ bkg + bw2;
+                }
+
+                double total_function_f0(double *x, double *par) {
+                double m = x[0];
+                double amp1 = par[0];
+                double m01 = par[1];
+                double G01 = par[2];
+                double amp_bkg = par[3];
+                double xi = par[4];
+                double m0_bkg = par[5];
+                double m1_bkg = par[6];
+                double amp2 = par[7];
+                double m02 = par[8];
+                double G02 = par[9];
+                double amp3 = par[10];
+                double m03 = par[11];
+                double G03 = par[12];
+                // Evaluate the first Breit-Wigner function
+                double bw1 = breit_wigner_1(x, par);
+                double bkg = background(x,par);
+                double bw2 = breit_wigner_2(x, par);
+                double bw3 = breit_wigner_3(x, par);
+                //std::cout << bw1 << " " << bkg << " " << bw2 << endl;
+                // Return the sum of the two Breit-Wigner functions and the background
+                return bw1+ bkg + bw2 + bw3;
+                }
+            };
     """)
     funcs = cppyy.gbl.FunctionSet()
-    # withF0 = True
+    # === Tunable starting parameters (tuned for your global histogram from the PDF) ===
+    # Order: [amp_rho, mu_rho, gamma_rho, amp_bkg, xi, m0_bkg, m1_bkg, amp_f2, mu_f2, gamma_f2, amp_f0, mu_f0, gamma_f0]
+    start_pars = [3500.0, 0.77, 0.15, 800.0, 1.2, 0.30, 1.1, 80.0, 1.27, 0.19, 50.0, 0.98, 0.22]
     # Fit data
     fy_data = ROOT.TF1("fy_data", funcs.total_function_f0, minValue, maxValue, 13)
-    # fy_data.SetParameters(200, 0.7, 0.2, 100, 1, 0.3, 1, 20, 1.2, 0.18, 20, 0.98, 0.18)  # old line - remove
-    # Use individual SetParameter calls (works for any number of parameters)
-    pars_data = [2000, 0.77, 0.2, 500, 1, 0.3, 1, 200, 1.2, 0.18, 200, 0.98, 0.18]
-    for i, p in enumerate(pars_data):
+    for i, p in enumerate(start_pars):
         fy_data.SetParameter(i, p)
-        fy_data.SetParLimits(i, 0.5*p, 10*p)
+    # Notebook-style limits (prevents rho amp from collapsing to 0)
+    fy_data.SetParLimits(0, 100, 1e7)      # amp_rho
+    fy_data.SetParLimits(1, 0.6, 0.85)   # mu_rho (fixed near PDG)
+    fy_data.SetParLimits(2, 0.0, 0.3)    # gamma_rho
+    fy_data.SetParLimits(3, 0, 1e7)      # amp_bkg
+    fy_data.SetParLimits(4, 0, 5)        # xi
+    fy_data.SetParLimits(5, 0.2, 0.4)    # m0_bkg
+    fy_data.SetParLimits(6, 0, 5)        # m1_bkg
+    fy_data.SetParLimits(7, 0, 1e7)      # amp_f2
+    fy_data.SetParLimits(8, 1.1, 1.5)    # mu_f2
+    fy_data.SetParLimits(9, 0, 1)        # gamma_f2
+    fy_data.SetParLimits(10, 0, 1e7)     # amp_f0
+    fy_data.SetParLimits(11, 0.88, 1.05) # mu_f0
+    fy_data.SetParLimits(12, 0, 1)       # gamma_f0
     histo__data_Wpions.Fit(fy_data, "Q")
     fy1_data = ROOT.TF1("fy1_data", funcs.breit_wigner_1, minValue, maxValue, 3)
     fy1_data.SetParameters(fy_data.GetParameter(0), fy_data.GetParameter(1), fy_data.GetParameter(2))
     N_data_rho = fy1_data.Integral(minValue, maxValue)
-    # Same for Harut
+    # Fit Harut (identical setup)
     fy_harut = ROOT.TF1("fy_harut", funcs.total_function_f0, minValue, maxValue, 13)
-    pars_harut = [2000, 0.77, 0.2, 10, 1, 0.3, 1, 20, 1.2, 0.18, 20, 0.98, 0.18]
-    for i, p in enumerate(pars_harut):
+    for i, p in enumerate(start_pars):
         fy_harut.SetParameter(i, p)
+        # fy_harut.SetParLimits(i, fy_data.GetParLimits(i)[0], fy_data.GetParLimits(i)[1])
     histo_harut_Wpions.Fit(fy_harut, "Q")
     fy1_harut = ROOT.TF1("fy1_harut", funcs.breit_wigner_1, minValue, maxValue, 3)
     fy1_harut.SetParameters(fy_harut.GetParameter(0), fy_harut.GetParameter(1), fy_harut.GetParameter(2))
@@ -749,6 +865,11 @@ def main_Get_rho_Normalization_values_Wpions(args):
     print(f"{ color.BOLD }N_data_rho (Experimental exclusive signal)        : {N_data_rho:>12.0f}{color.END}")
     print(f"{ color.BOLD }N_harut_rho (Harut's exclusive signal)            : {N_harut_rho:>12.0f}{color.END}")
     print(f"{color.BGREEN}n_rho (brings Harut's files to data)              : {n_rho:>12.6f}{color.END}\n")
+    if(args.verbose):
+        # Debug: print fitted parameters
+        print(f"{color.BOLD}Fitted parameters (data):{color.END}")
+        for i in range(13):
+            print(f"  par[{i}] = {fy_data.GetParameter(i):.4f} ± {fy_data.GetParError(i):.4f}")
     args.N_rho_fit = n_rho
     Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_data, fy1_harut, N_data_rho, N_harut_rho, n_rho)
     file1.Close()
