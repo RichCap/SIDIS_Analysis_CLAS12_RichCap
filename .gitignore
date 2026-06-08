@@ -64,4 +64,8 @@ Histo_Files_ROOT/DataFrames/GEN_MC/Link_to_Volatile_MC_GEN
 Prepare_Next_Iteration/Full_Moment_Plots_Creation_From_JSON.py
 Data_Files_Groovy/GroovyArray_evgen_mdf_epipX_bug_fix.sh
 Data_Files_Groovy/test_manifest.sh
+Histo_Files_ROOT/DataFrames/slurm*_Only_*batch_*05*2026*
+BC_Corrections/BC_Log_and_Old_Files
+BC_Corrections/ROOT_Files_Output/
+Histo_Files_ROOT/DataFrames/Image_Files/
 

@@ -1,0 +1,1738 @@
+Full command: ./Simple_RooUnfold_SelfContained.py --root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json -em 'Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundrho' rho0 events subtracted as background after proper normalization. Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.' -ti 'rho0 Normalized Run' 15
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+Subtract 120623 fakes from measured distribution
+Using response matrix priors
+Priors:
+
+Vector (915)  is as follows
+
+     |        1  |
+------------------
+   0 |0 
+   1 |0.661496 
+   2 |0.000251376 
+   3 |0.000253304 
+   4 |0.000239591 
+   5 |0.00024242 
+   6 |0.000236757 
+   7 |0.000237855 
+   8 |0.000243004 
+   9 |0.000246281 
+  10 |0.00024651 
+  11 |0.000236123 
+  12 |0.000239393 
+  13 |0.000245358 
+  14 |0.000242321 
+  15 |0.00024307 
+  16 |0.000252578 
+  17 |0.000248946 
+  18 |0.000250879 
+  19 |0.000241803 
+  20 |0.000239492 
+  21 |0.000243266 
+  22 |0.000244714 
+  23 |0.000243108 
+  24 |0.00024484 
+  25 |0.000245135 
+  26 |0.00021346 
+  27 |0.000188076 
+  28 |0.000203963 
+  29 |0.000204885 
+  30 |0.000204902 
+  31 |0.000206987 
+  32 |0.000200009 
+  33 |0.000211024 
+  34 |0.000199571 
+  35 |0.000202854 
+  36 |0.000205945 
+  37 |0.000203515 
+  38 |0.000194618 
+  39 |0.000196224 
+  40 |0.000198266 
+  41 |0.000207955 
+  42 |0.000207076 
+  43 |0.000203193 
+  44 |0.000207976 
+  45 |0.000202363 
+  46 |0.000201948 
+  47 |0.000196546 
+  48 |0.000201118 
+  49 |0.000202751 
+  50 |0.000165532 
+  51 |0.000160584 
+  52 |0.000164095 
+  53 |0.00016386 
+  54 |0.000163282 
+  55 |0.00015332 
+  56 |0.000149699 
+  57 |0.000168797 
+  58 |0.000155717 
+  59 |0.000151495 
+  60 |0.000160769 
+  61 |0.000159202 
+  62 |0.000158705 
+  63 |0.000153948 
+  64 |0.000158459 
+  65 |0.000160491 
+  66 |0.000144899 
+  67 |0.000166695 
+  68 |0.000158044 
+  69 |0.000156783 
+  70 |0.000156062 
+  71 |0.000155117 
+  72 |0.000147733 
+  73 |0.000153457 
+  74 |9.44033e-05 
+  75 |9.01275e-05 
+  76 |0.000104551 
+  77 |0.000103661 
+  78 |9.73309e-05 
+  79 |9.68768e-05 
+  80 |9.56873e-05 
+  81 |9.62986e-05 
+  82 |8.65558e-05 
+  83 |9.04331e-05 
+  84 |9.40048e-05 
+  85 |9.95317e-05 
+  86 |0.000102257 
+  87 |9.96081e-05 
+  88 |9.77189e-05 
+  89 |0.000101072 
+  90 |9.81444e-05 
+  91 |9.73638e-05 
+  92 |9.85594e-05 
+  93 |9.4682e-05 
+  94 |8.95536e-05 
+  95 |9.27928e-05 
+  96 |0.0001039 
+  97 |9.44962e-05 
+  98 |0 
+  99 |0.000543178 
+ 100 |0.000530371 
+ 101 |0.000531573 
+ 102 |0.00052183 
+ 103 |0.000521339 
+ 104 |0.000538159 
+ 105 |0.00052828 
+ 106 |0.000535477 
+ 107 |0.0005226 
+ 108 |0.000537034 
+ 109 |0.00054681 
+ 110 |0.00054905 
+ 111 |0.000520263 
+ 112 |0.000536154 
+ 113 |0.000536406 
+ 114 |0.000539497 
+ 115 |0.000544549 
+ 116 |0.000535969 
+ 117 |0.000519165 
+ 118 |0.000548486 
+ 119 |0.000530328 
+ 120 |0.00054445 
+ 121 |0.000536871 
+ 122 |0.0005348 
+ 123 |0.000558909 
+ 124 |0.000531444 
+ 125 |0.000537894 
+ 126 |0.000513193 
+ 127 |0.000515716 
+ 128 |0.000521631 
+ 129 |0.000541154 
+ 130 |0.000527135 
+ 131 |0.000522511 
+ 132 |0.000532165 
+ 133 |0.000535677 
+ 134 |0.00053399 
+ 135 |0.0005163 
+ 136 |0.000519385 
+ 137 |0.000514525 
+ 138 |0.000533934 
+ 139 |0.000525021 
+ 140 |0.000512718 
+ 141 |0.000534322 
+ 142 |0.000516835 
+ 143 |0.000522385 
+ 144 |0.000528665 
+ 145 |0.000536573 
+ 146 |0.000530253 
+ 147 |0.000528393 
+ 148 |0.000538765 
+ 149 |0.000502988 
+ 150 |0.000531785 
+ 151 |0.000529274 
+ 152 |0.000550452 
+ 153 |0.000514025 
+ 154 |0.000544188 
+ 155 |0.000532265 
+ 156 |0.000523309 
+ 157 |0.000522347 
+ 158 |0.000529414 
+ 159 |0.000521845 
+ 160 |0.000520594 
+ 161 |0.000529441 
+ 162 |0.00053688 
+ 163 |0.000523101 
+ 164 |0.000515522 
+ 165 |0.000526363 
+ 166 |0.000529683 
+ 167 |0.000536929 
+ 168 |0.000513112 
+ 169 |0.000519279 
+ 170 |0.000541418 
+ 171 |0.000438554 
+ 172 |0.000443515 
+ 173 |0.000436791 
+ 174 |0.000447281 
+ 175 |0.000445704 
+ 176 |0.000432864 
+ 177 |0.000446922 
+ 178 |0.000445856 
+ 179 |0.000446998 
+ 180 |0.000455277 
+ 181 |0.000446856 
+ 182 |0.000441733 
+ 183 |0.000436562 
+ 184 |0.00044992 
+ 185 |0.000433219 
+ 186 |0.000451154 
+ 187 |0.000438292 
+ 188 |0.00044086 
+ 189 |0.000436758 
+ 190 |0.000452853 
+ 191 |0.000442487 
+ 192 |0.000448384 
+ 193 |0.000461896 
+ 194 |0.000438626 
+ 195 |0.000157157 
+ 196 |0.00016494 
+ 197 |0.000164858 
+ 198 |0.000156672 
+ 199 |0.000159145 
+ 200 |0.000159626 
+ 201 |0.000154793 
+ 202 |0.000153193 
+ 203 |0.000158823 
+ 204 |0.000151341 
+ 205 |0.000168522 
+ 206 |0.000156857 
+ 207 |0.000155131 
+ 208 |0.000156071 
+ 209 |0.000157223 
+ 210 |0.000157392 
+ 211 |0.000162378 
+ 212 |0.000161336 
+ 213 |0.000151374 
+ 214 |0.000166491 
+ 215 |0.000156715 
+ 216 |0.000156257 
+ 217 |0.00014979 
+ 218 |0.000149943 
+ 219 |0.000791465 
+ 220 |0.000766152 
+ 221 |0.000765273 
+ 222 |0.000756633 
+ 223 |0.000768227 
+ 224 |0.000739431 
+ 225 |0.000758485 
+ 226 |0.000776184 
+ 227 |0.000774677 
+ 228 |0.000764606 
+ 229 |0.000771494 
+ 230 |0.000776987 
+ 231 |0.000771122 
+ 232 |0.000767736 
+ 233 |0.000755487 
+ 234 |0.000755842 
+ 235 |0.00076127 
+ 236 |0.000767393 
+ 237 |0.000772357 
+ 238 |0.000767676 
+ 239 |0.000777778 
+ 240 |0.000770876 
+ 241 |0.00078856 
+ 242 |0.000767899 
+ 243 |0.000829516 
+ 244 |0.000831668 
+ 245 |0.000821287 
+ 246 |0.000828358 
+ 247 |0.000845151 
+ 248 |0.000824652 
+ 249 |0.000853065 
+ 250 |0.000810359 
+ 251 |0.00084288 
+ 252 |0.000847549 
+ 253 |0.000848911 
+ 254 |0.00084589 
+ 255 |0.000832029 
+ 256 |0.00084039 
+ 257 |0.000841689 
+ 258 |0.00083495 
+ 259 |0.000857811 
+ 260 |0.000852295 
+ 261 |0.000836234 
+ 262 |0.000835677 
+ 263 |0.000860985 
+ 264 |0.000851269 
+ 265 |0.000838724 
+ 266 |0.000824842 
+ 267 |0.000926611 
+ 268 |0.000913575 
+ 269 |0.000901423 
+ 270 |0.000919248 
+ 271 |0.000913996 
+ 272 |0.000923225 
+ 273 |0.000921482 
+ 274 |0.000941754 
+ 275 |0.000908604 
+ 276 |0.000920466 
+ 277 |0.000906066 
+ 278 |0.000925584 
+ 279 |0.000936392 
+ 280 |0.00089605 
+ 281 |0.000923902 
+ 282 |0.000905141 
+ 283 |0.000911335 
+ 284 |0.000899829 
+ 285 |0.000912559 
+ 286 |0.000921641 
+ 287 |0.000926125 
+ 288 |0.000919298 
+ 289 |0.000913645 
+ 290 |0.000945254 
+ 291 |0.000876031 
+ 292 |0.00085631 
+ 293 |0.00085176 
+ 294 |0.000868177 
+ 295 |0.000882824 
+ 296 |0.000848822 
+ 297 |0.000875736 
+ 298 |0.000859434 
+ 299 |0.000876708 
+ 300 |0.000868735 
+ 301 |0.000864409 
+ 302 |0.000896004 
+ 303 |0.000888712 
+ 304 |0.000853847 
+ 305 |0.000899743 
+ 306 |0.00085246 
+ 307 |0.000873907 
+ 308 |0.000872596 
+ 309 |0.000868526 
+ 310 |0.000873671 
+ 311 |0.000860576 
+ 312 |0.000875053 
+ 313 |0.000889034 
+ 314 |0.00086199 
+ 315 |0.000370258 
+ 316 |0.000368303 
+ 317 |0.000377014 
+ 318 |0.000361624 
+ 319 |0.000352914 
+ 320 |0.000361286 
+ 321 |0.000356267 
+ 322 |0.00036264 
+ 323 |0.000359101 
+ 324 |0.000354006 
+ 325 |0.000356087 
+ 326 |0.000373644 
+ 327 |0.000363071 
+ 328 |0.000357026 
+ 329 |0.000373557 
+ 330 |0.000362454 
+ 331 |0.00036346 
+ 332 |0.000353657 
+ 333 |0.000372612 
+ 334 |0.000356638 
+ 335 |0.00035713 
+ 336 |0.000351636 
+ 337 |0.000373043 
+ 338 |0.000357823 
+ 339 |0.00066992 
+ 340 |0.000669581 
+ 341 |0.000674272 
+ 342 |0.000670793 
+ 343 |0.000682481 
+ 344 |0.00067892 
+ 345 |0.000660576 
+ 346 |0.000700011 
+ 347 |0.000679138 
+ 348 |0.000662176 
+ 349 |0.000662541 
+ 350 |0.000670023 
+ 351 |0.000664732 
+ 352 |0.000669843 
+ 353 |0.000672208 
+ 354 |0.000676539 
+ 355 |0.000657943 
+ 356 |0.000671766 
+ 357 |0.000672705 
+ 358 |0.000678215 
+ 359 |0.000688695 
+ 360 |0.000665425 
+ 361 |0.000675414 
+ 362 |0.000645787 
+ 363 |0.000784756 
+ 364 |0.000790824 
+ 365 |0.000770256 
+ 366 |0.000771115 
+ 367 |0.000784112 
+ 368 |0.00077172 
+ 369 |0.00076604 
+ 370 |0.000793815 
+ 371 |0.000793571 
+ 372 |0.000773888 
+ 373 |0.000787754 
+ 374 |0.000778071 
+ 375 |0.000773692 
+ 376 |0.000794051 
+ 377 |0.000769393 
+ 378 |0.000793062 
+ 379 |0.000795547 
+ 380 |0.000768449 
+ 381 |0.000786678 
+ 382 |0.000785439 
+ 383 |0.000795903 
+ 384 |0.000779695 
+ 385 |0.000775494 
+ 386 |0.000778705 
+ 387 |0.000865908 
+ 388 |0.000884716 
+ 389 |0.000891096 
+ 390 |0.000896371 
+ 391 |0.0008728 
+ 392 |0.000910866 
+ 393 |0.000899844 
+ 394 |0.000879763 
+ 395 |0.000876039 
+ 396 |0.000912252 
+ 397 |0.000880102 
+ 398 |0.000870386 
+ 399 |0.00089825 
+ 400 |0.000893683 
+ 401 |0.000882926 
+ 402 |0.000887551 
+ 403 |0.000908102 
+ 404 |0.000879807 
+ 405 |0.000897261 
+ 406 |0.000877589 
+ 407 |0.000878103 
+ 408 |0.000904687 
+ 409 |0.00087173 
+ 410 |0.000870801 
+ 411 |0.000834451 
+ 412 |0.000826903 
+ 413 |0.000847454 
+ 414 |0.00083384 
+ 415 |0.00082348 
+ 416 |0.000821213 
+ 417 |0.000816101 
+ 418 |0.00084835 
+ 419 |0.000836635 
+ 420 |0.000843238 
+ 421 |0.000823261 
+ 422 |0.00083621 
+ 423 |0.000843616 
+ 424 |0.00081152 
+ 425 |0.000816599 
+ 426 |0.000824779 
+ 427 |0.000862336 
+ 428 |0.000819018 
+ 429 |0.000822361 
+ 430 |0.000846837 
+ 431 |0.000829574 
+ 432 |0.000834969 
+ 433 |0.00083474 
+ 434 |0.000816303 
+ 435 |0 
+ 436 |0.000853498 
+ 437 |0.000879045 
+ 438 |0.000851417 
+ 439 |0.000866948 
+ 440 |0.000889312 
+ 441 |0.000865206 
+ 442 |0.000878876 
+ 443 |0.000905259 
+ 444 |0.000868199 
+ 445 |0.000895828 
+ 446 |0.000881677 
+ 447 |0.00087301 
+ 448 |0.000889448 
+ 449 |0.000869029 
+ 450 |0.000869073 
+ 451 |0.000878636 
+ 452 |0.00088259 
+ 453 |0.000890634 
+ 454 |0.000890962 
+ 455 |0.000866304 
+ 456 |0.000876538 
+ 457 |0.000873043 
+ 458 |0.000876986 
+ 459 |0.000898454 
+ 460 |0.0010947 
+ 461 |0.00110159 
+ 462 |0.00109945 
+ 463 |0.00111906 
+ 464 |0.00108758 
+ 465 |0.00110086 
+ 466 |0.00108392 
+ 467 |0.00108636 
+ 468 |0.00112447 
+ 469 |0.00109574 
+ 470 |0.00111365 
+ 471 |0.00108315 
+ 472 |0.00109833 
+ 473 |0.00109383 
+ 474 |0.00110487 
+ 475 |0.00108336 
+ 476 |0.00108646 
+ 477 |0.00109668 
+ 478 |0.00111315 
+ 479 |0.00109903 
+ 480 |0.00111066 
+ 481 |0.00108897 
+ 482 |0.00108369 
+ 483 |0.0011076 
+ 484 |0.00123756 
+ 485 |0.0012288 
+ 486 |0.00121287 
+ 487 |0.00125613 
+ 488 |0.00123703 
+ 489 |0.00121045 
+ 490 |0.00123071 
+ 491 |0.00120813 
+ 492 |0.00125525 
+ 493 |0.00122145 
+ 494 |0.00124045 
+ 495 |0.0012318 
+ 496 |0.00122672 
+ 497 |0.00118965 
+ 498 |0.00122311 
+ 499 |0.00120257 
+ 500 |0.00124757 
+ 501 |0.001236 
+ 502 |0.00122524 
+ 503 |0.00119547 
+ 504 |0.00123124 
+ 505 |0.00121296 
+ 506 |0.00123676 
+ 507 |0.00121222 
+ 508 |0.00107533 
+ 509 |0.00109474 
+ 510 |0.00107536 
+ 511 |0.00108036 
+ 512 |0.00109756 
+ 513 |0.00106223 
+ 514 |0.001076 
+ 515 |0.0010909 
+ 516 |0.00107716 
+ 517 |0.00107256 
+ 518 |0.00108664 
+ 519 |0.00109327 
+ 520 |0.00108664 
+ 521 |0.00106871 
+ 522 |0.00104054 
+ 523 |0.00110316 
+ 524 |0.0010961 
+ 525 |0.00107977 
+ 526 |0.00107215 
+ 527 |0.0010719 
+ 528 |0.00108825 
+ 529 |0.00107827 
+ 530 |0.00106516 
+ 531 |0.00108339 
+ 532 |0 
+ 533 |0 
+ 534 |0 
+ 535 |0 
+ 536 |0 
+ 537 |0 
+ 538 |0 
+ 539 |0 
+ 540 |0 
+ 541 |0 
+ 542 |0 
+ 543 |0 
+ 544 |0 
+ 545 |0 
+ 546 |0 
+ 547 |0 
+ 548 |0 
+ 549 |0 
+ 550 |0 
+ 551 |0 
+ 552 |0 
+ 553 |0 
+ 554 |0 
+ 555 |0 
+ 556 |0 
+ 557 |0 
+ 558 |0 
+ 559 |0 
+ 560 |0 
+ 561 |0 
+ 562 |0 
+ 563 |0 
+ 564 |0 
+ 565 |0 
+ 566 |0 
+ 567 |0 
+ 568 |0 
+ 569 |0 
+ 570 |0 
+ 571 |0 
+ 572 |0 
+ 573 |0 
+ 574 |0 
+ 575 |0 
+ 576 |0 
+ 577 |0 
+ 578 |0 
+ 579 |0 
+ 580 |0 
+ 581 |0 
+ 582 |0 
+ 583 |0 
+ 584 |0 
+ 585 |0 
+ 586 |0 
+ 587 |0 
+ 588 |0 
+ 589 |0 
+ 590 |0 
+ 591 |0 
+ 592 |0 
+ 593 |0 
+ 594 |0 
+ 595 |0 
+ 596 |0 
+ 597 |0 
+ 598 |0 
+ 599 |0 
+ 600 |0 
+ 601 |0 
+ 602 |0 
+ 603 |0 
+ 604 |0 
+ 605 |0 
+ 606 |0 
+ 607 |0 
+ 608 |0 
+ 609 |0 
+ 610 |0 
+ 611 |0 
+ 612 |0 
+ 613 |0 
+ 614 |0 
+ 615 |0 
+ 616 |0 
+ 617 |0 
+ 618 |0 
+ 619 |0 
+ 620 |0 
+ 621 |0 
+ 622 |0 
+ 623 |0 
+ 624 |0 
+ 625 |0 
+ 626 |0 
+ 627 |0 
+ 628 |0 
+ 629 |0 
+ 630 |0 
+ 631 |0 
+ 632 |0 
+ 633 |0 
+ 634 |0 
+ 635 |0 
+ 636 |0 
+ 637 |0 
+ 638 |0 
+ 639 |0 
+ 640 |0 
+ 641 |0 
+ 642 |0 
+ 643 |0 
+ 644 |0 
+ 645 |0 
+ 646 |0 
+ 647 |0 
+ 648 |0 
+ 649 |0 
+ 650 |0 
+ 651 |0 
+ 652 |0 
+ 653 |0 
+ 654 |0 
+ 655 |0 
+ 656 |0 
+ 657 |0 
+ 658 |0 
+ 659 |0 
+ 660 |0 
+ 661 |0 
+ 662 |0 
+ 663 |0 
+ 664 |0 
+ 665 |0 
+ 666 |0 
+ 667 |0 
+ 668 |0 
+ 669 |0 
+ 670 |0 
+ 671 |0 
+ 672 |0 
+ 673 |0 
+ 674 |0 
+ 675 |0 
+ 676 |0 
+ 677 |0 
+ 678 |0 
+ 679 |0 
+ 680 |0 
+ 681 |0 
+ 682 |0 
+ 683 |0 
+ 684 |0 
+ 685 |0 
+ 686 |0 
+ 687 |0 
+ 688 |0 
+ 689 |0 
+ 690 |0 
+ 691 |0 
+ 692 |0 
+ 693 |0 
+ 694 |0 
+ 695 |0 
+ 696 |0 
+ 697 |0 
+ 698 |0 
+ 699 |0 
+ 700 |0 
+ 701 |0 
+ 702 |0 
+ 703 |0 
+ 704 |0 
+ 705 |0 
+ 706 |0 
+ 707 |0 
+ 708 |0 
+ 709 |0 
+ 710 |0 
+ 711 |0 
+ 712 |0 
+ 713 |0 
+ 714 |0 
+ 715 |0 
+ 716 |0 
+ 717 |0 
+ 718 |0 
+ 719 |0 
+ 720 |0 
+ 721 |0 
+ 722 |0 
+ 723 |0 
+ 724 |0 
+ 725 |0 
+ 726 |0 
+ 727 |0 
+ 728 |0 
+ 729 |0 
+ 730 |0 
+ 731 |0 
+ 732 |0 
+ 733 |0 
+ 734 |0 
+ 735 |0 
+ 736 |0 
+ 737 |0 
+ 738 |0 
+ 739 |0 
+ 740 |0 
+ 741 |0 
+ 742 |0 
+ 743 |0 
+ 744 |0 
+ 745 |0 
+ 746 |0 
+ 747 |0 
+ 748 |0 
+ 749 |0 
+ 750 |0 
+ 751 |0 
+ 752 |0 
+ 753 |0 
+ 754 |0 
+ 755 |0 
+ 756 |0 
+ 757 |0 
+ 758 |0 
+ 759 |0 
+ 760 |0 
+ 761 |0 
+ 762 |0 
+ 763 |0 
+ 764 |0 
+ 765 |0 
+ 766 |0 
+ 767 |0 
+ 768 |0 
+ 769 |0 
+ 770 |0 
+ 771 |0 
+ 772 |0 
+ 773 |0 
+ 774 |0 
+ 775 |0 
+ 776 |0 
+ 777 |0 
+ 778 |0 
+ 779 |0 
+ 780 |0 
+ 781 |0 
+ 782 |0 
+ 783 |0 
+ 784 |0 
+ 785 |0 
+ 786 |0 
+ 787 |0 
+ 788 |0 
+ 789 |0 
+ 790 |0 
+ 791 |0 
+ 792 |0 
+ 793 |0 
+ 794 |0 
+ 795 |0 
+ 796 |0 
+ 797 |0 
+ 798 |0 
+ 799 |0 
+ 800 |0 
+ 801 |0 
+ 802 |0 
+ 803 |0 
+ 804 |0 
+ 805 |0 
+ 806 |0 
+ 807 |0 
+ 808 |0 
+ 809 |0 
+ 810 |0 
+ 811 |0 
+ 812 |0 
+ 813 |0 
+ 814 |0 
+ 815 |0 
+ 816 |0 
+ 817 |0 
+ 818 |0 
+ 819 |0 
+ 820 |0 
+ 821 |0 
+ 822 |0 
+ 823 |0 
+ 824 |0 
+ 825 |0 
+ 826 |0 
+ 827 |0 
+ 828 |0 
+ 829 |0 
+ 830 |0 
+ 831 |0 
+ 832 |0 
+ 833 |0 
+ 834 |0 
+ 835 |0 
+ 836 |0 
+ 837 |0 
+ 838 |0 
+ 839 |0 
+ 840 |0 
+ 841 |0 
+ 842 |0 
+ 843 |0 
+ 844 |0 
+ 845 |0 
+ 846 |0 
+ 847 |0 
+ 848 |0 
+ 849 |0 
+ 850 |0 
+ 851 |0 
+ 852 |0 
+ 853 |0 
+ 854 |0 
+ 855 |0 
+ 856 |0 
+ 857 |0 
+ 858 |0 
+ 859 |0 
+ 860 |0 
+ 861 |0 
+ 862 |0 
+ 863 |0 
+ 864 |0 
+ 865 |0 
+ 866 |0 
+ 867 |0 
+ 868 |0 
+ 869 |0 
+ 870 |0 
+ 871 |0 
+ 872 |0 
+ 873 |0 
+ 874 |0 
+ 875 |0 
+ 876 |0 
+ 877 |0 
+ 878 |0 
+ 879 |0 
+ 880 |0 
+ 881 |0 
+ 882 |0 
+ 883 |0 
+ 884 |0 
+ 885 |0 
+ 886 |0 
+ 887 |0 
+ 888 |0 
+ 889 |0 
+ 890 |0 
+ 891 |0 
+ 892 |0 
+ 893 |0 
+ 894 |0 
+ 895 |0 
+ 896 |0 
+ 897 |0 
+ 898 |0 
+ 899 |0 
+ 900 |0 
+ 901 |0 
+ 902 |0 
+ 903 |0 
+ 904 |0 
+ 905 |0 
+ 906 |0 
+ 907 |0 
+ 908 |0 
+ 909 |0 
+ 910 |0 
+ 911 |0 
+ 912 |0 
+ 913 |0 
+ 914 |0 
+
+Now unfolding...
+Iteration : 0
+Chi^2 of change 73250.7
+Iteration : 1
+Chi^2 of change 4863.11
+Iteration : 2
+Chi^2 of change 1716.6
+Iteration : 3
+Chi^2 of change 905.914
+Iteration : 4
+Chi^2 of change 529.992
+Iteration : 5
+Chi^2 of change 326.629
+Iteration : 6
+Chi^2 of change 209.348
+Iteration : 7
+Chi^2 of change 139.018
+Iteration : 8
+Chi^2 of change 95.5968
+Iteration : 9
+Chi^2 of change 68.1058
+Iteration : 10
+Chi^2 of change 50.2703
+Iteration : 11
+Chi^2 of change 38.4001
+Iteration : 12
+Chi^2 of change 30.2798
+Using response matrix priors
+Calculating covariances due to number of measured events
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
+
+Adding the following extra title to the histograms:
+	rho0 Normalized Run
+
+
+
+[1m[92m[43m
+
+    Will be Fitting Plots    
+[0m
+
+
+
+[1m[94mSmear option selected is: Smear[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '15', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m5-26-2026[0m at [1m01:42 a.m.[0m
+
+The total number of histograms available for the[1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m504[0m
+
+
+[1mDone Loading RDataFrame files...
+[0m
+[1m[94m
+
+Starting Unfolding Procedures...
+[0m
+Bin 1 is not in Q2_y_Bin_List = ['15', '0']
+Bin 10 is not in Q2_y_Bin_List = ['15', '0']
+Bin 11 is not in Q2_y_Bin_List = ['15', '0']
+Bin 12 is not in Q2_y_Bin_List = ['15', '0']
+Bin 13 is not in Q2_y_Bin_List = ['15', '0']
+Bin 14 is not in Q2_y_Bin_List = ['15', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mAdding the 'lundrho' files to the 'MC_REC_1D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'Response_2D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'MC_GEN_1D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'MC_BGS_1D_initial' histogram[0m
+[1m[96mStarting [4m[95mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mAcceptance Correction of Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal_1D'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91m
+Bin 195 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0003859707654935034)[0m
+[91m
+Bin 315 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0001964024086987805)[0m
+[91m
+Bin 388 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0001955137431359079)[0m
+[1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
+
+Current Time: [1m01:42 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+	[96mUsing [1m[92mRooUnfold (Bin-by-Bin)[0m[96m Unfolding Procedure...[0m
+[1m[96mFinished [92mRooUnfold (Bin-by-Bin)[0m[1m[96m Unfolding Procedure.
+[0m
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
+
+Current Time: [1m03:46 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 2 Hour(s), 3 Minute(s), and 29 Second(s).
+
+[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
+[0m
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+Bin 16 is not in Q2_y_Bin_List = ['15', '0']
+Bin 17 is not in Q2_y_Bin_List = ['15', '0']
+Bin 2 is not in Q2_y_Bin_List = ['15', '0']
+Bin 3 is not in Q2_y_Bin_List = ['15', '0']
+Bin 4 is not in Q2_y_Bin_List = ['15', '0']
+Bin 5 is not in Q2_y_Bin_List = ['15', '0']
+Bin 6 is not in Q2_y_Bin_List = ['15', '0']
+Bin 7 is not in Q2_y_Bin_List = ['15', '0']
+Bin 8 is not in Q2_y_Bin_List = ['15', '0']
+Bin 9 is not in Q2_y_Bin_List = ['15', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mAdding the 'lundrho' files to the 'MC_REC_1D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'Response_2D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'MC_GEN_1D_initial' histogram[0m
+[1m[92mAdding the 'lundrho' files to the 'MC_BGS_1D_initial' histogram[0m
+Total: 2
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 514
+
+
+Current Time: [1m03:47 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 2 Hour(s), 4 Minute(s), and 13 Second(s).
+
+[94mNormal Unfolding Fits Already Included? -> [1m[92mTrue[0m
+[94mRC Unfolding Fits Already Included?     -> [91m[1mFalse[0m
+[1mNot running BC... Did not check for BC fits.[0m
+
+[1m[94mMaking the fits...[0m
+
+
+[1mLoaded `[92mFind_RC_Fit_Params[0m[1m` and `[92mApply_RC_Factor_Corrections[0m[1m` for applying RC Corrections...[0m
+
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   354)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   355)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   356)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   357)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   358)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   359)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   360)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   361)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   362)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   363)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   364)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   365)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   366)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   367)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   368)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   369)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   370)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   371)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   372)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   373)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   374)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   375)
+
+[1m[94mFit/Added [0m[1m22[1m[94m Histograms[0m[94m
+Adding to Main List...[0m
+
+[1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m646[0m
+
+
+Current Time: [1m03:47 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 2 Hour(s), 4 Minute(s), and 18 Second(s).
+
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 646
+
+
+Current Time: [1m03:51 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s).
+
+
+[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s). 
+
+[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s). 
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m5-26-2026[0m at [1m01:42 a.m.[0m
+
+Input File:
+	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root
+Output File:
+	"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"
+
+Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundrho' rho0 events subtracted as background after proper normalization. Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+	Finished Unfolding the histogram at:
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 29 Second(s). 
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s). 
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s). 
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--fit                                               --> True
+--remake_fit                                        --> False
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> 13
+--Num_Toys                                          --> 500
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> 'rho0 Normalized Run'
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.0005
+--Use_TTree                                         --> False
+--Apply_RC                                          --> True
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--save_json                                         --> True
+--old_json                                          --> False
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'smear'
+--Q2_y_Bin_List                                     --> ['15', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+--json_name                                         --> 'Fit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json'
+
+
+The time that this code finished is [1m03:51 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 2 Hour(s), 8 Minute(s), and 22 Second(s).
+Saved 646 Histograms...
+Rate = 0.08 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    
