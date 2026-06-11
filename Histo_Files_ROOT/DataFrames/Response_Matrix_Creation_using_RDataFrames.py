@@ -521,8 +521,8 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     if(getattr(args, "run_rho_weight", False) and (not df.HasColumn("exclusive_rho_weight")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho"])):
-        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 1.548698 if(lundrho_files in ["lundrho"]) else 1.840369 if(lundrho_files in ["lundvpk"]) else 1.0 
-        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 1.548698 if(lundrho_files in ["lundrho"]) else 1.840369 if(lundrho_files in ["lundvpk"]) else 1.0 
+        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 11.547758 if(lundrho_files in ["lundrho"]) else 14.815858 if(lundrho_files in ["lundvpk"]) else 1.0 
+        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 11.547758 if(lundrho_files in ["lundrho"]) else 14.815858 if(lundrho_files in ["lundvpk"]) else 1.0 
         df = df.Define("exclusive_rho_weight", f'''double exclusive_rho_weight = 1.0;
             if(exclusive_rho == 1){{ exclusive_rho_weight = {weight_wout_rho}; }}
             if(exclusive_rho == 0){{ exclusive_rho_weight = {weight_with_rho}; }}
@@ -1090,6 +1090,8 @@ if(__name__ == "__main__"):
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho_individual",  -0.5, 255.5, 256]])
                 List_of_2D_Plots.append([["W_pippim", 0.0, 2.5, 100], ["exclusive_rho_individual",  -0.5, 255.5, 256]])
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["W_pippim",                   0.0,   2.5, 100]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["MM_pippim",                  0.0,   4.5,  90]])
+                List_of_2D_Plots.append([["W_pippim", 0.0, 2.5, 100], ["MM_pippim",                  0.0,   4.5,  90]])
             else:
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["exclusive_rho",             -1.5,   2.5,   4]])
             # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho",             -1.5,   2.5,   4]])

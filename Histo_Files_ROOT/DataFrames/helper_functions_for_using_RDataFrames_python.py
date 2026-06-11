@@ -256,11 +256,12 @@ def build_titles_rm(Histo_Group, Histo_Data, variable_title, bin_text, Cut_Line,
 
 
 def apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=False):
-    Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data)
+    Background_Cuts_MC = BG_Cut_Function(dataframe=Histo_Data, rho_background=rho_background)
     current_filter = base_filter
     if(str(Background_Cuts_MC) not in ["", "ERROR"]):
         if("Background" in Histo_Group):
             current_filter = f"({current_filter}) &&  ({Background_Cuts_MC})" if(current_filter not in [""]) else  f"({Background_Cuts_MC})"
+            current_filter = current_filter.replace("exclusive_rho != 0", "exclusive_rho == 0") # The background handle here should not include the rho0 events, so the condition is flipped so that the background also excludes these exclusive rho0s from the MC events
         else:
             current_filter = f"({current_filter}) && !({Background_Cuts_MC})" if(current_filter not in [""]) else f"!({Background_Cuts_MC})"
             if((Histo_Data not in ["rdf", "gdf"]) and ("PID" not in current_filter)):
@@ -269,7 +270,7 @@ def apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background
         if((Histo_Data in ["gdf"]) and ("MM_gen" in current_filter)):
             current_filter = str(current_filter).replace("MM_gen", "MM")
     elif(str(Background_Cuts_MC) in ["ERROR"]):
-        print(f"\n\n{color.Error}ERROR IN BG_Cut_Function(dataframe={Histo_Data}).\n\t{color.END_R}Check ExtraAnalysisCodeValues.py for details{color.END}\n\n")
+        print(f"\n\n{color.Error}ERROR IN BG_Cut_Function(dataframe={Histo_Data}, rho_background={rho_background}).\n\t{color.END_R}Check ExtraAnalysisCodeValues.py for details{color.END}\n\n")
     return current_filter
 
 
@@ -328,6 +329,8 @@ def _write_and_tick(obj, key, file_location, output_type):
 
 # def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Q2_y_z_pT_phi_h_5D_Binning, Use_Weight, Sliced_5D_Increment, Histograms_All, file_location, output_type):
 def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Q2_y_z_pT_phi_h_5D_Binning, Use_Weight, Sliced_5D_Increment, Histograms_All, custom_title=None, custom_tag=None):
+    if("lund" in str(custom_tag)):
+        custom_title = f"Was made with Harut's {custom_tag} Files" if(custom_title in [None, ""]) else f"#splitline{{{custom_title}}}{{Was made with Harut's {custom_tag} Files}}"
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(("EDIS" in Histo_Cut)):
@@ -350,7 +353,7 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
     Variable_Gen = f"{variable.replace('_smeared', '')}_gen"
     Variable_Rec = variable
     base_filter = "esec != -2"
-    Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=sdf.HasColumn("exclusive_rho"))
+    Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=(sdf.HasColumn("exclusive_rho")) and ("lund" not in str(custom_tag)))
     if(Histo_Data not in ["rdf", "gdf"]):
         if("Background" not in Histo_Group):
             Start_Bin = Min_range
@@ -742,6 +745,8 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
 
 
 def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning, Var_Input, Q2_y_bin_num, Use_Weight, Histograms_All, file_location, output_type, Res_Binning_2D_z_pT=["z_pT_Bin_Y_bin", -0.5, 37.5, 38], custom_title=None, custom_tag=None):
+    if("lund" in str(custom_tag)):
+        custom_title = f"Was made with Harut's {custom_tag} Files" if(custom_title in [None, ""]) else f"#splitline{{{custom_title}}}{{Was made with Harut's {custom_tag} Files}}"
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(not _guard_gdf_cut(Histo_Data, Histo_Cut)):
@@ -810,7 +815,7 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
         Histo_Name_1D_Weighed = f"{Histo_Name_1D}_(Weighed)"
     else:
         Histo_Name_Weighed, Histo_Name_1D_Weighed = None, None
-    Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter, rho_background=sdf.HasColumn("exclusive_rho"))
+    Bin_Filter = apply_background_filter(Histo_Data, Histo_Group, Bin_Filter, rho_background=(sdf.HasColumn("exclusive_rho") and ("lund" not in str(custom_tag))))
     sdf_cut = sdf.Filter(Bin_Filter)
     # print(f"Histo_Group = {Histo_Group}")
     # sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
