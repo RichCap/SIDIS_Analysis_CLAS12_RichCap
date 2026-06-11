@@ -5,6 +5,11 @@ import cppyy
 import sys
 import numpy as np
 ROOT.gROOT.SetBatch(True)
+ROOT.TH1.AddDirectory(0)
+ROOT.gStyle.SetTitleOffset(1.3,'y')
+ROOT.gStyle.SetGridColor(17)
+ROOT.gStyle.SetPadGridX(1)
+ROOT.gStyle.SetPadGridY(1)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, root_color, color_bg, variable_Title_name, RuntimeTimer, Draw_Canvas, silence_root_import
@@ -570,7 +575,7 @@ def histo_setup_for_Wpions(args):
 
     return args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1
 
-def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1_data, fy1_harut, N_data_rho, N_harut_rho, n_rho):
+def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1_data, fy1_harut, fy2_data, fy2_harut, fy3_data, fy3_harut, fy4_data, fy4_harut, N_data_rho, N_harut_rho, n_rho):
     fmt = args.file_format.lower()
     suffix = f"_{args.name}" if(args.name) else ""
     suffix = f"{suffix}_Bin_{getattr(args, 'Kinematic_Bin_Select', 'All')}"
@@ -578,20 +583,30 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     c_data = ROOT.TCanvas("c_data_fit", "", 900, 600)
     ROOT.gStyle.SetOptStat(0)
     mass_data.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}{{{args.title}}}")
+    mass_data.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
     mass_data.Draw("hist")
-    # hmrho_pos.GetListOfFunctions().Add(fyp[0])
     mass_data.SetLineColor(ROOT.kCyan)
     fy_data.SetLineColor(ROOT.kBlack)
     fy_data.Draw("same")
     fy1_data.SetLineColor(ROOT.kMagenta)
     fy1_data.Draw("same")
-    leg_d = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
+    fy2_data.SetLineColor(ROOT.kRed)
+    fy2_data.Draw("same")
+    fy3_data.SetLineColor(ROOT.kBlue)
+    fy3_data.Draw("same")
+    fy4_data.SetLineColor(ROOT.kOrange)
+    fy4_data.Draw("same")
+    # leg_d = ROOT.TLegend(0.55, 0.07, 0.92, 0.50)
+    leg_d = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
     leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
     leg_d.AddEntry(mass_data, "Experimental Data", "l")
     leg_d.AddEntry(fy_data,   "Full Fit",          "l")
     leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
+    leg_d.AddEntry(fy2_data,  "General Background","l")
+    leg_d.AddEntry(fy3_data,  "f_{2}",             "l")
+    leg_d.AddEntry(fy4_data,  "f_{0}",             "l")
     leg_d.Draw("same")
-    box_d = ROOT.TPaveText(0.575, 0.55, 0.9, 0.65, "NDC")
+    box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
     box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
     box_d.SetTextAlign(22); box_d.SetTextFont(62); box_d.SetTextSize(0.025)
     box_d.SetMargin(0.02)
@@ -609,19 +624,29 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     ROOT.gStyle.SetOptStat(0)
     mass_harut.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Harut's MC}}{{{args.title}}}")
     mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
+    mass_harut.GetYaxis().SetRangeUser(0, 1.2*mass_harut.GetMaximum())
     mass_harut.Draw("hist")
     mass_harut.SetLineColor(ROOT.kGreen)
     fy_harut.SetLineColor(ROOT.kBlack)
     fy_harut.Draw("same")
     fy1_harut.SetLineColor(ROOT.kMagenta)
     fy1_harut.Draw("same")
-    leg_h = ROOT.TLegend(0.575, 0.10, 0.9, 0.45)
+    fy2_harut.SetLineColor(ROOT.kRed)
+    fy2_harut.Draw("same")
+    # fy3_harut.SetLineColor(ROOT.kBlue)
+    # fy3_harut.Draw("same")
+    # fy4_harut.SetLineColor(ROOT.kOrange)
+    # fy4_harut.Draw("same")
+    leg_h = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
     leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
     leg_h.AddEntry(mass_harut, "Harut's Monte Carlo", "l")
     leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
     leg_h.AddEntry(fy1_harut,  "#rho^{0} Signal",     "l")
+    leg_h.AddEntry(fy2_harut,  "General Background",  "l")
+    # leg_h.AddEntry(fy3_harut,  "f_{2}",               "l")
+    # leg_h.AddEntry(fy4_harut,  "f_{0}",               "l")
     leg_h.Draw("same")
-    box_h = ROOT.TPaveText(0.575, 0.55, 0.9, 0.65, "NDC")
+    box_h = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
     box_h.SetFillColor(0); box_h.SetBorderSize(1); box_h.SetFillStyle(1001)
     box_h.SetTextAlign(22); box_h.SetTextFont(62); box_h.SetTextSize(0.025)
     box_h.SetMargin(0.02)
@@ -634,31 +659,6 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
         print(f"{color.BOLD}Saved Wpions Harut fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
     else:
         print(f"{color.Error}Would have saved Wpions Harut fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
-    # # Normalization summary
-    # c_sum = ROOT.TCanvas("c_summary", "", 900, 600)
-    # ROOT.gStyle.SetOptStat(0)
-    # pave = ROOT.TPaveText(0.1, 0.1, 0.9, 0.9, "NDC")
-    # pave.SetFillColor(0); pave.SetBorderSize(1)
-    # pave.AddText("Wpions Fit-Based rho0 Normalization")
-    # pave.AddText(f"N_data_rho (signal) = {N_data_rho:.2f}")
-    # pave.AddText(f"N_harut_rho (signal) = {N_harut_rho:.2f}")
-    # pave.AddText(f"n_rho = {n_rho:.6f}")
-    # pave.Draw()
-    # c_sum.SaveAs(f"Wpions_Fit_Normalization_Summary{suffix}.{fmt}")
-    # print(f"{color.BOLD}Saved Wpions normalization summary: Wpions_Fit_Normalization_Summary{suffix}.{fmt}{color.END}")
-    # if(getattr(args, "extra_root_save", False)):
-    #     root_name = f"Wpions_Fit_Normalization_Histos_{args.name if args.name else 'UnNamed'}.root"
-    #     rf = ROOT.TFile.Open(root_name, "RECREATE")
-    #     if(rf and not rf.IsZombie()):
-    #         mass_data.Write()
-    #         mass_harut.Write()
-    #         fy_data.Write()
-    #         fy_harut.Write()
-    #         rf.Close()
-    #         print(f"{color.BGREEN}Saved Wpions fit histograms to {root_name}{color.END}")
-
-
-withF0 = True
 
 # Nick's original dynamic ipart setup for 2 histograms
 par_Num = []
@@ -669,249 +669,186 @@ for i in range(0, 2):
         j = 13
         n = [j,1,2, j+1,4,5,6, j+2,8,9, j+3,11,12]
     par_Num.append(n)
-
 ipart = np.array(par_Num, dtype=np.int32)
-
 class GlobalChi2(object):
     def __init__(self, f1, numOfHist):
         self._f1 = f1
         self._numOfHist = numOfHist
-
     def __call__(self, par):
         par_arr = np.frombuffer(par, dtype=np.float64, count=self._numOfHist * 17)
         p = []
         for i in range(0, self._numOfHist):
             p.append(par_arr[ipart[i]])
-
         tot = 0
         for i in range(0, self._numOfHist):
             tot += self._f1[i](p[i])
-
         return tot
 
 
-# === FULL C++ FUNCTIONSET DECLARATION ===
-ROOT.gInterpreter.Declare("""
-    #include <cmath>
-    #include "TMath.h"
-    ROOT::Math::Functor foo(const std::function<double(double const *)> &x, int num) { return ROOT::Math::Functor(x,num); }
-
-    class FunctionSet {
-        public:
-            double breit_wigner_1(double *x, double *par) {
-                double m = x[0];
-                double amp = par[0];
-                double mu = par[1];
-                double gamma = par[2];
-                return amp*TMath::Gaus(m, 0.77, 0.15);
-                //return amp*TMath::BreitWigner(m, mu, gamma);
-                //return 2000*TMath::BreitWigner(m, 0.77, 0.15);
-            }
-
-            double breit_wigner_2(double *x, double *par) {
-                double m = x[0];
-                double amp = par[7];
-                double mu = par[8];
-                double gamma = par[9];
-                return amp*TMath::BreitWigner(m, mu, gamma);
-            }
-
-            double breit_wigner_3(double *x, double *par) {
-                double m = x[0];
-                double amp = par[10];
-                double mu = par[11];
-                double gamma = par[12];
-                return amp*TMath::BreitWigner(m, mu, gamma);
-            }
-
-            double background(double *xx, double *par) {
-                double m = xx[0];
-                double amp_bkg = par[3];
-                double xi = par[4];
-                double m0_bkg = par[5];
-                double m1_bkg = par[6];
-                double cc = m1_bkg-m0_bkg;
-                double c2 = cc*cc;
-                double x = cc - (m-m0_bkg);
-                double ybg = 0;
-                if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
-                return amp_bkg*ybg;
-            }
-
-            double background_only(double *xx, double *par) { // used for testing
-                double m = xx[0];
-                double amp_bkg = par[0];
-                double xi = par[1];
-                double m0_bkg = par[2];
-                double m1_bkg = par[3];
-                double cc = m1_bkg-m0_bkg;
-                double c2 = cc*cc;
-                double x = cc - (m-m0_bkg);
-                double ybg = 0;
-                if(x>0 && x<cc) ybg = x/c2 * sqrt(1-x*x/c2) * exp(-0.5*xi*xi*(1-x*x/c2));
-                return amp_bkg*ybg;
-            }
-
-            double total_function_f0(double *x, double *par) {
-                double m = x[0];
-                double bw1 = breit_wigner_1(x, par);
-                double bkg = background(x,par);
-                double bw2 = breit_wigner_2(x, par);
-                double bw3 = breit_wigner_3(x, par);
-                return bw1 + bkg + bw2 + bw3;
-            }
-
-            double total_function(double *x, double *par) {
-                double m = x[0];
-                double bw1 = breit_wigner_1(x, par);
-                double bkg = background(x,par);
-                double bw2 = breit_wigner_2(x, par);
-                return bw1 + bkg + bw2;
-            }
-    };
-""")
-
 def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=True, useF2=True, useF0=True):
-    # useBkg, useF2, useF0 = True, False, False
     useBkg_harut, useF2_harut, useF0_harut = True, False, False
     if(args.verbose):
-        print(f"\n\nfit_W_rho_from_Nick: fitting TWO histograms simultaneously | data entries {hist_data.Integral():.0f} | harut entries {hist_harut.Integral():.0f} | Bkg={useBkg} F2={useF2} F0={useF0} | range [{minValue}, {maxValue}]")
+        minBin, maxBin = hist_data.FindBin(minValue), hist_data.FindBin(maxValue)
+        print(f"\n\nfit_W_rho_from_Nick: fitting TWO histograms INDEPENDENTLY | data entries {hist_data.Integral(minBin, maxBin):.0f} | harut entries {hist_harut.Integral(minBin, maxBin):.0f} | Bkg={useBkg} F2={useF2} F0={useF0} | range [{minValue}, {maxValue}]")
 
-    fyp = []
-    fyp.append(ROOT.TF1("fy_data",  "breitwigner(0) + pol3(3) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13))
-    fyp.append(ROOT.TF1("fy_harut", "breitwigner(0) + pol3(3) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13))
+    pol3_or_gaus = "gaus"
+    if(pol3_or_gaus == "gaus"):
+        fyp_data  = ROOT.TF1("fy_data",  "breitwigner(0) + [p3] + gaus(4) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
+        fyp_harut = ROOT.TF1("fy_harut", "breitwigner(0) + [p3] + gaus(4)", minValue, min([maxValue, 1.25]), 7)
+    else:
+        fyp_data  = ROOT.TF1("fy_data",  "breitwigner(0) + pol3(3) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
+        fyp_harut = ROOT.TF1("fy_harut", "breitwigner(0) + pol3(3)", minValue, maxValue, 7)
 
-    fy1p = [ROOT.TF1("fy1_rho_experiment",  "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy1_rho_harut",  "breitwigner(0)", minValue, maxValue, 3)]
-    fy2p = [ROOT.TF1("fy2_bkg_experiment",  "pol3(0)",        minValue, maxValue, 4), ROOT.TF1("fy2_bkg_harut",  "pol3(0)",        minValue, maxValue, 4)]
-    fy3p = [ROOT.TF1("fy3_f2_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy3_f2_harut",   "breitwigner(0)", minValue, maxValue, 3)]
-    fy4p = [ROOT.TF1("fy4_f0_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy4_f0_harut",   "breitwigner(0)", minValue, maxValue, 3)]
+    fy1p     = [ROOT.TF1("fy1_rho_experiment",  "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy1_rho_harut",  "breitwigner(0)", minValue, maxValue, 3)]
+    if(pol3_or_gaus == "gaus"):
+        fy2p = [ROOT.TF1("fy2_bkg_experiment",  "[p0] + gaus(1)", minValue, maxValue, 4), ROOT.TF1("fy2_bkg_harut",  "[p0] + gaus(1)", minValue, maxValue, 4)]
+    else:
+        fy2p = [ROOT.TF1("fy2_bkg_experiment",  "pol3(0)",        minValue, maxValue, 4), ROOT.TF1("fy2_bkg_harut",  "pol3(0)",        minValue, maxValue, 4)]
+    fy3p     = [ROOT.TF1("fy3_f2_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy3_f2_harut",   "breitwigner(0)", minValue, maxValue, 3)]
+    fy4p     = [ROOT.TF1("fy4_f0_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy4_f0_harut",   "breitwigner(0)", minValue, maxValue, 3)]
 
-    for i in fyp:
-        i.SetParName(0, "#rho Amp"); i.SetParName(1, "#rho Mean"); i.SetParName(2, "#rho Sigma")
-        i.SetParName(3, "bkg Amp");  i.SetParName(4, "bkg p1");    i.SetParName(5, "bkg p2")
-        i.SetParName(6, "bkg p3")
-        i.SetParName(7, "f2 Amp");   i.SetParName(8, "f2 Mean");   i.SetParName(9, "f2 Sigma")
-        i.SetParName(10,"f0 Amp");   i.SetParName(11,"f0 Mean");   i.SetParName(12,"f0 Sigma")
+    # Data (full 13-parameter model)
+    fyp_data.SetParName(0, "#rho Amp");      fyp_data.SetParName(1, "#rho Mean");  fyp_data.SetParName(2, "#rho Sigma")
+    if(pol3_or_gaus == "gaus"):
+        fyp_data.SetParName(3, "Constant");  fyp_data.SetParName(4, "BKG Amp");    fyp_data.SetParName(5, "BKG Mean");  fyp_data.SetParName(6, "BKG Sigma")
+    else:
+        fyp_data.SetParName(3, "bkg Amp");   fyp_data.SetParName(4, "bkg p1");     fyp_data.SetParName(5, "bkg p2");    fyp_data.SetParName(6, "bkg p3")
+    fyp_data.SetParName(7, "f2 Amp");        fyp_data.SetParName(8, "f2 Mean");    fyp_data.SetParName(9, "f2 Sigma")
+    fyp_data.SetParName(10,"f0 Amp");        fyp_data.SetParName(11,"f0 Mean");    fyp_data.SetParName(12,"f0 Sigma")
+    # Harut (rho + pol3/gaus background only — 7 parameters)
+    fyp_harut.SetParName(0, "#rho Amp");     fyp_harut.SetParName(1, "#rho Mean"); fyp_harut.SetParName(2, "#rho Sigma")
+    if(pol3_or_gaus == "gaus"):
+        fyp_harut.SetParName(3, "Constant"); fyp_harut.SetParName(4, "BKG Amp");   fyp_harut.SetParName(5, "BKG Mean"); fyp_harut.SetParName(6, "BKG Sigma")
+    else:
+        fyp_harut.SetParName(3, "bkg Amp");  fyp_harut.SetParName(4, "bkg p1");    fyp_harut.SetParName(5, "bkg p2");   fyp_harut.SetParName(6, "bkg p3")
+    
 
     opt = ROOT.Fit.DataOptions()
     rang = ROOT.Fit.DataRange()
     rang.SetRange(minValue, maxValue)
 
-    data_list = []
-    chi2_list = []
-    for idx, h in enumerate([hist_data, hist_harut]):
-        hp = h.GetPtr() if hasattr(h, "GetPtr") else h
-        data_i = ROOT.Fit.BinData(opt, rang)
-        ROOT.Fit.FillData(data_i, hp)
-        wfy = ROOT.Math.WrappedMultiTF1(fyp[idx], 1)
-        chi2_list.append(ROOT.Fit.Chi2Function(data_i, wfy))
-        data_list.append(data_i)
+    # === INDEPENDENT FIT FOR EXPERIMENTAL DATA ===
+    hp_data = hist_data.GetPtr() if hasattr(hist_data, "GetPtr") else hist_data
+    data_data = ROOT.Fit.BinData(opt, rang)
+    ROOT.Fit.FillData(data_data, hp_data)
+    wfy_data = ROOT.Math.WrappedMultiTF1(fyp_data, 1)
+    chi2_data = ROOT.Fit.Chi2Function(data_data, wfy_data)
 
-    globalChi2 = GlobalChi2(chi2_list, 2)
+    fitter_data = ROOT.Fit.Fitter()
+    Npar_data = 13
+    if(pol3_or_gaus == "gaus"):
+        parTemp_data = [2000.0, 0.77, 0.15,
+                                              0.0, 100 if(useBkg) else 0.0, 0.50 if(useBkg) else 0.0, 1.1 if(useBkg) else 0.0,
+                        20.0  if(useF2)  else 0.0, 1.2 if(useF2)  else 0.0, 0.18 if(useF2)  else 0.0,
+                        20.0  if(useF0)  else 0.0, 0.98 if(useF0) else 0.0, 0.18 if(useF0)  else 0.0]
+    else:
+        parTemp_data = [2000.0, 0.77, 0.15,
+                        800.0 if(useBkg) else 0.0, 1.2 if(useBkg) else 0.0, 0.30 if(useBkg) else 0.0, 1.1 if(useBkg) else 0.0,
+                        20.0  if(useF2)  else 0.0, 1.2 if(useF2)  else 0.0, 0.18 if(useF2)  else 0.0,
+                        20.0  if(useF0)  else 0.0, 0.98 if(useF0) else 0.0, 0.18 if(useF0)  else 0.0]
+    par0_data = np.array(parTemp_data)
+    fitter_data.Config().SetParamsSettings(Npar_data, par0_data)
 
-    fitter = ROOT.Fit.Fitter()
-    Npar = 17
-
-    parTemp = [2000.0, 0.77, 0.15,
-               800.0 if(useBkg) else 0.0,       1.2  if(useBkg)       else 0.0, 0.30 if(useBkg)       else 0.0, 1.1 if(useBkg)       else 0.0,
-               20.0  if(useF2)  else 0.0,       1.2  if(useF2)        else 0.0, 0.18 if(useF2)        else 0.0,
-               20.0  if(useF0)  else 0.0,       0.98 if(useF0)        else 0.0, 0.18 if(useF0)        else 0.0,
-               2000.0, 0.77, 0.15,
-               800.0 if(useBkg_harut) else 0.0, 1.2  if(useBkg_harut) else 0.0, 0.30 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0,
-               20.0  if(useF2_harut)  else 0.0, 1.2  if(useF2_harut)  else 0.0, 0.18 if(useF2_harut)  else 0.0,
-               20.0  if(useF0_harut)  else 0.0, 0.98 if(useF0_harut)  else 0.0, 0.18 if(useF0_harut)  else 0.0]
-
-    if(args.verbose):
-        print(f"Initial parameters (17 total):\n\t{parTemp}")
-
-    par0 = np.array(parTemp)
-    fitter.Config().SetParamsSettings(Npar, par0)
-
-    fitter.Config().ParSettings(0).SetLimits(0, 20000)
-    fitter.Config().ParSettings(1).SetLimits(0.60, 0.95)
-    fitter.Config().ParSettings(2).SetLimits(0.05, 0.25)
-
+    fitter_data.Config().ParSettings(0).SetLimits(0, 20000)
+    fitter_data.Config().ParSettings(1).SetLimits(0.60, 0.95)
+    fitter_data.Config().ParSettings(2).SetLimits(0.05, 0.25)
     if(not useBkg):
-        fitter.Config().ParSettings(3).Fix()
-        fitter.Config().ParSettings(14).Fix()
+        fitter_data.Config().ParSettings(3).Fix()
     else:
-        fitter.Config().ParSettings(3).SetLimits(0, 1e6)
-        fitter.Config().ParSettings(4).SetLimits(0, 5)
-        fitter.Config().ParSettings(5).SetLimits(0.2, 0.4)
-        fitter.Config().ParSettings(6).SetLimits(0, 5)
-        fitter.Config().ParSettings(14).SetLimits(0, 1e6)
-
+        if(pol3_or_gaus == "gaus"):
+            fitter_data.Config().ParSettings(3).SetLimits(0, 0)
+            fitter_data.Config().ParSettings(4).SetLimits(0, 400)
+            fitter_data.Config().ParSettings(5).SetLimits(0.2, 0.7)
+            fitter_data.Config().ParSettings(6).SetLimits(0, 5)
+        else:
+            fitter_data.Config().ParSettings(3).SetLimits(0, 1e6)
+            fitter_data.Config().ParSettings(4).SetLimits(0, 5)
+            fitter_data.Config().ParSettings(5).SetLimits(0.2, 0.4)
+            fitter_data.Config().ParSettings(6).SetLimits(0, 5)
     if(not useF2):
-        fitter.Config().ParSettings(7).Fix()
-        fitter.Config().ParSettings(15).Fix()
+        fitter_data.Config().ParSettings(7).Fix()
     else:
-        fitter.Config().ParSettings(7).SetLimits(0, 1e4)
-        fitter.Config().ParSettings(8).SetLimits(1.1, 1.8)
-        fitter.Config().ParSettings(9).SetLimits(0, 1)
-        fitter.Config().ParSettings(15).SetLimits(0, 1e4)
-
+        fitter_data.Config().ParSettings(7).SetLimits(0, 1e4)
+        fitter_data.Config().ParSettings(8).SetLimits(1.1, 1.8)
+        fitter_data.Config().ParSettings(9).SetLimits(0, 1)
     if(not useF0):
-        fitter.Config().ParSettings(10).Fix()
-        fitter.Config().ParSettings(16).Fix()
+        fitter_data.Config().ParSettings(10).Fix()
     else:
-        fitter.Config().ParSettings(10).SetLimits(0, 1e4)
-        fitter.Config().ParSettings(11).SetLimits(0.88, 1.0)
-        fitter.Config().ParSettings(12).SetLimits(0, 1)
-        fitter.Config().ParSettings(16).SetLimits(0, 1e4)
+        fitter_data.Config().ParSettings(10).SetLimits(0, 1e4)
+        fitter_data.Config().ParSettings(11).SetLimits(0.88, 1.0)
+        fitter_data.Config().ParSettings(12).SetLimits(0, 1)
+    fitter_data.Config().MinimizerOptions().SetPrintLevel(0)
+    fitter_data.Config().SetMinimizer("Minuit2", "Migrad")
+    fitter_data.FitFCN(ROOT.Math.Functor(chi2_data, Npar_data), 0, int(data_data.Size()), True)
+    result_data = fitter_data.Result()
+    pars_data = result_data.GetParams()
 
-    fitter.Config().MinimizerOptions().SetPrintLevel(0)
-    fitter.Config().SetMinimizer("Minuit2", "Migrad")
+    # === INDEPENDENT FIT FOR HARUT MC (rho + pol3 background only) ===
+    hp_harut = hist_harut.GetPtr() if hasattr(hist_harut, "GetPtr") else hist_harut
+    data_harut = ROOT.Fit.BinData(opt, rang)
+    ROOT.Fit.FillData(data_harut, hp_harut)
+    wfy_harut = ROOT.Math.WrappedMultiTF1(fyp_harut, 1)
+    chi2_harut = ROOT.Fit.Chi2Function(data_harut, wfy_harut)
 
-    dataSum = sum(d.Size() for d in data_list)
-    globalChi2Functor = ROOT.Math.Functor(globalChi2, Npar)
-    fitter.FitFCN(globalChi2Functor, 0, int(dataSum), True)
+    fitter_harut = ROOT.Fit.Fitter()
+    Npar_harut = 7
+    if(pol3_or_gaus == "gaus"):
+        parTemp_harut = [1500.0, 0.77, 0.15,         0.0, 100 if(useBkg_harut) else 0.0, 0.50 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
+    else:
+        parTemp_harut = [1500.0, 0.77, 0.15,
+                         800.0 if(useBkg_harut) else 0.0, 1.2 if(useBkg_harut) else 0.0, 0.30 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
+    par0_harut = np.array(parTemp_harut)
+    fitter_harut.Config().SetParamsSettings(Npar_harut, par0_harut)
 
-    result = fitter.Result()
-    parsN = result.GetParams()
-    parsNError = result.GetErrors()
+    fitter_harut.Config().ParSettings(0).SetLimits(0, 1e6)
+    fitter_harut.Config().ParSettings(1).SetLimits(0.60, 0.95)
+    fitter_harut.Config().ParSettings(2).SetLimits(0.05, 0.25)
+    if(not useBkg_harut):
+        fitter_harut.Config().ParSettings(3).Fix()
+    else:
+        if(pol3_or_gaus == "gaus"):
+            fitter_harut.Config().ParSettings(3).SetLimits(0, 0)
+            fitter_harut.Config().ParSettings(4).SetLimits(0, 500)
+            fitter_harut.Config().ParSettings(5).SetLimits(0.2, 0.6)
+            fitter_harut.Config().ParSettings(6).SetLimits(0, 3)
+        else:
+            fitter_harut.Config().ParSettings(3).SetLimits(0, 1e6)
+            fitter_harut.Config().ParSettings(4).SetLimits(0, 5)
+            fitter_harut.Config().ParSettings(5).SetLimits(0.2, 0.4)
+            fitter_harut.Config().ParSettings(6).SetLimits(0, 5)
+    fitter_harut.Config().MinimizerOptions().SetPrintLevel(0)
+    fitter_harut.Config().SetMinimizer("Minuit2", "Migrad")
+    fitter_harut.FitFCN(ROOT.Math.Functor(chi2_harut, Npar_harut), 0, int(data_harut.Size()), True)
+    result_harut = fitter_harut.Result()
+    pars_harut = result_harut.GetParams()
 
-    if(args.verbose):
-        print(f"""Fit status: {result.Status()}, IsValid: {result.IsValid()}
-      chi2/ndf = {result.Chi2():.5f}/{result.Ndf()}
-Fitted rho amp (data)  = {parsN[0]:.5f} ± {parsNError[0]:.5f}
-Fitted rho amp (harut) = {parsN[13]:.5f} ± {parsNError[13]:.5f}""")
-
-    ipart = np.array([[0,1,2,3,4,5,6,7,8,9,10,11,12], [13,1,2,14,4,5,6,15,8,9,16,11,12]], dtype=np.int32)
-    for i in range(2):
-        fyp[i].SetFitResult(result, ipart[i])
-        fyp[i].SetRange(rang().first, rang().second)
+    # transfer results to main TF1s
+    fyp_data.SetFitResult(result_data, np.array(range(13), dtype=np.int32))
+    fyp_harut.SetFitResult(result_harut, np.array(range(7), dtype=np.int32))
+    fyp_data.SetRange(rang().first, rang().second)
+    fyp_harut.SetRange(rang().first, rang().second)
 
     # Data components
-    fy1p[0].FixParameter(0, parsN[0]); fy1p[0].FixParameter(1, parsN[1]); fy1p[0].FixParameter(2, parsN[2])
-    fy1p[0].FixParameter(3, parsN[3]); fy1p[0].FixParameter(4, parsN[4]); fy1p[0].FixParameter(5, parsN[5])
+    fy1p[0].FixParameter(0, pars_data[0]); fy1p[0].FixParameter(1, pars_data[1]); fy1p[0].FixParameter(2, pars_data[2])
+    fy1p[0].FixParameter(3, pars_data[3]); fy1p[0].FixParameter(4, pars_data[4]); fy1p[0].FixParameter(5, pars_data[5])
     fy1p[0].SetLineColor(ROOT.kMagenta)
-
     bkg_idx = 3
-    fy2p[0].FixParameter(0, parsN[bkg_idx]); fy2p[0].FixParameter(1, parsN[bkg_idx+1])
-    fy2p[0].FixParameter(2, parsN[bkg_idx+2]); fy2p[0].FixParameter(3, parsN[bkg_idx+3])
-    fy2p[0].SetLineColor(ROOT.kGreen)
-
-    fy3p[0].FixParameter(0, parsN[7]); fy3p[0].FixParameter(1, parsN[8]); fy3p[0].FixParameter(2, parsN[9])
+    fy2p[0].FixParameter(0, pars_data[bkg_idx]); fy2p[0].FixParameter(1, pars_data[bkg_idx+1])
+    fy2p[0].FixParameter(2, pars_data[bkg_idx+2]); fy2p[0].FixParameter(3, pars_data[bkg_idx+3])
+    fy2p[0].SetLineColor(ROOT.kRed)
+    fy3p[0].FixParameter(0, pars_data[7]); fy3p[0].FixParameter(1, pars_data[8]); fy3p[0].FixParameter(2, pars_data[9])
     fy3p[0].SetLineColor(ROOT.kBlue)
+    fy4p[0].FixParameter(0, pars_data[10]); fy4p[0].FixParameter(1, pars_data[11]); fy4p[0].FixParameter(2, pars_data[12])
+    fy4p[0].SetLineColor(ROOT.kOrange)
 
-    fy4p[0].FixParameter(0, parsN[10]); fy4p[0].FixParameter(1, parsN[11]); fy4p[0].FixParameter(2, parsN[12])
-    fy4p[0].SetLineColor(ROOT.kYellow)
-
-    # Harut components
-    fy1p[1].FixParameter(0, parsN[13]); fy1p[1].FixParameter(1, parsN[1]); fy1p[1].FixParameter(2, parsN[2])
+    # Harut components (rho + pol3 background)
+    fy1p[1].FixParameter(0, pars_harut[0]); fy1p[1].FixParameter(1, pars_harut[1]); fy1p[1].FixParameter(2, pars_harut[2])
     fy1p[1].SetLineColor(ROOT.kMagenta)
+    fy2p[1].FixParameter(0, pars_harut[3]); fy2p[1].FixParameter(1, pars_harut[4])
+    fy2p[1].FixParameter(2, pars_harut[5]); fy2p[1].FixParameter(3, pars_harut[6])
+    fy2p[1].SetLineColor(ROOT.kRed)
 
-    fy2p[1].FixParameter(0, parsN[14]); fy2p[1].FixParameter(1, parsN[4])
-    fy2p[1].FixParameter(2, parsN[5]); fy2p[1].FixParameter(3, parsN[6])
-    fy2p[1].SetLineColor(ROOT.kGreen)
-
-    fy3p[1].FixParameter(0, parsN[15]); fy3p[1].FixParameter(1, parsN[8]); fy3p[1].FixParameter(2, parsN[9])
-    fy3p[1].SetLineColor(ROOT.kBlue)
-
-    fy4p[1].FixParameter(0, parsN[16]); fy4p[1].FixParameter(1, parsN[11]); fy4p[1].FixParameter(2, parsN[12])
-    fy4p[1].SetLineColor(ROOT.kYellow)
-
-    return (parsN[0], parsNError[0], parsN[13], parsNError[13], fyp[0], fyp[1], fy1p[0], fy1p[1], fy2p[0], fy2p[1], fy3p[0], fy3p[1], fy4p[0], fy4p[1])
+    return (pars_data[0], result_data.GetErrors()[0], pars_harut[0], result_harut.GetErrors()[0], fyp_data, fyp_harut, fy1p[0], fy1p[1], fy2p[0], fy2p[1], fy3p[0], fy3p[1], fy4p[0], fy4p[1])
 
 
 def main_Get_rho_Normalization_values_Wpions(args):
@@ -930,7 +867,7 @@ def main_Get_rho_Normalization_values_Wpions(args):
         histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
         histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
         histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
-    minValue = max([0.3, args.x_min])
+    minValue = max([0.1, args.x_min])
     maxValue = min([2.0, args.x_max])
     # N_data_rho,  rho_err_data,  fy_data,  fy1_data,  fy2_data,  fy3_data,  fy4_data  = fit_W_rho_from_Nick(args, histo__data_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
     # N_harut_rho, rho_err_harut, fy_harut, fy1_harut, fy2_harut, fy3_harut, fy4_harut = fit_W_rho_from_Nick(args, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
@@ -943,6 +880,8 @@ def main_Get_rho_Normalization_values_Wpions(args):
 
     N_data_rho  = fy1_rho_experiment.Integral(minValue, maxValue)
     N_harut_rho = fy1_rho_harut.Integral(minValue, maxValue)
+    # N_data_rho  = fy1_rho_experiment.Integral(0.2, 2.0)
+    # N_harut_rho = fy1_rho_harut.Integral(0.2, 2.0)
     n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
     print("")
     print(f"{ color.BBLUE}Fit-based normalization (Wpions):{color.END}")
@@ -956,13 +895,14 @@ def main_Get_rho_Normalization_values_Wpions(args):
         for i in range(13):
             print(f"  par[{i:>2.0f}] = {fy_data.GetParameter(i):>13.4f} ± {fy_data.GetParError(i):.4f}")
         print(f"\n{color.BUNDERLINE}Fitted parameters (harut):{color.END}")
-        for i in range(13):
+        for i in range(7):
             print(f"  par[{i:>2.0f}] = {fy_harut.GetParameter(i):>13.4f} ± {fy_harut.GetParError(i):.4f}")
         print("\n\n")
     args.N_rho_fit = n_rho
     # histo__data_Wpions.GetListOfFunctions().Add(fy_data)
     # hmrho_pos.GetListOfFunctions().Add(fyp[0])
-    Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, N_data_rho, N_harut_rho, n_rho)
+    # Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, N_data_rho, N_harut_rho, n_rho)
+    Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut, N_data_rho, N_harut_rho, n_rho)
     file1.Close()
     return n_rho
 
