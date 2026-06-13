@@ -937,6 +937,9 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
     if(axis_Z in ["Q2_Y_Bin"]):
         Res_Binning_4D = ["Q2_Y_Bin", -0.5, 17.5, 18]
         Binning_Axis_Tag = "Q2_Y_Bin"
+    if(axis_Z in ["z_Bins"]):
+        Res_Binning_4D = ["z", 0.13, 0.85, 10]
+        Binning_Axis_Tag = "z_Bins"
     Var_X, Var_Y = Vars_Input
     if("mear" in str(Histo_Smear)):
         if("smeared" not in str(Res_Binning_4D[0])):

@@ -63,7 +63,7 @@ def parse_args():
     parser.add_argument('-z2D', '--z_axis_2D',
                         type=str,
                         default="4D_Bin",
-                        choices=["4D_Bin", "exclusive_rho", "exclusive_rho_individual", "Q2_Y_Bin"],
+                        choices=["4D_Bin", "exclusive_rho", "exclusive_rho_individual", "Q2_Y_Bin", "z_Bins"],
                         help="Defines what variable will be used in the TH2D histograms.\n")
     parser.add_argument('-vb', '--valerii_bins',
                         action='store_true',
