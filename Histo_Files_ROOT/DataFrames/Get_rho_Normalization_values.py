@@ -27,7 +27,8 @@ def parse_args():
                         action='store_true',
                         help="Print verbosely.\n")
     parser.add_argument('-f1', '--file1',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V7_Final_Analysis_Iterations_I0_All.root',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V8_z_Bins_Final_Analysis_Iterations_I0_All.root',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V7_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V5_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_Dynamic_W_pim_cut_rho_Final_Analysis_Iterations_I0_All.root',
@@ -82,7 +83,10 @@ def parse_args():
                         help="Controls for which variables to use (either 'Q2 vs xB', 'z1+z2', or fitted 'Wpions').\n")
     parser.add_argument('-u2Dk', '--Use_2D_Kinematic_Binning',
                         action='store_true',
-                        help=f"Uses the 'Q2_Y_Bin' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n\t{color.RED}As of 6/6/2026: Have not generalized it yet to other modes.{color.END}\n")
+                        help="Uses the 'Q2_Y_Bin' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n")
+    parser.add_argument('-uzb', '--use_z_bins',
+                        action='store_true',
+                        help="Uses the 'z_Bins' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n")
     parser.add_argument('-ol', '--old_lund',
                         action='store_true',
                         help="Use Harut's old files instead of the newer ones.\n")
@@ -427,7 +431,11 @@ def histo_setup_for_Wpions(args):
     hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
     hist_key_clasdis =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
 
-    if(args.Use_2D_Kinematic_Binning or True): # As of 6/6/2026, these histograms always use the Q2-y bins only
+    if(getattr(args, "use_z_bins", False)):
+        hist_key___data  =  hist_key___data.replace("Q2_y_z_pT_Bin_All", "z_Bins")
+        hist_key__harut  =  hist_key__harut.replace("Q2_y_z_pT_Bin_All", "z_Bins")
+        hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "z_Bins")
+    elif(args.Use_2D_Kinematic_Binning or True): # As of 6/13/2026, these histograms always use the Q2-y bins or z-bins
         hist_key___data  =  hist_key___data.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
         hist_key__harut  =  hist_key__harut.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
         hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
@@ -452,8 +460,10 @@ def histo_setup_for_Wpions(args):
     
     print(f"{color.BGREEN}Successfully loaded all TH3D histograms and validated compatibility.{color.END}")
     
-    args.Exclusive_bins = [87, 95, 119, 127, 215, 223, 247, 255]
-    args.SIDIS_BKG_bins = [92, 94, 124, 126, 220, 222, 252, 254]
+    # args.Exclusive_bins = [87, 95, 119, 127, 215, 223, 247, 255]
+    args.Exclusive_bins = [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255]
+    # args.SIDIS_BKG_bins = [92, 94, 124, 126, 220, 222, 252, 254]
+    args.SIDIS_BKG_bins = [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254]
 
     # Data
     proj__data_excl = project_z_bins_global(h3__data, "proj__data_excl", args.Exclusive_bins, args, function_or_hist_integration="func")
@@ -467,11 +477,13 @@ def histo_setup_for_Wpions(args):
 def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1_data, fy1_harut, fy2_data, fy2_harut, fy3_data, fy3_harut, fy4_data, fy4_harut, N_data_rho, N_harut_rho, n_rho):
     fmt = args.file_format.lower()
     suffix = f"_{args.name}" if(args.name) else ""
-    suffix = f"{suffix}_Bin_{getattr(args, 'Kinematic_Bin_Select', 'All')}"
+    suffix = f"{suffix}_Bin_{getattr(args, 'current_kinematic_bin', 'All')}"
     # Data fit plot
     c_data = ROOT.TCanvas("c_data_fit", "", 900, 600)
     ROOT.gStyle.SetOptStat(0)
     mass_data.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}{{{args.title}}}")
+    if(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
     mass_data.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
     mass_data.Draw("hist")
     mass_data.SetLineColor(ROOT.kCyan)
@@ -512,6 +524,8 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     c_harut = ROOT.TCanvas("c_harut_fit", "", 900, 600)
     ROOT.gStyle.SetOptStat(0)
     mass_harut.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Harut's MC}}{{{args.title}}}")
+    if(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+        mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
     mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
     mass_harut.GetYaxis().SetRangeUser(0, 1.2*mass_harut.GetMaximum())
     mass_harut.Draw("hist")
@@ -579,22 +593,23 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
     if(args.verbose):
         minBin, maxBin = hist_data.FindBin(minValue), hist_data.FindBin(maxValue)
         print(f"\n\nfit_W_rho_from_Nick: fitting TWO histograms INDEPENDENTLY | data entries {hist_data.Integral(minBin, maxBin):.0f} | harut entries {hist_harut.Integral(minBin, maxBin):.0f} | Bkg={useBkg} F2={useF2} F0={useF0} | range [{minValue}, {maxValue}]")
-
+    default_data__name =  hist_data.GetName()
+    default_harut_name = hist_harut.GetName()
     pol3_or_gaus = "gaus"
     if(pol3_or_gaus == "gaus"):
-        fyp_data  = ROOT.TF1("fy_data",  "breitwigner(0) + [p3] + gaus(4) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
-        fyp_harut = ROOT.TF1("fy_harut", "breitwigner(0) + [p3] + gaus(4)", minValue, min([maxValue, 1.25]), 7)
+        fyp_data  = ROOT.TF1(f"{default_data__name}_fy_data",  "breitwigner(0) + [p3] + gaus(4) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
+        fyp_harut = ROOT.TF1(f"{default_harut_name}_fy_harut", "breitwigner(0) + [p3] + gaus(4)", minValue, min([maxValue, 1.25]), 7)
     else:
-        fyp_data  = ROOT.TF1("fy_data",  "breitwigner(0) + pol3(3) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
-        fyp_harut = ROOT.TF1("fy_harut", "breitwigner(0) + pol3(3)", minValue, maxValue, 7)
+        fyp_data  = ROOT.TF1(f"{default_data__name}_fy_data",  "breitwigner(0) + pol3(3) + breitwigner(7) + breitwigner(10)", minValue, maxValue, 13)
+        fyp_harut = ROOT.TF1(f"{default_harut_name}_fy_harut", "breitwigner(0) + pol3(3)", minValue, maxValue, 7)
 
-    fy1p     = [ROOT.TF1("fy1_rho_experiment",  "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy1_rho_harut",  "breitwigner(0)", minValue, maxValue, 3)]
+    fy1p     = [ROOT.TF1(f"{default_data__name}_fy1_rho_experiment",  "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1(f"{default_harut_name}_fy1_rho_harut",  "breitwigner(0)", minValue, maxValue, 3)]
     if(pol3_or_gaus == "gaus"):
-        fy2p = [ROOT.TF1("fy2_bkg_experiment",  "[p0] + gaus(1)", minValue, maxValue, 4), ROOT.TF1("fy2_bkg_harut",  "[p0] + gaus(1)", minValue, maxValue, 4)]
+        fy2p = [ROOT.TF1(f"{default_data__name}_fy2_bkg_experiment",  "[p0] + gaus(1)", minValue, maxValue, 4), ROOT.TF1(f"{default_harut_name}_fy2_bkg_harut",  "[p0] + gaus(1)", minValue, maxValue, 4)]
     else:
-        fy2p = [ROOT.TF1("fy2_bkg_experiment",  "pol3(0)",        minValue, maxValue, 4), ROOT.TF1("fy2_bkg_harut",  "pol3(0)",        minValue, maxValue, 4)]
-    fy3p     = [ROOT.TF1("fy3_f2_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy3_f2_harut",   "breitwigner(0)", minValue, maxValue, 3)]
-    fy4p     = [ROOT.TF1("fy4_f0_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1("fy4_f0_harut",   "breitwigner(0)", minValue, maxValue, 3)]
+        fy2p = [ROOT.TF1(f"{default_data__name}_fy2_bkg_experiment",  "pol3(0)",        minValue, maxValue, 4), ROOT.TF1(f"{default_harut_name}_fy2_bkg_harut",  "pol3(0)",        minValue, maxValue, 4)]
+    fy3p     = [ROOT.TF1(f"{default_data__name}_fy3_f2_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1(f"{default_harut_name}_fy3_f2_harut",   "breitwigner(0)", minValue, maxValue, 3)]
+    fy4p     = [ROOT.TF1(f"{default_data__name}_fy4_f0_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1(f"{default_harut_name}_fy4_f0_harut",   "breitwigner(0)", minValue, maxValue, 3)]
 
     # Data (full 13-parameter model)
     fyp_data.SetParName(0, "#rho Amp");      fyp_data.SetParName(1, "#rho Mean");  fyp_data.SetParName(2, "#rho Sigma")
@@ -658,14 +673,14 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
         fitter_data.Config().ParSettings(7).Fix()
     else:
         fitter_data.Config().ParSettings(7).SetLimits(0, 1e4)
-        fitter_data.Config().ParSettings(8).SetLimits(1.1, 1.8)
-        fitter_data.Config().ParSettings(9).SetLimits(0, 1)
+        fitter_data.Config().ParSettings(8).SetLimits(1.1, 1.6)
+        fitter_data.Config().ParSettings(9).SetLimits(0.01, 0.5)
     if(not useF0):
         fitter_data.Config().ParSettings(10).Fix()
     else:
         fitter_data.Config().ParSettings(10).SetLimits(0, 1e4)
         fitter_data.Config().ParSettings(11).SetLimits(0.88, 1.0)
-        fitter_data.Config().ParSettings(12).SetLimits(0, 1)
+        fitter_data.Config().ParSettings(12).SetLimits(0.01, 0.5)
     fitter_data.Config().MinimizerOptions().SetPrintLevel(0)
     fitter_data.Config().SetMinimizer("Minuit2", "Migrad")
     fitter_data.FitFCN(ROOT.Math.Functor(chi2_data, Npar_data), 0, int(data_data.Size()), True)
@@ -673,7 +688,7 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
     pars_data = result_data.GetParams()
 
     # === INDEPENDENT FIT FOR HARUT MC (rho + pol3 background only) ===
-    hp_harut = hist_harut.GetPtr() if hasattr(hist_harut, "GetPtr") else hist_harut
+    hp_harut = hist_harut.GetPtr() if(hasattr(hist_harut, "GetPtr")) else hist_harut
     data_harut = ROOT.Fit.BinData(opt, rang)
     ROOT.Fit.FillData(data_harut, hp_harut)
     wfy_harut = ROOT.Math.WrappedMultiTF1(fyp_harut, 1)
@@ -698,7 +713,8 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
         if(pol3_or_gaus == "gaus"):
             fitter_harut.Config().ParSettings(3).SetLimits(0, 0)
             fitter_harut.Config().ParSettings(4).SetLimits(0, 500)
-            fitter_harut.Config().ParSettings(5).SetLimits(0.2, 0.6)
+            # fitter_harut.Config().ParSettings(5).SetLimits(0.2, 0.7)
+            fitter_harut.Config().ParSettings(5).SetLimits(0.2, 1)
             fitter_harut.Config().ParSettings(6).SetLimits(0, 3)
         else:
             fitter_harut.Config().ParSettings(3).SetLimits(0, 1e6)
@@ -746,52 +762,67 @@ def main_Get_rho_Normalization_values_Wpions(args):
     args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1 = histo_setup_for_Wpions(args)
     args.x_min =  0.2 if(args.x_min == 0.08) else args.x_min
     args.x_max =  2.0 if(args.x_max == 0.68) else args.x_max
-    # 1D projections used as input distributions for fit (adapted from existing logic)
-    if(getattr(args, "Kinematic_Bin_Select", "All") in ["All", "Full"]):
-        histo__data_Wpions = proj__data_excl.ProjectionX("histo__data_Wpions_Bin_All")
-        histo_harut_Wpions = proj_harut_excl.ProjectionX("histo_harut_Wpions_Bin_All")
-        histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX("histo_mdfbg_Wpions_Bin_All")
-    else:
-        histo_bin_num = proj__data_excl.GetYaxis().FindBin(int(getattr(args, "Kinematic_Bin_Select", 0)))
-        histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
-        histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
-        histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
     minValue = max([0.1, args.x_min])
     maxValue = min([2.0, args.x_max])
-    # N_data_rho,  rho_err_data,  fy_data,  fy1_data,  fy2_data,  fy3_data,  fy4_data  = fit_W_rho_from_Nick(args, histo__data_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    # N_harut_rho, rho_err_harut, fy_harut, fy1_harut, fy2_harut, fy3_harut, fy4_harut = fit_W_rho_from_Nick(args, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    # Fit BOTH histograms simultaneously
-    # N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy1_data, fy2_data, fy3_data, fy4_data = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    # N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_data, fy1_harut, _ = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    # N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_data, fy1_harut, fy2_data, fy2_harut, fy3_data, fy3_harut, fy4_data, fy4_harut = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    # (N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_data, fy1_harut, fy2_data, fy2_harut, fy3_data, fy3_harut, fy4_data, fy4_harut) = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-    (N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut) = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
-
-    N_data_rho  = fy1_rho_experiment.Integral(minValue, maxValue)
-    N_harut_rho = fy1_rho_harut.Integral(minValue, maxValue)
-    # N_data_rho  = fy1_rho_experiment.Integral(0.2, 2.0)
-    # N_harut_rho = fy1_rho_harut.Integral(0.2, 2.0)
-    n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
-    print("")
-    print(f"{ color.BBLUE}Fit-based normalization (Wpions):{color.END}")
-    print(f"{ color.BOLD }Kinematic Bin Used: {getattr(args, 'Kinematic_Bin_Select', 'All')}{color.END}")
-    print(f"{ color.BOLD }N_data_rho (Experimental exclusive signal)        : {N_data_rho:>12.0f}{color.END}")
-    print(f"{ color.BOLD }N_harut_rho (Harut's exclusive signal)            : {N_harut_rho:>12.0f}{color.END}")
-    print(f"{color.BGREEN}n_rho (brings Harut's files to data)              : {n_rho:>12.6f}{color.END}\n")
-    if(args.verbose):
-        # Debug: print fitted parameters
-        print(f"\n{color.BUNDERLINE}Fitted parameters (data):{color.END}")
-        for i in range(13):
-            print(f"  par[{i:>2.0f}] = {fy_data.GetParameter(i):>13.4f} ± {fy_data.GetParError(i):.4f}")
-        print(f"\n{color.BUNDERLINE}Fitted parameters (harut):{color.END}")
-        for i in range(7):
-            print(f"  par[{i:>2.0f}] = {fy_harut.GetParameter(i):>13.4f} ± {fy_harut.GetParError(i):.4f}")
+    list_of_Values = {}
+    Num_Projections = [getattr(args, "Kinematic_Bin_Select", "All")] if(not (getattr(args, "use_z_bins", False) and (getattr(args, "Kinematic_Bin_Select", "All") in ["Full"]))) else list(range(1, 10))
+    for kinematic_bin in Num_Projections:
+        # 1D projections used as input distributions for fit (adapted from existing logic)
+        if(getattr(args, "Kinematic_Bin_Select", "All") in ["All", "Full"]):
+            if(kinematic_bin not in ["All", "Full"]):
+                histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
+                histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
+                histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
+            else:
+                histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
+                histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
+                histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
+        else:
+            histo_bin_num = proj__data_excl.GetYaxis().FindBin(int(getattr(args, "Kinematic_Bin_Select", 0)))
+            histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+            histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+            histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+        (N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut) = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
+        bin_width_data  = histo__data_Wpions.GetXaxis().GetBinWidth(1)
+        bin_width_harut = histo_harut_Wpions.GetXaxis().GetBinWidth(1)
+        
+        N_data_rho  = (fy1_rho_experiment.Integral(minValue, maxValue))/bin_width_data
+        N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_data
+        # N_data_rho  = fy1_rho_experiment.Integral(0.2, 2.0)
+        # N_harut_rho = fy1_rho_harut.Integral(0.2, 2.0)
+        n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
+        list_of_Values[f"Values_for_Bin_{kinematic_bin}"] = {"N_data_rho": N_data_rho, "N_harut_rho": N_harut_rho, "n_rho": n_rho, "rho_err_data": rho_err_data, "rho_err_harut": rho_err_harut, "fy_data": fy_data, "fy_harut": fy_harut, "fy1_rho_experiment": fy1_rho_experiment, "fy1_rho_harut": fy1_rho_harut, "fy2_bkg_experiment": fy2_bkg_experiment, "fy2_bkg_harut": fy2_bkg_harut, "fy3_f2_experiment": fy3_f2_experiment, "fy3_f2_harut": fy3_f2_harut, "fy4_f0_experiment": fy4_f0_experiment, "fy4_f0_harut": fy4_f0_harut}
+        print("")
+        print(f"{ color.BBLUE}Fit-based normalization (Wpions):{color.END}")
+        print(f"{ color.BOLD }Kinematic Bin Used: {kinematic_bin}{color.END}")
+        print(f"{ color.BOLD }N_data_rho (Experimental exclusive signal)        : {N_data_rho:>12.0f}{color.END}")
+        print(f"{ color.BOLD }N_harut_rho (Harut's exclusive signal)            : {N_harut_rho:>12.0f}{color.END}")
+        print(f"{color.BGREEN}n_rho (brings Harut's files to data)              : {n_rho:>12.6f}{color.END}\n")
+        if(args.verbose):
+            # Debug: print fitted parameters
+            print(f"\n{color.BUNDERLINE}Fitted parameters (data):{color.END}")
+            for i in range(13):
+                print(f"  par[{i:>2.0f}] = {fy_data.GetParameter(i):>13.4f} ± {fy_data.GetParError(i):.4f}")
+            print(f"\n{color.BUNDERLINE}Fitted parameters (harut):{color.END}")
+            for i in range(7):
+                print(f"  par[{i:>2.0f}] = {fy_harut.GetParameter(i):>13.4f} ± {fy_harut.GetParError(i):.4f}")
         print("\n\n")
-    args.N_rho_fit = n_rho
-    # histo__data_Wpions.GetListOfFunctions().Add(fy_data)
-    # hmrho_pos.GetListOfFunctions().Add(fyp[0])
-    # Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, N_data_rho, N_harut_rho, n_rho)
-    Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut, N_data_rho, N_harut_rho, n_rho)
+        args.current_kinematic_bin = kinematic_bin
+        Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut, N_data_rho, N_harut_rho, n_rho)
+    if(len(Num_Projections) > 1):
+        N_data_rho_sum, N_harut_rho_sum, n_rho_sum = 0, 0, 0
+        for bin_name in list_of_Values:
+            N_data_rho_sum  += list_of_Values[bin_name]["N_data_rho"]
+            N_harut_rho_sum += list_of_Values[bin_name]["N_harut_rho"]
+            n_rho_sum       += list_of_Values[bin_name]["n_rho"]
+        N_data_rho_ave  = N_data_rho_sum/len(Num_Projections)
+        N_harut_rho_ave = N_harut_rho_sum/len(Num_Projections)
+        n_rho_ave       = n_rho_sum/len(Num_Projections)
+        print("")
+        print(f"{ color.BBLUE}Fit Averages from All {len(list_of_Values)} Kinematic Bins{color.END}")
+        print(f"{ color.BOLD }N_data_rho_ave (Experimental exclusive signal)        : {N_data_rho_ave:>12.0f}{color.END}")
+        print(f"{ color.BOLD }N_harut_rho_ave (Harut's exclusive signal)            : {N_harut_rho_ave:>12.0f}{color.END}")
+        print(f"{color.BGREEN}n_rho_ave (brings Harut's files to data)              : {n_rho_ave:>12.6f}{color.END}\n")
     file1.Close()
     return n_rho
 
