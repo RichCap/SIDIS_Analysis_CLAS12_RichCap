@@ -12,7 +12,8 @@ ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, root_color, color_bg, variable_Title_name, RuntimeTimer, Draw_Canvas, silence_root_import
+from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Draw_Canvas, silence_root_import, Canvas_Create, Get_Num_of_z_pT_Rows_and_Columns, Draw_Q2_Y_Bins, Draw_the_MM_Cut_Lines, Draw_z_pT_Bins_With_Migration, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins #, root_color, color_bg, variable_Title_name
+from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
 sys.path.remove(script_dir)
 del script_dir
 import argparse
@@ -36,7 +37,8 @@ def parse_args():
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho_Normalizer_Default_rho_Final_Analysis_Iterations_I0_All.root',
                         help='Path to the ROOT file which contains the required clasdis/data histograms (without rho0).\n')
     parser.add_argument('-f2', '--file2',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V6_Final_Analysis_Iterations_I0_All.root',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V8_Diagnostics_Final_Analysis_Iterations_I0_All.root',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V6_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V5_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_Dynamic_W_pim_cut_rho_Final_Analysis_Iterations_I0_All.root',
@@ -120,7 +122,10 @@ def parse_args():
                         help="Saves the TH2D histograms as separate ROOT files for future use.\n")
     parser.add_argument('-rdwi', '--run_diagnostic_weight_images',
                         action='store_true',
-                        help="Saves the diagnostic plots to show how much each same make up of the data after the normalization steps.\n")
+                        help="Saves the diagnostic plots to show the comparative statistics between each kinematic bin in the data and MC after the normalization steps.\n")
+    parser.add_argument('-rabdi', '--run_all_base_diagnostic_images',
+                        action='store_true',
+                        help="Saves the diagnostic plots to help show each stage of the procedure including the cuts and normalization evaluations (is separate from '--run_diagnostic_weight_images').\n")
     return parser.parse_args()
 
 def check_histo_for_errors(hist, name, file_name):
@@ -390,10 +395,10 @@ def Create_Images(args, Full_List_of_HistosB, Full_List_of_Factors, Kinematic_Bi
     return canvas
 
 
-def project_z_bins_global(h3d, name, z_values_list, args=None, function_or_hist_integration="hist"):
+def project_z_bins_global(h3d, name, z_values_list, args=None, function_or_hist_integration="hist", diagnostic=False):
     if(not h3d):
         return None
-    if(getattr(args, "legacy", False) and (function_or_hist_integration in ["hist"])):
+    if((getattr(args, "legacy", False) and (function_or_hist_integration in ["hist"])) or diagnostic):
         proj_option = "yx" if(str(getattr(args, "vars", "z1z2")).lower() not in ["q2xb"]) else "xy"
         zaxis = h3d.GetZaxis()
     else:
@@ -787,7 +792,7 @@ def main_Get_rho_Normalization_values_Wpions(args):
         bin_width_harut = histo_harut_Wpions.GetXaxis().GetBinWidth(1)
         
         N_data_rho  = (fy1_rho_experiment.Integral(minValue, maxValue))/bin_width_data
-        N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_data
+        N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_harut
         # N_data_rho  = fy1_rho_experiment.Integral(0.2, 2.0)
         # N_harut_rho = fy1_rho_harut.Integral(0.2, 2.0)
         n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
@@ -823,8 +828,10 @@ def main_Get_rho_Normalization_values_Wpions(args):
         print(f"{ color.BOLD }N_data_rho_ave (Experimental exclusive signal)        : {N_data_rho_ave:>12.0f}{color.END}")
         print(f"{ color.BOLD }N_harut_rho_ave (Harut's exclusive signal)            : {N_harut_rho_ave:>12.0f}{color.END}")
         print(f"{color.BGREEN}n_rho_ave (brings Harut's files to data)              : {n_rho_ave:>12.6f}{color.END}\n")
+    else:
+        n_rho_ave = n_rho
     file1.Close()
-    return n_rho
+    return n_rho_ave
 
 def main_Get_rho_Normalization_values(args):
     print(f"\n{color.BBLUE}Starting execution of {Name_of_Script}...{color.END}\n")
@@ -1511,93 +1518,367 @@ def main_Get_rho_Normalization_values(args):
     file2.Close()
     print(f"\n{color.BBLUE}{Name_of_Script}{color.END_B} completed successfully.{color.END}\n")
 
+
+def create_rho_normalized_diagnostic_plots(args, hist_list_in):
+    print(f"\n{color.BBLUE}Applying rho0 normalization weights/background subtractions.{color.END}\n")
+    scale_harut   = getattr(args, "n_rho_input", main_Get_rho_Normalization_values_Wpions(args))
+    scale_clasdis = getattr(args, "alpha_SIDIS_input", 0.193244)
+    histo_list_New = {}
+    for hist_name in hist_list_in:
+        if("rdf" in hist_name):
+            histo_list_New[hist_name] = hist_list_in[hist_name]
+        elif("mdf" in hist_name):
+            histo_list_New[hist_name] = hist_list_in[hist_name]
+            histo_list_New[f"{hist_name}_(Scaled)"] = hist_list_in[hist_name].Clone(f"{hist_name}_(Scaled)")
+            histo_list_New[f"{hist_name}_(Scaled)"].Scale(scale_harut if("lund" in hist_name) else scale_clasdis)
+    for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
+        for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS"]:
+            hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}_{stage_name}"
+            hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+            if(all(names in histo_list_New for names in [hist_key_data, hist_key_harut])):
+                histo_list_New[f"{hist_key_data}_(Removed_Background)"] = histo_list_New[hist_key_data].Clone(f"{hist_key_data}_(Removed_Background)")
+                histo_list_New[f"{hist_key_data}_(Removed_Background)"].Add(histo_list_New[hist_key_harut], -1)
+            else:
+                raise SystemError(f"\n{color.Error}ERROR: Missing either '{hist_key_data}' OR '{hist_key_harut}'{color.END}\n")
+    return histo_list_New
+
 def make_diagnostic_cut_images(args):
     print(f"\n{color.BBLUE}Starting diagnostic cut-stage image creation...{color.END}")
     cut_stages = {
-        "stage1": stage1_bins,
-        "stage2": stage2_bins,
-        "stage3": stage3_bins
+        "Exclusive": [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
+        "SIDIS_BKG": [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+        "SIDIS_2pi": [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+        "Min_ExclC": [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+        "Full_SIDIS": list(range(128, 256))
     }
-
-    fmt = args.file_format.lower()
-    suffix_base = f"_{args.name}" if(args.name) else ""
-
-    # We need the three raw TH3D histograms (data, harut, mdf/clasdis)
-    # Reuse the exact same key-building and loading logic you already have
-    hist_key_data  = "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(z1_plus_z2)_(exclusive_rho_individual)"
-    hist_key_harut = "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)"
-    hist_key_mdf   = "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)"
-
-    file1 = ROOT.TFile.Open(args.file1)
+    cut_stages_clasdis = {
+        "SIDIS_BKG": [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+        "SIDIS_2pi": [132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254],
+        "Min_ExclC": [6, 14, 22, 30, 38, 46, 54, 62, 70, 78, 86, 94, 102, 110, 118, 126, 134, 142, 150, 158, 166, 174, 182, 190, 198, 206, 214, 222, 230, 238, 246, 254],
+        "Full_SIDIS": list(range(128, 256, 2))
+    }
+    file1 = ROOT.TFile.Open(args.file2)
     if((not file1) or (file1.IsZombie())):
-        print(f"{color.Error}ERROR: Could not open {args.file1}{color.END}")
+        print(f"{color.Error}ERROR: Could not open {args.file2}{color.END}")
         return
-
-    h3_data  = file1.Get(hist_key_data)
-    h3_harut = file1.Get(hist_key_harut)
-    h3_mdf   = file1.Get(hist_key_mdf)
-
-    for stage_name, z_bin_list in cut_stages.items():
-        print(f"\n{color.BOLD}→ Processing {stage_name} ({len(z_bin_list)} Z-bins){color.END}")
-
-        # Data projections
-        h2d_data_12 = project_z_bins_global(h3_data, f"h2d_data_var1_var2_{stage_name}", z_bin_list, args)
-        h2d_data_13 = project_z_bins_global(h3_data, f"h2d_data_var1_var3_{stage_name}", z_bin_list, args)
-        h2d_data_23 = project_z_bins_global(h3_data, f"h2d_data_var2_var3_{stage_name}", z_bin_list, args)
-
-        h1d_data_v1 = project_z_bins_global(h3_data, f"h1d_data_var1_{stage_name}", z_bin_list, args)
-        h1d_data_v2 = project_z_bins_global(h3_data, f"h1d_data_var2_{stage_name}", z_bin_list, args)
-        h1d_data_v3 = project_z_bins_global(h3_data, f"h1d_data_var3_{stage_name}", z_bin_list, args)
-
-        # Harut projections
-        h2d_harut_12 = project_z_bins_global(h3_harut, f"h2d_harut_var1_var2_{stage_name}", z_bin_list, args)
-        h2d_harut_13 = project_z_bins_global(h3_harut, f"h2d_harut_var1_var3_{stage_name}", z_bin_list, args)
-        h2d_harut_23 = project_z_bins_global(h3_harut, f"h2d_harut_var2_var3_{stage_name}", z_bin_list, args)
-
-        h1d_harut_v1 = project_z_bins_global(h3_harut, f"h1d_harut_var1_{stage_name}", z_bin_list, args)
-        h1d_harut_v2 = project_z_bins_global(h3_harut, f"h1d_harut_var2_{stage_name}", z_bin_list, args)
-        h1d_harut_v3 = project_z_bins_global(h3_harut, f"h1d_harut_var3_{stage_name}", z_bin_list, args)
-
-        # MDF/clasdis projections
-        h2d_mdf_12 = project_z_bins_global(h3_mdf, f"h2d_mdf_var1_var2_{stage_name}", z_bin_list, args)
-        h2d_mdf_13 = project_z_bins_global(h3_mdf, f"h2d_mdf_var1_var3_{stage_name}", z_bin_list, args)
-        h2d_mdf_23 = project_z_bins_global(h3_mdf, f"h2d_mdf_var2_var3_{stage_name}", z_bin_list, args)
-
-        h1d_mdf_v1 = project_z_bins_global(h3_mdf, f"h1d_mdf_var1_{stage_name}", z_bin_list, args)
-        h1d_mdf_v2 = project_z_bins_global(h3_mdf, f"h1d_mdf_var2_{stage_name}", z_bin_list, args)
-        h1d_mdf_v3 = project_z_bins_global(h3_mdf, f"h1d_mdf_var3_{stage_name}", z_bin_list, args)
-
-        # Save all 18 plots for this stage (3 datasets × (3×2D + 3×1D))
-        for h, name in [
-            (h2d_data_12, f"2D_data_var1_vs_var2_{stage_name}"),
-            (h2d_data_13, f"2D_data_var1_vs_var3_{stage_name}"),
-            (h2d_data_23, f"2D_data_var2_vs_var3_{stage_name}"),
-            (h1d_data_v1, f"1D_data_var1_{stage_name}"),
-            (h1d_data_v2, f"1D_data_var2_{stage_name}"),
-            (h1d_data_v3, f"1D_data_var3_{stage_name}"),
-            (h2d_harut_12, f"2D_harut_var1_vs_var2_{stage_name}"),
-            (h2d_harut_13, f"2D_harut_var1_vs_var3_{stage_name}"),
-            (h2d_harut_23, f"2D_harut_var2_vs_var3_{stage_name}"),
-            (h1d_harut_v1, f"1D_harut_var1_{stage_name}"),
-            (h1d_harut_v2, f"1D_harut_var2_{stage_name}"),
-            (h1d_harut_v3, f"1D_harut_var3_{stage_name}"),
-            (h2d_mdf_12, f"2D_mdf_var1_vs_var2_{stage_name}"),
-            (h2d_mdf_13, f"2D_mdf_var1_vs_var3_{stage_name}"),
-            (h2d_mdf_23, f"2D_mdf_var2_vs_var3_{stage_name}"),
-            (h1d_mdf_v1, f"1D_mdf_var1_{stage_name}"),
-            (h1d_mdf_v2, f"1D_mdf_var2_{stage_name}"),
-            (h1d_mdf_v3, f"1D_mdf_var3_{stage_name}"),
-        ]:
-            if(h is None):
-                continue
-            c = ROOT.TCanvas(f"c_{name}", "", 900, 700)
-            ROOT.gStyle.SetOptStat(0)
-            h.Draw("colz" if("2D" in name) else "hist")
-            c.SaveAs(f"Diagnostic_{name}{suffix_base}.{fmt}")
-            print(f"{color.BOLD}Saved: Diagnostic_{name}{suffix_base}.{fmt}{color.END}")
-
+    hist_list = {}
+    for var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
+        hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}"
+        hist_key_mdf   = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}"
+        hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
+        hist_list[hist_key_data]  = file1.Get(hist_key_data)
+        hist_list[hist_key_mdf]   = file1.Get(hist_key_mdf)
+        hist_list[hist_key_harut] = file1.Get(hist_key_harut)
+        for stage_name, z_bin_list in cut_stages.items():
+            print(f"\n{color.BOLD}→ Processing {stage_name} ({len(z_bin_list)} Z-bins){color.END}")
+            # Data projections
+            hist_list[f"{hist_key_data}_{stage_name}"]    = project_z_bins_global(hist_list[hist_key_data],  f"{hist_key_data}_{stage_name}", z_bin_list, args, diagnostic=True)
+            # Harut projections
+            hist_list[f"{hist_key_harut}_{stage_name}"]   = project_z_bins_global(hist_list[hist_key_harut], f"{hist_key_harut}_{stage_name}", z_bin_list, args, diagnostic=True)
+            # MDF/clasdis projections
+            if(stage_name in cut_stages_clasdis):
+                hist_list[f"{hist_key_mdf}_{stage_name}"] = project_z_bins_global(hist_list[hist_key_mdf],   f"{hist_key_mdf}_{stage_name}", cut_stages_clasdis[stage_name], args, diagnostic=True)
     file1.Close()
-    print(f"\n{color.BGREEN}All diagnostic cut-stage images created successfully.{color.END}\n")
+    if((not getattr(args, "extra_root_save", False)) and (not getattr(args, "no_save", False))):
+        args_name = f'_{getattr(args, "name", "")}' if(getattr(args, "name", "") not in [""]) else ''
+        root_name = f"Diagnostic_ROOT_File_for_2D_Histos_with_Cuts{args_name}.root"
+        for remove in ["(", ")", " "]:
+            root_name = root_name.replace(remove, "")
+        out_file = ROOT.TFile.Open(root_name, "RECREATE")
+        if((not out_file) or (out_file.IsZombie())):
+            raise OSError(f"Could not create ROOT file: {root_name}")
+        out_file.cd()
+        for name, hist in hist_list.items():
+            hist.Write(name)
+        out_file.Close()
+        print(f"{color.BGREEN}Saved a Sliced TH2D histogram as: {color.BBLUE}{root_name}{color.END}\n")
+    hist_list = create_rho_normalized_diagnostic_plots(args, hist_list_in=hist_list)
+    print(f"\n{color.BGREEN}All {len(hist_list)} diagnostic cut-stage histograms were created successfully.{color.END}\n")
+    return hist_list
+
+def Slice_4D_Histo_Bins_For_phi_h_Plots(args, Hist_In, Q2_Y_Bin_In, z_pT_Bin_In, Use_All_Name=False):
+    bin_4D_val = Bin_Converter_4D_to_2D.get(f"Q2_y_bin_{Q2_Y_Bin_In}_z_pT_bin_{z_pT_Bin_In}", None)
+    if(bin_4D_val is None):
+        print(f"\n{color.Error}WARNING: Could not find {color.END_B}'Q2_y_bin_{Q2_Y_Bin_In}_z_pT_bin_{z_pT_Bin_In}'{color.Error} in 'Bin_Converter_4D_to_2D'.{color.END}\n")
+        return None
+    bin_4D_num = Hist_In.GetYaxis().FindBin(bin_4D_val)
+    if(args.verbose):
+        print(f"\n{color.BOLD}Q2_y_bin_{Q2_Y_Bin_In}_z_pT_bin_{z_pT_Bin_In} -> Q2_y_z_pT_4D_Bin_{bin_4D_val} -> Histo_Bin_{bin_4D_num}{color.END}")
+    initial_name = Hist_In.GetName()
+    for smearing_options in ["", "_smeared"]:
+        initial_name = initial_name.replace(f"Q2_y_z_pT_4D_Bins{smearing_options}", f"Q2_y_bin_{Q2_Y_Bin_In})_(z_pT_bin_{z_pT_Bin_In if(not Use_All_Name) else 'All'}")
+    Hist_Binned = Hist_In.ProjectionX(initial_name, int(bin_4D_num), int(bin_4D_num))
+    Default_Title = f"#splitline{{Comparisons of #phi_{{h}} Distributions}}{{{args.title}}}"
+    if(not Use_All_Name):
+        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[0.75]{{Q^{{2}}-y Bin {Q2_Y_Bin_In} #topbar z-P_{{T}} Bin {z_pT_Bin_In}}}}}")
+    else:
+        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[0.8]{{Q^{{2}}-y Bin {Q2_Y_Bin_In}}}}}")
+    Hist_Binned.GetXaxis().SetTitle(str(Hist_Binned.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
+    return Hist_Binned
+
+def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=range(1,18), Comparison_Type="In_Data", stage_name="Full_SIDIS", Draw_Type="data_scale"):
+    All_z_pT_Canvas, All_Histos, temp_hists = {}, {}, {}
+    fmt = f'.{getattr(args, "file_format", "pdf")}'.lower()
+    # Q2_y_borders = {}
+    hist_key_data_wBG  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_(phi_t)_(Q2_y_z_pT_4D_Bins)_{stage_name}"
+    hist_key_data_woBG = f"{hist_key_data_wBG}_(Removed_Background)"
+    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_(phi_t_smeared)_(Q2_y_z_pT_4D_Bins_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+    hist_key_clasdis   = hist_key_harut.replace(f"_({'lundvpk' if(not args.old_lund) else 'lundrho'})", "")
+    hist_data_wBG  = Hist_List_In.get(hist_key_data_wBG,  None)
+    hist_data_woBG = Hist_List_In.get(hist_key_data_woBG, None)
+    hist_harut     = Hist_List_In.get(hist_key_harut,     None)
+    hist_clasdis   = Hist_List_In.get(hist_key_clasdis,   None)
+    if(None in [hist_harut]):
+        raise ValueError(f"{color.Error}Error: Missing '{hist_key_harut}'{color.END}")
+    if((None in [hist_data_wBG, hist_data_woBG]) and (Comparison_Type in ["In_Data", "All_Data_Types"])):
+        raise ValueError(f"{color.Error}Error: Missing either '{hist_key_data_wBG}' or '{hist_key_data_woBG}'{color.END}")
+    if((None in [hist_clasdis])                  and (Comparison_Type in ["In_MCs",  "All_Data_Types"])):
+        raise ValueError(f"{color.Error}Error: Missing '{hist_key_clasdis}'{color.END}")
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
+    for Q2_Y_Bin in Q2_Y_Bin_Range:
+        Save_Name = f"rho0_Comparisons_of_phi_h_{Comparison_Type}_for_Q2_Y_Bin_{Q2_Y_Bin}"
+        if(Draw_Type == "Normalized"):
+            Save_Name = f"{Save_Name}_Normalized"
+        All_z_pT_Canvas[Save_Name] = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800*2), Size_Y=int(1500*2), cd_Space=0.01)
+        All_z_pT_Canvas[Save_Name].SetFillColor(ROOT.kGray)
+        if(args.verbose):
+            print(f"{color.BBLUE}Creating TCanvas: {color.END_B}{Save_Name}{color.BBLUE}...{color.END}")
+            # args.timer.time_elapsed()
+        All_z_pT_Canvas_cd_1 = All_z_pT_Canvas[Save_Name].cd(1)
+        All_z_pT_Canvas_cd_1.SetFillColor(ROOT.kGray)
+        All_z_pT_Canvas_cd_1.SetPad(xlow=0.005, ylow=0.015, xup=0.27, yup=0.985)
+        All_z_pT_Canvas_cd_1.Divide(1, 2, 0, 0)
+        
+        All_z_pT_Canvas_cd_1_Upper = All_z_pT_Canvas_cd_1.cd(1)
+        All_z_pT_Canvas_cd_1_Upper.SetPad(xlow=0, ylow=0.425, xup=1, yup=1)
+        All_z_pT_Canvas_cd_1_Upper.Divide(1, 2, 0.001, 0.001)
+        
+        All_z_pT_Canvas_cd_1_Lower = All_z_pT_Canvas_cd_1.cd(2)
+        All_z_pT_Canvas_cd_1_Lower.SetPad(xlow=0, ylow=0, xup=1, yup=0.42)
+        All_z_pT_Canvas_cd_1_Lower.Divide(1, 1, 0, 0)
+        All_z_pT_Canvas_cd_1_Lower.cd(1).SetPad(xlow=0.035, ylow=0.025, xup=0.95, yup=0.975)
+        
+        All_z_pT_Canvas_cd_2 = All_z_pT_Canvas[Save_Name].cd(2)
+        All_z_pT_Canvas_cd_2.SetPad(xlow=0.28, ylow=0.015, xup=0.995, yup=0.9975)
+        All_z_pT_Canvas_cd_2.SetFillColor(ROOT.kGray)
+        
+        number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+        All_z_pT_Canvas_cd_2.Divide(number_of_cols, number_of_rows, 0.0001, 0.0001)
+    ####  Canvas (Main) Creation End ###############################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Filling Canvas (Right) - Individual z-pT Bins  ###########################################################################################################################################################################################################################################################################################################################################################
+        All_z_pT_Canvas_cd_2 = All_z_pT_Canvas[Save_Name].cd(2)
+        number_of_rows, number_of_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=Q2_Y_Bin)
+        z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_Y_Bin)[1]
+        Integrated_Bin_Name_harut, Integrated_Bin_Name_data_wBG, Integrated_Bin_Name_data_woBG, Integrated_Bin_Name_clasdis = None, None, None, None
+        for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin)):
+                continue
+            try:
+                All_z_pT_Canvas_cd_2_z_pT_Bin = All_z_pT_Canvas_cd_2.cd(z_pT_Bin)
+                All_z_pT_Canvas_cd_2_z_pT_Bin.SetFillColor(ROOT.kGray)
+                All_z_pT_Canvas_cd_2_z_pT_Bin.Divide(1, 1, 0, 0)
+                Draw_Canvas(All_z_pT_Canvas_cd_2_z_pT_Bin, 1, 0.15)
+                ROOT.gStyle.SetOptStat(0)
+                Min_Content, Max_Content = 0, 0
+
+                temp_hists["harut"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_harut, Q2_Y_Bin, z_pT_Bin, Use_All_Name=False)
+                if(temp_hists["harut"] is None):
+                    continue
+                All_Histos[temp_hists["harut"].GetName()] = temp_hists["harut"]
+                All_Histos[temp_hists["harut"].GetName()].SetLineWidth(3 if("png" in fmt) else 1)
+                All_Histos[temp_hists["harut"].GetName()].SetLineColor(ROOT.kGreen)
+                Min_Content = min([Min_Content, All_Histos[temp_hists["harut"].GetName()].GetBinContent(All_Histos[temp_hists["harut"].GetName()].GetMinimumBin())])
+                Max_Content = max([Max_Content, All_Histos[temp_hists["harut"].GetName()].GetBinContent(All_Histos[temp_hists["harut"].GetName()].GetMaximumBin())])
+                if(Integrated_Bin_Name_harut is None):
+                    temp_hists["harut_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_harut, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
+                    Integrated_Bin_Name_harut = temp_hists["harut_All"].GetName()
+                    All_Histos[Integrated_Bin_Name_harut] = temp_hists["harut_All"]
+                    All_Histos[Integrated_Bin_Name_harut].SetLineWidth(3 if("png" in fmt) else 1)
+                    All_Histos[Integrated_Bin_Name_harut].SetLineColor(ROOT.kGreen)
+                else:
+                    All_Histos[Integrated_Bin_Name_harut].Add(All_Histos[temp_hists["harut"].GetName()])
+
+                if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                    temp_hists["data_wBG"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_wBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=False)
+                    if(temp_hists["data_wBG"] is None):
+                        continue
+                    All_Histos[temp_hists["data_wBG"].GetName()] = temp_hists["data_wBG"]
+                    All_Histos[temp_hists["data_wBG"].GetName()].SetLineWidth(3 if("png" in fmt) else 1)
+                    All_Histos[temp_hists["data_wBG"].GetName()].SetLineColor(ROOT.kBlue)
+                    Min_Content = min([Min_Content, All_Histos[temp_hists["data_wBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_wBG"].GetName()].GetMinimumBin())])
+                    Max_Content = max([Max_Content, All_Histos[temp_hists["data_wBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_wBG"].GetName()].GetMaximumBin())])
+                    if(Integrated_Bin_Name_data_wBG is None):
+                        temp_hists["data_wBG_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_wBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
+                        Integrated_Bin_Name_data_wBG = temp_hists["data_wBG_All"].GetName()
+                        All_Histos[Integrated_Bin_Name_data_wBG] = temp_hists["data_wBG_All"]
+                        All_Histos[Integrated_Bin_Name_data_wBG].SetLineWidth(3 if("png" in fmt) else 1)
+                        All_Histos[Integrated_Bin_Name_data_wBG].SetLineColor(ROOT.kBlue)
+                    else:
+                        All_Histos[Integrated_Bin_Name_data_wBG].Add(All_Histos[temp_hists["data_wBG"].GetName()])
+                    temp_hists["data_woBG"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_woBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=False)
+                    if(temp_hists["data_woBG"] is None):
+                        continue
+                    All_Histos[temp_hists["data_woBG"].GetName()] = temp_hists["data_woBG"]
+                    All_Histos[temp_hists["data_woBG"].GetName()].SetLineWidth(3 if("png" in fmt) else 1)
+                    All_Histos[temp_hists["data_woBG"].GetName()].SetLineColor(ROOT.kCyan)
+                    Min_Content = min([Min_Content, All_Histos[temp_hists["data_woBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_woBG"].GetName()].GetMinimumBin())])
+                    Max_Content = max([Max_Content, All_Histos[temp_hists["data_woBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_woBG"].GetName()].GetMaximumBin())])
+                    if(Integrated_Bin_Name_data_woBG is None):
+                        temp_hists["data_woBG_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_woBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
+                        Integrated_Bin_Name_data_woBG = temp_hists["data_woBG_All"].GetName()
+                        All_Histos[Integrated_Bin_Name_data_woBG] = temp_hists["data_woBG_All"]
+                        All_Histos[Integrated_Bin_Name_data_woBG].SetLineWidth(3 if("png" in fmt) else 1)
+                        All_Histos[Integrated_Bin_Name_data_woBG].SetLineColor(ROOT.kCyan)
+                    else:
+                        All_Histos[Integrated_Bin_Name_data_woBG].Add(All_Histos[temp_hists["data_woBG"].GetName()])
+                if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                    temp_hists["clasdis"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_clasdis, Q2_Y_Bin, z_pT_Bin, Use_All_Name=False)
+                    if(temp_hists["clasdis"] is None):
+                        continue
+                    All_Histos[temp_hists["clasdis"].GetName()] = temp_hists["clasdis"]
+                    All_Histos[temp_hists["clasdis"].GetName()].SetLineWidth(3 if("png" in fmt) else 1)
+                    All_Histos[temp_hists["clasdis"].GetName()].SetLineColor(ROOT.kRed)
+                    Min_Content = min([Min_Content, All_Histos[temp_hists["clasdis"].GetName()].GetBinContent(All_Histos[temp_hists["clasdis"].GetName()].GetMinimumBin())])
+                    Max_Content = max([Max_Content, All_Histos[temp_hists["clasdis"].GetName()].GetBinContent(All_Histos[temp_hists["clasdis"].GetName()].GetMaximumBin())])
+                    if(Integrated_Bin_Name_clasdis is None):
+                        temp_hists["clasdis_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_clasdis, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
+                        Integrated_Bin_Name_clasdis = temp_hists["clasdis_All"].GetName()
+                        All_Histos[Integrated_Bin_Name_clasdis] = temp_hists["clasdis_All"]
+                        All_Histos[Integrated_Bin_Name_clasdis].SetLineWidth(3 if("png" in fmt) else 1)
+                        All_Histos[Integrated_Bin_Name_clasdis].SetLineColor(ROOT.kRed)
+                    else:
+                        All_Histos[Integrated_Bin_Name_clasdis].Add(All_Histos[temp_hists["clasdis"].GetName()])
+
+                if(Draw_Type == "Normalized"):
+                    All_Histos[temp_hists["harut"].GetName()].DrawNormalized("hist E0")
+                    if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                        All_Histos[temp_hists["data_wBG"].GetName()].DrawNormalized("hist E0 same")
+                        All_Histos[temp_hists["data_woBG"].GetName()].DrawNormalized("hist E0 same")
+                    if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                        All_Histos[temp_hists["clasdis"].GetName()].DrawNormalized("hist E0 same")
+                else:
+                    All_Histos[temp_hists["harut"].GetName()].GetYaxis().SetRangeUser(min([1.2*Min_Content, 0]), max([1.2*Max_Content, 0]))
+                    All_Histos[temp_hists["harut"].GetName()].Draw("hist E0")
+                    if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                        All_Histos[temp_hists["data_wBG"].GetName()].Draw("hist E0 same")
+                        All_Histos[temp_hists["data_woBG"].GetName()].Draw("hist E0 same")
+                    if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                        All_Histos[temp_hists["clasdis"].GetName()].Draw("hist E0 same")
+                ROOT.gPad.Update()
+            except:
+                print(f"{color.Error}Error in Drawing the phi_h Plots for Bin ({Q2_Y_Bin}-{z_pT_Bin}):\n{color.END_R}{str(traceback.format_exc())}{color.END}")
+        All_z_pT_Canvas[Save_Name].cd()
+        All_z_pT_Canvas[Save_Name].Modified()
+        All_z_pT_Canvas[Save_Name].Update()
+    ####  Filling Canvas (Right) End ###############################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Filling Canvas (Left)  ###################################################################################################################################################################################################################################################################################################################################################################################
+        ################################################################
+        ###    Legends     ###
+        pad_leg = All_z_pT_Canvas[Save_Name].cd(1).cd(2).cd(1)
+        pad_leg.SetFillColor(ROOT.kGray)
+        pad_leg.cd()
+        ROOT.gStyle.SetOptStat(0)
+        if(not hasattr(All_z_pT_Canvas[Save_Name], "legend_store")):
+            All_z_pT_Canvas[Save_Name].legend_store = {}
+            All_z_pT_Canvas[Save_Name].histos_store = {}
+        leg = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
+        leg.SetNColumns(1)
+        leg.SetBorderSize(0)
+        leg.SetFillStyle(0)
+        leg.SetTextFont(42)
+        leg.SetTextSize(0.10)
+        Min_Content_Integrated, Max_Content_Integrated = 0, 0
+        for legend_name, histnames in [["Harut's Exclusive MC", Integrated_Bin_Name_harut], ["#splitline{Experimental Data}{Before #rho^{0} Subtraction}", Integrated_Bin_Name_data_wBG], ["#splitline{Experimental Data}{After #rho^{0} Subtraction}", Integrated_Bin_Name_data_woBG], ["clasdis (pure SIDIS) MC", Integrated_Bin_Name_clasdis]]:
+            if((histnames is None) or (histnames not in All_Histos)):
+                continue
+            leg.AddEntry(All_Histos[histnames], f"#scale[0.75]{{{legend_name}}}", "l")
+            Min_Content_Integrated = min([Min_Content_Integrated, All_Histos[histnames].GetBinContent(All_Histos[histnames].GetMinimumBin())])
+            Max_Content_Integrated = max([Max_Content_Integrated, All_Histos[histnames].GetBinContent(All_Histos[histnames].GetMaximumBin())])
+        leg.Draw("same")
+        All_z_pT_Canvas[Save_Name].legend_store["legend"] = leg
+        pad_leg.Modified()
+        pad_leg.Update()
+        ###    Legends     ###
+        ################################################################
+        ### Integral Plots ###
+        Integrated_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(1)
+        # Integrated_Pad.SetFillColor(ROOT.kGray)
+        Integrated_Pad.cd()
+        # ROOT.gStyle.SetOptStat(0)
+        if(Draw_Type == "Normalized"):
+            All_Histos[Integrated_Bin_Name_harut].DrawNormalized("hist E0")
+            if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                All_Histos[Integrated_Bin_Name_data_wBG].DrawNormalized("hist E0 same")
+                All_Histos[Integrated_Bin_Name_data_woBG].DrawNormalized("hist E0 same")
+            if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                All_Histos[Integrated_Bin_Name_clasdis].DrawNormalized("hist E0 same")
+        else:
+            All_Histos[Integrated_Bin_Name_harut].GetYaxis().SetRangeUser(min([1.2*Min_Content_Integrated, 0]), max([1.2*Max_Content_Integrated, 0]))
+            All_Histos[Integrated_Bin_Name_harut].Draw("hist E0")
+            if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                All_Histos[Integrated_Bin_Name_data_wBG].Draw("hist E0 same")
+                All_Histos[Integrated_Bin_Name_data_woBG].Draw("hist E0 same")
+            if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                All_Histos[Integrated_Bin_Name_clasdis].Draw("hist E0 same")
+        ROOT.gPad.Update()
+        ### Integral Plots ###
+        # ################################################################
+        # ### 2D Kinematics  ###
+        # Kinematic_2D_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(2)
+        # Kinematic_2D_Pad.Divide(2, 1, 0.01, 0.01)
+        # Kinematic_2D_Pad.cd(1)
+        # # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
+        # # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Non_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
+        # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
+        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
+        # if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
+        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
+        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].GetYaxis().SetRangeUser(1, 8.5)
+        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
+        # else:
+        #     raise SystemError("Could not make the 2D Q2-y Histogram\n")
+        # for Q2_Y_Bin_ii in range(1, 18, 1):
+        #     if(Q2_Y_Bin_ii not in Q2_y_borders):
+        #         Q2_y_borders[Q2_Y_Bin_ii] = Draw_Q2_Y_Bins(Input_Bin=Q2_Y_Bin_ii, line_width=3 if("png" in args.file_format) else 1)
+        #     for line in Q2_y_borders[Q2_Y_Bin_ii]:
+        #         line.Draw("same")
+        # Kinematic_2D_Pad.cd(2)
+        # # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
+        # # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Non_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
+        # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
+        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
+        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
+        # if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
+        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].GetXaxis().SetRangeUser(0, 1.2)
+        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
+        #     if(getattr(args, "Draw_MM_Lines", False)):
+        #         MM_z_pT_borders = {}
+        #         # Create a TLegend
+        #         MM_z_pT_legend = ROOT.TLegend(0.8, 0.1, 0.95, 0.4)  # (x1, y1, x2, y2)
+        #         MM_z_pT_legend.SetNColumns(1)
+        #         MM_z_pT_borders, MM_z_pT_legend = Draw_the_MM_Cut_Lines(MM_z_pT_legend, MM_z_pT_borders, Q2_Y_Bin, "z_pT")
+        #         for MM_lines in MM_z_pT_borders:
+        #             MM_z_pT_borders[MM_lines].Draw("same")
+        #         MM_z_pT_legend.Draw("same")
+        # else:
+        #     raise SystemError("Could not make the 2D z-pT Histogram\n")
+        # Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=Q2_Y_Bin, Set_Max_Y=1.2, Set_Max_X=1.2, Plot_Orientation_Input="z_pT", line_size_overwrite=3 if("png" in args.file_format) else 1)
+        # ### 2D Kinematics  ###
+        # ################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    ####  Saving Canvases  #########################################################################################################################################################################################################################################################################################################################################################################################
+        out_name = f"{Save_Name}_{args.name}{fmt}" if(getattr(args, "name", "") not in [None, ""]) else f"{Save_Name}{fmt}"
+        if(not getattr(args, "no_save", False)):
+            All_z_pT_Canvas[Save_Name].SaveAs(out_name)
+            print(f"{color.BOLD}Saved: {color.BBLUE}{out_name}{color.END}")
+        else:
+            print(f"{color.Error}Would be Saving: {color.BCYAN}{out_name}{color.END}")
+    ################################################################################################################################################################################################################################################################################################################################################################################################################
+    return All_z_pT_Canvas
 
 
 def Create_Diagnostic_Weight_Impact_Plots(args):
@@ -1639,8 +1920,6 @@ def Create_Diagnostic_Weight_Impact_Plots(args):
     
     print(f"{color.BGREEN}Successfully loaded all TH3D histograms and validated compatibility.{color.END}")
     
-    z_bins_data_harut = list(range(128, 256, 1))
-    z_bins_clasdis    = list(range(128, 256, 2))   # even bins only (clasdis)
     proj_data  = project_z_bins_global(h3__data, "proj_data_diag",    list(range(128, 256, 1)), args)
     proj_harut = project_z_bins_global(h3_harut, "proj_harut_diag",   list(range(128, 256, 1)), args)
     proj_clas  = project_z_bins_global(h3___mdf, "proj_clasdis_diag", list(range(128, 256, 2)), args) # Must use even bins only to avoid the exclusive rho events from generator-level information
@@ -1817,8 +2096,12 @@ if(__name__ == "__main__"):
     args.timer.start()
     if(args.Kinematic_Bin_Select not in ["All", "Full"]):
         args.Kinematic_Bin_Select = int(args.Kinematic_Bin_Select)
-    if(getattr(args, "run_diagnostic_cut_images", False)):
-        make_diagnostic_cut_images(args)
+    if(getattr(args, "run_all_base_diagnostic_images", False)):
+        diagnostic_hist_list = make_diagnostic_cut_images(args)
+        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_Data",        stage_name="Full_SIDIS", Draw_Type="data_scale")
+        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_MCs",         stage_name="Full_SIDIS", Draw_Type="Normalized")
+        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="data_scale")
+        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="Normalized")
     elif(getattr(args, "run_diagnostic_weight_images", False)):
         Create_Diagnostic_Weight_Impact_Plots(args)
     elif("W" in str(args.vars)):
