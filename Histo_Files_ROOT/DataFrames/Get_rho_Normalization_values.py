@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import ROOT
-import cppyy
+# import cppyy
 import sys
 import numpy as np
 ROOT.gROOT.SetBatch(True)
@@ -12,7 +12,7 @@ ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Draw_Canvas, silence_root_import, Canvas_Create, Get_Num_of_z_pT_Rows_and_Columns, Draw_Q2_Y_Bins, Draw_the_MM_Cut_Lines, Draw_z_pT_Bins_With_Migration, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins #, root_color, color_bg, variable_Title_name
+from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Draw_Canvas, silence_root_import, Canvas_Create, Get_Num_of_z_pT_Rows_and_Columns, Draw_Q2_Y_Bins, Draw_the_MM_Cut_Lines, Draw_z_pT_Bins_With_Migration, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins, variable_Title_name #, root_color, color_bg
 from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
 sys.path.remove(script_dir)
 del script_dir
@@ -127,6 +127,15 @@ def parse_args():
                         action='store_true',
                         help="Saves the diagnostic plots to help show each stage of the procedure including the cuts and normalization evaluations (is separate from '--run_diagnostic_weight_images').\n")
     return parser.parse_args()
+
+
+def variable_Title_name_new(variable_in):
+    if(variable_in in ["k0_cut"]):
+        return "E^{Cutoff}_{#gamma}"
+    else:
+        output = variable_Title_name(variable_in)
+        output = output.replace(" (lepton energy loss fraction)", "")
+        return output
 
 def check_histo_for_errors(hist, name, file_name):
     if(not hist):
@@ -507,10 +516,10 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
     leg_d.AddEntry(mass_data, "Experimental Data", "l")
     leg_d.AddEntry(fy_data,   "Full Fit",          "l")
-    leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
-    leg_d.AddEntry(fy2_data,  "General Background","l")
     leg_d.AddEntry(fy3_data,  "f_{2}",             "l")
     leg_d.AddEntry(fy4_data,  "f_{0}",             "l")
+    leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
+    leg_d.AddEntry(fy2_data,  "General Background","l")
     leg_d.Draw("same")
     box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
     box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
@@ -1570,7 +1579,8 @@ def make_diagnostic_cut_images(args):
         hist_list[hist_key_mdf]   = file1.Get(hist_key_mdf)
         hist_list[hist_key_harut] = file1.Get(hist_key_harut)
         for stage_name, z_bin_list in cut_stages.items():
-            print(f"\n{color.BOLD}→ Processing {stage_name} ({len(z_bin_list)} Z-bins){color.END}")
+            if(args.verbose):
+                print(f"\n{color.BOLD}→ Processing {stage_name} ({len(z_bin_list)} Z-bins){color.END}")
             # Data projections
             hist_list[f"{hist_key_data}_{stage_name}"]    = project_z_bins_global(hist_list[hist_key_data],  f"{hist_key_data}_{stage_name}", z_bin_list, args, diagnostic=True)
             # Harut projections
@@ -1616,8 +1626,18 @@ def Slice_4D_Histo_Bins_For_phi_h_Plots(args, Hist_In, Q2_Y_Bin_In, z_pT_Bin_In,
     Hist_Binned.GetXaxis().SetTitle(str(Hist_Binned.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
     return Hist_Binned
 
+
+def calculate_weighted_percentage(hist_a, hist_b):
+    sum_a = hist_a.Integral()
+    sum_b = hist_b.Integral()
+    if(sum_a == 0):
+        return 0.0  # Avoid division by zero
+    percentage = (sum_b / sum_a) * 100.0
+    return percentage
+
 def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=range(1,18), Comparison_Type="In_Data", stage_name="Full_SIDIS", Draw_Type="data_scale"):
-    All_z_pT_Canvas, All_Histos, temp_hists = {}, {}, {}
+    All_z_pT_Canvas, All_Histos, temp_hists, Ratios_of_Contaminations = {}, {}, {}, {}
+    Ratios_of_Contaminations["Global"] = {"Sum_of_Percents": 0, "Number_of_Calcs": 0, "Min_Contamination": 1e10, "Min_Bin_Num": -1, "Max_Contamination": 0, "Max_Bin_Num": -1}
     fmt = f'.{getattr(args, "file_format", "pdf")}'.lower()
     # Q2_y_borders = {}
     hist_key_data_wBG  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_(phi_t)_(Q2_y_z_pT_4D_Bins)_{stage_name}"
@@ -1637,9 +1657,10 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ####  Canvas (Main) Creation  ##################################################################################################################################################################################################################################################################################################################################################################################
     for Q2_Y_Bin in Q2_Y_Bin_Range:
-        Save_Name = f"rho0_Comparisons_of_phi_h_{Comparison_Type}_for_Q2_Y_Bin_{Q2_Y_Bin}"
+        Save_Name = f"rho0_Comparisons_of_phi_h_{Comparison_Type}_for_Q2_Y_Bin_{Q2_Y_Bin}_with_{stage_name}_Cuts"
         if(Draw_Type == "Normalized"):
             Save_Name = f"{Save_Name}_Normalized"
+        Ratios_of_Contaminations[Save_Name] = {"Sum_of_Percents": 0, "Number_of_Calcs": 0, "Min_Contamination": 1e10, "Min_Bin_Num": -1, "Max_Contamination": 0, "Max_Bin_Num": -1}
         All_z_pT_Canvas[Save_Name] = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=int(1800*2), Size_Y=int(1500*2), cd_Space=0.01)
         All_z_pT_Canvas[Save_Name].SetFillColor(ROOT.kGray)
         if(args.verbose):
@@ -1682,7 +1703,6 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                 Draw_Canvas(All_z_pT_Canvas_cd_2_z_pT_Bin, 1, 0.15)
                 ROOT.gStyle.SetOptStat(0)
                 Min_Content, Max_Content = 0, 0
-
                 temp_hists["harut"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_harut, Q2_Y_Bin, z_pT_Bin, Use_All_Name=False)
                 if(temp_hists["harut"] is None):
                     continue
@@ -1709,6 +1729,18 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                     All_Histos[temp_hists["data_wBG"].GetName()].SetLineColor(ROOT.kBlue)
                     Min_Content = min([Min_Content, All_Histos[temp_hists["data_wBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_wBG"].GetName()].GetMinimumBin())])
                     Max_Content = max([Max_Content, All_Histos[temp_hists["data_wBG"].GetName()].GetBinContent(All_Histos[temp_hists["data_wBG"].GetName()].GetMaximumBin())])
+                    Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"] = calculate_weighted_percentage(All_Histos[temp_hists["data_wBG"].GetName()], All_Histos[temp_hists["harut"].GetName()])
+                    for ratio_checks in [Save_Name, "Global"]:
+                        Ratios_of_Contaminations[ratio_checks]["Sum_of_Percents"]  += Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]
+                        Ratios_of_Contaminations[ratio_checks]["Number_of_Calcs"]  += 1
+                        if(min([Ratios_of_Contaminations[ratio_checks]["Min_Contamination"], Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]]) == Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]):
+                            Ratios_of_Contaminations[ratio_checks]["Min_Contamination"]    = Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]
+                            Ratios_of_Contaminations[ratio_checks]["Min_Bin_Num"]          = f"Bin_({Q2_Y_Bin}-{z_pT_Bin})"
+                        if(max([Ratios_of_Contaminations[ratio_checks]["Max_Contamination"], Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]]) == Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]):
+                            Ratios_of_Contaminations[ratio_checks]["Max_Contamination"]    = Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]
+                            Ratios_of_Contaminations[ratio_checks]["Max_Bin_Num"]          = f"Bin_({Q2_Y_Bin}-{z_pT_Bin})"
+                    preContamination_Title = All_Histos[temp_hists["harut"].GetName()].GetTitle()
+                    All_Histos[temp_hists["harut"].GetName()].SetTitle(f"#splitline{{{preContamination_Title}}}{{#scale[2]{{#splitline{{Percent of #rho^{{0}} Contamination in this Bin:}}{{{Ratios_of_Contaminations[Save_Name][f'Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})']:.3f}%}}}}}}")
                     if(Integrated_Bin_Name_data_wBG is None):
                         temp_hists["data_wBG_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_wBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
                         Integrated_Bin_Name_data_wBG = temp_hists["data_wBG_All"].GetName()
@@ -1791,7 +1823,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
         leg.SetTextFont(42)
         leg.SetTextSize(0.10)
         Min_Content_Integrated, Max_Content_Integrated = 0, 0
-        for legend_name, histnames in [["Harut's Exclusive MC", Integrated_Bin_Name_harut], ["#splitline{Experimental Data}{Before #rho^{0} Subtraction}", Integrated_Bin_Name_data_wBG], ["#splitline{Experimental Data}{After #rho^{0} Subtraction}", Integrated_Bin_Name_data_woBG], ["clasdis (pure SIDIS) MC", Integrated_Bin_Name_clasdis]]:
+        for legend_name, histnames in [["Harut's Exclusive MC" if(Draw_Type not in ["data_scale"]) else "#splitline{Harut's Exclusive MC}{Scaled to Data}", Integrated_Bin_Name_harut], ["#splitline{Experimental Data}{Before #rho^{0} Subtraction}", Integrated_Bin_Name_data_wBG], ["#splitline{Experimental Data}{After #rho^{0} Subtraction}", Integrated_Bin_Name_data_woBG], ["clasdis (pure SIDIS) MC" if(Draw_Type not in ["data_scale"]) else "#splitline{clasdis (pure SIDIS) MC}{Scaled to Data}", Integrated_Bin_Name_clasdis]]:
             if((histnames is None) or (histnames not in All_Histos)):
                 continue
             leg.AddEntry(All_Histos[histnames], f"#scale[0.75]{{{legend_name}}}", "l")
@@ -1825,49 +1857,24 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                 All_Histos[Integrated_Bin_Name_clasdis].Draw("hist E0 same")
         ROOT.gPad.Update()
         ### Integral Plots ###
-        # ################################################################
-        # ### 2D Kinematics  ###
-        # Kinematic_2D_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(2)
-        # Kinematic_2D_Pad.Divide(2, 1, 0.01, 0.01)
-        # Kinematic_2D_Pad.cd(1)
-        # # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
-        # # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Non_Exclusive_rho", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
-        # Histo_2D_Q2y_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="Q2_smeared", Var_Y="y_smeared", lundrho="", Weighed="")
-        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_Q2y_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
-        # if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
-        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{Q^{{2}} vs y From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
-        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].GetYaxis().SetRangeUser(1, 8.5)
-        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_Q2y_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
-        # else:
-        #     raise SystemError("Could not make the 2D Q2-y Histogram\n")
-        # for Q2_Y_Bin_ii in range(1, 18, 1):
-        #     if(Q2_Y_Bin_ii not in Q2_y_borders):
-        #         Q2_y_borders[Q2_Y_Bin_ii] = Draw_Q2_Y_Bins(Input_Bin=Q2_Y_Bin_ii, line_width=3 if("png" in args.file_format) else 1)
-        #     for line in Q2_y_borders[Q2_Y_Bin_ii]:
-        #         line.Draw("same")
-        # Kinematic_2D_Pad.cd(2)
-        # # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
-        # # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS_Non_Exclusive_rho", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
-        # Histo_2D_zpT_Plot_Legend = HistoName_Return(df_in=Hist_List_In, Return_Name_or_Histo="Hist", data="mdf", cut="cut_Complete_SIDIS", smear="smear", Var_X="z_smeared", Var_Y="pT_smeared", lundrho="", Weighed="")
-        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] = Slice_Histos_for_Plotting(Histo3D=Histo_2D_zpT_Plot_Legend, Var_Plot="2D", Q2y_Bin=Q2_Y_Bin, zpT_Bin="All")
-        # All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].SetTitle(f"#splitline{{#scale[2.5]{{z vs P_{{T}} From #color[{ROOT.kRed}]{{Reconstructed clasdis MC}}}}}}{{#scale[1.75]{{Q^{{2}}-y Bin {Q2_Y_Bin}}}}}")
-        # if(All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"] is not None):
-        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].GetXaxis().SetRangeUser(0, 1.2)
-        #     All_z_pT_Canvas[Save_Name].legend_store[f"Histo_2D_zpT_Plot_Legend_Bin_{Q2_Y_Bin}"].Draw("colz")
-        #     if(getattr(args, "Draw_MM_Lines", False)):
-        #         MM_z_pT_borders = {}
-        #         # Create a TLegend
-        #         MM_z_pT_legend = ROOT.TLegend(0.8, 0.1, 0.95, 0.4)  # (x1, y1, x2, y2)
-        #         MM_z_pT_legend.SetNColumns(1)
-        #         MM_z_pT_borders, MM_z_pT_legend = Draw_the_MM_Cut_Lines(MM_z_pT_legend, MM_z_pT_borders, Q2_Y_Bin, "z_pT")
-        #         for MM_lines in MM_z_pT_borders:
-        #             MM_z_pT_borders[MM_lines].Draw("same")
-        #         MM_z_pT_legend.Draw("same")
-        # else:
-        #     raise SystemError("Could not make the 2D z-pT Histogram\n")
-        # Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=Q2_Y_Bin, Set_Max_Y=1.2, Set_Max_X=1.2, Plot_Orientation_Input="z_pT", line_size_overwrite=3 if("png" in args.file_format) else 1)
-        # ### 2D Kinematics  ###
-        # ################################################################
+        ################################################################
+        if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+            Contamination_Report_Pad = All_z_pT_Canvas[Save_Name].cd(1).cd(1).cd(2)
+            # Contamination_Report_Pad.SetFillColor(ROOT.kGray)
+            Contamination_Report_Pad.cd()
+            Ratios_of_Contaminations[Save_Name]["Report_Box"] = ROOT.TPaveText(0.05, 0.05, 0.95, 0.95, "NDC")
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetFillColor(0)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetBorderSize(1)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetFillStyle(1001)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetTextAlign(22)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetTextFont(62)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetTextSize(0.025)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].SetMargin(0.02)
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'Average #rho^{{0}} Contamination Shown:  {Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]/Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]:.3f}% of Data')
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'Maximum #rho^{{0}} Contamination Shown:  {Ratios_of_Contaminations[Save_Name]["Max_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Max_Bin_Num"].replace("_", " ")}')
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'Minimum #rho^{{0}} Contamination Shown:  {Ratios_of_Contaminations[Save_Name]["Min_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Min_Bin_Num"].replace("_", " ")}')
+            Ratios_of_Contaminations[Save_Name]["Report_Box"].Draw("same")
+        ################################################################
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ####  Saving Canvases  #########################################################################################################################################################################################################################################################################################################################################################################################
@@ -1878,8 +1885,113 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
         else:
             print(f"{color.Error}Would be Saving: {color.BCYAN}{out_name}{color.END}")
     ################################################################################################################################################################################################################################################################################################################################################################################################################
+    if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+        print("\n\n")
+        print(f"{color.BBLUE}Average #rho^{0} Contamination Shown:{color.END}")
+        print(f'{color.BOLD}\t{Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}% of Data{color.END}')
+        print(f"{color.BBLUE}Maximum #rho^{0} Contamination Shown:{color.END}")
+        print(f'{color.BOLD}\t{Ratios_of_Contaminations["Global"]["Max_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Max_Bin_Num"].replace("_", " ")}{color.END}')
+        print(f"{color.BBLUE}Minimum #rho^{0} Contamination Shown:{color.END}")
+        print(f'{color.BOLD}\t{Ratios_of_Contaminations["Global"]["Min_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}{color.END}')
+        print("\n\n")
     return All_z_pT_Canvas
 
+
+def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(xB)", Comparison_Type="In_Data", stage_name="Full_SIDIS", Draw_Type="data_scale"):
+    Vars_Input_Smeared = Vars_Input.replace(")", "_smeared)")
+    fmt = f'.{getattr(args, "file_format", "pdf")}'.lower()
+    hist_key_data_wBG  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{Vars_Input}_{stage_name}"
+    hist_key_data_woBG = f"{hist_key_data_wBG}_(Removed_Background)"
+    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{Vars_Input_Smeared}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+    hist_key_clasdis   = hist_key_harut.replace(f"_({'lundvpk' if(not args.old_lund) else 'lundrho'})", "")
+    hist_data_wBG  = Hist_List_In.get(hist_key_data_wBG,  None)
+    hist_data_woBG = Hist_List_In.get(hist_key_data_woBG, None)
+    hist_harut     = Hist_List_In.get(hist_key_harut,     None)
+    hist_clasdis   = Hist_List_In.get(hist_key_clasdis,   None)
+    if(None in [hist_harut]):
+        raise ValueError(f"{color.Error}Error: Missing '{hist_key_harut}'{color.END}")
+    if((None in [hist_data_wBG, hist_data_woBG]) and (Comparison_Type in ["In_Data", "All_Data_Types"])):
+        raise ValueError(f"{color.Error}Error: Missing either '{hist_key_data_wBG}' or '{hist_key_data_woBG}'{color.END}")
+    if((None in [hist_clasdis])                  and (Comparison_Type in ["In_MCs",  "All_Data_Types"])):
+        raise ValueError(f"{color.Error}Error: Missing '{hist_key_clasdis}'{color.END}")
+    Hists_Projected, Canvas_List = {}, {}
+    def Projection_Function(Hist_In, Min_Content, Max_Content, Project_Var, Project_axis, color_select):
+        Hist_In_Clone = Hist_In.Clone(f"{Hist_In.GetName()}_Clone")
+        if(Project_axis == 0):
+            Hist_Projected = Hist_In_Clone.ProjectionX(f"Projected_{Hist_In.GetName()}_for_{Project_Var}")
+        else:
+            Hist_Projected = Hist_In_Clone.ProjectionY(f"Projected_{Hist_In.GetName()}_for_{Project_Var}")
+        Default_Title = f"#splitline{{#splitline{{Exclusive Background Subtraction Comparisons for}}{{{variable_Title_name_new(Project_Var)} Distributions}}}}{{{args.title}}}"
+        if(stage_name not in ["Full_SIDIS"]):
+            Default_Title = f"#splitline{{{Default_Title}}}{{Applied Cuts for '{stage_name}' Events}}"
+        Hist_Projected.SetTitle(Default_Title)
+        Hist_Projected.GetXaxis().SetTitle(str(Hist_Projected.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
+        Hist_Projected.GetYaxis().SetTitle("Counts" if(Draw_Type != "Normalized") else "Normalized")
+        Hist_Projected.SetLineWidth(3 if("png" in fmt) else 1)
+        Hist_Projected.SetLineColor(color_select)
+        Min_Content = min([Min_Content, Hist_Projected.GetBinContent(Hist_Projected.GetMinimumBin())])
+        Max_Content = max([Max_Content, Hist_Projected.GetBinContent(Hist_Projected.GetMaximumBin())])
+        return Hist_Projected, Min_Content, Max_Content
+    for num, var in enumerate(Vars_Input.split(")_(")):
+        var = str(var.replace(")", "")).replace("(", "")
+        Hists_Projected[var] = {}
+        if(("(Q2)_(xB)" in Vars_Input) and ("Q2" in var)):
+            continue # Handeled by the other 2D histo
+        Save_Name = f"Kinematic_Comparisons_of_{var}_{Comparison_Type}_for_Background_Subtraction"
+        if(stage_name not in ["Full_SIDIS"]):
+            Save_Name = f"{Save_Name}_with_{stage_name}_Cuts"
+        Canvas_List[Save_Name] = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=600, cd_Space=0.01)
+        ROOT.gStyle.SetOptStat(0)
+        Canvas_List[f"{Save_Name}_pad1"] = Canvas_List[Save_Name].cd(1)
+        Canvas_List[f"{Save_Name}_pad1"].SetPad(0.0, 0.0, 0.8, 1.0)
+        Canvas_List[f"{Save_Name}_pad2"] = Canvas_List[Save_Name].cd(2)
+        Canvas_List[f"{Save_Name}_pad2"].SetPad(0.8, 0.0, 1.0, 1.0)
+        Canvas_List[Save_Name].cd(2)
+        Min_Content, Max_Content = 0, 0
+        Canvas_List[f"legend_{var}"] = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
+        Canvas_List[f"legend_{var}"].SetNColumns(1)
+        Canvas_List[f"legend_{var}"].SetBorderSize(0)
+        Canvas_List[f"legend_{var}"].SetFillStyle(0)
+        Canvas_List[f"legend_{var}"].SetTextFont(42)
+        Canvas_List[f"legend_{var}"].SetTextSize(0.10)
+        Hists_Projected[var][f"{Save_Name}_Harut"],         Min_Content, Max_Content = Projection_Function(hist_harut,     Min_Content, Max_Content, var, num, ROOT.kGreen)
+        Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_Harut"], "#scale[0.75]{Harut's Exclusive MC}" if(Draw_Type not in ["data_scale"]) else "#scale[0.75]{#splitline{Harut's Exclusive MC}{Scaled to Data}}", "l")
+        if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+            Hists_Projected[var][f"{Save_Name}_data_wBG"],  Min_Content, Max_Content = Projection_Function(hist_data_wBG,  Min_Content, Max_Content, var, num, ROOT.kBlue)
+            Hists_Projected[var][f"{Save_Name}_data_woBG"], Min_Content, Max_Content = Projection_Function(hist_data_woBG, Min_Content, Max_Content, var, num, ROOT.kCyan)
+            Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_data_wBG"],  "#scale[0.75]{#splitline{Experimental Data}{Before #rho^{0} Subtraction}}", "l")
+            Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_data_woBG"], "#scale[0.75]{#splitline{Experimental Data}{After #rho^{0} Subtraction}}",  "l")
+        if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+            Hists_Projected[var][f"{Save_Name}_clasdis"],   Min_Content, Max_Content = Projection_Function(hist_clasdis,   Min_Content, Max_Content, var, num, ROOT.kRed)
+            Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_clasdis"],   "#scale[0.75]{clasdis (pure SIDIS) MC}" if(Draw_Type not in ["data_scale"]) else "#scale[0.75]{#splitline{clasdis (pure SIDIS) MC}{Scaled to Data}}", "l")
+        Canvas_List[f"legend_{var}"].Draw("same")
+        Canvas_List[Save_Name].Modified()
+        Canvas_List[Save_Name].Update()
+        Canvas_List[Save_Name].cd(1)
+        if(Draw_Type == "Normalized"):
+            Hists_Projected[var][f"{Save_Name}_Harut"].DrawNormalized("hist E0")
+            if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                Hists_Projected[var][f"{Save_Name}_data_wBG"].DrawNormalized("hist E0 same")
+                Hists_Projected[var][f"{Save_Name}_data_woBG"].DrawNormalized("hist E0 same")
+            if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                Hists_Projected[var][f"{Save_Name}_clasdis"].DrawNormalized("hist E0 same")
+        else:
+            Hists_Projected[var][f"{Save_Name}_Harut"].GetYaxis().SetRangeUser(min([1.2*Min_Content, 0]), max([1.2*Max_Content, 0]))
+            Hists_Projected[var][f"{Save_Name}_Harut"].Draw("hist E0")
+            if(Comparison_Type in ["In_Data", "All_Data_Types"]):
+                Hists_Projected[var][f"{Save_Name}_data_wBG"].Draw("hist E0 same")
+                Hists_Projected[var][f"{Save_Name}_data_woBG"].Draw("hist E0 same")
+            if(Comparison_Type in ["In_MCs",  "All_Data_Types"]):
+                Hists_Projected[var][f"{Save_Name}_clasdis"].Draw("hist E0 same")
+        ROOT.gPad.Update()
+        out_name = f"{Save_Name}_{args.name}{fmt}" if(getattr(args, "name", "") not in [None, ""]) else f"{Save_Name}{fmt}"
+        if(not getattr(args, "no_save", False)):
+            Canvas_List[Save_Name].SaveAs(out_name)
+            print(f"{color.BOLD}Saved: {color.BBLUE}{out_name}{color.END}")
+        else:
+            print(f"{color.Error}Would be Saving: {color.BCYAN}{out_name}{color.END}")
+    # return Hists_Projected
+    return Canvas_List
 
 def Create_Diagnostic_Weight_Impact_Plots(args):
     print(f"\n{color.BOLD}Creating simplified diagnostic weight impact plots...{color.END}")
@@ -2099,9 +2211,15 @@ if(__name__ == "__main__"):
     if(getattr(args, "run_all_base_diagnostic_images", False)):
         diagnostic_hist_list = make_diagnostic_cut_images(args)
         canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_Data",        stage_name="Full_SIDIS", Draw_Type="data_scale")
-        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_MCs",         stage_name="Full_SIDIS", Draw_Type="Normalized")
-        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="data_scale")
-        canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="Normalized")
+        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_MCs",         stage_name="Full_SIDIS", Draw_Type="Normalized")
+        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="data_scale")
+        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="Normalized")
+        # for     stage_names in ["Full_SIDIS", "Exclusive"]:
+        for     stage_names in ["Full_SIDIS"]:
+            for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)"]:
+                if((var_choices in ["(W_pippim)_(MM_pippim)"]) and (stage_names not in ["Exclusive"])):
+                    continue
+                canvas_list = Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="In_Data", stage_name=stage_names, Draw_Type="data_scale")
     elif(getattr(args, "run_diagnostic_weight_images", False)):
         Create_Diagnostic_Weight_Impact_Plots(args)
     elif("W" in str(args.vars)):
