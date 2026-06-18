@@ -26,8 +26,9 @@ PRESET_VARIANTS = {
     "matching_mc_pass2": {
         "data_type":     "mdf",
         "sidis":         True,
-        "job_base":      "mdf_DF_5_30_2026_R1_Final_Analysis_Iterations_I0",
-        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new9*",
+        "job_base":      "mdf_DF_6_15_2026_R1_Final_Analysis_Iterations_I0",
+        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*.new9*",
+        # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new9*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*rho*.new9*",
         # "job_base":      "mdf_DF_4_26_2026_R1_Final_Analysis_Iterations_I0",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*.new8*",
@@ -37,9 +38,9 @@ PRESET_VARIANTS = {
     "gen_mc_pass2": {
         "data_type":     "gdf",
         "sidis":         True,
-        "job_base":      "gdf_DF_5_30_2026_R1_Final_Analysis_Iterations_I0",
-        # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new9*",
-        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new9*",
+        "job_base":      "gdf_DF_6_15_2026_R1_Final_Analysis_Iterations_I0",
+        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new9*",
+        # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new9*",
         # "job_base":      "gdf_DF_4_27_2026_R1_Final_Analysis_Iterations_I0",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new8*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*rho*.new8*lundvpk*",
@@ -48,7 +49,7 @@ PRESET_VARIANTS = {
     "real_data_pass2": {
         "data_type":     "rdf",
         "sidis":         True,
-        "job_base":      "rdf_DF_4_26_2026_R1_Final_Analysis_Iterations_I0",
+        "job_base":      "rdf_DF_6_15_2026_R2_Final_Analysis_Iterations_I0",
         "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new8.nSidis_005*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new8.nSidis_00540*.hipo.root",
     },

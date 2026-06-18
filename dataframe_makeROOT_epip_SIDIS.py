@@ -1085,31 +1085,40 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     auto pip0{bank}        = ROOT::Math::PxPyPzMVector(pipx{bank}*fpip, pipy{bank}*fpip, pipz{bank}*fpip, 0.13957);
                     auto pim0{bank}        = ROOT::Math::PxPyPzMVector(pimx{bank}, pimy{bank}, pimz{bank}, 0.13957);
                     auto pro0{bank}        = ROOT::Math::PxPyPzMVector(prox{bank}, proy{bank}, proz{bank}, 0.938272);
-                    auto Wpippim{bank}     = pip0{bank} + pim0{bank};
+                    auto Ppippim{bank}     = pip0{bank} + pim0{bank};
                     auto epimX{bank}       = beam + targ - ele{bank} - pim0{bank};
                     auto epippimX{bank}    = beam + targ - ele{bank} - pip0{bank} - pim0{bank};
                     auto epipproX{bank}    = beam + targ - ele{bank} - pip0{bank} - pro0{bank};
                     auto epippimproX{bank} = beam + targ - ele{bank} - pip0{bank} - pim0{bank} - pro0{bank};
                     auto q{bank}           = beam - ele{bank};
                     auto z_pim{bank}       = ((pim0{bank}.E())/(q{bank}.E()));
+                    auto z_rho{bank}       = ((Ppippim{bank}.E())/(q{bank}.E()));
                     TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
                     TLorentzVector eleT{bank}(ex{bank}*fe, ey{bank}*fe, ez{bank}*fe, ele{bank}.E());
                     TLorentzVector pimT{bank}(pimx{bank}, pimy{bank}, pimz{bank}, pim0{bank}.E());
+                    TLorentzVector rhoT{bank}(Ppippim{bank}.X(), Ppippim{bank}.Y(), Ppippim{bank}.Z(), Ppippim{bank}.E());
                     TLorentzVector lv_q{bank} = beamT - eleT{bank};
                     ///////////////     Angles for Rotation     ///////////////
                     double Theta_q{bank} = lv_q{bank}.Theta();
                     double Phi_el{bank}  = eleT{bank}.Phi();
                     ///////////////     Rotating to CM Frame     ///////////////
                     auto pim0_Clone{bank} = Rot_Matrix(pimT{bank}, -1, Theta_q{bank}, Phi_el{bank});
+                    auto rho0_Clone{bank} = Rot_Matrix(rhoT{bank}, -1, Theta_q{bank}, Phi_el{bank});
                     ///////////////     Saving CM components     ///////////////
                     double pimx_1{bank} = pim0_Clone{bank}.X();
                     double pimy_1{bank} = pim0_Clone{bank}.Y();
-                    double pimz_1{bank} = pim0_Clone{bank}.Z();
+                    // {bank} = pim0_Clone{bank}.Z();
+                    double rhox_1{bank} = rho0_Clone{bank}.X();
+                    double rhoy_1{bank} = rho0_Clone{bank}.Y();
+                    // double rhoz_1{bank} = rho0_Clone{bank}.Z();
                     // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
                     double pT_pim{bank} = sqrt(pimx_1{bank}*pimx_1{bank} + pimy_1{bank}*pimy_1{bank});
                     double phi_t_pim{bank} = pim0_Clone{bank}.Phi()*TMath::RadToDeg();
                     if(phi_t_pim{bank} < 0){{phi_t_pim{bank} += 360;}}
-                    std::vector<double> pim_vals{bank} = {{epimX{bank}.M(), epimX{bank}.M2(), z_pim{bank}, pT_pim{bank}, phi_t_pim{bank}, epippimX{bank}.M(), epippimproX{bank}.M(), epipproX{bank}.M(), Wpippim{bank}.M()}};
+                    double pT_rho{bank} = sqrt(rhox_1{bank}*rhox_1{bank} + rhoy_1{bank}*rhoy_1{bank});
+                    double phi_t_rho{bank} = rho0_Clone{bank}.Phi()*TMath::RadToDeg();
+                    if(phi_t_rho{bank} < 0){{phi_t_rho{bank} += 360;}}
+                    std::vector<double> pim_vals{bank} = {{epimX{bank}.M(), epimX{bank}.M2(), z_pim{bank}, pT_pim{bank}, phi_t_pim{bank}, epippimX{bank}.M(), epippimproX{bank}.M(), epipproX{bank}.M(), Ppippim{bank}.M(), z_rho{bank}, pT_rho{bank}, phi_t_rho{bank}}};
                     return pim_vals{bank};"""
                     Full_pim_kinematics_list = [[bank, Full_pim_kinematics]]
                     if((bank not in ["_gen"]) and (str(datatype) in ["mdf"])):
@@ -1131,28 +1140,37 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                     TLorentzVector pip0_smeared = smear_func(pipV{");" if("ivec" not in str(smearing_function)) else ", 1);" if("stop_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear);" if("bool less_over_smear" not in str(smearing_function)) else ", 1, stop_over_smear, less_over_smear);"}
                     TLorentzVector beam(0, 0, {Beam_Energy}, beamM.E());
                     TLorentzVector targ(0, 0, 0, targM.E());
-                    auto Wpippim_smeared     = pip0_smeared + pim_smeared;
+                    auto Ppippim_smeared     = pip0_smeared + pim_smeared;
+                    TLorentzVector rhoT_smeared(Ppippim_smeared.X(), Ppippim_smeared.Y(), Ppippim_smeared.Z(), Ppippim_smeared.E());
                     auto epimX_smeared       = beam + targ - ele_smeared - pim_smeared;
                     auto epippimX_smeared    = beam + targ - ele_smeared - pip0_smeared - pim_smeared;
                     auto epipproX_smeared    = beam + targ - ele_smeared - pip0_smeared - pro_smeared;
                     auto epippimproX_smeared = beam + targ - ele_smeared - pip0_smeared - pim_smeared - pro_smeared;
                     auto q_smeared           = beam - ele_smeared;
                     auto z_pim_smeared       = ((pim_smeared.E())/(q_smeared.E()));
+                    auto z_rho_smeared       = ((Ppippim_smeared.E())/(q_smeared.E()));
                     TLorentzVector beamT(0, 0, {Beam_Energy}, beam.E());
                     ///////////////     Angles for Rotation     ///////////////
                     double Theta_q_smeared = q_smeared.Theta();
                     double Phi_el_smeared  = ele_smeared.Phi();
                     ///////////////     Rotating to CM Frame     ///////////////
                     auto pim0_Clone_smeared = Rot_Matrix(pim_smeared, -1, Theta_q_smeared, Phi_el_smeared);
+                    auto rho0_Clone_smeared = Rot_Matrix(rhoT_smeared, -1, Theta_q_smeared, Phi_el_smeared);
                     ///////////////     Saving CM components     ///////////////
                     double pimx_1_smeared = pim0_Clone_smeared.X();
                     double pimy_1_smeared = pim0_Clone_smeared.Y();
-                    double pimz_1_smeared = pim0_Clone_smeared.Z();
+                    // double pimz_1_smeared = pim0_Clone_smeared.Z();
+                    double rhox_1_smeared = rho0_Clone_smeared.X();
+                    double rhoy_1_smeared = rho0_Clone_smeared.Y();
+                    // double rhoz_1_smeared = rho0_Clone_smeared.Z();
                     // pT and phi from the rotated hadron momentum (measured in the CM frame - invarient of boost)
                     double pT_pim_smeared = sqrt(pimx_1_smeared*pimx_1_smeared + pimy_1_smeared*pimy_1_smeared);
                     double phi_t_pim_smeared = pim0_Clone_smeared.Phi()*TMath::RadToDeg();
                     if(phi_t_pim_smeared < 0){{phi_t_pim_smeared += 360;}}
-                    std::vector<double> pim_vals_smeared = {{epimX_smeared.M(), epimX_smeared.M2(), z_pim_smeared, pT_pim_smeared, phi_t_pim_smeared,  epippimX_smeared.M(), epippimproX_smeared.M(), epipproX_smeared.M(), Wpippim_smeared.M()}};
+                    double pT_rho_smeared = sqrt(rhox_1_smeared*rhox_1_smeared + rhoy_1_smeared*rhoy_1_smeared);
+                    double phi_t_rho_smeared = rho0_Clone_smeared.Phi()*TMath::RadToDeg();
+                    if(phi_t_rho_smeared < 0){{phi_t_rho_smeared += 360;}}
+                    std::vector<double> pim_vals_smeared = {{epimX_smeared.M(), epimX_smeared.M2(), z_pim_smeared, pT_pim_smeared, phi_t_pim_smeared,  epippimX_smeared.M(), epippimproX_smeared.M(), epipproX_smeared.M(), Ppippim_smeared.M(), z_rho_smeared, pT_rho_smeared, phi_t_rho_smeared}};
                     return pim_vals_smeared;"""])
 
                     for bank_ii, Full_pim_kinematics_ii in Full_pim_kinematics_list:
@@ -1166,6 +1184,9 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
                         rdf = rdf.Define(f'MM_pippimpro{bank_ii}', f'pim_vals{bank_ii}[6]')
                         rdf = rdf.Define(f'MM_pippro{bank_ii}',    f'pim_vals{bank_ii}[7]')
                         rdf = rdf.Define(f'W_pippim{bank_ii}',     f'pim_vals{bank_ii}[8]')
+                        rdf = rdf.Define(f'z_rho{bank_ii}',        f'pim_vals{bank_ii}[9]')
+                        rdf = rdf.Define(f'pT_rho{bank_ii}',       f'pim_vals{bank_ii}[10]')
+                        rdf = rdf.Define(f'phi_t_rho{bank_ii}',    f'pim_vals{bank_ii}[11]')
                     del Full_pim_kinematics_list
                     del Full_pim_kinematics
             else:
