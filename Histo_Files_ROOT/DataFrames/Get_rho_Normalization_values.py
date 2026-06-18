@@ -37,7 +37,8 @@ def parse_args():
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho_Normalizer_Default_rho_Final_Analysis_Iterations_I0_All.root',
                         help='Path to the ROOT file which contains the required clasdis/data histograms (without rho0).\n')
     parser.add_argument('-f2', '--file2',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V8_Diagnostics_Final_Analysis_Iterations_I0_All.root',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V9_Diagnostics_Final_Analysis_Iterations_I0_All.root',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V8_Diagnostics_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V6_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V5_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_V3_Final_Analysis_Iterations_I0_All.root',
@@ -255,7 +256,7 @@ def Create_Images(args, Full_List_of_HistosB, Full_List_of_Factors, Kinematic_Bi
     hist_data_sidis.SetLineWidth(2)
     hist_data_sidis.SetLineStyle(2)
     
-    proj_harut_1d_norm.SetLineColor(ROOT.kGreen)
+    proj_harut_1d_norm.SetLineColor(ROOT.kSpring+9)
     proj_harut_1d_norm.SetLineStyle(1)
     proj_harut_1d_norm.SetLineWidth(3)
 
@@ -323,7 +324,7 @@ def Create_Images(args, Full_List_of_HistosB, Full_List_of_Factors, Kinematic_Bi
     Draw_Canvas(canvas, 2, left_add=0.095, right_add=0.025, up_add=0.1, down_add=0.075)
     # Shared_Title = proj_data__1d.GetTitle()
     Shared_Title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{Exclusive Region Cutoff was z_{{1}}+z_{{2}} > {args.z_tot_cut}}}}}"
-    Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
+    Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kSpring+9}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
     if(Kinematic_Bin_Number not in [None, "All", Kinematic_Bin]):
         Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{4D Kinematic Bin: {int(Kinematic_Bin_Number)}}}}}"
     elif(Kinematic_Bin not in ["All", "Full"]):
@@ -493,10 +494,19 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     suffix = f"_{args.name}" if(args.name) else ""
     suffix = f"{suffix}_Bin_{getattr(args, 'current_kinematic_bin', 'All')}"
     # Data fit plot
-    c_data = ROOT.TCanvas("c_data_fit", "", 900, 600)
+    c_data = ROOT.TCanvas("c_data_fit", "", 1200, 600)
     ROOT.gStyle.SetOptStat(0)
+    c_data.Divide(2, 1, 0.0001, 0.0001)
+    Hist_Pad_Data = c_data.cd(1)
+    Hist_Pad_Data.SetPad(0.0, 0.0, 0.9, 1.0)
+    Fit_Pad_Data = c_data.cd(2)
+    Fit_Pad_Data.SetPad(0.85, 0.0,  1.0, 1.0)
+    Hist_Pad_Data.cd()
     mass_data.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}{{{args.title}}}")
-    if(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
         mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
     mass_data.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
     mass_data.Draw("hist")
@@ -515,11 +525,11 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     leg_d = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
     leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
     leg_d.AddEntry(mass_data, "Experimental Data", "l")
-    leg_d.AddEntry(fy_data,   "Full Fit",          "l")
-    leg_d.AddEntry(fy3_data,  "f_{2}",             "l")
     leg_d.AddEntry(fy4_data,  "f_{0}",             "l")
+    leg_d.AddEntry(fy3_data,  "f_{2}",             "l")
     leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
     leg_d.AddEntry(fy2_data,  "General Background","l")
+    leg_d.AddEntry(fy_data,   "Full Fit",          "l")
     leg_d.Draw("same")
     box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
     box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
@@ -529,21 +539,56 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     box_d.AddText("Exclusive #rho^{0} Events from Fit:")
     box_d.AddText(f"{N_data_rho:.6f}")
     box_d.Draw("same")
+    Fit_Pad_Data.cd()
+    Fit_box_d = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
+    Fit_box_d.SetFillColor(0); Fit_box_d.SetBorderSize(1); Fit_box_d.SetFillStyle(1001)
+    Fit_box_d.SetTextAlign(22); Fit_box_d.SetTextFont(62); Fit_box_d.SetTextSize(0.02)
+    Fit_box_d.SetMargin(0.02)
+    Fit_box_d.AddText("")
+    Fit_box_d.AddText("#scale[4.25]{#splitline{Experimental Data's}{Fit Parameters:}}")
+    fit_functions_data = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_data), ("f_{0} Fit Parameters:", fy4_data), ("f_{2} Fit Parameters:", fy3_data), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_data)]
+    fit_error_by_name = {} # Build lookup table from the actual fitted function
+    for ipar in range(fy_data.GetNpar()):
+        name = fy_data.GetParName(ipar)
+        err  = fy_data.GetParError(ipar)
+        if(name):
+            fit_error_by_name[name] = err
+    for fit_label, fit_func in fit_functions_data:
+        Fit_box_d.AddText("")
+        Fit_box_d.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
+        for ipar in range(fit_func.GetNpar()):
+            name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
+            if(name == "Constant"):
+                continue
+            val  = fit_func.GetParameter(ipar)
+            # err  = fit_func.GetParError(ipar)
+            err  = fit_error_by_name[name]
+            Fit_box_d.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
+    Fit_box_d.Draw("same")
     if(not args.no_save):
         c_data.SaveAs(f"Wpions_Fit_Experimental_Data{suffix}.{fmt}")
         print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
     else:
         print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
     # Harut fit plot
-    c_harut = ROOT.TCanvas("c_harut_fit", "", 900, 600)
+    c_harut = ROOT.TCanvas("c_harut_fit", "", 1200, 600)
     ROOT.gStyle.SetOptStat(0)
+    c_harut.Divide(2, 1, 0.0001, 0.0001)
+    Hist_Pad_Harut = c_harut.cd(1)
+    Hist_Pad_Harut.SetPad(0.0, 0.0, 0.9, 1.0)
+    Fit_Pad_Harut = c_harut.cd(2)
+    Fit_Pad_Harut.SetPad(0.85, 0.0,  1.0, 1.0)
+    Hist_Pad_Harut.cd()
     mass_harut.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Harut's MC}}{{{args.title}}}")
-    if(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+        mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
         mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
     mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
     mass_harut.GetYaxis().SetRangeUser(0, 1.2*mass_harut.GetMaximum())
     mass_harut.Draw("hist")
-    mass_harut.SetLineColor(ROOT.kGreen)
+    mass_harut.SetLineColor(ROOT.kSpring+9)
     fy_harut.SetLineColor(ROOT.kBlack)
     fy_harut.Draw("same")
     fy1_harut.SetLineColor(ROOT.kMagenta)
@@ -557,9 +602,9 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     leg_h = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
     leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
     leg_h.AddEntry(mass_harut, "Harut's Monte Carlo", "l")
-    leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
     leg_h.AddEntry(fy1_harut,  "#rho^{0} Signal",     "l")
     leg_h.AddEntry(fy2_harut,  "General Background",  "l")
+    leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
     # leg_h.AddEntry(fy3_harut,  "f_{2}",               "l")
     # leg_h.AddEntry(fy4_harut,  "f_{0}",               "l")
     leg_h.Draw("same")
@@ -568,14 +613,111 @@ def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1
     box_h.SetTextAlign(22); box_h.SetTextFont(62); box_h.SetTextSize(0.025)
     box_h.SetMargin(0.02)
     box_h.AddText("Number of Harut's MC")
-    box_h.AddText("Exclusive #rho^{0} Events:")
+    box_h.AddText("Exclusive #rho^{0} Events from Fit:")
     box_h.AddText(f"{N_harut_rho:.6f}")
     box_h.Draw("same")
+    Fit_Pad_Harut.cd()
+    # Fit_box_h = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
+    Fit_box_h = ROOT.TPaveText(0.0, 0.475, 0.95, 0.975, "NDC")
+    Fit_box_h.SetFillColor(0); Fit_box_h.SetBorderSize(1); Fit_box_h.SetFillStyle(1001)
+    Fit_box_h.SetTextAlign(22); Fit_box_h.SetTextFont(62); Fit_box_h.SetTextSize(0.02)
+    Fit_box_h.SetMargin(0.02)
+    Fit_box_h.AddText("")
+    Fit_box_h.AddText("#scale[4.25]{#splitline{Exclusive #rho^{0} MC's}{Fit Parameters:}}")
+    fit_functions_harut = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_harut), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_harut)]
+    fit_error_by_name_harut = {} # Build lookup table from the actual fitted function
+    for ipar in range(fy_harut.GetNpar()):
+        name = fy_harut.GetParName(ipar)
+        err  = fy_harut.GetParError(ipar)
+        if(name):
+            fit_error_by_name_harut[name] = err
+    for fit_label, fit_func in fit_functions_harut:
+        Fit_box_h.AddText("")
+        Fit_box_h.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
+        for ipar in range(fit_func.GetNpar()):
+            name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
+            if(name == "Constant"):
+                continue
+            val  = fit_func.GetParameter(ipar)
+            err  = fit_error_by_name_harut[name]
+            Fit_box_h.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
+    Fit_box_h.Draw("same")
+
     if(not args.no_save):
         c_harut.SaveAs(f"Wpions_Fit_Harut_MC{suffix}.{fmt}")
         print(f"{color.BOLD}Saved Wpions Harut fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
     else:
         print(f"{color.Error}Would have saved Wpions Harut fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+
+
+    # Both fit plot
+    c_both = ROOT.TCanvas("c_both_fit", "", 1200, 600)
+    ROOT.gStyle.SetOptStat(0)
+    c_both.Divide(2, 1, 0.0001, 0.0001)
+    Hist_Pad = c_both.cd(1)
+    Hist_Pad.SetPad(0.0, 0.0, 0.8, 1.0)
+    Fit_Pad = c_both.cd(2)
+    Fit_Pad.SetPad(0.75, 0.0,  1.0, 1.0)
+    Fit_Pad.Divide(2, 1, 0.0, 0.0)
+    Hist_Pad.cd()
+    mass_data.SetTitle(f"#splitline{{Comparisons of the M_{{#pi^{{+}}#pi^{{-}}}} Distributions}}{{{args.title}}}")
+    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
+    mass_data.Draw("hist E0")
+    fy_data.Draw("same")  # Total
+    fy1_data.Draw("same") # rho0
+    mass_harut.Draw("hist E0 same")
+    fy_harut.SetLineColor(ROOT.kBlack+2)
+    fy_harut.Draw("same")
+    fy1_harut.SetLineColor(ROOT.kMagenta+2)
+    fy1_harut.Draw("same")
+    leg_both = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
+    leg_both.SetFillStyle(0); leg_both.SetBorderSize(0)
+    leg_both.AddEntry(mass_data,  "Experimental Data",       "l")
+    leg_both.AddEntry(mass_harut, "Harut's Monte Carlo",     "l")
+    leg_both.AddEntry(fy1_data,   "#rho^{0} Signal (Data)",  "l")
+    leg_both.AddEntry(fy1_harut,  "#rho^{0} Signal (MC)",    "l")
+    leg_both.AddEntry(fy_data,    "Full Fit (Data)",         "l")
+    # leg_both.AddEntry(fy_harut,   "Full Fit (MC)",           "l")
+    leg_both.Draw("same")
+    both_box_d = ROOT.TPaveText(0.45, 0.7, 0.60, 0.8, "NDC")
+    # both_box_d = ROOT.TPaveText(0.5, 0.7, 0.6625, 0.8, "NDC")
+    both_box_d.SetFillColor(0); both_box_d.SetBorderSize(1); both_box_d.SetFillStyle(1001)
+    both_box_d.SetTextAlign(22); both_box_d.SetTextFont(62); both_box_d.SetTextSize(0.015)
+    both_box_d.SetMargin(0.02)
+    both_box_d.AddText("Number of Experimental")
+    both_box_d.AddText("Exclusive #rho^{0} Events from Fit:")
+    both_box_d.AddText(f"{N_data_rho:.6f}")
+    both_box_d.Draw("same")
+    both_box_h = ROOT.TPaveText(0.6, 0.7, 0.75, 0.8, "NDC")
+    # both_box_h = ROOT.TPaveText(0.6625, 0.7, 0.9, 0.8, "NDC")
+    both_box_h.SetFillColor(0); both_box_h.SetBorderSize(1); both_box_h.SetFillStyle(1001)
+    both_box_h.SetTextAlign(22); both_box_h.SetTextFont(62); both_box_h.SetTextSize(0.015)
+    both_box_h.SetMargin(0.02)
+    both_box_h.AddText("Number of Harut's MC")
+    both_box_h.AddText("Exclusive #rho^{0} Events from Fit:")
+    both_box_h.AddText(f"{N_harut_rho:.6f}")
+    both_box_h.Draw("same")
+    both_box_n = ROOT.TPaveText(0.75, 0.7, 0.90, 0.8, "NDC")
+    both_box_n.SetFillColor(0); both_box_n.SetBorderSize(1); both_box_n.SetFillStyle(1001)
+    both_box_n.SetTextAlign(22); both_box_n.SetTextFont(62); both_box_n.SetTextSize(0.015)
+    both_box_n.SetMargin(0.02)
+    both_box_n.AddText("Exclusive Normalization Factor:")
+    both_box_n.AddText(f"#scale[1.5]{{n_{{#rho}} = {(N_data_rho/N_harut_rho):.6f}}}")
+    both_box_n.Draw("same")
+    Fit_Pad.cd(1)
+    Fit_box_d.DrawClone("same")
+    Fit_Pad.cd(2)
+    Fit_box_h.DrawClone("same")
+    if(not args.no_save):
+        c_both.SaveAs(f"Wpions_Fit_Comparisons{suffix}.{fmt}")
+        print(f"{color.BOLD}Saved Wpions Comparison fit: {color.BBLUE}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
+    else:
+        print(f"{color.Error}Would have saved Wpions Comparison fit: {color.END_B}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
+
 
 # Nick's original dynamic ipart setup for 2 histograms
 par_Num = []
@@ -626,15 +768,24 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
     fy4p     = [ROOT.TF1(f"{default_data__name}_fy4_f0_experiment",   "breitwigner(0)", minValue, maxValue, 3), ROOT.TF1(f"{default_harut_name}_fy4_f0_harut",   "breitwigner(0)", minValue, maxValue, 3)]
 
     # Data (full 13-parameter model)
-    fyp_data.SetParName(0, "#rho Amp");      fyp_data.SetParName(1, "#rho Mean");  fyp_data.SetParName(2, "#rho Sigma")
+    fyp_data.SetParName(0, "#rho^{0} Amp");      fyp_data.SetParName(1, "#rho^{0} Mean");  fyp_data.SetParName(2, "#rho^{0} Sigma")
+    for fy1p_ii in fy1p:
+        fy1p_ii.SetParName(0, "#rho^{0} Amp");   fy1p_ii.SetParName(1, "#rho^{0} Mean");   fy1p_ii.SetParName(2, "#rho^{0} Sigma")
     if(pol3_or_gaus == "gaus"):
         fyp_data.SetParName(3, "Constant");  fyp_data.SetParName(4, "BKG Amp");    fyp_data.SetParName(5, "BKG Mean");  fyp_data.SetParName(6, "BKG Sigma")
     else:
         fyp_data.SetParName(3, "bkg Amp");   fyp_data.SetParName(4, "bkg p1");     fyp_data.SetParName(5, "bkg p2");    fyp_data.SetParName(6, "bkg p3")
-    fyp_data.SetParName(7, "f2 Amp");        fyp_data.SetParName(8, "f2 Mean");    fyp_data.SetParName(9, "f2 Sigma")
-    fyp_data.SetParName(10,"f0 Amp");        fyp_data.SetParName(11,"f0 Mean");    fyp_data.SetParName(12,"f0 Sigma")
+    for fy2p_ii in fy2p:
+        for ii in range(3, 7):
+            fy2p_ii.SetParName(ii-3, fyp_data.GetParName(ii))
+    fyp_data.SetParName(7, "f_{2} Amp");        fyp_data.SetParName(8, "f_{2} Mean");    fyp_data.SetParName(9, "f_{2} Sigma")
+    for fy3p_ii in fy3p:
+        fy3p_ii.SetParName(0, "f_{2} Amp");     fy3p_ii.SetParName(1, "f_{2} Mean");     fy3p_ii.SetParName(2, "f_{2} Sigma")
+    fyp_data.SetParName(10,"f_{0} Amp");        fyp_data.SetParName(11,"f_{0} Mean");    fyp_data.SetParName(12,"f_{0} Sigma")
+    for fy4p_ii in fy4p:
+        fy4p_ii.SetParName(0, "f_{0} Amp");     fy4p_ii.SetParName(1, "f_{0} Mean");     fy4p_ii.SetParName(2, "f_{0} Sigma")
     # Harut (rho + pol3/gaus background only — 7 parameters)
-    fyp_harut.SetParName(0, "#rho Amp");     fyp_harut.SetParName(1, "#rho Mean"); fyp_harut.SetParName(2, "#rho Sigma")
+    fyp_harut.SetParName(0, "#rho^{0} Amp");     fyp_harut.SetParName(1, "#rho^{0} Mean"); fyp_harut.SetParName(2, "#rho^{0} Sigma")
     if(pol3_or_gaus == "gaus"):
         fyp_harut.SetParName(3, "Constant"); fyp_harut.SetParName(4, "BKG Amp");   fyp_harut.SetParName(5, "BKG Mean"); fyp_harut.SetParName(6, "BKG Sigma")
     else:
@@ -711,7 +862,8 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
     fitter_harut = ROOT.Fit.Fitter()
     Npar_harut = 7
     if(pol3_or_gaus == "gaus"):
-        parTemp_harut = [1500.0, 0.77, 0.15,         0.0, 100 if(useBkg_harut) else 0.0, 0.50 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
+        # parTemp_harut = [1500.0, 0.77, 0.15,         0.0, 100 if(useBkg_harut) else 0.0, 0.50 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
+        parTemp_harut = [1500.0, 0.77, 0.15,         0.0,  5.0 if(useBkg_harut) else 0.0, 0.50 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
     else:
         parTemp_harut = [1500.0, 0.77, 0.15,
                          800.0 if(useBkg_harut) else 0.0, 1.2 if(useBkg_harut) else 0.0, 0.30 if(useBkg_harut) else 0.0, 1.1 if(useBkg_harut) else 0.0]
@@ -726,10 +878,15 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
     else:
         if(pol3_or_gaus == "gaus"):
             fitter_harut.Config().ParSettings(3).SetLimits(0, 0)
-            fitter_harut.Config().ParSettings(4).SetLimits(0, 500)
+            # fitter_harut.Config().ParSettings(4).SetLimits(0, 0)
+            fitter_harut.Config().ParSettings(4).SetLimits(0, 50)
             # fitter_harut.Config().ParSettings(5).SetLimits(0.2, 0.7)
-            fitter_harut.Config().ParSettings(5).SetLimits(0.2, 1)
-            fitter_harut.Config().ParSettings(6).SetLimits(0, 3)
+            # fitter_harut.Config().ParSettings(5).SetLimits(0.2, 1)
+            # fitter_harut.Config().ParSettings(5).SetLimits(0.3, 2)
+            # fitter_harut.Config().ParSettings(5).SetLimits(0.2, 2)
+            # fitter_harut.Config().ParSettings(5).SetLimits(0.15, 1.25)
+            fitter_harut.Config().ParSettings(5).SetLimits(0.15, 0.6)
+            fitter_harut.Config().ParSettings(6).SetLimits(0, 10)
         else:
             fitter_harut.Config().ParSettings(3).SetLimits(0, 1e6)
             fitter_harut.Config().ParSettings(4).SetLimits(0, 5)
@@ -782,8 +939,15 @@ def main_Get_rho_Normalization_values_Wpions(args):
     Num_Projections = [getattr(args, "Kinematic_Bin_Select", "All")] if(not (getattr(args, "use_z_bins", False) and (getattr(args, "Kinematic_Bin_Select", "All") in ["Full"]))) else list(range(1, 10))
     for kinematic_bin in Num_Projections:
         # 1D projections used as input distributions for fit (adapted from existing logic)
+        args.current_kinematic_bin = kinematic_bin
         if(getattr(args, "Kinematic_Bin_Select", "All") in ["All", "Full"]):
             if(kinematic_bin not in ["All", "Full"]):
+                if(getattr(args, "use_z_bins", False)):
+                    lowerEdge = proj__data_excl.GetYaxis().GetBinLowEdge(int(kinematic_bin))
+                    upperEdge = proj__data_excl.GetYaxis().GetBinUpEdge(int(kinematic_bin))
+                    args.current_kinematic_bin_title = f"z Fit Bin {int(kinematic_bin)}: {lowerEdge:.4g} < z < {upperEdge:.4g}"
+                else:
+                    args.current_kinematic_bin_title = f"Kinematic Bin {kinematic_bin}"
                 histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
                 histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
                 histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
@@ -791,11 +955,13 @@ def main_Get_rho_Normalization_values_Wpions(args):
                 histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
                 histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
                 histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
+                args.current_kinematic_bin_title = None # f"Kinematic Bin {kinematic_bin}"
         else:
             histo_bin_num = proj__data_excl.GetYaxis().FindBin(int(getattr(args, "Kinematic_Bin_Select", 0)))
             histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
             histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
             histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+            args.current_kinematic_bin_title = f"Kinematic Bin {(getattr(args, 'Kinematic_Bin_Select', 0))}"
         (N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut) = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
         bin_width_data  = histo__data_Wpions.GetXaxis().GetBinWidth(1)
         bin_width_harut = histo_harut_Wpions.GetXaxis().GetBinWidth(1)
@@ -821,7 +987,6 @@ def main_Get_rho_Normalization_values_Wpions(args):
             for i in range(7):
                 print(f"  par[{i:>2.0f}] = {fy_harut.GetParameter(i):>13.4f} ± {fy_harut.GetParError(i):.4f}")
         print("\n\n")
-        args.current_kinematic_bin = kinematic_bin
         Create_Wpions_Fit_Images(args, histo__data_Wpions, histo_harut_Wpions, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut, N_data_rho, N_harut_rho, n_rho)
     if(len(Num_Projections) > 1):
         N_data_rho_sum, N_harut_rho_sum, n_rho_sum = 0, 0, 0
@@ -1341,7 +1506,7 @@ def main_Get_rho_Normalization_values(args):
             
             proj_harut_1d_norm = proj_harut_1d.Clone("proj_harut_1d_norm")
             proj_harut_1d_norm.Scale(args.N_edf)
-            proj_harut_1d_norm.SetLineColor(ROOT.kGreen)
+            proj_harut_1d_norm.SetLineColor(ROOT.kSpring+9)
             proj_harut_1d_norm.SetLineStyle(1)
             proj_harut_1d_norm.SetLineWidth(3)
 
@@ -1426,11 +1591,11 @@ def main_Get_rho_Normalization_values(args):
             Draw_Canvas(canvas, 2, left_add=0.095, right_add=0.025, up_add=0.1, down_add=0.075)
             Shared_Title = proj_data__1d.GetTitle()
             Shared_Title = f"#splitline{{Plot of z_{{1}}+z_{{2}} For #rho^{{0}} Normalization}}{{#scale[0.8]{{Exclusive Region Cutoff was z_{{1}}+z_{{2}} > {args.z_tot_cut}}}}}"
-            Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
+            Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kSpring+9}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
             # if(args.title not in ["", " "]):
-            #     Shared_Title = Shared_Title.replace(args.title, f"#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}")
+            #     Shared_Title = Shared_Title.replace(args.title, f"#scale[0.75]{{#color[{ROOT.kSpring+9}]{{Exclusive #rho^{{0}} Focused Distributions}}}}")
             # else:
-            #     Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kGreen+1}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
+            #     Shared_Title = f"#splitline{{{Shared_Title}}}{{#scale[0.75]{{#color[{ROOT.kSpring+9}]{{Exclusive #rho^{{0}} Focused Distributions}}}}}}"
             hist_clasdis_excl.SetTitle(Shared_Title)
             hist_clasdis_excl.GetXaxis().SetTitle(hist_clasdis_excl.GetXaxis().GetTitle().replace(" (Smeared)", ""))
             proj_harut_1d_norm.SetTitle(Shared_Title)
@@ -1540,8 +1705,9 @@ def create_rho_normalized_diagnostic_plots(args, hist_list_in):
             histo_list_New[hist_name] = hist_list_in[hist_name]
             histo_list_New[f"{hist_name}_(Scaled)"] = hist_list_in[hist_name].Clone(f"{hist_name}_(Scaled)")
             histo_list_New[f"{hist_name}_(Scaled)"].Scale(scale_harut if("lund" in hist_name) else scale_clasdis)
-    for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
-        for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS"]:
+    for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)", "(z_rho)_(MM_pippim)", "(z_rho)_(pT_rho)", "(z_rho)_(W_pippim)", "(z1_plus_z2)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z1_plus_z2)_(W_pippim)"]:
+    # for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
+        for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS", "Exclusive_F", "2pi_Full", "Exclusive_rho"]:
             hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}_{stage_name}"
             hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
             if(all(names in histo_list_New for names in [hist_key_data, hist_key_harut])):
@@ -1551,43 +1717,110 @@ def create_rho_normalized_diagnostic_plots(args, hist_list_in):
                 raise SystemError(f"\n{color.Error}ERROR: Missing either '{hist_key_data}' OR '{hist_key_harut}'{color.END}\n")
     return histo_list_New
 
+
+rho_Cut_Titles = {
+        "Exclusive":     "Exclusive Events",
+        "Exclusive_F":   "Exclusive Events (w/ z_{tot} Cuts)",
+        "Exclusive_rho": "Exclusive #rho^{0} Events",
+        "SIDIS_BKG":     "SIDIS Background Events in Exclusive Region",
+        "SIDIS_2pi":     "Dipion SIDIS",
+        "Min_ExclC":     "#splitline{General Exclusive Event Selection Only}{#scale[0.85]{(No MM_{e'#pi^{+}#pi^{-}} Cuts)}}",
+        # "Full_SIDIS":    "Full SIDIS (w/Background)",
+        "2pi_Full":      "All Dipion Events",
+        "Applied_Titles": {
+            "Exclusive":     "Full Exclusivity Cuts for Normalization",
+            "Exclusive_F":   "Full Exclusivity Cuts (w/ z_{tot} Cut)",
+            "Exclusive_rho": "Exclusive #rho^{0} Cuts",
+            "SIDIS_BKG":     "SIDIS Background Cuts (i.e., SIDIS Events w/in Exclusive Region)",
+            "SIDIS_2pi":     "Dipion SIDIS Cuts",
+            "Min_ExclC":     "General Exclusive Event Selection Cuts",
+            "Full_SIDIS":    "Full SIDIS Cuts",
+            "2pi_Full":      "Dipion Event Selection (w/out MM_{e'#pi^{+}} > 1.8 Cut)"
+        }
+    }
 def make_diagnostic_cut_images(args):
     print(f"\n{color.BBLUE}Starting diagnostic cut-stage image creation...{color.END}")
     cut_stages = {
-        "Exclusive": [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
-        "SIDIS_BKG": [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
-        "SIDIS_2pi": [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
-        "Min_ExclC": [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
-        "Full_SIDIS": list(range(128, 256))
+        "Exclusive":     [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
+        "Exclusive_F":   [87, 95, 119, 127, 215, 223, 247, 255],
+        "Exclusive_rho": [31, 63, 95, 127, 159, 191, 223, 255],
+        "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+        "SIDIS_2pi":     [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+        "Min_ExclC":     [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+        "Full_SIDIS":    list(range(128, 256)),
+        "2pi_Full":      [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60, 61, 62, 63, 68, 69, 70, 71, 76, 77, 78, 79, 84, 85, 86, 87, 92, 93, 94, 95, 100, 101, 102, 103, 108, 109, 110, 111, 116, 117, 118, 119, 124, 125, 126, 127, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255]
     }
     cut_stages_clasdis = {
-        "SIDIS_BKG": [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
-        "SIDIS_2pi": [132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254],
-        "Min_ExclC": [6, 14, 22, 30, 38, 46, 54, 62, 70, 78, 86, 94, 102, 110, 118, 126, 134, 142, 150, 158, 166, 174, 182, 190, 198, 206, 214, 222, 230, 238, 246, 254],
-        "Full_SIDIS": list(range(128, 256, 2))
+        "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+        "SIDIS_2pi":     [132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254],
+        "Min_ExclC":     [6, 14, 22, 30, 38, 46, 54, 62, 70, 78, 86, 94, 102, 110, 118, 126, 134, 142, 150, 158, 166, 174, 182, 190, 198, 206, 214, 222, 230, 238, 246, 254],
+        "Full_SIDIS":    list(range(128, 256, 2)),
+        "2pi_Full":      [4, 6, 12, 14, 20, 22, 28, 30, 36, 38, 44, 46, 52, 54, 60, 62, 68, 70, 76, 78, 84, 86, 92, 94, 100, 102, 108, 110, 116, 118, 124, 126, 132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254]
     }
     file1 = ROOT.TFile.Open(args.file2)
     if((not file1) or (file1.IsZombie())):
         print(f"{color.Error}ERROR: Could not open {args.file2}{color.END}")
         return
     hist_list = {}
-    for var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
+    def Update_rho_Vars(hist):
+        current_title = hist.GetTitle()
+        current_title = current_title.replace("(P_{#pi^{+}#pi^{-}})_{T}", "(P_{#rho^{0}})_{T}")
+        current_title = current_title.replace("z_{#pi^{+}#pi^{-}}", "z_{#rho^{0}}")
+        current_title = current_title.replace("#(phi_{#pi^{+}#pi^{-}})_{h}", "#(phi_{#rho^{0}})_{h}")
+        current_title_X = hist.GetXaxis().GetTitle()
+        current_title_X = current_title_X.replace("(P_{#pi^{+}#pi^{-}})_{T}", "(P_{#rho^{0}})_{T}")
+        current_title_X = current_title_X.replace("z_{#pi^{+}#pi^{-}}", "z_{#rho^{0}}")
+        current_title_X = current_title_X.replace("#(phi_{#pi^{+}#pi^{-}})_{h}", "#(phi_{#rho^{0}})_{h}")
+        current_title_X = current_title_X.replace(" (Smeared)", "")
+        current_title_Y = hist.GetYaxis().GetTitle()
+        current_title_Y = current_title_Y.replace("(P_{#pi^{+}#pi^{-}})_{T}", "(P_{#rho^{0}})_{T}")
+        current_title_Y = current_title_Y.replace("z_{#pi^{+}#pi^{-}}", "z_{#rho^{0}}")
+        current_title_Y = current_title_Y.replace("#(phi_{#pi^{+}#pi^{-}})_{h}", "#(phi_{#rho^{0}})_{h}")
+        current_title_Y = current_title_Y.replace(" (Smeared)", "")
+        hist.SetTitle(current_title)
+        hist.GetXaxis().SetTitle(current_title_X)
+        hist.GetYaxis().SetTitle(current_title_Y)
+        return hist
+        
+    for var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)", "(z_rho)_(MM_pippim)", "(z_rho)_(pT_rho)", "(z_rho)_(W_pippim)", "(z1_plus_z2)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z1_plus_z2)_(W_pippim)"]:
         hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}"
         hist_key_mdf   = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}"
         hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
         hist_list[hist_key_data]  = file1.Get(hist_key_data)
         hist_list[hist_key_mdf]   = file1.Get(hist_key_mdf)
         hist_list[hist_key_harut] = file1.Get(hist_key_harut)
+        var_1, var_2 = var_choice.split(")_(")
+        var_1, var_2 = var_1.replace("(", ""), var_2.replace(")", "")
+        Updated_Title_General = f"#scale[1.5]{{{variable_Title_name_new(var_1)} vs {variable_Title_name_new(var_2)}}}"
+        if(getattr(args, "title", None) not in ["", None]):
+            Updated_Title_General = f"#splitline{{{Updated_Title_General}}}{{#scale[0.8]{{{args.title}}}}}"
         for stage_name, z_bin_list in cut_stages.items():
             if(args.verbose):
                 print(f"\n{color.BOLD}→ Processing {stage_name} ({len(z_bin_list)} Z-bins){color.END}")
             # Data projections
             hist_list[f"{hist_key_data}_{stage_name}"]    = project_z_bins_global(hist_list[hist_key_data],  f"{hist_key_data}_{stage_name}", z_bin_list, args, diagnostic=True)
+            if(stage_name in rho_Cut_Titles["Applied_Titles"]):
+                hist_list[f"{hist_key_data}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Applied {rho_Cut_Titles['Applied_Titles'][stage_name]} to Data}}")
+            else:
+                print(f"\n{color.Error}WARNING:{color.END_R} stage_name = {stage_name} is not in rho_Cut_Titles['Applied_Titles']...{color.END}\n")
+                hist_list[f"{hist_key_data}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Using Experimental Data}}")
             # Harut projections
             hist_list[f"{hist_key_harut}_{stage_name}"]   = project_z_bins_global(hist_list[hist_key_harut], f"{hist_key_harut}_{stage_name}", z_bin_list, args, diagnostic=True)
+            if(stage_name in rho_Cut_Titles["Applied_Titles"]):
+                hist_list[f"{hist_key_harut}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Applied {rho_Cut_Titles['Applied_Titles'][stage_name]} to Harut's Exclusive MC}}")
+            else:
+                hist_list[f"{hist_key_harut}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Using Harut's Exclusive MC}}")
             # MDF/clasdis projections
             if(stage_name in cut_stages_clasdis):
                 hist_list[f"{hist_key_mdf}_{stage_name}"] = project_z_bins_global(hist_list[hist_key_mdf],   f"{hist_key_mdf}_{stage_name}", cut_stages_clasdis[stage_name], args, diagnostic=True)
+                if(stage_name in rho_Cut_Titles["Applied_Titles"]):
+                    hist_list[f"{hist_key_mdf}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Applied {rho_Cut_Titles['Applied_Titles'][stage_name]} to clasdis MC}}")
+                else:
+                    hist_list[f"{hist_key_mdf}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Using clasdis MC}}")
+            if(stage_name in ["Exclusive_rho"]):
+                hist_list[f"{hist_key_data}_{stage_name}"]  = Update_rho_Vars(hist_list[f"{hist_key_data}_{stage_name}"])
+                hist_list[f"{hist_key_harut}_{stage_name}"] = Update_rho_Vars(hist_list[f"{hist_key_harut}_{stage_name}"])
+                # hist_list[f"{hist_key_mdf}_{stage_name}"]   = Update_rho_Vars(hist_list[f"{hist_key_mdf}_{stage_name}"])
     file1.Close()
     if((not getattr(args, "extra_root_save", False)) and (not getattr(args, "no_save", False))):
         args_name = f'_{getattr(args, "name", "")}' if(getattr(args, "name", "") not in [""]) else ''
@@ -1620,9 +1853,9 @@ def Slice_4D_Histo_Bins_For_phi_h_Plots(args, Hist_In, Q2_Y_Bin_In, z_pT_Bin_In,
     Hist_Binned = Hist_In.ProjectionX(initial_name, int(bin_4D_num), int(bin_4D_num))
     Default_Title = f"#splitline{{Comparisons of #phi_{{h}} Distributions}}{{{args.title}}}"
     if(not Use_All_Name):
-        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[0.75]{{Q^{{2}}-y Bin {Q2_Y_Bin_In} #topbar z-P_{{T}} Bin {z_pT_Bin_In}}}}}")
+        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[1.25]{{Q^{{2}}-y Bin {Q2_Y_Bin_In} #topbar z-P_{{T}} Bin {z_pT_Bin_In}}}}}")
     else:
-        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[0.8]{{Q^{{2}}-y Bin {Q2_Y_Bin_In}}}}}")
+        Hist_Binned.SetTitle(f"#splitline{{{Default_Title}}}{{#scale[1.50]{{Q^{{2}}-y Bin {Q2_Y_Bin_In}}}}}")
     Hist_Binned.GetXaxis().SetTitle(str(Hist_Binned.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
     return Hist_Binned
 
@@ -1666,7 +1899,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
     elif(Draw_Type == "No_Weight"):
         Save_Name_All = f"{Save_Name_All}_Unweighted"
 
-    All_z_pT_Canvas[Save_Name_All] = Canvas_Create(Name=Save_Name_All, Num_Columns=2, Num_Rows=1, Size_X=int(1800*320), Size_Y=int(1500*400), cd_Space=0.01)
+    All_z_pT_Canvas[Save_Name_All] = Canvas_Create(Name=Save_Name_All, Num_Columns=2, Num_Rows=1, Size_X=int(1800*8), Size_Y=int(1500*10), cd_Space=0.01)
     ROOT.gStyle.SetPadGridX(0)
     ROOT.gStyle.SetPadGridY(0)
     All_z_pT_Canvas[Save_Name_All].SetFillColor(ROOT.kGray)
@@ -1758,7 +1991,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                     continue
                 All_Histos[temp_hists["harut"].GetName()] = temp_hists["harut"]
                 All_Histos[temp_hists["harut"].GetName()].SetLineWidth(3 if("png" in fmt) else 1)
-                All_Histos[temp_hists["harut"].GetName()].SetLineColor(ROOT.kGreen)
+                All_Histos[temp_hists["harut"].GetName()].SetLineColor(ROOT.kSpring+9)
                 Min_Content = min([Min_Content, All_Histos[temp_hists["harut"].GetName()].GetBinContent(All_Histos[temp_hists["harut"].GetName()].GetMinimumBin())])
                 Max_Content = max([Max_Content, All_Histos[temp_hists["harut"].GetName()].GetBinContent(All_Histos[temp_hists["harut"].GetName()].GetMaximumBin())])
                 if(Comparison_Type == "Raw_Harut"):
@@ -1780,7 +2013,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                     All_Histos[Full_Integrated_Bin_Name_harut] = temp_hists["harut_All"]
                     All_Histos[Full_Integrated_Bin_Name_harut].SetTitle(str(All_Histos[Full_Integrated_Bin_Name_harut].GetTitle()).replace(f"Bin {Q2_Y_Bin}", "Bin All"))
                     All_Histos[Full_Integrated_Bin_Name_harut].SetLineWidth(3 if("png" in fmt) else 1)
-                    All_Histos[Full_Integrated_Bin_Name_harut].SetLineColor(ROOT.kGreen)
+                    All_Histos[Full_Integrated_Bin_Name_harut].SetLineColor(ROOT.kSpring+9)
                 else:
                     All_Histos[Full_Integrated_Bin_Name_harut].Add(All_Histos[temp_hists["harut"].GetName()])
                 if(Integrated_Bin_Name_harut is None):
@@ -1788,7 +2021,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                     Integrated_Bin_Name_harut = temp_hists["harut_All"].GetName()
                     All_Histos[Integrated_Bin_Name_harut] = temp_hists["harut_All"]
                     All_Histos[Integrated_Bin_Name_harut].SetLineWidth(3 if("png" in fmt) else 1)
-                    All_Histos[Integrated_Bin_Name_harut].SetLineColor(ROOT.kGreen)
+                    All_Histos[Integrated_Bin_Name_harut].SetLineColor(ROOT.kSpring+9)
                 else:
                     All_Histos[Integrated_Bin_Name_harut].Add(All_Histos[temp_hists["harut"].GetName()])
                 if(Comparison_Type in ["In_Data", "All_Data_Types"]):
@@ -1811,7 +2044,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                             Ratios_of_Contaminations[ratio_checks]["Max_Contamination"]    = Ratios_of_Contaminations[Save_Name][f"Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})"]
                             Ratios_of_Contaminations[ratio_checks]["Max_Bin_Num"]          = f"Bin_({Q2_Y_Bin}-{z_pT_Bin})"
                     preContamination_Title = All_Histos[temp_hists["harut"].GetName()].GetTitle()
-                    All_Histos[temp_hists["harut"].GetName()].SetTitle(f"#splitline{{{preContamination_Title}}}{{#scale[2]{{#splitline{{Percent of #rho^{{0}} Contamination in this Bin:}}{{{Ratios_of_Contaminations[Save_Name][f'Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})']:.3f}%}}}}}}")
+                    All_Histos[temp_hists["harut"].GetName()].SetTitle(f"#splitline{{{preContamination_Title}}}{{#scale[4]{{#splitline{{Percent of #rho^{{0}} Contamination in this Bin:}}{{{Ratios_of_Contaminations[Save_Name][f'Percent_Contamination_for_Bin_({Q2_Y_Bin}-{z_pT_Bin})']:.3f}%}}}}}}")
                     if(Full_Integrated_Bin_Name_data_wBG is None):
                         temp_hists["data_wBG_All"] = Slice_4D_Histo_Bins_For_phi_h_Plots(args, hist_data_wBG, Q2_Y_Bin, z_pT_Bin, Use_All_Name=True)
                         Full_Integrated_Bin_Name_data_wBG = f'Full_Integrated_starting_from_{temp_hists["data_wBG_All"].GetName()}'
@@ -1924,8 +2157,11 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
             All_z_pT_Canvas[Save_Name_All].sub_canvas[Save_Name].histos_store = {}
         leg = ROOT.TLegend(0.10, 0.15, 0.90, 0.85, "", "NDC")
         leg.SetNColumns(1)
-        leg.SetBorderSize(0)
-        leg.SetFillStyle(0)
+        # leg.SetBorderSize(0)
+        # leg.SetFillStyle(0)
+        leg.SetBorderSize(1)
+        leg.SetFillStyle(1001)
+        leg.SetFillColor(ROOT.kWhite)
         leg.SetTextFont(42)
         leg.SetTextSize(0.10)
         Min_Content_Integrated, Max_Content_Integrated = 0, 0
@@ -2005,16 +2241,16 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
                 Ratios_of_Contaminations[Save_Name]["Report_Box"].SetTextSize(0.025)
                 Ratios_of_Contaminations[Save_Name]["Report_Box"].SetMargin(0.02)
                 if(Comparison_Type == "Raw_Harut"):
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.0]{{#splitline{{Total Number of Events Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]:.1f}}}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.25]{{Total Number of 5D Bins Counted: {Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.75]{{#splitline{{Average Bin Content per 5D Bins Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]/Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]:.3f}}}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Maximum Bin Content per 4D Bins Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Max_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Max_Bin_Num"].replace("_", " ")}}}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Minimum Bin Content per 4D Bins Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Min_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Min_Bin_Num"].replace("_", " ")}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[3.0]{{#splitline{{Total Number of Events:}}{{    {Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]:.0f}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.25]{{#splitline{{Total Number of 5D Bins Counted:}}{{    {Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.75]{{#splitline{{Average Content per 5D Bins:}}{{    {Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]/Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]:.3f}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Maximum Content per 4D Bins:}}{{    {Ratios_of_Contaminations[Save_Name]["Max_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Max_Bin_Num"].replace("_", " ")}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Minimum Content per 4D Bins:}}{{    {Ratios_of_Contaminations[Save_Name]["Min_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Min_Bin_Num"].replace("_", " ")}}}}}')
                 else:
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.0]{{#splitline{{Average #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]/Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]:.3f}% of Data}}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Maximum #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Max_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Max_Bin_Num"].replace("_", " ")}}}}}')
-                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Minimum #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations[Save_Name]["Min_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Min_Bin_Num"].replace("_", " ")}}}}}')
-                Ratios_of_Contaminations[Save_Name]["Report_Box"].Draw("same")
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[3.0]{{#splitline{{Average #rho^{{0}} Contamination:}}{{    {Ratios_of_Contaminations[Save_Name]["Sum_of_Percents"]/Ratios_of_Contaminations[Save_Name]["Number_of_Calcs"]:.3f}% of Data}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Maximum #rho^{{0}} Contamination:}}{{#splitline{{{Ratios_of_Contaminations[Save_Name]["Max_Contamination"]:.3f}% of Data}}{{in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Max_Bin_Num"].replace("_", " ")}}}}}}}')
+                    Ratios_of_Contaminations[Save_Name]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Minimum #rho^{{0}} Contamination:}}{{#splitline{{{Ratios_of_Contaminations[Save_Name]["Min_Contamination"]:.3f}% of Data}}{{in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations[Save_Name]["Min_Bin_Num"].replace("_", " ")}}}}}}}')
+                Ratios_of_Contaminations[Save_Name]["Report_Box"].DrawClone("same")
         ################################################################
     ################################################################################################################################################################################################################################################################################################################################################################################################################
     ################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -2067,15 +2303,15 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
         Ratios_of_Contaminations["Global"]["Report_Box"].SetTextSize(0.025)
         Ratios_of_Contaminations["Global"]["Report_Box"].SetMargin(0.02)
         if(Comparison_Type == "Raw_Harut"):
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.0]{{#splitline{{Total Number of Events Shown:}}{{{Ratios_of_Contaminations["Global"]["Sum_of_Percents"]:.1f}}}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.25]{{Total Number of 5D Bins Counted: {Ratios_of_Contaminations["Global"]["Number_of_Calcs"]}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.75]{{#splitline{{Average Bin Content per 5D Bins Shown:}}{{{Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}}}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Maximum Bin Content per 4D Bins Shown:}}{{{Ratios_of_Contaminations["Global"]["Max_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Max_Bin_Num"].replace("_", " ")}}}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Minimum Bin Content per 4D Bins Shown:}}{{{Ratios_of_Contaminations["Global"]["Min_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Total Number of Events:}}{{    {Ratios_of_Contaminations["Global"]["Sum_of_Percents"]:.1f}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.25]{{#splitline{{Total Number of 5D Bins Counted:}}{{    {Ratios_of_Contaminations["Global"]["Number_of_Calcs"]}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Average Content per 5D Bins:}}{{    {Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.25]{{#splitline{{Maximum Content per 4D Bins:}}{{    {Ratios_of_Contaminations["Global"]["Max_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Max_Bin_Num"].replace("_", " ")}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.25]{{#splitline{{Minimum Content per 4D Bins:}}{{    {Ratios_of_Contaminations["Global"]["Min_Contamination"]:.1f} in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}}}}}')
         else:
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.0]{{#splitline{{Average #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}% of Data}}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Maximum #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations["Global"]["Max_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Max_Bin_Num"].replace("_", " ")}}}}}')
-            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[1.5]{{#splitline{{Minimum #rho^{{0}} Contamination Shown:}}{{{Ratios_of_Contaminations["Global"]["Min_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[3.0]{{#splitline{{Average #rho^{{0}} Contamination:}}{{    {Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}% of Data}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Maximum #rho^{{0}} Contamination:}}{{#splitline{{{Ratios_of_Contaminations["Global"]["Max_Contamination"]:.3f}% of Data}}{{in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Max_Bin_Num"].replace("_", " ")}}}}}}}')
+            Ratios_of_Contaminations["Global"]["Report_Box"].AddText(f'#scale[2.5]{{#splitline{{Minimum #rho^{{0}} Contamination:}}{{#splitline{{{Ratios_of_Contaminations["Global"]["Min_Contamination"]:.3f}% of Data}}{{in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}}}}}}}')
             print("\n\n")
             print(f"{color.BBLUE}Average #rho^{0} Contamination Shown:{color.END}")
             print(f'{color.BOLD}\t{Ratios_of_Contaminations["Global"]["Sum_of_Percents"]/Ratios_of_Contaminations["Global"]["Number_of_Calcs"]:.3f}% of Data{color.END}')
@@ -2085,6 +2321,20 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
             print(f'{color.BOLD}\t{Ratios_of_Contaminations["Global"]["Min_Contamination"]:.3f}% of Data in Q^{{2}}-y-z-P_{{T}} {Ratios_of_Contaminations["Global"]["Min_Bin_Num"].replace("_", " ")}{color.END}')
         Ratios_of_Contaminations["Global"]["Report_Box"].Draw("same")
     print("\n\n")
+    # All_z_pT_Canvas[Save_Name_All].SetCanvasSize(5760000, 6000000)
+    old_line_scale = ROOT.gStyle.GetLineScalePS()
+    # # # ROOT.gStyle.SetLineScalePS(0.25*old_line_scale)
+    # # ROOT.gStyle.SetLineScalePS(1.0)
+    # ROOT.gStyle.SetLineScalePS(0.45)
+    # All_z_pT_Canvas[Save_Name_All].SetCanvasSize(92000, 98000)   # <<< tune these two numbers up/down (try 65000/70000 first, then 120k+ if your machine allows)
+    All_z_pT_Canvas[Save_Name_All].SetCanvasSize(145000, 152000)
+    old_line_scale = ROOT.gStyle.GetLineScalePS()
+    # ROOT.gStyle.SetLineScalePS(0.092)
+    ROOT.gStyle.SetLineScalePS(0.75)
+
+    # print(f"\n\nold_line_scale = {old_line_scale}\n\n")
+    All_z_pT_Canvas[Save_Name_All].Modified()
+    All_z_pT_Canvas[Save_Name_All].Update()
     out_name_all = f"{Save_Name_All}_{args.name}{fmt}" if(getattr(args, "name", "") not in [None, ""]) else f"{Save_Name_All}{fmt}"
     if(not getattr(args, "no_save", False)):
         All_z_pT_Canvas[Save_Name_All].SaveAs(out_name_all)
@@ -2092,6 +2342,7 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
     else:
         print(f"{color.Error}Would be Saving: {color.BCYAN}{out_name_all}{color.END}")
     print("\n\n")
+    ROOT.gStyle.SetLineScalePS(old_line_scale)
     ROOT.gStyle.SetPadGridX(1)
     ROOT.gStyle.SetPadGridY(1)
     return All_z_pT_Canvas
@@ -2126,7 +2377,10 @@ def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(x
         Default_Title = f"#splitline{{#splitline{{Exclusive Background Subtraction Comparisons for}}{{{variable_Title_name_new(Project_Var)} Distributions}}}}{{{args.title}}}"
         if(Comparison_Type in ["Raw_Harut"]):
             Default_Title = f"#splitline{{#splitline{{{variable_Title_name_new(Project_Var)} Distributions from}}{{Harut's Exclusive MC}}}}{{{args.title}}}"
-        if(stage_name not in ["Full_SIDIS"]):
+        if((stage_name in rho_Cut_Titles) and (stage_name not in ["Full_SIDIS"])):
+            Default_Title = f"#splitline{{{Default_Title}}}{{{rho_Cut_Titles[stage_name]}}}"
+        elif(stage_name not in ["Full_SIDIS"]):
+            print(f"\n{color.Error}WARNING:{color.END_R} 'stage_name' = {stage_name} is not defined in 'rho_Cut_Titles'...{color.END}\n")
             Default_Title = f"#splitline{{{Default_Title}}}{{Applied Cuts for '{stage_name}' Events}}"
         Hist_Projected.SetTitle(Default_Title)
         Hist_Projected.GetXaxis().SetTitle(str(Hist_Projected.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
@@ -2149,7 +2403,7 @@ def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(x
         Canvas_List[Save_Name] = Canvas_Create(Name=Save_Name, Num_Columns=2, Num_Rows=1, Size_X=1200, Size_Y=600, cd_Space=0.01)
         ROOT.gStyle.SetOptStat(0)
         Canvas_List[f"{Save_Name}_pad1"] = Canvas_List[Save_Name].cd(1)
-        Canvas_List[f"{Save_Name}_pad1"].SetPad(0.0, 0.0, 0.8, 1.0)
+        Canvas_List[f"{Save_Name}_pad1"].SetPad(0.0, 0.0, 0.85, 1.0)
         Canvas_List[f"{Save_Name}_pad2"] = Canvas_List[Save_Name].cd(2)
         Canvas_List[f"{Save_Name}_pad2"].SetPad(0.8, 0.0, 1.0, 1.0)
         Canvas_List[Save_Name].cd(2)
@@ -2160,7 +2414,7 @@ def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(x
         Canvas_List[f"legend_{var}"].SetFillStyle(0)
         Canvas_List[f"legend_{var}"].SetTextFont(42)
         Canvas_List[f"legend_{var}"].SetTextSize(0.10)
-        Hists_Projected[var][f"{Save_Name}_Harut"],         Min_Content, Max_Content = Projection_Function(hist_harut,     Min_Content, Max_Content, var, num, ROOT.kGreen)
+        Hists_Projected[var][f"{Save_Name}_Harut"],         Min_Content, Max_Content = Projection_Function(hist_harut,     Min_Content, Max_Content, var, num, ROOT.kSpring+9)
         Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_Harut"], "#scale[0.75]{Harut's Exclusive MC}" if((Draw_Type not in ["data_scale"]) or (Comparison_Type in ["Raw_Harut"])) else "#scale[0.75]{#splitline{Harut's Exclusive MC}{Scaled to Data}}", "l")
         if(Comparison_Type in ["In_Data", "All_Data_Types"]):
             Hists_Projected[var][f"{Save_Name}_data_wBG"],  Min_Content, Max_Content = Projection_Function(hist_data_wBG,  Min_Content, Max_Content, var, num, ROOT.kBlue)
@@ -2271,7 +2525,7 @@ def Create_Diagnostic_Weight_Impact_Plots(args):
     clas_scaled.SetLineColor(ROOT.kRed)
     clas_scaled.SetLineWidth(2)
     clas_scaled.Draw("hist")
-    haru_scaled.SetLineColor(ROOT.kGreen+1)
+    haru_scaled.SetLineColor(ROOT.kSpring+9)
     haru_scaled.SetLineWidth(2)
     haru_scaled.Draw("hist same")
     data_kin.Draw("hist same")
@@ -2418,13 +2672,15 @@ if(__name__ == "__main__"):
         diagnostic_hist_list = make_diagnostic_cut_images(args)
         canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_Data",        stage_name="Full_SIDIS", Draw_Type="data_scale")
         canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="Raw_Harut",      stage_name="Full_SIDIS", Draw_Type="No_Weight")
-        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_MCs",         stage_name="Full_SIDIS", Draw_Type="Normalized")
-        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="data_scale")
-        # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="Normalized")
-        # for     stage_names in ["Full_SIDIS", "Exclusive"]:
+        # # # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_MCs",         stage_name="Full_SIDIS", Draw_Type="Normalized")
+        # # # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="data_scale")
+        # # # canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="All_Data_Types", stage_name="Full_SIDIS", Draw_Type="Normalized")
+        # for     stage_names in ["Full_SIDIS", "Exclusive", "Exclusive_F", "SIDIS_2pi", "2pi_Full", "Min_ExclC", "Exclusive_rho"]:
+        # # for     stage_names in ["Full_SIDIS", "Exclusive"]:
         for     stage_names in ["Full_SIDIS"]:
-            for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)"]:
-                if((var_choices in ["(W_pippim)_(MM_pippim)"]) and (stage_names not in ["Exclusive"])):
+            for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z_rho)_(pT_rho)"]:
+            # for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)"]:
+                if((any(dipion_vars in var_choices for dipion_vars in ["z1_plus_z2", "pT_rho", "z_rho", "W_pippim", "MM_pippim"])) and (stage_names not in ["Exclusive", "Exclusive_F", "SIDIS_2pi", "2pi_Full", "Min_ExclC", "Exclusive_rho"])):
                     continue
                 canvas_list = Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="In_Data",   stage_name=stage_names, Draw_Type="data_scale")
                 canvas_list = Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="Raw_Harut", stage_name=stage_names, Draw_Type="No_Weight")
