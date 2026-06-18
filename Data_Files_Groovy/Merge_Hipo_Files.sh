@@ -3,7 +3,7 @@
 # Function to display help message
 function display_help {
     echo
-    echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [-i <input_dir>] [-n <expected_total>] [--test]"
+    echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [-i <input_dir>] [-n <expected_total>] [-c] [--test]"
     echo "       Will merge sets of Monte Carlo HIPO files from a given OSG job into 10 larger files"
     echo
     echo "Arguments:"
@@ -18,7 +18,57 @@ function display_help {
     echo "  -n  Optional: Expected file total per group (used for percentage calc). Defaults to 1000."
     echo "  -h, --help          Display this help message and exit."
     echo "  -t, --test          Optional: If specified, the script will only count and print the number of input files instead of merging them."
+    echo "  -c, --check         Optional: If specified, the script will scan files and list corrupted files without merging them."
     echo
+}
+
+# Function to require an option value
+function require_option_value {
+    local option_name=$1
+    local option_value=$2
+
+    if [[ -z "$option_value" || "$option_value" == -* ]]; then
+        echo "Error: $option_name requires a value."
+        display_help
+        exit 1
+    fi
+}
+
+# Function to check whether a HIPO file appears corrupted/unusable
+function hipo_file_is_corrupted {
+    local file_name=$1
+    local hipo_info=""
+    local hipo_status=0
+
+    if [ ! -s "$file_name" ]; then
+        return 0
+    fi
+
+    hipo_info=$(hipo-utils -info "$file_name" 2>&1)
+    hipo_status=$?
+
+    if [[ "$hipo_status" -ne 0 ]]; then
+        hipo_info=$(hipo-utils -dump "$file_name" 2>&1)
+        hipo_status=$?
+    fi
+
+    if [[ "$hipo_info" == *"does not appear to have an index"* ]]; then
+        return 0
+    fi
+
+    if echo "$hipo_info" | grep -Eq "number of[[:space:]]+records[[:space:]]*:[[:space:]]*0([^0-9]|$)"; then
+        return 0
+    fi
+
+    if echo "$hipo_info" | grep -Eq "number of[[:space:]]+events[[:space:]]*:[[:space:]]*0([^0-9]|$)"; then
+        return 0
+    fi
+
+    if [[ "$hipo_status" -ne 0 ]]; then
+        return 0
+    fi
+
+    return 1
 }
 
 # Check if the first argument is '--help'
@@ -29,7 +79,7 @@ fi
 
 # Check if at least two arguments (username and job_id) are provided
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [-i <input_dir>] [-n <expected_total>] [--test]"
+  echo "Usage: $0 <username> <job_id> [-o <dir>] [-s <id>] [-i <input_dir>] [-n <expected_total>] [-c] [--test]"
   exit 1
 fi
 
@@ -40,6 +90,7 @@ shift 2
 
 # Defaults
 test_mode=false
+check_mode=false
 output_directory="$(pwd)"
 string_identifier="inb-clasdis"
 custom_input_directory=""
@@ -49,27 +100,33 @@ expected_total=1000
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -o)
-            if [[ -z "$2" ]]; then echo "Error: -o requires a directory argument"; exit 1; fi
+            require_option_value "-o" "$2"
             output_directory="$2"
             shift 2
             ;;
         -s)
-            if [[ -z "$2" ]]; then echo "Error: -s requires an identifier argument"; exit 1; fi
+            require_option_value "-s" "$2"
             string_identifier="$2"
             shift 2
             ;;
         -i)
-            if [[ -z "$2" ]]; then echo "Error: -i requires a directory argument"; exit 1; fi
+            require_option_value "-i" "$2"
             custom_input_directory="$2"
             shift 2
             ;;
         -n)
-            if [[ -z "$2" ]]; then echo "Error: -n requires a numeric argument"; exit 1; fi
-            if ! [[ "$2" =~ ^[0-9]+$ ]]; then echo "Error: -n expects an integer (e.g., 2000)"; exit 1; fi
+            require_option_value "-n" "$2"
+            if ! [[ "$2" =~ ^[0-9]+$ ]]; then echo "Error: -n expects an integer (e.g., 1000)"; exit 1; fi
+            if [[ "$2" -eq 0 ]]; then echo "Error: -n must be greater than 0"; exit 1; fi
             expected_total="$2"
             shift 2
             ;;
         -t|--test)
+            test_mode=true
+            shift
+            ;;
+        -c|--check)
+            check_mode=true
             test_mode=true
             shift
             ;;
@@ -103,34 +160,91 @@ fi
 # Initialize variables for summing percentages and counting iterations
 total_percent=0
 count=0
+total_corrupted_files=0
 
 # Loop to process the files
 for i in $(seq 0 9); do
     if [[ "$string_identifier" == "empty" ]]; then
-        input_files="${input_directory}/${job_id}-*${i}.hipo"
+        input_pattern="${input_directory}/${job_id}-*${i}.hipo"
         safe_string_identifier="nb-clasdis-Q2_1.5"
         output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
     else
-        input_files="${input_directory}/${string_identifier}-${job_id}-*${i}.hipo"
+        # input_pattern="${input_directory}/${string_identifier}-${job_id}-*${i}.hipo"
+        input_pattern="${input_directory}/${string_identifier}-${job_id}*${i}.hipo"
         safe_string_identifier="${string_identifier//\*/}" # Remove '*' from string_identifier only for output_file naming
         output_file="${output_directory}/${safe_string_identifier}-${job_id}_${i}.hipo"
     fi
 
+    input_files=()
+    good_files=()
+    corrupted_files=()
+
+    while IFS= read -r hipo_file; do
+        input_files+=("$hipo_file")
+    done < <(compgen -G "$input_pattern" | sort)
+
+    for hipo_file in "${input_files[@]}"; do
+        if hipo_file_is_corrupted "$hipo_file"; then
+            corrupted_files+=("$hipo_file")
+        else
+            good_files+=("$hipo_file")
+        fi
+    done
+
+    num_files=${#input_files[@]}
+    num_good_files=${#good_files[@]}
+    num_corrupted_files=${#corrupted_files[@]}
+
+    total_corrupted_files=$(($total_corrupted_files + $num_corrupted_files))
+
     if [ "$test_mode" = true ]; then
-        # Count the number of input files
-        num_files=$(ls $input_files 2>/dev/null | wc -l)
-        percent_F=$(echo "scale=3; ($num_files / $expected_total) * 100" | bc)
+        percent_F=$(echo "scale=3; ($num_good_files / $expected_total) * 100" | bc)
         percent_F=$(printf "%.1f" $percent_F)
         total_percent=$(echo "$total_percent + $percent_F" | bc)
         count=$(($count + 1))
+    fi
+
+    if [ "$check_mode" = true ]; then
         echo
-        echo "Found $num_files files ($percent_F%) matching pattern: $input_files"
+        echo "Checking files matching pattern: $input_pattern"
+        echo "  Total files found:     $num_files"
+        echo "  Good files found:      $num_good_files"
+        echo "  Corrupted files found: $num_corrupted_files"
+
+        for bad_file in "${corrupted_files[@]}"; do
+            echo "    CORRUPTED: $bad_file"
+        done
+
+    elif [ "$test_mode" = true ]; then
+        echo
+        echo "Found $num_files total files matching pattern: $input_pattern"
+        echo "Found $num_good_files usable files ($percent_F%)"
+        echo "Found $num_corrupted_files corrupted files"
         echo "               Would have merged to form: $output_file"
+
+        for bad_file in "${corrupted_files[@]}"; do
+            echo "    WOULD SKIP CORRUPTED: $bad_file"
+        done
+
     else
         echo
-        echo "Merging these HIPO files: $input_files"
+        echo "Found $num_files total files matching pattern: $input_pattern"
+        echo "Found $num_good_files usable files"
+        echo "Found $num_corrupted_files corrupted files"
+
+        for bad_file in "${corrupted_files[@]}"; do
+            echo "    SKIPPING CORRUPTED: $bad_file"
+        done
+
+        if [ "$num_good_files" -eq 0 ]; then
+            echo "Error: No usable files found for this pattern. Skipping merge."
+            echo
+            continue
+        fi
+
+        echo "Merging usable HIPO files only"
         echo "                 To form: $output_file"
-        hipo-utils -merge -o $output_file $input_files
+        hipo-utils -merge -o "$output_file" "${good_files[@]}"
         echo "Done"
     fi
     echo
@@ -141,7 +255,8 @@ if [ "$test_mode" = true ]; then
     average_percent=$(echo "scale=3; $total_percent / $count" | bc)
     average_percent=$(printf "%.1f" $average_percent)
     echo
-    echo "Average percentage of files present across all patterns: $average_percent%"
+    echo "Average percentage of usable files present across all patterns: $average_percent%"
+    echo "Total corrupted files found across all patterns: $total_corrupted_files"
     echo
 fi
 
