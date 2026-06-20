@@ -317,9 +317,13 @@ def variable_Title_name(variable):
     if(variable == 'pipPhi'):
         output  =  "#phi_{#pi^{+}}"
     if(variable == 'MM'):
-        output  =  "Missing Mass"
+        output  =  "Missing Mass (MM_{e'#pi^{+}})"
     if(variable == 'MM2'):
         output  =  "Missing Mass^{2}"
+    if(variable == 'MM_pim'):
+        output  =  "MM_{e'#pi^{-}}"
+    if(variable == 'MM_pippro'):
+        output  =  "MM_{e'p#pi^{-}}"
     if(variable == 'Q2'):
         output  =  "Q^{2}"
     if(variable == 'xB'):
@@ -474,6 +478,16 @@ def variable_Title_name(variable):
         output  =  "Missing Mass_{epX} (Proton)"
     if(variable == 'pro'):
         output  =  "p_{pro}"
+    if(variable == 'proth'):
+        output  =  "#theta_{pro}"
+    if(variable == 'proPhi'):
+        output  =  "#phi_{pro}"
+    if(variable == 'pim'):
+        output  =  "p_{#pi^{-}}"
+    if(variable == 'pimth'):
+        output  =  "#theta_{#pi^{-}}"
+    if(variable == 'pimPhi'):
+        output  =  "#phi_{#pi^{-}}"
     if(variable == 'rad_event'):
         output  =  "Radiative Event"
     if(variable == 'EBrems'):
@@ -597,13 +611,20 @@ def variable_Title_name(variable):
     if(variable == "MM_pippimpro"):
         # output  = "MM_{ep#rightarrowep#pi^{+}#pi^{-}}"
         output  = "MM_{e'p#pi^{+}#pi^{-}}"
+    if(variable == 'pT_pim'):
+        output  =  "(P_{#pi^{-}})_{T}"
+    if(variable == "z_pim"):
+        output  = "z_{#pi^{-}}"
     if(variable == "pT_rho"):
         output  = "(P_{#pi^{+}#pi^{-}})_{T}"
     if(variable == "z_rho"):
         output  = "z_{#pi^{+}#pi^{-}}"
     if(variable in ["phi_t_rho", "phi_h_rho"]):
         output  = "#(phi_{#pi^{+}#pi^{-}})_{h}"
+    if(variable in ["phi_t_pim", "phi_h_pim"]):
+        output  = "#(phi_{#pi^{-}})_{h}"
 
+    
     if("Bin_4D" in variable):
         output = "".join(["Combined 4D Bin",         " (Original)" if("OG" in variable) else ""])
     if("Bin_5D" in variable):
