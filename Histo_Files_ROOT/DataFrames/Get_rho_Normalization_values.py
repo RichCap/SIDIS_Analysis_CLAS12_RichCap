@@ -1707,7 +1707,7 @@ def create_rho_normalized_diagnostic_plots(args, hist_list_in):
             histo_list_New[f"{hist_name}_(Scaled)"].Scale(scale_harut if("lund" in hist_name) else scale_clasdis)
     for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)", "(z_rho)_(MM_pippim)", "(z_rho)_(pT_rho)", "(z_rho)_(W_pippim)", "(z1_plus_z2)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z1_plus_z2)_(W_pippim)"]:
     # for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
-        for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS", "Exclusive_F", "2pi_Full", "Exclusive_rho"]:
+        for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS", "Exclusive_F", "2pi_Full", "Exclusive_rho", "Exclusive_SIDIS", "Exclusive_F_SIDIS", "Exclusive_rho_SIDIS", "SIDIS_wBG_2pi"]:
             hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}_{stage_name}"
             hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
             if(all(names in histo_list_New for names in [hist_key_data, hist_key_harut])):
@@ -1719,36 +1719,49 @@ def create_rho_normalized_diagnostic_plots(args, hist_list_in):
 
 
 rho_Cut_Titles = {
-        "Exclusive":     "Exclusive Events",
-        "Exclusive_F":   "Exclusive Events (w/ z_{tot} Cuts)",
-        "Exclusive_rho": "Exclusive #rho^{0} Events",
-        "SIDIS_BKG":     "SIDIS Background Events in Exclusive Region",
-        "SIDIS_2pi":     "Dipion SIDIS",
-        "Min_ExclC":     "#splitline{General Exclusive Event Selection Only}{#scale[0.85]{(No MM_{e'#pi^{+}#pi^{-}} Cuts)}}",
-        # "Full_SIDIS":    "Full SIDIS (w/Background)",
-        "2pi_Full":      "All Dipion Events",
+        "Exclusive":           "Exclusive Events",
+        "Exclusive_SIDIS":     "Exclusive Events in SIDIS Region",
+        "Exclusive_F":         "Exclusive Events (w/ z_{tot} Cuts)",
+        "Exclusive_F_SIDIS":   "Exclusive Events (w/ z_{tot} Cuts) in SIDIS Region",
+        "Exclusive_rho":       "Exclusive #rho^{0} Events",
+        "Exclusive_rho_SIDIS": "Exclusive #rho^{0} Events in SIDIS Region",
+        "SIDIS_BKG":           "SIDIS Background Events in Exclusive Region",
+        "SIDIS_2pi":           "Dipion SIDIS",
+        "Min_ExclC":           "#splitline{General Exclusive Event Selection Only}{#scale[0.85]{(No MM_{e'#pi^{+}#pi^{-}} Cuts)}}",
+        "Min_ExclC_SIDIS":     "General Exclusive Event Selection (in SIDIS Region)",
+        # "Full_SIDIS":          "Full SIDIS (w/Background)",
+        "2pi_Full":            "All Dipion Events",
         "Applied_Titles": {
-            "Exclusive":     "Full Exclusivity Cuts for Normalization",
-            "Exclusive_F":   "Full Exclusivity Cuts (w/ z_{tot} Cut)",
-            "Exclusive_rho": "Exclusive #rho^{0} Cuts",
-            "SIDIS_BKG":     "SIDIS Background Cuts (i.e., SIDIS Events w/in Exclusive Region)",
-            "SIDIS_2pi":     "Dipion SIDIS Cuts",
-            "Min_ExclC":     "General Exclusive Event Selection Cuts",
-            "Full_SIDIS":    "Full SIDIS Cuts",
-            "2pi_Full":      "Dipion Event Selection (w/out MM_{e'#pi^{+}} > 1.8 Cut)"
+            "Exclusive":           "Full Exclusivity Cuts for Normalization",
+            "Exclusive_SIDIS":     "Full Exclusivity Cuts for Normalization in SIDIS Region",
+            "Exclusive_F":         "Full Exclusivity Cuts (w/ z_{tot} Cut)",
+            "Exclusive_F_SIDIS":   "Full Exclusivity Cuts (w/ z_{tot} Cut) in SIDIS Region",
+            "Exclusive_rho":       "Exclusive #rho^{0} Cuts",
+            "Exclusive_rho_SIDIS": "Exclusive #rho^{0} Cuts in SIDIS Region",
+            "SIDIS_BKG":           "SIDIS Background Cuts (i.e., SIDIS Events w/in Exclusive Region)",
+            "SIDIS_2pi":           "Dipion SIDIS Cuts",
+            "Min_ExclC":           "General Exclusive Event Selection Cuts",
+            "Min_ExclC_SIDIS":     "General Exclusive Event Selection Cuts in SIDIS Region",
+            "Full_SIDIS":          "Full SIDIS Cuts",
+            "2pi_Full":            "Dipion Event Selection (w/out MM_{e'#pi^{+}} > 1.8 Cut)"
         }
     }
 def make_diagnostic_cut_images(args):
     print(f"\n{color.BBLUE}Starting diagnostic cut-stage image creation...{color.END}")
     cut_stages = {
-        "Exclusive":     [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
-        "Exclusive_F":   [87, 95, 119, 127, 215, 223, 247, 255],
-        "Exclusive_rho": [31, 63, 95, 127, 159, 191, 223, 255],
-        "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
-        "SIDIS_2pi":     [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
-        "Min_ExclC":     [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
-        "Full_SIDIS":    list(range(128, 256)),
-        "2pi_Full":      [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60, 61, 62, 63, 68, 69, 70, 71, 76, 77, 78, 79, 84, 85, 86, 87, 92, 93, 94, 95, 100, 101, 102, 103, 108, 109, 110, 111, 116, 117, 118, 119, 124, 125, 126, 127, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255]
+        "Exclusive":           [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
+        "Exclusive_SIDIS":     [151, 159, 183, 191, 215, 223, 247, 255],
+        "Exclusive_F":         [87, 95, 119, 127, 215, 223, 247, 255],
+        "Exclusive_F_SIDIS":   [215, 223, 247, 255],
+        "Exclusive_rho":       [31, 63, 95, 127, 159, 191, 223, 255],
+        "Exclusive_rho_SIDIS": [159, 191, 223, 255],
+        "SIDIS_BKG":           [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+        "SIDIS_2pi":           [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+        "Min_ExclC":           [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+        "Min_ExclC_SIDIS":     [134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+        "SIDIS_wBG_2pi":       [128, 129, 130, 131, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+        "Full_SIDIS":          list(range(128, 256)),
+        "2pi_Full":            [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60, 61, 62, 63, 68, 69, 70, 71, 76, 77, 78, 79, 84, 85, 86, 87, 92, 93, 94, 95, 100, 101, 102, 103, 108, 109, 110, 111, 116, 117, 118, 119, 124, 125, 126, 127, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255]
     }
     cut_stages_clasdis = {
         "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
@@ -1817,7 +1830,7 @@ def make_diagnostic_cut_images(args):
                     hist_list[f"{hist_key_mdf}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Applied {rho_Cut_Titles['Applied_Titles'][stage_name]} to clasdis MC}}")
                 else:
                     hist_list[f"{hist_key_mdf}_{stage_name}"].SetTitle(f"#splitline{{{Updated_Title_General}}}{{Using clasdis MC}}")
-            if(stage_name in ["Exclusive_rho"]):
+            if(stage_name in ["Exclusive_rho", "Exclusive_rho_SIDIS"]):
                 hist_list[f"{hist_key_data}_{stage_name}"]  = Update_rho_Vars(hist_list[f"{hist_key_data}_{stage_name}"])
                 hist_list[f"{hist_key_harut}_{stage_name}"] = Update_rho_Vars(hist_list[f"{hist_key_harut}_{stage_name}"])
                 # hist_list[f"{hist_key_mdf}_{stage_name}"]   = Update_rho_Vars(hist_list[f"{hist_key_mdf}_{stage_name}"])
@@ -2680,7 +2693,7 @@ if(__name__ == "__main__"):
         for     stage_names in ["Full_SIDIS"]:
             for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z_rho)_(pT_rho)"]:
             # for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)", "(W_pippim)_(MM_pippim)"]:
-                if((any(dipion_vars in var_choices for dipion_vars in ["z1_plus_z2", "pT_rho", "z_rho", "W_pippim", "MM_pippim"])) and (stage_names not in ["Exclusive", "Exclusive_F", "SIDIS_2pi", "2pi_Full", "Min_ExclC", "Exclusive_rho"])):
+                if((any(dipion_vars in var_choices for dipion_vars in ["z1_plus_z2", "pT_rho", "z_rho", "W_pippim", "MM_pippim"])) and (stage_names not in ["Exclusive", "Exclusive_F", "SIDIS_2pi", "2pi_Full", "Min_ExclC", "Exclusive_rho", "Exclusive_SIDIS", "Exclusive_F_SIDIS", "Exclusive_rho_SIDIS", "SIDIS_wBG_2pi"])):
                     continue
                 canvas_list = Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="In_Data",   stage_name=stage_names, Draw_Type="data_scale")
                 canvas_list = Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="Raw_Harut", stage_name=stage_names, Draw_Type="No_Weight")

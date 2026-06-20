@@ -1103,6 +1103,10 @@ if(__name__ == "__main__"):
                 List_of_2D_Plots.append([["z_rho",      0, 1.8, 180], ["MM_pippim",                  0.0,   4.5,  90]])
                 List_of_2D_Plots.append([["z_rho",      0, 1.8, 180], ["pT_rho",                     0.0,  1.05, 105]])
                 List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], ["pT_rho",                     0.0,  1.05, 105]])
+                List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180], MM_Binning])
+                List_of_2D_Plots.append([["W_pippim", 0.0, 2.5, 100], MM_Binning])
+                List_of_2D_Plots.append([["z_rho",      0, 1.8, 180], MM_Binning])
+                List_of_2D_Plots.append([["MM_pippim",0.0, 4.5,  90], MM_Binning])
                 if(args.make_2D_rho_normalization_only):
                     List_of_2D_Plots.append([Q2_Binning,    xB_Binning])
                     List_of_2D_Plots.append([Q2_Binning,     y_Binning])
