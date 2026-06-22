@@ -180,6 +180,12 @@ def parse_args():
     p.add_argument('-oj', '--old_json',
                    action='store_true',
                    help="Include the older JSON file format when saving with '--save_json'.\n(Will still use the newer format as backup)\n")
+    
+    p.add_argument('-bgs', '--background_source',
+                   type=str,
+                   default="lundvpk",
+                   choices=["lundrho", "lundvpk", "None"],
+                   help="Source of rho0 background subtractions.\n(Option 'None' skips the subtraction all together)\n")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins',
@@ -1895,10 +1901,24 @@ def main_start():
 
     return args
 
+
+# args.background_source
+def subtract_bkg_with_zero_floor(hist_data, hist_background):
+    original_name = hist_data.GetName()
+    orginal_histo = hist_data.Clone(f"{original_name}_(wExclusive_Background)")
+    orginal_histo.SetTitle(f"#splitline{{{orginal_histo.GetTitle()}}}{{#scale[2]{{Before the Exclusive #rho^{{0}} Background Subtraction}}}}")
+    result_histogram = hist_data.Clone(original_name)
+    result_histogram.SetDirectory(0)
+    result_histogram.Add(hist_background, -1.0)
+    for global_bin in range(result_histogram.GetNcells()):
+        if(result_histogram.GetBinContent(global_bin) < 0):
+            result_histogram.SetBinContent(global_bin, 0.0)
+    return orginal_histo, result_histogram
+
 def main_unfold(args):
     try:
         rdf = ROOT.TFile(args.single_file_input, "READ")
-        print(f"The total number of histograms available for the{color.BOLD}RDataFrame{color.END} in '{color.BBLUE}{args.single_file_input}{color.END}' is {color.BOLD}{len(rdf.GetListOfKeys())}{color.END}")
+        print(f"The total number of histograms available for the {color.BOLD}RDataFrame{color.END} in '{color.BBLUE}{args.single_file_input}{color.END}' is {color.BOLD}{len(rdf.GetListOfKeys())}{color.END}")
     except:
         print(f"\n{color.Error}ERROR IN GETTING THE RDataFrame...\n{color.END}Traceback:\n{color.END_R}{traceback.format_exc()}{color.END}")
     mdf = ROOT.TFile(args.single_file_input, "READ")
@@ -1920,6 +1940,9 @@ def main_unfold(args):
             continue
         elif(("_(Weighed)" not in out_print_main) and args.mod):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
+            continue
+        if(any(lundskip in out_print_main for lundskip in ["_(lundvpk)", "_(lundrho)"])):
+            # print(f"\n{color.BOLD}Skipping '{out_print_main}' because Harut's exclusive rho0 files are added later{color.END}\n")
             continue
         ##========================================================##
         ##=====##    Conditions for Histogram Selection    ##=====##
@@ -2063,6 +2086,33 @@ def main_unfold(args):
                 if(args.sim and (str(MC_BGS_1D) not in ["None"])):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_1D.Add(MC_BGS_1D)
+
+
+                if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
+                    print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+                    LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+                    ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_mdf)
+                    List_of_All_Histos_For_Unfolding[ExREAL_1D_wExclusive_Background.GetName()] = ExREAL_1D_wExclusive_Background
+                elif(args.background_source not in ["None"]):
+                    print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+                # if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_REC_1D' histogram{color.END}")
+                #     LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+                #     MC_REC_1D.Add(LundrhoHist_mdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_REC_1D' histogram{color.END}")
+                # if(f"{out_print_main_gdf}_({args.background_source})"    in gdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_GEN_1D' histogram{color.END}")
+                #     LundrhoHist_gdf = gdf.Get(f"{out_print_main_gdf}_({args.background_source})")
+                #     MC_GEN_1D.Add(LundrhoHist_gdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_GEN_1D' histogram{color.END}")
+                # if(((f"{out_print_main_bdf_1D}_({args.background_source})" in mdf.GetListOfKeys()) or (f"{out_print_main_bdf_1D}_({args.background_source})" in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf_1D)) and (MC_BGS_1D != "None")):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_BGS_1D' histogram{color.END}")
+                #     LundrhoHist_bdf = mdf.Get(f"{out_print_main_bdf_1D}_({args.background_source})")
+                #     MC_BGS_1D.Add(LundrhoHist_bdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_BGS_1D' histogram{color.END}")
                 List_of_All_Histos_For_Unfolding = New_Version_of_File_Creation(Histogram_List_All=List_of_All_Histos_For_Unfolding, Out_Print_Main=out_print_main, Response_2D=Response_2D, ExREAL_1D=ExREAL_1D, MC_REC_1D=MC_REC_1D, MC_GEN_1D=MC_GEN_1D, ExTRUE_1D=ExTRUE_1D, Smear_Input="" if("mear" not in out_print_main.replace("Smear-Type", "Type")) else "Smear", Q2_Y_Bin="All", Z_PT_Bin="All", MC_BGS_1D=MC_BGS_1D, args=args)
                 continue
         elif(any(sector_particle in out_print_main for sector_particle in ["esec", "pipsec"]) and args.run_sec_unfold):
@@ -2194,6 +2244,34 @@ def main_unfold(args):
                 if(args.sim and (str(MC_BGS_3D) not in ["None"])):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_3D.Add(MC_BGS_3D)
+
+
+                if(f"{out_print_main_mdf}_({args.background_source})" in mdf.GetListOfKeys()):
+                    print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_3D' histogram{color.END}")
+                    LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf}_({args.background_source})")
+                    ExREAL_3D_wExclusive_Background, ExREAL_3D = subtract_bkg_with_zero_floor(ExREAL_3D, LundrhoHist_mdf)
+                    List_of_All_Histos_For_Unfolding[ExREAL_3D_wExclusive_Background.GetName()] = ExREAL_3D_wExclusive_Background
+                elif(args.background_source not in ["None"]):
+                    print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_3D' histogram{color.END}")
+
+                # if(f"{out_print_main_mdf}_({args.background_source})" in mdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_REC_3D' histogram{color.END}")
+                #     LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf}_({args.background_source})")
+                #     MC_REC_3D.Add(LundrhoHist_mdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_REC_3D' histogram{color.END}")
+                # if(f"{out_print_main_gdf}_({args.background_source})"    in gdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_GEN_3D' histogram{color.END}")
+                #     LundrhoHist_gdf = gdf.Get(f"{out_print_main_gdf}_({args.background_source})")
+                #     MC_GEN_3D.Add(LundrhoHist_gdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_GEN_3D' histogram{color.END}")
+                # if(((f"{out_print_main_bdf}_({args.background_source})" in mdf.GetListOfKeys()) or (f"{out_print_main_bdf}_({args.background_source})" in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf)) and (MC_BGS_3D != "None")):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_BGS_3D' histogram{color.END}")
+                #     LundrhoHist_bdf = mdf.Get(f"{out_print_main_bdf}_({args.background_source})")
+                #     MC_BGS_3D.Add(LundrhoHist_bdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_BGS_3D' histogram{color.END}")
                     
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
                 for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
@@ -2468,7 +2546,41 @@ def main_unfold(args):
                 if(args.sim and (str(MC_BGS_1D_initial) not in ["None"])):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_1D_initial.Add(MC_BGS_1D_initial)
-                    
+
+
+                if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
+                    print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D_initial' histogram{color.END}")
+                    LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+                    ExREAL_1D_initial_wExclusive_Background, ExREAL_1D_initial = subtract_bkg_with_zero_floor(ExREAL_1D_initial, LundrhoHist_mdf)
+                    List_of_All_Histos_For_Unfolding[ExREAL_1D_initial_wExclusive_Background.GetName()] = ExREAL_1D_initial_wExclusive_Background
+                elif(args.background_source not in ["None"]):
+                    print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D_initial' histogram{color.END}")
+                
+                # if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_REC_1D_initial' histogram{color.END}")
+                #     LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+                #     MC_REC_1D_initial.Add(LundrhoHist_mdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_REC_1D_initial' histogram{color.END}")
+                # if(f"{out_print_main_mdf}_({args.background_source})" in mdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'Response_2D_initial' histogram{color.END}")
+                #     LundrhoHist_mdf_RM = mdf.Get(f"{out_print_main_mdf}_({args.background_source})")
+                #     Response_2D_initial.Add(LundrhoHist_mdf_RM)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'Response_2D_initial' histogram{color.END}")
+                # if(f"{out_print_main_gdf}_({args.background_source})"    in gdf.GetListOfKeys()):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_GEN_1D_initial' histogram{color.END}")
+                #     LundrhoHist_gdf = gdf.Get(f"{out_print_main_gdf}_({args.background_source})")
+                #     MC_GEN_1D_initial.Add(LundrhoHist_gdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_GEN_1D_initial' histogram{color.END}")
+                # if(((f"{out_print_main_bdf_1D}_({args.background_source})" in mdf.GetListOfKeys()) or (f"{out_print_main_bdf_1D}_({args.background_source})" in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf_1D)) and (MC_BGS_1D_initial != "None")):
+                #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_BGS_1D_initial' histogram{color.END}")
+                #     LundrhoHist_bdf = mdf.Get(f"{out_print_main_bdf_1D}_({args.background_source})") if(not args.sim) else rdf.Get(f"{out_print_main_bdf_1D}_({args.background_source})")
+                #     MC_BGS_1D_initial.Add(LundrhoHist_bdf)
+                # elif(args.background_source not in ["None"]):
+                #     print(f"{color.Error}Cannot add the '{args.background_source}' files to the 'MC_BGS_1D_initial' histogram{color.END}")
+
 
         ###############################################################################################
         ###==========##==========###     z-pT Binning Dimensions Slice     ###==========##==========###

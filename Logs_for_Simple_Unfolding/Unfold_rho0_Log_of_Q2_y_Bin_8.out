@@ -1,6 +1,6 @@
-Full command: ./Simple_RooUnfold_SelfContained.py --root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json -em 'Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundrho' rho0 events subtracted as background after proper normalization. Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.' -ti 'rho0 Normalized Run' 8
+Full command: ./Simple_RooUnfold_SelfContained.py --root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json -em 'Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.' -ti 'rho0 Normalized Subtraction Run (V2)' 8
 TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
-Subtract 102880 fakes from measured distribution
+Subtract 795819 fakes from measured distribution
 Using response matrix priors
 Priors:
 
@@ -9,112 +9,112 @@ Vector (915)  is as follows
      |        1  |
 ------------------
    0 |0 
-   1 |0.775571 
-   2 |2.59552e-05 
-   3 |2.37871e-05 
-   4 |2.7884e-05 
-   5 |2.72928e-05 
-   6 |2.7018e-05 
-   7 |2.59357e-05 
-   8 |2.31312e-05 
-   9 |2.82749e-05 
-  10 |2.6527e-05 
-  11 |2.64561e-05 
-  12 |2.44138e-05 
-  13 |2.63364e-05 
-  14 |2.63009e-05 
-  15 |2.87952e-05 
-  16 |2.48632e-05 
-  17 |2.83139e-05 
-  18 |2.55998e-05 
-  19 |2.79939e-05 
-  20 |2.87695e-05 
-  21 |2.80134e-05 
-  22 |2.71279e-05 
-  23 |2.70827e-05 
-  24 |2.43624e-05 
-  25 |2.79939e-05 
-  26 |1.63104e-05 
-  27 |1.74867e-05 
-  28 |1.71765e-05 
-  29 |1.72412e-05 
-  30 |1.69017e-05 
-  31 |1.57095e-05 
-  32 |1.75221e-05 
-  33 |1.88242e-05 
-  34 |1.7703e-05 
-  35 |1.79325e-05 
-  36 |1.65205e-05 
-  37 |1.89696e-05 
-  38 |1.91442e-05 
-  39 |1.59355e-05 
-  40 |1.69566e-05 
-  41 |1.72766e-05 
-  42 |1.5729e-05 
-  43 |1.76578e-05 
-  44 |1.77322e-05 
-  45 |1.92701e-05 
-  46 |1.56802e-05 
-  47 |1.80486e-05 
-  48 |1.72669e-05 
-  49 |1.93703e-05 
-  50 |7.41198e-06 
-  51 |8.94367e-06 
-  52 |9.25391e-06 
-  53 |7.52189e-06 
-  54 |6.74011e-06 
-  55 |8.824e-06 
-  56 |6.73036e-06 
-  57 |6.77556e-06 
-  58 |7.0858e-06 
-  59 |8.33294e-06 
-  60 |7.83214e-06 
-  61 |8.17782e-06 
-  62 |8.04221e-06 
-  63 |8.67863e-06 
-  64 |1.02458e-05 
-  65 |8.05197e-06 
-  66 |8.44286e-06 
-  67 |7.42173e-06 
-  68 |7.87734e-06 
-  69 |8.824e-06 
-  70 |8.84351e-06 
-  71 |8.25229e-06 
-  72 |7.37653e-06 
-  73 |7.62206e-06 
-  74 |2.00324e-06 
-  75 |2.00324e-06 
-  76 |1.55739e-06 
-  77 |2.30372e-06 
-  78 |3.05981e-06 
-  79 |2.1034e-06 
-  80 |2.30372e-06 
-  81 |1.55739e-06 
-  82 |2.00324e-06 
-  83 |2.11315e-06 
-  84 |2.15836e-06 
-  85 |1.2569e-06 
-  86 |1.90308e-06 
-  87 |2.15836e-06 
-  88 |2.70437e-06 
-  89 |1.45722e-06 
-  90 |2.50405e-06 
-  91 |1.40227e-06 
-  92 |1.40227e-06 
-  93 |2.01299e-06 
-  94 |1.75771e-06 
-  95 |1.75771e-06 
-  96 |2.00324e-06 
-  97 |1.70275e-06 
+   1 |0 
+   2 |0 
+   3 |0 
+   4 |0 
+   5 |0 
+   6 |0 
+   7 |0 
+   8 |0 
+   9 |0 
+  10 |0 
+  11 |0 
+  12 |0 
+  13 |0 
+  14 |0 
+  15 |0 
+  16 |0 
+  17 |0 
+  18 |0 
+  19 |0 
+  20 |0 
+  21 |0 
+  22 |0 
+  23 |0 
+  24 |0 
+  25 |0 
+  26 |0 
+  27 |0 
+  28 |0 
+  29 |0 
+  30 |0 
+  31 |0 
+  32 |0 
+  33 |0 
+  34 |0 
+  35 |0 
+  36 |0 
+  37 |0 
+  38 |0 
+  39 |0 
+  40 |0 
+  41 |0 
+  42 |0 
+  43 |0 
+  44 |0 
+  45 |0 
+  46 |0 
+  47 |0 
+  48 |0 
+  49 |0 
+  50 |0 
+  51 |0 
+  52 |0 
+  53 |0 
+  54 |0 
+  55 |0 
+  56 |0 
+  57 |0 
+  58 |0 
+  59 |0 
+  60 |0 
+  61 |0 
+  62 |0 
+  63 |0 
+  64 |0 
+  65 |0 
+  66 |0 
+  67 |0 
+  68 |0 
+  69 |0 
+  70 |0 
+  71 |0 
+  72 |0 
+  73 |0 
+  74 |0 
+  75 |0 
+  76 |0 
+  77 |0 
+  78 |0 
+  79 |0 
+  80 |0 
+  81 |0 
+  82 |0 
+  83 |0 
+  84 |0 
+  85 |0 
+  86 |0 
+  87 |0 
+  88 |0 
+  89 |0 
+  90 |0 
+  91 |0 
+  92 |0 
+  93 |0 
+  94 |0 
+  95 |0 
+  96 |0 
+  97 |0 
   98 |0 
   99 |0 
- 100 |1.00162e-07 
+ 100 |0 
  101 |0 
  102 |0 
- 103 |1.00162e-07 
+ 103 |0 
  104 |0 
  105 |0 
- 106 |1.00162e-07 
+ 106 |0 
  107 |0 
  108 |0 
  109 |0 
@@ -125,707 +125,707 @@ Vector (915)  is as follows
  114 |0 
  115 |0 
  116 |0 
- 117 |1.00162e-07 
- 118 |1.00162e-07 
+ 117 |0 
+ 118 |0 
  119 |0 
- 120 |1.00162e-07 
+ 120 |0 
  121 |0 
- 122 |0.000155061 
- 123 |0.000149016 
- 124 |0.000158742 
- 125 |0.000149291 
- 126 |0.000154305 
- 127 |0.000152771 
- 128 |0.000153297 
- 129 |0.000149924 
- 130 |0.000147155 
- 131 |0.000142592 
- 132 |0.000157549 
- 133 |0.000155168 
- 134 |0.000153239 
- 135 |0.000152618 
- 136 |0.00015437 
- 137 |0.000156864 
- 138 |0.000155613 
- 139 |0.000151336 
- 140 |0.000150354 
- 141 |0.000153834 
- 142 |0.000150043 
- 143 |0.00014846 
- 144 |0.000160525 
- 145 |0.000145701 
- 146 |0.00012659 
- 147 |0.000132835 
- 148 |0.000133145 
- 149 |0.000133271 
- 150 |0.000138183 
- 151 |0.000136906 
- 152 |0.00013575 
- 153 |0.000130086 
- 154 |0.000134286 
- 155 |0.000138273 
- 156 |0.000134002 
- 157 |0.000132703 
- 158 |0.000134658 
- 159 |0.000133905 
- 160 |0.000127866 
- 161 |0.000132144 
- 162 |0.000134173 
- 163 |0.000136922 
- 164 |0.000133371 
- 165 |0.000131368 
- 166 |0.000135003 
- 167 |0.00013309 
- 168 |0.000141737 
- 169 |0.000134728 
- 170 |0.000106241 
- 171 |0.000104331 
- 172 |0.000108935 
- 173 |0.000103378 
- 174 |0.000105197 
- 175 |0.000104699 
- 176 |0.000109397 
- 177 |0.000112968 
- 178 |0.000107853 
- 179 |0.000107258 
- 180 |0.000111065 
- 181 |0.000101921 
- 182 |0.00010774 
- 183 |0.00010731 
- 184 |0.000108955 
- 185 |0.000108951 
- 186 |0.000110735 
- 187 |0.000106783 
- 188 |0.000100357 
- 189 |0.000108755 
- 190 |0.000101895 
- 191 |0.000105065 
- 192 |0.000108454 
- 193 |0.000102492 
- 194 |7.52934e-05 
- 195 |7.84729e-05 
- 196 |7.74225e-05 
- 197 |7.17328e-05 
- 198 |7.61302e-05 
- 199 |7.65149e-05 
- 200 |7.37006e-05 
- 201 |6.98005e-05 
- 202 |7.78622e-05 
- 203 |6.88086e-05 
- 204 |8.09831e-05 
- 205 |7.24304e-05 
- 206 |7.20138e-05 
- 207 |7.60495e-05 
- 208 |7.91838e-05 
- 209 |7.57393e-05 
- 210 |7.27344e-05 
- 211 |7.13224e-05 
- 212 |7.92095e-05 
- 213 |7.39168e-05 
- 214 |7.42111e-05 
- 215 |7.77877e-05 
- 216 |7.93292e-05 
- 217 |7.91643e-05 
- 218 |2.48694e-05 
- 219 |2.50697e-05 
- 220 |3.25819e-05 
- 221 |2.82297e-05 
- 222 |2.82652e-05 
- 223 |3.06336e-05 
- 224 |2.82395e-05 
- 225 |2.95611e-05 
- 226 |2.83201e-05 
- 227 |2.99617e-05 
- 228 |2.79939e-05 
- 229 |2.72476e-05 
- 230 |2.72281e-05 
- 231 |3.00973e-05 
- 232 |2.84398e-05 
- 233 |2.68824e-05 
- 234 |3.09793e-05 
- 235 |2.97968e-05 
- 236 |2.78193e-05 
- 237 |2.95159e-05 
- 238 |2.843e-05 
- 239 |2.86756e-05 
- 240 |2.62814e-05 
- 241 |3.11539e-05 
- 242 |0.000230693 
- 243 |0.000213191 
- 244 |0.000223006 
- 245 |0.000229388 
- 246 |0.000233411 
- 247 |0.000227804 
- 248 |0.00022501 
- 249 |0.000219517 
- 250 |0.000230379 
- 251 |0.000227989 
- 252 |0.000224509 
- 253 |0.000230729 
- 254 |0.000226829 
- 255 |0.000223187 
- 256 |0.000224619 
- 257 |0.000223097 
- 258 |0.000229097 
- 259 |0.00022207 
- 260 |0.000230393 
- 261 |0.000227003 
- 262 |0.000223833 
- 263 |0.000226573 
- 264 |0.00023078 
- 265 |0.000222551 
- 266 |0.000214987 
- 267 |0.000219149 
- 268 |0.000204641 
- 269 |0.00021671 
- 270 |0.000216829 
- 271 |0.000219666 
- 272 |0.000218173 
- 273 |0.00020668 
- 274 |0.000220115 
- 275 |0.000212089 
- 276 |0.000212099 
- 277 |0.000212823 
- 278 |0.000216474 
- 279 |0.000208916 
- 280 |0.00022418 
- 281 |0.000213569 
- 282 |0.00020627 
- 283 |0.000207291 
- 284 |0.000214932 
- 285 |0.00021334 
- 286 |0.000219104 
- 287 |0.000214606 
- 288 |0.00022344 
- 289 |0.000215188 
- 290 |0.000186626 
- 291 |0.000190671 
- 292 |0.000187918 
- 293 |0.000180971 
- 294 |0.00018523 
- 295 |0.000187081 
- 296 |0.000193937 
- 297 |0.000185634 
- 298 |0.000190228 
- 299 |0.000188328 
- 300 |0.000186836 
- 301 |0.000184312 
- 302 |0.000184428 
- 303 |0.000186345 
- 304 |0.000191 
- 305 |0.000188981 
- 306 |0.000182028 
- 307 |0.000183996 
- 308 |0.000190597 
- 309 |0.000193682 
- 310 |0.000182315 
- 311 |0.000195989 
- 312 |0.000185995 
- 313 |0.000192235 
- 314 |0.000167449 
- 315 |0.000166929 
- 316 |0.000173249 
- 317 |0.00016365 
- 318 |0.000162893 
- 319 |0.000170219 
- 320 |0.000166248 
- 321 |0.000161181 
- 322 |0.000156732 
- 323 |0.000158331 
- 324 |0.000162722 
- 325 |0.000168635 
- 326 |0.000164706 
- 327 |0.000163549 
- 328 |0.000162141 
- 329 |0.000162031 
- 330 |0.000161259 
- 331 |0.000168577 
- 332 |0.00016425 
- 333 |0.000165953 
- 334 |0.000163579 
- 335 |0.000167159 
- 336 |0.00017426 
- 337 |0.000164364 
- 338 |0.00011972 
- 339 |0.000112699 
- 340 |0.000115138 
- 341 |0.000115384 
- 342 |0.000114896 
- 343 |0.000111126 
- 344 |0.000118554 
- 345 |0.000106589 
- 346 |0.000110751 
- 347 |0.000115048 
- 348 |0.000114266 
- 349 |0.000108903 
- 350 |0.000107626 
- 351 |0.000113439 
- 352 |0.000109894 
- 353 |0.000111497 
- 354 |0.000115319 
- 355 |0.00011373 
- 356 |0.000114111 
- 357 |0.00011657 
- 358 |0.000111532 
- 359 |0.000116104 
- 360 |0.000114095 
- 361 |0.000116957 
- 362 |0.000342009 
- 363 |0.000331233 
- 364 |0.00033575 
- 365 |0.00033596 
- 366 |0.000344823 
- 367 |0.000338144 
- 368 |0.000340027 
- 369 |0.00033302 
- 370 |0.000349847 
- 371 |0.000338254 
- 372 |0.000331782 
- 373 |0.000344186 
- 374 |0.000331692 
- 375 |0.000335944 
- 376 |0.000341714 
- 377 |0.000334683 
- 378 |0.000334147 
- 379 |0.000325788 
- 380 |0.000336551 
- 381 |0.000339605 
- 382 |0.000335779 
- 383 |0.000342771 
- 384 |0.000344519 
- 385 |0.00034564 
- 386 |0.000342526 
- 387 |0.000344966 
- 388 |0.000349373 
- 389 |0.000352584 
- 390 |0.000347299 
- 391 |0.000344755 
- 392 |0.00036021 
- 393 |0.000352745 
- 394 |0.000354652 
- 395 |0.000346823 
- 396 |0.000354781 
- 397 |0.000354206 
- 398 |0.000338626 
- 399 |0.000348458 
- 400 |0.000360222 
- 401 |0.000340794 
- 402 |0.00034724 
- 403 |0.000352704 
- 404 |0.000342968 
- 405 |0.000350826 
- 406 |0.00033777 
- 407 |0.000342012 
- 408 |0.000353831 
- 409 |0.000354465 
- 410 |0.000332818 
- 411 |0.000320956 
- 412 |0.000334627 
- 413 |0.000322798 
- 414 |0.00032736 
- 415 |0.000306833 
- 416 |0.000318901 
- 417 |0.000318862 
- 418 |0.000320129 
- 419 |0.000323638 
- 420 |0.000334769 
- 421 |0.000325799 
- 422 |0.000325337 
- 423 |0.000329344 
- 424 |0.00032355 
- 425 |0.000324937 
- 426 |0.000314549 
- 427 |0.000322006 
- 428 |0.000328778 
- 429 |0.000322607 
- 430 |0.000323841 
- 431 |0.000316278 
- 432 |0.000318187 
- 433 |0.000337386 
- 434 |0.000307105 
- 435 |0.000305754 
- 436 |0.000302094 
- 437 |0.000296653 
- 438 |0.000292511 
- 439 |0.000307612 
- 440 |0.000302746 
- 441 |0.000301565 
- 442 |0.000305965 
- 443 |0.000302042 
- 444 |0.000302608 
- 445 |0.000296811 
- 446 |0.000300155 
- 447 |0.000298301 
- 448 |0.000303716 
- 449 |0.000301813 
- 450 |0.000295709 
- 451 |0.000296049 
- 452 |0.000295628 
- 453 |0.000296384 
- 454 |0.000309215 
- 455 |0.000300271 
- 456 |0.000293945 
- 457 |0.000309784 
- 458 |0.000240894 
- 459 |0.000236487 
- 460 |0.000235766 
- 461 |0.00024482 
- 462 |0.000245601 
- 463 |0.000237918 
- 464 |0.000237262 
- 465 |0.000228845 
- 466 |0.000237844 
- 467 |0.000236426 
- 468 |0.000239207 
- 469 |0.000235815 
- 470 |0.000243259 
- 471 |0.00023872 
- 472 |0.000235469 
- 473 |0.000247043 
- 474 |0.000235059 
- 475 |0.000229585 
- 476 |0.000235 
- 477 |0.000237537 
- 478 |0.000229695 
- 479 |0.00024607 
- 480 |0.000237453 
- 481 |0.00023861 
- 482 |0.000249245 
- 483 |0.00025192 
- 484 |0.000244072 
- 485 |0.00025783 
- 486 |0.000249817 
- 487 |0.000255061 
- 488 |0.000253597 
- 489 |0.000245064 
- 490 |0.000243572 
- 491 |0.000245455 
- 492 |0.000257394 
- 493 |0.000244789 
- 494 |0.000246447 
- 495 |0.000256211 
- 496 |0.000241914 
- 497 |0.000252315 
- 498 |0.000254674 
- 499 |0.000259287 
- 500 |0.000250602 
- 501 |0.000246512 
- 502 |0.000253853 
- 503 |0.000249171 
- 504 |0.000253778 
- 505 |0.000242195 
- 506 |0.000276855 
- 507 |0.000268118 
- 508 |0.00028131 
- 509 |0.000283159 
- 510 |0.000268034 
- 511 |0.000279091 
- 512 |0.000267013 
- 513 |0.000272451 
- 514 |0.000274348 
- 515 |0.00027417 
- 516 |0.000274936 
- 517 |0.000275417 
- 518 |0.000273834 
- 519 |0.000278361 
- 520 |0.000276503 
- 521 |0.00027396 
- 522 |0.000280949 
- 523 |0.000277078 
- 524 |0.00027175 
- 525 |0.000279627 
- 526 |0.000273262 
- 527 |0.000270047 
- 528 |0.00027205 
- 529 |0.000282803 
- 530 |0.000276775 
- 531 |0.000280465 
- 532 |0.000275954 
- 533 |0.000278484 
- 534 |0.000272823 
- 535 |0.000278658 
- 536 |0.000277631 
- 537 |0.000275069 
- 538 |0.000281208 
- 539 |0.000282154 
- 540 |0.000275777 
- 541 |0.000265744 
- 542 |0.000275101 
- 543 |0.000279147 
- 544 |0.000275482 
- 545 |0.000281486 
- 546 |0.000283631 
- 547 |0.000281518 
- 548 |0.000281147 
- 549 |0.000284252 
- 550 |0.000276746 
- 551 |0.000270691 
- 552 |0.000276965 
- 553 |0.000270597 
- 554 |0.000273298 
- 555 |0.000262174 
- 556 |0.000270555 
- 557 |0.000262898 
- 558 |0.000267124 
- 559 |0.000261961 
- 560 |0.000266882 
- 561 |0.000261008 
- 562 |0.000267654 
- 563 |0.00026493 
- 564 |0.000258559 
- 565 |0.000259712 
- 566 |0.000268581 
- 567 |0.00026871 
- 568 |0.000259647 
- 569 |0.00025902 
- 570 |0.000267166 
- 571 |0.000268991 
- 572 |0.000258154 
- 573 |0.000256261 
- 574 |0.000269231 
- 575 |0.000274416 
- 576 |0.000266497 
- 577 |0.000265205 
- 578 |0.000210195 
- 579 |0.000213194 
- 580 |0.000212419 
- 581 |0.000218454 
- 582 |0.000223052 
- 583 |0.000214328 
- 584 |0.000225294 
- 585 |0.000214738 
- 586 |0.000218309 
- 587 |0.00021004 
- 588 |0.000214994 
- 589 |0.000218513 
- 590 |0.00021585 
- 591 |0.000219404 
- 592 |0.000213776 
- 593 |0.000209284 
- 594 |0.000212044 
- 595 |0.000218677 
- 596 |0.000215575 
- 597 |0.000223181 
- 598 |0.000221352 
- 599 |0.000215133 
- 600 |0.000219184 
- 601 |0.000220286 
- 602 |0.000282725 
- 603 |0.000281733 
- 604 |0.000284463 
- 605 |0.000291565 
- 606 |0.000301901 
- 607 |0.000281549 
- 608 |0.00028604 
- 609 |0.000287849 
- 610 |0.000284874 
- 611 |0.000284092 
- 612 |0.00028919 
- 613 |0.000275859 
- 614 |0.000287177 
- 615 |0.00028561 
- 616 |0.000285229 
- 617 |0.000294273 
- 618 |0.000288379 
- 619 |0.000280502 
- 620 |0.000291109 
- 621 |0.000278163 
- 622 |0.000290118 
- 623 |0.000288799 
- 624 |0.000284153 
- 625 |0.000279475 
- 626 |0.000342648 
- 627 |0.000331226 
- 628 |0.000334907 
- 629 |0.000324196 
- 630 |0.000327068 
- 631 |0.000326959 
- 632 |0.000330897 
- 633 |0.000334306 
- 634 |0.000329143 
- 635 |0.000332351 
- 636 |0.00033101 
- 637 |0.000337524 
- 638 |0.000321139 
- 639 |0.000321585 
- 640 |0.00033757 
- 641 |0.000334206 
- 642 |0.000319531 
- 643 |0.000330429 
- 644 |0.00033093 
- 645 |0.00032207 
- 646 |0.000331476 
- 647 |0.000331653 
- 648 |0.000329042 
- 649 |0.000327866 
- 650 |0.00034325 
- 651 |0.000343351 
- 652 |0.000344556 
- 653 |0.000344941 
- 654 |0.000343696 
- 655 |0.000338459 
- 656 |0.000342789 
- 657 |0.000342455 
- 658 |0.000339383 
- 659 |0.000343645 
- 660 |0.000342649 
- 661 |0.000333444 
- 662 |0.000348194 
- 663 |0.000360605 
- 664 |0.000345405 
- 665 |0.000339544 
- 666 |0.00034328 
- 667 |0.000354349 
- 668 |0.000346501 
- 669 |0.000335984 
- 670 |0.000357958 
- 671 |0.000342976 
- 672 |0.00034981 
- 673 |0.000346882 
- 674 |0.000345448 
- 675 |0.000349959 
- 676 |0.00034043 
- 677 |0.000334443 
- 678 |0.000355635 
- 679 |0.000339267 
- 680 |0.000333974 
- 681 |0.000334882 
- 682 |0.000340724 
- 683 |0.000338598 
- 684 |0.000341594 
- 685 |0.000347386 
- 686 |0.000343344 
- 687 |0.000352659 
- 688 |0.00033853 
- 689 |0.00033822 
- 690 |0.000352207 
- 691 |0.000338366 
- 692 |0.000349093 
- 693 |0.000348611 
- 694 |0.000352508 
- 695 |0.000347335 
- 696 |0.000332537 
- 697 |0.0003401 
- 698 |0.00027818 
- 699 |0.000282296 
- 700 |0.000273663 
- 701 |0.000270464 
- 702 |0.000274124 
- 703 |0.000268922 
- 704 |0.000283398 
- 705 |0.000286067 
- 706 |0.000276338 
- 707 |0.000274254 
- 708 |0.000281701 
- 709 |0.000272916 
- 710 |0.000274131 
- 711 |0.000268209 
- 712 |0.000274393 
- 713 |0.000273087 
- 714 |0.000281614 
- 715 |0.00027733 
- 716 |0.000279172 
- 717 |0.000278606 
- 718 |0.000278306 
- 719 |0.000285236 
- 720 |0.000278936 
- 721 |0.000282729 
- 722 |0.000703424 
- 723 |0.000708497 
- 724 |0.000710539 
- 725 |0.000721347 
- 726 |0.000706264 
- 727 |0.000717211 
- 728 |0.000712888 
- 729 |0.00072546 
- 730 |0.000700989 
- 731 |0.000718168 
- 732 |0.000725024 
- 733 |0.000708442 
- 734 |0.000704025 
- 735 |0.000701845 
- 736 |0.000700584 
- 737 |0.000714365 
- 738 |0.000696823 
- 739 |0.000706268 
- 740 |0.000703825 
- 741 |0.000693363 
- 742 |0.000715864 
- 743 |0.000710436 
- 744 |0.000714116 
- 745 |0.000714507 
- 746 |0.000849434 
- 747 |0.000848222 
- 748 |0.000859714 
- 749 |0.000854735 
- 750 |0.000842596 
- 751 |0.000855941 
- 752 |0.000861595 
- 753 |0.000848125 
- 754 |0.000866548 
- 755 |0.000850112 
- 756 |0.000847223 
- 757 |0.000842496 
- 758 |0.000853417 
- 759 |0.000850849 
- 760 |0.000840732 
- 761 |0.000862381 
- 762 |0.000839646 
- 763 |0.000854122 
- 764 |0.000856067 
- 765 |0.000860507 
- 766 |0.000847065 
- 767 |0.000854442 
- 768 |0.000852339 
- 769 |0.000865969 
- 770 |0.000944692 
- 771 |0.000931512 
- 772 |0.000942188 
- 773 |0.000940998 
- 774 |0.000944672 
- 775 |0.000949949 
- 776 |0.000945089 
- 777 |0.000958375 
- 778 |0.000962213 
- 779 |0.000946168 
- 780 |0.000949354 
- 781 |0.000951988 
- 782 |0.000936072 
- 783 |0.000955687 
- 784 |0.000934259 
- 785 |0.000960618 
- 786 |0.00094802 
- 787 |0.000955981 
- 788 |0.000962607 
- 789 |0.000953991 
- 790 |0.000930009 
- 791 |0.000949302 
- 792 |0.000947726 
- 793 |0.000940872 
- 794 |0.000978241 
- 795 |0.000970775 
- 796 |0.000965857 
- 797 |0.000984571 
- 798 |0.000991486 
- 799 |0.000968721 
- 800 |0.000971898 
- 801 |0.000972614 
- 802 |0.000971444 
- 803 |0.000937553 
- 804 |0.000947076 
- 805 |0.000974633 
- 806 |0.00096663 
- 807 |0.000962458 
- 808 |0.000973437 
- 809 |0.000940378 
- 810 |0.00096303 
- 811 |0.000959383 
- 812 |0.000964261 
- 813 |0.000973331 
- 814 |0.00097988 
- 815 |0.000960995 
- 816 |0.000969269 
- 817 |0.000976552 
+ 122 |0 
+ 123 |0 
+ 124 |0 
+ 125 |0 
+ 126 |0 
+ 127 |0 
+ 128 |0 
+ 129 |0 
+ 130 |0 
+ 131 |0 
+ 132 |0 
+ 133 |0 
+ 134 |0 
+ 135 |0 
+ 136 |0 
+ 137 |0 
+ 138 |0 
+ 139 |0 
+ 140 |0 
+ 141 |0 
+ 142 |0 
+ 143 |0 
+ 144 |0 
+ 145 |0 
+ 146 |0 
+ 147 |0 
+ 148 |0 
+ 149 |0 
+ 150 |0 
+ 151 |0 
+ 152 |0 
+ 153 |0 
+ 154 |0 
+ 155 |0 
+ 156 |0 
+ 157 |0 
+ 158 |0 
+ 159 |0 
+ 160 |0 
+ 161 |0 
+ 162 |0 
+ 163 |0 
+ 164 |0 
+ 165 |0 
+ 166 |0 
+ 167 |0 
+ 168 |0 
+ 169 |0 
+ 170 |0 
+ 171 |0 
+ 172 |0 
+ 173 |0 
+ 174 |0 
+ 175 |0 
+ 176 |0 
+ 177 |0 
+ 178 |0 
+ 179 |0 
+ 180 |0 
+ 181 |0 
+ 182 |0 
+ 183 |0 
+ 184 |0 
+ 185 |0 
+ 186 |0 
+ 187 |0 
+ 188 |0 
+ 189 |0 
+ 190 |0 
+ 191 |0 
+ 192 |0 
+ 193 |0 
+ 194 |0 
+ 195 |0 
+ 196 |0 
+ 197 |0 
+ 198 |0 
+ 199 |0 
+ 200 |0 
+ 201 |0 
+ 202 |0 
+ 203 |0 
+ 204 |0 
+ 205 |0 
+ 206 |0 
+ 207 |0 
+ 208 |0 
+ 209 |0 
+ 210 |0 
+ 211 |0 
+ 212 |0 
+ 213 |0 
+ 214 |0 
+ 215 |0 
+ 216 |0 
+ 217 |0 
+ 218 |0 
+ 219 |0 
+ 220 |0 
+ 221 |0 
+ 222 |0 
+ 223 |0 
+ 224 |0 
+ 225 |0 
+ 226 |0 
+ 227 |0 
+ 228 |0 
+ 229 |0 
+ 230 |0 
+ 231 |0 
+ 232 |0 
+ 233 |0 
+ 234 |0 
+ 235 |0 
+ 236 |0 
+ 237 |0 
+ 238 |0 
+ 239 |0 
+ 240 |0 
+ 241 |0 
+ 242 |0 
+ 243 |0 
+ 244 |0 
+ 245 |0 
+ 246 |0 
+ 247 |0 
+ 248 |0 
+ 249 |0 
+ 250 |0 
+ 251 |0 
+ 252 |0 
+ 253 |0 
+ 254 |0 
+ 255 |0 
+ 256 |0 
+ 257 |0 
+ 258 |0 
+ 259 |0 
+ 260 |0 
+ 261 |0 
+ 262 |0 
+ 263 |0 
+ 264 |0 
+ 265 |0 
+ 266 |0 
+ 267 |0 
+ 268 |0 
+ 269 |0 
+ 270 |0 
+ 271 |0 
+ 272 |0 
+ 273 |0 
+ 274 |0 
+ 275 |0 
+ 276 |0 
+ 277 |0 
+ 278 |0 
+ 279 |0 
+ 280 |0 
+ 281 |0 
+ 282 |0 
+ 283 |0 
+ 284 |0 
+ 285 |0 
+ 286 |0 
+ 287 |0 
+ 288 |0 
+ 289 |0 
+ 290 |0 
+ 291 |0 
+ 292 |0 
+ 293 |0 
+ 294 |0 
+ 295 |0 
+ 296 |0 
+ 297 |0 
+ 298 |0 
+ 299 |0 
+ 300 |0 
+ 301 |0 
+ 302 |0 
+ 303 |0 
+ 304 |0 
+ 305 |0 
+ 306 |0 
+ 307 |0 
+ 308 |0 
+ 309 |0 
+ 310 |0 
+ 311 |0 
+ 312 |0 
+ 313 |0 
+ 314 |0 
+ 315 |0 
+ 316 |0 
+ 317 |0 
+ 318 |0 
+ 319 |0 
+ 320 |0 
+ 321 |0 
+ 322 |0 
+ 323 |0 
+ 324 |0 
+ 325 |0 
+ 326 |0 
+ 327 |0 
+ 328 |0 
+ 329 |0 
+ 330 |0 
+ 331 |0 
+ 332 |0 
+ 333 |0 
+ 334 |0 
+ 335 |0 
+ 336 |0 
+ 337 |0 
+ 338 |0 
+ 339 |0 
+ 340 |0 
+ 341 |0 
+ 342 |0 
+ 343 |0 
+ 344 |0 
+ 345 |0 
+ 346 |0 
+ 347 |0 
+ 348 |0 
+ 349 |0 
+ 350 |0 
+ 351 |0 
+ 352 |0 
+ 353 |0 
+ 354 |0 
+ 355 |0 
+ 356 |0 
+ 357 |0 
+ 358 |0 
+ 359 |0 
+ 360 |0 
+ 361 |0 
+ 362 |0 
+ 363 |0 
+ 364 |0 
+ 365 |0 
+ 366 |0 
+ 367 |0 
+ 368 |0 
+ 369 |0 
+ 370 |0 
+ 371 |0 
+ 372 |0 
+ 373 |0 
+ 374 |0 
+ 375 |0 
+ 376 |0 
+ 377 |0 
+ 378 |0 
+ 379 |0 
+ 380 |0 
+ 381 |0 
+ 382 |0 
+ 383 |0 
+ 384 |0 
+ 385 |0 
+ 386 |0 
+ 387 |0 
+ 388 |0 
+ 389 |0 
+ 390 |0 
+ 391 |0 
+ 392 |0 
+ 393 |0 
+ 394 |0 
+ 395 |0 
+ 396 |0 
+ 397 |0 
+ 398 |0 
+ 399 |0 
+ 400 |0 
+ 401 |0 
+ 402 |0 
+ 403 |0 
+ 404 |0 
+ 405 |0 
+ 406 |0 
+ 407 |0 
+ 408 |0 
+ 409 |0 
+ 410 |0 
+ 411 |0 
+ 412 |0 
+ 413 |0 
+ 414 |0 
+ 415 |0 
+ 416 |0 
+ 417 |0 
+ 418 |0 
+ 419 |0 
+ 420 |0 
+ 421 |0 
+ 422 |0 
+ 423 |0 
+ 424 |0 
+ 425 |0 
+ 426 |0 
+ 427 |0 
+ 428 |0 
+ 429 |0 
+ 430 |0 
+ 431 |0 
+ 432 |0 
+ 433 |0 
+ 434 |0 
+ 435 |0 
+ 436 |0 
+ 437 |0 
+ 438 |0 
+ 439 |0 
+ 440 |0 
+ 441 |0 
+ 442 |0 
+ 443 |0 
+ 444 |0 
+ 445 |0 
+ 446 |0 
+ 447 |0 
+ 448 |0 
+ 449 |0 
+ 450 |0 
+ 451 |0 
+ 452 |0 
+ 453 |0 
+ 454 |0 
+ 455 |0 
+ 456 |0 
+ 457 |0 
+ 458 |0 
+ 459 |0 
+ 460 |0 
+ 461 |0 
+ 462 |0 
+ 463 |0 
+ 464 |0 
+ 465 |0 
+ 466 |0 
+ 467 |0 
+ 468 |0 
+ 469 |0 
+ 470 |0 
+ 471 |0 
+ 472 |0 
+ 473 |0 
+ 474 |0 
+ 475 |0 
+ 476 |0 
+ 477 |0 
+ 478 |0 
+ 479 |0 
+ 480 |0 
+ 481 |0 
+ 482 |0 
+ 483 |0 
+ 484 |0 
+ 485 |0 
+ 486 |0 
+ 487 |0 
+ 488 |0 
+ 489 |0 
+ 490 |0 
+ 491 |0 
+ 492 |0 
+ 493 |0 
+ 494 |0 
+ 495 |0 
+ 496 |0 
+ 497 |0 
+ 498 |0 
+ 499 |0 
+ 500 |0 
+ 501 |0 
+ 502 |0 
+ 503 |0 
+ 504 |0 
+ 505 |0 
+ 506 |0 
+ 507 |0 
+ 508 |0 
+ 509 |0 
+ 510 |0 
+ 511 |0 
+ 512 |0 
+ 513 |0 
+ 514 |0 
+ 515 |0 
+ 516 |0 
+ 517 |0 
+ 518 |0 
+ 519 |0 
+ 520 |0 
+ 521 |0 
+ 522 |0 
+ 523 |0 
+ 524 |0 
+ 525 |0 
+ 526 |0 
+ 527 |0 
+ 528 |0 
+ 529 |0 
+ 530 |0 
+ 531 |0 
+ 532 |0 
+ 533 |0 
+ 534 |0 
+ 535 |0 
+ 536 |0 
+ 537 |0 
+ 538 |0 
+ 539 |0 
+ 540 |0 
+ 541 |0 
+ 542 |0 
+ 543 |0 
+ 544 |0 
+ 545 |0 
+ 546 |0 
+ 547 |0 
+ 548 |0 
+ 549 |0 
+ 550 |0 
+ 551 |0 
+ 552 |0 
+ 553 |0 
+ 554 |0 
+ 555 |0 
+ 556 |0 
+ 557 |0 
+ 558 |0 
+ 559 |0 
+ 560 |0 
+ 561 |0 
+ 562 |0 
+ 563 |0 
+ 564 |0 
+ 565 |0 
+ 566 |0 
+ 567 |0 
+ 568 |0 
+ 569 |0 
+ 570 |0 
+ 571 |0 
+ 572 |0 
+ 573 |0 
+ 574 |0 
+ 575 |0 
+ 576 |0 
+ 577 |0 
+ 578 |0 
+ 579 |0 
+ 580 |0 
+ 581 |0 
+ 582 |0 
+ 583 |0 
+ 584 |0 
+ 585 |0 
+ 586 |0 
+ 587 |0 
+ 588 |0 
+ 589 |0 
+ 590 |0 
+ 591 |0 
+ 592 |0 
+ 593 |0 
+ 594 |0 
+ 595 |0 
+ 596 |0 
+ 597 |0 
+ 598 |0 
+ 599 |0 
+ 600 |0 
+ 601 |0 
+ 602 |0 
+ 603 |0 
+ 604 |0 
+ 605 |0 
+ 606 |0 
+ 607 |0 
+ 608 |0 
+ 609 |0 
+ 610 |0 
+ 611 |0 
+ 612 |0 
+ 613 |0 
+ 614 |0 
+ 615 |0 
+ 616 |0 
+ 617 |0 
+ 618 |0 
+ 619 |0 
+ 620 |0 
+ 621 |0 
+ 622 |0 
+ 623 |0 
+ 624 |0 
+ 625 |0 
+ 626 |0 
+ 627 |0 
+ 628 |0 
+ 629 |0 
+ 630 |0 
+ 631 |0 
+ 632 |0 
+ 633 |0 
+ 634 |0 
+ 635 |0 
+ 636 |0 
+ 637 |0 
+ 638 |0 
+ 639 |0 
+ 640 |0 
+ 641 |0 
+ 642 |0 
+ 643 |0 
+ 644 |0 
+ 645 |0 
+ 646 |0 
+ 647 |0 
+ 648 |0 
+ 649 |0 
+ 650 |0 
+ 651 |0 
+ 652 |0 
+ 653 |0 
+ 654 |0 
+ 655 |0 
+ 656 |0 
+ 657 |0 
+ 658 |0 
+ 659 |0 
+ 660 |0 
+ 661 |0 
+ 662 |0 
+ 663 |0 
+ 664 |0 
+ 665 |0 
+ 666 |0 
+ 667 |0 
+ 668 |0 
+ 669 |0 
+ 670 |0 
+ 671 |0 
+ 672 |0 
+ 673 |0 
+ 674 |0 
+ 675 |0 
+ 676 |0 
+ 677 |0 
+ 678 |0 
+ 679 |0 
+ 680 |0 
+ 681 |0 
+ 682 |0 
+ 683 |0 
+ 684 |0 
+ 685 |0 
+ 686 |0 
+ 687 |0 
+ 688 |0 
+ 689 |0 
+ 690 |0 
+ 691 |0 
+ 692 |0 
+ 693 |0 
+ 694 |0 
+ 695 |0 
+ 696 |0 
+ 697 |0 
+ 698 |0 
+ 699 |0 
+ 700 |0 
+ 701 |0 
+ 702 |0 
+ 703 |0 
+ 704 |0 
+ 705 |0 
+ 706 |0 
+ 707 |0 
+ 708 |0 
+ 709 |0 
+ 710 |0 
+ 711 |0 
+ 712 |0 
+ 713 |0 
+ 714 |0 
+ 715 |0 
+ 716 |0 
+ 717 |0 
+ 718 |0 
+ 719 |0 
+ 720 |0 
+ 721 |0 
+ 722 |0 
+ 723 |0 
+ 724 |0 
+ 725 |0 
+ 726 |0 
+ 727 |0 
+ 728 |0 
+ 729 |0 
+ 730 |0 
+ 731 |0 
+ 732 |0 
+ 733 |0 
+ 734 |0 
+ 735 |0 
+ 736 |0 
+ 737 |0 
+ 738 |0 
+ 739 |0 
+ 740 |0 
+ 741 |0 
+ 742 |0 
+ 743 |0 
+ 744 |0 
+ 745 |0 
+ 746 |0 
+ 747 |0 
+ 748 |0 
+ 749 |0 
+ 750 |0 
+ 751 |0 
+ 752 |0 
+ 753 |0 
+ 754 |0 
+ 755 |0 
+ 756 |0 
+ 757 |0 
+ 758 |0 
+ 759 |0 
+ 760 |0 
+ 761 |0 
+ 762 |0 
+ 763 |0 
+ 764 |0 
+ 765 |0 
+ 766 |0 
+ 767 |0 
+ 768 |0 
+ 769 |0 
+ 770 |0 
+ 771 |0 
+ 772 |0 
+ 773 |0 
+ 774 |0 
+ 775 |0 
+ 776 |0 
+ 777 |0 
+ 778 |0 
+ 779 |0 
+ 780 |0 
+ 781 |0 
+ 782 |0 
+ 783 |0 
+ 784 |0 
+ 785 |0 
+ 786 |0 
+ 787 |0 
+ 788 |0 
+ 789 |0 
+ 790 |0 
+ 791 |0 
+ 792 |0 
+ 793 |0 
+ 794 |0 
+ 795 |0 
+ 796 |0 
+ 797 |0 
+ 798 |0 
+ 799 |0 
+ 800 |0 
+ 801 |0 
+ 802 |0 
+ 803 |0 
+ 804 |0 
+ 805 |0 
+ 806 |0 
+ 807 |0 
+ 808 |0 
+ 809 |0 
+ 810 |0 
+ 811 |0 
+ 812 |0 
+ 813 |0 
+ 814 |0 
+ 815 |0 
+ 816 |0 
+ 817 |0 
  818 |0 
  819 |0 
  820 |0 
@@ -926,31 +926,31 @@ Vector (915)  is as follows
 
 Now unfolding...
 Iteration : 0
-Chi^2 of change 86288.6
+Chi^2 of change -nan
 Iteration : 1
-Chi^2 of change 8684.8
+Chi^2 of change -nan
 Iteration : 2
-Chi^2 of change 2656.53
+Chi^2 of change -nan
 Iteration : 3
-Chi^2 of change 1219.96
+Chi^2 of change -nan
 Iteration : 4
-Chi^2 of change 674.169
+Chi^2 of change -nan
 Iteration : 5
-Chi^2 of change 417.559
+Chi^2 of change -nan
 Iteration : 6
-Chi^2 of change 280.298
+Chi^2 of change -nan
 Iteration : 7
-Chi^2 of change 199.446
+Chi^2 of change -nan
 Iteration : 8
-Chi^2 of change 148.073
+Chi^2 of change -nan
 Iteration : 9
-Chi^2 of change 113.446
+Chi^2 of change -nan
 Iteration : 10
-Chi^2 of change 89.021
+Chi^2 of change -nan
 Iteration : 11
-Chi^2 of change 71.1792
+Chi^2 of change -nan
 Iteration : 12
-Chi^2 of change 57.7858
+Chi^2 of change -nan
 Using response matrix priors
 Calculating covariances due to number of measured events
 Using response matrix priors
@@ -1453,16 +1453,259 @@ Using response matrix priors
 Using response matrix priors
 Using response matrix priors
 TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
-Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
 Fit:0: RuntimeWarning: Fit data is empty 
 Fit:0: RuntimeWarning: Fit data is empty 
 Fit:0: RuntimeWarning: Fit data is empty 
 Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
 Warning in <Fit>: Fit data is empty 
 Warning in <Fit>: Fit data is empty 
 
 Adding the following extra title to the histograms:
-	rho0 Normalized Run
+	rho0 Normalized Subtraction Run (V2)
 
 
 
@@ -1484,9 +1727,9 @@ Running for Q2-xB/Q2-y Bins: '8', '0'
 Starting RG-A SIDIS Analysis
 [0m
 
-Started running on [1m5-26-2026[0m at [1m01:42 a.m.[0m
+Started running on [1m6-21-2026[0m at [1m04:01 a.m.[0m
 
-The total number of histograms available for the[1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m504[0m
+The total number of histograms available for the[1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m504[0m
 
 
 [1mDone Loading RDataFrame files...
@@ -1512,24 +1755,13 @@ Bin 6 is not in Q2_y_Bin_List = ['8', '0']
 Bin 7 is not in Q2_y_Bin_List = ['8', '0']
 
 Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
-[1m[92mAdding the 'lundrho' files to the 'MC_REC_1D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'Response_2D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'MC_GEN_1D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'MC_BGS_1D_initial' histogram[0m
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
 [1m[96mStarting [4m[95mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
 	[1mAcceptance Correction of Histogram:[0m
 	((Histo-Group='Response_Matrix_Normal_1D'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
-[91m
-Bin 458 had a very low acceptance...
-	(cut_criteria = 0.0005)
-	(Bin_Content  = 0.00032332804170995884)[0m
-[91m
-Bin 794 had a very low acceptance...
-	(cut_criteria = 0.0005)
-	(Bin_Content  = 0.00021291275925409424)[0m
 [1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
 
-Current Time: [1m01:42 a.m.[0m
+Current Time: [1m04:01 a.m.[0m
 Time Elapsed Up To Now:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
 
@@ -1543,12 +1775,12 @@ Time Elapsed Up To Now:
 
 	[1mBegan Unfolding Histogram:[0m
 	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
-Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s). 
 	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
 
-Current Time: [1m03:46 a.m.[0m
+Current Time: [1m06:09 a.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 2 Hour(s), 3 Minute(s), and 16 Second(s).
+0 Day(s), 2 Hour(s), 7 Minute(s), and 46 Second(s).
 
 [1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
 [0m
@@ -1576,24 +1808,21 @@ Time Elapsed Up To Now:
 Bin 9 is not in Q2_y_Bin_List = ['8', '0']
 
 Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
-[1m[92mAdding the 'lundrho' files to the 'MC_REC_1D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'Response_2D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'MC_GEN_1D_initial' histogram[0m
-[1m[92mAdding the 'lundrho' files to the 'MC_BGS_1D_initial' histogram[0m
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
 Total: 2
 
 
 Counting Total Number of/Saving collected histograms...
-[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
+[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
 
 [1m[96mDone Saving![0m
 
-Final Count = 778
+Final Count = 670
 
 
-Current Time: [1m03:46 a.m.[0m
+Current Time: [1m06:10 a.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 2 Hour(s), 3 Minute(s), and 35 Second(s).
+0 Day(s), 2 Hour(s), 9 Minute(s), and 17 Second(s).
 
 [94mNormal Unfolding Fits Already Included? -> [1m[92mTrue[0m
 [94mRC Unfolding Fits Already Included?     -> [91m[1mFalse[0m
@@ -1604,75 +1833,70 @@ Time Elapsed Up To Now:
 
 [1mLoaded `[92mFind_RC_Fit_Params[0m[1m` and `[92mApply_RC_Factor_Corrections[0m[1m` for applying RC Corrections...[0m
 
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   534)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   535)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   536)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   537)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   538)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   539)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   540)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   541)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   542)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   543)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   544)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   545)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   546)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   547)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   548)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   549)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   550)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   551)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   552)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   553)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   554)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   555)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   556)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   557)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   558)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   559)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   560)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   561)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   562)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_30)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   563)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   564)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   565)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_33)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   566)
-Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_34)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   567)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   460)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   461)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   462)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   463)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   464)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   465)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   466)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   467)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   468)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   469)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   470)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   471)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   472)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   473)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   474)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   475)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   476)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   477)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   478)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   479)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   480)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   481)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   482)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   483)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_30)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   484)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   485)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   486)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_33)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   487)
+Fitting for: [1m(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_8)_(z_pT_Bin_34)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num   488)
 
-[1m[94mFit/Added [0m[1m34[1m[94m Histograms[0m[94m
+[1m[94mFit/Added [0m[1m29[1m[94m Histograms[0m[94m
 Adding to Main List...[0m
 
-[1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m982[0m
+[1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m844[0m
 
 
-Current Time: [1m03:46 a.m.[0m
+Current Time: [1m06:10 a.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 2 Hour(s), 3 Minute(s), and 41 Second(s).
+0 Day(s), 2 Hour(s), 9 Minute(s), and 18 Second(s).
 
 
 
 Counting Total Number of/Saving collected histograms...
-[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
+[1m[94mSaving to: [1m[92m"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root"[0m
 
 [1m[96mDone Saving![0m
 
-Final Count = 982
+Final Count = 844
 
 
-Current Time: [1m03:46 a.m.[0m
+Current Time: [1m06:15 a.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s).
+0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s).
 
 
-[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
-
-[1m[96mDone Saving JSON File.[0m
-Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s). 
-
-[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
+[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
 
 [1m[96mDone Saving JSON File.[0m
-Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s). 
+
+[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All".json[1m[94m (total entries now = 3)[0m
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s). 
 
 
 
@@ -1681,24 +1905,24 @@ Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s).
 
 
 The 'Simple_RooUnfold_SelfContained.py' script has finished running.
-Started running on [1m5-26-2026[0m at [1m01:42 a.m.[0m
+Started running on [1m6-21-2026[0m at [1m04:01 a.m.[0m
 
 Input File:
-	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root
+	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root
 Output File:
-	"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root"
+	"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root"
 
-Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundrho' rho0 events subtracted as background after proper normalization. Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.
+Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1.
 
 	[1mBegan Unfolding Histogram:[0m
 	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
-Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s). 
 	Finished Unfolding the histogram at:
-Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 16 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 7 Minute(s), and 46 Second(s). 
 [1m[96mDone Saving JSON File.[0m
-Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s). 
 [1m[96mDone Saving JSON File.[0m
-Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s). 
 
 Arguments:
 --unfolding_3D (3D Unfolding Only)                  --> True
@@ -1720,7 +1944,7 @@ Arguments:
 --bayes_iterations                                  --> 13
 --Num_Toys                                          --> 500
 --Unfold_Methods                                    --> ['Bayesian']
---title                                             --> 'rho0 Normalized Run'
+--title                                             --> 'rho0 Normalized Subtraction Run (V2)'
 --EvGen                                             --> False
 --Min_Allowed_Acceptance_Cut                        --> 0.0005
 --Use_TTree                                         --> False
@@ -1729,19 +1953,20 @@ Arguments:
 --Add_Uncertainties                                 --> False
 --save_json                                         --> True
 --old_json                                          --> False
+--background_source                                 --> 'lundvpk'
 --pass_version                                      --> 'Pass 2'
 --smearing_options                                  --> 'smear'
 --Q2_y_Bin_List                                     --> ['8', '0']
 --Run_5D_Unfold                                     --> False
 --run_sec_unfold                                    --> False
---json_name                                         --> 'Fit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All".json'
+--json_name                                         --> 'Fit_Pars_from_Simple_RooUnfold_SelfContained_using_"Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All".json'
 
 
-The time that this code finished is [1m03:46 a.m.[0m
+The time that this code finished is [1m06:15 a.m.[0m
 The total time the code took to run is:
-0 Day(s), 2 Hour(s), 3 Minute(s), and 43 Second(s).
-Saved 982 Histograms...
-Rate = 0.13 Histograms/Seconds
+0 Day(s), 2 Hour(s), 14 Minute(s), and 24 Second(s).
+Saved 844 Histograms...
+Rate = 0.10 Histograms/Seconds
     
 
 [1m[92m[43m

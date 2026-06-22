@@ -1,21 +1,21 @@
-	Command being timed: "./Simple_RooUnfold_SelfContained.py --root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json -em Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundrho' rho0 events subtracted as background after proper normalization. Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1. -ti rho0 Normalized Run 5"
-	User time (seconds): 7429.01
-	System time (seconds): 20.98
-	Percent of CPU this job got: 94%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11:05
+	Command being timed: "./Simple_RooUnfold_SelfContained.py --root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json -em Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1. -ti rho0 Normalized Subtraction Run (V2) 5"
+	User time (seconds): 7605.95
+	System time (seconds): 18.91
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:12:21
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 743748
+	Maximum resident set size (kbytes): 715276
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 3271
-	Minor (reclaiming a frame) page faults: 1681628
-	Voluntary context switches: 1615507
-	Involuntary context switches: 417805
+	Major (requiring I/O) page faults: 124
+	Minor (reclaiming a frame) page faults: 3510980
+	Voluntary context switches: 1600326
+	Involuntary context switches: 147984
 	Swaps: 0
-	File system inputs: 7384
-	File system outputs: 4220872
+	File system inputs: 5488
+	File system outputs: 4192120
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0

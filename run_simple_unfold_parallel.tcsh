@@ -39,20 +39,29 @@ endif
 set script     = "./Simple_RooUnfold_SelfContained.py"
 set njobs      = 17
 set log_dir    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding"
-set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
-set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
-# set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
-# set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
+set log_prefix = "Unfold_rho0_Log_of_Q2_y_Bin_"
+set time_prefix = "Unfold_rho0_Time_of_Q2_y_Bin_"
+# set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
+# set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
+# # set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
+# # set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
 
-# Arguments for the Python script (easily changeable here)
-# set args       = "-bi 1 -nt 1 -smear -u3D -e -em \"Test of parallel running\""
-# set args       = '-r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)"'
-# set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa'
-# set emsg  = 'Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree.'
-# set title = 'Applied the 0th Order Acceptance Weights'
-set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root'
-set emsg  = 'Finished running Unfolding with the Baseline Response Matricies, but from the file that also has the 0th Order Acceptance Weights available. Reran to use the most recent set of successful batched files. Was running as background parallel jobs in tmuxTTree.'
-set title = 'Used the Pass 2 PID Refinements'
+# # Arguments for the Python script (easily changeable here)
+# # set args       = "-bi 1 -nt 1 -smear -u3D -e -em \"Test of parallel running\""
+# # set args       = '-r "FULL_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root" -smear -u3D -e -em "Running default Unfolding as background parallel jobs. Ran in tmuxUnfold (in case there were any local issues)"'
+# # set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -e -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root -mod -wa'
+# # set emsg  = 'Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree.'
+# # set title = 'Applied the 0th Order Acceptance Weights'
+# set args  = '-r ZerothOrderAcc_Unfolded_Histos_From_Simple_RooUnfold_SelfContained.root -smear -u3D -sfin /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_ZerothOrderAcc_All_Batches.root'
+# set emsg  = 'Finished running Unfolding with the Baseline Response Matricies, but from the file that also has the 0th Order Acceptance Weights available. Reran to use the most recent set of successful batched files. Was running as background parallel jobs in tmuxTTree.'
+# set title = 'Used the Pass 2 PID Refinements'
+
+# Arguments for the Python script (updated for rho0 normalized run)
+# set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
+# set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
+set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
+set emsg  = "Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1."
+set title = 'rho0 Normalized Subtraction Run (V2)'
 
 # Optional: limit concurrent jobs if machine is overloaded (set to 0 = unlimited)
 set max_concurrent = 0   # 0 = run all 17 at once; e.g. 8 = limit to 8 running at a time

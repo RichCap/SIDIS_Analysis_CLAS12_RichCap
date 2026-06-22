@@ -440,26 +440,43 @@ def project_z_bins_global(h3d, name, z_values_list, args=None, function_or_hist_
         print(f"{color.BGREEN}Saved a Sliced TH2D histogram as: {color.BBLUE}{root_name}{color.END}\n")
     return proj
 
+
+
+cut_stages = {
+    "Exclusive":           [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
+    "Exclusive_SIDIS":     [151, 159, 183, 191, 215, 223, 247, 255],
+    "Exclusive_F":         [87, 95, 119, 127, 215, 223, 247, 255],
+    "Exclusive_F_SIDIS":   [215, 223, 247, 255],
+    "Exclusive_rho":       [31, 63, 95, 127, 159, 191, 223, 255],
+    "Exclusive_rho_SIDIS": [159, 191, 223, 255],
+    "SIDIS_BKG":           [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+    "SIDIS_2pi":           [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+    "Min_ExclC":           [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+    "Min_ExclC_SIDIS":     [134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
+    "SIDIS_wBG_2pi":       [128, 129, 130, 131, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
+    "Full_SIDIS":          list(range(128, 256)),
+    "2pi_Full":            [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60, 61, 62, 63, 68, 69, 70, 71, 76, 77, 78, 79, 84, 85, 86, 87, 92, 93, 94, 95, 100, 101, 102, 103, 108, 109, 110, 111, 116, 117, 118, 119, 124, 125, 126, 127, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255]
+}
 def histo_setup_for_Wpions(args):
     print(f"\n{color.BLUE}Getting the correct histograms...{color.END}\n")
     hist_key___data  =  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(W_pippim)_(exclusive_rho_individual)"
     hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
-    hist_key_clasdis =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
+    # hist_key_clasdis =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
 
     if(getattr(args, "use_z_bins", False)):
         hist_key___data  =  hist_key___data.replace("Q2_y_z_pT_Bin_All", "z_Bins")
         hist_key__harut  =  hist_key__harut.replace("Q2_y_z_pT_Bin_All", "z_Bins")
-        hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "z_Bins")
+        # hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "z_Bins")
     elif(args.Use_2D_Kinematic_Binning or True): # As of 6/13/2026, these histograms always use the Q2-y bins or z-bins
         hist_key___data  =  hist_key___data.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
         hist_key__harut  =  hist_key__harut.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
-        hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
+        # hist_key_clasdis = hist_key_clasdis.replace("Q2_y_z_pT_Bin_All", "Q2_Y_Bin")
 
     if(args.verbose):
         print(f"Loading ROOT file: {args.file1}")
         print(f"Loading histogram key 'hist_key___data'  = {hist_key___data}")
         print(f"Loading histogram key 'hist_key__harut'  = {hist_key__harut}")
-        print(f"Loading histogram key 'hist_key_clasdis' = {hist_key_clasdis}")
+        # print(f"Loading histogram key 'hist_key_clasdis' = {hist_key_clasdis}")
 
     file1 = ROOT.TFile.Open(args.file1)
     if((not file1) or (file1.IsZombie())):
@@ -470,254 +487,319 @@ def histo_setup_for_Wpions(args):
     check_histo_for_errors(h3__data, hist_key___data,  args.file1)
     h3_harut = file1.Get(hist_key__harut)
     check_histo_for_errors(h3_harut, hist_key__harut,  args.file1)
-    h3___mdf = file1.Get(hist_key_clasdis)
-    check_histo_for_errors(h3___mdf, hist_key_clasdis, args.file1)
+    # h3___mdf = file1.Get(hist_key_clasdis)
+    # check_histo_for_errors(h3___mdf, hist_key_clasdis, args.file1)
     
     print(f"{color.BGREEN}Successfully loaded all TH3D histograms and validated compatibility.{color.END}")
     
     # args.Exclusive_bins = [87, 95, 119, 127, 215, 223, 247, 255]
-    args.Exclusive_bins = [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255]
+    # args.Exclusive_bins = [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255]
     # args.SIDIS_BKG_bins = [92, 94, 124, 126, 220, 222, 252, 254]
-    args.SIDIS_BKG_bins = [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254]
+    # args.SIDIS_BKG_bins = [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254]
+
+    # args.Exclusive_bins = cut_stages.get("Exclusive_SIDIS", [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255])
+    args.Exclusive_bins = cut_stages.get("Exclusive_SIDIS", [151, 159, 183, 191, 215, 223, 247, 255])
+
 
     # Data
     proj__data_excl = project_z_bins_global(h3__data, "proj__data_excl", args.Exclusive_bins, args, function_or_hist_integration="func")
     # Harut's MC
     proj_harut_excl = project_z_bins_global(h3_harut, "proj_harut_excl", args.Exclusive_bins, args, function_or_hist_integration="func")
     # clasdis MC (SIDIS BKG)
-    proj_mdf__exbkg = project_z_bins_global(h3___mdf, "proj_mdf__exbkg", args.SIDIS_BKG_bins, args, function_or_hist_integration="func")
+    # proj_mdf__exbkg = project_z_bins_global(h3___mdf, "proj_mdf__exbkg", args.SIDIS_BKG_bins, args, function_or_hist_integration="func")
 
-    return args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1
+    # return args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1
+    return args, proj__data_excl, proj_harut_excl, file1
 
 def Create_Wpions_Fit_Images(args, mass_data, mass_harut, fy_data, fy_harut, fy1_data, fy1_harut, fy2_data, fy2_harut, fy3_data, fy3_harut, fy4_data, fy4_harut, N_data_rho, N_harut_rho, n_rho):
     fmt = args.file_format.lower()
     suffix = f"_{args.name}" if(args.name) else ""
     suffix = f"{suffix}_Bin_{getattr(args, 'current_kinematic_bin', 'All')}"
+    Make_Data, Make_MC, Make_Both_Fits, Make_Both_Norm = True, True, True, True
+
     # Data fit plot
-    c_data = ROOT.TCanvas("c_data_fit", "", 1200, 600)
-    ROOT.gStyle.SetOptStat(0)
-    c_data.Divide(2, 1, 0.0001, 0.0001)
-    Hist_Pad_Data = c_data.cd(1)
-    Hist_Pad_Data.SetPad(0.0, 0.0, 0.9, 1.0)
-    Fit_Pad_Data = c_data.cd(2)
-    Fit_Pad_Data.SetPad(0.85, 0.0,  1.0, 1.0)
-    Hist_Pad_Data.cd()
-    mass_data.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}{{{args.title}}}")
-    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
-        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
-        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
-    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
-        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
-    mass_data.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
-    mass_data.Draw("hist")
-    mass_data.SetLineColor(ROOT.kCyan)
-    fy_data.SetLineColor(ROOT.kBlack)
-    fy_data.Draw("same")
-    fy1_data.SetLineColor(ROOT.kMagenta)
-    fy1_data.Draw("same")
-    fy2_data.SetLineColor(ROOT.kRed)
-    fy2_data.Draw("same")
-    fy3_data.SetLineColor(ROOT.kBlue)
-    fy3_data.Draw("same")
-    fy4_data.SetLineColor(ROOT.kOrange)
-    fy4_data.Draw("same")
-    # leg_d = ROOT.TLegend(0.55, 0.07, 0.92, 0.50)
-    leg_d = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
-    leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
-    leg_d.AddEntry(mass_data, "Experimental Data", "l")
-    leg_d.AddEntry(fy4_data,  "f_{0}",             "l")
-    leg_d.AddEntry(fy3_data,  "f_{2}",             "l")
-    leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
-    leg_d.AddEntry(fy2_data,  "General Background","l")
-    leg_d.AddEntry(fy_data,   "Full Fit",          "l")
-    leg_d.Draw("same")
-    box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
-    box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
-    box_d.SetTextAlign(22); box_d.SetTextFont(62); box_d.SetTextSize(0.025)
-    box_d.SetMargin(0.02)
-    box_d.AddText("Number of Experimental")
-    box_d.AddText("Exclusive #rho^{0} Events from Fit:")
-    box_d.AddText(f"{N_data_rho:.6f}")
-    box_d.Draw("same")
-    Fit_Pad_Data.cd()
-    Fit_box_d = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
-    Fit_box_d.SetFillColor(0); Fit_box_d.SetBorderSize(1); Fit_box_d.SetFillStyle(1001)
-    Fit_box_d.SetTextAlign(22); Fit_box_d.SetTextFont(62); Fit_box_d.SetTextSize(0.02)
-    Fit_box_d.SetMargin(0.02)
-    Fit_box_d.AddText("")
-    Fit_box_d.AddText("#scale[4.25]{#splitline{Experimental Data's}{Fit Parameters:}}")
-    fit_functions_data = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_data), ("f_{0} Fit Parameters:", fy4_data), ("f_{2} Fit Parameters:", fy3_data), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_data)]
-    fit_error_by_name = {} # Build lookup table from the actual fitted function
-    for ipar in range(fy_data.GetNpar()):
-        name = fy_data.GetParName(ipar)
-        err  = fy_data.GetParError(ipar)
-        if(name):
-            fit_error_by_name[name] = err
-    for fit_label, fit_func in fit_functions_data:
+    if(Make_Data):
+        c_data = ROOT.TCanvas("c_data_fit", "", 1200, 600)
+        ROOT.gStyle.SetOptStat(0)
+        c_data.Divide(2, 1, 0.0001, 0.0001)
+        Hist_Pad_Data = c_data.cd(1)
+        Hist_Pad_Data.SetPad(0.0, 0.0, 0.9, 1.0)
+        Fit_Pad_Data = c_data.cd(2)
+        Fit_Pad_Data.SetPad(0.85, 0.0,  1.0, 1.0)
+        Hist_Pad_Data.cd()
+        mass_data.SetTitle(f"#splitline{{#scale[1.5]{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Experimental Data}}}}{{{args.title}}}")
+        if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+            backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+            mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+        elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+            mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
+        mass_data.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
+        mass_data.Draw("hist")
+        mass_data.SetLineColor(ROOT.kCyan)
+        fy_data.SetLineColor(ROOT.kBlack)
+        fy_data.Draw("same")
+        fy1_data.SetLineColor(ROOT.kMagenta)
+        fy1_data.Draw("same")
+        fy2_data.SetLineColor(ROOT.kRed)
+        fy2_data.Draw("same")
+        fy3_data.SetLineColor(ROOT.kBlue)
+        fy3_data.Draw("same")
+        fy4_data.SetLineColor(ROOT.kOrange)
+        fy4_data.Draw("same")
+        # leg_d = ROOT.TLegend(0.55, 0.07, 0.92, 0.50)
+        leg_d = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
+        leg_d.SetFillStyle(0); leg_d.SetBorderSize(0)
+        leg_d.AddEntry(mass_data, "Experimental Data", "l")
+        leg_d.AddEntry(fy4_data,  "f_{0} Background",  "l")
+        leg_d.AddEntry(fy3_data,  "f_{2} Background",  "l")
+        leg_d.AddEntry(fy1_data,  "#rho^{0} Signal",   "l")
+        leg_d.AddEntry(fy2_data,  "General Background","l")
+        leg_d.AddEntry(fy_data,   "Full Fit",          "l")
+        leg_d.Draw("same")
+        # box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
+        box_d = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.9, "NDC")
+        box_d.SetFillColor(0); box_d.SetBorderSize(1); box_d.SetFillStyle(1001)
+        box_d.SetTextAlign(22); box_d.SetTextFont(62); box_d.SetTextSize(0.035)
+        box_d.SetMargin(0.02)
+        box_d.AddText("Number of Experimental")
+        box_d.AddText("Exclusive #rho^{0} Events from Fit:")
+        box_d.AddText(f"#scale[1.35]{{N_{{excl}}^{{data,#rho}} = {N_data_rho:.6f}}}")
+        box_d.Draw("same")
+        Fit_Pad_Data.cd()
+        Fit_box_d = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
+        Fit_box_d.SetFillColor(0); Fit_box_d.SetBorderSize(1); Fit_box_d.SetFillStyle(1001)
+        Fit_box_d.SetTextAlign(22); Fit_box_d.SetTextFont(62); Fit_box_d.SetTextSize(0.02)
+        Fit_box_d.SetMargin(0.02)
         Fit_box_d.AddText("")
-        Fit_box_d.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
-        for ipar in range(fit_func.GetNpar()):
-            name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
-            if(name == "Constant"):
-                continue
-            val  = fit_func.GetParameter(ipar)
-            # err  = fit_func.GetParError(ipar)
-            err  = fit_error_by_name[name]
-            Fit_box_d.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
-    Fit_box_d.Draw("same")
-    if(not args.no_save):
-        c_data.SaveAs(f"Wpions_Fit_Experimental_Data{suffix}.{fmt}")
-        print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
-    else:
-        print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
+        Fit_box_d.AddText("#scale[4.25]{#splitline{Experimental Data's}{Fit Parameters:}}")
+        fit_functions_data = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_data), ("f_{0} Fit Parameters:", fy4_data), ("f_{2} Fit Parameters:", fy3_data), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_data)]
+        fit_error_by_name = {} # Build lookup table from the actual fitted function
+        for ipar in range(fy_data.GetNpar()):
+            name = fy_data.GetParName(ipar)
+            err  = fy_data.GetParError(ipar)
+            if(name):
+                fit_error_by_name[name] = err
+        for fit_label, fit_func in fit_functions_data:
+            Fit_box_d.AddText("")
+            Fit_box_d.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
+            for ipar in range(fit_func.GetNpar()):
+                name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
+                if(name == "Constant"):
+                    continue
+                val  = fit_func.GetParameter(ipar)
+                # err  = fit_func.GetParError(ipar)
+                err  = fit_error_by_name[name]
+                Fit_box_d.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
+        Fit_box_d.Draw("same")
+        if(not args.no_save):
+            c_data.SaveAs(f"Wpions_Fit_Experimental_Data{suffix}.{fmt}")
+            print(f"{color.BOLD}Saved Wpions data fit: {color.BBLUE}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
+        else:
+            print(f"{color.Error}Would have saved Wpions data fit: {color.END_B}Wpions_Fit_Experimental_Data{suffix}.{fmt}{color.END}")
+    
     # Harut fit plot
-    c_harut = ROOT.TCanvas("c_harut_fit", "", 1200, 600)
-    ROOT.gStyle.SetOptStat(0)
-    c_harut.Divide(2, 1, 0.0001, 0.0001)
-    Hist_Pad_Harut = c_harut.cd(1)
-    Hist_Pad_Harut.SetPad(0.0, 0.0, 0.9, 1.0)
-    Fit_Pad_Harut = c_harut.cd(2)
-    Fit_Pad_Harut.SetPad(0.85, 0.0,  1.0, 1.0)
-    Hist_Pad_Harut.cd()
-    mass_harut.SetTitle(f"#splitline{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Harut's MC}}{{{args.title}}}")
-    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
-        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
-        mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
-    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
-        mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
-    mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
-    mass_harut.GetYaxis().SetRangeUser(0, 1.2*mass_harut.GetMaximum())
-    mass_harut.Draw("hist")
-    mass_harut.SetLineColor(ROOT.kSpring+9)
-    fy_harut.SetLineColor(ROOT.kBlack)
-    fy_harut.Draw("same")
-    fy1_harut.SetLineColor(ROOT.kMagenta)
-    fy1_harut.Draw("same")
-    fy2_harut.SetLineColor(ROOT.kRed)
-    fy2_harut.Draw("same")
-    # fy3_harut.SetLineColor(ROOT.kBlue)
-    # fy3_harut.Draw("same")
-    # fy4_harut.SetLineColor(ROOT.kOrange)
-    # fy4_harut.Draw("same")
-    leg_h = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
-    leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
-    leg_h.AddEntry(mass_harut, "Harut's Monte Carlo", "l")
-    leg_h.AddEntry(fy1_harut,  "#rho^{0} Signal",     "l")
-    leg_h.AddEntry(fy2_harut,  "General Background",  "l")
-    leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
-    # leg_h.AddEntry(fy3_harut,  "f_{2}",               "l")
-    # leg_h.AddEntry(fy4_harut,  "f_{0}",               "l")
-    leg_h.Draw("same")
-    box_h = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
-    box_h.SetFillColor(0); box_h.SetBorderSize(1); box_h.SetFillStyle(1001)
-    box_h.SetTextAlign(22); box_h.SetTextFont(62); box_h.SetTextSize(0.025)
-    box_h.SetMargin(0.02)
-    box_h.AddText("Number of Harut's MC")
-    box_h.AddText("Exclusive #rho^{0} Events from Fit:")
-    box_h.AddText(f"{N_harut_rho:.6f}")
-    box_h.Draw("same")
-    Fit_Pad_Harut.cd()
-    # Fit_box_h = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
-    Fit_box_h = ROOT.TPaveText(0.0, 0.475, 0.95, 0.975, "NDC")
-    Fit_box_h.SetFillColor(0); Fit_box_h.SetBorderSize(1); Fit_box_h.SetFillStyle(1001)
-    Fit_box_h.SetTextAlign(22); Fit_box_h.SetTextFont(62); Fit_box_h.SetTextSize(0.02)
-    Fit_box_h.SetMargin(0.02)
-    Fit_box_h.AddText("")
-    Fit_box_h.AddText("#scale[4.25]{#splitline{Exclusive #rho^{0} MC's}{Fit Parameters:}}")
-    fit_functions_harut = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_harut), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_harut)]
-    fit_error_by_name_harut = {} # Build lookup table from the actual fitted function
-    for ipar in range(fy_harut.GetNpar()):
-        name = fy_harut.GetParName(ipar)
-        err  = fy_harut.GetParError(ipar)
-        if(name):
-            fit_error_by_name_harut[name] = err
-    for fit_label, fit_func in fit_functions_harut:
+    if(Make_MC):
+        c_harut = ROOT.TCanvas("c_harut_fit", "", 1200, 600)
+        ROOT.gStyle.SetOptStat(0)
+        c_harut.Divide(2, 1, 0.0001, 0.0001)
+        Hist_Pad_Harut = c_harut.cd(1)
+        Hist_Pad_Harut.SetPad(0.0, 0.0, 0.9, 1.0)
+        Fit_Pad_Harut = c_harut.cd(2)
+        Fit_Pad_Harut.SetPad(0.85, 0.0,  1.0, 1.0)
+        Hist_Pad_Harut.cd()
+        mass_harut.SetTitle(f"#splitline{{#scale[1.5]{{M_{{#pi^{{+}}#pi^{{-}}}} Distribution from Exclusive MC}}}}{{{args.title}}}")
+        if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+            backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+            mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+        elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+            mass_harut.SetTitle(f"#splitline{{{mass_harut.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
+        mass_harut.GetXaxis().SetTitle(str(mass_harut.GetXaxis().GetTitle()).replace(" (Smeared)", ""))
+        mass_harut.GetYaxis().SetRangeUser(0, 1.2*mass_harut.GetMaximum())
+        mass_harut.Draw("hist")
+        mass_harut.SetLineColor(ROOT.kSpring+9)
+        fy_harut.SetLineColor(ROOT.kBlack)
+        fy_harut.Draw("same")
+        fy1_harut.SetLineColor(ROOT.kMagenta)
+        fy1_harut.Draw("same")
+        fy2_harut.SetLineColor(ROOT.kRed)
+        fy2_harut.Draw("same")
+        # fy3_harut.SetLineColor(ROOT.kBlue)
+        # fy3_harut.Draw("same")
+        # fy4_harut.SetLineColor(ROOT.kOrange)
+        # fy4_harut.Draw("same")
+        leg_h = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
+        leg_h.SetFillStyle(0); leg_h.SetBorderSize(0)
+        leg_h.AddEntry(mass_harut, "Exclusive MC", "l")
+        leg_h.AddEntry(fy1_harut,  "#rho^{0} Signal",     "l")
+        leg_h.AddEntry(fy2_harut,  "General Background",  "l")
+        leg_h.AddEntry(fy_harut,   "Full Fit",            "l")
+        # leg_h.AddEntry(fy3_harut,  "f_{2}",               "l")
+        # leg_h.AddEntry(fy4_harut,  "f_{0}",               "l")
+        leg_h.Draw("same")
+        # box_h = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.65+0.15, "NDC")
+        box_h = ROOT.TPaveText(0.575, 0.55+0.15, 0.9, 0.9, "NDC")
+        box_h.SetFillColor(0); box_h.SetBorderSize(1); box_h.SetFillStyle(1001)
+        box_h.SetTextAlign(22); box_h.SetTextFont(62); box_h.SetTextSize(0.035)
+        box_h.SetMargin(0.02)
+        box_h.AddText("Number of Exclusive MC")
+        box_h.AddText("#rho^{0} Events from Fit:")
+        box_h.AddText(f"#scale[1.35]{{N_{{excl}}^{{Harut,rec}} = {N_harut_rho:.6f}}}")
+        box_h.Draw("same")
+        Fit_Pad_Harut.cd()
+        # Fit_box_h = ROOT.TPaveText(0.0, 0.05, 0.95, 0.975, "NDC")
+        Fit_box_h = ROOT.TPaveText(0.0, 0.475, 0.95, 0.975, "NDC")
+        Fit_box_h.SetFillColor(0); Fit_box_h.SetBorderSize(1); Fit_box_h.SetFillStyle(1001)
+        Fit_box_h.SetTextAlign(22); Fit_box_h.SetTextFont(62); Fit_box_h.SetTextSize(0.02)
+        Fit_box_h.SetMargin(0.02)
         Fit_box_h.AddText("")
-        Fit_box_h.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
-        for ipar in range(fit_func.GetNpar()):
-            name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
-            if(name == "Constant"):
-                continue
-            val  = fit_func.GetParameter(ipar)
-            err  = fit_error_by_name_harut[name]
-            Fit_box_h.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
-    Fit_box_h.Draw("same")
-
-    if(not args.no_save):
-        c_harut.SaveAs(f"Wpions_Fit_Harut_MC{suffix}.{fmt}")
-        print(f"{color.BOLD}Saved Wpions Harut fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
-    else:
-        print(f"{color.Error}Would have saved Wpions Harut fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
-
+        Fit_box_h.AddText("#scale[4.25]{#splitline{Exclusive #rho^{0} MC's}{Fit Parameters:}}")
+        fit_functions_harut = [("#splitline{#rho^{0} Signal}{Fit Parameters:}", fy1_harut), ("#splitline{Gaussian Background}{Fit Parameters:}", fy2_harut)]
+        fit_error_by_name_harut = {} # Build lookup table from the actual fitted function
+        for ipar in range(fy_harut.GetNpar()):
+            name = fy_harut.GetParName(ipar)
+            err  = fy_harut.GetParError(ipar)
+            if(name):
+                fit_error_by_name_harut[name] = err
+        for fit_label, fit_func in fit_functions_harut:
+            Fit_box_h.AddText("")
+            Fit_box_h.AddText(f"#color[{fit_func.GetLineColor()}]{{#scale[3.5]{{{fit_label}}}}}")
+            for ipar in range(fit_func.GetNpar()):
+                name = fit_func.GetParName(ipar) or f"p{{{ipar}}}"
+                if(name == "Constant"):
+                    continue
+                val  = fit_func.GetParameter(ipar)
+                err  = fit_error_by_name_harut[name]
+                Fit_box_h.AddText(f"#scale[2.5]{{{name} = {val:.6g} #pm {err:.3g}}}")
+        Fit_box_h.Draw("same")
+        if(not args.no_save):
+            c_harut.SaveAs(f"Wpions_Fit_Harut_MC{suffix}.{fmt}")
+            print(f"{color.BOLD}Saved Wpions Harut fit: {color.BBLUE}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
+        else:
+            print(f"{color.Error}Would have saved Wpions Harut fit: {color.END_B}Wpions_Fit_Harut_MC{suffix}.{fmt}{color.END}")
 
     # Both fit plot
-    c_both = ROOT.TCanvas("c_both_fit", "", 1200, 600)
-    ROOT.gStyle.SetOptStat(0)
-    c_both.Divide(2, 1, 0.0001, 0.0001)
-    Hist_Pad = c_both.cd(1)
-    Hist_Pad.SetPad(0.0, 0.0, 0.8, 1.0)
-    Fit_Pad = c_both.cd(2)
-    Fit_Pad.SetPad(0.75, 0.0,  1.0, 1.0)
-    Fit_Pad.Divide(2, 1, 0.0, 0.0)
-    Hist_Pad.cd()
-    mass_data.SetTitle(f"#splitline{{Comparisons of the M_{{#pi^{{+}}#pi^{{-}}}} Distributions}}{{{args.title}}}")
-    if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
-        backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
-        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
-    elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
-        mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
-    mass_data.Draw("hist E0")
-    fy_data.Draw("same")  # Total
-    fy1_data.Draw("same") # rho0
-    mass_harut.Draw("hist E0 same")
-    fy_harut.SetLineColor(ROOT.kBlack+2)
-    fy_harut.Draw("same")
-    fy1_harut.SetLineColor(ROOT.kMagenta+2)
-    fy1_harut.Draw("same")
-    leg_both = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
-    leg_both.SetFillStyle(0); leg_both.SetBorderSize(0)
-    leg_both.AddEntry(mass_data,  "Experimental Data",       "l")
-    leg_both.AddEntry(mass_harut, "Harut's Monte Carlo",     "l")
-    leg_both.AddEntry(fy1_data,   "#rho^{0} Signal (Data)",  "l")
-    leg_both.AddEntry(fy1_harut,  "#rho^{0} Signal (MC)",    "l")
-    leg_both.AddEntry(fy_data,    "Full Fit (Data)",         "l")
-    # leg_both.AddEntry(fy_harut,   "Full Fit (MC)",           "l")
-    leg_both.Draw("same")
-    both_box_d = ROOT.TPaveText(0.45, 0.7, 0.60, 0.8, "NDC")
-    # both_box_d = ROOT.TPaveText(0.5, 0.7, 0.6625, 0.8, "NDC")
-    both_box_d.SetFillColor(0); both_box_d.SetBorderSize(1); both_box_d.SetFillStyle(1001)
-    both_box_d.SetTextAlign(22); both_box_d.SetTextFont(62); both_box_d.SetTextSize(0.015)
-    both_box_d.SetMargin(0.02)
-    both_box_d.AddText("Number of Experimental")
-    both_box_d.AddText("Exclusive #rho^{0} Events from Fit:")
-    both_box_d.AddText(f"{N_data_rho:.6f}")
-    both_box_d.Draw("same")
-    both_box_h = ROOT.TPaveText(0.6, 0.7, 0.75, 0.8, "NDC")
-    # both_box_h = ROOT.TPaveText(0.6625, 0.7, 0.9, 0.8, "NDC")
-    both_box_h.SetFillColor(0); both_box_h.SetBorderSize(1); both_box_h.SetFillStyle(1001)
-    both_box_h.SetTextAlign(22); both_box_h.SetTextFont(62); both_box_h.SetTextSize(0.015)
-    both_box_h.SetMargin(0.02)
-    both_box_h.AddText("Number of Harut's MC")
-    both_box_h.AddText("Exclusive #rho^{0} Events from Fit:")
-    both_box_h.AddText(f"{N_harut_rho:.6f}")
-    both_box_h.Draw("same")
-    both_box_n = ROOT.TPaveText(0.75, 0.7, 0.90, 0.8, "NDC")
-    both_box_n.SetFillColor(0); both_box_n.SetBorderSize(1); both_box_n.SetFillStyle(1001)
-    both_box_n.SetTextAlign(22); both_box_n.SetTextFont(62); both_box_n.SetTextSize(0.015)
-    both_box_n.SetMargin(0.02)
-    both_box_n.AddText("Exclusive Normalization Factor:")
-    both_box_n.AddText(f"#scale[1.5]{{n_{{#rho}} = {(N_data_rho/N_harut_rho):.6f}}}")
-    both_box_n.Draw("same")
-    Fit_Pad.cd(1)
-    Fit_box_d.DrawClone("same")
-    Fit_Pad.cd(2)
-    Fit_box_h.DrawClone("same")
-    if(not args.no_save):
-        c_both.SaveAs(f"Wpions_Fit_Comparisons{suffix}.{fmt}")
-        print(f"{color.BOLD}Saved Wpions Comparison fit: {color.BBLUE}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
-    else:
-        print(f"{color.Error}Would have saved Wpions Comparison fit: {color.END_B}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
+    if(Make_Both_Fits):
+        c_both = ROOT.TCanvas("c_both_fit", "", 1200, 600)
+        ROOT.gStyle.SetOptStat(0)
+        c_both.Divide(2, 1, 0.0001, 0.0001)
+        Hist_Pad = c_both.cd(1)
+        Hist_Pad.SetPad(0.0, 0.0, 0.8, 1.0)
+        Fit_Pad = c_both.cd(2)
+        Fit_Pad.SetPad(0.75, 0.0,  1.0, 1.0)
+        Fit_Pad.Divide(2, 1, 0.0, 0.0)
+        Hist_Pad.cd()
+        mass_data.SetTitle(f"#splitline{{#scale[1.5]{{Comparisons of the M_{{#pi^{{+}}#pi^{{-}}}} Distributions}}}}{{{args.title}}}")
+        if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+            backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+            mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+        elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+            mass_data.SetTitle(f"#splitline{{{mass_data.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
+        mass_data.Draw("hist E0")
+        fy_data.Draw("same")  # Total
+        fy1_data.Draw("same") # rho0
+        mass_harut.Draw("hist E0 same")
+        fy_harut.SetLineColor(ROOT.kBlack+2)
+        fy_harut.Draw("same")
+        fy1_harut.SetLineColor(ROOT.kMagenta+2)
+        fy1_harut.Draw("same")
+        leg_both = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
+        leg_both.SetFillStyle(0); leg_both.SetBorderSize(0)
+        leg_both.AddEntry(mass_data,  "Experimental Data",       "l")
+        # leg_both.AddEntry(mass_harut, "Harut's Monte Carlo",     "l")
+        leg_both.AddEntry(mass_harut, "Exclusive MC",            "l")
+        leg_both.AddEntry(fy1_data,   "#rho^{0} Signal (Data)",  "l")
+        leg_both.AddEntry(fy1_harut,  "#rho^{0} Signal (MC)",    "l")
+        leg_both.AddEntry(fy_data,    "Full Fit (Data)",         "l")
+        # leg_both.AddEntry(fy_harut,   "Full Fit (MC)",           "l")
+        leg_both.Draw("same")
+        # both_box_d = ROOT.TPaveText(0.45, 0.7, 0.60, 0.8, "NDC")
+        both_box_d = ROOT.TPaveText(0.45, 0.7, 0.60, 0.85, "NDC")
+        both_box_d.SetFillColor(0); both_box_d.SetBorderSize(1); both_box_d.SetFillStyle(1001)
+        both_box_d.SetTextAlign(22); both_box_d.SetTextFont(62); both_box_d.SetTextSize(0.015)
+        both_box_d.SetMargin(0.02)
+        both_box_d.AddText("Number of Experimental")
+        both_box_d.AddText("Exclusive #rho^{0} Events from Fit:")
+        both_box_d.AddText(f"#scale[1.35]{{N_{{excl}}^{{data,#rho}} = {N_data_rho:.6f}}}")
+        both_box_d.Draw("same")
+        # both_box_h = ROOT.TPaveText(0.6, 0.7, 0.75, 0.8, "NDC")
+        both_box_h = ROOT.TPaveText(0.6, 0.7, 0.75, 0.85, "NDC")
+        both_box_h.SetFillColor(0); both_box_h.SetBorderSize(1); both_box_h.SetFillStyle(1001)
+        both_box_h.SetTextAlign(22); both_box_h.SetTextFont(62); both_box_h.SetTextSize(0.015)
+        both_box_h.SetMargin(0.02)
+        both_box_h.AddText("Number of Harut's MC")
+        both_box_h.AddText("Exclusive #rho^{0} Events from Fit:")
+        both_box_h.AddText(f"#scale[1.35]{{N_{{excl}}^{{Harut,rec}} = {N_harut_rho:.6f}}}")
+        both_box_h.Draw("same")
+        # both_box_n = ROOT.TPaveText(0.75, 0.7, 0.90, 0.8, "NDC")
+        both_box_n = ROOT.TPaveText(0.75, 0.7, 0.90, 0.85, "NDC")
+        both_box_n.SetFillColor(0); both_box_n.SetBorderSize(1); both_box_n.SetFillStyle(1001)
+        both_box_n.SetTextAlign(22); both_box_n.SetTextFont(62); both_box_n.SetTextSize(0.015)
+        both_box_n.SetMargin(0.02)
+        both_box_n.AddText("Exclusive Normalization Factor:")
+        both_box_n.AddText(f"#scale[2.25]{{n_{{#rho}} = {(N_data_rho/N_harut_rho):.6f}}}")
+        both_box_n.Draw("same")
+        Fit_Pad.cd(1)
+        Fit_box_d.DrawClone("same")
+        Fit_Pad.cd(2)
+        Fit_box_h.DrawClone("same")
+        if(not args.no_save):
+            c_both.SaveAs(f"Wpions_Fit_Comparisons{suffix}.{fmt}")
+            print(f"{color.BOLD}Saved Wpions Comparison fit: {color.BBLUE}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
+        else:
+            print(f"{color.Error}Would have saved Wpions Comparison fit: {color.END_B}Wpions_Fit_Comparisons{suffix}.{fmt}{color.END}")
 
+    if(Make_Both_Norm):
+        c_norm = ROOT.TCanvas("c_norm", "", 1200, 600)
+        c_norm.cd()
+        ROOT.gStyle.SetOptStat(0)
+        mass_harut_norm = mass_harut.Clone(f"{mass_harut.GetName()}_Normalized")
+        mass_harut_norm.SetTitle(f"#splitline{{#scale[1.35]{{Comparisons of the Exclusive #rho^{{0}} M_{{#pi^{{+}}#pi^{{-}}}} Distributions}}}}{{{args.title}}}")
+        if(getattr(args, "current_kinematic_bin_title", None) not in [None, ""]):
+            backup_val = int(getattr(args, 'current_kinematic_bin', 'All'))
+            mass_harut_norm.SetTitle(f"#splitline{{{mass_harut_norm.GetTitle()}}}{{{getattr(args, 'current_kinematic_bin_title', f'Kinematic Bin {backup_val}')}}}")
+        elif(getattr(args, 'current_kinematic_bin', 'All') not in ["All", "Full"]):
+            mass_harut_norm.SetTitle(f"#splitline{{{mass_harut_norm.GetTitle()}}}{{Kinematic Bin {getattr(args, 'current_kinematic_bin', 'All')}}}")
+        mass_harut_norm.Scale(N_data_rho/N_harut_rho)
+        mass_harut_norm.GetYaxis().SetRangeUser(0, 1.15*mass_data.GetMaximum())
+        mass_harut_norm.SetLineColor(ROOT.kGreen)
+        mass_harut_norm.Draw("hist E0")
+        fy1_data.Draw("same") # data rho0
+        mass_harut.Draw("hist E0 same")
+        leg_norm = ROOT.TLegend(0.55, 0.075+0.15, 0.9, 0.525+0.15)
+        leg_norm.SetFillStyle(0); leg_norm.SetBorderSize(0)
+        leg_norm.AddEntry(mass_harut,      "Exclusive MC (Unweighted)", "l")
+        leg_norm.AddEntry(mass_harut_norm, "Exclusive MC (Normalized)", "l")
+        leg_norm.AddEntry(fy1_data,        "#rho^{0} Signal (Data)",    "l")
+        # leg_norm.AddEntry(fy1_harut,  "#rho^{0} Signal (MC)",      "l")
+        leg_norm.Draw("same")
+        norm_box_d = ROOT.TPaveText(0.45, 0.7, 0.60, 0.85, "NDC")
+        norm_box_d.SetFillColor(0); norm_box_d.SetBorderSize(1); norm_box_d.SetFillStyle(1001)
+        norm_box_d.SetTextAlign(22); norm_box_d.SetTextFont(62); norm_box_d.SetTextSize(0.015)
+        norm_box_d.SetMargin(0.02)
+        norm_box_d.AddText("Number of Experimental")
+        norm_box_d.AddText("Exclusive #rho^{0} Events from Fit:")
+        norm_box_d.AddText(f"#scale[1.35]{{N_{{excl}}^{{data,#rho}} = {N_data_rho:.6f}}}")
+        norm_box_d.Draw("same")
+        norm_box_h = ROOT.TPaveText(0.6, 0.7, 0.75, 0.85, "NDC")
+        norm_box_h.SetFillColor(0); norm_box_h.SetBorderSize(1); norm_box_h.SetFillStyle(1001)
+        norm_box_h.SetTextAlign(22); norm_box_h.SetTextFont(62); norm_box_h.SetTextSize(0.015)
+        norm_box_h.SetMargin(0.02)
+        norm_box_h.AddText("Number of Harut's MC")
+        norm_box_h.AddText("Exclusive #rho^{0} Events from Fit:")
+        norm_box_h.AddText(f"#scale[1.35]{{N_{{excl}}^{{Harut,rec}} = {N_harut_rho:.6f}}}")
+        norm_box_h.Draw("same")
+        norm_box_n = ROOT.TPaveText(0.75, 0.7, 0.90, 0.85, "NDC")
+        norm_box_n.SetFillColor(0); norm_box_n.SetBorderSize(1); norm_box_n.SetFillStyle(1001)
+        norm_box_n.SetTextAlign(22); norm_box_n.SetTextFont(62); norm_box_n.SetTextSize(0.015)
+        norm_box_n.SetMargin(0.02)
+        norm_box_n.AddText("Exclusive Normalization Factor:")
+        norm_box_n.AddText(f"#scale[2.25]{{n_{{#rho}} = {(N_data_rho/N_harut_rho):.6f}}}")
+        norm_box_n.Draw("same")
+        if(not args.no_save):
+            c_norm.SaveAs(f"Wpions_Norm_Comparisons{suffix}.{fmt}")
+            print(f"{color.BOLD}Saved Wpions Normalization Comparisons: {color.BBLUE}Wpions_Norm_Comparisons{suffix}.{fmt}{color.END}")
+        else:
+            print(f"{color.Error}Would have saved Wpions Normalization Comparisons: {color.END_B}Wpions_Norm_Comparisons{suffix}.{fmt}{color.END}")
 
 # Nick's original dynamic ipart setup for 2 histograms
 par_Num = []
@@ -746,6 +828,8 @@ class GlobalChi2(object):
 
 def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=True, useF2=True, useF0=True):
     useBkg_harut, useF2_harut, useF0_harut = True, False, False
+    if(getattr(args, "int_MC_hist", False) or getattr(args, "no_bkg_MC", False)):
+        useBkg_harut, useF2_harut, useF0_harut = False, False, False
     if(args.verbose):
         minBin, maxBin = hist_data.FindBin(minValue), hist_data.FindBin(maxValue)
         print(f"\n\nfit_W_rho_from_Nick: fitting TWO histograms INDEPENDENTLY | data entries {hist_data.Integral(minBin, maxBin):.0f} | harut entries {hist_harut.Integral(minBin, maxBin):.0f} | Bkg={useBkg} F2={useF2} F0={useF0} | range [{minValue}, {maxValue}]")
@@ -930,7 +1014,8 @@ def fit_W_rho_from_Nick(args, hist_data, hist_harut, minValue, maxValue, useBkg=
 def main_Get_rho_Normalization_values_Wpions(args):
     print(f"\n{color.BBLUE}Starting Wpions fit-based rho0 normalization...{color.END}")
     ROOT.ROOT.EnableImplicitMT()
-    args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1 = histo_setup_for_Wpions(args)
+    # args, proj__data_excl, proj_harut_excl, proj_mdf__exbkg, file1 = histo_setup_for_Wpions(args)
+    args, proj__data_excl, proj_harut_excl, file1 = histo_setup_for_Wpions(args)
     args.x_min =  0.2 if(args.x_min == 0.08) else args.x_min
     args.x_max =  2.0 if(args.x_max == 0.68) else args.x_max
     minValue = max([0.1, args.x_min])
@@ -950,26 +1035,30 @@ def main_Get_rho_Normalization_values_Wpions(args):
                     args.current_kinematic_bin_title = f"Kinematic Bin {kinematic_bin}"
                 histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
                 histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
-                histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
+                # histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}", int(kinematic_bin), int(kinematic_bin))
             else:
                 histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
                 histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
-                histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
+                # histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{str(kinematic_bin).replace('Full', 'All')}")
                 args.current_kinematic_bin_title = None # f"Kinematic Bin {kinematic_bin}"
         else:
             histo_bin_num = proj__data_excl.GetYaxis().FindBin(int(getattr(args, "Kinematic_Bin_Select", 0)))
             histo__data_Wpions = proj__data_excl.ProjectionX(f"histo__data_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
             histo_harut_Wpions = proj_harut_excl.ProjectionX(f"histo_harut_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
-            histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
+            # histo_mdfbg_Wpions = proj_mdf__exbkg.ProjectionX(f"histo_mdfbg_Wpions_Bin_{getattr(args, "Kinematic_Bin_Select", "All")}", int(histo_bin_num), int(histo_bin_num))
             args.current_kinematic_bin_title = f"Kinematic Bin {(getattr(args, 'Kinematic_Bin_Select', 0))}"
         (N_data_rho, rho_err_data, N_harut_rho, rho_err_harut, fy_data, fy_harut, fy1_rho_experiment, fy1_rho_harut, fy2_bkg_experiment, fy2_bkg_harut, fy3_f2_experiment, fy3_f2_harut, fy4_f0_experiment, fy4_f0_harut) = fit_W_rho_from_Nick(args, histo__data_Wpions, histo_harut_Wpions, minValue, maxValue, useBkg=True, useF2=True, useF0=True)
         bin_width_data  = histo__data_Wpions.GetXaxis().GetBinWidth(1)
         bin_width_harut = histo_harut_Wpions.GetXaxis().GetBinWidth(1)
         
         N_data_rho  = (fy1_rho_experiment.Integral(minValue, maxValue))/bin_width_data
-        N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_harut
+        # N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_harut
         # N_data_rho  = fy1_rho_experiment.Integral(0.2, 2.0)
         # N_harut_rho = fy1_rho_harut.Integral(0.2, 2.0)
+        if(getattr(args, "int_MC_hist", False)):
+            N_harut_rho = (fy1_rho_harut.Integral(minValue, maxValue))/bin_width_harut
+        else:
+            N_harut_rho = (histo_harut_Wpions.Integral(minValue, maxValue))
         n_rho = N_data_rho / N_harut_rho if(N_harut_rho > 0) else 0.0
         list_of_Values[f"Values_for_Bin_{kinematic_bin}"] = {"N_data_rho": N_data_rho, "N_harut_rho": N_harut_rho, "n_rho": n_rho, "rho_err_data": rho_err_data, "rho_err_harut": rho_err_harut, "fy_data": fy_data, "fy_harut": fy_harut, "fy1_rho_experiment": fy1_rho_experiment, "fy1_rho_harut": fy1_rho_harut, "fy2_bkg_experiment": fy2_bkg_experiment, "fy2_bkg_harut": fy2_bkg_harut, "fy3_f2_experiment": fy3_f2_experiment, "fy3_f2_harut": fy3_f2_harut, "fy4_f0_experiment": fy4_f0_experiment, "fy4_f0_harut": fy4_f0_harut}
         print("")
@@ -1746,30 +1835,15 @@ rho_Cut_Titles = {
             "2pi_Full":            "Dipion Event Selection (w/out MM_{e'#pi^{+}} > 1.8 Cut)"
         }
     }
+cut_stages_clasdis = {
+    "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
+    "SIDIS_2pi":     [132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254],
+    "Min_ExclC":     [6, 14, 22, 30, 38, 46, 54, 62, 70, 78, 86, 94, 102, 110, 118, 126, 134, 142, 150, 158, 166, 174, 182, 190, 198, 206, 214, 222, 230, 238, 246, 254],
+    "Full_SIDIS":    list(range(128, 256, 2)),
+    "2pi_Full":      [4, 6, 12, 14, 20, 22, 28, 30, 36, 38, 44, 46, 52, 54, 60, 62, 68, 70, 76, 78, 84, 86, 92, 94, 100, 102, 108, 110, 116, 118, 124, 126, 132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254]
+}
 def make_diagnostic_cut_images(args):
     print(f"\n{color.BBLUE}Starting diagnostic cut-stage image creation...{color.END}")
-    cut_stages = {
-        "Exclusive":           [23, 31, 55, 63, 87, 95, 119, 127, 151, 159, 183, 191, 215, 223, 247, 255],
-        "Exclusive_SIDIS":     [151, 159, 183, 191, 215, 223, 247, 255],
-        "Exclusive_F":         [87, 95, 119, 127, 215, 223, 247, 255],
-        "Exclusive_F_SIDIS":   [215, 223, 247, 255],
-        "Exclusive_rho":       [31, 63, 95, 127, 159, 191, 223, 255],
-        "Exclusive_rho_SIDIS": [159, 191, 223, 255],
-        "SIDIS_BKG":           [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
-        "SIDIS_2pi":           [132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
-        "Min_ExclC":           [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63, 70, 71, 78, 79, 86, 87, 94, 95, 102, 103, 110, 111, 118, 119, 126, 127, 134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
-        "Min_ExclC_SIDIS":     [134, 135, 142, 143, 150, 151, 158, 159, 166, 167, 174, 175, 182, 183, 190, 191, 198, 199, 206, 207, 214, 215, 222, 223, 230, 231, 238, 239, 246, 247, 254, 255],
-        "SIDIS_wBG_2pi":       [128, 129, 130, 131, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255],
-        "Full_SIDIS":          list(range(128, 256)),
-        "2pi_Full":            [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60, 61, 62, 63, 68, 69, 70, 71, 76, 77, 78, 79, 84, 85, 86, 87, 92, 93, 94, 95, 100, 101, 102, 103, 108, 109, 110, 111, 116, 117, 118, 119, 124, 125, 126, 127, 132, 133, 134, 135, 140, 141, 142, 143, 148, 149, 150, 151, 156, 157, 158, 159, 164, 165, 166, 167, 172, 173, 174, 175, 180, 181, 182, 183, 188, 189, 190, 191, 196, 197, 198, 199, 204, 205, 206, 207, 212, 213, 214, 215, 220, 221, 222, 223, 228, 229, 230, 231, 236, 237, 238, 239, 244, 245, 246, 247, 252, 253, 254, 255]
-    }
-    cut_stages_clasdis = {
-        "SIDIS_BKG":     [28, 30, 60, 62, 92, 94, 124, 126, 156, 158, 188, 190, 220, 222, 252, 254],
-        "SIDIS_2pi":     [132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254],
-        "Min_ExclC":     [6, 14, 22, 30, 38, 46, 54, 62, 70, 78, 86, 94, 102, 110, 118, 126, 134, 142, 150, 158, 166, 174, 182, 190, 198, 206, 214, 222, 230, 238, 246, 254],
-        "Full_SIDIS":    list(range(128, 256, 2)),
-        "2pi_Full":      [4, 6, 12, 14, 20, 22, 28, 30, 36, 38, 44, 46, 52, 54, 60, 62, 68, 70, 76, 78, 84, 86, 92, 94, 100, 102, 108, 110, 116, 118, 124, 126, 132, 134, 140, 142, 148, 150, 156, 158, 164, 166, 172, 174, 180, 182, 188, 190, 196, 198, 204, 206, 212, 214, 220, 222, 228, 230, 236, 238, 244, 246, 252, 254]
-    }
     file1 = ROOT.TFile.Open(args.file2)
     if((not file1) or (file1.IsZombie())):
         print(f"{color.Error}ERROR: Could not open {args.file2}{color.END}")
