@@ -1840,6 +1840,15 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
 def main_start():
     args = parse_args()
     silence_root_import()
+    # === DEFENSIVE: Remove any accidental quotes from filenames (shell quoting protection) ===
+    for attr in ['root', 'single_file_input']:
+        if(hasattr(args, attr) and getattr(args, attr)):
+            original = getattr(args, attr)
+            cleaned = str(original.replace('"', "")).replace("'", "")
+            if(cleaned != original):
+                print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' → '{cleaned}'{color.END}")
+                setattr(args, attr, cleaned)
+    # =========================================================================
     args.pass_version = "Pass 2"
     args.sim = args.sim or args.closure
     args.mod = args.mod and (not args.closure)

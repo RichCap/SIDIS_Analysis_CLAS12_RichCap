@@ -39,12 +39,16 @@ endif
 set script     = "./Simple_RooUnfold_SelfContained.py"
 set njobs      = 17
 set log_dir    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding"
-set log_prefix = "Unfold_rho0_Log_of_Q2_y_Bin_"
-set time_prefix = "Unfold_rho0_Time_of_Q2_y_Bin_"
-# set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
-# set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
-# # set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
-# # set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
+# set log_prefix = "Unfold_rho0_Log_of_Q2_y_Bin_"
+# set time_prefix = "Unfold_rho0_Time_of_Q2_y_Bin_"
+
+set log_prefix = "Unfold_Without_rho0_Log_of_Q2_y_Bin_"
+set time_prefix = "Unfold_Without_rho0_Time_of_Q2_y_Bin_"
+
+# # set log_prefix = "Unfold_Log_of_Q2_y_Bin_"
+# # set time_prefix = "Unfold_Time_of_Q2_y_Bin_"
+# # # set log_prefix = "ZerothOrderAcc_Unfold_Log_of_Q2_y_Bin_"
+# # # set time_prefix = "ZerothOrderAcc_Unfold_Time_of_Q2_y_Bin_"
 
 # # Arguments for the Python script (easily changeable here)
 # # set args       = "-bi 1 -nt 1 -smear -u3D -e -em \"Test of parallel running\""
@@ -60,9 +64,13 @@ set time_prefix = "Unfold_rho0_Time_of_Q2_y_Bin_"
 # set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
 # set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
 # set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
-set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
-set emsg  = "Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1."
-set title = 'rho0 Normalized Subtraction Run (V3)'
+# set args  = '--root "Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
+# set emsg  = "Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background (without the unfolding background/fake histograms). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1."
+# set title = 'rho0 Normalized Subtraction Run (V3)'
+
+set args  = '--background_source None --root "Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_WITHOUT_rho0_Subtraction.root" --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/Copy_for_no_rhoSub_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --unfolding_3D --Apply_RC --fit --smear --save_json'
+set emsg  = "Ran in parallel using the histograms in the ROOT files from the newest Final_Analysis_Iterations files. Ran WITHOUT any rho0 subtraction (for comparison to the results with the subtraction). Saving the fits to the new JSON file formats. Ran in tmuxSIDIS_1."
+set title = 'Without rho0 Subtraction'
 
 # Optional: limit concurrent jobs if machine is overloaded (set to 0 = unlimited)
 set max_concurrent = 0   # 0 = run all 17 at once; e.g. 8 = limit to 8 running at a time
