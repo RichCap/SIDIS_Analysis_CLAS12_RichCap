@@ -126,8 +126,8 @@ def BG_Cut_Function(dataframe="mdf", rho_background=False):
         List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles
         List_of_Cuts.append("PID_pip == 0")                   # Identifies unmatched particles
-        if(rho_background):
-            List_of_Cuts.append("exclusive_rho != 0")         # Identifies the exclusive rho0 events
+        # if(rho_background):
+        #     List_of_Cuts.append("exclusive_rho != 0")         # Identifies the exclusive rho0 events
         for cuts in List_of_Cuts:
             if(dataframe in ["gdf"]):
                 if("PID" in str(cuts)):
