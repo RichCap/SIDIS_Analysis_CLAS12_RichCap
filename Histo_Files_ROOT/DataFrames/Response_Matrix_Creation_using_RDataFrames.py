@@ -105,6 +105,9 @@ def parse_args():
     parser.add_argument('-u5Do', '--unfold_5D_only',
                         action='store_true',
                         help='Only makes the response matrices for the full 5D unfolding (will skip the 3D response matrices).\n')
+    parser.add_argument('-old5D', '--old_5D_unfold',
+                        action='store_true',
+                        help=f"Uses the older (more sparse) definitions of the 5D bins {color.RED}(does nothing to Valerii's binning scheme){color.END}.\n")
     parser.add_argument('-mr', '-MR', '--make_root',
                         action='store_true',
                         help="Makes a ROOT output file like 'makeROOT_epip_SIDIS_histos_new.py' (but meant for fewer histograms per run — will update old files if the path given by `--root` already exists).\n")
@@ -750,7 +753,7 @@ if(__name__ == "__main__"):
                 rdf = rdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
             if(not rdf.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
                 print(f"\t{color.Error}WARNING:         'rdf' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+                rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
             if(not rdf.HasColumn("Q2_y_z_pT_4D_Bins")):
                 print(f"\t{color.Error}WARNING:         'rdf' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
                 rdf = rdf.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
@@ -766,7 +769,7 @@ if(__name__ == "__main__"):
                 mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
             if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
             if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
                 mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
@@ -776,7 +779,7 @@ if(__name__ == "__main__"):
                 mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="3D"))
             if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D"))
+                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
             if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_gen")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_gen'){color.END}")
                 mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_gen", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="gen"))
@@ -786,7 +789,7 @@ if(__name__ == "__main__"):
                 mdf_clasdis = mdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="3D"))
             if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D"))
+                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
             if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_smeared")):
                 print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_smeared'){color.END}")
                 mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_smeared", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="smear"))
@@ -802,7 +805,7 @@ if(__name__ == "__main__"):
                 gdf_clasdis = gdf_clasdis.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
             if(not gdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
                 print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                gdf_clasdis = gdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+                gdf_clasdis = gdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
             if(not gdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
                 print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
                 gdf_clasdis = gdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
@@ -830,21 +833,21 @@ if(__name__ == "__main__"):
                     mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
                 if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
                     # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
 
                 if(not mdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_gen")):
                     # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_gen'){color.END}")
                     mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="3D"))
                 if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
                     # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D"))
+                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
 
                 if(not mdf_EvGen.HasColumn("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared")):
                     # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_z_pT_Bin_Y_bin_phi_t_smeared'){color.END}")
                     mdf_EvGen = mdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="3D"))
                 if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
                     # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D"))
+                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
 
                 
                 if(not gdf_EvGen.HasColumn("PID_pip")):
@@ -858,7 +861,7 @@ if(__name__ == "__main__"):
                     gdf_EvGen = gdf_EvGen.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"))
                 if(not gdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
                     # print(f"\t{color.Error}WARNING:   'gdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                    gdf_EvGen = gdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D"))
+                    gdf_EvGen = gdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
 
         if(args.valerii_bins):
             script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
@@ -1000,8 +1003,10 @@ if(__name__ == "__main__"):
         sys.stdout.flush()
         Res_Binning_2D_z_pT_In     = ["z_pT_Bin_Y_bin_smeared",           -0.5,     37.5,    38]
         z_pT_phi_h_Binning         = ['MultiDim_z_pT_Bin_Y_bin_phi_t',    -1.5,    913.5,   915]
-        phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816]
+        phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816] if(getattr(args, "old_5D_unfold", True)) else ['MultiDim_Q2_y_z_pT_phi_h', -1.5,  11256.5, 11258] 
         Sliced_5D_Increment        = 422 # Gives 28 slices to form the full response matrix
+        if(not getattr(args, "old_5D_unfold", True)):
+            Sliced_5D_Increment    = 433 # Gives 26 slices to form the full response matrix
         if(args.valerii_bins):
             Res_Binning_2D_z_pT_In = ["z_pT_Bin_Valerii_smeared",         -0.5,     60.5,    61]
             z_pT_phi_h_Binning     = ['z_pT_phi_t_3D_Bin_Valerii',        -1.5,   1440.5,  1442]

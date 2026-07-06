@@ -4,7 +4,7 @@ import ROOT
 import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name
+from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
 from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code
 sys.path.remove(script_dir)
 del script_dir
@@ -867,12 +867,79 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     return Histograms_All
 
 
-def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D"):
+
+def create_dense_5d_bin_mapping():
+    forward_map, reverse_map = {}, {}
+    kinematic_slot = 1
+    reverse_map[0] = [0, 0, 0]
+    for q2y_bin_num in range(1, 18):
+        max_zpt = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y_bin_num)[1]
+        for zpt_bin_num in range(1, max_zpt + 1):
+            if(skip_condition_z_pT_bins(q2y_bin_num, zpt_bin_num)):
+                continue
+            for phi_t in range(1, 25):
+                forward_map[(q2y_bin_num, zpt_bin_num, phi_t)] = kinematic_slot
+                reverse_map[kinematic_slot] = [q2y_bin_num, zpt_bin_num, phi_t]
+                kinematic_slot = kinematic_slot + 1
+    total_kinematic_slots = (kinematic_slot-1)/24
+    total_hist_bins = kinematic_slot-1
+    # === Generate the self-contained C++ code block ===
+    start_slot = {}
+    for (q, z, p), slot in forward_map.items():
+        if((q, z) not in start_slot):
+            start_slot[(q, z)] = slot
+    max_qy, max_zp = 18, 40
+    cpp_lines = ["int kinematic_start_slot[18][40] = {"]
+    for qy in range(max_qy):
+        row = [str(start_slot.get((qy, zp), 0)) for zp in range(max_zp)]
+        cpp_lines.append("  {" + ", ".join(row) + "},")
+    cpp_lines.append("};")
+    cpp_array_str = "\n".join(cpp_lines)
+
+    cpp_code = f"""{cpp_array_str}
+int get_phih_bin(double phi_t_val){{
+    if(phi_t_val < 0.0){{ phi_t_val += 360.0; }}
+    int ph = (int)(phi_t_val / 15.0) + 1;
+    if(ph < 1) ph = 1;
+    if(ph > 24) ph = 24;
+    return ph;
+}}
+int Get_Dense_5D_Bin(int q2y, int zpt, double phi_t_val){{
+    if((q2y <= 0) || (zpt <= 0) || (q2y >= 18) || (zpt >= 40)){{ return 0; }}
+    int start = kinematic_start_slot[q2y][zpt];
+    if(start <= 0){{ return 0; }}
+    int ph = get_phih_bin(phi_t_val);
+    return start + (ph - 1);
+}}
+"""
+    return {
+        "forward_map": forward_map,
+        "reverse_map": reverse_map,
+        "total_kinematic_slots": total_kinematic_slots,
+        "total_hist_bins": total_hist_bins,
+        "cpp_dense_5d_code": cpp_code
+    }
+
+def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D", Use_Dense_Binning=False, args=None):
     if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
         print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function Multi_Bin_Standard_Def_Function(Variable_Type='{Variable_Type}').\nFix input to use anything other than the default calculations of z and pT.")
         Variable_Type  = ""
     Q2_xB_Bin_event_name = "".join(["Q2_Y_Bin",       "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
     z_pT_Bin_event_name  = "".join(["z_pT_Bin_Y_bin", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""])
+
+    if((Dimension in ["5D"]) and (Use_Dense_Binning)):
+        if(not getattr(args, "_dense_5D_declared", False)):
+            mapping = create_dense_5d_bin_mapping()
+            # Declare the heavy lookup + helper functions ONCE (before any RDataFrame work)
+            ROOT.gInterpreter.Declare(mapping["cpp_dense_5d_code"])
+            if(args is not None):
+                args._dense_5D_declared = True
+        phi_suf = "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""
+        code_str = f"""int MultiDim5D_Bin_val = Get_Dense_5D_Bin({Q2_xB_Bin_event_name}, {z_pT_Bin_event_name}, phi_t{phi_suf});
+return MultiDim5D_Bin_val;"""
+        return code_str
+
+    # === Original sparse logic (unchanged default behavior) ===
     z_pT_Bin_Standard_Def = "".join([str(New_z_pT_and_MultiDim_Binning_Code), """
 double z_event_val  =  z""", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
 double pT_event_val = pT""", "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else "", """;
