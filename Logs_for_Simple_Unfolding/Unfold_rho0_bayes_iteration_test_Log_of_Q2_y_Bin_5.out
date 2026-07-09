@@ -1,0 +1,1291 @@
+Full command: ./Simple_RooUnfold_SelfContained.py --unfolding_3D --smear --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --bayes_iterations 25 --Num_Toys 1 -em 'Coordinated 3D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.' -ti '#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}' 5
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+Subtract 58416.7 fakes from measured distribution
+Using response matrix priors
+Priors:
+
+Vector (915)  is as follows
+
+     |        1  |
+------------------
+   0 |0 
+   1 |0.648868 
+   2 |0.000338906 
+   3 |0.000339234 
+   4 |0.000337913 
+   5 |0.000338087 
+   6 |0.000342611 
+   7 |0.000340134 
+   8 |0.000342616 
+   9 |0.000338394 
+  10 |0.000336711 
+  11 |0.000338533 
+  12 |0.000338517 
+  13 |0.000337601 
+  14 |0.000339198 
+  15 |0.000339791 
+  16 |0.000339275 
+  17 |0.000340303 
+  18 |0.000338661 
+  19 |0.000340416 
+  20 |0.000337903 
+  21 |0.000339781 
+  22 |0.000338077 
+  23 |0.000338881 
+  24 |0.000341377 
+  25 |0.000339582 
+  26 |0.000327839 
+  27 |0.000328734 
+  28 |0.000330111 
+  29 |0.000328908 
+  30 |0.000329819 
+  31 |0.000329486 
+  32 |0.000331318 
+  33 |0.000331876 
+  34 |0.00033271 
+  35 |0.000329389 
+  36 |0.000331339 
+  37 |0.000330259 
+  38 |0.000329568 
+  39 |0.000331794 
+  40 |0.000327317 
+  41 |0.000331748 
+  42 |0.000332029 
+  43 |0.000332874 
+  44 |0.000329788 
+  45 |0.000329952 
+  46 |0.000331037 
+  47 |0.000329676 
+  48 |0.000331185 
+  49 |0.000330643 
+  50 |0.000318368 
+  51 |0.000318465 
+  52 |0.000321305 
+  53 |0.000318793 
+  54 |0.000319601 
+  55 |0.000318598 
+  56 |0.000319836 
+  57 |0.000317467 
+  58 |0.000321182 
+  59 |0.00032 
+  60 |0.000320138 
+  61 |0.000320389 
+  62 |0.000321203 
+  63 |0.000320517 
+  64 |0.000319294 
+  65 |0.000320629 
+  66 |0.000320026 
+  67 |0.00031823 
+  68 |0.000322113 
+  69 |0.000318675 
+  70 |0.000320788 
+  71 |0.00032065 
+  72 |0.000320118 
+  73 |0.000322154 
+  74 |0.000329911 
+  75 |0.000331175 
+  76 |0.000328494 
+  77 |0.000327864 
+  78 |0.000329855 
+  79 |0.000331497 
+  80 |0.000329993 
+  81 |0.000329829 
+  82 |0.000329885 
+  83 |0.000330325 
+  84 |0.000330991 
+  85 |0.000329384 
+  86 |0.000329942 
+  87 |0.000332459 
+  88 |0.00033075 
+  89 |0.000329727 
+  90 |0.000326585 
+  91 |0.000330679 
+  92 |0.000331277 
+  93 |0.000329343 
+  94 |0.000330382 
+  95 |0.000328381 
+  96 |0.000329026 
+  97 |0.000331825 
+  98 |0.000354179 
+  99 |0.00034984 
+ 100 |0.000351089 
+ 101 |0.000352828 
+ 102 |0.000353801 
+ 103 |0.00035158 
+ 104 |0.000355151 
+ 105 |0.000355269 
+ 106 |0.000351554 
+ 107 |0.000353652 
+ 108 |0.000354092 
+ 109 |0.000354389 
+ 110 |0.000352557 
+ 111 |0.000353269 
+ 112 |0.000353176 
+ 113 |0.000353294 
+ 114 |0.000355428 
+ 115 |0.000351437 
+ 116 |0.000352767 
+ 117 |0.000352987 
+ 118 |0.00035312 
+ 119 |0.000352107 
+ 120 |0.000350413 
+ 121 |0.000352148 
+ 122 |0.000307592 
+ 123 |0.000305111 
+ 124 |0.000306211 
+ 125 |0.000306298 
+ 126 |0.000309276 
+ 127 |0.000310959 
+ 128 |0.000309726 
+ 129 |0.000310258 
+ 130 |0.000309404 
+ 131 |0.000308508 
+ 132 |0.000310616 
+ 133 |0.000310969 
+ 134 |0.000310406 
+ 135 |0.000309444 
+ 136 |0.000312126 
+ 137 |0.000309608 
+ 138 |0.000310053 
+ 139 |0.000310939 
+ 140 |0.000310186 
+ 141 |0.000310023 
+ 142 |0.000307147 
+ 143 |0.00030882 
+ 144 |0.000308355 
+ 145 |0.000308477 
+ 146 |0.000420629 
+ 147 |0.000419877 
+ 148 |0.000418879 
+ 149 |0.000419319 
+ 150 |0.000420696 
+ 151 |0.000418286 
+ 152 |0.000419043 
+ 153 |0.000421197 
+ 154 |0.000421519 
+ 155 |0.000421141 
+ 156 |0.000420378 
+ 157 |0.000417508 
+ 158 |0.00042 
+ 159 |0.000418531 
+ 160 |0.000420604 
+ 161 |0.000420465 
+ 162 |0.000417457 
+ 163 |0.000417488 
+ 164 |0.000420859 
+ 165 |0.000422921 
+ 166 |0.000420071 
+ 167 |0.000417452 
+ 168 |0.000420573 
+ 169 |0.000418204 
+ 170 |0.000400951 
+ 171 |0.000404276 
+ 172 |0.000402051 
+ 173 |0.000399779 
+ 174 |0.000400306 
+ 175 |0.00040027 
+ 176 |0.000403417 
+ 177 |0.000401687 
+ 178 |0.000404072 
+ 179 |0.000400393 
+ 180 |0.000400531 
+ 181 |0.000405801 
+ 182 |0.00040246 
+ 183 |0.000398909 
+ 184 |0.000401918 
+ 185 |0.000403048 
+ 186 |0.000400521 
+ 187 |0.000401539 
+ 188 |0.000399477 
+ 189 |0.000401539 
+ 190 |0.000399953 
+ 191 |0.000400592 
+ 192 |0.000399927 
+ 193 |0.00040049 
+ 194 |0.00037635 
+ 195 |0.000375695 
+ 196 |0.00037592 
+ 197 |0.000376094 
+ 198 |0.00037572 
+ 199 |0.000375362 
+ 200 |0.000376114 
+ 201 |0.000378959 
+ 202 |0.000378627 
+ 203 |0.000378842 
+ 204 |0.000373771 
+ 205 |0.000377225 
+ 206 |0.000377337 
+ 207 |0.000377347 
+ 208 |0.000377266 
+ 209 |0.000377695 
+ 210 |0.000375572 
+ 211 |0.000376902 
+ 212 |0.000374477 
+ 213 |0.000377327 
+ 214 |0.000375925 
+ 215 |0.000376242 
+ 216 |0.000373853 
+ 217 |0.00037657 
+ 218 |0.00036779 
+ 219 |0.000369243 
+ 220 |0.000369672 
+ 221 |0.000368567 
+ 222 |0.000369647 
+ 223 |0.00036914 
+ 224 |0.000373541 
+ 225 |0.00037153 
+ 226 |0.000369074 
+ 227 |0.000370895 
+ 228 |0.000370404 
+ 229 |0.000367754 
+ 230 |0.000368291 
+ 231 |0.000369417 
+ 232 |0.000370911 
+ 233 |0.000370721 
+ 234 |0.00037067 
+ 235 |0.000371243 
+ 236 |0.000368173 
+ 237 |0.000370542 
+ 238 |0.000369744 
+ 239 |0.000370609 
+ 240 |0.000368885 
+ 241 |0.000370599 
+ 242 |0.000361609 
+ 243 |0.000362924 
+ 244 |0.000363215 
+ 245 |0.000361957 
+ 246 |0.000364597 
+ 247 |0.000363256 
+ 248 |0.000363619 
+ 249 |0.000363062 
+ 250 |0.000362504 
+ 251 |0.000365083 
+ 252 |0.000363067 
+ 253 |0.000362361 
+ 254 |0.000365047 
+ 255 |0.000363466 
+ 256 |0.00036561 
+ 257 |0.000363082 
+ 258 |0.000363241 
+ 259 |0.000363359 
+ 260 |0.000362944 
+ 261 |0.000363625 
+ 262 |0.000362959 
+ 263 |0.000362857 
+ 264 |0.000363108 
+ 265 |0.00036406 
+ 266 |0.000283923 
+ 267 |0.000280786 
+ 268 |0.000282224 
+ 269 |0.000284398 
+ 270 |0.0002838 
+ 271 |0.000283263 
+ 272 |0.000283518 
+ 273 |0.000282643 
+ 274 |0.000283831 
+ 275 |0.000285018 
+ 276 |0.000283431 
+ 277 |0.00028251 
+ 278 |0.000282413 
+ 279 |0.000284081 
+ 280 |0.00028511 
+ 281 |0.000283698 
+ 282 |0.000282633 
+ 283 |0.000283805 
+ 284 |0.000284532 
+ 285 |0.000283943 
+ 286 |0.000284015 
+ 287 |0.000282193 
+ 288 |0.000283053 
+ 289 |0.000280858 
+ 290 |0.000528161 
+ 291 |0.000524671 
+ 292 |0.000524328 
+ 293 |0.000524246 
+ 294 |0.000524318 
+ 295 |0.000525971 
+ 296 |0.00052419 
+ 297 |0.000524763 
+ 298 |0.00052856 
+ 299 |0.00052618 
+ 300 |0.000525321 
+ 301 |0.000528575 
+ 302 |0.000526088 
+ 303 |0.000524896 
+ 304 |0.000524057 
+ 305 |0.000523392 
+ 306 |0.000526426 
+ 307 |0.000525172 
+ 308 |0.00052245 
+ 309 |0.000525311 
+ 310 |0.000523919 
+ 311 |0.000527055 
+ 312 |0.000525346 
+ 313 |0.000522865 
+ 314 |0.000499001 
+ 315 |0.000499993 
+ 316 |0.000498663 
+ 317 |0.000499917 
+ 318 |0.000500229 
+ 319 |0.000501697 
+ 320 |0.000499625 
+ 321 |0.000504066 
+ 322 |0.000497998 
+ 323 |0.000500306 
+ 324 |0.000499482 
+ 325 |0.000501815 
+ 326 |0.000499927 
+ 327 |0.000499845 
+ 328 |0.000499246 
+ 329 |0.000497655 
+ 330 |0.000498515 
+ 331 |0.000500474 
+ 332 |0.000502091 
+ 333 |0.000500648 
+ 334 |0.000497727 
+ 335 |0.000501221 
+ 336 |0.000500459 
+ 337 |0.000501667 
+ 338 |0.000458441 
+ 339 |0.000458574 
+ 340 |0.00045993 
+ 341 |0.000460713 
+ 342 |0.000461199 
+ 343 |0.000459347 
+ 344 |0.000458533 
+ 345 |0.000458804 
+ 346 |0.000461301 
+ 347 |0.000460626 
+ 348 |0.000461762 
+ 349 |0.00046016 
+ 350 |0.000461736 
+ 351 |0.000460196 
+ 352 |0.000458978 
+ 353 |0.000458073 
+ 354 |0.000457704 
+ 355 |0.000459741 
+ 356 |0.000459024 
+ 357 |0.000459296 
+ 358 |0.000462023 
+ 359 |0.000459736 
+ 360 |0.00045862 
+ 361 |0.000458508 
+ 362 |0.000432316 
+ 363 |0.000435355 
+ 364 |0.000435145 
+ 365 |0.000434577 
+ 366 |0.000433702 
+ 367 |0.000434992 
+ 368 |0.000436941 
+ 369 |0.000435452 
+ 370 |0.000433037 
+ 371 |0.000435329 
+ 372 |0.000434429 
+ 373 |0.000435959 
+ 374 |0.000435104 
+ 375 |0.000438768 
+ 376 |0.000434383 
+ 377 |0.000433267 
+ 378 |0.00043538 
+ 379 |0.000436573 
+ 380 |0.000434209 
+ 381 |0.000437478 
+ 382 |0.000436834 
+ 383 |0.000435396 
+ 384 |0.000438276 
+ 385 |0.000434864 
+ 386 |0.000402419 
+ 387 |0.000396253 
+ 388 |0.000400562 
+ 389 |0.000403151 
+ 390 |0.000399155 
+ 391 |0.000403749 
+ 392 |0.000397522 
+ 393 |0.000402378 
+ 394 |0.000400582 
+ 395 |0.000402624 
+ 396 |0.000401657 
+ 397 |0.00040225 
+ 398 |0.000402588 
+ 399 |0.000400792 
+ 400 |0.000401815 
+ 401 |0.00040158 
+ 402 |0.000403826 
+ 403 |0.000399533 
+ 404 |0.00040157 
+ 405 |0.00040421 
+ 406 |0.000399477 
+ 407 |0.000403478 
+ 408 |0.000400511 
+ 409 |0.000401733 
+ 410 |0.000285642 
+ 411 |0.000286333 
+ 412 |0.000286113 
+ 413 |0.000285795 
+ 414 |0.000288456 
+ 415 |0.000285893 
+ 416 |0.000288471 
+ 417 |0.000286578 
+ 418 |0.000287714 
+ 419 |0.000287862 
+ 420 |0.000288599 
+ 421 |0.000288042 
+ 422 |0.000290196 
+ 423 |0.000287126 
+ 424 |0.000287407 
+ 425 |0.000286051 
+ 426 |0.00028622 
+ 427 |0.000288937 
+ 428 |0.000290144 
+ 429 |0.000288267 
+ 430 |0.000286261 
+ 431 |0.000285872 
+ 432 |0.000285294 
+ 433 |0.0002858 
+ 434 |0.000603646 
+ 435 |0.000601569 
+ 436 |0.00060182 
+ 437 |0.000603723 
+ 438 |0.000605632 
+ 439 |0.000602291 
+ 440 |0.000603483 
+ 441 |0.000605422 
+ 442 |0.000601057 
+ 443 |0.000604015 
+ 444 |0.000603022 
+ 445 |0.000601231 
+ 446 |0.000601973 
+ 447 |0.000604419 
+ 448 |0.000605187 
+ 449 |0.000604168 
+ 450 |0.000601334 
+ 451 |0.000601866 
+ 452 |0.000602802 
+ 453 |0.000603923 
+ 454 |0.000602296 
+ 455 |0.000603984 
+ 456 |0.000602971 
+ 457 |0.000600658 
+ 458 |0.000572358 
+ 459 |0.000572507 
+ 460 |0.000577905 
+ 461 |0.000574896 
+ 462 |0.000574082 
+ 463 |0.000578196 
+ 464 |0.00057814 
+ 465 |0.000575684 
+ 466 |0.000574287 
+ 467 |0.00057683 
+ 468 |0.000576886 
+ 469 |0.000574476 
+ 470 |0.000577071 
+ 471 |0.000579562 
+ 472 |0.000575899 
+ 473 |0.000578815 
+ 474 |0.00057834 
+ 475 |0.000571299 
+ 476 |0.000576063 
+ 477 |0.000576579 
+ 478 |0.000574968 
+ 479 |0.000577137 
+ 480 |0.000573729 
+ 481 |0.000575495 
+ 482 |0.000524676 
+ 483 |0.000522384 
+ 484 |0.000523504 
+ 485 |0.000526927 
+ 486 |0.000521842 
+ 487 |0.000519872 
+ 488 |0.000522072 
+ 489 |0.000522021 
+ 490 |0.000523796 
+ 491 |0.000521575 
+ 492 |0.000521836 
+ 493 |0.000520961 
+ 494 |0.000523279 
+ 495 |0.000521857 
+ 496 |0.000522062 
+ 497 |0.000523474 
+ 498 |0.000520409 
+ 499 |0.000519749 
+ 500 |0.000519278 
+ 501 |0.000521795 
+ 502 |0.000519953 
+ 503 |0.000523658 
+ 504 |0.000523822 
+ 505 |0.00052353 
+ 506 |0.000475664 
+ 507 |0.000475285 
+ 508 |0.000475157 
+ 509 |0.000475152 
+ 510 |0.00047263 
+ 511 |0.00047724 
+ 512 |0.000475879 
+ 513 |0.000477235 
+ 514 |0.000476646 
+ 515 |0.000475915 
+ 516 |0.000471412 
+ 517 |0.000477623 
+ 518 |0.000475065 
+ 519 |0.000475014 
+ 520 |0.000475618 
+ 521 |0.000477112 
+ 522 |0.000472804 
+ 523 |0.000476339 
+ 524 |0.000476718 
+ 525 |0.000475382 
+ 526 |0.000477874 
+ 527 |0.000475254 
+ 528 |0.000477337 
+ 529 |0.000476979 
+ 530 |0.000417922 
+ 531 |0.000419708 
+ 532 |0.000419795 
+ 533 |0.00042021 
+ 534 |0.000420685 
+ 535 |0.000420204 
+ 536 |0.000419949 
+ 537 |0.000419836 
+ 538 |0.000422451 
+ 539 |0.000418874 
+ 540 |0.000419923 
+ 541 |0.000419278 
+ 542 |0.000418475 
+ 543 |0.000423014 
+ 544 |0.000421269 
+ 545 |0.000419396 
+ 546 |0.000421448 
+ 547 |0.00041937 
+ 548 |0.000422502 
+ 549 |0.000417928 
+ 550 |0.000420327 
+ 551 |0.000420885 
+ 552 |0.000420123 
+ 553 |0.000414515 
+ 554 |0 
+ 555 |0.000572578 
+ 556 |0.000573995 
+ 557 |0.000569948 
+ 558 |0.000570214 
+ 559 |0.000573049 
+ 560 |0.000574717 
+ 561 |0.000571575 
+ 562 |0.000572276 
+ 563 |0.000575244 
+ 564 |0.000573085 
+ 565 |0.000573397 
+ 566 |0.000573601 
+ 567 |0.000575157 
+ 568 |0.00057374 
+ 569 |0.000571673 
+ 570 |0.000575536 
+ 571 |0.00057266 
+ 572 |0.000570301 
+ 573 |0.000571565 
+ 574 |0.000573484 
+ 575 |0.000574287 
+ 576 |0.000571493 
+ 577 |0.000573402 
+ 578 |0.000572153 
+ 579 |0.000548832 
+ 580 |0.000550484 
+ 581 |0.000547461 
+ 582 |0.000550751 
+ 583 |0.000547374 
+ 584 |0.000552019 
+ 585 |0.000551446 
+ 586 |0.000547911 
+ 587 |0.000552541 
+ 588 |0.000551242 
+ 589 |0.00055181 
+ 590 |0.000548238 
+ 591 |0.000548397 
+ 592 |0.00054896 
+ 593 |0.000549635 
+ 594 |0.000549456 
+ 595 |0.000548003 
+ 596 |0.000546575 
+ 597 |0.000552454 
+ 598 |0.00055228 
+ 599 |0.00055028 
+ 600 |0.000549287 
+ 601 |0.000550561 
+ 602 |0.000545061 
+ 603 |0.000485273 
+ 604 |0.000486583 
+ 605 |0.000487734 
+ 606 |0.000487427 
+ 607 |0.000485692 
+ 608 |0.000489781 
+ 609 |0.000485396 
+ 610 |0.000485912 
+ 611 |0.000486537 
+ 612 |0.00048626 
+ 613 |0.000486204 
+ 614 |0.000486977 
+ 615 |0.000487683 
+ 616 |0.000491699 
+ 617 |0.000485759 
+ 618 |0.00048513 
+ 619 |0.000485416 
+ 620 |0.000487048 
+ 621 |0.000487488 
+ 622 |0.000487186 
+ 623 |0.000483743 
+ 624 |0.000489847 
+ 625 |0.000485237 
+ 626 |0.000485406 
+ 627 |0.000428243 
+ 628 |0.000426974 
+ 629 |0.000428325 
+ 630 |0.000427219 
+ 631 |0.000427864 
+ 632 |0.000430555 
+ 633 |0.000433943 
+ 634 |0.000428841 
+ 635 |0.000427245 
+ 636 |0.00043315 
+ 637 |0.000430622 
+ 638 |0.000431006 
+ 639 |0.000428826 
+ 640 |0.000433758 
+ 641 |0.000431963 
+ 642 |0.000428852 
+ 643 |0.000428765 
+ 644 |0.000429425 
+ 645 |0.000430857 
+ 646 |0.000429087 
+ 647 |0.00042898 
+ 648 |0.000431502 
+ 649 |0.000429189 
+ 650 |0.000428964 
+ 651 |0.000369166 
+ 652 |0.000365978 
+ 653 |0.000367421 
+ 654 |0.000367912 
+ 655 |0.000367201 
+ 656 |0.000368045 
+ 657 |0.000368567 
+ 658 |0.000367544 
+ 659 |0.000367687 
+ 660 |0.000371018 
+ 661 |0.000368895 
+ 662 |0.000366766 
+ 663 |0.00036845 
+ 664 |0.000369632 
+ 665 |0.000368189 
+ 666 |0.000369345 
+ 667 |0.000367738 
+ 668 |0.000368491 
+ 669 |0.000367437 
+ 670 |0.000368844 
+ 671 |0.000368644 
+ 672 |0.000366536 
+ 673 |0.000366597 
+ 674 |0.00036671 
+ 675 |0 
+ 676 |0.00081259 
+ 677 |0.000811618 
+ 678 |0.000812933 
+ 679 |0.000818366 
+ 680 |0.000808737 
+ 681 |0.000813214 
+ 682 |0.000813306 
+ 683 |0.000811126 
+ 684 |0.000806798 
+ 685 |0.000807581 
+ 686 |0.000810722 
+ 687 |0.000810492 
+ 688 |0.000811428 
+ 689 |0.000812871 
+ 690 |0.000809443 
+ 691 |0.000811444 
+ 692 |0.000810021 
+ 693 |0.000812324 
+ 694 |0.000809008 
+ 695 |0.000810021 
+ 696 |0.000812917 
+ 697 |0.000808732 
+ 698 |0.000813449 
+ 699 |0.000805079 
+ 700 |0.000782402 
+ 701 |0.000774563 
+ 702 |0.000777827 
+ 703 |0.00077577 
+ 704 |0.000781414 
+ 705 |0.000776328 
+ 706 |0.000775177 
+ 707 |0.000773887 
+ 708 |0.000776001 
+ 709 |0.000778508 
+ 710 |0.000777965 
+ 711 |0.000776932 
+ 712 |0.000777264 
+ 713 |0.000779813 
+ 714 |0.00077597 
+ 715 |0.000777771 
+ 716 |0.000775458 
+ 717 |0.000777065 
+ 718 |0.000774169 
+ 719 |0.000774675 
+ 720 |0.000775898 
+ 721 |0.000779623 
+ 722 |0.000779818 
+ 723 |0.000774952 
+ 724 |0.000662657 
+ 725 |0.000664739 
+ 726 |0.000666443 
+ 727 |0.000664187 
+ 728 |0.000666561 
+ 729 |0.00066564 
+ 730 |0.000667471 
+ 731 |0.000664033 
+ 732 |0.000664995 
+ 733 |0.000666909 
+ 734 |0.000668607 
+ 735 |0.000664013 
+ 736 |0.000665333 
+ 737 |0.000668884 
+ 738 |0.000668341 
+ 739 |0.000663578 
+ 740 |0.000666417 
+ 741 |0.000665118 
+ 742 |0.00066915 
+ 743 |0.000662012 
+ 744 |0.000666428 
+ 745 |0.000666704 
+ 746 |0.00066544 
+ 747 |0.000667461 
+ 748 |0.000568239 
+ 749 |0.000568045 
+ 750 |0.00057048 
+ 751 |0.000569605 
+ 752 |0.00056674 
+ 753 |0.000565195 
+ 754 |0.000564642 
+ 755 |0.000564908 
+ 756 |0.000568654 
+ 757 |0.000567554 
+ 758 |0.000566674 
+ 759 |0.000567037 
+ 760 |0.000566065 
+ 761 |0.000567559 
+ 762 |0.00056891 
+ 763 |0.000571596 
+ 764 |0.000566965 
+ 765 |0.000569713 
+ 766 |0.000567963 
+ 767 |0.000567221 
+ 768 |0.000568362 
+ 769 |0.000569411 
+ 770 |0.000569309 
+ 771 |0.000568792 
+ 772 |0 
+ 773 |0 
+ 774 |0 
+ 775 |0 
+ 776 |0 
+ 777 |0 
+ 778 |0 
+ 779 |0 
+ 780 |0 
+ 781 |0 
+ 782 |0 
+ 783 |0 
+ 784 |0 
+ 785 |0 
+ 786 |0 
+ 787 |0 
+ 788 |0 
+ 789 |0 
+ 790 |0 
+ 791 |0 
+ 792 |0 
+ 793 |0 
+ 794 |0 
+ 795 |0 
+ 796 |0 
+ 797 |0 
+ 798 |0 
+ 799 |0 
+ 800 |0 
+ 801 |0 
+ 802 |0 
+ 803 |0 
+ 804 |0 
+ 805 |0 
+ 806 |0 
+ 807 |0 
+ 808 |0 
+ 809 |0 
+ 810 |0 
+ 811 |0 
+ 812 |0 
+ 813 |0 
+ 814 |0 
+ 815 |0 
+ 816 |0 
+ 817 |0 
+ 818 |0 
+ 819 |0 
+ 820 |0 
+ 821 |0 
+ 822 |0 
+ 823 |0 
+ 824 |0 
+ 825 |0 
+ 826 |0 
+ 827 |0 
+ 828 |0 
+ 829 |0 
+ 830 |0 
+ 831 |0 
+ 832 |0 
+ 833 |0 
+ 834 |0 
+ 835 |0 
+ 836 |0 
+ 837 |0 
+ 838 |0 
+ 839 |0 
+ 840 |0 
+ 841 |0 
+ 842 |0 
+ 843 |0 
+ 844 |0 
+ 845 |0 
+ 846 |0 
+ 847 |0 
+ 848 |0 
+ 849 |0 
+ 850 |0 
+ 851 |0 
+ 852 |0 
+ 853 |0 
+ 854 |0 
+ 855 |0 
+ 856 |0 
+ 857 |0 
+ 858 |0 
+ 859 |0 
+ 860 |0 
+ 861 |0 
+ 862 |0 
+ 863 |0 
+ 864 |0 
+ 865 |0 
+ 866 |0 
+ 867 |0 
+ 868 |0 
+ 869 |0 
+ 870 |0 
+ 871 |0 
+ 872 |0 
+ 873 |0 
+ 874 |0 
+ 875 |0 
+ 876 |0 
+ 877 |0 
+ 878 |0 
+ 879 |0 
+ 880 |0 
+ 881 |0 
+ 882 |0 
+ 883 |0 
+ 884 |0 
+ 885 |0 
+ 886 |0 
+ 887 |0 
+ 888 |0 
+ 889 |0 
+ 890 |0 
+ 891 |0 
+ 892 |0 
+ 893 |0 
+ 894 |0 
+ 895 |0 
+ 896 |0 
+ 897 |0 
+ 898 |0 
+ 899 |0 
+ 900 |0 
+ 901 |0 
+ 902 |0 
+ 903 |0 
+ 904 |0 
+ 905 |0 
+ 906 |0 
+ 907 |0 
+ 908 |0 
+ 909 |0 
+ 910 |0 
+ 911 |0 
+ 912 |0 
+ 913 |0 
+ 914 |0 
+
+Now unfolding...
+Iteration : 0
+Chi^2 of change 134735
+Iteration : 1
+Chi^2 of change 4563.49
+Iteration : 2
+Chi^2 of change 752.61
+Iteration : 3
+Chi^2 of change 256.09
+Iteration : 4
+Chi^2 of change 137.974
+Iteration : 5
+Chi^2 of change 97.3957
+Iteration : 6
+Chi^2 of change 79.247
+Iteration : 7
+Chi^2 of change 69.4734
+Iteration : 8
+Chi^2 of change 63.4973
+Iteration : 9
+Chi^2 of change 59.5026
+Iteration : 10
+Chi^2 of change 56.6469
+Iteration : 11
+Chi^2 of change 54.4907
+Iteration : 12
+Chi^2 of change 52.7851
+Iteration : 13
+Chi^2 of change 51.3802
+Iteration : 14
+Chi^2 of change 50.182
+Iteration : 15
+Chi^2 of change 49.1297
+Iteration : 16
+Chi^2 of change 48.1824
+Iteration : 17
+Chi^2 of change 47.3124
+Iteration : 18
+Chi^2 of change 46.5002
+Iteration : 19
+Chi^2 of change 45.7321
+Iteration : 20
+Chi^2 of change 44.9978
+Iteration : 21
+Chi^2 of change 44.2899
+Iteration : 22
+Chi^2 of change 43.6028
+Iteration : 23
+Chi^2 of change 42.9322
+Iteration : 24
+Chi^2 of change 42.2749
+Using response matrix priors
+Calculating covariances due to number of measured events
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+
+Adding the following extra title to the histograms:
+	#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}
+
+
+[1m[94mSmear option selected is: Smear[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '5', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m7-8-2026[0m at [1m12:50 a.m.[0m
+
+The total number of histograms available for the [1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m504[0m
+
+
+[1mDone Loading RDataFrame files...
+[0m
+[1m[94m
+
+Starting Unfolding Procedures...
+[0m
+Bin 1 is not in Q2_y_Bin_List = ['5', '0']
+Bin 10 is not in Q2_y_Bin_List = ['5', '0']
+Bin 11 is not in Q2_y_Bin_List = ['5', '0']
+Bin 12 is not in Q2_y_Bin_List = ['5', '0']
+Bin 13 is not in Q2_y_Bin_List = ['5', '0']
+Bin 14 is not in Q2_y_Bin_List = ['5', '0']
+Bin 15 is not in Q2_y_Bin_List = ['5', '0']
+Bin 16 is not in Q2_y_Bin_List = ['5', '0']
+Bin 17 is not in Q2_y_Bin_List = ['5', '0']
+Bin 2 is not in Q2_y_Bin_List = ['5', '0']
+Bin 3 is not in Q2_y_Bin_List = ['5', '0']
+Bin 4 is not in Q2_y_Bin_List = ['5', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
+[1m[96mStarting [4m[95mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mAcceptance Correction of Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal_1D'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91m
+Bin 28 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 1.556468683850081e-05)[0m
+[91m
+Bin 48 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0002638440526446486)[0m
+[91m
+Bin 53 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 3.1849162367029746e-05)[0m
+[91m
+Bin 72 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 7.978553647794728e-05)[0m
+[91m
+Bin 77 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0004517063597140231)[0m
+[91m
+Bin 96 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 4.674426214182209e-05)[0m
+[91m
+Bin 173 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00022907466561462004)[0m
+[91m
+Bin 192 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00015327236499259185)[0m
+[91m
+Bin 216 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00010879469081908803)[0m
+[91m
+Bin 241 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 5.548234967750884e-05)[0m
+[91m
+Bin 313 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00018505171708514326)[0m
+[91m
+Bin 314 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00035228840677568033)[0m
+[91m
+Bin 336 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00038791739401178044)[0m
+[91m
+Bin 340 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 2.2315451218423637e-05)[0m
+[91m
+Bin 361 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 6.693963160889404e-05)[0m
+[91m
+Bin 435 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00015257211151326107)[0m
+[91m
+Bin 457 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0002206287920573635)[0m
+[91m
+Bin 458 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 7.666555927525492e-05)[0m
+[91m
+Bin 460 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 4.46863465336801e-05)[0m
+[91m
+Bin 481 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 8.918219923303308e-06)[0m
+[91m
+Bin 556 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 8.936151199678299e-06)[0m
+[91m
+Bin 557 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00015153946265889358)[0m
+[91m
+Bin 578 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0003301625827637285)[0m
+[91m
+Bin 579 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 4.4713920337679524e-05)[0m
+[91m
+Bin 678 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 1.8912768009683337e-05)[0m
+[91m
+Bin 699 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 6.919065800315761e-05)[0m
+[91m
+Bin 700 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 1.2710921859607868e-05)[0m
+[1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
+
+Current Time: [1m12:50 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+	[96mUsing [1m[92mRooUnfold (Bin-by-Bin)[0m[96m Unfolding Procedure...[0m
+[1m[96mFinished [92mRooUnfold (Bin-by-Bin)[0m[1m[96m Unfolding Procedure.
+[0m
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
+[1mPerforming Unfolding with [4m25[0m[1m iteration(s)...[0m
+
+Current Time: [1m12:51 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 1 Minute(s), and 7 Second(s).
+
+[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
+[0m
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+Bin 6 is not in Q2_y_Bin_List = ['5', '0']
+Bin 7 is not in Q2_y_Bin_List = ['5', '0']
+Bin 8 is not in Q2_y_Bin_List = ['5', '0']
+Bin 9 is not in Q2_y_Bin_List = ['5', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=915, MinBin=-1.5, MaxBin=913.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
+Total: 2
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 241
+
+
+Current Time: [1m12:58 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 7 Minute(s), and 41 Second(s).
+
+Conditions for running 'Create_Fits_and_Apply_RC_and_BC' were not set...
+Need to run: '(args.fit and args.Use_TTree) or args.Apply_RC'
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 241
+
+
+Current Time: [1m01:05 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 15 Minute(s), and 15 Second(s).
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m7-8-2026[0m at [1m12:50 a.m.[0m
+
+Input File:
+	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root
+Output File:
+	Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root
+
+Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s). 
+	Finished Unfolding the histogram at:
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 1 Minute(s), and 7 Second(s). 
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--fit                                               --> False
+--remake_fit                                        --> False
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> 25
+--Num_Toys                                          --> 1
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> '#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}'
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.0005
+--Use_TTree                                         --> False
+--Apply_RC                                          --> False
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--save_json                                         --> False
+--old_json                                          --> False
+--background_source                                 --> 'lundvpk'
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'smear'
+--Q2_y_Bin_List                                     --> ['5', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+
+
+The time that this code finished is [1m01:05 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 15 Minute(s), and 15 Second(s).
+Saved 241 Histograms...
+Rate = 0.26 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

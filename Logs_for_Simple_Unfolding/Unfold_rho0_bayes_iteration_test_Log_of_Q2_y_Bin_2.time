@@ -1,0 +1,23 @@
+	Command being timed: "./Simple_RooUnfold_SelfContained.py --unfolding_3D --smear --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --bayes_iterations 25 --Num_Toys 1 -em Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2. -ti #splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run} 2"
+	User time (seconds): 69.05
+	System time (seconds): 2.41
+	Percent of CPU this job got: 11%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:46.53
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 733564
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 102
+	Minor (reclaiming a frame) page faults: 150927
+	Voluntary context switches: 96500
+	Involuntary context switches: 640
+	Swaps: 0
+	File system inputs: 8352
+	File system outputs: 1236056
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
