@@ -36,7 +36,7 @@ import ROOT
 import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
-from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns
+from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns, skip_condition_z_pT_bins
 from Binning_Dictionaries             import Full_Bin_Definition_Array
 from Cross_Section_Normalization      import Cross_Section_Normalization
 sys.path.remove(script_dir)
@@ -393,6 +393,9 @@ def build_info_map(args, fit_dict):
     info_map = {}
     for key_str in fit_dict.keys():
         q2y_bin, zpt_bin = parse_inner_key(key_str)
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False)):
+            print(f"{color.Error}WARNING: MUST SKIP BIN {q2y_bin}-{zpt_bin}...{color.END}")
+            continue
         Construct_JSON_Info(Q2_y_Bin=str(q2y_bin), z_pT_Bin=str(zpt_bin), return_info=info_map)
     if(args.verbose):
         print(f"{color.CYAN}[INFO] Built info_map entries: {len(info_map)}{color.END}")
@@ -404,6 +407,9 @@ def group_by_q2y(fit_dict):
         q2y_bin, zpt_bin = parse_inner_key(key_str)
         if(q2y_bin not in grouped):
             grouped[q2y_bin] = []
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False)):
+            print(f"{color.Error}WARNING: MUST SKIP BIN {q2y_bin}-{zpt_bin}...{color.END}")
+            continue
         grouped[q2y_bin].append((zpt_bin, key_str))
     for q2y_bin in grouped.keys():
         grouped[q2y_bin].sort(key=lambda tt: tt[0])
@@ -528,8 +534,11 @@ def load_spline_models(args, fit_set):
         # UPDATED: include dimension_mode in filename
         pkl_file = f"{args.spline_prefix}_{args.dimension_mode}_{fit_set}_{y_par}.pkl"
         if(not os.path.isfile(pkl_file)):
-            print(f"{color.BYELLOW}[INFO] Missing spline file for {y_par}: {pkl_file}{color.END}")
-            continue
+            if(not os.path.isfile(f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/{pkl_file}")):
+                print(f"{color.BYELLOW}[INFO] Missing spline file for {y_par}: {pkl_file}{color.END}")
+                continue
+            else:
+                pkl_file = f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/{pkl_file}"
         try:
             with open(pkl_file, "rb") as pklf:
                 spline_obj = pickle.load(pklf)
