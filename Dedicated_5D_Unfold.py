@@ -92,6 +92,16 @@ def parse_args():
                    type=int,
                    default=None,
                    help="Optional: force flattened 5D bin count; crashes if mismatch with auto-detect.\n")
+    p.add_argument('-mpdf', '--matrix_pdf',
+                   action='store_true',
+                   help="Rebuild the 5D response matrix and save a PDF only (no unfolding).\n")
+    p.add_argument('-pdf', '--pdf_name',
+                   type=str,
+                   default="Rebuilt_5D_Response_Matrix.pdf",
+                   help="PDF output path for --matrix_pdf mode.\n")
+    p.add_argument('-lz', '--logz',
+                   action='store_true',
+                   help="Use log scale on the PDF Z-axis.\n")
     return p.parse_args()
 
 def safe_write(obj, tfile):
@@ -142,7 +152,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
         end_time, total_time, rate_line = args.timer.stop(count_label="Histograms", count_value=final_count, return_Q=True)
     args_list = ""
     for name, value in vars(args).items():
-        if(str(name) in ["email", "email_message", "timer", "fit", "increment_5d", "num_bins_5d", "num_slices_5d"]):
+        if(str(name) in ["email", "email_message", "timer", "fit", "increment_5d", "num_bins_5d", "num_slices_5d", "pdf_name", "root", "single_file_input"]):
             continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
@@ -153,7 +163,7 @@ The 'Dedicated_5D_Unfold.py' script has {'finished running.' if(not (Crashed or 
 Input File:
 \t{args.single_file_input}
 Output File:
-\t{args.root}
+\t{args.pdf_name if(getattr(args, 'matrix_pdf', False)) else args.root}
 
 {args.email_message}
 
@@ -821,7 +831,7 @@ def _Stream_Write_Slice_Hist(hist, Method, output_file, stream_write, save_count
             prefix = f"{color.BGREEN}Saved Histo {save_count_ref[0]:>4.0f})" if(not test_mode) else f"{color.PINK}Would have saved Histo {save_count_ref[0]:>4.0f})"
             print(f"{prefix}\n\t{color.BBLUE}{hist.GetName()}{color.END}")
     hist.SetDirectory(0)
-    ROOT.Delete(hist)
+    # ROOT.Delete(hist)
     return True
 
 
@@ -1045,7 +1055,7 @@ def main_start():
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
-    for attr in ['root', 'single_file_input']:
+    for attr in ['root', 'single_file_input', 'pdf_name']:
         if(hasattr(args, attr) and getattr(args, attr)):
             original = getattr(args, attr)
             cleaned = str(original.replace('"', "")).replace("'", "")
@@ -1072,14 +1082,84 @@ def main_start():
         args.Q2_y_Bin_List = args.bins
     if('0' not in args.Q2_y_Bin_List):
         args.Q2_y_Bin_List.append('0')
-    if(not args.test):
-        print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
+    if(args.matrix_pdf):
+        print(f"\n{color.BOLD}Starting Dedicated 5D Response Matrix PDF Mode\n{color.END}")
+        if(not args.test):
+            print(f"\n{color.BBLUE}Will be saving matrix PDF to {color.END_B}{args.pdf_name}{color.END}\n")
+        else:
+            print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.pdf_name}{color.END}\n")
     else:
-        print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
+        if(not args.test):
+            print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
+        else:
+            print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.root}{color.END}\n")
+        print(f"\n{color.BOLD}Starting Dedicated 5D Unfolding Analysis\n{color.END}")
+        silence_root_import()
     print(f"\n{color.BBLUE}Smear option selected is: {'No Smear' if(str(args.smearing_options) in ['', 'no_smear']) else str(args.smearing_options.replace('_s', 'S')).replace('s', 'S')}{color.END}\n")
-    print(f"\n{color.BOLD}Starting Dedicated 5D Unfolding Analysis\n{color.END}")
-    silence_root_import()
     return args
+
+
+def Load_And_Rebuild_5D_Response_Matrix(input_file, args):
+    detected = Detect_5D_Matrix_Config(input_file, args)
+    if(detected is None):
+        Crash_Report(args, crash_message="Could not find a 5D response matrix slice-1 entry in the input file.")
+    out_print_main_mdf_base = detected["out_print_main_mdf_base"]
+    out_print_main_mdf_1D = detected["out_print_main_mdf_1D"]
+    if(out_print_main_mdf_1D not in input_file.GetListOfKeys()):
+        Crash_Report(args, crash_message=f"Missing mdf 1D histogram: {out_print_main_mdf_1D}")
+    MC_REC_1D = input_file.Get(out_print_main_mdf_1D)
+    Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D)
+    print(f"\n{color.BGREEN}(5D) Rebuilding Response Matrix: {detected['out_print_main']}{color.END}\n")
+    Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=detected["Histo_List"], Standard_Name=out_print_main_mdf_base, Increment=args.increment_5d)
+    if(Response_2D in ["ERROR"]):
+        Crash_Report(args, crash_message="Rebuild_Matrix_5D returned ERROR")
+    return Response_2D, detected
+
+
+def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args):
+    if(args.test):
+        print(f"{color.PINK}Would be saving matrix PDF to: {color.BCYAN}{pdf_path}{color.END}")
+        Response_2D.SetDirectory(0)
+        # ROOT.Delete(Response_2D)
+        return 0
+    print(f"{color.BBLUE}Saving matrix PDF to: {color.BGREEN}{pdf_path}{color.END}")
+    canvas = ROOT.TCanvas("Rebuilt_5D_Response_Matrix", "Rebuilt 5D Response Matrix", 1300, 725)
+    canvas.SetRightMargin(0.15)
+    canvas.SetLeftMargin(0.15)
+    canvas.SetBottomMargin(0.15)
+    canvas.SetTopMargin(0.175)
+    ROOT.gStyle.SetOptStat('i')
+    ROOT.gStyle.SetStatX(0.900)
+    ROOT.gStyle.SetStatY(0.875)
+    ROOT.gStyle.SetStatW(0.150)
+    ROOT.gStyle.SetStatH(0.200)
+    Response_2D.SetDirectory(0)
+    Response_2D.SetTitle("5D Response Matrix of Q^{2}-y-z-P_{T}-#phi_{h} Bins")
+    Response_2D.GetXaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - REC Bins")
+    Response_2D.GetYaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - GEN Bins")
+    Response_2D.Draw("colz")
+    if(args.logz):
+        canvas.SetLogz(True)
+    canvas.Update()
+    canvas.SaveAs(pdf_path)
+    if(args.verbose):
+        print(f"{color.BGREEN}Saved matrix PDF:\n\t{color.BBLUE}{pdf_path}{color.END}")
+    # ROOT.Delete(canvas)
+    # ROOT.Delete(Response_2D)
+    return 1
+
+
+def main_5D_matrix_pdf(args):
+    input_file = ROOT.TFile.Open(args.single_file_input, "READ")
+    if(not input_file or input_file.IsZombie()):
+        Crash_Report(args, crash_message=f"Could not open input ROOT file: {args.single_file_input}")
+    print(f"The total number of histograms in '{color.BBLUE}{args.single_file_input}{color.END}' is {color.BOLD}{len(input_file.GetListOfKeys())}{color.END}")
+    Response_2D, detected = Load_And_Rebuild_5D_Response_Matrix(input_file, args)
+    args.timer.time_elapsed()
+    saved_count = Save_Rebuilt_Matrix_As_Pdf(Response_2D, args.pdf_name, args)
+    detected["Histo_List"] = {}
+    input_file.Close()
+    return saved_count
 
 
 def _Smear_For_Histo(histo):
@@ -1167,7 +1247,7 @@ def main_5D_unfold(args):
     Unfold_1D.SetDirectory(0)
     # 5D unfolding uses the rebuilt matrix in-place inside RooUnfold; caller must release it after Hunfold()
     del Response_RooUnfold
-    ROOT.Delete(Response_2D)
+    # ROOT.Delete(Response_2D)
     del Response_2D
     Histo_List.clear()
     detected["Histo_List"] = {}
@@ -1219,9 +1299,13 @@ def main():
     args = main_start()
     to_be_saved_count = 0
     try:
-        to_be_saved_count = main_5D_unfold(args)
+        if(args.matrix_pdf):
+            to_be_saved_count = main_5D_matrix_pdf(args)
+        else:
+            to_be_saved_count = main_5D_unfold(args)
     except:
-        Crash_Report(args, crash_message=f"The 5D Unfolding Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
+        mode_label = "Matrix PDF" if(args.matrix_pdf) else "5D Unfolding"
+        Crash_Report(args, crash_message=f"The {mode_label} Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=to_be_saved_count)
 
 if(__name__ == "__main__"):

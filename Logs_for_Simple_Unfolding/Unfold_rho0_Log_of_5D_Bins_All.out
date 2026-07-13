@@ -1,12 +1,9 @@
-Full command: ./Dedicated_5D_Unfold.py --background_source lundvpk -em 'Coordinated 5D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_1.' -e --bayes_iterations 15 --Num_Toys 1
+Full command: ./Dedicated_5D_Unfold.py --background_source lundvpk -em 'Coordinated 5D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran as a test of a new 5D Unfolding default number of Bayesian iterations (with 10 Toy Unfoldings). Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxUnfold.' -e --bayes_iterations 5 --Num_Toys 10
 
-Started running on [1m7-7-2026[0m at [1m05:52 p.m.[0m
+Started running on [1m7-9-2026[0m at [1m01:56 a.m.[0m
 
 
 [1m[94mWill be saving results to [0m[1mUnfolded_5D_Histos_From_Dedicated_5D_Unfold.root[0m
-
-
-[1m[94mSmear option selected is: Smear[0m
 
 
 [1mStarting Dedicated 5D Unfolding Analysis
@@ -11288,159 +11285,12 @@ Iteration : 3
 Chi^2 of change 66695.3
 Iteration : 4
 Chi^2 of change 51648.1
-Iteration : 5
-Chi^2 of change 40080.6
-Iteration : 6
-Chi^2 of change 30658.4
-Iteration : 7
-Chi^2 of change 23136.5
-Iteration : 8
-Chi^2 of change 17295.1
-Iteration : 9
-Chi^2 of change 12846.8
-Iteration : 10
-Chi^2 of change 9504.04
-Iteration : 11
-Chi^2 of change 7017.11
-Iteration : 12
-Chi^2 of change 5182.28
-Iteration : 13
-Chi^2 of change 3837.66
-Iteration : 14
-Chi^2 of change 2857.04
 Using response matrix priors
 Calculating covariances due to number of measured events
-TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
-
-[91m[1mCRASH WARNING![0m
-The 5D Unfolding Code has CRASHED!
-ERROR MESSAGE:
-
-Traceback (most recent call last):
-  File "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Dedicated_5D_Unfold.py", line 1222, in main
-    MC_BGS_1D = "None"
-    
-  File "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Dedicated_5D_Unfold.py", line 1170, in main_5D_unfold
-    if(method == "Background" and MC_BGS_1D in ["None"]):
-    ^^^^^^^^^^^
-  File "/cvmfs/oasis.opensciencegrid.org/jlab/hallb/clas12/sw/almalinux9-gcc11/local/root/6.36.04/lib/ROOT/_facade.py", line 143, in _fallback_getattr
-    raise AttributeError("Failed to get attribute {} from ROOT".format(name))
-AttributeError: Failed to get attribute Delete from ROOT
-
-
-The total number of histograms in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_wFitIntegration_V5_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m88[0m
-
-[1mAuto-detected 5D configuration:[0m increment=433, num_bins=11258, num_slices=26
-
-
-[1m[92m(5D) Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'-[NumBins=11258, MinBin=-1.5, MaxBin=11256.5]))_Slice_1_(Increment='433')[0m
-
-[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D' histogram[0m
-
-[1m[94mRunning Rebuild_Matrix_5D(...)[0m
-
-
-[1m[92mFinished running Rebuild_Matrix_5D(...)[0m
-
-
-Current Time: [1m05:59 p.m.[0m
-Time Elapsed Up To Now:
-0 Day(s), 0 Hour(s), 6 Minute(s), and 42 Second(s).
-
-[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
-
-	[1mBegan Unfolding Histogram:[0m
-	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'))
-Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 6 Minute(s), and 42 Second(s). 
-	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
-[1mPerforming 5D Unfolding with [4m4[0m[1m iteration(s)...[0m
-[1mPerforming Unfolding with [4m15[0m[1m iteration(s)...[0m
-
-Current Time: [1m11:35 a.m.[0m
-Time Elapsed Up To Now:
-2 Day(s), 17 Hour(s), 42 Minute(s), and 55 Second(s).
-
-[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
-[0m
-
-
-
-
-[1m[43mEMAIL MESSAGE TO SEND:[0m
-
-
-The 'Dedicated_5D_Unfold.py' script has [91m[1m[4mCRASHED![0m
-Started running on [1m7-7-2026[0m at [1m05:52 p.m.[0m
-
-Input File:
-	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_wFitIntegration_V5_Response_Matrices_Final_Analysis_Iterations_I0_All.root
-Output File:
-	Unfolded_5D_Histos_From_Dedicated_5D_Unfold.root
-
-Coordinated 5D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_1.
-
-	[1mBegan Unfolding Histogram:[0m
-	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'))
-Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 6 Minute(s), and 42 Second(s). 
-	Finished Unfolding the histogram at:
-Time Elapsed Up To Now: 2 Day(s), 17 Hour(s), 42 Minute(s), and 55 Second(s). 
-
-[91m[1mCRASH WARNING![0m
-The 5D Unfolding Code has CRASHED!
-ERROR MESSAGE:
-
-Traceback (most recent call last):
-  File "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Dedicated_5D_Unfold.py", line 1222, in main
-    MC_BGS_1D = "None"
-    
-  File "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Dedicated_5D_Unfold.py", line 1170, in main_5D_unfold
-    if(method == "Background" and MC_BGS_1D in ["None"]):
-    ^^^^^^^^^^^
-  File "/cvmfs/oasis.opensciencegrid.org/jlab/hallb/clas12/sw/almalinux9-gcc11/local/root/6.36.04/lib/ROOT/_facade.py", line 143, in _fallback_getattr
-    raise AttributeError("Failed to get attribute {} from ROOT".format(name))
-AttributeError: Failed to get attribute Delete from ROOT
-
-
-
-
-Detected 5D Configuration:
-	increment  = 433
-	num_bins   = 11258
-	num_slices = 26
-
-Arguments:
---test                                              --> False
---root                                              --> 'Unfolded_5D_Histos_From_Dedicated_5D_Unfold.root'
---no_smear                                          --> False
---sim                                               --> False
---mod                                               --> False
---bayes_iterations                                  --> 15
---Num_Toys                                          --> 1
---bins                                              --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '0']
---verbose                                           --> False
---Min_Allowed_Acceptance_Cut                        --> 0.0005
---single_file_input                                 --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_wFitIntegration_V5_Response_Matrices_Final_Analysis_Iterations_I0_All.root'
---background_source                                 --> 'lundvpk'
---require_weighed                                   --> False
---increment                                         --> 433
---num_bins                                          --> 11258
---pass_version                                      --> 'Pass 2'
---closure                                           --> False
---smearing_options                                  --> 'smear'
---standard_histogram_title_addition                 --> ''
---Q2_y_Bin_List                                     --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '0']
---multi5d_slice_metadata                            --> {'phi_h_Binning': [0, 360, 24, 15], 'entries': [{'Q2_y': '1', 'z_pT': 0, 'Start_phi_h_bin': 1, 'End_phi_h_bin': 697, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: All}}}'}, {'Q2_y': '1', 'z_pT': 1, 'Start_phi_h_bin': 1, 'End_phi_h_bin': 25, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 1}}}'}, {'Q2_y': '1', 'z_pT': 2, 'Start_phi_h_bin': 25, 'End_phi_h_bin': 49, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 2}}}'}, {'Q2_y': '1', 'z_pT': 3, 'Start_phi_h_bin': 49, 'End_phi_h_bin': 73, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 3}}}'}, {'Q2_y': '1', 'z_pT': 4, 'Start_phi_h_bin': 73, 'End_phi_h_bin': 97, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 4}}}'}, {'Q2_y': '1', 'z_pT': 5, 'Start_phi_h_bin': 97, 'End_phi_h_bin': 121, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 5}}}'}, {'Q2_y': '1', 'z_pT': 6, 'Start_phi_h_bin': 121, 'End_phi_h_bin': 145, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 6}}}'}, {'Q2_y': '1', 'z_pT': 7, 'Start_phi_h_bin': 145, 'End_phi_h_bin': 169, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 7}}}'}, {'Q2_y': '1', 'z_pT': 8, 'Start_phi_h_bin': 169, 'End_phi_h_bin': 193, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 8}}}'}, {'Q2_y': '1', 'z_pT': 9, 'Start_phi_h_bin': 193, 'End_phi_h_bin': 217, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 9}}}'}, {'Q2_y': '1', 'z_pT': 10, 'Start_phi_h_bin': 217, 'End_phi_h_bin': 241, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 10}}}'}, {'Q2_y': '1', 'z_pT': 11, 'Start_phi_h_bin': 241, 'End_phi_h_bin': 265, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 11}}}'}, {'Q2_y': '1', 'z_pT': 12, 'Start_phi_h_bin': 265, 'End_phi_h_bin': 289, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 12}}}'}, {'Q2_y': '1', 'z_pT': 13, 'Start_phi_h_bin': 289, 'End_phi_h_bin': 313, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 13}}}'}, {'Q2_y': '1', 'z_pT': 14, 'Start_phi_h_bin': 313, 'End_phi_h_bin': 337, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 14}}}'}, {'Q2_y': '1', 'z_pT': 15, 'Start_phi_h_bin': 337, 'End_phi_h_bin': 361, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 15}}}'}, {'Q2_y': '1', 'z_pT': 16, 'Start_phi_h_bin': 361, 'End_phi_h_bin': 385, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 16}}}'}, {'Q2_y': '1', 'z_pT': 17, 'Start_phi_h_bin': 385, 'End_phi_h_bin': 409, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 17}}}'}, {'Q2_y': '1', 'z_pT': 18, 'Start_phi_h_bin': 409, 'End_phi_h_bin': 433, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 18}}}'}, {'Q2_y': '1', 'z_pT': 19, 'Start_phi_h_bin': 433, 'End_phi_h_bin': 457, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 1} #topbar #color[2]{z-P_{T} Bin: 19}}}'}, {'Q2_y': '2', 'z_pT': 0, 'Start_phi_h_bin': 697, 'End_phi_h_bin': 1465, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: All}}}'}, {'Q2_y': '2', 'z_pT': 1, 'Start_phi_h_bin': 697, 'End_phi_h_bin': 721, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 1}}}'}, {'Q2_y': '2', 'z_pT': 2, 'Start_phi_h_bin': 721, 'End_phi_h_bin': 745, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 2}}}'}, {'Q2_y': '2', 'z_pT': 3, 'Start_phi_h_bin': 745, 'End_phi_h_bin': 769, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 3}}}'}, {'Q2_y': '2', 'z_pT': 4, 'Start_phi_h_bin': 769, 'End_phi_h_bin': 793, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 4}}}'}, {'Q2_y': '2', 'z_pT': 5, 'Start_phi_h_bin': 793, 'End_phi_h_bin': 817, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 5}}}'}, {'Q2_y': '2', 'z_pT': 6, 'Start_phi_h_bin': 817, 'End_phi_h_bin': 841, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 6}}}'}, {'Q2_y': '2', 'z_pT': 7, 'Start_phi_h_bin': 841, 'End_phi_h_bin': 865, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 7}}}'}, {'Q2_y': '2', 'z_pT': 8, 'Start_phi_h_bin': 865, 'End_phi_h_bin': 889, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 8}}}'}, {'Q2_y': '2', 'z_pT': 9, 'Start_phi_h_bin': 889, 'End_phi_h_bin': 913, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 9}}}'}, {'Q2_y': '2', 'z_pT': 10, 'Start_phi_h_bin': 913, 'End_phi_h_bin': 937, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 10}}}'}, {'Q2_y': '2', 'z_pT': 11, 'Start_phi_h_bin': 937, 'End_phi_h_bin': 961, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 11}}}'}, {'Q2_y': '2', 'z_pT': 12, 'Start_phi_h_bin': 961, 'End_phi_h_bin': 985, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 12}}}'}, {'Q2_y': '2', 'z_pT': 13, 'Start_phi_h_bin': 985, 'End_phi_h_bin': 1009, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 13}}}'}, {'Q2_y': '2', 'z_pT': 14, 'Start_phi_h_bin': 1009, 'End_phi_h_bin': 1033, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 14}}}'}, {'Q2_y': '2', 'z_pT': 15, 'Start_phi_h_bin': 1033, 'End_phi_h_bin': 1057, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 15}}}'}, {'Q2_y': '2', 'z_pT': 16, 'Start_phi_h_bin': 1057, 'End_phi_h_bin': 1081, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 16}}}'}, {'Q2_y': '2', 'z_pT': 17, 'Start_phi_h_bin': 1081, 'End_phi_h_bin': 1105, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 17}}}'}, {'Q2_y': '2', 'z_pT': 18, 'Start_phi_h_bin': 1105, 'End_phi_h_bin': 1129, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 18}}}'}, {'Q2_y': '2', 'z_pT': 19, 'Start_phi_h_bin': 1129, 'End_phi_h_bin': 1153, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 19}}}'}, {'Q2_y': '2', 'z_pT': 20, 'Start_phi_h_bin': 1153, 'End_phi_h_bin': 1177, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 20}}}'}, {'Q2_y': '2', 'z_pT': 21, 'Start_phi_h_bin': 1177, 'End_phi_h_bin': 1201, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 21}}}'}, {'Q2_y': '2', 'z_pT': 22, 'Start_phi_h_bin': 1201, 'End_phi_h_bin': 1225, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 2} #topbar #color[2]{z-P_{T} Bin: 22}}}'}, {'Q2_y': '3', 'z_pT': 1, 'Start_phi_h_bin': 1465, 'End_phi_h_bin': 1489, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 1}}}'}, {'Q2_y': '3', 'z_pT': 2, 'Start_phi_h_bin': 1489, 'End_phi_h_bin': 1513, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 2}}}'}, {'Q2_y': '3', 'z_pT': 3, 'Start_phi_h_bin': 1513, 'End_phi_h_bin': 1537, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 3}}}'}, {'Q2_y': '3', 'z_pT': 4, 'Start_phi_h_bin': 1537, 'End_phi_h_bin': 1561, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 4}}}'}, {'Q2_y': '3', 'z_pT': 5, 'Start_phi_h_bin': 1561, 'End_phi_h_bin': 1585, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 5}}}'}, {'Q2_y': '3', 'z_pT': 6, 'Start_phi_h_bin': 1585, 'End_phi_h_bin': 1609, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 6}}}'}, {'Q2_y': '3', 'z_pT': 7, 'Start_phi_h_bin': 1609, 'End_phi_h_bin': 1633, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 7}}}'}, {'Q2_y': '3', 'z_pT': 8, 'Start_phi_h_bin': 1633, 'End_phi_h_bin': 1657, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 8}}}'}, {'Q2_y': '3', 'z_pT': 9, 'Start_phi_h_bin': 1657, 'End_phi_h_bin': 1681, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 9}}}'}, {'Q2_y': '3', 'z_pT': 10, 'Start_phi_h_bin': 1681, 'End_phi_h_bin': 1705, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 10}}}'}, {'Q2_y': '3', 'z_pT': 11, 'Start_phi_h_bin': 1705, 'End_phi_h_bin': 1729, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 11}}}'}, {'Q2_y': '3', 'z_pT': 12, 'Start_phi_h_bin': 1729, 'End_phi_h_bin': 1753, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 12}}}'}, {'Q2_y': '3', 'z_pT': 13, 'Start_phi_h_bin': 1753, 'End_phi_h_bin': 1777, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 13}}}'}, {'Q2_y': '3', 'z_pT': 14, 'Start_phi_h_bin': 1777, 'End_phi_h_bin': 1801, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 14}}}'}, {'Q2_y': '3', 'z_pT': 15, 'Start_phi_h_bin': 1801, 'End_phi_h_bin': 1825, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 15}}}'}, {'Q2_y': '3', 'z_pT': 16, 'Start_phi_h_bin': 1825, 'End_phi_h_bin': 1849, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 16}}}'}, {'Q2_y': '3', 'z_pT': 17, 'Start_phi_h_bin': 1849, 'End_phi_h_bin': 1873, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 17}}}'}, {'Q2_y': '3', 'z_pT': 18, 'Start_phi_h_bin': 1873, 'End_phi_h_bin': 1897, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 18}}}'}, {'Q2_y': '3', 'z_pT': 19, 'Start_phi_h_bin': 1897, 'End_phi_h_bin': 1921, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 19}}}'}, {'Q2_y': '3', 'z_pT': 20, 'Start_phi_h_bin': 1921, 'End_phi_h_bin': 1945, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 20}}}'}, {'Q2_y': '3', 'z_pT': 21, 'Start_phi_h_bin': 1945, 'End_phi_h_bin': 1969, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 21}}}'}, {'Q2_y': '3', 'z_pT': 22, 'Start_phi_h_bin': 1969, 'End_phi_h_bin': 1993, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 22}}}'}, {'Q2_y': '3', 'z_pT': 23, 'Start_phi_h_bin': 1993, 'End_phi_h_bin': 2017, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 23}}}'}, {'Q2_y': '3', 'z_pT': 24, 'Start_phi_h_bin': 2017, 'End_phi_h_bin': 2041, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 24}}}'}, {'Q2_y': '3', 'z_pT': 25, 'Start_phi_h_bin': 2041, 'End_phi_h_bin': 2065, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 25}}}'}, {'Q2_y': '3', 'z_pT': 26, 'Start_phi_h_bin': 2065, 'End_phi_h_bin': 2089, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 26}}}'}, {'Q2_y': '3', 'z_pT': 27, 'Start_phi_h_bin': 2089, 'End_phi_h_bin': 2113, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 27}}}'}, {'Q2_y': '3', 'z_pT': 28, 'Start_phi_h_bin': 2113, 'End_phi_h_bin': 2137, 'Bin_Title': '#font[22]{#scale[1.25]{#color[2]{Q^{2}-y Bin: 3} #topbar #color[2]{z-P_{T} Bin: 28}}}'}]}
-
-
-The time that this code finished is [1m11:35 a.m.[0m
-The total time the code took to run is:
-2 Day(s), 17 Hour(s), 42 Minute(s), and 56 Second(s).
-
-    
-
-[1m[93m[41m
-    	                                   	   
-    	       This code has CRASHED!      	   
-    	                                   	   [0m
-    
-    
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
