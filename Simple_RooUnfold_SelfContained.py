@@ -1710,6 +1710,11 @@ import fcntl
 def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
     print("\n\nCounting Total Number of/Saving collected histograms...")
     fit_list_tags = ["Chi_Squared", "Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    junk_vector_keys = ["TVectorT<double>", "TVectorD"]
+    def is_tvector_obj(obj):
+        # TVectorT/TVectorD are not TNamed (no SetName); detect via type name for PyROOT compatibility
+        type_name = type(obj).__name__
+        return (("TVector" in type_name) or (hasattr(ROOT, "TVectorD") and isinstance(obj, ROOT.TVectorD)))
     def write_vec(tfile, name, py_list):
         if(py_list is None):
             print(f"{color.Error}WARNING:{color.END} Fit list '{name}' is None (skipping)")
@@ -1730,6 +1735,12 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
                 print(f"{color.BBLUE}Deleting:{color.END} '{keyname};*' (already exists)")
             tfile.Delete(f"{keyname};*")
         tfile.WriteObject(vec, keyname)
+        # TVectorT is not TNamed; ROOT can leave a leftover class-name key — clean it so reloads stay clean
+        for junk_key in junk_vector_keys:
+            if(tfile.GetListOfKeys().FindObject(junk_key)):
+                if(getattr(args, "verbose", False)):
+                    print(f"{color.BBLUE}Deleting leftover junk key:{color.END} '{junk_key};*'")
+                tfile.Delete(f"{junk_key};*")
     if(not args.test):
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         lock_file_path = args.root + ".lock"
@@ -1744,8 +1755,20 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
             safe_write(File_Name_Tlist, output_file)
             for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
                 try:
+                    # Skip leftover class-name keys from non-TNamed TVectorT objects (not useful analysis products)
+                    if(str(List_of_All_Histos_For_Unfolding_ii) in junk_vector_keys):
+                        if(getattr(args, "verbose", False)):
+                            print(f"{color.BBLUE}Skipping junk vector key:{color.END} '{List_of_All_Histos_For_Unfolding_ii}'")
+                        continue
                     obj = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
-                    if((any(tag in List_of_All_Histos_For_Unfolding_ii for tag in fit_list_tags)) and isinstance(obj, (list, tuple))):
+                    if(is_tvector_obj(obj)):
+                        # Already a ROOT vector (e.g. reloaded without conversion): persist via write_vec
+                        try:
+                            py_list = list(obj)
+                        except:
+                            py_list = [float(obj[ii]) for ii in range(int(obj.GetNoElements()))]
+                        write_vec(output_file, List_of_All_Histos_For_Unfolding_ii, py_list)
+                    elif((any(tag in List_of_All_Histos_For_Unfolding_ii for tag in fit_list_tags)) and isinstance(obj, (list, tuple))):
                         write_vec(output_file, List_of_All_Histos_For_Unfolding_ii, obj)
                     elif(type(obj) is list):
                         Temp_Tlist = ROOT.TList()
@@ -1755,10 +1778,26 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding):
                         safe_write(Temp_Tlist, output_file)
                     else:
                         if(type(obj) is not ROOT.TObjString):
-                            obj.SetName(List_of_All_Histos_For_Unfolding_ii)
-                            safe_write(obj, output_file)
+                            if(hasattr(obj, "SetName") and callable(obj.SetName)):
+                                obj.SetName(List_of_All_Histos_For_Unfolding_ii)
+                                safe_write(obj, output_file)
+                            else:
+                                # Non-TNamed ROOT objects (cannot SetName): write under the dict key name
+                                write_name = List_of_All_Histos_For_Unfolding_ii if(not args.EvGen) else f"{List_of_All_Histos_For_Unfolding_ii}_EvGen"
+                                existing = output_file.GetListOfKeys().FindObject(write_name)
+                                if(existing):
+                                    if(getattr(args, "verbose", False)):
+                                        print(f"{color.BBLUE}Deleting:{color.END} '{write_name};*' (already exists)")
+                                    output_file.Delete(f"{write_name};*")
+                                output_file.WriteObject(obj, write_name)
                 except:
                     Crash_Report(args, crash_message=f"The Save Code would have CRASHED! Was trying to save: '{List_of_All_Histos_For_Unfolding_ii}'. (Was allowed to finish running anyway...)\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+            # Final cleanup of any leftover class-name vector keys left in the file
+            for junk_key in junk_vector_keys:
+                if(output_file.GetListOfKeys().FindObject(junk_key)):
+                    if(getattr(args, "verbose", False)):
+                        print(f"{color.BBLUE}Deleting leftover junk key:{color.END} '{junk_key};*'")
+                    output_file.Delete(f"{junk_key};*")
             output_file.Close()
         print(f"\n{color.BCYAN}Done Saving!{color.END}")
     else:
@@ -3148,9 +3187,13 @@ def Load_TTree(args):
     TTree_Input = ROOT.TFile.Open(TTree_Name, "READ")
     List_of_All_Histos_For_Unfolding = {}
     keys = TTree_Input.GetListOfKeys()
+    junk_vector_keys = ["TVectorT<double>", "TVectorD"]
     for key in keys:
         key_name = key.GetName()
         if("_AsymErr" in key_name):
+            continue
+        # Skip leftover class-name keys from non-TNamed TVectorT objects (not useful analysis products)
+        if(key_name in junk_vector_keys):
             continue
         if(not Relative_Background_Run_Q):
             Relative_Background_Run_Q = "Relative_Background" in str(key_name)
@@ -3160,10 +3203,19 @@ def Load_TTree(args):
             List_of_All_Histos_For_Unfolding[key_name.replace("TVectorD_", "")] = list(TTree_Input.Get(key_name))
             # print(f"""List_of_All_Histos_For_Unfolding[{key_name.replace("TVectorD_", "")}] = {list(TTree_Input.Get(key_name))}""")
         else:
-            List_of_All_Histos_For_Unfolding[key_name] = TTree_Input.Get(key_name)
-            asym_key = f"{key_name}_AsymErr"
-            if(keys.FindObject(asym_key)):
-                List_of_All_Histos_For_Unfolding[key_name].asym_errors = TTree_Input.Get(asym_key)
+            loaded_obj = TTree_Input.Get(key_name)
+            # Safety: if a non-prefixed TVector slipped through, convert to list rather than keeping raw TVectorT
+            loaded_type_name = type(loaded_obj).__name__
+            if(("TVector" in loaded_type_name) or (hasattr(ROOT, "TVectorD") and isinstance(loaded_obj, ROOT.TVectorD))):
+                try:
+                    List_of_All_Histos_For_Unfolding[key_name] = list(loaded_obj)
+                except:
+                    List_of_All_Histos_For_Unfolding[key_name] = [float(loaded_obj[ii]) for ii in range(int(loaded_obj.GetNoElements()))]
+            else:
+                List_of_All_Histos_For_Unfolding[key_name] = loaded_obj
+                asym_key = f"{key_name}_AsymErr"
+                if(keys.FindObject(asym_key)):
+                    List_of_All_Histos_For_Unfolding[key_name].asym_errors = TTree_Input.Get(asym_key)
     TTree_Input.Close()
     print(f"{color.BBLUE}Recovered: {color.BGREEN}{len(List_of_All_Histos_For_Unfolding)}{color.END_B}{color.BLUE} items{color.END}\n")
     args.timer.time_elapsed()
