@@ -1,4 +1,4 @@
-Full command: ./Simple_RooUnfold_SelfContained.py --unfolding_3D --smear --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --bayes_iterations 25 --Num_Toys 1 -em 'Coordinated 3D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.' -ti '#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}' 8
+Full command: ./Simple_RooUnfold_SelfContained.py --unfolding_3D --fit --smear --save_json --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --Num_Toys 1 -em 'Coordinated 3D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran 3D Unfolding with unique bayesian iterations set for each Q2-y Bin WITHOUT Toys or Radiative Corrections. Ran as a test of all the other bins that are normally skipped (trying to see if I can easily save them without breaking other important code). Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.' -ti '#splitline{Ran with No Toys}{#rho^{0} Normalized Subtraction Run}' 8
 TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
 Subtract 75606.6 fakes from measured distribution
 Using response matrix priors
@@ -945,42 +945,31 @@ Iteration : 8
 Chi^2 of change 53.4094
 Iteration : 9
 Chi^2 of change 40.1862
-Iteration : 10
-Chi^2 of change 30.7409
-Iteration : 11
-Chi^2 of change 23.852
-Iteration : 12
-Chi^2 of change 18.749
-Iteration : 13
-Chi^2 of change 14.9226
-Iteration : 14
-Chi^2 of change 12.0246
-Iteration : 15
-Chi^2 of change 9.81089
-Iteration : 16
-Chi^2 of change 8.10709
-Iteration : 17
-Chi^2 of change 6.78665
-Iteration : 18
-Chi^2 of change 5.75665
-Iteration : 19
-Chi^2 of change 4.94813
-Iteration : 20
-Chi^2 of change 4.30952
-Iteration : 21
-Chi^2 of change 3.80193
-Iteration : 22
-Chi^2 of change 3.39586
-Iteration : 23
-Chi^2 of change 3.06882
-Iteration : 24
-Chi^2 of change 2.80355
 Using response matrix priors
 Calculating covariances due to number of measured events
 TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
+Fit:0: RuntimeWarning: Fit data is empty 
 
 Adding the following extra title to the histograms:
-	#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}
+	#splitline{Ran with No Toys}{#rho^{0} Normalized Subtraction Run}
+
+
+
+[1m[92m[43m
+
+    Will be Fitting Plots    
+[0m
+
 
 
 [1m[94mSmear option selected is: Smear[0m
@@ -994,7 +983,7 @@ Running for Q2-xB/Q2-y Bins: '8', '0'
 Starting RG-A SIDIS Analysis
 [0m
 
-Started running on [1m7-8-2026[0m at [1m12:50 a.m.[0m
+Started running on [1m7-10-2026[0m at [1m06:29 p.m.[0m
 
 The total number of histograms available for the [1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m504[0m
 
@@ -1048,7 +1037,7 @@ Bin 794 had a very low acceptance...
 	(Bin_Content  = 7.630238635713331e-05)[0m
 [1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
 
-Current Time: [1m12:50 a.m.[0m
+Current Time: [1m06:29 p.m.[0m
 Time Elapsed Up To Now:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
 
@@ -1064,11 +1053,10 @@ Time Elapsed Up To Now:
 	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
 Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s). 
 	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
-[1mPerforming Unfolding with [4m25[0m[1m iteration(s)...[0m
 
-Current Time: [1m12:51 a.m.[0m
+Current Time: [1m06:30 p.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 0 Hour(s), 1 Minute(s), and 7 Second(s).
+0 Day(s), 0 Hour(s), 0 Minute(s), and 28 Second(s).
 
 [1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
 [0m
@@ -1101,33 +1089,38 @@ Total: 2
 
 
 Counting Total Number of/Saving collected histograms...
-[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root[0m
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.root[0m
 
 [1m[96mDone Saving![0m
 
-Final Count = 220
+Final Count = 802
 
 
-Current Time: [1m12:55 a.m.[0m
+Current Time: [1m06:36 p.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 0 Hour(s), 5 Minute(s), and 10 Second(s).
+0 Day(s), 0 Hour(s), 6 Minute(s), and 3 Second(s).
 
 Conditions for running 'Create_Fits_and_Apply_RC_and_BC' were not set...
 Need to run: '(args.fit and args.Use_TTree) or args.Apply_RC'
 
 
 Counting Total Number of/Saving collected histograms...
-[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root[0m
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.root[0m
 
 [1m[96mDone Saving![0m
 
-Final Count = 220
+Final Count = 802
 
 
-Current Time: [1m01:03 a.m.[0m
+Current Time: [1m06:42 p.m.[0m
 Time Elapsed Up To Now:
-0 Day(s), 0 Hour(s), 12 Minute(s), and 44 Second(s).
+0 Day(s), 0 Hour(s), 12 Minute(s), and 9 Second(s).
 
+
+[1m[94mSaved Fit Parameters JSON as [1m[92mFit_Pars_from_Simple_RooUnfold_SelfContained_using_Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.json[1m[94m (total entries now = 2)[0m
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 12 Minute(s), and 9 Second(s). 
 
 
 
@@ -1136,20 +1129,22 @@ Time Elapsed Up To Now:
 
 
 The 'Simple_RooUnfold_SelfContained.py' script has finished running.
-Started running on [1m7-8-2026[0m at [1m12:50 a.m.[0m
+Started running on [1m7-10-2026[0m at [1m06:29 p.m.[0m
 
 Input File:
 	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root
 Output File:
-	Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root
+	Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.root
 
-Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.
+Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran 3D Unfolding with unique bayesian iterations set for each Q2-y Bin WITHOUT Toys or Radiative Corrections. Ran as a test of all the other bins that are normally skipped (trying to see if I can easily save them without breaking other important code). Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2.
 
 	[1mBegan Unfolding Histogram:[0m
 	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
 Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s). 
 	Finished Unfolding the histogram at:
-Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 1 Minute(s), and 7 Second(s). 
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 28 Second(s). 
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 12 Minute(s), and 9 Second(s). 
 
 Arguments:
 --unfolding_3D (3D Unfolding Only)                  --> True
@@ -1162,23 +1157,23 @@ Arguments:
 --weighed_acceptance (use acceptance weights only)  --> False
 --test                                              --> False
 --verbose                                           --> False
---fit                                               --> False
+--fit                                               --> True
 --remake_fit                                        --> False
 --CrossSection_Norm                                 --> False
 --tag_proton                                        --> False
 --cut_proton                                        --> False
 --Common_Int_Bins                                   --> False
---bayes_iterations                                  --> 25
+--bayes_iterations                                  --> 10
 --Num_Toys                                          --> 1
 --Unfold_Methods                                    --> ['Bayesian']
---title                                             --> '#splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run}'
+--title                                             --> '#splitline{Ran with No Toys}{#rho^{0} Normalized Subtraction Run}'
 --EvGen                                             --> False
 --Min_Allowed_Acceptance_Cut                        --> 0.0005
 --Use_TTree                                         --> False
 --Apply_RC                                          --> False
 --Apply_BC                                          --> False
 --Add_Uncertainties                                 --> False
---save_json                                         --> False
+--save_json                                         --> True
 --old_json                                          --> False
 --background_source                                 --> 'lundvpk'
 --pass_version                                      --> 'Pass 2'
@@ -1186,13 +1181,14 @@ Arguments:
 --Q2_y_Bin_List                                     --> ['8', '0']
 --Run_5D_Unfold                                     --> False
 --run_sec_unfold                                    --> False
+--json_name                                         --> 'Fit_Pars_from_Simple_RooUnfold_SelfContained_using_Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.json'
 
 
-The time that this code finished is [1m01:03 a.m.[0m
+The time that this code finished is [1m06:42 p.m.[0m
 The total time the code took to run is:
-0 Day(s), 0 Hour(s), 12 Minute(s), and 44 Second(s).
-Saved 220 Histograms...
-Rate = 0.29 Histograms/Seconds
+0 Day(s), 0 Hour(s), 12 Minute(s), and 9 Second(s).
+Saved 802 Histograms...
+Rate = 1.10 Histograms/Seconds
     
 
 [1m[92m[43m

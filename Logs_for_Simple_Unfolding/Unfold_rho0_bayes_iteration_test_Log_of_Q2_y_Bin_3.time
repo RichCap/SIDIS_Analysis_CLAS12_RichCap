@@ -1,21 +1,21 @@
-	Command being timed: "./Simple_RooUnfold_SelfContained.py --unfolding_3D --smear --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --bayes_iterations 25 --Num_Toys 1 -em Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as Unfolding Tests of the number of Bayesian iterations without including any Toy Unfoldings. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2. -ti #splitline{Ran as Iteration Test with No Toys}{#rho^{0} Normalized Subtraction Run} 3"
-	User time (seconds): 69.64
-	System time (seconds): 2.70
+	Command being timed: "./Simple_RooUnfold_SelfContained.py --unfolding_3D --fit --smear --save_json --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction_WITHOUT_Toys.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --Num_Toys 1 -em Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran 3D Unfolding with unique bayesian iterations set for each Q2-y Bin WITHOUT Toys or Radiative Corrections. Ran as a test of all the other bins that are normally skipped (trying to see if I can easily save them without breaking other important code). Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS_2. -ti #splitline{Ran with No Toys}{#rho^{0} Normalized Subtraction Run} 3"
+	User time (seconds): 62.14
+	System time (seconds): 6.85
 	Percent of CPU this job got: 8%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 14:47.55
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 13:44.59
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 734912
+	Maximum resident set size (kbytes): 715836
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 1
-	Minor (reclaiming a frame) page faults: 153197
-	Voluntary context switches: 118916
-	Involuntary context switches: 980
+	Major (requiring I/O) page faults: 13
+	Minor (reclaiming a frame) page faults: 289114
+	Voluntary context switches: 195793
+	Involuntary context switches: 5809
 	Swaps: 0
-	File system inputs: 7552
-	File system outputs: 1140288
+	File system inputs: 12696
+	File system outputs: 7349336
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0

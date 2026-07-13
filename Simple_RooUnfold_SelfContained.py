@@ -444,6 +444,15 @@ def Set_Method_Title(Method, args):
 #####==========#####   Drawing Histogram Options   #####==========#####
 #######################################################################
 
+
+def Find_Bin_Num(args, histo_name):
+    if("Q2-y-Bin=" not in histo_name):
+        Update_Email(args, update_message=f"{color.Error}Warning: Histogram {color.END_B}'{histo_name}'{color.Error} is missing 'Q2-y-Bin=' (cannot find the Q2-y bin to determine the tailored number of bayesian iterations){color.END}", verbose_override=True)
+        return None
+    search = str(histo_name.split(", z-PT-Bin")[0])
+    search = str(search.split("Q2-y-Bin=")[-1])
+    return search
+bayes_iter_for_3D_Unfold = {"1":  10, "2":   6, "3":  10, "4":  13, "5":   8, "6":   8, "7":  12, "8":   9, "9":   8, "10":  9, "11":  7, "12":  9, "13":  9, "14":  5, "15": 10, "16":  7, "17":  9}
 ##=======================================================================================================================================================================================================##
 ##=======================================================================================================================================================================================================##
 ##=======================================================================================================================================================================================================##
@@ -523,6 +532,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Update_Email(args, update_message=f"\n\t{color.BOLD}Began Unfolding Histogram:{color.END}\n\t{clean_name}", verbose_override=True)
         else:
             print(f"\t{color.BOLD}Unfolding Histogram:{color.END}\n\t{clean_name}")
+        q2_y_bin_str = Find_Bin_Num(args, clean_name)
         del clean_name
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
@@ -605,7 +615,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     #########################################
                     bayes_iterations = (10 if(not args.closure) else 10) if(("Multi_Dim" not in str(Name_Main)) or (("Multi_Dim_z_pT_Bin" in str(Name_Main)) or ("MultiDim_z_pT" in str(Name_Main)))) else 4
                     if(args.pass_version not in ["", "Pass 1"]):
-                        bayes_iterations += 3
+                        bayes_iterations = bayes_iter_for_3D_Unfold.get(str(q2_y_bin_str), bayes_iterations + 2) + 1
                     if("MultiDim_Q2_y_z_pT_phi_h" in str(Name_Main)):
                         # 5D Unfolding
                         bayes_iterations = 4
@@ -1137,8 +1147,8 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             else:
                 z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y_Bin_Select)[1]
                 for z_pT in range(0, z_pT_Range+1):
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=args.Common_Int_Bins)):
-                        continue
+                    # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=args.Common_Int_Bins)):
+                    #     continue
                     Name_Out  = str(Name.replace("MultiDim_3D_z_pT_Bin_Info", str(z_pT) if(str(z_pT) not in ["0", "All"]) else "All"))
                     Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y_Bin_Select) if(str(Q2_y_Bin_Select) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
                     Bin_Title = Bin_Title.replace("Common_Int", "Integrated (Over Common Range)")
@@ -1151,7 +1161,9 @@ def Multi3D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                             End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y_Bin_Select}, z-pT={z_pT+1}",     End_Bins_Name="3D_Bins")
                             if(End___phi_h_bin in ["ERROR"]):
                                 End___phi_h_bin = Start_phi_h_bin + phi_h_Binning[2]
-                            if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=args.Common_Int_Bins)):
+                            # if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin_Select, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin", Common_z_pT_Range_Q=args.Common_Int_Bins)):
+                            #     continue
+                            if((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]):
                                 continue
                     else:
                         Name_All                = Name_Out
@@ -1327,7 +1339,9 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                                 End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT+1}",     End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")
                                 if(End___phi_h_bin in ["ERROR"]):
                                     End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={int(Q2_y)+1}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")
-                                if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                                # if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+                                #     continue
+                                if((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]):
                                     continue
                         else:
                             Start_phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1",                End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")
@@ -2284,8 +2298,8 @@ def main_unfold(args):
                     
                 z_pT_Bin_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_xB_Bin_Unfold)[1]
                 for z_pT_Bin_Unfold in range(0, z_pT_Bin_Range + 1, 1):
-                    if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=args.Common_Int_Bins)):
-                        continue
+                    # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_xB_Bin_Unfold, Z_PT_BIN=z_pT_Bin_Unfold, BINNING_METHOD=Binning_Method, Common_z_pT_Range_Q=args.Common_Int_Bins)):
+                    #     continue
                     for Sector in args.sector_list:
                         if(Smear_Found):
                             out_print_main_____1D_Sector     = str(out_print_main.replace("z-PT-Bin=All",     "".join(["z-PT-Bin=", str(z_pT_Bin_Unfold) if(z_pT_Bin_Unfold not in [0]) else "All"]))).replace("sec_smeared'-[NumBins=8, MinBin=-0.5, MaxBin=7.5]", f"sec_smeared'-[{Sector}]")
