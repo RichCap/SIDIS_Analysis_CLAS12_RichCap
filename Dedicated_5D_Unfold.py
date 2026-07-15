@@ -102,6 +102,9 @@ def parse_args():
     p.add_argument('-lz', '--logz',
                    action='store_true',
                    help="Use log scale on the PDF Z-axis.\n")
+    p.add_argument('-rs', '--recover_slices',
+                   action='store_true',
+                   help="Skip unfolding; load existing args.root, rename/resave the raw 'unfolded' hist if needed, and only run Multi5D_Slice for Bayesian.\n")
     return p.parse_args()
 
 def safe_write(obj, tfile):
@@ -514,6 +517,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
+                Unfolded_Histo.SetName(f"""(MultiDim_5D_Histo)_(Bayesian)_(SMEAR={"Smear" if("smear" in str(Name_Main).lower()) else "''"})_(Q2_y_z_pT_Bin_All)_(MultiDim_Q2_y_z_pT_phi_h)""")
 
                 if((str(Method) in ["RooUnfold", "RooUnfold_bayes", "Default"]) and ("MultiDim_" in str(Name_Main))):
                     Update_Email(args, update_message="\tFinished Unfolding the histogram at:")
@@ -770,50 +774,62 @@ def _Coerce_Kinematic_Bin_Value(bin_value):
         return None
 
 
+def _First_Valid_MultiDim_Start(Q2_y, z_pT_min=1, z_pT_max=None):
+    # First dense-5D MultiDim start bin for this Q2-y (skips migration edge z-pT bins that are not in the map).
+    if(z_pT_max is None):
+        z_pT_max = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
+    for z_pT in range(int(z_pT_min), int(z_pT_max) + 1):
+        start_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
+        if(start_bin is not None):
+            return start_bin
+    return None
+
+
 def _Resolve_Phi_h_Slice_Range(Q2_y, z_pT, phi_h_Binning):
+    # Dense 5D packing: each kept (Q2-y, z-pT) block is exactly phi_h_Binning[2] MultiDim bins wide.
+    # Do NOT require z-pT=1 or contiguous z-pT numbering — skip_condition_z_pT_bins leaves holes (e.g. Q2-y=4 starts at z-pT=7).
     if(z_pT not in [0]):
-        Start_phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}",       End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
+            return None
+        Start_phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
         if(Start_phi_h_bin is None):
             return None
-        End___phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT+1}",     End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
-        if(End___phi_h_bin is None):
-            End___phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={int(Q2_y)+1}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
-        if(End___phi_h_bin is None):
-            return None
-        if(((End___phi_h_bin - Start_phi_h_bin) not in [phi_h_Binning[2]]) or skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y, Z_PT_BIN=z_pT, BINNING_METHOD="Y_bin")):
-            return None
+        End___phi_h_bin = Start_phi_h_bin + phi_h_Binning[2]
     else:
-        Start_phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1",                End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
-        End___phi_h_bin = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={int(Q2_y)+1}, z-pT=1",         End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
-        if(Start_phi_h_bin is None or End___phi_h_bin is None):
+        z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
+        Start_phi_h_bin = _First_Valid_MultiDim_Start(Q2_y, z_pT_min=1, z_pT_max=z_pT_Range)
+        if(Start_phi_h_bin is None):
             return None
+        End___phi_h_bin = _First_Valid_MultiDim_Start(int(Q2_y) + 1, z_pT_min=1)
+        if(End___phi_h_bin is None):
+            last_start = Start_phi_h_bin
+            for z_test in range(1, z_pT_Range + 1):
+                start_test = _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_test}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h"))
+                if(start_test is not None):
+                    last_start = start_test
+            End___phi_h_bin = last_start + phi_h_Binning[2]
     return Start_phi_h_bin, End___phi_h_bin
 
 
 def Build_Multi5D_Slice_Metadata(args):
-    phi_h_Binning = [0,     360,   24,         15]
+    phi_h_Binning = [0, 360, 24, 15]
     entries = []
     for Q2_y in args.Q2_y_Bin_List:
         if(Q2_y not in ["0", "All"]):
-            if(_Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")) is None):
-                break
-            else:
-                z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
-                for z_pT in range(0, z_pT_Range+1):
-                    Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y) if(str(Q2_y) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
-                    phi_range = _Resolve_Phi_h_Slice_Range(Q2_y, z_pT, phi_h_Binning)
-                    if(phi_range is None):
-                        if(z_pT not in [0] and _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")) is None):
-                            break
-                        continue
-                    Start_phi_h_bin, End___phi_h_bin = phi_range
-                    entries.append({
-                        "Q2_y": Q2_y,
-                        "z_pT": z_pT,
-                        "Start_phi_h_bin": Start_phi_h_bin,
-                        "End_phi_h_bin": End___phi_h_bin,
-                        "Bin_Title": Bin_Title,
-                    })
+            # Never break out of the Q2-y loop when z-pT=1 is missing: some Q2-y bins (4, 8, 12, ...) intentionally have no z-pT=1 entry under skip_condition_z_pT_bins / dense-5D packing.
+            z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
+            for z_pT in range(0, z_pT_Range+1):
+                Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y) if(str(Q2_y) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
+                phi_range = _Resolve_Phi_h_Slice_Range(Q2_y, z_pT, phi_h_Binning)
+                if(phi_range is None):
+                    continue
+                Start_phi_h_bin, End___phi_h_bin = phi_range
+                entries.append({"Q2_y": Q2_y,
+                                "z_pT": z_pT,
+                                "Start_phi_h_bin": Start_phi_h_bin,
+                                "End_phi_h_bin": End___phi_h_bin,
+                                "Bin_Title": Bin_Title,
+                               })
     return {"phi_h_Binning": phi_h_Binning, "entries": entries}
 
 
@@ -821,8 +837,9 @@ def _Stream_Write_Slice_Hist(hist, Method, output_file, stream_write, save_count
     if(not stream_write):
         return False
     hist.GetYaxis().SetTitle("")
-    if(Method in ["Bayesian", "bayes", "bayesian"]):
-        hist.SetName(f"{hist.GetName()}_(Iteration_{args.bayes_iterations})")
+    # Do not append _(Iteration_#) to Bayesian sliced 1D names (kept for reference if re-enabled later)
+    # if(Method in ["Bayesian", "bayes", "bayesian"]):
+    #     hist.SetName(f"{hist.GetName()}_(Iteration_{args.bayes_iterations})")
     if(not test_mode and output_file is not None):
         safe_write(hist, output_file)
     if(save_count_ref is not None):
@@ -915,7 +932,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
         ###==============###   Creation of the Sliced Histograms    ###==============###
         ################################################################################
         if(Name != "none"):
-            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_5D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin="MultiDim_5D_Q2_y_Bin_Info", z_pT_Bin="MultiDim_5D_z_pT_Bin_Info", Bin_Extra="Default", Variable="Default", args=args)
+            Name = Histogram_Name_Def(out_print=Name, Histo_General="MultiDim_5D_Histo", Data_Type=str(Method), Cut_Type="Skip", Smear_Type=str(Smear), Q2_y_Bin="MultiDim_5D_Q2_y_Bin_Info", z_pT_Bin="MultiDim_5D_z_pT_Bin_Info", Bin_Extra="Default", Variable=str(Variable).replace("_smeared", ""), args=args)
             if(str(Method) in ["tdf", "true"]):
                 # print("".join([color.BBLUE, color_bg.RED, "\n\nMaking a Multi-Dim Histo for 'True' distribution\n", color.END, "\nName =", str(Name), "\n"]))
                 Name = Name.replace("mdf", "tdf")
@@ -924,10 +941,13 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             #     print("".join([color.BBLUE, color_bg.CYAN, "\nMaking a Multi-Dim Histo for '", str(Method), "' distribution\n", color.END, "\nName =", str(Name), "\n"]))
 
         def Process_One_Slice_Entry(Q2_y, z_pT, Start_phi_h_bin, End___phi_h_bin, Bin_Title):
-            Title_Out = str(Title.replace("MultiDim_5D_Var_Info", Bin_Title))
+            # Per-slice title: method line on top, entry Bin_Title (Q2-y / z-pT) on the bottom
+            Title_Out = f"#splitline{{{root_color.Bold}{{5D #phi_{{h}}{Method_Title} Plot}}}}{{{Bin_Title}}}"
+            if((args.pass_version not in [""]) and (args.pass_version not in str(Title_Out))):
+                Title_Out = f"#splitline{{{Title_Out}}}{{{root_color.Bold}{{{args.pass_version}}}}}"
             Name_Out = str(Name.replace("MultiDim_5D_Q2_y_Bin_Info",     str(Q2_y) if(str(Q2_y) not in ["0", "All"]) else "All"))
             Name_Out = str(Name_Out.replace("MultiDim_5D_z_pT_Bin_Info", str(z_pT) if(str(z_pT) not in ["0", "All"]) else "All"))
-            Slice_Hist = ROOT.TH1D(Name_Out, "".join([str(Title_Out), "; ",  "(Smeared) " if("mear" in Smear) else "", "#phi_{h} [", str(root_color.Degrees), "]"]), phi_h_Binning[2], phi_h_Binning[0], phi_h_Binning[1])
+            Slice_Hist = ROOT.TH1D(Name_Out, f"{Title_Out}; #phi_{{h}} [{root_color.Degrees}]", phi_h_Binning[2], phi_h_Binning[0], phi_h_Binning[1])
             ii_bin_num,  ii_LastNum  = Start_phi_h_bin, Start_phi_h_bin
             phi_Content, phi___Error = {}, {}
             for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
@@ -1005,22 +1025,17 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
             for entry in slice_metadata["entries"]:
                 Process_One_Slice_Entry(entry["Q2_y"], entry["z_pT"], entry["Start_phi_h_bin"], entry["End_phi_h_bin"], entry["Bin_Title"])
         else:
-            # slice_metadata=None fallback preserves legacy kinematic-bin lookup behavior
+            # slice_metadata=None fallback: same Q2-y / z-pT iteration as Build_Multi5D_Slice_Metadata (no early break on missing z-pT=1)
             for Q2_y in args.Q2_y_Bin_List:
                 if(Q2_y not in ["0", "All"]):
-                    if(_Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")) is None):
-                        break
-                    else:
-                        z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
-                        for z_pT in range(0, z_pT_Range+1):
-                            Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y) if(str(Q2_y) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
-                            phi_range = _Resolve_Phi_h_Slice_Range(Q2_y, z_pT, phi_h_Binning)
-                            if(phi_range is None):
-                                if(z_pT not in [0] and _Coerce_Kinematic_Bin_Value(Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")) is None):
-                                    break
-                                continue
-                            Start_phi_h_bin, End___phi_h_bin = phi_range
-                            Process_One_Slice_Entry(Q2_y, z_pT, Start_phi_h_bin, End___phi_h_bin, Bin_Title)
+                    z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
+                    for z_pT in range(0, z_pT_Range+1):
+                        Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y) if(str(Q2_y) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
+                        phi_range = _Resolve_Phi_h_Slice_Range(Q2_y, z_pT, phi_h_Binning)
+                        if(phi_range is None):
+                            continue
+                        Start_phi_h_bin, End___phi_h_bin = phi_range
+                        Process_One_Slice_Entry(Q2_y, z_pT, Start_phi_h_bin, End___phi_h_bin, Bin_Title)
         ################################################################################
         ###==============###   Creation of the Sliced Histograms    ###==============###
         ################################################################################
@@ -1088,6 +1103,12 @@ def main_start():
             print(f"\n{color.BBLUE}Will be saving matrix PDF to {color.END_B}{args.pdf_name}{color.END}\n")
         else:
             print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have saved to {color.END_B}{args.pdf_name}{color.END}\n")
+    elif(args.recover_slices):
+        print(f"\n{color.BOLD}Starting Dedicated 5D Bayesian Slice Recovery Mode\n{color.END}")
+        if(not args.test):
+            print(f"\n{color.BBLUE}Will recover Bayesian slices into {color.END_B}{args.root}{color.END}\n")
+        else:
+            print(f"\n{color.RED}Will {color.Error}NOT{color.END_R} be saving results (running as a test)\n{color.END_b}Would have recovered Bayesian slices into {color.END_B}{args.root}{color.END}\n")
     else:
         if(not args.test):
             print(f"\n{color.BBLUE}Will be saving results to {color.END_B}{args.root}{color.END}\n")
@@ -1163,7 +1184,7 @@ def main_5D_matrix_pdf(args):
 
 
 def _Smear_For_Histo(histo):
-    return "Smear" if(any(smear_find in histo.GetName() for smear_find in ["'smear'", "'Smear'", "smeared"])) else ""
+    return "Smear" if(any(smear_find in histo.GetName() for smear_find in ["'smear'", "'Smear'", "smeared", "SMEAR=Smear"])) else ""
 
 
 def _Run_Slice_Category(Pre_Sliced_1Ds, method, args, output_file, save_count_ref, MC_BGS_1D):
@@ -1295,16 +1316,70 @@ def main_5D_unfold(args):
     input_file.Close()
     return to_be_saved_count
 
+def main_5D_recover_slices(args):
+    # Skip matrix rebuild / background / unfolding. Load the existing output ROOT file and only Multi5D_Slice the Bayesian 1D histogram.
+    args.multi5d_slice_metadata = Build_Multi5D_Slice_Metadata(args)
+    proper_name = f"""(MultiDim_5D_Histo)_(Bayesian)_(SMEAR={"Smear" if(str(args.smearing_options) not in ["", "no_smear"]) else "''"})_(Q2_y_z_pT_Bin_All)_(MultiDim_Q2_y_z_pT_phi_h)"""
+    to_be_saved_count = 0
+    output_file = None
+    if(not args.test):
+        print(f"{color.BBLUE}Recovering Bayesian slices into: {color.BGREEN}{args.root}{color.END}")
+        output_file = ROOT.TFile(args.root, "UPDATE")
+        if(not output_file or output_file.IsZombie()):
+            Crash_Report(args, crash_message=f"Could not open output ROOT file for recovery: {args.root}")
+    else:
+        print(f"{color.PINK}Would be recovering Bayesian slices into: {color.BCYAN}{args.root}{color.END}")
+        output_file = ROOT.TFile.Open(args.root, "READ")
+        if(not output_file or output_file.IsZombie()):
+            Crash_Report(args, crash_message=f"Could not open output ROOT file for recovery (test mode): {args.root}")
+    print(f"The total number of histograms in '{color.BBLUE}{args.root}{color.END}' is {color.BOLD}{len(output_file.GetListOfKeys())}{color.END}")
+    Unfold_1D = None
+    if(proper_name in output_file.GetListOfKeys()):
+        print(f"{color.BGREEN}Found properly named Bayesian 1D histogram:\n\t{color.BBLUE}{proper_name}{color.END}")
+        Unfold_1D = output_file.Get(proper_name)
+    elif("unfolded" in output_file.GetListOfKeys()):
+        print(f"{color.BYELLOW}Found raw 'unfolded' histogram; renaming to proper MultiDim Bayesian name...{color.END}")
+        Unfold_1D = output_file.Get("unfolded")
+        Unfold_1D.SetName(proper_name)
+        if(not args.test):
+            try:
+                safe_write(Unfold_1D, output_file)
+                to_be_saved_count += 1
+                print(f"{color.BGREEN}Resaved renamed Bayesian 1D histogram as:\n\t{color.BBLUE}{proper_name}{color.END}")
+            except:
+                print(f"\n{color.Error}ERROR: Tried to save renamed Unfold_1D\n{color.END}{traceback.format_exc()}\n")
+        else:
+            print(f"{color.PINK}Would have resaved renamed Bayesian 1D histogram as:\n\t{color.BCYAN}{proper_name}{color.END}")
+            to_be_saved_count += 1
+    else:
+        output_file.Close()
+        Crash_Report(args, crash_message=f"Recovery mode could not find '{proper_name}' or 'unfolded' in {args.root}")
+    Unfold_1D.SetDirectory(0)
+    args.timer.time_elapsed()
+    save_count_ref = [to_be_saved_count]
+    if(not args.test):
+        _Run_Slice_Category(Unfold_1D, "Bayesian", args, output_file, save_count_ref, "None")
+        to_be_saved_count = save_count_ref[0]
+        print(f"\n{color.BBLUE}Done Saving Bayesian slices...{color.END}\n")
+        output_file.Close()
+    else:
+        _Run_Slice_Category(Unfold_1D, "Bayesian", args, None, save_count_ref, "None")
+        to_be_saved_count = save_count_ref[0]
+        output_file.Close()
+    return to_be_saved_count
+
 def main():
     args = main_start()
     to_be_saved_count = 0
     try:
-        if(args.matrix_pdf):
+        if(args.recover_slices):
+            to_be_saved_count = main_5D_recover_slices(args)
+        elif(args.matrix_pdf):
             to_be_saved_count = main_5D_matrix_pdf(args)
         else:
             to_be_saved_count = main_5D_unfold(args)
     except:
-        mode_label = "Matrix PDF" if(args.matrix_pdf) else "5D Unfolding"
+        mode_label = "Bayesian Slice Recovery" if(args.recover_slices) else "Matrix PDF" if(args.matrix_pdf) else "5D Unfolding"
         Crash_Report(args, crash_message=f"The {mode_label} Code has CRASHED!\nERROR MESSAGE:\n\n{traceback.format_exc()}")
     Construct_Email(args, final_count=to_be_saved_count)
 
