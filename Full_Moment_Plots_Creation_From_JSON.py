@@ -258,6 +258,10 @@ def parse_args():
                    action="store_true",
                    help=f"Apply Cross Section Normalization to the 'Fit_Par_A' measurements.\n{color.Error}WARNING: Do not run with the '_(Normalized)' Fit Sets{color.END}.\n")
 
+    p.add_argument("-log", "--draw_with_log_A",
+                   action="store_true",
+                   help="Draw Fit_Par_A plots with a logarithmic y-axis (other parameters always use linear scale).\n")
+
     p.add_argument("-sp", "--spline_prefix",
                    type=str,
                    default=None,
@@ -305,6 +309,20 @@ def parse_args():
 # ------------------------------------------------------------
 # Small helpers
 # ------------------------------------------------------------
+def use_log_y_for_par(args, y_par):
+    return bool(getattr(args, "draw_with_log_A", False)) and (str(y_par) == "Fit_Par_A")
+
+def ensure_positive_y_range_for_log(ymin, ymax):
+    # ROOT log y-axes require ymin > 0. Adjust only when needed for log scale.
+    ymin = float(ymin)
+    ymax = float(ymax)
+    if(ymin > 0.0):
+        return ymin, ymax
+    if(ymax > 0.0):
+        return max(ymax * 1e-4, 1e-12), ymax
+    # Both non-positive: give ROOT a tiny valid log window so drawing does not immediately fail
+    return 1e-12, 1.0
+
 def load_json(args):
     if(not os.path.isfile(args.json_file)):
         raise SystemExit(f"{color.Error}ERROR: JSON file not found:{color.END_R} {args.json_file}{color.END}")
@@ -737,6 +755,9 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
 
     xmin, xmax = float(x_range[0]), float(x_range[1])
     gymin, gymax = float(y_range[0]), float(y_range[1])
+    use_log_y = use_log_y_for_par(args, y_par)
+    if(use_log_y):
+        gymin, gymax = ensure_positive_y_range_for_log(gymin, gymax)
 
     title_space = 0.090 if(args.title_mode != "none") else 0.00
     x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
@@ -831,6 +852,8 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         pad.SetBottomMargin(float(bottom_margin))
         pad.SetRightMargin(float(right_margin))
         pad.SetTopMargin(float(top_margin))
+        if(use_log_y):
+            pad.SetLogy(1)
 
         pad.Draw()
         pad.cd()
@@ -1150,10 +1173,15 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     pad.SetBottomMargin(0.12)
     pad.SetRightMargin(0.04)
     pad.SetTopMargin(top_margin)
+    use_log_y = use_log_y_for_par(args, y_par)
+    if(use_log_y):
+        pad.SetLogy(1)
     pad.Draw()
     pad.cd()
     xmin, xmax = float(x_range[0]), float(x_range[1])
     gymin, gymax = float(y_range[0]), float(y_range[1])
+    if(use_log_y):
+        gymin, gymax = ensure_positive_y_range_for_log(gymin, gymax)
     x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     y_axis_title = Get_Default_Y_Title(y_par, fit_set)
     y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
@@ -1446,6 +1474,9 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
                 y_min, y_max = -0.3, 0.25
             else:
                 y_min, y_max = 0.0, 0.0
+        use_log_y = use_log_y_for_par(args, y_par)
+        if(use_log_y):
+            y_min, y_max = ensure_positive_y_range_for_log(y_min, y_max)
 
         Titles_y = Get_Default_Y_Title(y_par, str(args.fit_set).strip())
         Titles = ""
@@ -1560,6 +1591,8 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
         pad_graph.SetBottomMargin(0.13)
         pad_graph.SetRightMargin(0.03)
         pad_graph.SetTopMargin(0.12)
+        if(use_log_y):
+            pad_graph.SetLogy(1)
         pad_graph.Draw()
         pad_graph.cd()
 

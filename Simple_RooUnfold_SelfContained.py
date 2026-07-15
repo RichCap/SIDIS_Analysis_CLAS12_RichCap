@@ -106,6 +106,9 @@ def parse_args():
     p.add_argument('-u3D', '--unfolding_3D',
                    action='store_true',
                    help="Run 3D unfolding only. Will still run normally as long as the `--unfolding_1D` is not passed.\n")
+    p.add_argument('-u5D', '--unfolding_5D',
+                   action='store_true',
+                   help=f"Run 5D unfolding only.\n{color.Error}Does NOT actually do the full unfolding — just used for fitting.{color.END}\n")
     
     p.add_argument('-um', '--Unfold_Methods',
                    nargs="+",
@@ -187,6 +190,10 @@ def parse_args():
                    choices=["lundrho", "lundvpk", "None"],
                    help="Source of rho0 background subtractions.\n(Option 'None' skips the subtraction all together)\n")
 
+    p.add_argument('-usi', '--use_spline_init',
+                   action='store_true',
+                   help="Load special_fit_parameters_set from Prepare_Next_Iteration/Phi_h_Fit_Parameters_from_Spline.py instead of Phi_h_Fit_Parameters_Initialize.py.\n")
+
     # positional Q2-xB bin arguments
     p.add_argument('bins',
                    nargs='*',
@@ -248,7 +255,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
         end_time, total_time, rate_line = args.timer.stop(count_label="Histograms", count_value=final_count, return_Q=True)
     args_list = ""
     for name, value in vars(args).items():
-        if(str(name) in ["email", "email_message", "timer", "root", "run_sectors", "sector_list", "sectors_to_unfold", "allow_other_variables", "bins", "sim", "mod", "closure", "weighed_acceptance", "single_file_input", "unfolding_1D", "unfolding_3D", "no_smear", "smear", "standard_histogram_title_addition"]):
+        if(str(name) in ["email", "email_message", "timer", "root", "run_sectors", "sector_list", "sectors_to_unfold", "allow_other_variables", "bins", "sim", "mod", "closure", "weighed_acceptance", "single_file_input", "unfolding_1D", "unfolding_3D", "unfolding_5D", "no_smear", "smear", "standard_histogram_title_addition"]):
             continue
         if((str(name) in ["num_5D_increments_used_to_slice"]) and (not args.Run_5D_Unfold)):
             continue
@@ -268,6 +275,7 @@ Output File:
 Arguments:{f'''
 --{'unfolding_1D (1D Unfolding Only)':<50s}--> {args.unfolding_1D}''' if(not args.unfolding_3D) else ''}
 --{'unfolding_3D (3D Unfolding Only)':<50s}--> {args.unfolding_3D}
+--{'unfolding_5D (Ran 5D Unfolding Fits)':<50s}--> {args.unfolding_5D}
 --{'run_sectors':<50s}--> {args.run_sectors}
 --{'sectors_to_unfold':<50s}--> {"None" if(not args.run_sectors) else args.sectors_to_unfold}
 --{'allow_other_variables (for unfolding)':<50s}--> {args.allow_other_variables}
@@ -872,8 +880,34 @@ def ApplyCS_Norm(args, Histo, Q2_y_Bin, z_pT_Bin, List_of_All_Histos_For_Unfoldi
 ################################################################################################################################################################################################################################################
 ##==========##==========##     Fitting Function For Phi Plots                     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
-from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
+special_fit_parameters_set = None
+def load_special_fit_parameters_set(use_spline_init=False):
+    # Load once into the module-global; subsequent calls reuse the same object
+    global special_fit_parameters_set
+    if(special_fit_parameters_set is not None):
+        return special_fit_parameters_set
+    if(use_spline_init):
+        import importlib.util
+        spline_module_path = os.path.join("Prepare_Next_Iteration", "Phi_h_Fit_Parameters_from_Spline.py")
+        if(not os.path.isfile(spline_module_path)):
+            raise FileNotFoundError(f"Spline fit-parameter file not found: '{spline_module_path}' (expected via Prepare_Next_Iteration link)")
+        module_spec = importlib.util.spec_from_file_location("Phi_h_Fit_Parameters_from_Spline", spline_module_path)
+        if(module_spec is None or module_spec.loader is None):
+            raise ImportError(f"Could not create import spec for '{spline_module_path}'")
+        spline_module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(spline_module)
+        special_fit_parameters_set = spline_module.special_fit_parameters_set
+        print(f"{color.GREEN}Loaded special_fit_parameters_set from {spline_module_path}{color.END}")
+    else:
+        # global declaration above makes this import bind the module-level name directly
+        from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
+    return special_fit_parameters_set
+
 def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", args="args", Allow_Normalization=False):
+    # Lazy-load fit parameters on first use (survives as module global for later calls)
+    if(special_fit_parameters_set is None):
+        use_spline_init = getattr(args, "use_spline_init", False) if(args not in ["args", None]) else False
+        load_special_fit_parameters_set(use_spline_init=use_spline_init)
     if(Allow_Normalization and args.CrossSection_Norm and (len(Special) == 2)):
         q2y_Bin, zpT_Bin = Special # (Most of) the normalization functions require the value for the kinematic bin numbers
         if("_(Normalized)" in str(Histo_To_Fit.GetName())):
@@ -1824,7 +1858,7 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
         MainFileName = str(MainFileName.split("/")[-1])
     var_type  =  "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
     args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
-    Common_Key = f"Fit_Pars_from_{'3D' if(args.unfolding_3D) else '1D'}_{cor_type}"
+    Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}"
     json_path = Path(args.json_name)
     Fit_Pars_JSON = {Common_Key: {}, "Meta_Data_of_Last_Run": Construct_Run_Info(args)}
     for key_name in List_of_All_Histos_For_Unfolding:

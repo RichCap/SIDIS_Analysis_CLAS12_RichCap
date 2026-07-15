@@ -10,7 +10,7 @@ from scipy.interpolate import RBFInterpolator
 import pickle
 import subprocess
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else '/Users/richardcapobianco/Desktop/Work_Offline.nosync/General_Helper_Scripts'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 from Binning_Dictionaries             import Full_Bin_Definition_Array
@@ -36,7 +36,7 @@ def parse_args():
 
     p.add_argument("-js", "-json", "--json_file",
                    type=str,
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_Appended_in_Parallel_Fixed_RC_Factor_Normalization_Full.json",
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_Simple_RooUnfold_SelfContained_using_SIDIS_Comparisons_Between_GEN_and_Unfold_Appended_in_Parallel_Fixed_RC_Factor_Normalization_Full.json" if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else 'Fit_Pars_from_Simple_RooUnfold_SelfContained_using_Updated_with_Old_RC_for_Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.json',
                    help="Input JSON file produced by your fit workflow.\n")
     
     p.add_argument("-L", "--list_fit_sets",
@@ -69,7 +69,14 @@ def parse_args():
     p.add_argument("-rp", "--range_pct",
                    type=float,
                    default=30.0,
-                   help="Percentage range for limits around spline value.\n")
+                   help="Percentage range for limits around spline value (used only with --use_range_pct).\n")
+    p.add_argument("-std", "--std_multiple",
+                   type=float,
+                   default=1.0,
+                   help="Multiplier on the population std of the 81-point spline evaluations for B/C limits (default mode).\n")
+    p.add_argument("-urp", "--use_range_pct",
+                   action="store_true",
+                   help="Use legacy range-percentage limits (--range_pct + fixed offsets) instead of the default 81-point std method.\n")
 
     # === NEW DIMENSION MODE ===
     p.add_argument("-dm", "--dimension_mode",
@@ -372,95 +379,361 @@ def load_spline_models(args):
             print(f"{color.GREEN}[INFO] Loaded {args.dimension_mode} spline for {y_par}: {pkl_file}{color.END}")
     return spline_models
 
+# Hardcoded Trusted / Sectors blocks from Phi_h_Fit_Parameters_Initialize.py (do not edit the template file)
+TRUSTED_AND_SECTORS_BLOCK = '''    ("1", "All", "Trusted"): {
+        # "fit_range_lower": 45,
+        # "fit_range_upper": 315
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("2", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 45,
+        "fit_range_upper": 330
+    },
+    ("3", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 15,
+        "fit_range_upper": 330
+    },
+    ("4", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("5", "All", "Trusted"): {
+        # "fit_range_lower": 45,
+        # "fit_range_upper": 315
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("6", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("7", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("8", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("9", "All", "Trusted"): {
+        # "fit_range_lower": 30,
+        "fit_range_lower": 45,
+        "fit_range_upper": 330
+    },
+    ("10", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("11", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("12", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("13", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("14", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("15", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("16", "All", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("17", "All", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+
+    ("1", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("2", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 45,
+        "fit_range_upper": 315
+    },
+    ("3", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("4", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("5", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 60,
+        "fit_range_upper": 300
+    },
+    ("6", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("7", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("8", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("9", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 45,
+        "fit_range_upper": 315
+    },
+    ("10", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("11", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("12", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("13", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("14", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("15", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+    ("16", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 30,
+        "fit_range_upper": 330
+    },
+    ("17", "All", "Sectors", "Trusted"): {
+        "fit_range_lower": 15,
+        "fit_range_upper": 345
+    },
+'''
+
+def _iter_all_zpT_bins():
+    # Yield (q2y_bin_str, zpt_bin_str) for every valid z-pT bin in Full_Bin_Definition_Array
+    bin_list = []
+    for key_str in Full_Bin_Definition_Array.keys():
+        mm = re.fullmatch(r"Q2-y=(\d+), z-pT=(\d+)", str(key_str).strip())
+        if(mm is None):
+            continue
+        bin_list.append((mm.group(1), mm.group(2)))
+    bin_list.sort(key=lambda pair: (int(pair[0]), int(pair[1])))
+    return bin_list
+
+def _build_eval_point(Q2_val, y_val, z_val, Pt_val, args):
+    # Build a single spline evaluation point for the current dimension_mode
+    if(args.dimension_mode == "4D"):
+        point = np.column_stack([[Q2_val], [y_val], [z_val], [Pt_val]])
+    elif(args.dimension_mode == "5D"):
+        xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
+        point = np.column_stack([[Q2_val], [y_val], [z_val], [Pt_val], [xB]])
+    elif(args.dimension_mode == "4D_xB"):
+        xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
+        point = np.column_stack([[xB], [y_val], [z_val], [Pt_val]])
+    else:
+        raise ValueError(f"Unsupported dimension_mode: {args.dimension_mode}")
+    return point
+
+def _evaluate_spline_safe(spline_obj, point):
+    # Evaluate one spline at one point; RBF often returns a length-1 array
+    try:
+        result = spline_obj(point)
+    except Exception:
+        result = spline_obj(np.asarray(point, dtype=float))
+    return float(np.ravel(np.asarray(result, dtype=float))[0])
+
 def generate_initial_dict(info_map, args):
-    print(f"\n{color.BOLD}=== Generating Initial Parameter Dictionary ==={color.END}\n")
-    if((getattr(args, "save_init", None) is None) or (args.verbose)):
-        print("Fit_Parameter_Initials = {")
-    dict_lines = []
+    print(f"\n{color.BOLD}=== Generating Initial Parameter Dictionary (Phi_h_Fit_Parameters_from_Spline.py) ==={color.END}\n")
+    use_legacy_range = getattr(args, "use_range_pct", False)
+    std_multiple = float(getattr(args, "std_multiple", 1.0))
+    range_pct = getattr(args, "range_pct", 30.0) / 100.0
 
-    # Reuse the same loading function from the plotting script
+    # Require both B and C splines before writing anything
     spline_models = load_spline_models(args)
-    for key_str in sorted(info_map.keys()):
-        q2y_bin, zpt_bin = parse_inner_key(key_str)
-        inf = info_map[key_str]
+    if(("Fit_Par_B" not in spline_models) or ("Fit_Par_C" not in spline_models)):
+        print(f"{color.Error}ERROR:{color.END} Missing required B and/or C spline models for generation.")
+        print(f"{color.Error}  Loaded keys: {list(spline_models.keys())}{color.END}")
+        print(f"{color.Error}  Expected pkl files like: {args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_B.pkl / Fit_Par_C.pkl{color.END}")
+        print(f"{color.Error}  Aborting — Phi_h_Fit_Parameters_from_Spline.py was NOT written.{color.END}")
+        return
 
-        Q2_val = inf["Q2range"][0]
-        y_val  = inf["y_range"][0]
-        z_val  = inf["z_range"][0]
-        Pt_val = inf["pTrange"][0]
+    b_spline = spline_models["Fit_Par_B"]
+    c_spline = spline_models["Fit_Par_C"]
+    bin_pairs = _iter_all_zpT_bins()
+    if(not bin_pairs):
+        print(f"{color.Error}ERROR:{color.END} No valid Q2-y / z-pT bins found in Full_Bin_Definition_Array.")
+        print(f"{color.Error}  Aborting — Phi_h_Fit_Parameters_from_Spline.py was NOT written.{color.END}")
+        return
 
-        # Build the evaluation point for the spline
-        if(args.dimension_mode == "4D"):
-            point = np.column_stack([[Q2_val], [y_val], [z_val], [Pt_val]])
-        elif(args.dimension_mode == "5D"):
-            xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
-            point = np.column_stack([[Q2_val], [y_val], [z_val], [Pt_val], [xB]])
-        elif(args.dimension_mode == "4D_xB"):
-            xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
-            point = np.column_stack([[xB], [y_val], [z_val], [Pt_val]])
+    dict_lines = []
+    n_ok = 0
+    n_skip = 0
+    critical_failure = False
 
-        # # Load B and C splines
-        # b_file = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_B.pkl"
-        # c_file = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_C.pkl"
-        # with(open(b_file, "rb") as f):
-        #     b_spline = pickle.load(f)["rbf"]
-        # with(open(c_file, "rb") as f):
-        #     c_spline = pickle.load(f)["rbf"]
-        # B_val = float(b_spline(point))
-        # C_val = float(c_spline(point))
+    for q2y_bin, zpt_bin in bin_pairs:
+        q2y_key = f"Q2-y={q2y_bin}, Q2-y"
+        zpt_key = f"Q2-y={q2y_bin}, z-pT={zpt_bin}"
+        if((q2y_key not in Full_Bin_Definition_Array) or (zpt_key not in Full_Bin_Definition_Array)):
+            print(f"{color.Error}ERROR:{color.END} Missing bin definition for ({q2y_bin}, {zpt_bin})")
+            n_skip += 1
+            critical_failure = True
+            break
 
-        # Evaluate B and C using the same try/except pattern from your plotting script
+        Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[q2y_key]
+        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[zpt_key]
+        if(all(abs(float(vv)) < 1e-15 for vv in [Q2_max, Q2_min, y_max, y_min, z_max, z_min, pT_max, pT_min])):
+            print(f"{color.Error}ERROR:{color.END} Degenerate (zero) bin ranges for ({q2y_bin}, {zpt_bin})")
+            n_skip += 1
+            critical_failure = True
+            break
+
+        Q2_avg = 0.5 * (float(Q2_min) + float(Q2_max))
+        y_avg  = 0.5 * (float(y_min)  + float(y_max))
+        z_avg  = 0.5 * (float(z_min)  + float(z_max))
+        pT_avg = 0.5 * (float(pT_min) + float(pT_max))
+
         try:
-            B_val = float(spline_models["Fit_Par_B"](point))
-            C_val = float(spline_models["Fit_Par_C"](point))
-        except Exception:
-            try:
-                B_val = float(spline_models["Fit_Par_B"](np.asarray(point, dtype=float)))
-                C_val = float(spline_models["Fit_Par_C"](np.asarray(point, dtype=float)))
-            except Exception as ee:
-                print(f"{color.Error}ERROR:{color.END} Spline evaluation failed for bin ({q2y_bin}, {zpt_bin}): {ee}")
-                continue
+            if(use_legacy_range):
+                # Legacy: single center-point evaluation + range_pct / fixed offsets
+                point = _build_eval_point(Q2_avg, y_avg, z_avg, pT_avg, args)
+                B_val = _evaluate_spline_safe(b_spline, point)
+                C_val = _evaluate_spline_safe(c_spline, point)
+                if(not (np.isfinite(B_val) and np.isfinite(C_val))):
+                    print(f"{color.Error}ERROR:{color.END} Non-finite spline value for bin ({q2y_bin}, {zpt_bin}): B={B_val}, C={C_val}")
+                    n_skip += 1
+                    critical_failure = True
+                    break
+                B_min = min([B_val * (1 - range_pct), B_val - 0.15])
+                B_max = max([B_val * (1 + range_pct), B_val + 0.15])
+                C_min = min([C_val * (1 - range_pct), C_val - 0.075])
+                C_max = max([C_val * (1 + range_pct), C_val + 0.075])
+                B_init, C_init = B_val, C_val
+            else:
+                # Default: 81-point Cartesian product of {min, avg, max} for Q2, y, z, pT
+                Q2_opts = [float(Q2_min), Q2_avg, float(Q2_max)]
+                y_opts  = [float(y_min),  y_avg,  float(y_max)]
+                z_opts  = [float(z_min),  z_avg,  float(z_max)]
+                pT_opts = [float(pT_min), pT_avg, float(pT_max)]
+                B_vals = []
+                C_vals = []
+                for Q2_val in Q2_opts:
+                    for y_val in y_opts:
+                        for z_val in z_opts:
+                            for Pt_val in pT_opts:
+                                point = _build_eval_point(Q2_val, y_val, z_val, Pt_val, args)
+                                B_vals.append(_evaluate_spline_safe(b_spline, point))
+                                C_vals.append(_evaluate_spline_safe(c_spline, point))
+                if(len(B_vals) != 81):
+                    print(f"{color.Error}ERROR:{color.END} Expected 81 evaluation points for bin ({q2y_bin}, {zpt_bin}), got {len(B_vals)}")
+                    n_skip += 1
+                    critical_failure = True
+                    break
+                B_arr = np.asarray(B_vals, dtype=float)
+                C_arr = np.asarray(C_vals, dtype=float)
+                if(not (np.all(np.isfinite(B_arr)) and np.all(np.isfinite(C_arr)))):
+                    print(f"{color.Error}ERROR:{color.END} Non-finite spline values among 81-point sample for bin ({q2y_bin}, {zpt_bin})")
+                    n_skip += 1
+                    critical_failure = True
+                    break
+                B_init = float(np.mean(B_arr))
+                C_init = float(np.mean(C_arr))
+                B_std  = float(np.std(B_arr, ddof=0))
+                C_std  = float(np.std(C_arr, ddof=0))
+                B_min  = B_init - (std_multiple * B_std)
+                B_max  = B_init + (std_multiple * B_std)
+                C_min  = C_init - (std_multiple * C_std)
+                C_max  = C_init + (std_multiple * C_std)
+        except Exception as ee:
+            print(f"{color.Error}ERROR:{color.END} Spline evaluation failed for bin ({q2y_bin}, {zpt_bin}): {ee}")
+            n_skip += 1
+            critical_failure = True
+            break
 
-        range_pct = getattr(args, "range_pct", 30.0) / 100.0
-        B_min = min([B_val * (1 - range_pct), B_val - 0.15])
-        B_max = max([B_val * (1 + range_pct), B_val + 0.15])
-        C_min = min([C_val * (1 - range_pct), C_val - 0.075])
-        C_max = max([C_val * (1 + range_pct), C_val + 0.075])
-
-        entry = f'''
-    ("{q2y_bin}", "{zpt_bin}"): {{
-        "B_initial": {B_val:.5f},
+        entry = f'''    ("{q2y_bin}", "{zpt_bin}"): {{
+        "B_initial": {B_init:.5f},
         "B_limits":  [{B_min:.4f}, {B_max:.4f}],
-        "C_initial": {C_val:.5f},
+        "C_initial": {C_init:.5f},
         "C_limits":  [{C_min:.4f}, {C_max:.4f}],
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     }},'''
-        if((getattr(args, "save_init", None) is None) or (args.verbose)):
+        if(args.verbose):
             print(entry)
         dict_lines.append(entry)
-    if((getattr(args, "save_init", None) is None) or (args.verbose)):
-        print("}")
+        n_ok += 1
 
-    # === Optional: save to file ===
+    if(critical_failure or (n_ok == 0)):
+        print(f"{color.Error}ERROR:{color.END} Generation incomplete (ok={n_ok}, skipped/failed={n_skip}).")
+        print(f"{color.Error}  Aborting — Phi_h_Fit_Parameters_from_Spline.py was NOT written.{color.END}")
+        return
+
+    # Build complete module content in memory, then write once
+    if(use_legacy_range):
+        range_mode_note = f"# Limit mode: legacy range_pct = {getattr(args, 'range_pct', 30.0)}% (+ fixed 0.15 / 0.075 offsets)"
+    else:
+        range_mode_note = f"# Limit mode: 81-point mean ± (std_multiple={std_multiple} × population std)"
+
+    if(hasattr(args, "timer") and (args.timer is not None)):
+        run_time_note = f"# {ansi_to_plain(args.timer.start_find(return_Q=True))}"
+    else:
+        run_time_note = "# Run time: unknown (args.timer not defined)"
+    header_lines = [
+        run_time_note,
+        "# These are the per-bin fit parameters predicted by the spline fit functions (to be used to help guide the later histogram fits)",
+        f"# The Kernel used for these fits was: {args.kernel}",
+        f"# The Smoothing Parameter used for the  Cos(Phi) Moments was: {args.smoothing_factor_B}",
+        f"# The Smoothing Parameter used for the Cos(2Phi) Moments was: {args.smoothing_factor_C}",
+        f"# Parameters were fit for these corrections: '{args.fit_set}'",
+        f"# The original fits were saved here: '{args.json_file}'",
+        f"# The output files containing the spline fits should be named: '{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_*.{{npz,pkl}}'",
+        f"# Dimension mode: {args.dimension_mode}",
+        range_mode_note,
+        f"# Auto-generated by Create_Continuous_4D_Moments_From_JSON.py — do not edit Phi_h_Fit_Parameters_Initialize.py",
+        "",
+    ]
+    module_body = "\n".join(header_lines)
+    module_body += "special_fit_parameters_set = {\n"
+    module_body += TRUSTED_AND_SECTORS_BLOCK
+    module_body += "\n"
+    module_body += "\n".join(dict_lines)
+    module_body += "\n}\n"
+
+    out_name = "Phi_h_Fit_Parameters_from_Spline.py"
+    with open(out_name, "w") as f:
+        f.write(module_body)
+    print(f"\n{color.GREEN}Wrote complete importable module: {out_name}{color.END}")
+    print(f"{color.GREEN}  Entries: {n_ok} spline bin pairs + Trusted/Sectors blocks{color.END}")
+
+    # Optional: also save the legacy Fit_Parameter_Initials txt if --save_init is set
     if(getattr(args, "save_init", None) is not None):
         filename = args.save_init
         if(not filename.endswith(".txt")):
             filename += ".txt"
         with open(filename, "w") as f:
-            f.write("# These are the per-bin fit parameters predicted by the spline fit functions (to be used to help guide the later histogram fits)\n")
-            f.write(f"# The Kernel used for these fits was: {args.kernel}\n")
-            f.write(f"# The Smoothing Parameter used for the  Cos(Phi) Moments was: {args.smoothing_factor_B}\n")
-            f.write(f"# The Smoothing Parameter used for the Cos(2Phi) Moments was: {args.smoothing_factor_C}\n")
-            f.write(f"# Parameters were fit for these corrections: '{args.fit_set}'\n")
-            f.write(f"# The original fits were saved here: '{args.json_file}'\n")
-            f.write(f"# The output files containing the spline fits should be named: '{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_*.{{npz,pkl}}'\n\n")
+            f.write("\n".join(header_lines))
             f.write("Fit_Parameter_Initials = {\n")
             f.write("\n".join(dict_lines))
             f.write("\n}\n")
-        print(f"\n{color.GREEN}Dictionary saved to: {filename}{color.END}")
+        print(f"{color.GREEN}Optional dictionary also saved to: {filename}{color.END}")
 
-    print(f"\n{color.GREEN}Dictionary printed above — ready to copy and paste!{color.END}")
+    print(f"\n{color.GREEN}Ready to import as special_fit_parameters_set from {out_name}{color.END}")
 
 
 # ------------------------------------------------------------
@@ -634,7 +907,7 @@ def main():
                     }
             mode_str = args.dimension_mode
             pkl_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.pkl"
-            with(open(pkl_file, "wb") as f):
+            with open(pkl_file, "wb") as f:
                 pickle.dump({"rbf": rbf, "config": config, "points": points, "values": values}, f)
             npz_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.npz"
             np.savez(npz_file, **config, points=points, values=values)
