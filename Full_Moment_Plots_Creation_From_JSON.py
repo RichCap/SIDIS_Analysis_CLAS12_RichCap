@@ -29,12 +29,14 @@ ROOT.gStyle.SetTitleFont(62)              # bold title too
 # ROOT.gStyle.SetLabelSize(0.15,  "x")      # optional but nice for x-axis
 # ROOT.gStyle.SetLabelSize(0.035, "x")      # optional but nice for x-axis
 
+
+universal_directory = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else '/Users/richardcapobianco/Desktop/Work_Offline.nosync/'
 # ------------------------------------------------------------
 # User-provided plotting/binning utilities (incorporated directly)
 # ------------------------------------------------------------
 import ROOT
 import sys
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else '/Users/richardcapobianco/Desktop/Work_Offline.nosync/General_Helper_Scripts'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns, skip_condition_z_pT_bins
 from Binning_Dictionaries             import Full_Bin_Definition_Array
@@ -542,6 +544,13 @@ def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
         return ((xB_in*y_in)/Conversion_Factor)  if( None not in [xB_in,  y_in])                   else Q2_in
     return None
 
+class ExpRBFWrapper:
+    """Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x))."""
+    def __init__(self, rbf):
+        self.rbf = rbf
+    def __call__(self, x):
+        return np.exp(np.asarray(self.rbf(x), dtype=float))
+
 def load_spline_models(args, fit_set):
     spline_models = {}
     if(args.spline_prefix is None):
@@ -552,24 +561,29 @@ def load_spline_models(args, fit_set):
         # UPDATED: include dimension_mode in filename
         pkl_file = f"{args.spline_prefix}_{args.dimension_mode}_{fit_set}_{y_par}.pkl"
         if(not os.path.isfile(pkl_file)):
-            if(not os.path.isfile(f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/{pkl_file}")):
+            if(not os.path.isfile(f"{universal_directory}Prepare_Next_Iteration/{pkl_file}")):
                 print(f"{color.BYELLOW}[INFO] Missing spline file for {y_par}: {pkl_file}{color.END}")
                 continue
             else:
-                pkl_file = f"/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/{pkl_file}"
+                pkl_file = f"{universal_directory}Prepare_Next_Iteration/{pkl_file}"
         try:
             with open(pkl_file, "rb") as pklf:
                 spline_obj = pickle.load(pklf)
         except Exception as ee:
             print(f"{color.Error}WARNING:{color.END_R} Failed to load spline file '{pkl_file}': {ee}{color.END}")
             continue
+        log_space = False
         if(isinstance(spline_obj, dict)):
+            cfg = spline_obj.get("config", {}) if(isinstance(spline_obj.get("config", {}), dict)) else {}
+            log_space = bool(cfg.get("log_space", False))
             if("rbf" in spline_obj):
                 spline_obj = spline_obj["rbf"]
             elif("spline" in spline_obj):
                 spline_obj = spline_obj["spline"]
         if(spline_obj is None):
             continue
+        if(log_space):
+            spline_obj = ExpRBFWrapper(spline_obj)
         spline_models[y_par] = spline_obj
         if(args.verbose):
             print(f"{color.GREEN}[INFO] Loaded {args.dimension_mode} spline for {y_par}: {pkl_file}{color.END}")

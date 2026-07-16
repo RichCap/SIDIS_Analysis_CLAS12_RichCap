@@ -975,7 +975,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                 else:
                     for phi_bin in range(phi_h_Binning[0], phi_h_Binning[1], phi_h_Binning[3]):
                         if(Histo_Cut is not False):
-                            bin_ii = Histo.FindBin(ii_bin_num + 1)
+                            bin_ii = Histo.FindBin(ii_bin_num)
                             MultiDim_cut_num = Histo_Cut.GetBinContent(bin_ii)
                             MultiDim_cut_err = Histo_Cut.GetBinError(bin_ii)
                             if((MultiDim_cut_num == 0) or (MultiDim_cut_num <= MultiDim_cut_err)):
@@ -986,7 +986,7 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                                 phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
                             ii_bin_num += 1
                         else:
-                            bin_ii = Histo.FindBin(ii_bin_num + 1)
+                            bin_ii = Histo.FindBin(ii_bin_num)
                             phi_Content[phi_bin + 0.5*phi_h_Binning[3]] +=  Histo.GetBinContent(bin_ii)
                             phi___Error[phi_bin + 0.5*phi_h_Binning[3]] += (Histo.GetBinError(bin_ii))*(Histo.GetBinError(bin_ii))
                             ii_bin_num += 1

@@ -1856,7 +1856,7 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
     MainFileName = str(str(args.root).replace("Unfolded_Histos_From_", "")).replace(".root", "")
     if("/" in str(MainFileName)):
         MainFileName = str(MainFileName.split("/")[-1])
-    var_type  =  "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
+    var_type  = "MultiDim_Q2_y_z_pT_phi_h" if(args.unfolding_5D) else "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
     args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
     Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}"
     json_path = Path(args.json_name)
