@@ -3354,6 +3354,9 @@ def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
                     if(Dimensions_Original == "Error"):
                         print(f"\n{color.Error}Error: Could not find unfolding dimensions for {color.UNDERLINE}{Histo_Name_General}{color.END}\n")
                         continue
+                    if((args.unfolding_1D and not ("1D" in Dimensions_Original)) or (args.unfolding_3D and not ("3D" in Dimensions_Original)) or (args.unfolding_5D and not ("5D" in Dimensions_Original))):
+                        print(f"{color.RED}Skipping: {List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
+                        continue
                     print(f"Fitting for: {color.BOLD}{List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
                     Histo_Name_Rad_Cor          = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
                     RC_RooUnfolded_TTree_Histos = Histo_Original.Clone(Histo_Name_Rad_Cor)
