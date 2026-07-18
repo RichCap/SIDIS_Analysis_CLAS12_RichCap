@@ -65,7 +65,7 @@ def parse_args():
     p.add_argument("-si", "--save_init",
                    type=str,
                    default=None,
-                   help=f"Text file name to be used with '--generate_init'.\n{color.BOLD}Will save the output of '--generate_init' to a txt file of this argument's name {color.UNDERLINE}ONLY{color.END_B} if it is passed.{color.END}\n")
+                   help=f"Optional output path for '--generate_init'. If it ends with '.py', write the importable module (special_fit_parameters_set) to that path only (no extra .txt). Otherwise write Phi_h_Fit_Parameters_from_Spline.py and also a legacy Fit_Parameter_Initials copy to this name (append '.txt' only if there is no extension).\n")
     p.add_argument("-rp", "--range_pct",
                    type=float,
                    default=30.0,
@@ -73,10 +73,20 @@ def parse_args():
     p.add_argument("-std", "--std_multiple",
                    type=float,
                    default=1.0,
-                   help="Multiplier on the population std of the 81-point spline evaluations for B/C limits (default mode).\n")
+                   help="Multiplier on the population std of the multi-point spline evaluations for B/C limits (default mode; ignored with --use_max_min_for_ranges).\n")
     p.add_argument("-urp", "--use_range_pct",
                    action="store_true",
-                   help="Use legacy range-percentage limits (--range_pct + fixed offsets) instead of the default 81-point std method.\n")
+                   help="Use legacy range-percentage limits (--range_pct + fixed offsets) instead of the default multi-point scan method.\n")
+    p.add_argument("-ummfr", "--use_max_min_for_ranges",
+                   action="store_true",
+                   help="Set B/C limits from the min/max of the multi-point spline evaluations instead of mean ± (std_multiple × std).\n")
+    p.add_argument("-nss", "--num_spline_scans",
+                   type=int,
+                   default=3,
+                   help="Number of sample points per kinematic axis (linspace from bin min to max) for the multi-point B/C limit scan. Default 3 → 3^4=81 evaluations per bin.\n")
+    p.add_argument("-amf", "--allow_multi_fits",
+                   action="store_false",
+                   help="If passed, set Allow_Multiple_Fits and Allow_Multiple_Fits_C to False. If omitted, both remain True.\n")
 
     # === NEW DIMENSION MODE ===
     p.add_argument("-dm", "--dimension_mode",
@@ -571,8 +581,16 @@ def _evaluate_spline_safe(spline_obj, point):
 def generate_initial_dict(info_map, args):
     print(f"\n{color.BOLD}=== Generating Initial Parameter Dictionary (Phi_h_Fit_Parameters_from_Spline.py) ==={color.END}\n")
     use_legacy_range = getattr(args, "use_range_pct", False)
+    use_max_min = getattr(args, "use_max_min_for_ranges", False)
     std_multiple = float(getattr(args, "std_multiple", 1.0))
     range_pct = getattr(args, "range_pct", 30.0) / 100.0
+    n_scan = int(getattr(args, "num_spline_scans", 3))
+    if(n_scan < 2):
+        n_scan = 2
+    # store_false: omitted → True; flag passed → False
+    allow_multi = bool(getattr(args, "allow_multi_fits", True))
+    allow_multi_str = "True" if(allow_multi) else "False"
+    n_expected = int(n_scan ** 4)
 
     # Require both B and C splines before writing anything
     spline_models = load_spline_models(args)
@@ -635,11 +653,11 @@ def generate_initial_dict(info_map, args):
                 C_max = max([C_val * (1 + range_pct), C_val + 0.075])
                 B_init, C_init = B_val, C_val
             else:
-                # Default: 81-point Cartesian product of {min, avg, max} for Q2, y, z, pT
-                Q2_opts = [float(Q2_min), Q2_avg, float(Q2_max)]
-                y_opts  = [float(y_min),  y_avg,  float(y_max)]
-                z_opts  = [float(z_min),  z_avg,  float(z_max)]
-                pT_opts = [float(pT_min), pT_avg, float(pT_max)]
+                # Multi-point Cartesian product: N samples per axis via linspace (default N=3 → 81 points)
+                Q2_opts = np.linspace(float(Q2_min), float(Q2_max), n_scan)
+                y_opts  = np.linspace(float(y_min),  float(y_max),  n_scan)
+                z_opts  = np.linspace(float(z_min),  float(z_max),  n_scan)
+                pT_opts = np.linspace(float(pT_min), float(pT_max), n_scan)
                 B_vals = []
                 C_vals = []
                 for Q2_val in Q2_opts:
@@ -649,26 +667,32 @@ def generate_initial_dict(info_map, args):
                                 point = _build_eval_point(Q2_val, y_val, z_val, Pt_val, args)
                                 B_vals.append(_evaluate_spline_safe(b_spline, point))
                                 C_vals.append(_evaluate_spline_safe(c_spline, point))
-                if(len(B_vals) != 81):
-                    print(f"{color.Error}ERROR:{color.END} Expected 81 evaluation points for bin ({q2y_bin}, {zpt_bin}), got {len(B_vals)}")
+                if(len(B_vals) != n_expected):
+                    print(f"{color.Error}ERROR:{color.END} Expected {n_expected} evaluation points for bin ({q2y_bin}, {zpt_bin}), got {len(B_vals)}")
                     n_skip += 1
                     critical_failure = True
                     break
                 B_arr = np.asarray(B_vals, dtype=float)
                 C_arr = np.asarray(C_vals, dtype=float)
                 if(not (np.all(np.isfinite(B_arr)) and np.all(np.isfinite(C_arr)))):
-                    print(f"{color.Error}ERROR:{color.END} Non-finite spline values among 81-point sample for bin ({q2y_bin}, {zpt_bin})")
+                    print(f"{color.Error}ERROR:{color.END} Non-finite spline values among {n_expected}-point sample for bin ({q2y_bin}, {zpt_bin})")
                     n_skip += 1
                     critical_failure = True
                     break
                 B_init = float(np.mean(B_arr))
                 C_init = float(np.mean(C_arr))
-                B_std  = float(np.std(B_arr, ddof=0))
-                C_std  = float(np.std(C_arr, ddof=0))
-                B_min  = B_init - (std_multiple * B_std)
-                B_max  = B_init + (std_multiple * B_std)
-                C_min  = C_init - (std_multiple * C_std)
-                C_max  = C_init + (std_multiple * C_std)
+                if(use_max_min):
+                    B_min = float(np.min(B_arr))
+                    B_max = float(np.max(B_arr))
+                    C_min = float(np.min(C_arr))
+                    C_max = float(np.max(C_arr))
+                else:
+                    B_std  = float(np.std(B_arr, ddof=0))
+                    C_std  = float(np.std(C_arr, ddof=0))
+                    B_min  = B_init - (std_multiple * B_std)
+                    B_max  = B_init + (std_multiple * B_std)
+                    C_min  = C_init - (std_multiple * C_std)
+                    C_max  = C_init + (std_multiple * C_std)
         except Exception as ee:
             print(f"{color.Error}ERROR:{color.END} Spline evaluation failed for bin ({q2y_bin}, {zpt_bin}): {ee}")
             n_skip += 1
@@ -680,8 +704,8 @@ def generate_initial_dict(info_map, args):
         "B_limits":  [{B_min:.4f}, {B_max:.4f}],
         "C_initial": {C_init:.5f},
         "C_limits":  [{C_min:.4f}, {C_max:.4f}],
-        "Allow_Multiple_Fits":   True,
-        "Allow_Multiple_Fits_C": True
+        "Allow_Multiple_Fits":   {allow_multi_str},
+        "Allow_Multiple_Fits_C": {allow_multi_str}
     }},'''
         if(args.verbose):
             print(entry)
@@ -696,8 +720,10 @@ def generate_initial_dict(info_map, args):
     # Build complete module content in memory, then write once
     if(use_legacy_range):
         range_mode_note = f"# Limit mode: legacy range_pct = {getattr(args, 'range_pct', 30.0)}% (+ fixed 0.15 / 0.075 offsets)"
+    elif(use_max_min):
+        range_mode_note = f"# Limit mode: {n_scan}^4-point min/max (num_spline_scans={n_scan}, total={n_expected} evals/bin)"
     else:
-        range_mode_note = f"# Limit mode: 81-point mean ± (std_multiple={std_multiple} × population std)"
+        range_mode_note = f"# Limit mode: {n_scan}^4-point mean ± (std_multiple={std_multiple} × population std) (num_spline_scans={n_scan}, total={n_expected} evals/bin)"
 
     if(hasattr(args, "timer") and (args.timer is not None)):
         run_time_note = f"# {ansi_to_plain(args.timer.start_find(return_Q=True))}"
@@ -714,6 +740,7 @@ def generate_initial_dict(info_map, args):
         f"# The output files containing the spline fits should be named: '{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Fit_Par_*.{{npz,pkl}}'",
         f"# Dimension mode: {args.dimension_mode}",
         range_mode_note,
+        f"# Allow_Multiple_Fits / Allow_Multiple_Fits_C: {allow_multi_str}",
         f"# Auto-generated by Create_Continuous_4D_Moments_From_JSON.py — do not edit Phi_h_Fit_Parameters_Initialize.py",
         "",
     ]
@@ -724,23 +751,35 @@ def generate_initial_dict(info_map, args):
     module_body += "\n".join(dict_lines)
     module_body += "\n}\n"
 
+    # Primary importable module path
     out_name = "Phi_h_Fit_Parameters_from_Spline.py"
+    save_init = getattr(args, "save_init", None)
+    write_legacy_txt = False
+    legacy_txt_name = None
+    if((save_init is not None) and (str(save_init).strip() not in ["", "None", "none"])):
+        si = str(save_init).strip()
+        if(si.endswith(".py")):
+            # User asked for a .py path: write the module there only (never *.py.txt)
+            out_name = si
+        else:
+            # Legacy optional text copy alongside the default .py module
+            write_legacy_txt = True
+            legacy_txt_name = si if(("." in os.path.basename(si))) else (si + ".txt")
+
     with open(out_name, "w") as f:
         f.write(module_body)
     print(f"\n{color.GREEN}Wrote complete importable module: {out_name}{color.END}")
     print(f"{color.GREEN}  Entries: {n_ok} spline bin pairs + Trusted/Sectors blocks{color.END}")
 
-    # Optional: also save the legacy Fit_Parameter_Initials txt if --save_init is set
-    if(getattr(args, "save_init", None) is not None):
-        filename = args.save_init
-        if(not filename.endswith(".txt")):
-            filename += ".txt"
-        with open(filename, "w") as f:
-            f.write("\n".join(header_lines))
-            f.write("Fit_Parameter_Initials = {\n")
-            f.write("\n".join(dict_lines))
-            f.write("\n}\n")
-        print(f"{color.GREEN}Optional dictionary also saved to: {filename}{color.END}")
+    if(write_legacy_txt and (legacy_txt_name is not None)):
+        # Avoid clobbering the primary .py if names somehow collide
+        if(os.path.abspath(legacy_txt_name) != os.path.abspath(out_name)):
+            with open(legacy_txt_name, "w") as f:
+                f.write("\n".join(header_lines))
+                f.write("Fit_Parameter_Initials = {\n")
+                f.write("\n".join(dict_lines))
+                f.write("\n}\n")
+            print(f"{color.GREEN}Optional dictionary also saved to: {legacy_txt_name}{color.END}")
 
     print(f"\n{color.GREEN}Ready to import as special_fit_parameters_set from {out_name}{color.END}")
 
@@ -749,7 +788,7 @@ def generate_initial_dict(info_map, args):
 # Generate C++ code for RDataFrame
 # ------------------------------------------------------------
 class ExpRBFWrapper:
-    # Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x)).
+    """Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x))."""
     def __init__(self, rbf):
         self.rbf = rbf
     def __call__(self, x):
@@ -812,9 +851,9 @@ double rbf_kernel(double r, std::string kernel, double epsilon) {{
         cpp_code += f"const double epsilon_{y_par.lower()} = {d['epsilon']:.8e};\n"
         cpp_code += f"const std::string dim_mode_{y_par.lower()} = \"{d['dimension_mode']}\";\n\n"
         log_space = bool(d.get("log_space", False))
-        cpp_code += f"const bool log_space_{y_par.lower()} = {'true' if(log_space) else 'false'};\n"
+        cpp_code += f"const bool log_space_{y_par.lower()} = {'true' if log_space else 'false'};\n"
         # Dimension-aware evaluator
-        ret_expr = f"std::exp(sum)" if(log_space) else "sum"
+        ret_expr = f"std::exp(sum)" if log_space else "sum"
         cpp_code += f"""
 double ComputeSpline{y_par[-1]}(double Q2, double xB, double y, double z, double pT) {{
     double sum = 0.0;

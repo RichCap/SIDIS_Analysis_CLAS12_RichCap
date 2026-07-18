@@ -274,6 +274,18 @@ def parse_args():
                    default="4D",
                    help="Spline dimensionality used when loading overlays:\n  4D     = Q², y, z, pT\n  5D     = Q², y, z, pT, xB\n  4D_xB  = xB, y, z, pT (Q² replaced)\n")
 
+    p.add_argument("-ssr", "--show_spline_range",
+                   action="store_true",
+                   help="With --spline_prefix: also draw transparent filled bands around each series showing either fit-parameter limits or phase-space spline min/max ranges.\n")
+    p.add_argument("-ssrm", "--spline_range_mode",
+                   choices=["fit_limits", "phase_space"],
+                   default="fit_limits",
+                   help="Source of the shaded spline-range bands when --show_spline_range is set:\n  fit_limits   = B_limits/C_limits from Phi_h_Fit_Parameters_from_Spline.py (B/C only; A skipped)\n  phase_space  = min/max of the spline over a Q2×y×(z|pT) grid within each bin (A/B/C)\n")
+    p.add_argument("-ssrn", "--spline_range_scan_n",
+                   type=int,
+                   default=6,
+                   help="For --spline_range_mode phase_space: number of sample points per free kinematic variable (default 6 → 6^3=216 evaluations per data point).\n")
+
     p.add_argument("-xe", "--x_error_bars",
                    action="store_true",
                    help="Replace connecting lines between points with x-error bars sized to a fraction of the x-bin width.\n")
@@ -657,6 +669,210 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
     return gr_spline
 
 # ------------------------------------------------------------
+# Spline-range shaded bands (--show_spline_range)
+# ------------------------------------------------------------
+def load_spline_fit_parameter_limits(path_hint=None):
+    # Load special_fit_parameters_set from Phi_h_Fit_Parameters_from_Spline.py (cwd, then script dir).
+    candidates = []
+    if((path_hint is not None) and (str(path_hint).strip() not in ["", "None", "none"])):
+        candidates.append(str(path_hint))
+    candidates.append(os.path.join(os.getcwd(), "Phi_h_Fit_Parameters_from_Spline.py"))
+    candidates.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Phi_h_Fit_Parameters_from_Spline.py"))
+    seen = set()
+    for path in candidates:
+        ap = os.path.abspath(path)
+        if(ap in seen):
+            continue
+        seen.add(ap)
+        if(not os.path.isfile(ap)):
+            continue
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("Phi_h_Fit_Parameters_from_Spline_ssr", ap)
+            if(spec is None or spec.loader is None):
+                continue
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if(hasattr(mod, "special_fit_parameters_set")):
+                return dict(mod.special_fit_parameters_set), ap
+        except Exception as ee:
+            print(f"{color.Error}WARNING:{color.END_R} Failed to load spline fit limits from '{ap}': {ee}{color.END}")
+            continue
+    return {}, None
+
+def _build_spline_eval_point(args, Q2_val, y_val, z_val, Pt_val):
+    # Match build_spline_graph / Create_Continuous_4D_Moments query packing for one kinematics point.
+    if(args.dimension_mode == "4D"):
+        return np.array([[float(Q2_val), float(y_val), float(z_val), float(Pt_val)]], dtype=float)
+    elif(args.dimension_mode == "5D"):
+        xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
+        return np.array([[float(Q2_val), float(y_val), float(z_val), float(Pt_val), float(xB)]], dtype=float)
+    elif(args.dimension_mode == "4D_xB"):
+        xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
+        return np.array([[float(xB), float(y_val), float(z_val), float(Pt_val)]], dtype=float)
+    raise ValueError(f"Unsupported dimension_mode: {args.dimension_mode}")
+
+def _evaluate_spline_safe(spline_obj, point):
+    try:
+        result = spline_obj(point)
+    except Exception:
+        result = spline_obj(np.asarray(point, dtype=float))
+    return float(np.ravel(np.asarray(result, dtype=float))[0])
+
+def build_spline_range_band_graph(xs, y_lo, y_hi, color, alpha=0.20):
+    # Closed filled polygon: upper left→right, then lower right→left. Fill only (no lines/markers).
+    n = len(xs)
+    if((n == 0) or (len(y_lo) != n) or (len(y_hi) != n)):
+        return None
+    gr = ROOT.TGraph(2 * n)
+    for ip in range(n):
+        gr.SetPoint(ip, float(xs[ip]), float(y_hi[ip]))
+    for ip in range(n):
+        j = n - 1 - ip
+        gr.SetPoint(n + ip, float(xs[j]), float(y_lo[j]))
+    gr.SetFillColorAlpha(int(color), float(alpha))
+    gr.SetFillStyle(1001)
+    gr.SetLineWidth(0)
+    gr.SetLineColorAlpha(int(color), 0.0)
+    gr.SetMarkerSize(0)
+    gr.SetMarkerStyle(1)
+    return gr
+
+def collect_spline_range_band_arrays(args, spline_models, info_map, sid, series_map, y_par):
+    # Returns (xs, y_lo, y_hi) for one series, or None if bands do not apply / cannot be built.
+    if(not getattr(args, "show_spline_range", False)):
+        return None
+    if(sid not in series_map):
+        return None
+    pts = series_map[sid]["points"]
+    if(len(pts) == 0):
+        return None
+    mode = str(getattr(args, "spline_range_mode", "fit_limits")).strip().lower()
+    y_par_s = str(y_par)
+
+    # Mode fit_limits: B/C only, from Phi_h_Fit_Parameters_from_Spline.py
+    if(mode == "fit_limits"):
+        if(y_par_s == "Fit_Par_A"):
+            return None
+        limits = getattr(args, "spline_fit_limits", None)
+        if((limits is None) or (len(limits) == 0)):
+            return None
+        lim_key = "B_limits" if(y_par_s == "Fit_Par_B") else ("C_limits" if(y_par_s == "Fit_Par_C") else None)
+        if(lim_key is None):
+            return None
+        xs, y_lo, y_hi = [], [], []
+        for xx, yy, ey, key_str in pts:
+            try:
+                q2y_bin, zpt_bin = parse_inner_key(key_str)
+            except Exception:
+                continue
+            entry = limits.get((str(q2y_bin), str(zpt_bin)), None)
+            if(entry is None):
+                # Also try int-keyed tuples if the module stored mixed types
+                entry = limits.get((q2y_bin, zpt_bin), None)
+            if((entry is None) or (lim_key not in entry)):
+                continue
+            lim = entry[lim_key]
+            if((lim is None) or (len(lim) < 2)):
+                continue
+            lo, hi = float(lim[0]), float(lim[1])
+            if(lo > hi):
+                lo, hi = hi, lo
+            xs.append(float(xx))
+            y_lo.append(lo)
+            y_hi.append(hi)
+        if(len(xs) == 0):
+            return None
+        return (xs, y_lo, y_hi)
+
+    # Mode phase_space: min/max of spline over free kinematics inside the bin
+    if(mode != "phase_space"):
+        return None
+    if(y_par not in spline_models):
+        return None
+    n_scan = int(getattr(args, "spline_range_scan_n", 6))
+    if(n_scan < 2):
+        n_scan = 2
+    spline_obj = spline_models[y_par]
+    x_is_z = (str(args.x_mode).lower() == "z")
+    xs, y_lo, y_hi = [], [], []
+    for xx, yy, ey, key_str in pts:
+        try:
+            q2y_bin, zpt_bin = parse_inner_key(key_str)
+        except Exception:
+            continue
+        q2y_key = f"Q2-y={q2y_bin}, Q2-y"
+        zpt_key = f"Q2-y={q2y_bin}, z-pT={zpt_bin}"
+        if((q2y_key not in Full_Bin_Definition_Array) or (zpt_key not in Full_Bin_Definition_Array)):
+            continue
+        Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[q2y_key]
+        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[zpt_key]
+        Q2_opts = np.linspace(float(Q2_min), float(Q2_max), n_scan)
+        y_opts  = np.linspace(float(y_min),  float(y_max),  n_scan)
+        if(x_is_z):
+            z_fixed = float(xx)
+            free3 = np.linspace(float(pT_min), float(pT_max), n_scan)
+        else:
+            pT_fixed = float(xx)
+            free3 = np.linspace(float(z_min), float(z_max), n_scan)
+        vmin, vmax = None, None
+        for Q2_val in Q2_opts:
+            for y_val in y_opts:
+                for free_val in free3:
+                    if(x_is_z):
+                        z_val, Pt_val = z_fixed, float(free_val)
+                    else:
+                        z_val, Pt_val = float(free_val), pT_fixed
+                    try:
+                        point = _build_spline_eval_point(args, Q2_val, y_val, z_val, Pt_val)
+                        val = _evaluate_spline_safe(spline_obj, point)
+                    except Exception:
+                        continue
+                    if(not np.isfinite(val)):
+                        continue
+                    if((vmin is None) or (val < vmin)):
+                        vmin = val
+                    if((vmax is None) or (val > vmax)):
+                        vmax = val
+        if((vmin is None) or (vmax is None)):
+            continue
+        xs.append(float(xx))
+        y_lo.append(float(vmin))
+        y_hi.append(float(vmax))
+    if(len(xs) == 0):
+        return None
+    return (xs, y_lo, y_hi)
+
+def build_spline_range_band_for_series(args, spline_models, info_map, sid, series_map, y_par):
+    arrays = collect_spline_range_band_arrays(args, spline_models, info_map, sid, series_map, y_par)
+    if(arrays is None):
+        return None
+    xs, y_lo, y_hi = arrays
+    color = series_map[sid]["color"]
+    return build_spline_range_band_graph(xs, y_lo, y_hi, color, alpha=0.20)
+
+def expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_range, spline_models, q2y_bins=None):
+    # Expand (ymin, ymax) so shaded bands are not clipped off-pad.
+    if(not getattr(args, "show_spline_range", False)):
+        return y_range
+    ymin, ymax = float(y_range[0]), float(y_range[1])
+    bins_iter = list(q2y_bins) if(q2y_bins is not None) else list(grouped.keys())
+    for q2y_bin in bins_iter:
+        series_map = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
+        for sid in series_map.keys():
+            arrays = collect_spline_range_band_arrays(args, spline_models, info_map, sid, series_map, y_par)
+            if(arrays is None):
+                continue
+            xs, y_lo, y_hi = arrays
+            if(len(y_lo) > 0):
+                ymin = min(ymin, float(np.min(y_lo)))
+                ymax = max(ymax, float(np.max(y_hi)))
+    if(ymin == ymax):
+        return (ymin - 1.0, ymax + 1.0)
+    pad = 0.08 * (ymax - ymin)
+    return (ymin - pad, ymax + pad)
+
+# ------------------------------------------------------------
 # Title logic
 # ------------------------------------------------------------
 def Get_Default_Y_Title(y_par, fit_set):
@@ -895,6 +1111,13 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
 
         for sid in sid_list:
+            # Shaded range band first (behind spline + data)
+            if(getattr(args, "show_spline_range", False)):
+                gr_band = build_spline_range_band_for_series(args, spline_models, info_map, sid, series_map, y_par)
+                if(gr_band is not None):
+                    gr_band.Draw("F SAME")
+                    c1._keepalive.append(gr_band)
+
             gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
             if(gr_spline is not None):
                 gr_spline.Draw("P L SAME")
@@ -1231,6 +1454,13 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         pts = series_map[sid]["points"]
         # if(int(series_map[sid]["color"]) != ROOT.kGreen):
         #     continue
+
+        # Shaded range band first (behind spline + data)
+        if(getattr(args, "show_spline_range", False)):
+            gr_band = build_spline_range_band_for_series(args, spline_models, info_map, sid, series_map, y_par)
+            if(gr_band is not None):
+                gr_band.Draw("F SAME")
+                c1._keepalive.append(gr_band)
 
         gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
         if(gr_spline is not None):
@@ -1676,6 +1906,25 @@ def main():
     args.x_mode = str(args.x_mode).lower()
     if("pdf" in args.formats):
         args.frame_line_width = max([1, args.frame_line_width - 2])
+
+    # --show_spline_range: avoid overwriting normal outputs
+    if((getattr(args, "show_spline_range", False)) and ("with_spline_ranges" not in str(getattr(args, "name", "")).lower())):
+        args.name = f"With_Spline_Ranges_{getattr(args, 'name', '')}"
+
+    if(getattr(args, "show_spline_range", False)):
+        if((args.spline_prefix is None) or (str(args.spline_prefix).strip() in ["", "None", "none"])):
+            raise SystemExit(f"{color.Error}ERROR:{color.END_R} --show_spline_range requires --spline_prefix.{color.END}")
+        args.spline_fit_limits = {}
+        if(str(getattr(args, "spline_range_mode", "fit_limits")).strip().lower() == "fit_limits"):
+            limits_dict, limits_path = load_spline_fit_parameter_limits()
+            args.spline_fit_limits = limits_dict
+            if((limits_path is None) or (len(limits_dict) == 0)):
+                print(f"{color.Error}WARNING:{color.END_R} --spline_range_mode fit_limits could not load Phi_h_Fit_Parameters_from_Spline.py; B/C range bands will be skipped.{color.END}")
+            elif(args.verbose):
+                print(f"{color.GREEN}[INFO] Loaded spline fit limits from: {limits_path} ({len(limits_dict)} keys){color.END}")
+        if(args.verbose):
+            print(f"{color.CYAN}[INFO] show_spline_range mode={args.spline_range_mode} scan_n={args.spline_range_scan_n} name='{args.name}'{color.END}")
+
     json_obj = load_json(args)
     if(args.list_fit_sets):
         print("Fit sets in JSON:")
@@ -1752,6 +2001,7 @@ def main():
             else:
                 series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
                 y_range = Compute_SingleBin_AutoYRange(series_map_tmp)
+            y_range = expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_range, spline_models, q2y_bins=[q2y_bin])
 
             if(args.test):
                 fake_name = Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin)
@@ -1788,6 +2038,7 @@ def main():
             y_range = (gymin, gymax)
         else:
             y_range = (0.0, 1.0)
+        y_range = expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_range, spline_models)
 
         if(args.test):
             fake_name = Build_Output_Filename(args, fit_set, y_par)
