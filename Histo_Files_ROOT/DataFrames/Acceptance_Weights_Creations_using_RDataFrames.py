@@ -118,6 +118,9 @@ def parse_args():
                         default="phi_h",
                         choices=["phi_h", "Q2", "y", "xB", "z", "pT"],
                         help="Selects the 1D variable to be checked with `--make_2D_weight_check`.\n")
+    parser.add_argument('-sr', '--save_root',
+                        action='store_true',
+                        help="Also save all stage histograms to a companion .root file (same directory/base name as the .hpp).\n")
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.\n')
@@ -393,6 +396,7 @@ def default_title_construction_for_make_2D_weight(args, var_x, var_y):
         Title = f"#splitline{{{Title}}}{{{args.title}}}"
     return f"{Title}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
 
+
 def make_2D_weight_func(args, rdf, mdf_clasdis):
     print(f"\n{color.BOLD}CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
     El_Binning       = ['el',      2.5,  8.0,  44]
@@ -440,11 +444,19 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}" 
     # === NEW SPLINE WEIGHTING BLOCK (added as alternative) ===
     if(args.spline_weights):
+        # Define Event_Weight using the new spline function (is based entirely on individual event kinematics)
         wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
     elif(args.json_weights):
         wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
     else:
         wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
+
+    # === NEW: Snapshot of MC after ONLY initial JSON/spline weights (stage 3) ===
+    if(args.spline_weights or args.json_weights):
+        histos_data_match["mc_initial_weights_only"] = wdf.Histo2D(("mc_initial_weights_only", "MC REC after ONLY JSON/Spline weights (before any acceptance weights)", 144, 0, 360, 144, 0, 360), "elPhi_smeared", "pipPhi_smeared", "ACC_Weight_Product")
+    else:
+        histos_data_match["mc_initial_weights_only"] = None  # placeholder for consistency
+
     # -----------------------------
     # 2) Build 2D histos
     # -----------------------------
@@ -463,19 +475,21 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         mc_nw_histos[mclasdis_no_weight] = wdf.Histo2D((mclasdis_no_weight, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"), Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared")
 
     # Store raw data and unweighted MC for ROOT file (3 data + 3 unweighted MC)
+    # === NEW: Store the unweighted MC snapshots for the ROOT file (stage 2) ===
     for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
         rdf_name = f"{x_vars[0]}_vs_{y_vars[0]}_rdf"
         mclasdis_no_weight = f"{x_vars[0]}_vs_{y_vars[0]}_mdf_no_weight"
         histos_data_match[f"data_{x_vars[0]}_vs_{y_vars[0]}"] = data_histos[rdf_name]
         histos_data_match[f"mc_unweighted_{x_vars[0]}_vs_{y_vars[0]}"] = mc_nw_histos[mclasdis_no_weight]
 
-    # === NEW: Snapshot of MC after ONLY initial JSON/spline weights (stage: initial) ===
-    for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
+        # === NEW: Snapshot of MC after ONLY initial JSON/spline weights (stage: initial) ===
         var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
         var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
         Title = default_title_construction_for_make_2D_weight(args, var_x, var_y)
         name  = f"mc_initial_weights_only_{var_x}_vs_{var_y}"
         histos_data_match[name] = wdf.Histo2D((name, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC after ONLY JSON/Spline weights}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+        mclasdis_no_weight = f"{var_x}_vs_{var_y}_mdf_no_weight"
+        histos_data_match[mclasdis_no_weight] = mc_nw_histos[mclasdis_no_weight]
 
     for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
         var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
@@ -519,6 +533,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         stage_ratio_name = f"ratio_{data_match_name}"
         histos_data_match[stage_ratio_name] = histos_data_match[data_match_name].Clone(stage_ratio_name)
 
+
         # -----------------------------
         # 3) Extract edges + row-major weights from the ratio
         # -----------------------------
@@ -561,17 +576,25 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         weight_col = f"W_{var_x}_vs_{var_y}"
         wdf = wdf.Define(weight_col, f"{func_name}({var_x}_smeared, {var_y}_smeared)").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
 
+        # === NEW: Snapshot of cumulative acceptance weights after this step ===
+        stage_name = f"mc_acc_{var_x}_vs_{var_y}"
+        histos_data_match[stage_name] = wdf.Histo2D((stage_name, f"MC REC after acceptance weights up to {var_x} vs {var_y}", Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+
         # -----------------------------
         # 6) Draw panels (ratio / data / MC)
         # -----------------------------
         cd_num = num + 1
         canvas_data_match.cd(cd_num)
+        # ROOT.gPad.SetLogz(1)
         histos_data_match[data_match_name].Draw("colz")
         canvas_data_match.cd(cd_num +   len(List_of_Quantities_2D))
+        # ROOT.gPad.SetLogz(1)
         histos_data_match[f"norm_{rdf_name}"].Draw("colz")
         canvas_data_match.cd(cd_num + 2*len(List_of_Quantities_2D))
+        # ROOT.gPad.SetLogz(1)
         histos_data_match[f"norm_{mclasdis}_no_weight"].Draw("colz")
         canvas_data_match.cd(cd_num + 3*len(List_of_Quantities_2D))
+        # ROOT.gPad.SetLogz(1)
         histos_data_match[f"norm_{mclasdis}"].Draw("colz")
         histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{#splitline{{Before Applying the Weights in this column}}{{Applied the weights from the columns to the left}}}}}}")
         print(f"{color.BOLD}Finished '{data_match_name}' Histograms{color.END}")
@@ -581,7 +604,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     args.timer.time_elapsed()
 
     # -----------------------------
-    # 7) Final full-acceptance MC histogram
+    # 7) Final full-acceptance MC histogram (already created in the loop as the last stage)
     # -----------------------------
     for num, (x_vars, y_vars) in enumerate(List_of_Quantities_2D):
         var_x, Min_range_x, Max_range_x, Num_of_Bins_x = x_vars
@@ -598,11 +621,12 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
         histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
         canvas_data_match.cd((num + 1) + 4*len(List_of_Quantities_2D))
+        # ROOT.gPad.SetLogz(1)
         histos_data_match[f"norm_{mclasdis}"].Draw("colz")
         histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{After Applying ALL Weights in this image}}}}")
 
     # -----------------------------
-    # 8) Save the canvas
+    # 8) Save the canvas (ratio / data / weighted-MC)
     # -----------------------------
     canvas_data_match.SaveAs(args.save_name)
     print(f"{color.BOLD}Saved: {color.BBLUE}{args.save_name}{color.END}")
@@ -613,6 +637,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     header_body = "".join(generated_wrappers_code)
     if(args.name):
         args.hpp_output_file = args.hpp_output_file.replace(".hpp", f"_{args.name}.hpp") if(args.name not in str(args.hpp_output_file)) else args.hpp_output_file
+
     with open(args.hpp_output_file, "w") as hf:
         hf.write("// This file was auto-generated by your acceptance-weight script.\n")
         hf.write("// It contains concrete lookup functions accw_<x>_vs_<y>(x, y).\n\n")
@@ -626,18 +651,23 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     print(f"\n{color.BOLD}===== BEGINNING OF GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
     print(header_body)
     print(f"\n{color.BOLD}=====    END OF GENERATED ACCEPTANCE-WEIGHT CODE    ====={color.END}\n")
+
     # -----------------------------
-    # 10) NEW: Save ALL stage histograms to companion ROOT file if --save_root is used
+    # 10) NEW: Save all stage histograms to companion ROOT file if requested
     # -----------------------------
     if(getattr(args, "save_root", False)):
         root_path = args.hpp_output_file.replace(".hpp", ".root")
         root_file = ROOT.TFile(root_path, "RECREATE")
         root_file.cd()
+
+        # Save every histogram we collected (raw data, unweighted MC, initial weights only, progressive acceptance weights, final full acceptance, and all normalized versions)
         for name, hist in histos_data_match.items():
             if((hist is not None) and hasattr(hist, "Write")):
                 hist.Write()
+
         root_file.Close()
-        print(f"{color.BOLD}Saved full-stage histograms (raw data + 5 MC stages per pair + ratios) to ROOT file: {color.BBLUE}{root_path}{color.END}")
+        print(f"{color.BOLD}Saved full-stage histograms (all 6 stages) to ROOT file: {color.BBLUE}{root_path}{color.END}")
+
     args.timer.time_elapsed()
     print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
     return args

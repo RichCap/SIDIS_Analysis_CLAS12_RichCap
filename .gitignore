@@ -68,4 +68,10 @@ Histo_Files_ROOT/DataFrames/slurm*_Only_*batch_*05*2026*
 BC_Corrections/BC_Log_and_Old_Files
 BC_Corrections/ROOT_Files_Output/
 Histo_Files_ROOT/DataFrames/Image_Files/
+BC_Corrections/Old_Sub_Bin_Contents_for_BC_Correction.json
+Valerii_Dataframe.cxx
+Valerii_binning_params.cxx
+run_sidis_Unfold_SIMPLE_pipeline.py
+Prepare_Next_Iteration/Path_to_Volatile_Old
+Histo_Files_ROOT/DataFrames/Images_for_Diagnostic_2D_Histos_with_Cuts_Fit_Testing_V1_As_of_6_17_2026/
 
