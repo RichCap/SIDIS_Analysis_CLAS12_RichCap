@@ -8,7 +8,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 24,
-    "timestamp": "2026-04-15T22:16:18.590140153Z"
+    "timestamp": "2026-04-15T22:16:18.590140153Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005036.hipo.json": {
     "input_file": "nSidis_005036.hipo",
@@ -19,7 +20,8 @@
     "Pass_1_PID_Cut_events": 957945,
     "Multiple_Pions_Per_event": 174552,
     "RunTime_in_secs": 6384,
-    "timestamp": "2026-04-16T00:02:19.144469704Z"
+    "timestamp": "2026-04-16T00:02:19.144469704Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005038.hipo.json": {
     "input_file": "nSidis_005038.hipo",
@@ -30,7 +32,8 @@
     "Pass_1_PID_Cut_events": 2211419,
     "Multiple_Pions_Per_event": 405720,
     "RunTime_in_secs": 11813,
-    "timestamp": "2026-04-16T01:32:47.782794801Z"
+    "timestamp": "2026-04-16T01:32:47.782794801Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005039.hipo.json": {
     "input_file": "nSidis_005039.hipo",
@@ -41,7 +44,8 @@
     "Pass_1_PID_Cut_events": 563159,
     "Multiple_Pions_Per_event": 104179,
     "RunTime_in_secs": 3447,
-    "timestamp": "2026-04-15T23:13:21.736674395Z"
+    "timestamp": "2026-04-15T23:13:21.736674395Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005040.hipo.json": {
     "input_file": "nSidis_005040.hipo",
@@ -52,7 +56,8 @@
     "Pass_1_PID_Cut_events": 861028,
     "Multiple_Pions_Per_event": 159667,
     "RunTime_in_secs": 4785,
-    "timestamp": "2026-04-15T23:35:39.646515030Z"
+    "timestamp": "2026-04-15T23:35:39.646515030Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005041.hipo.json": {
     "input_file": "nSidis_005041.hipo",
@@ -63,7 +68,8 @@
     "Pass_1_PID_Cut_events": 1022803,
     "Multiple_Pions_Per_event": 190400,
     "RunTime_in_secs": 8938,
-    "timestamp": "2026-04-16T00:44:52.882847232Z"
+    "timestamp": "2026-04-16T00:44:52.882847232Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005043.hipo.json": {
     "input_file": "nSidis_005043.hipo",
@@ -74,7 +80,8 @@
     "Pass_1_PID_Cut_events": 808480,
     "Multiple_Pions_Per_event": 149230,
     "RunTime_in_secs": 5024,
-    "timestamp": "2026-04-15T23:39:39.172836985Z"
+    "timestamp": "2026-04-15T23:39:39.172836985Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005045.hipo.json": {
     "input_file": "nSidis_005045.hipo",
@@ -85,7 +92,8 @@
     "Pass_1_PID_Cut_events": 817213,
     "Multiple_Pions_Per_event": 152733,
     "RunTime_in_secs": 4033,
-    "timestamp": "2026-04-15T23:23:37.504916105Z"
+    "timestamp": "2026-04-15T23:23:37.504916105Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005046.hipo.json": {
     "input_file": "nSidis_005046.hipo",
@@ -96,7 +104,8 @@
     "Pass_1_PID_Cut_events": 2249177,
     "Multiple_Pions_Per_event": 419832,
     "RunTime_in_secs": 14598,
-    "timestamp": "2026-04-16T03:16:45.359904414Z"
+    "timestamp": "2026-04-16T03:16:45.359904414Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005047.hipo.json": {
     "input_file": "nSidis_005047.hipo",
@@ -107,7 +116,8 @@
     "Pass_1_PID_Cut_events": 94405,
     "Multiple_Pions_Per_event": 17552,
     "RunTime_in_secs": 559,
-    "timestamp": "2026-04-15T23:33:01.108809298Z"
+    "timestamp": "2026-04-15T23:33:01.108809298Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005051.hipo.json": {
     "input_file": "nSidis_005051.hipo",
@@ -118,7 +128,8 @@
     "Pass_1_PID_Cut_events": 1670371,
     "Multiple_Pions_Per_event": 311222,
     "RunTime_in_secs": 8983,
-    "timestamp": "2026-04-16T02:02:48.940140521Z"
+    "timestamp": "2026-04-16T02:02:48.940140521Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005052.hipo.json": {
     "input_file": "nSidis_005052.hipo",
@@ -129,7 +140,8 @@
     "Pass_1_PID_Cut_events": 183141,
     "Multiple_Pions_Per_event": 33836,
     "RunTime_in_secs": 1088,
-    "timestamp": "2026-04-15T23:53:54.702074318Z"
+    "timestamp": "2026-04-15T23:53:54.702074318Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005053.hipo.json": {
     "input_file": "nSidis_005053.hipo",
@@ -140,7 +152,8 @@
     "Pass_1_PID_Cut_events": 301247,
     "Multiple_Pions_Per_event": 56604,
     "RunTime_in_secs": 1593,
-    "timestamp": "2026-04-16T00:06:19.534558311Z"
+    "timestamp": "2026-04-16T00:06:19.534558311Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005116.hipo.json": {
     "input_file": "nSidis_005116.hipo",
@@ -151,7 +164,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 26,
-    "timestamp": "2026-04-15T23:54:25.545643115Z"
+    "timestamp": "2026-04-15T23:54:25.545643115Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005117.hipo.json": {
     "input_file": "nSidis_005117.hipo",
@@ -162,7 +176,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 2110,
-    "timestamp": "2026-04-16T00:29:40.228073918Z"
+    "timestamp": "2026-04-16T00:29:40.228073918Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005119.hipo.json": {
     "input_file": "nSidis_005119.hipo",
@@ -173,7 +188,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 52,
-    "timestamp": "2026-04-16T00:03:15.933924752Z"
+    "timestamp": "2026-04-16T00:03:15.933924752Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005120.hipo.json": {
     "input_file": "nSidis_005120.hipo",
@@ -184,7 +200,8 @@
     "Pass_1_PID_Cut_events": 455424,
     "Multiple_Pions_Per_event": 84280,
     "RunTime_in_secs": 2697,
-    "timestamp": "2026-04-16T00:48:16.270335376Z"
+    "timestamp": "2026-04-16T00:48:16.270335376Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005124.hipo.json": {
     "input_file": "nSidis_005124.hipo",
@@ -195,7 +212,8 @@
     "Pass_1_PID_Cut_events": 2280605,
     "Multiple_Pions_Per_event": 425112,
     "RunTime_in_secs": 13888,
-    "timestamp": "2026-04-16T03:57:54.427797845Z"
+    "timestamp": "2026-04-16T03:57:54.427797845Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005125.hipo.json": {
     "input_file": "nSidis_005125.hipo",
@@ -206,7 +224,8 @@
     "Pass_1_PID_Cut_events": 2283063,
     "Multiple_Pions_Per_event": 424412,
     "RunTime_in_secs": 13584,
-    "timestamp": "2026-04-16T04:16:10.056638552Z"
+    "timestamp": "2026-04-16T04:16:10.056638552Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005126.hipo.json": {
     "input_file": "nSidis_005126.hipo",
@@ -217,7 +236,8 @@
     "Pass_1_PID_Cut_events": 2281123,
     "Multiple_Pions_Per_event": 423637,
     "RunTime_in_secs": 12745,
-    "timestamp": "2026-04-16T04:17:23.966160280Z"
+    "timestamp": "2026-04-16T04:17:23.966160280Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005127.hipo.json": {
     "input_file": "nSidis_005127.hipo",
@@ -228,7 +248,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 30,
-    "timestamp": "2026-04-16T00:48:52.443649102Z"
+    "timestamp": "2026-04-16T00:48:52.443649102Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005128.hipo.json": {
     "input_file": "nSidis_005128.hipo",
@@ -239,7 +260,8 @@
     "Pass_1_PID_Cut_events": 2284214,
     "Multiple_Pions_Per_event": 424378,
     "RunTime_in_secs": 13234,
-    "timestamp": "2026-04-16T04:29:32.025023682Z"
+    "timestamp": "2026-04-16T04:29:32.025023682Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005129.hipo.json": {
     "input_file": "nSidis_005129.hipo",
@@ -250,7 +272,8 @@
     "Pass_1_PID_Cut_events": 968075,
     "Multiple_Pions_Per_event": 179452,
     "RunTime_in_secs": 5802,
-    "timestamp": "2026-04-16T03:09:36.711617097Z"
+    "timestamp": "2026-04-16T03:09:36.711617097Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005130.hipo.json": {
     "input_file": "nSidis_005130.hipo",
@@ -261,7 +284,8 @@
     "Pass_1_PID_Cut_events": 2282471,
     "Multiple_Pions_Per_event": 423241,
     "RunTime_in_secs": 12476,
-    "timestamp": "2026-04-16T05:30:51.141156972Z"
+    "timestamp": "2026-04-16T05:30:51.141156972Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005137.hipo.json": {
     "input_file": "nSidis_005137.hipo",
@@ -272,7 +296,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 15,
-    "timestamp": "2026-04-16T03:09:57.624912728Z"
+    "timestamp": "2026-04-16T03:09:57.624912728Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005138.hipo.json": {
     "input_file": "nSidis_005138.hipo",
@@ -283,7 +308,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 25,
-    "timestamp": "2026-04-16T03:10:28.498855924Z"
+    "timestamp": "2026-04-16T03:10:28.498855924Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005139.hipo.json": {
     "input_file": "nSidis_005139.hipo",
@@ -294,7 +320,8 @@
     "Pass_1_PID_Cut_events": 806068,
     "Multiple_Pions_Per_event": 149840,
     "RunTime_in_secs": 4596,
-    "timestamp": "2026-04-16T04:27:09.447804988Z"
+    "timestamp": "2026-04-16T04:27:09.447804988Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005153.hipo.json": {
     "input_file": "nSidis_005153.hipo",
@@ -305,7 +332,8 @@
     "Pass_1_PID_Cut_events": 393757,
     "Multiple_Pions_Per_event": 73297,
     "RunTime_in_secs": 2272,
-    "timestamp": "2026-04-16T03:54:43.798551039Z"
+    "timestamp": "2026-04-16T03:54:43.798551039Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005158.hipo.json": {
     "input_file": "nSidis_005158.hipo",
@@ -316,7 +344,8 @@
     "Pass_1_PID_Cut_events": 223230,
     "Multiple_Pions_Per_event": 41362,
     "RunTime_in_secs": 1373,
-    "timestamp": "2026-04-16T04:17:43.210635279Z"
+    "timestamp": "2026-04-16T04:17:43.210635279Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005159.hipo.json": {
     "input_file": "nSidis_005159.hipo",
@@ -327,7 +356,8 @@
     "Pass_1_PID_Cut_events": 1417453,
     "Multiple_Pions_Per_event": 263845,
     "RunTime_in_secs": 6611,
-    "timestamp": "2026-04-16T05:48:11.599616322Z"
+    "timestamp": "2026-04-16T05:48:11.599616322Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005160.hipo.json": {
     "input_file": "nSidis_005160.hipo",
@@ -338,7 +368,8 @@
     "Pass_1_PID_Cut_events": 996431,
     "Multiple_Pions_Per_event": 185190,
     "RunTime_in_secs": 4671,
-    "timestamp": "2026-04-16T05:34:07.631670415Z"
+    "timestamp": "2026-04-16T05:34:07.631670415Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005162.hipo.json": {
     "input_file": "nSidis_005162.hipo",
@@ -349,7 +380,8 @@
     "Pass_1_PID_Cut_events": 453713,
     "Multiple_Pions_Per_event": 84778,
     "RunTime_in_secs": 2160,
-    "timestamp": "2026-04-16T04:53:30.201551402Z"
+    "timestamp": "2026-04-16T04:53:30.201551402Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005163.hipo.json": {
     "input_file": "nSidis_005163.hipo",
@@ -360,7 +392,8 @@
     "Pass_1_PID_Cut_events": 2294418,
     "Multiple_Pions_Per_event": 427248,
     "RunTime_in_secs": 10152,
-    "timestamp": "2026-04-16T07:07:02.158092486Z"
+    "timestamp": "2026-04-16T07:07:02.158092486Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005164.hipo.json": {
     "input_file": "nSidis_005164.hipo",
@@ -371,7 +404,8 @@
     "Pass_1_PID_Cut_events": 37042,
     "Multiple_Pions_Per_event": 6903,
     "RunTime_in_secs": 196,
-    "timestamp": "2026-04-16T04:30:30.354471088Z"
+    "timestamp": "2026-04-16T04:30:30.354471088Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005165.hipo.json": {
     "input_file": "nSidis_005165.hipo",
@@ -382,7 +416,8 @@
     "Pass_1_PID_Cut_events": 1550264,
     "Multiple_Pions_Per_event": 289131,
     "RunTime_in_secs": 6878,
-    "timestamp": "2026-04-16T06:24:15.172866331Z"
+    "timestamp": "2026-04-16T06:24:15.172866331Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005166.hipo.json": {
     "input_file": "nSidis_005166.hipo",
@@ -393,7 +428,8 @@
     "Pass_1_PID_Cut_events": 2300317,
     "Multiple_Pions_Per_event": 427848,
     "RunTime_in_secs": 9916,
-    "timestamp": "2026-04-16T07:15:50.955338502Z"
+    "timestamp": "2026-04-16T07:15:50.955338502Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005167.hipo.json": {
     "input_file": "nSidis_005167.hipo",
@@ -404,7 +440,8 @@
     "Pass_1_PID_Cut_events": 2282198,
     "Multiple_Pions_Per_event": 426213,
     "RunTime_in_secs": 10056,
-    "timestamp": "2026-04-16T07:41:11.085733893Z"
+    "timestamp": "2026-04-16T07:41:11.085733893Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005168.hipo.json": {
     "input_file": "nSidis_005168.hipo",
@@ -415,7 +452,8 @@
     "Pass_1_PID_Cut_events": 1162283,
     "Multiple_Pions_Per_event": 217304,
     "RunTime_in_secs": 5362,
-    "timestamp": "2026-04-16T07:00:18.670673413Z"
+    "timestamp": "2026-04-16T07:00:18.670673413Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005169.hipo.json": {
     "input_file": "nSidis_005169.hipo",
@@ -426,7 +464,8 @@
     "Pass_1_PID_Cut_events": 2324709,
     "Multiple_Pions_Per_event": 434074,
     "RunTime_in_secs": 10955,
-    "timestamp": "2026-04-16T08:36:47.982682041Z"
+    "timestamp": "2026-04-16T08:36:47.982682041Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005180.hipo.json": {
     "input_file": "nSidis_005180.hipo",
@@ -437,7 +476,8 @@
     "Pass_1_PID_Cut_events": 1293745,
     "Multiple_Pions_Per_event": 240193,
     "RunTime_in_secs": 5469,
-    "timestamp": "2026-04-16T07:19:24.690122Z"
+    "timestamp": "2026-04-16T07:19:24.690122Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005181.hipo.json": {
     "input_file": "nSidis_005181.hipo",
@@ -448,7 +488,8 @@
     "Pass_1_PID_Cut_events": 2127952,
     "Multiple_Pions_Per_event": 394534,
     "RunTime_in_secs": 8842,
-    "timestamp": "2026-04-16T08:51:42.295423256Z"
+    "timestamp": "2026-04-16T08:51:42.295423256Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005182.hipo.json": {
     "input_file": "nSidis_005182.hipo",
@@ -459,7 +500,8 @@
     "Pass_1_PID_Cut_events": 438057,
     "Multiple_Pions_Per_event": 81414,
     "RunTime_in_secs": 2017,
-    "timestamp": "2026-04-16T07:34:00.140423768Z"
+    "timestamp": "2026-04-16T07:34:00.140423768Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005183.hipo.json": {
     "input_file": "nSidis_005183.hipo",
@@ -470,7 +512,8 @@
     "Pass_1_PID_Cut_events": 1884671,
     "Multiple_Pions_Per_event": 349637,
     "RunTime_in_secs": 8234,
-    "timestamp": "2026-04-16T09:24:20.982454713Z"
+    "timestamp": "2026-04-16T09:24:20.982454713Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005190.hipo.json": {
     "input_file": "nSidis_005190.hipo",
@@ -481,7 +524,8 @@
     "Pass_1_PID_Cut_events": 1053065,
     "Multiple_Pions_Per_event": 188229,
     "RunTime_in_secs": 4804,
-    "timestamp": "2026-04-16T08:36:00.262722941Z"
+    "timestamp": "2026-04-16T08:36:00.262722941Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005191.hipo.json": {
     "input_file": "nSidis_005191.hipo",
@@ -492,7 +536,8 @@
     "Pass_1_PID_Cut_events": 2438161,
     "Multiple_Pions_Per_event": 436092,
     "RunTime_in_secs": 10346,
-    "timestamp": "2026-04-16T10:11:54.881928693Z"
+    "timestamp": "2026-04-16T10:11:54.881928693Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005193.hipo.json": {
     "input_file": "nSidis_005193.hipo",
@@ -503,7 +548,8 @@
     "Pass_1_PID_Cut_events": 879350,
     "Multiple_Pions_Per_event": 159221,
     "RunTime_in_secs": 4458,
-    "timestamp": "2026-04-16T08:48:21.560762800Z"
+    "timestamp": "2026-04-16T08:48:21.560762800Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005194.hipo.json": {
     "input_file": "nSidis_005194.hipo",
@@ -514,7 +560,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 43,
-    "timestamp": "2026-04-16T07:41:57.879528759Z"
+    "timestamp": "2026-04-16T07:41:57.879528759Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005195.hipo.json": {
     "input_file": "nSidis_005195.hipo",
@@ -525,7 +572,8 @@
     "Pass_1_PID_Cut_events": 441072,
     "Multiple_Pions_Per_event": 80461,
     "RunTime_in_secs": 2091,
-    "timestamp": "2026-04-16T08:16:52.782917008Z"
+    "timestamp": "2026-04-16T08:16:52.782917008Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005196.hipo.json": {
     "input_file": "nSidis_005196.hipo",
@@ -536,7 +584,8 @@
     "Pass_1_PID_Cut_events": 2339845,
     "Multiple_Pions_Per_event": 424481,
     "RunTime_in_secs": 9225,
-    "timestamp": "2026-04-16T10:50:41.903322426Z"
+    "timestamp": "2026-04-16T10:50:41.903322426Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005197.hipo.json": {
     "input_file": "nSidis_005197.hipo",
@@ -547,7 +596,8 @@
     "Pass_1_PID_Cut_events": 2363315,
     "Multiple_Pions_Per_event": 429108,
     "RunTime_in_secs": 9481,
-    "timestamp": "2026-04-16T11:14:06.292362561Z"
+    "timestamp": "2026-04-16T11:14:06.292362561Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005198.hipo.json": {
     "input_file": "nSidis_005198.hipo",
@@ -558,7 +608,8 @@
     "Pass_1_PID_Cut_events": 2323014,
     "Multiple_Pions_Per_event": 423231,
     "RunTime_in_secs": 9214,
-    "timestamp": "2026-04-16T11:10:26.120433714Z"
+    "timestamp": "2026-04-16T11:10:26.120433714Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005199.hipo.json": {
     "input_file": "nSidis_005199.hipo",
@@ -569,7 +620,8 @@
     "Pass_1_PID_Cut_events": 2341293,
     "Multiple_Pions_Per_event": 426303,
     "RunTime_in_secs": 9307,
-    "timestamp": "2026-04-16T11:23:33.307472503Z"
+    "timestamp": "2026-04-16T11:23:33.307472503Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005200.hipo.json": {
     "input_file": "nSidis_005200.hipo",
@@ -580,7 +632,8 @@
     "Pass_1_PID_Cut_events": 867917,
     "Multiple_Pions_Per_event": 158295,
     "RunTime_in_secs": 3548,
-    "timestamp": "2026-04-16T09:50:54.312075397Z"
+    "timestamp": "2026-04-16T09:50:54.312075397Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005201.hipo.json": {
     "input_file": "nSidis_005201.hipo",
@@ -591,7 +644,8 @@
     "Pass_1_PID_Cut_events": 460838,
     "Multiple_Pions_Per_event": 84232,
     "RunTime_in_secs": 1882,
-    "timestamp": "2026-04-16T09:55:48.064138541Z"
+    "timestamp": "2026-04-16T09:55:48.064138541Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005202.hipo.json": {
     "input_file": "nSidis_005202.hipo",
@@ -602,7 +656,8 @@
     "Pass_1_PID_Cut_events": 2334928,
     "Multiple_Pions_Per_event": 425698,
     "RunTime_in_secs": 9083,
-    "timestamp": "2026-04-16T12:22:22.006502998Z"
+    "timestamp": "2026-04-16T12:22:22.006502998Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005203.hipo.json": {
     "input_file": "nSidis_005203.hipo",
@@ -613,7 +668,8 @@
     "Pass_1_PID_Cut_events": 2344687,
     "Multiple_Pions_Per_event": 426996,
     "RunTime_in_secs": 9183,
-    "timestamp": "2026-04-16T12:28:55.402067204Z"
+    "timestamp": "2026-04-16T12:28:55.402067204Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005204.hipo.json": {
     "input_file": "nSidis_005204.hipo",
@@ -624,7 +680,8 @@
     "Pass_1_PID_Cut_events": 2267650,
     "Multiple_Pions_Per_event": 413882,
     "RunTime_in_secs": 9226,
-    "timestamp": "2026-04-16T12:45:45.556067492Z"
+    "timestamp": "2026-04-16T12:45:45.556067492Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005205.hipo.json": {
     "input_file": "nSidis_005205.hipo",
@@ -635,7 +692,8 @@
     "Pass_1_PID_Cut_events": 510068,
     "Multiple_Pions_Per_event": 92680,
     "RunTime_in_secs": 2146,
-    "timestamp": "2026-04-16T11:26:34.817018163Z"
+    "timestamp": "2026-04-16T11:26:34.817018163Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005206.hipo.json": {
     "input_file": "nSidis_005206.hipo",
@@ -646,7 +704,8 @@
     "Pass_1_PID_Cut_events": 1630759,
     "Multiple_Pions_Per_event": 296681,
     "RunTime_in_secs": 6392,
-    "timestamp": "2026-04-16T12:57:03.057410999Z"
+    "timestamp": "2026-04-16T12:57:03.057410999Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005208.hipo.json": {
     "input_file": "nSidis_005208.hipo",
@@ -657,7 +716,8 @@
     "Pass_1_PID_Cut_events": 1892711,
     "Multiple_Pions_Per_event": 345634,
     "RunTime_in_secs": 7748,
-    "timestamp": "2026-04-16T13:23:19.444523615Z"
+    "timestamp": "2026-04-16T13:23:19.444523615Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005211.hipo.json": {
     "input_file": "nSidis_005211.hipo",
@@ -668,7 +728,8 @@
     "Pass_1_PID_Cut_events": 506179,
     "Multiple_Pions_Per_event": 92112,
     "RunTime_in_secs": 1942,
-    "timestamp": "2026-04-16T11:56:00.690616118Z"
+    "timestamp": "2026-04-16T11:56:00.690616118Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005212.hipo.json": {
     "input_file": "nSidis_005212.hipo",
@@ -679,7 +740,8 @@
     "Pass_1_PID_Cut_events": 2291296,
     "Multiple_Pions_Per_event": 420195,
     "RunTime_in_secs": 9601,
-    "timestamp": "2026-04-16T14:06:40.778953805Z"
+    "timestamp": "2026-04-16T14:06:40.778953805Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005215.hipo.json": {
     "input_file": "nSidis_005215.hipo",
@@ -690,7 +752,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 72,
-    "timestamp": "2026-04-16T11:57:17.258475420Z"
+    "timestamp": "2026-04-16T11:57:17.258475420Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005216.hipo.json": {
     "input_file": "nSidis_005216.hipo",
@@ -701,7 +764,8 @@
     "Pass_1_PID_Cut_events": 939987,
     "Multiple_Pions_Per_event": 172483,
     "RunTime_in_secs": 3630,
-    "timestamp": "2026-04-16T12:57:50.942167801Z"
+    "timestamp": "2026-04-16T12:57:50.942167801Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005219.hipo.json": {
     "input_file": "nSidis_005219.hipo",
@@ -712,7 +776,8 @@
     "Pass_1_PID_Cut_events": 2193112,
     "Multiple_Pions_Per_event": 402077,
     "RunTime_in_secs": 8825,
-    "timestamp": "2026-04-16T14:49:31.326821943Z"
+    "timestamp": "2026-04-16T14:49:31.326821943Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005220.hipo.json": {
     "input_file": "nSidis_005220.hipo",
@@ -723,7 +788,8 @@
     "Pass_1_PID_Cut_events": 2004681,
     "Multiple_Pions_Per_event": 368438,
     "RunTime_in_secs": 8561,
-    "timestamp": "2026-04-16T14:51:40.421679406Z"
+    "timestamp": "2026-04-16T14:51:40.421679406Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005221.hipo.json": {
     "input_file": "nSidis_005221.hipo",
@@ -734,7 +800,8 @@
     "Pass_1_PID_Cut_events": 2227362,
     "Multiple_Pions_Per_event": 410867,
     "RunTime_in_secs": 9660,
-    "timestamp": "2026-04-16T15:26:51.002790827Z"
+    "timestamp": "2026-04-16T15:26:51.002790827Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005222.hipo.json": {
     "input_file": "nSidis_005222.hipo",
@@ -745,7 +812,8 @@
     "Pass_1_PID_Cut_events": 2214630,
     "Multiple_Pions_Per_event": 407642,
     "RunTime_in_secs": 9132,
-    "timestamp": "2026-04-16T15:29:19.761192195Z"
+    "timestamp": "2026-04-16T15:29:19.761192195Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005223.hipo.json": {
     "input_file": "nSidis_005223.hipo",
@@ -756,7 +824,8 @@
     "Pass_1_PID_Cut_events": 787770,
     "Multiple_Pions_Per_event": 145246,
     "RunTime_in_secs": 3298,
-    "timestamp": "2026-04-16T13:54:14.605368004Z"
+    "timestamp": "2026-04-16T13:54:14.605368004Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005225.hipo.json": {
     "input_file": "nSidis_005225.hipo",
@@ -767,7 +836,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 42,
-    "timestamp": "2026-04-16T13:24:06.215292852Z"
+    "timestamp": "2026-04-16T13:24:06.215292852Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005229.hipo.json": {
     "input_file": "nSidis_005229.hipo",
@@ -778,7 +848,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 23,
-    "timestamp": "2026-04-16T13:24:33.171347Z"
+    "timestamp": "2026-04-16T13:24:33.171347Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005230.hipo.json": {
     "input_file": "nSidis_005230.hipo",
@@ -789,7 +860,8 @@
     "Pass_1_PID_Cut_events": 2185542,
     "Multiple_Pions_Per_event": 399955,
     "RunTime_in_secs": 9675,
-    "timestamp": "2026-04-16T16:05:52.460327002Z"
+    "timestamp": "2026-04-16T16:05:52.460327002Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005231.hipo.json": {
     "input_file": "nSidis_005231.hipo",
@@ -800,7 +872,8 @@
     "Pass_1_PID_Cut_events": 2235682,
     "Multiple_Pions_Per_event": 411617,
     "RunTime_in_secs": 9865,
-    "timestamp": "2026-04-16T16:38:44.558404584Z"
+    "timestamp": "2026-04-16T16:38:44.558404584Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005232.hipo.json": {
     "input_file": "nSidis_005232.hipo",
@@ -811,7 +884,8 @@
     "Pass_1_PID_Cut_events": 2227561,
     "Multiple_Pions_Per_event": 410022,
     "RunTime_in_secs": 9259,
-    "timestamp": "2026-04-16T16:41:03.973807405Z"
+    "timestamp": "2026-04-16T16:41:03.973807405Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005233.hipo.json": {
     "input_file": "nSidis_005233.hipo",
@@ -822,7 +896,8 @@
     "Pass_1_PID_Cut_events": 2197130,
     "Multiple_Pions_Per_event": 403190,
     "RunTime_in_secs": 9082,
-    "timestamp": "2026-04-16T17:20:58.492573560Z"
+    "timestamp": "2026-04-16T17:20:58.492573560Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005234.hipo.json": {
     "input_file": "nSidis_005234.hipo",
@@ -833,7 +908,8 @@
     "Pass_1_PID_Cut_events": 2223390,
     "Multiple_Pions_Per_event": 407279,
     "RunTime_in_secs": 9685,
-    "timestamp": "2026-04-16T17:33:10.656369057Z"
+    "timestamp": "2026-04-16T17:33:10.656369057Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005235.hipo.json": {
     "input_file": "nSidis_005235.hipo",
@@ -844,7 +920,8 @@
     "Pass_1_PID_Cut_events": 830430,
     "Multiple_Pions_Per_event": 152189,
     "RunTime_in_secs": 3465,
-    "timestamp": "2026-04-16T16:24:41.167814091Z"
+    "timestamp": "2026-04-16T16:24:41.167814091Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005237.hipo.json": {
     "input_file": "nSidis_005237.hipo",
@@ -855,7 +932,8 @@
     "Pass_1_PID_Cut_events": 885730,
     "Multiple_Pions_Per_event": 162834,
     "RunTime_in_secs": 3839,
-    "timestamp": "2026-04-16T16:33:24.129422171Z"
+    "timestamp": "2026-04-16T16:33:24.129422171Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005238.hipo.json": {
     "input_file": "nSidis_005238.hipo",
@@ -866,7 +944,8 @@
     "Pass_1_PID_Cut_events": 1791808,
     "Multiple_Pions_Per_event": 327031,
     "RunTime_in_secs": 7466,
-    "timestamp": "2026-04-16T18:10:23.268948489Z"
+    "timestamp": "2026-04-16T18:10:23.268948489Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005239.hipo.json": {
     "input_file": "nSidis_005239.hipo",
@@ -877,7 +956,8 @@
     "Pass_1_PID_Cut_events": 1433215,
     "Multiple_Pions_Per_event": 258323,
     "RunTime_in_secs": 5642,
-    "timestamp": "2026-04-16T17:58:48.366516143Z"
+    "timestamp": "2026-04-16T17:58:48.366516143Z",
+    "beam_current": 20
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005247.hipo.json": {
     "input_file": "nSidis_005247.hipo",
@@ -888,7 +968,8 @@
     "Pass_1_PID_Cut_events": 444924,
     "Multiple_Pions_Per_event": 81487,
     "RunTime_in_secs": 1971,
-    "timestamp": "2026-04-16T17:06:20.909970991Z"
+    "timestamp": "2026-04-16T17:06:20.909970991Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005248.hipo.json": {
     "input_file": "nSidis_005248.hipo",
@@ -899,7 +980,8 @@
     "Pass_1_PID_Cut_events": 2273463,
     "Multiple_Pions_Per_event": 417130,
     "RunTime_in_secs": 9256,
-    "timestamp": "2026-04-16T19:13:05.144542527Z"
+    "timestamp": "2026-04-16T19:13:05.144542527Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005249.hipo.json": {
     "input_file": "nSidis_005249.hipo",
@@ -910,7 +992,8 @@
     "Pass_1_PID_Cut_events": 2281717,
     "Multiple_Pions_Per_event": 417776,
     "RunTime_in_secs": 9106,
-    "timestamp": "2026-04-16T19:12:54.938244673Z"
+    "timestamp": "2026-04-16T19:12:54.938244673Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005250.hipo.json": {
     "input_file": "nSidis_005250.hipo",
@@ -921,7 +1004,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 54,
-    "timestamp": "2026-04-16T17:07:19.251135655Z"
+    "timestamp": "2026-04-16T17:07:19.251135655Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005252.hipo.json": {
     "input_file": "nSidis_005252.hipo",
@@ -932,7 +1016,8 @@
     "Pass_1_PID_Cut_events": 1406687,
     "Multiple_Pions_Per_event": 258513,
     "RunTime_in_secs": 5658,
-    "timestamp": "2026-04-16T18:41:40.802618940Z"
+    "timestamp": "2026-04-16T18:41:40.802618940Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005253.hipo.json": {
     "input_file": "nSidis_005253.hipo",
@@ -943,7 +1028,8 @@
     "Pass_1_PID_Cut_events": 516633,
     "Multiple_Pions_Per_event": 95194,
     "RunTime_in_secs": 2132,
-    "timestamp": "2026-04-16T17:56:35.637192655Z"
+    "timestamp": "2026-04-16T17:56:35.637192655Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005257.hipo.json": {
     "input_file": "nSidis_005257.hipo",
@@ -954,7 +1040,8 @@
     "Pass_1_PID_Cut_events": 2264657,
     "Multiple_Pions_Per_event": 416376,
     "RunTime_in_secs": 9882,
-    "timestamp": "2026-04-16T20:17:57.543570573Z"
+    "timestamp": "2026-04-16T20:17:57.543570573Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005258.hipo.json": {
     "input_file": "nSidis_005258.hipo",
@@ -965,7 +1052,8 @@
     "Pass_1_PID_Cut_events": 2262859,
     "Multiple_Pions_Per_event": 416646,
     "RunTime_in_secs": 10402,
-    "timestamp": "2026-04-16T20:50:01.695544460Z"
+    "timestamp": "2026-04-16T20:50:01.695544460Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005259.hipo.json": {
     "input_file": "nSidis_005259.hipo",
@@ -976,7 +1064,8 @@
     "Pass_1_PID_Cut_events": 857062,
     "Multiple_Pions_Per_event": 157468,
     "RunTime_in_secs": 3418,
-    "timestamp": "2026-04-16T18:55:50.590953069Z"
+    "timestamp": "2026-04-16T18:55:50.590953069Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005261.hipo.json": {
     "input_file": "nSidis_005261.hipo",
@@ -987,7 +1076,8 @@
     "Pass_1_PID_Cut_events": 2272224,
     "Multiple_Pions_Per_event": 417510,
     "RunTime_in_secs": 9234,
-    "timestamp": "2026-04-16T20:44:22.258054018Z"
+    "timestamp": "2026-04-16T20:44:22.258054018Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005262.hipo.json": {
     "input_file": "nSidis_005262.hipo",
@@ -998,7 +1088,8 @@
     "Pass_1_PID_Cut_events": 1041328,
     "Multiple_Pions_Per_event": 190104,
     "RunTime_in_secs": 5015,
-    "timestamp": "2026-04-16T20:05:20.638504387Z"
+    "timestamp": "2026-04-16T20:05:20.638504387Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005300.hipo.json": {
     "input_file": "nSidis_005300.hipo",
@@ -1009,7 +1100,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 31,
-    "timestamp": "2026-04-16T18:56:25.680192451Z"
+    "timestamp": "2026-04-16T18:56:25.680192451Z",
+    "beam_current": 150
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005301.hipo.json": {
     "input_file": "nSidis_005301.hipo",
@@ -1020,7 +1112,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 36,
-    "timestamp": "2026-04-16T18:57:05.934503809Z"
+    "timestamp": "2026-04-16T18:57:05.934503809Z",
+    "beam_current": 140
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005302.hipo.json": {
     "input_file": "nSidis_005302.hipo",
@@ -1031,7 +1124,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 45,
-    "timestamp": "2026-04-16T18:57:54.733413493Z"
+    "timestamp": "2026-04-16T18:57:54.733413493Z",
+    "beam_current": 150
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005303.hipo.json": {
     "input_file": "nSidis_005303.hipo",
@@ -1042,7 +1136,8 @@
     "Pass_1_PID_Cut_events": 2219549,
     "Multiple_Pions_Per_event": 409198,
     "RunTime_in_secs": 12595,
-    "timestamp": "2026-04-16T22:27:53.970950721Z"
+    "timestamp": "2026-04-16T22:27:53.970950721Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005304.hipo.json": {
     "input_file": "nSidis_005304.hipo",
@@ -1053,7 +1148,8 @@
     "Pass_1_PID_Cut_events": 2141249,
     "Multiple_Pions_Per_event": 395848,
     "RunTime_in_secs": 10313,
-    "timestamp": "2026-04-16T22:04:53.605226830Z"
+    "timestamp": "2026-04-16T22:04:53.605226830Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005305.hipo.json": {
     "input_file": "nSidis_005305.hipo",
@@ -1064,7 +1160,8 @@
     "Pass_1_PID_Cut_events": 827538,
     "Multiple_Pions_Per_event": 151962,
     "RunTime_in_secs": 4866,
-    "timestamp": "2026-04-16T20:36:19.716830933Z"
+    "timestamp": "2026-04-16T20:36:19.716830933Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005306.hipo.json": {
     "input_file": "nSidis_005306.hipo",
@@ -1075,7 +1172,8 @@
     "Pass_1_PID_Cut_events": 2129615,
     "Multiple_Pions_Per_event": 391104,
     "RunTime_in_secs": 10297,
-    "timestamp": "2026-04-16T22:57:02.284354188Z"
+    "timestamp": "2026-04-16T22:57:02.284354188Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005307.hipo.json": {
     "input_file": "nSidis_005307.hipo",
@@ -1086,7 +1184,8 @@
     "Pass_1_PID_Cut_events": 251421,
     "Multiple_Pions_Per_event": 46463,
     "RunTime_in_secs": 1540,
-    "timestamp": "2026-04-16T20:43:42.744449748Z"
+    "timestamp": "2026-04-16T20:43:42.744449748Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005310.hipo.json": {
     "input_file": "nSidis_005310.hipo",
@@ -1097,7 +1196,8 @@
     "Pass_1_PID_Cut_events": 551660,
     "Multiple_Pions_Per_event": 101162,
     "RunTime_in_secs": 2358,
-    "timestamp": "2026-04-16T21:15:42.265703659Z"
+    "timestamp": "2026-04-16T21:15:42.265703659Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005311.hipo.json": {
     "input_file": "nSidis_005311.hipo",
@@ -1108,7 +1208,8 @@
     "Pass_1_PID_Cut_events": 730376,
     "Multiple_Pions_Per_event": 133952,
     "RunTime_in_secs": 3432,
-    "timestamp": "2026-04-16T21:40:59.425521880Z"
+    "timestamp": "2026-04-16T21:40:59.425521880Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005315.hipo.json": {
     "input_file": "nSidis_005315.hipo",
@@ -1119,7 +1220,8 @@
     "Pass_1_PID_Cut_events": 510658,
     "Multiple_Pions_Per_event": 94423,
     "RunTime_in_secs": 2255,
-    "timestamp": "2026-04-16T21:22:02.600019553Z"
+    "timestamp": "2026-04-16T21:22:02.600019553Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005316.hipo.json": {
     "input_file": "nSidis_005316.hipo",
@@ -1130,7 +1232,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 33,
-    "timestamp": "2026-04-16T20:50:40.392441734Z"
+    "timestamp": "2026-04-16T20:50:40.392441734Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005317.hipo.json": {
     "input_file": "nSidis_005317.hipo",
@@ -1141,7 +1244,8 @@
     "Pass_1_PID_Cut_events": 2117854,
     "Multiple_Pions_Per_event": 389676,
     "RunTime_in_secs": 10906,
-    "timestamp": "2026-04-16T23:52:30.134377629Z"
+    "timestamp": "2026-04-16T23:52:30.134377629Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005318.hipo.json": {
     "input_file": "nSidis_005318.hipo",
@@ -1152,7 +1256,8 @@
     "Pass_1_PID_Cut_events": 2123436,
     "Multiple_Pions_Per_event": 389959,
     "RunTime_in_secs": 11356,
-    "timestamp": "2026-04-17T00:25:02.178633433Z"
+    "timestamp": "2026-04-17T00:25:02.178633433Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005319.hipo.json": {
     "input_file": "nSidis_005319.hipo",
@@ -1163,7 +1268,8 @@
     "Pass_1_PID_Cut_events": 2146914,
     "Multiple_Pions_Per_event": 393933,
     "RunTime_in_secs": 10765,
-    "timestamp": "2026-04-17T00:21:32.055314986Z"
+    "timestamp": "2026-04-17T00:21:32.055314986Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005320.hipo.json": {
     "input_file": "nSidis_005320.hipo",
@@ -1174,7 +1280,8 @@
     "Pass_1_PID_Cut_events": 1059691,
     "Multiple_Pions_Per_event": 194703,
     "RunTime_in_secs": 5619,
-    "timestamp": "2026-04-16T23:14:43.607164207Z"
+    "timestamp": "2026-04-16T23:14:43.607164207Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005323.hipo.json": {
     "input_file": "nSidis_005323.hipo",
@@ -1185,7 +1292,8 @@
     "Pass_1_PID_Cut_events": 139119,
     "Multiple_Pions_Per_event": 25467,
     "RunTime_in_secs": 762,
-    "timestamp": "2026-04-16T22:17:42.732439994Z"
+    "timestamp": "2026-04-16T22:17:42.732439994Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005324.hipo.json": {
     "input_file": "nSidis_005324.hipo",
@@ -1196,7 +1304,8 @@
     "Pass_1_PID_Cut_events": 177469,
     "Multiple_Pions_Per_event": 32587,
     "RunTime_in_secs": 973,
-    "timestamp": "2026-04-16T22:34:00.422442381Z"
+    "timestamp": "2026-04-16T22:34:00.422442381Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005325.hipo.json": {
     "input_file": "nSidis_005325.hipo",
@@ -1207,7 +1316,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 31,
-    "timestamp": "2026-04-16T22:28:30.957453283Z"
+    "timestamp": "2026-04-16T22:28:30.957453283Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005333.hipo.json": {
     "input_file": "nSidis_005333.hipo",
@@ -1218,7 +1328,8 @@
     "Pass_1_PID_Cut_events": 529650,
     "Multiple_Pions_Per_event": 94971,
     "RunTime_in_secs": 2500,
-    "timestamp": "2026-04-16T23:10:16.066082030Z"
+    "timestamp": "2026-04-16T23:10:16.066082030Z",
+    "beam_current": 25
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005334.hipo.json": {
     "input_file": "nSidis_005334.hipo",
@@ -1229,7 +1340,8 @@
     "Pass_1_PID_Cut_events": 388154,
     "Multiple_Pions_Per_event": 69431,
     "RunTime_in_secs": 1944,
-    "timestamp": "2026-04-16T23:06:29.211995957Z"
+    "timestamp": "2026-04-16T23:06:29.211995957Z",
+    "beam_current": 35
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005335.hipo.json": {
     "input_file": "nSidis_005335.hipo",
@@ -1240,7 +1352,8 @@
     "Pass_1_PID_Cut_events": 73756,
     "Multiple_Pions_Per_event": 12939,
     "RunTime_in_secs": 403,
-    "timestamp": "2026-04-16T23:03:51.025327091Z"
+    "timestamp": "2026-04-16T23:03:51.025327091Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005336.hipo.json": {
     "input_file": "nSidis_005336.hipo",
@@ -1251,7 +1364,8 @@
     "Pass_1_PID_Cut_events": 48600,
     "Multiple_Pions_Per_event": 8360,
     "RunTime_in_secs": 263,
-    "timestamp": "2026-04-16T23:08:18.860823703Z"
+    "timestamp": "2026-04-16T23:08:18.860823703Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005339.hipo.json": {
     "input_file": "nSidis_005339.hipo",
@@ -1262,7 +1376,8 @@
     "Pass_1_PID_Cut_events": 509138,
     "Multiple_Pions_Per_event": 91617,
     "RunTime_in_secs": 2975,
-    "timestamp": "2026-04-16T23:56:10.432711899Z"
+    "timestamp": "2026-04-16T23:56:10.432711899Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005340.hipo.json": {
     "input_file": "nSidis_005340.hipo",
@@ -1273,7 +1388,8 @@
     "Pass_1_PID_Cut_events": 214605,
     "Multiple_Pions_Per_event": 38736,
     "RunTime_in_secs": 1217,
-    "timestamp": "2026-04-16T23:28:41.254102846Z"
+    "timestamp": "2026-04-16T23:28:41.254102846Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005341.hipo.json": {
     "input_file": "nSidis_005341.hipo",
@@ -1284,7 +1400,8 @@
     "Pass_1_PID_Cut_events": 693803,
     "Multiple_Pions_Per_event": 124730,
     "RunTime_in_secs": 3846,
-    "timestamp": "2026-04-17T00:14:27.382873164Z"
+    "timestamp": "2026-04-17T00:14:27.382873164Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005342.hipo.json": {
     "input_file": "nSidis_005342.hipo",
@@ -1295,7 +1412,8 @@
     "Pass_1_PID_Cut_events": 662152,
     "Multiple_Pions_Per_event": 120897,
     "RunTime_in_secs": 3747,
-    "timestamp": "2026-04-17T00:17:16.714575353Z"
+    "timestamp": "2026-04-17T00:17:16.714575353Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005343.hipo.json": {
     "input_file": "nSidis_005343.hipo",
@@ -1306,7 +1424,8 @@
     "Pass_1_PID_Cut_events": 343136,
     "Multiple_Pions_Per_event": 62275,
     "RunTime_in_secs": 2003,
-    "timestamp": "2026-04-17T00:02:10.908466785Z"
+    "timestamp": "2026-04-17T00:02:10.908466785Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005344.hipo.json": {
     "input_file": "nSidis_005344.hipo",
@@ -1317,7 +1436,8 @@
     "Pass_1_PID_Cut_events": 893711,
     "Multiple_Pions_Per_event": 158342,
     "RunTime_in_secs": 4204,
-    "timestamp": "2026-04-17T01:02:40.482629494Z"
+    "timestamp": "2026-04-17T01:02:40.482629494Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005345.hipo.json": {
     "input_file": "nSidis_005345.hipo",
@@ -1328,7 +1448,8 @@
     "Pass_1_PID_Cut_events": 2178193,
     "Multiple_Pions_Per_event": 394165,
     "RunTime_in_secs": 10556,
-    "timestamp": "2026-04-17T02:52:12.486393802Z"
+    "timestamp": "2026-04-17T02:52:12.486393802Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005346.hipo.json": {
     "input_file": "nSidis_005346.hipo",
@@ -1339,7 +1460,8 @@
     "Pass_1_PID_Cut_events": 2186456,
     "Multiple_Pions_Per_event": 397478,
     "RunTime_in_secs": 10263,
-    "timestamp": "2026-04-17T02:53:19.378404095Z"
+    "timestamp": "2026-04-17T02:53:19.378404095Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005347.hipo.json": {
     "input_file": "nSidis_005347.hipo",
@@ -1350,7 +1472,8 @@
     "Pass_1_PID_Cut_events": 987722,
     "Multiple_Pions_Per_event": 175407,
     "RunTime_in_secs": 5073,
-    "timestamp": "2026-04-17T01:39:05.927168108Z"
+    "timestamp": "2026-04-17T01:39:05.927168108Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005349.hipo.json": {
     "input_file": "nSidis_005349.hipo",
@@ -1361,7 +1484,8 @@
     "Pass_1_PID_Cut_events": 1372246,
     "Multiple_Pions_Per_event": 249381,
     "RunTime_in_secs": 6371,
-    "timestamp": "2026-04-17T02:03:34.199369124Z"
+    "timestamp": "2026-04-17T02:03:34.199369124Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005351.hipo.json": {
     "input_file": "nSidis_005351.hipo",
@@ -1372,7 +1496,8 @@
     "Pass_1_PID_Cut_events": 301141,
     "Multiple_Pions_Per_event": 54944,
     "RunTime_in_secs": 1497,
-    "timestamp": "2026-04-17T00:46:36.267847108Z"
+    "timestamp": "2026-04-17T00:46:36.267847108Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005354.hipo.json": {
     "input_file": "nSidis_005354.hipo",
@@ -1383,7 +1508,8 @@
     "Pass_1_PID_Cut_events": 2170681,
     "Multiple_Pions_Per_event": 394606,
     "RunTime_in_secs": 10247,
-    "timestamp": "2026-04-17T03:15:54.754674189Z"
+    "timestamp": "2026-04-17T03:15:54.754674189Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005355.hipo.json": {
     "input_file": "nSidis_005355.hipo",
@@ -1394,7 +1520,8 @@
     "Pass_1_PID_Cut_events": 972849,
     "Multiple_Pions_Per_event": 177195,
     "RunTime_in_secs": 4578,
-    "timestamp": "2026-04-17T02:02:59.065084044Z"
+    "timestamp": "2026-04-17T02:02:59.065084044Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005356.hipo.json": {
     "input_file": "nSidis_005356.hipo",
@@ -1405,7 +1532,8 @@
     "Pass_1_PID_Cut_events": 2108074,
     "Multiple_Pions_Per_event": 384103,
     "RunTime_in_secs": 9372,
-    "timestamp": "2026-04-17T03:38:56.751258566Z"
+    "timestamp": "2026-04-17T03:38:56.751258566Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005357.hipo.json": {
     "input_file": "nSidis_005357.hipo",
@@ -1416,7 +1544,8 @@
     "Pass_1_PID_Cut_events": 2126022,
     "Multiple_Pions_Per_event": 390745,
     "RunTime_in_secs": 9972,
-    "timestamp": "2026-04-17T04:25:22.365451307Z"
+    "timestamp": "2026-04-17T04:25:22.365451307Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005358.hipo.json": {
     "input_file": "nSidis_005358.hipo",
@@ -1427,7 +1556,8 @@
     "Pass_1_PID_Cut_events": 2151189,
     "Multiple_Pions_Per_event": 396202,
     "RunTime_in_secs": 9776,
-    "timestamp": "2026-04-17T04:45:59.947241213Z"
+    "timestamp": "2026-04-17T04:45:59.947241213Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005359.hipo.json": {
     "input_file": "nSidis_005359.hipo",
@@ -1438,7 +1568,8 @@
     "Pass_1_PID_Cut_events": 2151316,
     "Multiple_Pions_Per_event": 395762,
     "RunTime_in_secs": 9587,
-    "timestamp": "2026-04-17T04:43:25.591590683Z"
+    "timestamp": "2026-04-17T04:43:25.591590683Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005360.hipo.json": {
     "input_file": "nSidis_005360.hipo",
@@ -1449,7 +1580,8 @@
     "Pass_1_PID_Cut_events": 2133832,
     "Multiple_Pions_Per_event": 391190,
     "RunTime_in_secs": 9526,
-    "timestamp": "2026-04-17T05:31:03.058627251Z"
+    "timestamp": "2026-04-17T05:31:03.058627251Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005361.hipo.json": {
     "input_file": "nSidis_005361.hipo",
@@ -1460,7 +1592,8 @@
     "Pass_1_PID_Cut_events": 2109520,
     "Multiple_Pions_Per_event": 387411,
     "RunTime_in_secs": 9317,
-    "timestamp": "2026-04-17T05:28:40.750171888Z"
+    "timestamp": "2026-04-17T05:28:40.750171888Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005362.hipo.json": {
     "input_file": "nSidis_005362.hipo",
@@ -1471,7 +1604,8 @@
     "Pass_1_PID_Cut_events": 151221,
     "Multiple_Pions_Per_event": 27579,
     "RunTime_in_secs": 695,
-    "timestamp": "2026-04-17T03:27:33.860583772Z"
+    "timestamp": "2026-04-17T03:27:33.860583772Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005366.hipo.json": {
     "input_file": "nSidis_005366.hipo",
@@ -1482,7 +1616,8 @@
     "Pass_1_PID_Cut_events": 2238318,
     "Multiple_Pions_Per_event": 409613,
     "RunTime_in_secs": 9545,
-    "timestamp": "2026-04-17T06:06:43.622807052Z"
+    "timestamp": "2026-04-17T06:06:43.622807052Z",
+    "beam_current": 50
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005367.hipo.json": {
     "input_file": "nSidis_005367.hipo",
@@ -1493,7 +1628,8 @@
     "Pass_1_PID_Cut_events": 2100111,
     "Multiple_Pions_Per_event": 388253,
     "RunTime_in_secs": 9084,
-    "timestamp": "2026-04-17T06:10:24.881388896Z"
+    "timestamp": "2026-04-17T06:10:24.881388896Z",
+    "beam_current": 45
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005368.hipo.json": {
     "input_file": "nSidis_005368.hipo",
@@ -1504,7 +1640,8 @@
     "Pass_1_PID_Cut_events": 1832857,
     "Multiple_Pions_Per_event": 339346,
     "RunTime_in_secs": 7518,
-    "timestamp": "2026-04-17T06:30:45.863560546Z"
+    "timestamp": "2026-04-17T06:30:45.863560546Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005369.hipo.json": {
     "input_file": "nSidis_005369.hipo",
@@ -1515,7 +1652,8 @@
     "Pass_1_PID_Cut_events": 530984,
     "Multiple_Pions_Per_event": 98499,
     "RunTime_in_secs": 2478,
-    "timestamp": "2026-04-17T05:24:46.722472307Z"
+    "timestamp": "2026-04-17T05:24:46.722472307Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005370.hipo.json": {
     "input_file": "nSidis_005370.hipo",
@@ -1526,7 +1664,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 192,
-    "timestamp": "2026-04-17T04:49:15.610845137Z"
+    "timestamp": "2026-04-17T04:49:15.610845137Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005371.hipo.json": {
     "input_file": "nSidis_005371.hipo",
@@ -1537,7 +1676,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 12,
-    "timestamp": "2026-04-17T04:49:30.991583445Z"
+    "timestamp": "2026-04-17T04:49:30.991583445Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005372.hipo.json": {
     "input_file": "nSidis_005372.hipo",
@@ -1548,7 +1688,8 @@
     "Pass_1_PID_Cut_events": 2058431,
     "Multiple_Pions_Per_event": 382657,
     "RunTime_in_secs": 8613,
-    "timestamp": "2026-04-17T07:13:08.482353832Z"
+    "timestamp": "2026-04-17T07:13:08.482353832Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005373.hipo.json": {
     "input_file": "nSidis_005373.hipo",
@@ -1559,7 +1700,8 @@
     "Pass_1_PID_Cut_events": 2012268,
     "Multiple_Pions_Per_event": 372963,
     "RunTime_in_secs": 8182,
-    "timestamp": "2026-04-17T07:41:13.573188166Z"
+    "timestamp": "2026-04-17T07:41:13.573188166Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005374.hipo.json": {
     "input_file": "nSidis_005374.hipo",
@@ -1570,7 +1712,8 @@
     "Pass_1_PID_Cut_events": 2110779,
     "Multiple_Pions_Per_event": 390882,
     "RunTime_in_secs": 8523,
-    "timestamp": "2026-04-17T07:50:48.316253321Z"
+    "timestamp": "2026-04-17T07:50:48.316253321Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005375.hipo.json": {
     "input_file": "nSidis_005375.hipo",
@@ -1581,7 +1724,8 @@
     "Pass_1_PID_Cut_events": 2140597,
     "Multiple_Pions_Per_event": 395114,
     "RunTime_in_secs": 8556,
-    "timestamp": "2026-04-17T07:53:43.750310521Z"
+    "timestamp": "2026-04-17T07:53:43.750310521Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005376.hipo.json": {
     "input_file": "nSidis_005376.hipo",
@@ -1592,7 +1736,8 @@
     "Pass_1_PID_Cut_events": 1612700,
     "Multiple_Pions_Per_event": 297810,
     "RunTime_in_secs": 6333,
-    "timestamp": "2026-04-17T07:52:20.455798272Z"
+    "timestamp": "2026-04-17T07:52:20.455798272Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005377.hipo.json": {
     "input_file": "nSidis_005377.hipo",
@@ -1603,7 +1748,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 10,
-    "timestamp": "2026-04-17T06:10:40.033855876Z"
+    "timestamp": "2026-04-17T06:10:40.033855876Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005378.hipo.json": {
     "input_file": "nSidis_005378.hipo",
@@ -1614,7 +1760,8 @@
     "Pass_1_PID_Cut_events": 207284,
     "Multiple_Pions_Per_event": 38354,
     "RunTime_in_secs": 822,
-    "timestamp": "2026-04-17T06:24:26.259187967Z"
+    "timestamp": "2026-04-17T06:24:26.259187967Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005379.hipo.json": {
     "input_file": "nSidis_005379.hipo",
@@ -1625,7 +1772,8 @@
     "Pass_1_PID_Cut_events": 2152366,
     "Multiple_Pions_Per_event": 395929,
     "RunTime_in_secs": 8745,
-    "timestamp": "2026-04-17T08:50:16.080052928Z"
+    "timestamp": "2026-04-17T08:50:16.080052928Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005380.hipo.json": {
     "input_file": "nSidis_005380.hipo",
@@ -1636,7 +1784,8 @@
     "Pass_1_PID_Cut_events": 1982419,
     "Multiple_Pions_Per_event": 363817,
     "RunTime_in_secs": 7996,
-    "timestamp": "2026-04-17T08:44:06.457138022Z"
+    "timestamp": "2026-04-17T08:44:06.457138022Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005381.hipo.json": {
     "input_file": "nSidis_005381.hipo",
@@ -1647,7 +1796,8 @@
     "Pass_1_PID_Cut_events": 2057664,
     "Multiple_Pions_Per_event": 376702,
     "RunTime_in_secs": 8048,
-    "timestamp": "2026-04-17T09:27:20.358937984Z"
+    "timestamp": "2026-04-17T09:27:20.358937984Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005382.hipo.json": {
     "input_file": "nSidis_005382.hipo",
@@ -1658,7 +1808,8 @@
     "Pass_1_PID_Cut_events": 1574741,
     "Multiple_Pions_Per_event": 288372,
     "RunTime_in_secs": 6180,
-    "timestamp": "2026-04-17T09:24:18.123374596Z"
+    "timestamp": "2026-04-17T09:24:18.123374596Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005383.hipo.json": {
     "input_file": "nSidis_005383.hipo",
@@ -1669,7 +1820,8 @@
     "Pass_1_PID_Cut_events": 1552160,
     "Multiple_Pions_Per_event": 284242,
     "RunTime_in_secs": 6043,
-    "timestamp": "2026-04-17T09:31:35.257184224Z"
+    "timestamp": "2026-04-17T09:31:35.257184224Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005386.hipo.json": {
     "input_file": "nSidis_005386.hipo",
@@ -1680,7 +1832,8 @@
     "Pass_1_PID_Cut_events": 1025773,
     "Multiple_Pions_Per_event": 186772,
     "RunTime_in_secs": 4022,
-    "timestamp": "2026-04-17T08:59:26.410459314Z"
+    "timestamp": "2026-04-17T08:59:26.410459314Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005390.hipo.json": {
     "input_file": "nSidis_005390.hipo",
@@ -1691,7 +1844,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 12,
-    "timestamp": "2026-04-17T07:54:00.068732355Z"
+    "timestamp": "2026-04-17T07:54:00.068732355Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005391.hipo.json": {
     "input_file": "nSidis_005391.hipo",
@@ -1702,7 +1856,8 @@
     "Pass_1_PID_Cut_events": 2016888,
     "Multiple_Pions_Per_event": 366412,
     "RunTime_in_secs": 7769,
-    "timestamp": "2026-04-17T10:03:32.239602995Z"
+    "timestamp": "2026-04-17T10:03:32.239602995Z",
+    "beam_current": 52
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005392.hipo.json": {
     "input_file": "nSidis_005392.hipo",
@@ -1713,7 +1868,8 @@
     "Pass_1_PID_Cut_events": 1097597,
     "Multiple_Pions_Per_event": 201624,
     "RunTime_in_secs": 4266,
-    "timestamp": "2026-04-17T09:55:16.892569824Z"
+    "timestamp": "2026-04-17T09:55:16.892569824Z",
+    "beam_current": 54
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005393.hipo.json": {
     "input_file": "nSidis_005393.hipo",
@@ -1724,7 +1880,8 @@
     "Pass_1_PID_Cut_events": 2010797,
     "Multiple_Pions_Per_event": 367901,
     "RunTime_in_secs": 7675,
-    "timestamp": "2026-04-17T10:58:14.912682723Z"
+    "timestamp": "2026-04-17T10:58:14.912682723Z",
+    "beam_current": 53
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005398.hipo.json": {
     "input_file": "nSidis_005398.hipo",
@@ -1735,7 +1892,8 @@
     "Pass_1_PID_Cut_events": 224810,
     "Multiple_Pions_Per_event": 41602,
     "RunTime_in_secs": 898,
-    "timestamp": "2026-04-17T09:14:29.319122659Z"
+    "timestamp": "2026-04-17T09:14:29.319122659Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005400.hipo.json": {
     "input_file": "nSidis_005400.hipo",
@@ -1746,7 +1904,8 @@
     "Pass_1_PID_Cut_events": 186037,
     "Multiple_Pions_Per_event": 34084,
     "RunTime_in_secs": 759,
-    "timestamp": "2026-04-17T09:27:12.108630650Z"
+    "timestamp": "2026-04-17T09:27:12.108630650Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005401.hipo.json": {
     "input_file": "nSidis_005401.hipo",
@@ -1757,7 +1916,8 @@
     "Pass_1_PID_Cut_events": 176974,
     "Multiple_Pions_Per_event": 32911,
     "RunTime_in_secs": 710,
-    "timestamp": "2026-04-17T09:36:12.184791775Z"
+    "timestamp": "2026-04-17T09:36:12.184791775Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005402.hipo.json": {
     "input_file": "nSidis_005402.hipo",
@@ -1768,7 +1928,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 17,
-    "timestamp": "2026-04-17T09:27:33.885110438Z"
+    "timestamp": "2026-04-17T09:27:33.885110438Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005403.hipo.json": {
     "input_file": "nSidis_005403.hipo",
@@ -1779,7 +1940,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 25,
-    "timestamp": "2026-04-17T09:27:49.986090567Z"
+    "timestamp": "2026-04-17T09:27:49.986090567Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005404.hipo.json": {
     "input_file": "nSidis_005404.hipo",
@@ -1790,7 +1952,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 10,
-    "timestamp": "2026-04-17T09:27:47.527020314Z"
+    "timestamp": "2026-04-17T09:27:47.527020314Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005406.hipo.json": {
     "input_file": "nSidis_005406.hipo",
@@ -1801,7 +1964,8 @@
     "Pass_1_PID_Cut_events": 1004376,
     "Multiple_Pions_Per_event": 184377,
     "RunTime_in_secs": 3993,
-    "timestamp": "2026-04-17T10:34:24.266426157Z"
+    "timestamp": "2026-04-17T10:34:24.266426157Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005407.hipo.json": {
     "input_file": "nSidis_005407.hipo",
@@ -1812,7 +1976,8 @@
     "Pass_1_PID_Cut_events": 2300531,
     "Multiple_Pions_Per_event": 422840,
     "RunTime_in_secs": 8881,
-    "timestamp": "2026-04-17T11:55:54.041971193Z"
+    "timestamp": "2026-04-17T11:55:54.041971193Z",
+    "beam_current": 55
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005414.hipo.json": {
     "input_file": "nSidis_005414.hipo",
@@ -1823,7 +1988,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 26,
-    "timestamp": "2026-04-17T09:32:05.881776718Z"
+    "timestamp": "2026-04-17T09:32:05.881776718Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005415.hipo.json": {
     "input_file": "nSidis_005415.hipo",
@@ -1834,7 +2000,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 16,
-    "timestamp": "2026-04-17T09:32:25.955495663Z"
+    "timestamp": "2026-04-17T09:32:25.955495663Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005416.hipo.json": {
     "input_file": "nSidis_005416.hipo",
@@ -1845,7 +2012,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 33,
-    "timestamp": "2026-04-17T09:33:02.413223916Z"
+    "timestamp": "2026-04-17T09:33:02.413223916Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005417.hipo.json": {
     "input_file": "nSidis_005417.hipo",
@@ -1856,7 +2024,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 34,
-    "timestamp": "2026-04-17T09:33:39.659863609Z"
+    "timestamp": "2026-04-17T09:33:39.659863609Z",
+    "beam_current": 40
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005418.hipo.json": {
     "input_file": "nSidis_005418.hipo",
@@ -1867,7 +2036,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 19,
-    "timestamp": "2026-04-17T09:34:03.074465688Z"
+    "timestamp": "2026-04-17T09:34:03.074465688Z",
+    "beam_current": 5
   },
   "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005419.hipo.json": {
     "input_file": "nSidis_005419.hipo",
@@ -1878,7 +2048,8 @@
     "Pass_1_PID_Cut_events": 0,
     "Multiple_Pions_Per_event": 0,
     "RunTime_in_secs": 18,
-    "timestamp": "2026-04-17T09:34:24.776798251Z"
+    "timestamp": "2026-04-17T09:34:24.776798251Z",
+    "beam_current": 5
   },
   "Final_Totals": {
     "Date_Compiled": "Ran on 4-22-2026 at 06:54 p.m.",
@@ -1888,6 +2059,245 @@
     "Total_events_after_PID_Cuts": 163863420,
     "Total_Pass_1_PID_Cut_events": 198638581,
     "Total_Multiple_Pions_Per_event": 36493757,
-    "Average_Runtime": "5315.7310 seconds (1.4766 hours)"
+    "Average_Runtime": "5315.7310 seconds (1.4766 hours)",
+    "beam_current_update_note": "Beam currents for each run were added on 7/20/2026 via an external update that was not native to the main file processors. Nominal operational beam currents (nA) were taken primarily from the CLAS12 RG-A Fall 2018 run spreadsheet column \"Current (nA)\" (https://docs.google.com/spreadsheets/d/1NpojoOi7_gTt_abxgKoHBlofOL7iNWDrtYuiOJ1zoMw), which is linked from the Run Group A HallB wiki (https://clasweb.jlab.org/wiki/index.php/Run_Group_A). Values were cross-checked against the CLAS12 Run Conditions Database (RCDB) fields beam_current_request and beam_current at https://clasweb.jlab.org/rcdb (per-run pages of the form https://clasweb.jlab.org/rcdb/runs/info/<RUN>). RCDB measured beam_current can be ~0 at end-of-run when the beam was off; the spreadsheet / requested current is used as the stored nominal beam_current for analysis."
+  },
+  "Summary": {
+    "zero_total_events_count": 30,
+    "zero_total_events_files": [
+      {
+        "run": 5032,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005032.hipo.json",
+        "input_file": "nSidis_005032.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5116,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005116.hipo.json",
+        "input_file": "nSidis_005116.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5117,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005117.hipo.json",
+        "input_file": "nSidis_005117.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5119,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005119.hipo.json",
+        "input_file": "nSidis_005119.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5127,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005127.hipo.json",
+        "input_file": "nSidis_005127.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5137,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005137.hipo.json",
+        "input_file": "nSidis_005137.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5138,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005138.hipo.json",
+        "input_file": "nSidis_005138.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5194,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005194.hipo.json",
+        "input_file": "nSidis_005194.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5215,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005215.hipo.json",
+        "input_file": "nSidis_005215.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5225,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005225.hipo.json",
+        "input_file": "nSidis_005225.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5229,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005229.hipo.json",
+        "input_file": "nSidis_005229.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5250,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005250.hipo.json",
+        "input_file": "nSidis_005250.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5300,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005300.hipo.json",
+        "input_file": "nSidis_005300.hipo",
+        "beam_current": 150,
+        "total_events": 0
+      },
+      {
+        "run": 5301,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005301.hipo.json",
+        "input_file": "nSidis_005301.hipo",
+        "beam_current": 140,
+        "total_events": 0
+      },
+      {
+        "run": 5302,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005302.hipo.json",
+        "input_file": "nSidis_005302.hipo",
+        "beam_current": 150,
+        "total_events": 0
+      },
+      {
+        "run": 5316,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005316.hipo.json",
+        "input_file": "nSidis_005316.hipo",
+        "beam_current": 40,
+        "total_events": 0
+      },
+      {
+        "run": 5325,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005325.hipo.json",
+        "input_file": "nSidis_005325.hipo",
+        "beam_current": 45,
+        "total_events": 0
+      },
+      {
+        "run": 5370,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005370.hipo.json",
+        "input_file": "nSidis_005370.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5371,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005371.hipo.json",
+        "input_file": "nSidis_005371.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5377,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005377.hipo.json",
+        "input_file": "nSidis_005377.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5390,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005390.hipo.json",
+        "input_file": "nSidis_005390.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5402,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005402.hipo.json",
+        "input_file": "nSidis_005402.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5403,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005403.hipo.json",
+        "input_file": "nSidis_005403.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5404,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005404.hipo.json",
+        "input_file": "nSidis_005404.hipo",
+        "beam_current": 55,
+        "total_events": 0
+      },
+      {
+        "run": 5414,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005414.hipo.json",
+        "input_file": "nSidis_005414.hipo",
+        "beam_current": 40,
+        "total_events": 0
+      },
+      {
+        "run": 5415,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005415.hipo.json",
+        "input_file": "nSidis_005415.hipo",
+        "beam_current": 40,
+        "total_events": 0
+      },
+      {
+        "run": 5416,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005416.hipo.json",
+        "input_file": "nSidis_005416.hipo",
+        "beam_current": 40,
+        "total_events": 0
+      },
+      {
+        "run": 5417,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005417.hipo.json",
+        "input_file": "nSidis_005417.hipo",
+        "beam_current": 40,
+        "total_events": 0
+      },
+      {
+        "run": 5418,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005418.hipo.json",
+        "input_file": "nSidis_005418.hipo",
+        "beam_current": 5,
+        "total_events": 0
+      },
+      {
+        "run": 5419,
+        "file_key": "File: Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_005419.hipo.json",
+        "input_file": "nSidis_005419.hipo",
+        "beam_current": 5,
+        "total_events": 0
+      }
+    ],
+    "cut_beam_currents": {
+      "description": "Beam current values that appear only on runs/files with total_events == 0 (no surviving events in this skim set).",
+      "values_nA": [
+        5,
+        140,
+        150
+      ],
+      "empty_runs_by_cut_current": {
+        "5": [
+          5418,
+          5419
+        ],
+        "140": [
+          5301
+        ],
+        "150": [
+          5300,
+          5302
+        ]
+      }
+    },
+    "missing_beam_current_runs": [],
+    "Notes": "This Summary was generated on 7/20/2026 after an external (non-processor-native) update that added a beam_current field to every File entry in this JSON. zero_total_events_count is the total number of File entries (equivalently runs) whose total_events field is exactly 0 in this charge-summary nSIDIS skim dataset. zero_total_events_files lists each of those empty files/runs with their run number, JSON file_key, input_file name, assigned beam_current (nA), and total_events=0 so they can be traced back to the parent entries. cut_beam_currents lists unique beam_current values (nA) that are no longer represented among files that have some events (total_events > 0): if every instance of a particular beam current in this JSON is associated only with zero-event runs, that value is a \"cut current\" for the event-bearing sample. empty_runs_by_cut_current maps each such cut current (as a string key) to the list of empty run numbers that carried that current. missing_beam_current_runs lists any run present in this JSON for which no known beam current value could be assigned from the Fall 2018 spreadsheet / RCDB lookup; an empty list means every run received a beam_current. Primary beam-current source: RG-A Fall 2018 spreadsheet https://docs.google.com/spreadsheets/d/1NpojoOi7_gTt_abxgKoHBlofOL7iNWDrtYuiOJ1zoMw ; cross-check: RCDB https://clasweb.jlab.org/rcdb ; wiki link: https://clasweb.jlab.org/wiki/index.php/Run_Group_A."
   }
 }
