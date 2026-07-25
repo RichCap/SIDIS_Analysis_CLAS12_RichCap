@@ -142,7 +142,14 @@ def parse_args():
     parser.add_argument('-hpp_in', '--hpp_input_file',
                         type=str,
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp", 
-                        help="hpp file path that is used to apply the acceptance weights used/created by the '--make_2D_weight', '--make_2D_weight_check, and '--make_2D_weight_binned_check' options in 'using_RDataFrames_python.py'.\n")
+                        help="Pure-acceptance HPP (accw_* symbols) for Event_Weight_Acc.\n")
+    parser.add_argument('-hpp_sw', '--hpp_input_file_spline',
+                        type=str,
+                        default=None,
+                        help="Combined Acc+physics HPP (accw_sw_* symbols) for Event_Weight_AccSpline/AccJSON. Falls back to --hpp_input_file if unset.\n")
+    parser.add_argument('-us', '--unsmeared',
+                        action='store_true',
+                        help="Use unsmeared reconstructed-MC columns (Histo_Smear=''). Required for cut_Complete_SIDIS_noSmear.\n")
     parser.add_argument('-f', '--fast',
                         action='store_true',
                         help="Tries to run the code faster by skipping some printed outputs that take more time to run.\n")
@@ -564,6 +571,8 @@ if(__name__ == "__main__"):
         raise ValueError("--spline_weights was used but no --spline_file was provided!")
     if((args.json_weights) and (args.spline_weights)):
         raise ValueError("--json_weights and --spline_weights are mutually exclusive (same physics factor).")
+    if((("noSmear" in str(args.cut_name_rdf)) or ("noSmear" in str(args.cut_name_mdf))) and (not getattr(args, "unsmeared", False))):
+        raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared")
     
     if((args.name is not None) and (str(args.name) not in str(args.root))):
         args.root = f'{str(args.root).split(".root")[0]}_{args.name}.root'
@@ -583,9 +592,14 @@ if(__name__ == "__main__"):
     
     # JSON_WEIGHT_FILE = args.json_file
     
-    # Load the self-contained, generated header for acceptance weights (helpers + accw_* functions)
-    print(f"{color.BBLUE}Loading {color.END_B}{args.hpp_input_file}{color.BBLUE} for acceptance weights (if applicable){color.END}\n")
+    # Load pure-acceptance HPP (accw_*) and optional combined Acc+physics HPP (accw_sw_*)
+    print(f"{color.BBLUE}Loading pure HPP {color.END_B}{args.hpp_input_file}{color.BBLUE} for Acc weights (if applicable){color.END}\n")
     ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+    if(getattr(args, "hpp_input_file_spline", None)):
+        print(f"{color.BBLUE}Loading combined HPP {color.END_B}{args.hpp_input_file_spline}{color.BBLUE} for AccPhys weights{color.END}\n")
+        ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file_spline}"')
+    elif((args.use_hpp or args.angles_only_hpp) and (args.spline_weights or args.json_weights)):
+        Update_Email(args, update_message=f"{color.Error}WARNING: --hpp_input_file_spline unset; AccPhys will reuse pure accw_* from --hpp_input_file{color.END}", verbose_override=True)
     
     if(not args.use_hpp):
         Update_Email(args, update_message=f"{color.Error}Not using Acceptance Weights{color.END}", verbose_override=True)
@@ -949,15 +963,28 @@ if(__name__ == "__main__"):
             w_phys_mdf = "1.0"
             phys_tag   = None
 
-        # 2) Factor columns W_phys / W_acc
+        # 2) Factor columns W_phys / W_acc_pure (accw_*) / W_acc_comb (accw_sw_* when available)
+        rec_suf = "" if(getattr(args, "unsmeared", False)) else "_smeared"
+        use_comb_hpp = bool(getattr(args, "hpp_input_file_spline", None))
         gdf_clasdis = gdf_clasdis.Define("W_phys", w_phys_gdf)
         mdf_clasdis = mdf_clasdis.Define("W_phys", w_phys_mdf)
         if(use_acc):
             if(args.angles_only_hpp):
-                mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared))")
+                mdf_clasdis = mdf_clasdis.Define("W_acc_pure", f"(accw_elPhi_vs_pipPhi(elPhi{rec_suf}, pipPhi{rec_suf})) * (accw_elth_vs_pipth(elth{rec_suf}, pipth{rec_suf}))")
+                if(use_comb_hpp):
+                    mdf_clasdis = mdf_clasdis.Define("W_acc_comb", f"(accw_sw_elPhi_vs_pipPhi(elPhi{rec_suf}, pipPhi{rec_suf})) * (accw_sw_elth_vs_pipth(elth{rec_suf}, pipth{rec_suf}))")
+                else:
+                    mdf_clasdis = mdf_clasdis.Define("W_acc_comb", "W_acc_pure")
             else:
-                mdf_clasdis = mdf_clasdis.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+                mdf_clasdis = mdf_clasdis.Define("W_acc_pure", f"(accw_elPhi_vs_pipPhi(elPhi{rec_suf}, pipPhi{rec_suf})) * (accw_elth_vs_pipth(elth{rec_suf}, pipth{rec_suf})) * (accw_el_vs_pip(el{rec_suf}, pip{rec_suf}))")
+                if(use_comb_hpp):
+                    mdf_clasdis = mdf_clasdis.Define("W_acc_comb", f"(accw_sw_elPhi_vs_pipPhi(elPhi{rec_suf}, pipPhi{rec_suf})) * (accw_sw_elth_vs_pipth(elth{rec_suf}, pipth{rec_suf})) * (accw_sw_el_vs_pip(el{rec_suf}, pip{rec_suf}))")
+                else:
+                    mdf_clasdis = mdf_clasdis.Define("W_acc_comb", "W_acc_pure")
+            mdf_clasdis = mdf_clasdis.Define("W_acc", "W_acc_pure")
         else:
+            mdf_clasdis = mdf_clasdis.Define("W_acc_pure", "1.0")
+            mdf_clasdis = mdf_clasdis.Define("W_acc_comb", "1.0")
             mdf_clasdis = mdf_clasdis.Define("W_acc", "1.0")
 
         # 3) Physics-only product columns (no acceptance renorm)
@@ -995,12 +1022,14 @@ if(__name__ == "__main__"):
 
         Histograms_All = {}
         # 4) Acceptance (+ AccPhys) renormed product columns on mdf
+        do_not_use_smeared = bool(getattr(args, "unsmeared", False))
         if(use_acc):
-            # Acc-only: renorm with W_pre = 1
+            # Acc-only: renorm with W_pre = 1 and pure HPP (W_acc_pure)
             mdf_clasdis = mdf_clasdis.Redefine("W_pre", "1.0") if(mdf_clasdis.HasColumn("W_pre")) else mdf_clasdis.Define("W_pre", "1.0")
+            mdf_clasdis = mdf_clasdis.Redefine("W_acc", "W_acc_pure")
             mdf_clasdis = mdf_clasdis.Redefine("Event_Weight_raw", "W_pre * W_acc") if(mdf_clasdis.HasColumn("Event_Weight_raw")) else mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc")
             if(args.use_hpp):
-                mdf_clasdis, args, Additional_Histos = weight_norm_by_bins_wHisto(df_in=mdf_clasdis, Histo_Data_In="mdf", args=args, Do_not_use_Smeared=False, Valerii_binning=args.valerii_bins, target_event_weight_col="Event_Weight_Acc")
+                mdf_clasdis, args, Additional_Histos = weight_norm_by_bins_wHisto(df_in=mdf_clasdis, Histo_Data_In="mdf", args=args, Do_not_use_Smeared=do_not_use_smeared, Valerii_binning=args.valerii_bins, target_event_weight_col="Event_Weight_Acc")
                 if(isinstance(Additional_Histos, str)):
                     Crash_Report(args, crash_message=f"{Additional_Histos}\n{color.END_B}Will Continue Running Anyway...{color.END}", continue_run=True)
                 elif(isinstance(Additional_Histos, dict)):
@@ -1014,13 +1043,14 @@ if(__name__ == "__main__"):
             else:
                 # angles_only without full use_hpp: Acc product without bin renorm
                 mdf_clasdis = mdf_clasdis.Define("Event_Weight_Acc", f"{rho_mdf} * W_acc")
-            # AccPhys: renorm with W_pre = W_phys
+            # AccPhys: renorm with W_pre = W_phys and combined HPP (W_acc_comb / accw_sw_*)
             if(phys_tag is not None):
                 acc_phys_col = f"Event_Weight_Acc{phys_tag}"
                 mdf_clasdis  = mdf_clasdis.Redefine("W_pre", "W_phys")
+                mdf_clasdis  = mdf_clasdis.Redefine("W_acc", "W_acc_comb")
                 mdf_clasdis  = mdf_clasdis.Redefine("Event_Weight_raw", "W_pre * W_acc")
                 if(args.use_hpp):
-                    mdf_clasdis, args, Additional_Histos = weight_norm_by_bins_wHisto(df_in=mdf_clasdis, Histo_Data_In="mdf", args=args, Do_not_use_Smeared=False, Valerii_binning=args.valerii_bins, target_event_weight_col=acc_phys_col)
+                    mdf_clasdis, args, Additional_Histos = weight_norm_by_bins_wHisto(df_in=mdf_clasdis, Histo_Data_In="mdf", args=args, Do_not_use_Smeared=do_not_use_smeared, Valerii_binning=args.valerii_bins, target_event_weight_col=acc_phys_col)
                     if(isinstance(Additional_Histos, str)):
                         Crash_Report(args, crash_message=f"{Additional_Histos}\n{color.END_B}Will Continue Running Anyway...{color.END}", continue_run=True)
                     elif(isinstance(Additional_Histos, dict)):
@@ -1045,18 +1075,21 @@ if(__name__ == "__main__"):
 
         weight_specs_mdf = enabled_weight_specs(args, "mdf")
         weight_specs_gdf = enabled_weight_specs(args, "gdf")
+        mdf_smear_type   = "" if(getattr(args, "unsmeared", False)) else "smear"
         print(f"{color.BLUE}Will be saving to: {color.BGREEN}{args.root}{color.END}")
         print(f"{color.BBLUE}Weight tags (mdf): {color.END_B}{[tag for tag, col in weight_specs_mdf]}{color.END}")
         print(f"{color.BBLUE}Weight tags (gdf): {color.END_B}{[tag for tag, col in weight_specs_gdf]}{color.END}")
+        if(getattr(args, "unsmeared", False)):
+            print(f"{color.BBLUE}Unsmeared mode: mdf Histo_Smear=''{color.END}")
         sys.stdout.flush()
-        Res_Binning_2D_z_pT_In     = ["z_pT_Bin_Y_bin_smeared",           -0.5,     37.5,    38]
+        Res_Binning_2D_z_pT_In     = ["z_pT_Bin_Y_bin_smeared",           -0.5,     37.5,    38] if(not getattr(args, "unsmeared", False)) else ["z_pT_Bin_Y_bin", -0.5, 37.5, 38]
         z_pT_phi_h_Binning         = ['MultiDim_z_pT_Bin_Y_bin_phi_t',    -1.5,    913.5,   915]
         phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816] if(getattr(args, "old_5D_unfold", True)) else ['MultiDim_Q2_y_z_pT_phi_h', -1.5,  11256.5, 11258] 
         Sliced_5D_Increment        = 422 # Gives 28 slices to form the full response matrix
         if(not getattr(args, "old_5D_unfold", True)):
             Sliced_5D_Increment    = 433 # Gives 26 slices to form the full response matrix
         if(args.valerii_bins):
-            Res_Binning_2D_z_pT_In = ["z_pT_Bin_Valerii_smeared",         -0.5,     60.5,    61]
+            Res_Binning_2D_z_pT_In = ["z_pT_Bin_Valerii_smeared",         -0.5,     60.5,    61] if(not getattr(args, "unsmeared", False)) else ["z_pT_Bin_Valerii", -0.5, 60.5, 61]
             z_pT_phi_h_Binning     = ['z_pT_phi_t_3D_Bin_Valerii',        -1.5,   1440.5,  1442]
             phi_h_5D_Binning       = ['Q2_xB_z_pT_phi_t_5D_Bin_Valerii',  -0.5,  11520.5, 11521]
             Sliced_5D_Increment    = 281 # Gives 41 slices to form the full response matrix
@@ -1069,8 +1102,8 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}rdf{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, weight_specs=[("", None)])
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear",     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="smear",     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_gdf)
                 if(args.Use_EvGen):
@@ -1088,15 +1121,15 @@ if(__name__ == "__main__"):
             sys.stdout.flush()
             Histograms_All = make_rm5d_single(sdf=rdf,             Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=[("", None)])
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}rdf{color.END})'",              verbose_override=True)
-            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
-            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}mdf_clasdis{color.END})'",      verbose_override=True)
             Histograms_All = make_rm5d_single(sdf=gdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_gdf)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_clasdis{color.END})'",      verbose_override=True)
             if(args.Use_EvGen):
                 # EvGen has no HPP Acc columns; use phys-only specs (same as gdf)
-                Histograms_All = make_rm5d_single(sdf=mdf_EvGen,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=weight_specs_gdf)
-                Histograms_All = make_rm5d_single(sdf=mdf_EvGen,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="smear", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=weight_specs_gdf)
+                Histograms_All = make_rm5d_single(sdf=mdf_EvGen,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=weight_specs_gdf)
+                Histograms_All = make_rm5d_single(sdf=mdf_EvGen,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=weight_specs_gdf)
                 Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}mdf_EvGen{color.END})'",    verbose_override=True)
                 Histograms_All = make_rm5d_single(sdf=gdf_EvGen,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=weight_specs_gdf)
                 Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_EvGen{color.END})'",    verbose_override=True)
@@ -1205,10 +1238,10 @@ if(__name__ == "__main__"):
                     if(any(MC_only in str(Vars) for MC_only in ["rho0", "Par_PID"]) and (data not in ["mdf", "gdf"])):
                         print(f"{color.RED}Skipping ({data}) rho0 plot: {color.END}{str(Vars)}")
                         continue # Skip the rho0 and PID plots using data
-                    Use_Smear = (data not in ["rdf", "gdf"]) and all(MC_only not in str(Vars) for MC_only in ["rho0", "Par_PID"])
+                    Use_Smear = (data not in ["rdf", "gdf"]) and (not getattr(args, "unsmeared", False)) and all(MC_only not in str(Vars) for MC_only in ["rho0", "Par_PID"])
                     # print(f"{data} ==> {Use_Smear}")
                     # if(args.verbose):
-                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear="smear" if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
+                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
                     Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) plot for: {color.END_B}{str(Vars)}{color.END}", verbose_override=False, no_time=True)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C})'{color.END}", verbose_override=True)
             if(args.Use_EvGen):

@@ -75,7 +75,8 @@ def parse_args():
                         action='store_true',
                         help="Use spline-based event weights.\n")
     parser.add_argument('-swf', '--spline_weight_file',
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Spline weight file path.\n")
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',
@@ -86,8 +87,22 @@ def parse_args():
                         help="JSON file path when --json_weights is used.\n")
     parser.add_argument('-hppf', '--hpp_weight_file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp",
-                        help="HPP acceptance weight file path.\n")
-
+                        help="Pure-acceptance HPP path (accw_*).\n")
+    parser.add_argument('-hpp_swf', '--hpp_weight_file_spline',
+                        default=None,
+                        help="Combined Acc+physics HPP path (accw_sw_*).\n")
+    parser.add_argument('-rrw', '--run_rho_weight',
+                        action='store_true',
+                        help="Forward --run_rho_weight to Response_Matrix.\n")
+    parser.add_argument('-us', '--unsmeared',
+                        action='store_true',
+                        help="Forward --unsmeared to Response_Matrix (required for noSmear cut).\n")
+    parser.add_argument('-2Do', '--make_2D_only',
+                        action='store_true',
+                        help="Only make 2D kinematic histograms (forward --make_2D_only).\n")
+    parser.add_argument('-u5Do', '--unfold_5D_only',
+                        action='store_true',
+                        help="Only make 5D response matrices (forward --unfold_5D_only).\n")
 
     parser.add_argument('-nin', '--name_in',
                         default="*Final_Analysis_Iterations_I0*.root",
@@ -160,6 +175,9 @@ def parse_args():
     parser.add_argument('-dr', '--dry_run',
                         action='store_true',
                         help="Dry run (print commands only).\n")
+    parser.add_argument('-y', '--yes',
+                        action='store_true',
+                        help="Noninteractive approval for SLURM script submission (skip [y/N] prompt).\n")
     parser.add_argument('-e', '--email',
                         action='store_true',
                         help="Send completion email.\n")
@@ -420,6 +438,8 @@ def make_batches_mode(args):
 
 def build_main_command(args, batch_id, output_dir):
     # cmd = [sys.executable, MAIN_SCRIPT, "--batch_id", str(batch_id)]
+    if((("noSmear" in str(args.cut_name)) and (not getattr(args, "unsmeared", False)))):
+        raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared on the pipeline")
     cmd = [MAIN_SCRIPT, "--batch_id", str(batch_id)]
     cmd.extend(["-cnR", args.cut_name, "-cnM", args.cut_name])
     if(getattr(args, "z_axis_2D", "4D_Bin") not in ["4D_Bin", ""]):
@@ -432,6 +452,10 @@ def build_main_command(args, batch_id, output_dir):
         cmd.append("--make_2D_rho")
     if(not getattr(args, 'no_unfold_5D',   False)):
         cmd.append("--unfold_5D")
+    if(getattr(args, "make_2D_only", False)):
+        cmd.append("--make_2D_only")
+    if(getattr(args, "unfold_5D_only", False)):
+        cmd.append("--unfold_5D_only")
     if(not getattr(args, 'no_fast',        False)):
         cmd.append("--fast")
     if(args.valerii_bins):
@@ -447,6 +471,12 @@ def build_main_command(args, batch_id, output_dir):
             cmd.extend(["--json_file", args.json_file])
     if(args.hpp_weight_file and args.use_hpp):
         cmd.extend(["--hpp_input_file", args.hpp_weight_file])
+    if(getattr(args, "hpp_weight_file_spline", None) and args.use_hpp):
+        cmd.extend(["--hpp_input_file_spline", args.hpp_weight_file_spline])
+    if(getattr(args, "run_rho_weight", False)):
+        cmd.append("--run_rho_weight")
+    if(getattr(args, "unsmeared", False)):
+        cmd.append("--unsmeared")
     batch_str = f"{batch_id:03d}" if(isinstance(batch_id, int)) else str(batch_id)
     name_for_batch = f"{args.name}_{args.name_in}_Batch{batch_str}" if(args.name) else f"{args.name_in}_Batch{batch_str}"
     # name_for_batch = f"{args.name}_{args.name_in}_Batch{int(batch_id):03d}" if(args.name) else f"{args.name_in}_Batch{int(batch_id):03d}"
@@ -658,10 +688,14 @@ def run_slurm_mode(args):
     with open(hadd_script) as f:
         print(f.read())
 
-    try:
-        response = input("\nApprove and submit these SLURM scripts? [y/N]: ").strip().lower()
-    except EOFError:
-        response = "n"
+    if(getattr(args, "yes", False)):
+        response = "y"
+        print(f"\n{color.BBLUE}[INFO]{color.END} --yes set: auto-approving SLURM submission.")
+    else:
+        try:
+            response = input("\nApprove and submit these SLURM scripts? [y/N]: ").strip().lower()
+        except EOFError:
+            response = "n"
 
     if(response not in ["y", "yes"]):
         print(f"{color.Error}[ERROR]{color.END} SLURM scripts not approved. Exiting.")

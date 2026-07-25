@@ -82,7 +82,8 @@ def parse_args():
                         help="Use the new spline-based event-by-event weights (alternative to '--json_weights').\n")
     parser.add_argument('-spf', '--spline_file',
                         type=str,
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Path to the spline weight file when '--spline_weights' is used.\n")
     parser.add_argument('-hpp_in', '--hpp_input_file',
                         type=str,
@@ -129,6 +130,12 @@ def parse_args():
                         default="all",
                         choices=["all", "collect", "phys_weights", "raw_ratios", "progressive_acc", "emit_hpp", "dump_root", "weight_check"],
                         help="Select which production stage(s) to run. 'all' runs the full end-to-end path (default).\n")
+    parser.add_argument('-rrw', '--run_rho_weight',
+                        action='store_true',
+                        help='Runs the rho0 normalization weights (will remove all exclusive rho0 events from the clasdis MC).\n')
+    parser.add_argument('-us', '--unsmeared',
+                        action='store_true',
+                        help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
     return parser.parse_args()
 
 def ansi_to_plain(text):
@@ -447,18 +454,25 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     generated_wrappers_code.append("// Auto-generated acceptance weight functions\n")
     def _cpp_list(vals):
         return "{" + ", ".join(f"{v:.16g}" for v in vals) + "}" 
-    # === NEW SPLINE WEIGHTING BLOCK (added as alternative) ===
+    # Rec-column suffix: unsmeared mode strips *_smeared for reconstructed MC
+    rec_suf = "" if(getattr(args, "unsmeared", False)) else "_smeared"
+    # HPP C++ function prefix: pure Acc keeps accw_*; spline-seeded generation uses accw_sw_*
+    accw_prefix = "accw_sw_" if(args.spline_weights) else "accw_"
+    # Seed product: physics (optional) * exclusive_rho_weight (optional)
     if(args.spline_weights):
-        # Define Event_Weight using the new spline function (is based entirely on individual event kinematics)
-        wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
+        phys_seed = "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)"
     elif(args.json_weights):
-        wdf = mdf_clasdis.Define("ACC_Weight_Product", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+        phys_seed = "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)"
     else:
-        wdf = mdf_clasdis.Define("ACC_Weight_Product", "1.0")
+        phys_seed = "1.0"
+    if(getattr(args, "run_rho_weight", False) and mdf_clasdis.HasColumn("exclusive_rho_weight")):
+        wdf = mdf_clasdis.Define("ACC_Weight_Product", f"exclusive_rho_weight * ({phys_seed})")
+    else:
+        wdf = mdf_clasdis.Define("ACC_Weight_Product", phys_seed)
 
     # === NEW: Snapshot of MC after ONLY initial JSON/spline weights (stage 3) ===
     if(args.spline_weights or args.json_weights):
-        histos_data_match["mc_initial_weights_only"] = wdf.Histo2D(("mc_initial_weights_only", "MC REC after ONLY JSON/Spline weights (before any acceptance weights)", 144, 0, 360, 144, 0, 360), "elPhi_smeared", "pipPhi_smeared", "ACC_Weight_Product")
+        histos_data_match["mc_initial_weights_only"] = wdf.Histo2D(("mc_initial_weights_only", "MC REC after ONLY JSON/Spline weights (before any acceptance weights)", 144, 0, 360, 144, 0, 360), f"elPhi{rec_suf}", f"pipPhi{rec_suf}", "ACC_Weight_Product")
     else:
         histos_data_match["mc_initial_weights_only"] = None  # placeholder for consistency
 
@@ -477,7 +491,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         mclasdis_no_weight = f"{var_x}_vs_{var_y}_mdf_no_weight"
         Title = default_title_construction_for_make_2D_weight(args, var_x, var_y)
         data_histos[rdf_name]            = rdf.Histo2D((rdf_name,           Title.replace("SOURCE", f"#color[{ROOT.kBlue}]{{Experimental Data}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y),    var_x,              var_y)
-        mc_nw_histos[mclasdis_no_weight] = wdf.Histo2D((mclasdis_no_weight, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"), Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared")
+        mc_nw_histos[mclasdis_no_weight] = wdf.Histo2D((mclasdis_no_weight, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{Unweighted MC REC (clasdis)}}"), Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}")
 
     # Store raw data and unweighted MC for ROOT file (3 data + 3 unweighted MC)
     # === NEW: Store the unweighted MC snapshots for the ROOT file (stage 2) ===
@@ -492,7 +506,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
         Title = default_title_construction_for_make_2D_weight(args, var_x, var_y)
         name  = f"mc_initial_weights_only_{var_x}_vs_{var_y}"
-        histos_data_match[name] = wdf.Histo2D((name, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC after ONLY JSON/Spline weights}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+        histos_data_match[name] = wdf.Histo2D((name, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC after ONLY JSON/Spline weights}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
         mclasdis_no_weight = f"{var_x}_vs_{var_y}_mdf_no_weight"
         histos_data_match[mclasdis_no_weight] = mc_nw_histos[mclasdis_no_weight]
 
@@ -507,13 +521,14 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         # -----------------------------
         # 2.2) Build Weighted 2D histos
         histos_data_match[rdf_name]                = data_histos[rdf_name]
-        histos_data_match[mclasdis]                = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),        Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+        histos_data_match[mclasdis]                = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{MC REC (clasdis)}}"),        Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
         histos_data_match[f"{mclasdis}_no_weight"] = mc_nw_histos[f"{var_x}_vs_{var_y}_mdf_no_weight"]
 
-        histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
-        histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
-        histos_data_match[f"{mclasdis}_no_weight"].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
-        histos_data_match[f"{mclasdis}_no_weight"].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
+        rec_label = "Unsmeared" if(rec_suf in [""]) else "Smeared"
+        histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} ({rec_label})")
+        histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} ({rec_label})")
+        histos_data_match[f"{mclasdis}_no_weight"].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} ({rec_label})")
+        histos_data_match[f"{mclasdis}_no_weight"].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} ({rec_label})")
 
         rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
         mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
@@ -565,8 +580,8 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         cpp_edges_y = _cpp_list(edges_y)
         cpp_weights = _cpp_list(weights)
 
-        # Pick a stable function name for this pair
-        func_name = f"accw_{var_x}_vs_{var_y}"
+        # Pick a stable function name for this pair (accw_* pure; accw_sw_* when spline-seeded)
+        func_name = f"{accw_prefix}{var_x}_vs_{var_y}"
 
         # -----------------------------
         # 4) Generate + declare the concrete C++ wrapper
@@ -576,14 +591,14 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         generated_wrappers_code.append(wrapper_code)
 
         # -----------------------------
-        # 5) Apply weight to MC (using smeared cols) to draw the next weighted MC histo
+        # 5) Apply weight to MC (smeared or unsmeared cols) to draw the next weighted MC histo
         # -----------------------------
         weight_col = f"W_{var_x}_vs_{var_y}"
-        wdf = wdf.Define(weight_col, f"{func_name}({var_x}_smeared, {var_y}_smeared)").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
+        wdf = wdf.Define(weight_col, f"{func_name}({var_x}{rec_suf}, {var_y}{rec_suf})").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
 
         # === NEW: Snapshot of cumulative acceptance weights after this step ===
         stage_name = f"mc_acc_{var_x}_vs_{var_y}"
-        histos_data_match[stage_name] = wdf.Histo2D((stage_name, f"MC REC after acceptance weights up to {var_x} vs {var_y}", Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+        histos_data_match[stage_name] = wdf.Histo2D((stage_name, f"MC REC after acceptance weights up to {var_x} vs {var_y}", Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
 
         # -----------------------------
         # 6) Draw panels (ratio / data / MC)
@@ -618,10 +633,11 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         Title     = f"Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
         if(args.title):
             Title = f"#splitline{{Plot of {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)} from SOURCE}}{{{args.title}}}; {variable_Title_name_new(var_x)}; {variable_Title_name_new(var_y)}"
-        histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{Smeared MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}_smeared", f"{var_y}_smeared", "ACC_Weight_Product")
+        histos_data_match[mclasdis] = wdf.Histo2D((mclasdis, Title.replace("SOURCE", f"#color[{ROOT.kRed}]{{MC REC (clasdis)}}"),  Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
         histos_data_match[mclasdis].GetValue()
-        histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} (Smeared)")
-        histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} (Smeared)")
+        rec_label = "Unsmeared" if(rec_suf in [""]) else "Smeared"
+        histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} ({rec_label})")
+        histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} ({rec_label})")
         mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
         histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
         histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
@@ -645,7 +661,10 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
 
     with open(args.hpp_output_file, "w") as hf:
         hf.write("// This file was auto-generated by your acceptance-weight script.\n")
-        hf.write("// It contains concrete lookup functions accw_<x>_vs_<y>(x, y).\n\n")
+        if(args.spline_weights):
+            hf.write("// Combined Acc+physics HPP: functions are named accw_sw_<x>_vs_<y>(x, y).\n\n")
+        else:
+            hf.write("// Pure-acceptance HPP: functions are named accw_<x>_vs_<y>(x, y).\n\n")
         hf.write("#pragma once\n\n")
         hf.write("// Embedded helper definitions (self-contained)\n")
         hf.write(One_Time_Cpp_Helpers)
@@ -708,6 +727,8 @@ if(__name__ == "__main__"):
         raise ValueError("--spline_weights was used but no --spline_file was provided!")
     if((args.json_weights) and (args.spline_weights)):
         raise ValueError("--json_weights and --spline_weights are mutually exclusive (same physics factor).")
+    if((("noSmear" in str(args.cut_name_rdf)) or ("noSmear" in str(args.cut_name_mdf))) and (not getattr(args, "unsmeared", False))):
+        raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared")
     args.save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
     args.make_2D_weight = (args.make_2D_weight and (not args.dry_run))
     ROOT.TH1.AddDirectory(0)
@@ -739,6 +760,17 @@ if(__name__ == "__main__"):
         Update_Email(args, update_name="RDataFrame Collection", verbose_override=True)
     except:
         Crash_Report(args, crash_message=f"While trying to load the RDataFrames, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
+    # Exclusive-rho MC weight (match Response_Matrix: opt-in via --run_rho_weight / -rrw)
+    if(getattr(args, "run_rho_weight", False)):
+        if((not mdf_clasdis.HasColumn("exclusive_rho_weight")) and mdf_clasdis.HasColumn("exclusive_rho")):
+            mdf_clasdis = mdf_clasdis.Define("exclusive_rho_weight", '''double exclusive_rho_weight = 1.0;
+            if(exclusive_rho == 1){ exclusive_rho_weight = 0.0; }
+            if(exclusive_rho == 0){ exclusive_rho_weight = 1.0; }
+            return exclusive_rho_weight;''')
+            Update_Email(args, update_message=f"{color.BBLUE}Defined exclusive_rho_weight on mdf (run_rho_weight ON){color.END}", verbose_override=True)
+        elif(not mdf_clasdis.HasColumn("exclusive_rho_weight")):
+            mdf_clasdis = mdf_clasdis.Define("exclusive_rho_weight", "1.0")
+            Update_Email(args, update_message=f"{color.Error}WARNING: exclusive_rho missing; exclusive_rho_weight=1.0{color.END}", verbose_override=True)
     
     if(args.spline_weights):
         if(not args.spline_file):
@@ -796,7 +828,10 @@ if(__name__ == "__main__"):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
             mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
             pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
-            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            rec_suf_chk = "" if(getattr(args, "unsmeared", False)) else "_smeared"
+            accw_p = "accw_sw_" if(args.spline_weights) else "accw_"
+            w_acc_expr = f"({accw_p}elPhi_vs_pipPhi(elPhi{rec_suf_chk}, pipPhi{rec_suf_chk})) * ({accw_p}elth_vs_pipth(elth{rec_suf_chk}, pipth{rec_suf_chk})) * ({accw_p}el_vs_pip(el{rec_suf_chk}, pip{rec_suf_chk}))"
+            mdf_tmp     = mdf_tmp.Define("W_acc", w_acc_expr)
             mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
             post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
             scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
@@ -804,7 +839,10 @@ if(__name__ == "__main__"):
         elif(args.spline_weights):
             mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
             pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
-            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            rec_suf_chk = "" if(getattr(args, "unsmeared", False)) else "_smeared"
+            accw_p = "accw_sw_" if(args.spline_weights) else "accw_"
+            w_acc_expr = f"({accw_p}elPhi_vs_pipPhi(elPhi{rec_suf_chk}, pipPhi{rec_suf_chk})) * ({accw_p}elth_vs_pipth(elth{rec_suf_chk}, pipth{rec_suf_chk})) * ({accw_p}el_vs_pip(el{rec_suf_chk}, pip{rec_suf_chk}))"
+            mdf_tmp     = mdf_tmp.Define("W_acc", w_acc_expr)
             mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
             post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
             scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
@@ -812,7 +850,10 @@ if(__name__ == "__main__"):
         else:
             mdf_tmp     = mdf_clasdis.Define("Event_Weight", "1.0")
             pre_sum     = mdf_tmp.Sum("Event_Weight").GetValue()
-            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            rec_suf_chk = "" if(getattr(args, "unsmeared", False)) else "_smeared"
+            accw_p = "accw_sw_" if(args.spline_weights) else "accw_"
+            w_acc_expr = f"({accw_p}elPhi_vs_pipPhi(elPhi{rec_suf_chk}, pipPhi{rec_suf_chk})) * ({accw_p}elth_vs_pipth(elth{rec_suf_chk}, pipth{rec_suf_chk})) * ({accw_p}el_vs_pip(el{rec_suf_chk}, pip{rec_suf_chk}))"
+            mdf_tmp     = mdf_tmp.Define("W_acc", w_acc_expr)
             mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "Event_Weight * W_acc")
             post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
             scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
@@ -831,13 +872,14 @@ if(__name__ == "__main__"):
             var, minBin, maxBin, numBin =  "z", 0.00, 1.20, 120
         if(str(args.Var_weight_check) in ["pT"]):
             var, minBin, maxBin, numBin = "pT", 0.00, 2.00, 200
+        rec_suf_chk = "" if(getattr(args, "unsmeared", False)) else "_smeared"
         # 2) Book TH1D histograms for the selected variable
         Title = f"Comparisons of {varible_title}"
         if(args.title):
             Title = f"#splitline{{{Title}}}{{{args.title}}}"
         h_rdf =         rdf.Histo1D(("h_1D_rdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}")
-        h_mdf = mdf_clasdis.Histo1D(("h_1D_mdf", f"#splitline{{Comparisons of {varible_title}}}{{Without Reweighted MC}}; {varible_title}; Normalized", numBin, minBin, maxBin), f"{var}_smeared")
-        w_mdf = mdf_clasdis.Histo1D(("w_1D_mdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}_smeared", "Event_Weight")
+        h_mdf = mdf_clasdis.Histo1D(("h_1D_mdf", f"#splitline{{Comparisons of {varible_title}}}{{Without Reweighted MC}}; {varible_title}; Normalized", numBin, minBin, maxBin), f"{var}{rec_suf_chk}")
+        w_mdf = mdf_clasdis.Histo1D(("w_1D_mdf", f"{Title}; {varible_title}; Normalized",                                                               numBin, minBin, maxBin), f"{var}{rec_suf_chk}", "Event_Weight")
         
         # 3) Set line colors (on the actual TH1 objects)
         h_rdf.GetValue().SetLineColor(ROOT.kBlue)
