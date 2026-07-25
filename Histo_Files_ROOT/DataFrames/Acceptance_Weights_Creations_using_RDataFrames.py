@@ -124,6 +124,11 @@ def parse_args():
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.\n')
+    parser.add_argument('--stage',
+                        type=str,
+                        default="all",
+                        choices=["all", "collect", "phys_weights", "raw_ratios", "progressive_acc", "emit_hpp", "dump_root", "weight_check"],
+                        help="Select which production stage(s) to run. 'all' runs the full end-to-end path (default).\n")
     return parser.parse_args()
 
 def ansi_to_plain(text):
@@ -701,6 +706,8 @@ if(__name__ == "__main__"):
         Crash_Report(args, crash_message="One or more of the cut names you selected is not supported by this script.", continue_run=False)
     if(args.spline_weights and (not args.spline_file)):
         raise ValueError("--spline_weights was used but no --spline_file was provided!")
+    if((args.json_weights) and (args.spline_weights)):
+        raise ValueError("--json_weights and --spline_weights are mutually exclusive (same physics factor).")
     args.save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
     args.make_2D_weight = (args.make_2D_weight and (not args.dry_run))
     ROOT.TH1.AddDirectory(0)
@@ -775,19 +782,27 @@ if(__name__ == "__main__"):
     else:
         print(f"\n{color.BYELLOW}Not applying any physics weights...{color.END}")
     
-    if(args.make_2D_weight):
+    if((args.make_2D_weight) and (args.stage in ["all", "raw_ratios", "progressive_acc", "emit_hpp", "dump_root"])):
         try:
             args = make_2D_weight_func(args, rdf, mdf_clasdis)
         except:
             Crash_Report(args, crash_message=f"While trying to create the Acceptance Weights, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
     else:
         print(f"\n{color.Error}Skipping Acceptance Weight Histograms{color.END}")
-    if(args.make_2D_weight_check):
+    if((args.make_2D_weight_check) and (args.stage in ["all", "weight_check"])):
         print(f"\n{color.BOLD}TESTING ACCEPTANCE WEIGHTED HISTOGRAMS ({args.Var_weight_check}){color.END}\n")
-        # 1) Define Event_Weight on MC (mdf)
+        # 1) Define Event_Weight on MC (mdf) — JSON, Spline, or Acc-only
         if(args.json_weights):
             # With the Modulation weights option, apply the modulations to both gdf and mdf before adding the acceptance weights to mdf
             mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)")
+            pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
+            mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
+            mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")
+            post_sum    = mdf_tmp.Sum("Event_Weight_raw").GetValue()
+            scale       = (pre_sum / post_sum) if(post_sum != 0.0) else 1.0
+            mdf_clasdis = mdf_tmp.Define("Event_Weight", f"Event_Weight_raw * ({scale})")
+        elif(args.spline_weights):
+            mdf_tmp     = mdf_clasdis.Define("W_pre", "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)")
             pre_sum     = mdf_tmp.Sum("W_pre").GetValue()
             mdf_tmp     = mdf_tmp.Define("W_acc", "(accw_elPhi_vs_pipPhi(elPhi_smeared, pipPhi_smeared)) * (accw_elth_vs_pipth(elth_smeared, pipth_smeared)) * (accw_el_vs_pip(el_smeared, pip_smeared))")
             mdf_tmp     = mdf_tmp.Define("Event_Weight_raw", "W_pre * W_acc")

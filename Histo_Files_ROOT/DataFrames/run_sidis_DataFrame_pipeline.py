@@ -77,6 +77,13 @@ def parse_args():
     parser.add_argument('-swf', '--spline_weight_file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Spline weight file path.\n")
+    parser.add_argument('-jsw', '--json_weights',
+                        action='store_true',
+                        help="Use legacy JSON physics weights (mutually exclusive with --spline_weights).\n")
+    parser.add_argument('-jsf', '--json_file',
+                        type=str,
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json",
+                        help="JSON file path when --json_weights is used.\n")
     parser.add_argument('-hppf', '--hpp_weight_file',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp",
                         help="HPP acceptance weight file path.\n")
@@ -434,6 +441,10 @@ def build_main_command(args, batch_id, output_dir):
     if(args.spline_weights):
         cmd.append("--spline_weights")
         cmd.extend(["--spline_file", args.spline_weight_file])
+    if(getattr(args, "json_weights", False)):
+        cmd.append("--json_weights")
+        if(getattr(args, "json_file", None)):
+            cmd.extend(["--json_file", args.json_file])
     if(args.hpp_weight_file and args.use_hpp):
         cmd.extend(["--hpp_input_file", args.hpp_weight_file])
     batch_str = f"{batch_id:03d}" if(isinstance(batch_id, int)) else str(batch_id)
