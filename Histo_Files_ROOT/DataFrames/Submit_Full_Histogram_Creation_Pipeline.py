@@ -115,9 +115,9 @@ def parse_args():
                    help="Single-cut mode cut name (ignored when --run_all_cuts).\n")
     p.add_argument("-m", "--mode",
                    type=str,
-                   default="hybrid",
+                   default="parallel",
                    choices=["parallel", "sequential", "slurm", "hybrid"],
-                   help="Response stage mode (default hybrid: submit SLURM with --yes, then local parallel with -saj). Acceptance is always local.\n")
+                   help="Response stage mode (default parallel). hybrid: submit SLURM with --yes, then local parallel with -saj (currently flawed; use only after slurm/parallel alignment is fixed). Acceptance is always local.\n")
     p.add_argument("-saj", "--slurm_array_jobid",
                    type=str,
                    default=None,

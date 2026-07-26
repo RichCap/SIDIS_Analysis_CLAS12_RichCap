@@ -49,6 +49,9 @@ def parse_args():
     p.add_argument("-cs", "-cs_A", "--apply_A_corr",
                    action="store_true",
                    help=f"Apply Cross Section Normalization to the 'Fit_Par_A' measurements.\n{color.Error}WARNING: Do not run with the '_(Normalized)' Fit Sets{color.END}.\n")
+    p.add_argument("-nabc", "--no_apply_beam_corrections",
+                   action="store_true",
+                   help="Disable Klimenko tracking-efficiency and beam-blocker charge corrections inside Cross_Section_Normalization (default: corrections ON).\n")
     
     p.add_argument("-err", "--err_suffix",
                    default="_ERR",

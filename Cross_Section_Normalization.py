@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+import os
+import re
+import json
 import ROOT
 import argparse
-# import os
-# import re
 # import traceback
 # from pathlib import Path
 
@@ -16,6 +17,64 @@ from MyCommonAnalysisFunction_richcap import *
 from Binning_Dictionaries             import Full_Bin_Definition_Array #, Q2_y_Bin_rows_Array, Bin_Converter_4D_to_2D, Bin_Converter_5D
 sys.path.remove(script_dir)
 del script_dir
+
+# Klimenko thesis charge corrections (Sections 6.4–6.5)
+BEAM_BLOCKER_ATTENUATION = 9.8088 / 10.6130
+BEAM_BLOCKER_RUNS = [5249, 5252, 5253, 5257, 5258, 5259, 5261, 5262, 5303, 5304, 5305, 5306, 5307, 5310, 5311, 5315, 5317, 5318, 5319, 5320, 5323, 5324, 5335, 5339, 5340]
+DEFAULT_CHARGE_SUMMARY = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json"
+LEGACY_TOTAL_CHARGE     = 35023407.601823784
+_run_charge_map_cache   = None
+_run_charge_map_path    = None
+
+def load_run_charge_map(json_path=DEFAULT_CHARGE_SUMMARY):
+    # Load Charge_Summary JSON once; map run_number -> {beam_current, accumulated_charge}
+    global _run_charge_map_cache, _run_charge_map_path
+    if((_run_charge_map_cache is not None) and (_run_charge_map_path == json_path)):
+        return _run_charge_map_cache
+    # Prefer hall path; fall back to local offline copy if present
+    load_path = json_path
+    if(not os.path.isfile(load_path)):
+        local_fallback = os.path.join(os.path.dirname(__file__), "..", "Histogram_Creation_Scripts", "Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json")
+        local_fallback = os.path.normpath(local_fallback)
+        if(os.path.isfile(local_fallback)):
+            load_path = local_fallback
+    with open(load_path, "r") as charge_file:
+        charge_json = json.load(charge_file)
+    run_map = {}
+    for key, entry in charge_json.items():
+        if(key in ["Final_Totals"]):
+            continue
+        if(not isinstance(entry, dict)):
+            continue
+        run_match = re.search(r"nSidis_(\d+)", str(entry.get("input_file", key)))
+        if(not run_match):
+            run_match = re.search(r"nSidis_(\d+)", str(key))
+        if(not run_match):
+            continue
+        run_number = int(run_match.group(1))
+        run_map[run_number] = {
+            "beam_current":       float(entry.get("beam_current", 45.0) or 45.0),
+            "accumulated_charge": float(entry.get("accumulated_charge", 0.0) or 0.0),
+        }
+    _run_charge_map_cache = run_map
+    _run_charge_map_path  = json_path
+    return run_map
+
+def total_corrected_charge(json_path=DEFAULT_CHARGE_SUMMARY, apply_beam_corrections=True):
+    # Sum per-run charge with optional Klimenko beam-blocker + tracking-efficiency corrections
+    run_map = load_run_charge_map(json_path=json_path)
+    total_charge = 0.0
+    for run_number, run_info in run_map.items():
+        charge_run = float(run_info["accumulated_charge"])
+        if(apply_beam_corrections):
+            # Beam-blocker attenuation first (wrong CCDB constant runs), then tracking efficiency
+            if(run_number in BEAM_BLOCKER_RUNS):
+                charge_run = charge_run * BEAM_BLOCKER_ATTENUATION
+            beam_current_nA = float(run_info["beam_current"])
+            C_eff = 1.0 - 0.0041 * (beam_current_nA - 45.0)
+            charge_run = charge_run * C_eff
+        total_charge = total_charge + charge_run
+    return total_charge
 
 def Bin_Area_by_Widths_Calc(args=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
     # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
@@ -75,14 +134,37 @@ def lumi(charge):
 
 # 4.09744e+07 nC came from /lustre24/expphy/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis/nSidis_* (as of 8/1/2025)
 # 35023407.601823784 nC (or ~3.50234e+07 nC) came from `Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json` as of 4/22/2026 (see '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/' for the log file)
-def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15, Rename_Axis=False, args_in=None, charge_in=35023407.601823784, verbose_in=False):
+# Default behaviour now applies Klimenko beam-blocker + tracking-efficiency corrections to that charge summary unless disabled.
+def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15, Rename_Axis=False, args_in=None, charge_in=None, verbose_in=False, apply_beam_corrections=True, charge_summary_json=None):
+    apply_corr = apply_beam_corrections
+    charge_summary = charge_summary_json if(charge_summary_json is not None) else DEFAULT_CHARGE_SUMMARY
+    if(args_in is not None):
+        if(hasattr(args_in, "no_apply_beam_corrections") and args_in.no_apply_beam_corrections):
+            apply_corr = False
+        elif(hasattr(args_in, "apply_beam_corrections")):
+            apply_corr = bool(args_in.apply_beam_corrections)
+        if(hasattr(args_in, "charge_summary_json") and args_in.charge_summary_json):
+            charge_summary = args_in.charge_summary_json
+    # Resolve charge: explicit charge_in wins; args.charge only if charge_from_summary is False; else JSON sum
+    charge_used = None
+    if(charge_in is not None):
+        charge_used = float(charge_in)
+    elif((args_in is not None) and (getattr(args_in, "charge_from_summary", True) is False) and hasattr(args_in, "charge") and (args_in.charge is not None)):
+        charge_used = float(args_in.charge)
+    if(charge_used is None):
+        try:
+            charge_used = total_corrected_charge(json_path=charge_summary, apply_beam_corrections=apply_corr)
+        except Exception as charge_err:
+            print(f"{color.Error}WARNING: Failed to load charge summary ({charge_err}); falling back to LEGACY_TOTAL_CHARGE (uncorrected).{color.END}")
+            charge_used = LEGACY_TOTAL_CHARGE
     class args_custom:
         verbose = (args_in.verbose if(hasattr(args_in, "verbose")) else verbose_in) or ((Histo is None) and getattr(args_in, "verbose", True))
-        charge  =  args_in.charge  if(hasattr(args_in, "charge"))  else charge_in
+        charge  = charge_used
     Bin_Width_Area_Scale, _ = Bin_Area_by_Widths_Calc(args=args_custom, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=phi_t_bin)
     Luminosity = lumi(args_custom.charge)
     Normalize_Factor = 1.0
     if(args_custom.verbose):
+        print(f"Charge used (nC) = {args_custom.charge}  (beam corrections {'ON' if(apply_corr) else 'OFF'})")
         print(f"Luminosity = {Luminosity}")
     if(Histo is not None):
         if(Bin_Width_Area_Scale != 0.0):
@@ -120,11 +202,20 @@ if(__name__ == "__main__"):
                    help="Size of the phi_t bin in degrees.")
     p.add_argument('-c', '--charge',
                    type=float,
-                   default=4.09744e+07,
-                   help="Charge (in 'nC') deposited in the experimental files (used for luminosity calculation).\nDefault value came from '/lustre24/expphy/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis/nSidis_*' as of 8/1/2025.")
+                   default=None,
+                   help="Charge (in 'nC') deposited in the experimental files (used for luminosity calculation).\nIf omitted, charge is summed from the Charge_Summary JSON (with Klimenko corrections ON by default).")
+    p.add_argument("-nabc", "--no_apply_beam_corrections",
+                   action="store_true",
+                   help="Disable Klimenko tracking-efficiency and beam-blocker charge corrections (default: corrections ON).\n")
+    p.add_argument("--charge_summary_json",
+                   type=str,
+                   default=DEFAULT_CHARGE_SUMMARY,
+                   help="Path to Charge_Summary JSON used for per-run charge and beam current.\n")
     p.add_argument('-v', '--verbose',
                    action='store_true',
                    help="Verbose prints.")
     args = p.parse_args()
-    Cross_Section_Normalization(Histo=None, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin, phi_t_bin=args.phi_t_bin, Rename_Axis=False, args_in=args, charge_in=args.charge, verbose_in=args.verbose)
+    # If user passes --charge explicitly, honor it and skip summary rebuild
+    args.charge_from_summary = (args.charge is None)
+    Cross_Section_Normalization(Histo=None, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin, phi_t_bin=args.phi_t_bin, Rename_Axis=False, args_in=args, charge_in=args.charge, verbose_in=args.verbose, apply_beam_corrections=(not args.no_apply_beam_corrections), charge_summary_json=args.charge_summary_json)
     print("\nDone\n")

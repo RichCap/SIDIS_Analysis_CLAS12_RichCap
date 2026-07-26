@@ -49,6 +49,11 @@ def parse_args():
                    action='store_true',
                    dest='weighed_acceptance',
                    help=f"Use to control the MC weights. If used, all closure tests will assume that the generated MC distributions should be unweighed (i.e., only acceptance weights are applied).\nUse with the '--single_file' option only.\n{color.RED}WARNING:{color.END} This option does not make sure the reconstructed MC is weighed only for acceptance (weight injections are controlled by the input file).\n")
+    p.add_argument('-wt', '--weight_tag',
+                   type=str,
+                   default="",
+                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
+                   help="Select which weighted histogram set to unfold (e.g. Acc, Spline, AccSpline). Empty = unweighted (default). Also auto-tags output ROOT/JSON names.\n")
     p.add_argument('-sim', '--simulation',
                    action='store_true',
                    dest='sim',
@@ -1858,7 +1863,9 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
         MainFileName = str(MainFileName.split("/")[-1])
     var_type  = "MultiDim_Q2_y_z_pT_phi_h" if(args.unfolding_5D) else "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
     args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
-    Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}"
+    weight_tag = getattr(args, "weight_tag", "")
+    weight_key = f"_W{weight_tag}" if(weight_tag not in ["", None]) else ""
+    Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}{weight_key}"
     json_path = Path(args.json_name)
     Fit_Pars_JSON = {Common_Key: {}, "Meta_Data_of_Last_Run": Construct_Run_Info(args)}
     for key_name in List_of_All_Histos_For_Unfolding:
@@ -1924,6 +1931,13 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
     Update_Email(args, update_message=f"{color.BCYAN}Done Saving JSON File.{color.END}", verbose_override=True)
     return args, Fit_Pars_JSON
 
+def strip_weight_tag_suffixes(name_in):
+    # Remove known multi-weight and legacy _(Weighed) suffixes from histogram names
+    name_out = str(name_in)
+    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        name_out = name_out.replace(tag_str, "")
+    return name_out
+
 def main_start():
     args = parse_args()
     silence_root_import()
@@ -1936,6 +1950,10 @@ def main_start():
                 print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' → '{cleaned}'{color.END}")
                 setattr(args, attr, cleaned)
     # =========================================================================
+    # Auto-tag output ROOT (and thus JSON via MainFileName) when a weight set is selected
+    weight_tag = getattr(args, "weight_tag", "")
+    if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
+        args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
     args.pass_version = "Pass 2"
     args.sim = args.sim or args.closure
     args.mod = args.mod and (not args.closure)
@@ -2031,10 +2049,16 @@ def main_unfold(args):
         out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
         if("Q2_y_z_pT_4D_Bins" in out_print_main):
             continue
-        if(("_(Weighed)" in out_print_main) and not (args.mod or args.closure)):
+        weight_tag     = getattr(args, "weight_tag", "")
+        known_weight_tags = ["_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
+        has_weight_tag = any(tag_str in out_print_main for tag_str in known_weight_tags)
+        if(weight_tag not in ["", None]):
+            if(f"_({weight_tag})" not in out_print_main):
+                continue
+        elif((has_weight_tag) and (not (args.mod or args.closure))):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is weighed{color.END}\n")
             continue
-        elif(("_(Weighed)" not in out_print_main) and args.mod):
+        elif((not has_weight_tag) and (args.mod)):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
             continue
         if(any(lundskip in out_print_main for lundskip in ["_(lundvpk)", "_(lundrho)"])):
@@ -2098,10 +2122,16 @@ def main_unfold(args):
                         break  # Exit the loop if the histogram does not exist
                 out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not args.sim) else "mdf")
                 if(not args.closure):
-                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
                 out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
                 if(args.weighed_acceptance):
-                    out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["Acc"]):
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["AccJSON"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(JSON)"
+                elif(getattr(args, "weight_tag", "") in ["AccSpline"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(Spline)"
                 ################################################################################
                 ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
                 out_print_main_rdf = out_print_main_rdf.replace(f"_Slice_1_(Increment='{args.num_5D_increments_used_to_slice}')", "")
@@ -2139,8 +2169,8 @@ def main_unfold(args):
                     out_print_main_rdf = out_print_main_mdf_1D
                     out_print_main_tdf = out_print_main_gdf
                     if(not args.closure):
-                        out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
-                        out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
+                        out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
+                        out_print_main_tdf = strip_weight_tag_suffixes(out_print_main_tdf)
                     if(tdf not in ["N/A"]):
                         if(out_print_main_tdf not in tdf.GetListOfKeys()):
                             print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
@@ -2264,10 +2294,16 @@ def main_unfold(args):
                 out_print_main_mdf     = out_print_main.replace("DataFrame_Type", "mdf")
                 out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not args.sim) else "mdf")
                 if(not args.closure):
-                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
                 out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
                 if(args.weighed_acceptance):
-                    out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["Acc"]):
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["AccJSON"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(JSON)"
+                elif(getattr(args, "weight_tag", "") in ["AccSpline"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(Spline)"
                 ################################################################################
                 ##=============##          Finding MC Backgound Plots          ##=============##
                 out_print_main_bdf = out_print_main_mdf.replace("Normal_2D", "Normal_Background_2D")
@@ -2300,8 +2336,8 @@ def main_unfold(args):
                     out_print_main_rdf     = out_print_main_mdf
                     out_print_main_tdf     = out_print_main_gdf
                     if(not args.closure):
-                        out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
-                        out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
+                        out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
+                        out_print_main_tdf = strip_weight_tag_suffixes(out_print_main_tdf)
                     if(tdf not in ["N/A"]):
                         if(out_print_main_tdf not in tdf.GetListOfKeys()):
                             print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")
@@ -2518,11 +2554,17 @@ def main_unfold(args):
                 
                 out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not args.sim) else "mdf")
                 if(not args.closure):
-                    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
+                    out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
                 out_print_main_mdf     = out_print_main.replace("DataFrame_Type", "mdf")
                 out_print_main_gdf     = out_print_main.replace("DataFrame_Type", "gdf")
                 if(args.weighed_acceptance):
-                    out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["Acc"]):
+                    out_print_main_gdf = strip_weight_tag_suffixes(out_print_main_gdf)
+                elif(getattr(args, "weight_tag", "") in ["AccJSON"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(JSON)"
+                elif(getattr(args, "weight_tag", "") in ["AccSpline"]):
+                    out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(Spline)"
                 ################################################################################
                 ##=============##    Removing Cuts from the Generated files    ##=============##
                 out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
@@ -2576,8 +2618,8 @@ def main_unfold(args):
                     out_print_main_rdf     = out_print_main_mdf_1D
                     out_print_main_tdf     = out_print_main_gdf
                     if(not args.closure):
-                        out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
-                        out_print_main_tdf = out_print_main_tdf.replace("_(Weighed)", "")
+                        out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
+                        out_print_main_tdf = strip_weight_tag_suffixes(out_print_main_tdf)
                     if(tdf not in ["N/A"]):
                         if(out_print_main_tdf not in tdf.GetListOfKeys()):
                             print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Dataframe is missing: {color.BCYAN}{out_print_main_tdf}{color.END}\n")

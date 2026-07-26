@@ -83,7 +83,12 @@ def parse_args():
                    help="Source of rho0 background subtractions from rdf.\n")
     p.add_argument('-rw', '--require_weighed',
                    action='store_true',
-                   help="Require _(Weighed) on mdf/gdf/slice keys (default: reject weighed).\n")
+                   help="Require a weight tag on mdf/gdf/slice keys (legacy _(Weighed) or Acc/JSON/Spline tags). Default: reject weighed.\n")
+    p.add_argument('-wt', '--weight_tag',
+                   type=str,
+                   default="",
+                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
+                   help="Select which weighted histogram set to unfold. Empty = unweighted (default). Auto-tags output ROOT name.\n")
     p.add_argument('-i', '--increment',
                    type=int,
                    default=None,
@@ -565,11 +570,18 @@ def subtract_bkg_with_zero_floor(hist_data, hist_background):
 SLICE_INCREMENT_RE = re.compile(r"_Slice_1_\(Increment='(\d+)'\)")
 
 def Passes_Weighed_Filter(name, args):
+    weight_tag = getattr(args, "weight_tag", "")
+    known_tags = ["_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
+    has_weight_tag = any(tag_str in name for tag_str in known_tags)
+    if(weight_tag not in ["", None]):
+        if(f"_({weight_tag})" not in name):
+            return False
+        return True
     if(args.require_weighed):
-        if("_(Weighed)" not in name):
+        if(not has_weight_tag):
             return False
     else:
-        if("_(Weighed)" in name):
+        if(has_weight_tag):
             return False
     return True
 
@@ -1077,6 +1089,9 @@ def main_start():
             if(cleaned != original):
                 print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' -> '{cleaned}'{color.END}")
                 setattr(args, attr, cleaned)
+    weight_tag = getattr(args, "weight_tag", "")
+    if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
+        args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
     args.pass_version = "Pass 2"
     args.closure = False
     args.sim = args.sim or False
@@ -1210,8 +1225,25 @@ def main_5D_unfold(args):
     Histo_List = detected["Histo_List"]
     out_print_main_rdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='rdf')")
     out_print_main_gdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='gdf')")
-    out_print_main_rdf = out_print_main_rdf.replace("_(Weighed)", "")
-    out_print_main_gdf = out_print_main_gdf.replace("_(Weighed)", "")
+    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        out_print_main_rdf = out_print_main_rdf.replace(tag_str, "")
+    # gdf companion: Acc* mdf tags map to Phys-only or unweighted gdf names
+    weight_tag = getattr(args, "weight_tag", "")
+    if(weight_tag in ["Acc"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+    elif(weight_tag in ["AccJSON"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+        out_print_main_gdf = f"{out_print_main_gdf}_(JSON)"
+    elif(weight_tag in ["AccSpline"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+        out_print_main_gdf = f"{out_print_main_gdf}_(Spline)"
+    elif(weight_tag in ["", None]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+    # JSON / Spline weight_tag: keep matching tag already present on gdf name
     out_print_main_gdf = out_print_main_gdf.replace("cut_Complete_EDIS", "no_cut")
     for sector_cut_remove in range(1, 7):
         out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
