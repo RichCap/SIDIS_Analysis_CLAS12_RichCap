@@ -132,11 +132,21 @@ def parse_args():
                         help="Select which production stage(s) to run. 'all' runs the full end-to-end path (default).\n")
     parser.add_argument('-rrw', '--run_rho_weight',
                         action='store_true',
-                        help='Runs the rho0 normalization weights (will remove all exclusive rho0 events from the clasdis MC).\n')
+                        help='Runs the rho0 normalization weights (clasdis exclusive-rho zeroed; selected exclusive MC scaled; non-selected exclusive MC zeroed).\n')
+    parser.add_argument('-rho0', '--rho0_source',
+                        type=str,
+                        default="lundvpk",
+                        choices=["lundvpk", "lundrho"],
+                        help="Exclusive-rho MC source used when --run_rho_weight is set (default lundvpk). Other exclusive sample is zeroed.\n")
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
     return parser.parse_args()
+
+# Match Response_Matrix Make_exclusive_rho_Flags norms
+RHO_NORM_LUNDRHO = 4.526912
+RHO_NORM_LUNDVPK = 4.624974
+_ACC_RHO_SOURCE_CPP_DECLARED = False
 
 def ansi_to_plain(text):
     ansi_plain_map = {'\033[1m': "", '\033[2m': "", '\033[3m': "", '\033[4m': "", '\033[5m': "", '\033[91m': "", '\033[92m': "", '\033[93m': "", '\033[94m': "", '\033[95m': "", '\033[96m': "", '\033[36m': "", '\033[35m': "", '\033[0m': ""}
@@ -322,13 +332,113 @@ def build_all_root_files(mdf_list, gdf_list, pair_key_fn, rdf_list=None, mc_key=
     all_root_files[f"gdf{mc_key}"] = gdf_ok
     return all_root_files
 
-# Pairing rule: "everything AFTER the 'marker' string should match between MDF and GDF"
-def pair_key_after_marker(path_str, marker="Pass_2_PID_Tests_FC_14_V1"):
+def detect_pair_marker(paths):
+    # Prefer markers shared by every basename; keep Response_Matrix-aligned tags first.
+    names = [Path(p).name for p in paths if(p not in [None, ""])]
+    if(not names):
+        return "Final_Analysis_Iterations_I0"
+    candidates = []
+    for name in names:
+        for m in re.findall(r"Final_Analysis_Iterations_I\d+", name):
+            if(m not in candidates):
+                candidates.append(m)
+    for legacy in ["Pass_2_PID_Tests_FC_14_V1"]:
+        if(legacy not in candidates):
+            candidates.append(legacy)
+    for marker in candidates:
+        if(all(marker in n for n in names)):
+            return marker
+    return None
+
+def pair_key_from_path(path_str, marker=None):
     name = Path(path_str).name
-    idx = name.find(marker)
-    if(idx < 0):
-        raise ValueError(f"Marker not found in filename: marker={marker!r} file={name!r}")
-    return name[(idx + len(marker)):]  # suffix AFTER marker; includes extension
+    if(marker not in [None, ""]):
+        idx = name.find(marker)
+        if(idx < 0):
+            raise ValueError(f"Marker not found in filename: marker={marker!r} file={name!r}")
+        return name[(idx + len(marker)):]
+    # Fallback when no shared marker: keep suffix after Pass_2_ or full basename
+    m = re.search(r"(Final_Analysis_Iterations_I\d+_.*)$", name)
+    if(m is not None):
+        return m.group(1)
+    idx = name.find("Pass_2_")
+    if(idx >= 0):
+        return name[idx:]
+    return name
+
+def make_pair_key_fn(paths):
+    marker = detect_pair_marker(paths)
+    if(marker is not None):
+        print(f"{color.BBLUE}Pair-key marker for MDF list: {color.END_B}{marker}{color.END}")
+        def pair_key(path_str):
+            return pair_key_from_path(path_str, marker=marker)
+        return pair_key
+    print(f"{color.BYELLOW}No shared pair-key marker in all MDF basenames; using suffix fallback keys.{color.END}")
+    def pair_key(path_str):
+        return pair_key_from_path(path_str, marker=None)
+    return pair_key
+
+def classify_mc_source_from_path(path_str):
+    n = Path(path_str).name.lower()
+    if("lundvpk" in n):
+        return "lundvpk"
+    if("lundrho" in n):
+        return "lundrho"
+    return "clasdis"
+
+def count_mc_sources(paths):
+    counts = {"clasdis": 0, "lundrho": 0, "lundvpk": 0}
+    for p in paths:
+        counts[classify_mc_source_from_path(p)] += 1
+    return counts
+
+def ensure_acc_rho_source_cpp():
+    global _ACC_RHO_SOURCE_CPP_DECLARED
+    if(_ACC_RHO_SOURCE_CPP_DECLARED):
+        return
+    ROOT.gInterpreter.Declare(r'''
+#include <string>
+#ifndef ACC_RHO_SOURCE_CODE_DEFINED
+#define ACC_RHO_SOURCE_CODE_DEFINED
+int AccRhoSourceCode(unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
+    const std::string n = id.AsString();
+    if(n.find("lundvpk") != std::string::npos){ return 2; }
+    if(n.find("lundrho") != std::string::npos){ return 1; }
+    return 0;
+}
+#endif
+''')
+    _ACC_RHO_SOURCE_CPP_DECLARED = True
+
+def define_exclusive_rho_weight_by_file(df, rho0_source="lundvpk"):
+    # Single multi-file RDF: tag source per file, then weight from exclusive_rho + selection.
+    # Production path only — no partition / Snapshot / histo-Add.
+    ensure_acc_rho_source_cpp()
+    selected = str(rho0_source)
+    if(selected not in ["lundvpk", "lundrho"]):
+        selected = "lundvpk"
+    selected_code = 2 if(selected == "lundvpk") else 1
+    selected_norm = RHO_NORM_LUNDVPK if(selected == "lundvpk") else RHO_NORM_LUNDRHO
+    if(not df.HasColumn("acc_rho_source")):
+        df = df.DefinePerSample("acc_rho_source", "AccRhoSourceCode(rdfslot_, rdfsampleinfo_)")
+    if(df.HasColumn("exclusive_rho_weight")):
+        return df
+    if(not df.HasColumn("exclusive_rho")):
+        print(f"{color.Error}WARNING: exclusive_rho missing; exclusive_rho_weight=1.0{color.END}")
+        return df.Define("exclusive_rho_weight", "1.0")
+    weight_expr = f'''
+        double exclusive_rho_weight = 1.0;
+        if(acc_rho_source == 0){{
+            if(exclusive_rho == 1){{ exclusive_rho_weight = 0.0; }}
+            if(exclusive_rho == 0){{ exclusive_rho_weight = 1.0; }}
+        }} else if(acc_rho_source == {selected_code}){{
+            exclusive_rho_weight = {selected_norm};
+        }} else {{
+            exclusive_rho_weight = 0.0;
+        }}
+        return exclusive_rho_weight;
+    '''
+    return df.Define("exclusive_rho_weight", weight_expr)
 
 def combine_batches(batch_list, number_of_files=-1):
     combined_list = []
@@ -343,11 +453,14 @@ def Collect_DataFrames(args):
     all_root_files = {}
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
     if(args.batch_id > 0):
-        all_root_files = build_all_root_files(mdf_batch[args.batch_id], mdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
+        mdf_list = mdf_batch[args.batch_id]
+        pair_key_fn = make_pair_key_fn(mdf_list)
+        all_root_files = build_all_root_files(mdf_list, mdf_list, pair_key_fn, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
     else:
         mdf_all = combine_batches(mdf_batch, args.number_of_files)
         rdf_all = combine_batches(rdf_batch, args.number_of_files)
-        all_root_files = build_all_root_files(mdf_all, mdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
+        pair_key_fn = make_pair_key_fn(mdf_all)
+        all_root_files = build_all_root_files(mdf_all, mdf_all, pair_key_fn, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
@@ -760,17 +873,26 @@ if(__name__ == "__main__"):
         Update_Email(args, update_name="RDataFrame Collection", verbose_override=True)
     except:
         Crash_Report(args, crash_message=f"While trying to load the RDataFrames, the code CRASHED!\nERROR MESSAGE:\n{traceback.format_exc()}", continue_run=False)
-    # Exclusive-rho MC weight (match Response_Matrix: opt-in via --run_rho_weight / -rrw)
+    # Exclusive-rho MC weight on the combined multi-file RDF (DefinePerSample by filename).
+    # Data (rdf) is never weighted for rho subtraction in this script.
     if(getattr(args, "run_rho_weight", False)):
-        if((not mdf_clasdis.HasColumn("exclusive_rho_weight")) and mdf_clasdis.HasColumn("exclusive_rho")):
-            mdf_clasdis = mdf_clasdis.Define("exclusive_rho_weight", '''double exclusive_rho_weight = 1.0;
-            if(exclusive_rho == 1){ exclusive_rho_weight = 0.0; }
-            if(exclusive_rho == 0){ exclusive_rho_weight = 1.0; }
-            return exclusive_rho_weight;''')
-            Update_Email(args, update_message=f"{color.BBLUE}Defined exclusive_rho_weight on mdf (run_rho_weight ON){color.END}", verbose_override=True)
-        elif(not mdf_clasdis.HasColumn("exclusive_rho_weight")):
-            mdf_clasdis = mdf_clasdis.Define("exclusive_rho_weight", "1.0")
-            Update_Email(args, update_message=f"{color.Error}WARNING: exclusive_rho missing; exclusive_rho_weight=1.0{color.END}", verbose_override=True)
+        mdf_paths = []
+        try:
+            # Recover path list used for logging only (from File_Batches combine)
+            if(args.batch_id > 0):
+                mdf_paths = list(mdf_batch[args.batch_id])
+            else:
+                mdf_paths = combine_batches(mdf_batch, args.number_of_files)
+        except Exception:
+            mdf_paths = []
+        src_counts = count_mc_sources(mdf_paths) if(mdf_paths) else {}
+        selected = getattr(args, "rho0_source", "lundvpk")
+        Update_Email(args, update_message=f"{color.BBLUE}run_rho_weight ON: rho0_source={selected}; MC file counts={src_counts}; norms lundrho={RHO_NORM_LUNDRHO}, lundvpk={RHO_NORM_LUNDVPK}{color.END}", verbose_override=True)
+        mdf_clasdis = define_exclusive_rho_weight_by_file(mdf_clasdis, rho0_source=selected)
+        Update_Email(args, update_message=f"{color.BBLUE}Defined exclusive_rho_weight via DefinePerSample (source tag + exclusive_rho + rho0_source){color.END}", verbose_override=True)
+    elif(not mdf_clasdis.HasColumn("exclusive_rho_weight")):
+        # Column may still be referenced when building ACC_Weight_Product only if -rrw; keep 1.0 if absent
+        pass
     
     if(args.spline_weights):
         if(not args.spline_file):

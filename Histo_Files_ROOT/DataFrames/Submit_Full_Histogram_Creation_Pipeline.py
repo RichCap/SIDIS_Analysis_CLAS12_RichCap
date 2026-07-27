@@ -9,6 +9,7 @@ import time
 import argparse
 import subprocess
 import threading
+from collections import deque
 from datetime import datetime
 
 script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis"
@@ -109,6 +110,11 @@ def parse_args():
     p.add_argument("-nrrw", "--no_run_rho_weight",
                    action="store_true",
                    help="Do not pass --run_rho_weight to Acceptance or Response-pipeline children (default: rho weights ON for production).\n")
+    p.add_argument("-rho0", "--rho0_source",
+                   type=str,
+                   default="lundvpk",
+                   choices=["lundvpk", "lundrho"],
+                   help="Exclusive-rho MC source for Acceptance when rho weights are ON (default lundvpk). Forwarded as --rho0_source.\n")
     p.add_argument("-cn", "--cut_name",
                    type=str,
                    default=DEFAULT_CUT,
@@ -129,6 +135,9 @@ def parse_args():
     p.add_argument("-v", "--verbose",
                    action="store_true",
                    help="Runner-only: also tee one designated child stream to the terminal (all children still go to the master .log).\n")
+    p.add_argument("-old3D", "--old_3D_unfold",
+                   action="store_true",
+                   help="Forward --old_3D_unfold to the pipeline (legacy sparse 3D MultiDim / fixed 915-bin axes).\n")
     return p.parse_args()
 
 # ===================================================================
@@ -294,6 +303,7 @@ def build_acceptance_cmd(args, spline_on, hpp_out, cut_name):
     cmd.extend(["-cnR", cut_name, "-cnM", cut_name])
     if(not args.no_run_rho_weight):
         cmd.append("--run_rho_weight")
+        cmd.extend(["--rho0_source", str(args.rho0_source)])
     if(spline_on):
         cmd.append("--spline_weights")
         cmd.extend(["--spline_file", args.spline_file])
@@ -336,6 +346,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.append("--run_rho_weight")
     for flag in product["pipeline_flags"]:
         cmd.append(flag)
+    if(getattr(args, "old_3D_unfold", False)):
+        cmd.append("--old_3D_unfold")
     extra = product_extra_flags(args, product)
     if(extra):
         cmd.append("--extra")
@@ -392,13 +404,21 @@ def write_time_entry(args, task_label, cut_name, mode, rc, wall_s, extra=""):
     except Exception:
         pass
 
-def stream_child_output(proc, task_label, master_log_fh, tee_terminal):
+CHILD_TAIL_MAX_LINES = 80
+CHILD_ERROR_HINTS = ("traceback", "valueerror", "runtimeerror", "error message", "crash warning", "crashed", "exception", "file not found", "syntaxerror")
+
+def stream_child_output(proc, task_label, master_log_fh, tee_terminal, line_buffer=None):
     prefix = f"[{task_label}] "
     try:
         for line in iter(proc.stdout.readline, ""):
             if(line == ""):
                 break
             text = f"{prefix}{line}"
+            if(line_buffer is not None):
+                try:
+                    line_buffer.append(text.rstrip("\n"))
+                except Exception:
+                    pass
             if(master_log_fh is not None):
                 try:
                     master_log_fh.write(ansi_to_plain(text))
@@ -410,6 +430,11 @@ def stream_child_output(proc, task_label, master_log_fh, tee_terminal):
                 sys.stdout.flush()
     except Exception as exc:
         err = f"{prefix}[stream error] {exc}\n"
+        if(line_buffer is not None):
+            try:
+                line_buffer.append(err.rstrip("\n"))
+            except Exception:
+                pass
         if(master_log_fh is not None):
             try:
                 master_log_fh.write(err)
@@ -417,14 +442,37 @@ def stream_child_output(proc, task_label, master_log_fh, tee_terminal):
             except Exception:
                 pass
 
+def format_child_failure_snippet(job, max_lines=CHILD_TAIL_MAX_LINES):
+    # Prefer error-looking lines, then fall back to the last N buffered lines.
+    buf = list(job.get("line_buffer") or [])
+    if(not buf):
+        return f"(no child output captured for {job.get('task_label', 'unknown')})"
+    hint_lines = []
+    for line in buf:
+        plain = ansi_to_plain(line).lower()
+        if(any(h in plain for h in CHILD_ERROR_HINTS)):
+            hint_lines.append(line)
+    # Include a small window of context after the first traceback-like line when present.
+    if(hint_lines):
+        try:
+            first_idx = next(i for i, line in enumerate(buf) if(any(h in ansi_to_plain(line).lower() for h in ("traceback", "crash warning", "error message", "valueerror", "runtimeerror"))))
+            window = buf[first_idx:min(len(buf), first_idx + max_lines)]
+            body = "\n".join(window)
+        except StopIteration:
+            body = "\n".join(hint_lines[-max_lines:])
+    else:
+        body = "\n".join(buf[-max_lines:])
+    return body
+
 def launch_cmd(args, cmd, task_label, tee_terminal=False):
     cmd_str = " ".join(str(c) for c in cmd)
     log_print(args, f"{color.BBLUE}CMD [{task_label}]:{color.END} {cmd_str}")
     start = time.time()
+    line_buffer = deque(maxlen=CHILD_TAIL_MAX_LINES)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=DATAFRAMES_DIR, text=True, bufsize=1)
-    reader = threading.Thread(target=stream_child_output, args=(proc, task_label, args.master_log_fh, tee_terminal), daemon=True)
+    reader = threading.Thread(target=stream_child_output, args=(proc, task_label, args.master_log_fh, tee_terminal, line_buffer), daemon=True)
     reader.start()
-    return {"proc": proc, "reader": reader, "task_label": task_label, "start": start, "cmd": cmd}
+    return {"proc": proc, "reader": reader, "task_label": task_label, "start": start, "cmd": cmd, "line_buffer": line_buffer}
 
 def wait_launched(args, job, cut_name, mode):
     rc = job["proc"].wait()
@@ -437,6 +485,11 @@ def wait_launched(args, job, cut_name, mode):
     msg = f"{color.BBLUE}DONE [{job['task_label']}] cut={cut_name} rc={rc} wall={wall:.1f}s{color.END}"
     if(rc != 0):
         msg = f"{color.Error}FAIL [{job['task_label']}] cut={cut_name} rc={rc} wall={wall:.1f}s{color.END}"
+        snippet = format_child_failure_snippet(job)
+        msg = f"""{msg}
+{color.BYELLOW}--- child output snippet ({job['task_label']}) ---{color.END}
+{snippet}
+{color.BYELLOW}--- end child output snippet ---{color.END}"""
     log_print(args, msg, no_time=False)
     return rc
 
@@ -598,11 +651,13 @@ def main():
     args.time_log_fh.flush()
 
     log_print(args, f"{color.BBLUE}\n{Script_Name} ready.{color.END}")
-    log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}")
+    log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
     if(args.no_run_rho_weight):
         log_print(args, f"{color.BYELLOW}--no_run_rho_weight: child commands will NOT receive --run_rho_weight{color.END}")
+    else:
+        log_print(args, f"{color.BBLUE}rho0_source for Acceptance: {color.END_B}{args.rho0_source}{color.END}")
 
     if((args.run_all_cuts) and (args.mode == "slurm")):
         Crash_Report(args, crash_message="--run_all_cuts is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)

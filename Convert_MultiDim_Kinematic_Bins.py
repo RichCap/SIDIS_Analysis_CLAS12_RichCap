@@ -95,7 +95,39 @@ def truncate_after_substring(input_string, substring):
     else:
         return input_string
 
-def Convert_All_Kinematic_Bins(Start_Bins_Name, End_Bins_Name):
+def create_dense_3d_bin_mapping():
+    # Builds Convert_MultiDim_Kinematic_Bins_dense_3D: per-Q2_y packing, MultiDim starts at 1 (user-visible).
+    from MyCommonAnalysisFunction_richcap import skip_condition_z_pT_bins, Get_Num_of_z_pT_Bins_w_Migrations
+    Convert_MultiDim_Kinematic_Bins_dense_3D = {}
+    per_q2y_hist_bins = {}
+    for q2y_bin_num in range(1, 18):
+        kinematic_slot = 1
+        max_zpt = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y_bin_num)[1]
+        for zpt_bin_num in range(1, max_zpt + 1):
+            if(skip_condition_z_pT_bins(q2y_bin_num, zpt_bin_num)):
+                continue
+            Convert_MultiDim_Kinematic_Bins_dense_3D[f'Q2-y={q2y_bin_num}, z-pT={zpt_bin_num} -> MultiDim_z_pT_phi_h'] = kinematic_slot
+            for phi_t in range(1, 25):
+                Convert_MultiDim_Kinematic_Bins_dense_3D[f'MultiDim_z_pT_phi_h={kinematic_slot} -> Q2-y'] = q2y_bin_num
+                Convert_MultiDim_Kinematic_Bins_dense_3D[f'MultiDim_z_pT_phi_h={kinematic_slot} -> z-pT'] = zpt_bin_num
+                kinematic_slot = kinematic_slot + 1
+        per_q2y_hist_bins[q2y_bin_num] = kinematic_slot - 1
+    return {
+        "Convert_MultiDim_Kinematic_Bins_dense_3D": Convert_MultiDim_Kinematic_Bins_dense_3D,
+        "per_q2y_hist_bins": per_q2y_hist_bins,
+        "max_hist_bins": max(per_q2y_hist_bins.values()) if(len(per_q2y_hist_bins) > 0) else 0
+    }
+
+# Lazy: built on first dense-3D convert so import does not require ROOT/MyCommon.
+Convert_MultiDim_Kinematic_Bins_dense_3D = None
+
+def get_Convert_MultiDim_Kinematic_Bins_dense_3D():
+    global Convert_MultiDim_Kinematic_Bins_dense_3D
+    if(Convert_MultiDim_Kinematic_Bins_dense_3D is None):
+        Convert_MultiDim_Kinematic_Bins_dense_3D = create_dense_3d_bin_mapping()["Convert_MultiDim_Kinematic_Bins_dense_3D"]
+    return Convert_MultiDim_Kinematic_Bins_dense_3D
+
+def Convert_All_Kinematic_Bins(Start_Bins_Name, End_Bins_Name, Use_Dense_3D=False):
     Check_Name = f"{Start_Bins_Name} -> {End_Bins_Name}"
     Check_Name = Check_Name.replace("3D_Bins", "MultiDim_z_pT_phi_h")
     Check_Name = Check_Name.replace("5D_Bins", "MultiDim_Q2_y_z_pT_phi_h")
@@ -104,7 +136,18 @@ def Convert_All_Kinematic_Bins(Start_Bins_Name, End_Bins_Name):
             return Convert_MultiDim_Kinematic_Bins_dense_5D[Check_Name]
         else:
             return "ERROR"
-    elif(Check_Name in Convert_MultiDim_Kinematic_Bins):
+    if("MultiDim_z_pT_phi_h" in Check_Name):
+        if(Use_Dense_3D):
+            dense_3d = get_Convert_MultiDim_Kinematic_Bins_dense_3D()
+            if(Check_Name in dense_3d):
+                return dense_3d[Check_Name]
+            else:
+                return "ERROR"
+        if(Check_Name in Convert_MultiDim_Kinematic_Bins):
+            return Convert_MultiDim_Kinematic_Bins[Check_Name]
+        else:
+            return "ERROR"
+    if(Check_Name in Convert_MultiDim_Kinematic_Bins):
         return Convert_MultiDim_Kinematic_Bins[Check_Name]
     else:
         return "ERROR"
@@ -137,4 +180,8 @@ if(__name__ == "__main__"):
     print("\nNow running update of 'Convert_MultiDim_Kinematic_Bins_dense_5D'...\nCopy the following code into this script:\n\n")
     out = create_dense_5d_bin_mapping()
     print(f"Convert_MultiDim_Kinematic_Bins_dense_5D = {out['Convert_MultiDim_Kinematic_Bins_dense_5D']}\n\n# Total number of 4D bins = {out['total_kinematic_slots']:.0f}\n# Total number of 5D bins = {out['total_hist_bins']:.0f}\n\n\n")
+    print("\nNow running update of 'Convert_MultiDim_Kinematic_Bins_dense_3D'...\n")
+    out3 = create_dense_3d_bin_mapping()
+    print(f"per_q2y_hist_bins = {out3['per_q2y_hist_bins']}\nmax_hist_bins = {out3['max_hist_bins']}\n")
+    print(f"Q2-y=1, z-pT=1 -> MultiDim_z_pT_phi_h = {out3['Convert_MultiDim_Kinematic_Bins_dense_3D'].get('Q2-y=1, z-pT=1 -> MultiDim_z_pT_phi_h')}")
     

@@ -103,6 +103,9 @@ def parse_args():
     parser.add_argument('-u5Do', '--unfold_5D_only',
                         action='store_true',
                         help="Only make 5D response matrices (forward --unfold_5D_only).\n")
+    parser.add_argument('-old3D', '--old_3D_unfold',
+                        action='store_true',
+                        help="Forward --old_3D_unfold: legacy sparse 3D MultiDim (fixed 915-bin axes).\n")
 
     parser.add_argument('-nin', '--name_in',
                         default="*Final_Analysis_Iterations_I0*.root",
@@ -456,6 +459,8 @@ def build_main_command(args, batch_id, output_dir):
         cmd.append("--make_2D_only")
     if(getattr(args, "unfold_5D_only", False)):
         cmd.append("--unfold_5D_only")
+    if(getattr(args, "old_3D_unfold", False)):
+        cmd.append("--old_3D_unfold")
     if(not getattr(args, 'no_fast',        False)):
         cmd.append("--fast")
     if(args.valerii_bins):
