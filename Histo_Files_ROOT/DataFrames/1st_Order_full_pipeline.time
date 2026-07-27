@@ -1,0 +1,16 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-07-26T02:23:29 name=1st_Order mode=parallel email=all =====
+=== TASK: HPP-noSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=1 ===
+wall_time: 3.16 s
+peak_memory: 513.57 MB
+
+=== TASK: HPP-withSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=1 ===
+wall_time: 3.21 s
+peak_memory: 513.57 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-07-27T01:22:47 name=1st_Order mode=parallel email=all =====
+=== TASK: HPP-noSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=0 ===
+wall_time: 28284.40 s
+peak_memory: 3.30 GB
+
