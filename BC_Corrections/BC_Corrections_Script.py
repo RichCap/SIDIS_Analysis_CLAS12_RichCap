@@ -738,7 +738,8 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
         gdf = gdf.Define("Event_Weight", f"{Default_Weights}*ComputeWeight(Q2_Y_Bin, z_pT_Bin_Y_bin, phi_t)")
     else:
         gdf = gdf.Define("Event_Weight", Default_Weights)
-    gdf = gdf.Filter("MM > 1.5") # Apply Missing Mass Cut to exclude the 'exclusive' phase space from my bins
+    # gdf = gdf.Filter("MM > 1.5") # Apply the (old) Missing Mass Cut to exclude the 'exclusive' phase space from my bins
+    gdf = gdf.Filter("MM > 1.8") # Apply the (new) Missing Mass Cut to exclude the 'exclusive' phase space from my bins
     gdf = gdf.Filter("(Q2_y_SUB_BINs  != -1) && (z_pT_SUB_BINs  != -1) && (phi_t_SUB_BINs != -1)") # Remove all events outside my nominal binning scheme
     return gdf
 
