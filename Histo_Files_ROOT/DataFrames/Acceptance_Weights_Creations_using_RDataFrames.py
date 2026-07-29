@@ -119,9 +119,9 @@ def parse_args():
                         default="phi_h",
                         choices=["phi_h", "Q2", "y", "xB", "z", "pT"],
                         help="Selects the 1D variable to be checked with `--make_2D_weight_check`.\n")
-    parser.add_argument('-sr', '--save_root',
+    parser.add_argument('-nsr', '--no_save_root',
                         action='store_true',
-                        help="Also save all stage histograms to a companion .root file (same directory/base name as the .hpp).\n")
+                        help="Disable writing the companion intermediate-histogram ROOT file (saved by default next to the .hpp).\n")
     parser.add_argument('-dr', '-ns', '-test', '--dry_run',
                         action='store_true', 
                         help='Runs a test of the histogram creation without saving them.\n')
@@ -142,6 +142,20 @@ def parse_args():
                         action='store_true',
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
     return parser.parse_args()
+
+def as_th1(hist):
+    # Optional helper: materialize RResultPtr for ROOT Write only (not used on progressive ratio path).
+    if(hist is None):
+        return None
+    if(hasattr(hist, "GetValue") and callable(hist.GetValue)):
+        return hist.GetValue()
+    return hist
+
+def acceptance_mode_tag(args):
+    # Match Submit dual-HPP naming: noSpline vs withSpline
+    if(getattr(args, "spline_weights", False)):
+        return "withSpline"
+    return "noSpline"
 
 # Match Response_Matrix Make_exclusive_rho_Flags norms
 RHO_NORM_LUNDRHO = 4.526912
@@ -561,7 +575,9 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
             return w;
         }
     """
-    ROOT.gInterpreter.Declare(One_Time_Cpp_Helpers)
+    if(not getattr(args, "_accw_helpers_declared", False)):
+        ROOT.gInterpreter.Declare(One_Time_Cpp_Helpers)
+        args._accw_helpers_declared = True
     # Accumulate generated wrappers to save for later use
     generated_wrappers_code = []
     generated_wrappers_code.append("// Auto-generated acceptance weight functions\n")
@@ -571,23 +587,53 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     rec_suf = "" if(getattr(args, "unsmeared", False)) else "_smeared"
     # HPP C++ function prefix: pure Acc keeps accw_*; spline-seeded generation uses accw_sw_*
     accw_prefix = "accw_sw_" if(args.spline_weights) else "accw_"
-    # Seed product: physics (optional) * exclusive_rho_weight (optional)
+    mode_tag = acceptance_mode_tag(args)
+    # Physics seed: same functional form as legacy JSON path — weight = A*(1 + B*cos(φ) + C*cos(2φ)).
+    # JSON: A,B,C from binned keys via ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen).
+    # Spline: A,B,C from continuous RBF via ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen).
+    #   For dim_mode 4D_xB inside the spline file, centers use (xB, y, z, pT); Q2_gen is still passed as the
+    #   first C++ argument (signature) but only xB_gen/y_gen/z_gen/pT_gen enter the 4D_xB RBF point.
+    #   Always use matched-MC GEN columns (*_gen) for the physics seed, matching Response_Matrix.
     if(args.spline_weights):
+        if(not mdf_clasdis.HasColumn("xB_gen")):
+            raise RuntimeError("withSpline seed requires column xB_gen on mdf (4D_xB spline kinematics)")
+        for col in ["Q2_gen", "y_gen", "z_gen", "pT_gen", "phi_t_gen"]:
+            if(not mdf_clasdis.HasColumn(col)):
+                raise RuntimeError(f"withSpline seed requires column {col} on mdf")
         phys_seed = "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)"
+        print(f"{color.BBLUE}Physics seed (spline, same A*(1+B cos + C cos2) form as JSON): {color.END_B}{phys_seed}{color.END}")
+        print(f"{color.BBLUE}  (4D_xB RBF uses xB_gen, y_gen, z_gen, pT_gen; phi_t_gen for modulation angle){color.END}")
     elif(args.json_weights):
         phys_seed = "ComputeWeight(Q2_Y_Bin_gen, z_pT_Bin_Y_bin_gen, phi_t_gen)"
+        print(f"{color.BBLUE}Physics seed (JSON binned A,B,C): {color.END_B}{phys_seed}{color.END}")
     else:
         phys_seed = "1.0"
-    if(getattr(args, "run_rho_weight", False) and mdf_clasdis.HasColumn("exclusive_rho_weight")):
-        wdf = mdf_clasdis.Define("ACC_Weight_Product", f"exclusive_rho_weight * ({phys_seed})")
+    # Seed once: phys_w fixed; ACC_Weight_Product starts at seed and only multiplies progressive acceptance stages.
+    if(not mdf_clasdis.HasColumn("phys_w")):
+        wdf = mdf_clasdis.Define("phys_w", phys_seed)
     else:
-        wdf = mdf_clasdis.Define("ACC_Weight_Product", phys_seed)
+        wdf = mdf_clasdis.Redefine("phys_w", phys_seed)
+    if(getattr(args, "run_rho_weight", False) and wdf.HasColumn("exclusive_rho_weight")):
+        if(not wdf.HasColumn("seed_w")):
+            wdf = wdf.Define("seed_w", "exclusive_rho_weight * phys_w")
+        else:
+            wdf = wdf.Redefine("seed_w", "exclusive_rho_weight * phys_w")
+    else:
+        if(not wdf.HasColumn("seed_w")):
+            wdf = wdf.Define("seed_w", "phys_w")
+        else:
+            wdf = wdf.Redefine("seed_w", "phys_w")
+    if(not wdf.HasColumn("ACC_Weight_Product")):
+        wdf = wdf.Define("ACC_Weight_Product", "seed_w")
+    else:
+        wdf = wdf.Redefine("ACC_Weight_Product", "seed_w")
 
-    # === NEW: Snapshot of MC after ONLY initial JSON/spline weights (stage 3) ===
+    # === Snapshot of MC after ONLY initial JSON/spline (+ rho) seed (stage 3) ===
     if(args.spline_weights or args.json_weights):
-        histos_data_match["mc_initial_weights_only"] = wdf.Histo2D(("mc_initial_weights_only", "MC REC after ONLY JSON/Spline weights (before any acceptance weights)", 144, 0, 360, 144, 0, 360), f"elPhi{rec_suf}", f"pipPhi{rec_suf}", "ACC_Weight_Product")
+        histos_data_match["mc_initial_weights_only"] = wdf.Histo2D(("mc_initial_weights_only", "MC REC after ONLY JSON/Spline weights (before any acceptance weights)", 144, 0, 360, 144, 0, 360), f"elPhi{rec_suf}", f"pipPhi{rec_suf}", "seed_w")
     else:
         histos_data_match["mc_initial_weights_only"] = None  # placeholder for consistency
+    hpp_stage_weight_stats = []  # per progressive stage diagnostics for identity-HPP detection
 
     # -----------------------------
     # 2) Build 2D histos
@@ -619,7 +665,8 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         var_y, Min_range_y, Max_range_y, Num_of_Bins_y = y_vars
         Title = default_title_construction_for_make_2D_weight(args, var_x, var_y)
         name  = f"mc_initial_weights_only_{var_x}_vs_{var_y}"
-        histos_data_match[name] = wdf.Histo2D((name, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC after ONLY JSON/Spline weights}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
+        # seed_w only (physics ± rho), not progressive ACC product
+        histos_data_match[name] = wdf.Histo2D((name, Title.replace("SOURCE", f"#color[{ROOT.kMagenta}]{{MC REC after ONLY JSON/Spline weights}}"),              Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "seed_w")
         mclasdis_no_weight = f"{var_x}_vs_{var_y}_mdf_no_weight"
         histos_data_match[mclasdis_no_weight] = mc_nw_histos[mclasdis_no_weight]
 
@@ -643,9 +690,10 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         histos_data_match[f"{mclasdis}_no_weight"].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} ({rec_label})")
         histos_data_match[f"{mclasdis}_no_weight"].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} ({rec_label})")
 
-        rdf_name_norm_factor = histos_data_match[rdf_name].Integral()
-        mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
-        mclasdis_NoWn_factor = histos_data_match[f"{mclasdis}_no_weight"].Integral()
+        rdf_name_norm_factor = float(histos_data_match[rdf_name].Integral())
+        mclasdis_norm_factor = float(histos_data_match[mclasdis].Integral())
+        mclasdis_NoWn_factor = float(histos_data_match[f"{mclasdis}_no_weight"].Integral())
+        print(f"  Integrals [{mode_tag}] {data_match_name}: data={rdf_name_norm_factor:.6g}  MC_weighted={mclasdis_norm_factor:.6g}  MC_unweighted={mclasdis_NoWn_factor:.6g}")
 
         histos_data_match[f"norm_{rdf_name}"]           = histos_data_match[rdf_name].Clone(f"norm_{rdf_name}")
         histos_data_match[f"norm_{mclasdis}"]           = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
@@ -657,7 +705,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
 
         histos_data_match[data_match_name] = histos_data_match[f"norm_{rdf_name}"].Clone(data_match_name)
         histos_data_match[data_match_name].Divide(histos_data_match[f"norm_{mclasdis}"])
-        data_match_norm_factor = histos_data_match[data_match_name].Integral()
+        data_match_norm_factor = float(histos_data_match[data_match_name].Integral())
         histos_data_match[data_match_name].Scale((1/data_match_norm_factor) if(data_match_norm_factor != 0) else 1)
         
         title_base = f"#splitline{{Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}}}{{{args.title}}}" if(args.title) else f"Ratio of #frac{{Data}}{{MC-REC}} for {variable_Title_name_new(var_x)} vs {variable_Title_name_new(var_y)}"
@@ -682,12 +730,29 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         edges_y.append(H_w.GetYaxis().GetBinUpEdge(ny))
 
         weights = []
+        n_nonfinite = 0
+        n_ones = 0
+        n_total = 0
         for iy in range(1, ny+1):
             for ix in range(1, nx+1):
                 val = H_w.GetBinContent(ix, iy)
+                n_total += 1
                 if((val < 0.0) or (not math.isfinite(val))):
+                    n_nonfinite += 1
                     val = 1.0
+                if(abs(val - 1.0) < 1e-15):
+                    n_ones += 1
                 weights.append(val)
+        hpp_stage_weight_stats.append({
+            "stage": data_match_name,
+            "n_total": n_total,
+            "n_ones": n_ones,
+            "n_nonfinite": n_nonfinite,
+            "data_int": rdf_name_norm_factor,
+            "mc_w_int": mclasdis_norm_factor,
+            "ratio_int_before_scale_fix": data_match_norm_factor,
+        })
+        print(f"  HPP extract [{mode_tag}] {data_match_name}: ones={n_ones}/{n_total} nonfinite_coerced={n_nonfinite} ratio_int={data_match_norm_factor:.6g}")
 
         cpp_edges_x = _cpp_list(edges_x)
         cpp_edges_y = _cpp_list(edges_y)
@@ -704,12 +769,12 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         generated_wrappers_code.append(wrapper_code)
 
         # -----------------------------
-        # 5) Apply weight to MC (smeared or unsmeared cols) to draw the next weighted MC histo
+        # 5) Apply progressive acceptance weight only (seed_w stays fixed; product multiplies acc stages)
         # -----------------------------
         weight_col = f"W_{var_x}_vs_{var_y}"
         wdf = wdf.Define(weight_col, f"{func_name}({var_x}{rec_suf}, {var_y}{rec_suf})").Redefine("ACC_Weight_Product", f"(ACC_Weight_Product) * ({weight_col})")
 
-        # === NEW: Snapshot of cumulative acceptance weights after this step ===
+        # Snapshot of cumulative acceptance weights after this step
         stage_name = f"mc_acc_{var_x}_vs_{var_y}"
         histos_data_match[stage_name] = wdf.Histo2D((stage_name, f"MC REC after acceptance weights up to {var_x} vs {var_y}", Num_of_Bins_x, Min_range_x, Max_range_x, Num_of_Bins_y, Min_range_y, Max_range_y), f"{var_x}{rec_suf}", f"{var_y}{rec_suf}", "ACC_Weight_Product")
 
@@ -751,7 +816,8 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         rec_label = "Unsmeared" if(rec_suf in [""]) else "Smeared"
         histos_data_match[mclasdis].GetXaxis().SetTitle(f"{variable_Title_name_new(var_x)} ({rec_label})")
         histos_data_match[mclasdis].GetYaxis().SetTitle(f"{variable_Title_name_new(var_y)} ({rec_label})")
-        mclasdis_norm_factor = histos_data_match[mclasdis].Integral()
+        mclasdis_norm_factor = float(histos_data_match[mclasdis].Integral())
+        print(f"  Final MC integral [{mode_tag}] {mclasdis}: {mclasdis_norm_factor:.6g}")
         histos_data_match[f"norm_{mclasdis}"] = histos_data_match[mclasdis].Clone(f"norm_{mclasdis}")
         histos_data_match[f"norm_{mclasdis}"].Scale((1/mclasdis_norm_factor) if(mclasdis_norm_factor != 0) else 1)
         canvas_data_match.cd((num + 1) + 4*len(List_of_Quantities_2D))
@@ -759,8 +825,23 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         histos_data_match[f"norm_{mclasdis}"].Draw("colz")
         histos_data_match[f"norm_{mclasdis}"].SetTitle(f"#splitline{{{histos_data_match[f'norm_{mclasdis}'].GetTitle()}}}{{{root_color.Bold}{{After Applying ALL Weights in this image}}}}")
 
+    # Identity-grid hard-fail: progressive ratios that are ~100% ones produce useless HPP (observed for withSpline)
+    for st in hpp_stage_weight_stats:
+        n_tot = max(int(st.get("n_total", 0)), 1)
+        n_ones = int(st.get("n_ones", 0))
+        n_nf = int(st.get("n_nonfinite", 0))
+        frac_ones = float(n_ones) / float(n_tot)
+        if(frac_ones >= 0.999):
+            msg = (
+                f"Identity acceptance HPP grid for stage '{st.get('stage')}' [{mode_tag}]: "
+                f"ones={n_ones}/{n_tot} (nonfinite_coerced={n_nf}); "
+                f"data_int={st.get('data_int')}, mc_w_int={st.get('mc_w_int')}, ratio_int={st.get('ratio_int_before_scale_fix')}. "
+                f"Check physics seed (ComputeSplineWeight/ComputeWeight on *_gen), materialization, and non-finite ratio bins."
+            )
+            raise RuntimeError(msg)
+
     # -----------------------------
-    # 8) Save the canvas (ratio / data / weighted-MC)
+    # 8) Save the canvas (ratio / data / weighted-MC); mode_tag already in args.save_name
     # -----------------------------
     canvas_data_match.SaveAs(args.save_name)
     print(f"{color.BOLD}Saved: {color.BBLUE}{args.save_name}{color.END}")
@@ -785,28 +866,35 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
         hf.write(header_body)
 
     print(f"{color.BOLD}Wrote weight functions to: {color.BBLUE}{args.hpp_output_file}{color.END}")
-    print(f"\n{color.BOLD}===== BEGINNING OF GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
-    print(header_body)
-    print(f"\n{color.BOLD}=====    END OF GENERATED ACCEPTANCE-WEIGHT CODE    ====={color.END}\n")
+    if(args.verbose):
+        print(f"\n{color.BOLD}===== BEGINNING OF GENERATED ACCEPTANCE-WEIGHT CODE ====={color.END}\n")
+        print(header_body)
+        print(f"\n{color.BOLD}=====    END OF GENERATED ACCEPTANCE-WEIGHT CODE    ====={color.END}\n")
+    else:
+        print(f"{color.BBLUE}(Skipping full HPP dump to stdout; pass --verbose to print generated code){color.END}")
 
     # -----------------------------
-    # 10) NEW: Save all stage histograms to companion ROOT file if requested
+    # 10) Save all stage histograms to companion ROOT file (default ON; disable with --no_save_root)
     # -----------------------------
-    if(getattr(args, "save_root", False)):
+    if(not getattr(args, "no_save_root", False)):
         root_path = args.hpp_output_file.replace(".hpp", ".root")
         root_file = ROOT.TFile(root_path, "RECREATE")
         root_file.cd()
 
-        # Save every histogram we collected (raw data, unweighted MC, initial weights only, progressive acceptance weights, final full acceptance, and all normalized versions)
-        for name, hist in histos_data_match.items():
+        # Materialize any leftover RResultPtrs, then write every stage histogram
+        for name, hist in list(histos_data_match.items()):
+            histos_data_match[name] = as_th1(hist)
+            hist = histos_data_match[name]
             if((hist is not None) and hasattr(hist, "Write")):
                 hist.Write()
 
         root_file.Close()
-        print(f"{color.BOLD}Saved full-stage histograms (all 6 stages) to ROOT file: {color.BBLUE}{root_path}{color.END}")
+        print(f"{color.BOLD}Saved full-stage histograms to ROOT file: {color.BBLUE}{root_path}{color.END}")
+    else:
+        print(f"{color.BYELLOW}Skipping companion ROOT file (--no_save_root).{color.END}")
 
     args.timer.time_elapsed()
-    print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE{color.END}\n")
+    print(f"\n{color.BOLD}DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE [{mode_tag}]{color.END}\n")
     return args
 
 if(__name__ == "__main__"):
@@ -842,7 +930,16 @@ if(__name__ == "__main__"):
         raise ValueError("--json_weights and --spline_weights are mutually exclusive (same physics factor).")
     if((("noSmear" in str(args.cut_name_rdf)) or ("noSmear" in str(args.cut_name_mdf))) and (not getattr(args, "unsmeared", False))):
         raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared")
-    args.save_name = f"Data_to_MC_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+    # ROOT intermediate histos ON by default; only --no_save_root turns them off (no dual/conflicting flags).
+    args.save_root = (not getattr(args, "no_save_root", False))
+    mode_tag = acceptance_mode_tag(args)
+    # Distinct diagnostic PNG names for dual HPP path (noSpline vs withSpline) so they do not overwrite each other.
+    if(not args.name):
+        args.save_name = f"Data_to_MC_Acceptance_Weights_{mode_tag}{args.File_Save_Format}"
+    elif(mode_tag in str(args.name)):
+        args.save_name = f"Data_to_MC_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+    else:
+        args.save_name = f"Data_to_MC_Acceptance_Weights_{args.name}_{mode_tag}{args.File_Save_Format}"
     args.make_2D_weight = (args.make_2D_weight and (not args.dry_run))
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -1128,7 +1225,13 @@ if(__name__ == "__main__"):
         
         c_phi.Update()
 
-        save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights{args.File_Save_Format}" if(not args.name) else f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        _mode_tag = acceptance_mode_tag(args)
+        if(not args.name):
+            save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{_mode_tag}{args.File_Save_Format}"
+        elif(_mode_tag in str(args.name)):
+            save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{args.name}{args.File_Save_Format}"
+        else:
+            save_name = f"{args.Var_weight_check}_Comparison_with_and_without_Acceptance_Weights_{args.name}_{_mode_tag}{args.File_Save_Format}"
         if(args.Require_Kinematic_Binning):
             save_name = f"Binned_{save_name}"
         c_phi.SaveAs(save_name)

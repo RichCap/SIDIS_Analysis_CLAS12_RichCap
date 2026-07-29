@@ -323,6 +323,7 @@ def product_extra_flags(args, product):
     return extra
 
 def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False):
+    # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
     cmd = [PIPELINE_SCRIPT]
     run_mode = args.mode if(mode is None) else mode
     if(run_mode == "hybrid"):
@@ -348,10 +349,6 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.append(flag)
     if(getattr(args, "old_3D_unfold", False)):
         cmd.append("--old_3D_unfold")
-    extra = product_extra_flags(args, product)
-    if(extra):
-        cmd.append("--extra")
-        cmd.extend(extra)
     use_saj = saj if(saj is not None) else args.slurm_array_jobid
     if(use_saj not in [None, ""]):
         cmd.extend(["--slurm_array_jobid", str(use_saj)])
@@ -363,6 +360,11 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(email_children(args) and (run_mode != "slurm")):
         cmd.append("--email")
         cmd.extend(["-emj", child_email_message(args.user_email_message, product["label"])])
+    # --extra LAST: only true Response_Matrix passthrough args
+    extra = product_extra_flags(args, product)
+    if(extra):
+        cmd.append("--extra")
+        cmd.extend(extra)
     return cmd
 
 # ===================================================================
