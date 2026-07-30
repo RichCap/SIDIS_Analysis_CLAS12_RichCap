@@ -30,3 +30,9 @@ peak_memory: 3.30 GB
 wall_time: 3.52 s
 peak_memory: 3.30 GB
 
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-07-29T15:20:22 name=1st_Order mode=parallel email=all =====
+=== TASK: HPP-noSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=0 ===
+wall_time: 67330.36 s
+peak_memory: 3.27 GB
+
