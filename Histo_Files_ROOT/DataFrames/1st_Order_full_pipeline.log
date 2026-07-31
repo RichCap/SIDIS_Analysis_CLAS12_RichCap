@@ -9518,3 +9518,617 @@ CMD [HPP-withSpline-cut_Complete_SIDIS]: ./Acceptance_Weights_Creations_using_RD
 [HPP-noSpline-cut_Complete_SIDIS]     
 [HPP-noSpline-cut_Complete_SIDIS]     
 DONE [HPP-noSpline-cut_Complete_SIDIS] cut=cut_Complete_SIDIS rc=0 wall=67330.4s
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TCanvas::Print>: png file Data_to_MC_Acceptance_Weights_1st_Order_withSpline.png has been created
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Physics seed (spline, same A*(1+B cos + C cos2) form as JSON): ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)
+[HPP-withSpline-cut_Complete_SIDIS]   (4D_xB RBF uses xB_gen, y_gen, z_gen, pT_gen; phi_t_gen for modulation angle)
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 2D Histogram Loops
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 03:30 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 0 Hour(s), 10 Minute(s), and 22 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'elPhi_vs_pipPhi' Histograms
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] elPhi_vs_pipPhi: data=3.02045e+07  MC_weighted=11721.6  MC_unweighted=1.69048e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] elPhi_vs_pipPhi: ones=0/20736 nonfinite_coerced=0 ratio_int=64060.7
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'elPhi_vs_pipPhi' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 06:49 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 15 Hour(s), 28 Minute(s), and 51 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'elth_vs_pipth' Histograms
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] elth_vs_pipth: data=3.02045e+07  MC_weighted=0.182975  MC_unweighted=1.69048e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] elth_vs_pipth: ones=0/3472 nonfinite_coerced=0 ratio_int=14760.5
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'elth_vs_pipth' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 06:14 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 2 Hour(s), 53 Minute(s), and 43 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'el_vs_pip' Histograms
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] el_vs_pip: data=3.02045e+07  MC_weighted=1.23963e-05  MC_unweighted=1.69048e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] el_vs_pip: ones=0/1408 nonfinite_coerced=0 ratio_int=2025.68
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'el_vs_pip' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 03:05 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 11 Hour(s), 45 Minute(s), and 33 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Done Creating the Histograms for getting the new event weights
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 03:05 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 11 Hour(s), 45 Minute(s), and 33 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] elPhi_vs_pipPhi_mdf_Final: 6.11959e-09
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] elth_vs_pipth_mdf_Final: 6.11959e-09
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] el_vs_pip_mdf_Final: 6.11959e-09
+[HPP-withSpline-cut_Complete_SIDIS] Saved: Data_to_MC_Acceptance_Weights_1st_Order_withSpline.png
+[HPP-withSpline-cut_Complete_SIDIS] Wrote weight functions to: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp
+[HPP-withSpline-cut_Complete_SIDIS] (Skipping full HPP dump to stdout; pass --verbose to print generated code)
+[HPP-withSpline-cut_Complete_SIDIS] Saved full-stage histograms to ROOT file: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.root
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 07:29 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 2 Day(s), 4 Hour(s), 8 Minute(s), and 38 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE [withSpline]
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Skipping Checks of Acceptance Weights on the Kinematic Variable Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] EMAIL MESSAGE TO SEND:
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] The 'Acceptance_Weights_Creations_using_RDataFrames.py' script has finished running.
+[HPP-withSpline-cut_Complete_SIDIS] Started running on 7-29-2026 at 03:20 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. HPP withSpline
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] RDataFrame Collection is done running...
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 10 Minute(s), and 22 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] run_rho_weight ON: rho0_source=lundvpk; MC file counts={'clasdis': 893, 'lundrho': 10, 'lundvpk': 10}; norms lundrho=4.526912, lundvpk=4.624974
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 10 Minute(s), and 22 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] Defined exclusive_rho_weight via DefinePerSample (source tag + exclusive_rho + rho0_source)
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 10 Minute(s), and 22 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Using new spline-based event-by-event weights from /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 10 Minute(s), and 22 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Arguments:
+[HPP-withSpline-cut_Complete_SIDIS] --verbose                                           --> False
+[HPP-withSpline-cut_Complete_SIDIS] --cut_name_rdf                                      --> 'cut_Complete_SIDIS'
+[HPP-withSpline-cut_Complete_SIDIS] --cut_name_mdf                                      --> 'cut_Complete_SIDIS'
+[HPP-withSpline-cut_Complete_SIDIS] --cut                                               --> None
+[HPP-withSpline-cut_Complete_SIDIS] --Require_Kinematic_Binning                         --> False
+[HPP-withSpline-cut_Complete_SIDIS] --name                                              --> '1st_Order'
+[HPP-withSpline-cut_Complete_SIDIS] --title                                             --> None
+[HPP-withSpline-cut_Complete_SIDIS] --batch_id                                          --> 0
+[HPP-withSpline-cut_Complete_SIDIS] --number_of_files                                   --> -1
+[HPP-withSpline-cut_Complete_SIDIS] --event_limit                                       --> None
+[HPP-withSpline-cut_Complete_SIDIS] --angles_only_hpp                                   --> False
+[HPP-withSpline-cut_Complete_SIDIS] --json_weights                                      --> False
+[HPP-withSpline-cut_Complete_SIDIS] --spline_weights                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --spline_file                                       --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[HPP-withSpline-cut_Complete_SIDIS] --hpp_output_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[HPP-withSpline-cut_Complete_SIDIS] --fast                                              --> False
+[HPP-withSpline-cut_Complete_SIDIS] --File_Save_Format                                  --> '.png'
+[HPP-withSpline-cut_Complete_SIDIS] --make_2D_weight                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --make_2D_weight_check                              --> False
+[HPP-withSpline-cut_Complete_SIDIS] --no_save_root                                      --> False
+[HPP-withSpline-cut_Complete_SIDIS] --dry_run                                           --> False
+[HPP-withSpline-cut_Complete_SIDIS] --stage                                             --> 'all'
+[HPP-withSpline-cut_Complete_SIDIS] --run_rho_weight                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --rho0_source                                       --> 'lundvpk'
+[HPP-withSpline-cut_Complete_SIDIS] --unsmeared                                         --> False
+[HPP-withSpline-cut_Complete_SIDIS] --save_root                                         --> True
+[HPP-withSpline-cut_Complete_SIDIS] --save_name                                         --> 'Data_to_MC_Acceptance_Weights_1st_Order_withSpline.png'
+[HPP-withSpline-cut_Complete_SIDIS] --num_rdf_files                                     --> 171
+[HPP-withSpline-cut_Complete_SIDIS] --num_MC_files                                      --> 913
+[HPP-withSpline-cut_Complete_SIDIS] --_accw_helpers_declared                            --> True
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] The time that this code finished is 07:29 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] The total time the code took to run is:
+[HPP-withSpline-cut_Complete_SIDIS] 2 Day(s), 4 Hour(s), 8 Minute(s), and 38 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS]     	                                   	   
+[HPP-withSpline-cut_Complete_SIDIS]     	This code has now finished running.	   
+[HPP-withSpline-cut_Complete_SIDIS]     	                                   	   
+[HPP-withSpline-cut_Complete_SIDIS]     
+[HPP-withSpline-cut_Complete_SIDIS]     
+DONE [HPP-withSpline-cut_Complete_SIDIS] cut=cut_Complete_SIDIS rc=0 wall=187719.8s
+
+=== Stage 2: Response-matrix products (3 products × 5 jobs when parallel) ===
+
+Products for cut cut_Complete_SIDIS
+CMD [2D_Presentation]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n 2D_Presentation_1st_Order_Q2_Y_Bins --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --z_axis_2D Q2_Y_Bin --no_make_2D_rho --jobs 5 --email -emj Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. 2D Presentation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+CMD [Only_3D]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Only_3D_1st_Order_Response_Matrices --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --jobs 5 --email -emj Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. Only 3D Response Matrices --extra --run_rho_weight
+CMD [Only_5D]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Only_5D_1st_Order_Response_Matrices --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --jobs 5 --email -emj Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. Only 5D Response Matrices --extra --run_rho_weight --unfold_5D_only
+[Only_3D] 
+[Only_3D] CRASH WARNING!
+[Only_3D] FAIL : Batch   1 of 171 (rc=1)
+[Only_3D] 
+[2D_Presentation] 
+[2D_Presentation] CRASH WARNING!
+[2D_Presentation] FAIL : Batch   1 of 171 (rc=1)
+[2D_Presentation] 
+[Only_5D] 
+[Only_5D] CRASH WARNING!
+[Only_5D] FAIL : Batch   1 of 171 (rc=1)
+[Only_5D] 
+[2D_Presentation] 
+[2D_Presentation] Started running on 7-31-2026 at 07:29 p.m.
+[2D_Presentation] 
+[2D_Presentation] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/2D_Presentation_1st_Order_Q2_Y_Bins_Final_Analysis_Iterations_I0_07_31_2026
+[2D_Presentation] 
+[2D_Presentation] START: Batch   1 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   2 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   3 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   4 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   5 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] EMAIL MESSAGE TO SEND:
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[2D_Presentation] Started running on 7-31-2026 at 07:29 p.m.
+[2D_Presentation] 
+[2D_Presentation] Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. 2D Presentation Histograms
+[2D_Presentation] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/2D_Presentation_1st_Order_Q2_Y_Bins_Final_Analysis_Iterations_I0_07_31_2026
+[2D_Presentation] 
+[2D_Presentation] START: Batch   1 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   2 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   3 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   4 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] START: Batch   5 of 171
+[2D_Presentation] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] 
+[2D_Presentation] CRASH WARNING!
+[2D_Presentation] FAIL : Batch   1 of 171 (rc=1)
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] Arguments:
+[2D_Presentation] 
+[2D_Presentation] --mode                                              --> 'parallel'
+[2D_Presentation] --cut_name                                          --> 'cut_Complete_SIDIS'
+[2D_Presentation] --no_make_2D_rho                                    --> True
+[2D_Presentation] --z_axis_2D                                         --> 'Q2_Y_Bin'
+[2D_Presentation] --valerii_bins                                      --> False
+[2D_Presentation] --use_hpp                                           --> True
+[2D_Presentation] --spline_weights                                    --> True
+[2D_Presentation] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[2D_Presentation] --json_weights                                      --> False
+[Only_5D] 
+[2D_Presentation] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_5D] Started running on 7-31-2026 at 07:29 p.m.
+[2D_Presentation] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Only_5D] 
+[2D_Presentation] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Only_5D] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Only_5D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026
+[2D_Presentation] --run_rho_weight                                    --> True
+[Only_5D] 
+[2D_Presentation] --unsmeared                                         --> False
+[Only_5D] START: Batch   1 of 171
+[2D_Presentation] --make_2D_only                                      --> False
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] --unfold_5D_only                                    --> False
+[Only_5D] START: Batch   2 of 171
+[2D_Presentation] --old_3D_unfold                                     --> False
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Only_5D] START: Batch   3 of 171
+[2D_Presentation] --name                                              --> '2D_Presentation_1st_Order_Q2_Y_Bins'
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] --num_batches                                       --> 171
+[Only_5D] START: Batch   4 of 171
+[2D_Presentation] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] 
+[2D_Presentation] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] Started running on 7-31-2026 at 07:29 p.m.
+[2D_Presentation] --jobs                                              --> 5
+[Only_3D] 
+[2D_Presentation] --continue_on_failure                               --> False
+[Only_5D] START: Batch   5 of 171
+[2D_Presentation] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_5D] 
+[2D_Presentation] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_5D] 
+[2D_Presentation] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_5D] 
+[2D_Presentation] --verbose                                           --> False
+[Only_5D] 
+[2D_Presentation] --yes                                               --> False
+[Only_5D] EMAIL MESSAGE TO SEND:
+[2D_Presentation] --extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+[Only_3D] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Only_3D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026
+[2D_Presentation] --run_subdir_name                                   --> '2D_Presentation_1st_Order_Q2_Y_Bins_Final_Analysis_Iterations_I0_07_31_2026'
+[Only_3D] 
+[2D_Presentation] 
+[Only_3D] START: Batch   1 of 171
+[2D_Presentation] 
+[Only_5D] 
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] 
+[2D_Presentation] The time that this code finished is 07:29 p.m.
+[Only_3D] START: Batch   2 of 171
+[2D_Presentation] The total time the code took to run is:
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[Only_5D] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[2D_Presentation] 
+[Only_5D] Started running on 7-31-2026 at 07:29 p.m.
+[2D_Presentation]     
+[Only_5D] 
+[2D_Presentation] 
+[Only_5D] Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. Only 5D Response Matrices
+[2D_Presentation] 
+[Only_5D] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Only_5D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026
+[2D_Presentation]     	                                   	
+[Only_5D] 
+[2D_Presentation]     	       This code has CRASHED!      	
+[Only_5D] START: Batch   1 of 171
+[2D_Presentation]     	                                   	   
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[2D_Presentation] 
+[Only_5D] START: Batch   2 of 171
+[2D_Presentation]     
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_3D] START: Batch   3 of 171
+[Only_5D] START: Batch   3 of 171
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_3D] START: Batch   4 of 171
+[Only_5D] START: Batch   4 of 171
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_3D] START: Batch   5 of 171
+[Only_5D] START: Batch   5 of 171
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_3D] 
+[Only_5D] 
+[Only_3D] 
+[Only_5D] CRASH WARNING!
+[Only_3D] 
+[Only_5D] FAIL : Batch   1 of 171 (rc=1)
+[Only_3D] 
+[Only_5D] 
+[Only_3D] EMAIL MESSAGE TO SEND:
+[Only_5D] 
+[Only_3D] 
+[Only_5D] 
+[Only_3D] 
+[Only_5D] Arguments:
+[Only_3D] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[Only_5D] 
+[Only_3D] Started running on 7-31-2026 at 07:29 p.m.
+[Only_5D] --mode                                              --> 'parallel'
+[Only_3D] 
+[Only_5D] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Only_3D] Running full histogram runner script (for the third time, but now with the updated spline files that should hopefully work where the previous ones failed) for the initial first order iteration histograms. Ran while generating new HPP files (with and without the Spline weights). Included the most recent versions of the rho0 subtractions in all scripts. Updated the 3D bin index definitions so that each Q2-y bin will get a more tailored 3D response matrix tailored to the same binning scheme used by the 5D unfolding script. Ran in tmuxPython. Only 3D Response Matrices
+[Only_5D] --no_make_2D                                        --> True
+[Only_3D] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Only_3D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026
+[Only_5D] --no_make_2D_rho                                    --> True
+[Only_3D] 
+[Only_5D] --z_axis_2D                                         --> '4D_Bin'
+[Only_3D] START: Batch   1 of 171
+[Only_5D] --valerii_bins                                      --> False
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] --use_hpp                                           --> True
+[Only_3D] START: Batch   2 of 171
+[Only_5D] --spline_weights                                    --> True
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_3D] START: Batch   3 of 171
+[Only_5D] --json_weights                                      --> False
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_3D] START: Batch   4 of 171
+[Only_5D] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Only_3D] START: Batch   5 of 171
+[Only_5D] --run_rho_weight                                    --> True
+[Only_3D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] --unsmeared                                         --> False
+[Only_3D] 
+[Only_5D] --make_2D_only                                      --> False
+[Only_3D] CRASH WARNING!
+[Only_3D] FAIL : Batch   1 of 171 (rc=1)
+[Only_5D] --unfold_5D_only                                    --> False
+[Only_5D] --old_3D_unfold                                     --> False
+[Only_3D] 
+[Only_5D] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Only_3D] 
+[Only_5D] --name                                              --> 'Only_5D_1st_Order_Response_Matrices'
+[Only_3D] 
+[Only_5D] --num_batches                                       --> 171
+[Only_3D] Arguments:
+[Only_5D] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_3D] 
+[Only_5D] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] --mode                                              --> 'parallel'
+[Only_5D] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Only_5D] --jobs                                              --> 5
+[Only_3D] --no_make_2D                                        --> True
+[Only_5D] --continue_on_failure                               --> False
+[Only_3D] --no_make_2D_rho                                    --> True
+[Only_5D] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_3D] --no_unfold_5D                                      --> True
+[Only_5D] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_3D] --z_axis_2D                                         --> '4D_Bin'
+[Only_5D] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_3D] --valerii_bins                                      --> False
+[Only_5D] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_3D] --use_hpp                                           --> True
+[Only_5D] --verbose                                           --> False
+[Only_3D] --spline_weights                                    --> True
+[Only_5D] --yes                                               --> False
+[Only_3D] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_5D] --extra                                             --> ['--run_rho_weight', '--unfold_5D_only']
+[Only_3D] --json_weights                                      --> False
+[Only_5D] --run_subdir_name                                   --> 'Only_5D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026'
+[Only_3D] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_5D] 
+[Only_3D] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Only_5D] 
+[Only_3D] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Only_5D] The time that this code finished is 07:29 p.m.
+[Only_3D] --run_rho_weight                                    --> True
+[Only_5D] The total time the code took to run is:
+[Only_3D] --unsmeared                                         --> False
+[Only_5D] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[Only_3D] --make_2D_only                                      --> False
+[Only_5D] 
+[Only_3D] --unfold_5D_only                                    --> False
+[Only_5D]     
+[Only_3D] --old_3D_unfold                                     --> False
+[Only_5D] 
+[Only_3D] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Only_5D] 
+[Only_3D] --name                                              --> 'Only_3D_1st_Order_Response_Matrices'
+[Only_5D]     	                                   	
+[Only_3D] --num_batches                                       --> 171
+[Only_5D]     	       This code has CRASHED!      	
+[Only_3D] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_5D]     	                                   	   
+[Only_3D] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_5D] 
+[Only_3D] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_5D]     
+[Only_3D] --jobs                                              --> 5
+[Only_3D] --continue_on_failure                               --> False
+[Only_3D] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_3D] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_3D] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_3D] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_3D] --verbose                                           --> False
+[Only_3D] --yes                                               --> False
+[Only_3D] --extra                                             --> ['--run_rho_weight']
+[Only_3D] --run_subdir_name                                   --> 'Only_3D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026'
+[Only_3D] 
+[Only_3D] 
+[Only_3D] The time that this code finished is 07:29 p.m.
+[Only_3D] The total time the code took to run is:
+[Only_3D] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[Only_3D] 
+[Only_3D]     
+[Only_3D] 
+[Only_3D] 
+[Only_3D]     	                                   	
+[Only_3D]     	       This code has CRASHED!      	
+[Only_3D]     	                                   	   
+[Only_3D] 
+[Only_3D]     
+FAIL [2D_Presentation] cut=cut_Complete_SIDIS rc=1 wall=8.6s
+--- child output snippet (2D_Presentation) ---
+[2D_Presentation] CRASH WARNING!
+[2D_Presentation] FAIL : Batch   1 of 171 (rc=1)
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] Arguments:
+[2D_Presentation] 
+[2D_Presentation] --mode                                              --> 'parallel'
+[2D_Presentation] --cut_name                                          --> 'cut_Complete_SIDIS'
+[2D_Presentation] --no_make_2D_rho                                    --> True
+[2D_Presentation] --z_axis_2D                                         --> 'Q2_Y_Bin'
+[2D_Presentation] --valerii_bins                                      --> False
+[2D_Presentation] --use_hpp                                           --> True
+[2D_Presentation] --spline_weights                                    --> True
+[2D_Presentation] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[2D_Presentation] --json_weights                                      --> False
+[2D_Presentation] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[2D_Presentation] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[2D_Presentation] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[2D_Presentation] --run_rho_weight                                    --> True
+[2D_Presentation] --unsmeared                                         --> False
+[2D_Presentation] --make_2D_only                                      --> False
+[2D_Presentation] --unfold_5D_only                                    --> False
+[2D_Presentation] --old_3D_unfold                                     --> False
+[2D_Presentation] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[2D_Presentation] --name                                              --> '2D_Presentation_1st_Order_Q2_Y_Bins'
+[2D_Presentation] --num_batches                                       --> 171
+[2D_Presentation] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[2D_Presentation] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[2D_Presentation] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[2D_Presentation] --jobs                                              --> 5
+[2D_Presentation] --continue_on_failure                               --> False
+[2D_Presentation] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[2D_Presentation] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[2D_Presentation] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[2D_Presentation] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[2D_Presentation] --verbose                                           --> False
+[2D_Presentation] --yes                                               --> False
+[2D_Presentation] --extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+[2D_Presentation] --run_subdir_name                                   --> '2D_Presentation_1st_Order_Q2_Y_Bins_Final_Analysis_Iterations_I0_07_31_2026'
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation] The time that this code finished is 07:29 p.m.
+[2D_Presentation] The total time the code took to run is:
+[2D_Presentation] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[2D_Presentation] 
+[2D_Presentation]     
+[2D_Presentation] 
+[2D_Presentation] 
+[2D_Presentation]     	                                   	
+[2D_Presentation]     	       This code has CRASHED!      	
+[2D_Presentation]     	                                   	   
+[2D_Presentation] 
+[2D_Presentation]     
+--- end child output snippet ---
+FAIL [Only_3D] cut=cut_Complete_SIDIS rc=1 wall=8.6s
+--- child output snippet (Only_3D) ---
+[Only_3D] CRASH WARNING!
+[Only_3D] FAIL : Batch   1 of 171 (rc=1)
+[Only_3D] 
+[Only_3D] 
+[Only_3D] 
+[Only_3D] Arguments:
+[Only_3D] 
+[Only_3D] --mode                                              --> 'parallel'
+[Only_3D] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Only_3D] --no_make_2D                                        --> True
+[Only_3D] --no_make_2D_rho                                    --> True
+[Only_3D] --no_unfold_5D                                      --> True
+[Only_3D] --z_axis_2D                                         --> '4D_Bin'
+[Only_3D] --valerii_bins                                      --> False
+[Only_3D] --use_hpp                                           --> True
+[Only_3D] --spline_weights                                    --> True
+[Only_3D] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_3D] --json_weights                                      --> False
+[Only_3D] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_3D] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Only_3D] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Only_3D] --run_rho_weight                                    --> True
+[Only_3D] --unsmeared                                         --> False
+[Only_3D] --make_2D_only                                      --> False
+[Only_3D] --unfold_5D_only                                    --> False
+[Only_3D] --old_3D_unfold                                     --> False
+[Only_3D] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Only_3D] --name                                              --> 'Only_3D_1st_Order_Response_Matrices'
+[Only_3D] --num_batches                                       --> 171
+[Only_3D] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_3D] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D] --jobs                                              --> 5
+[Only_3D] --continue_on_failure                               --> False
+[Only_3D] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_3D] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_3D] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_3D] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_3D] --verbose                                           --> False
+[Only_3D] --yes                                               --> False
+[Only_3D] --extra                                             --> ['--run_rho_weight']
+[Only_3D] --run_subdir_name                                   --> 'Only_3D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026'
+[Only_3D] 
+[Only_3D] 
+[Only_3D] The time that this code finished is 07:29 p.m.
+[Only_3D] The total time the code took to run is:
+[Only_3D] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[Only_3D] 
+[Only_3D]     
+[Only_3D] 
+[Only_3D] 
+[Only_3D]     	                                   	
+[Only_3D]     	       This code has CRASHED!      	
+[Only_3D]     	                                   	   
+[Only_3D] 
+[Only_3D]     
+--- end child output snippet ---
+FAIL [Only_5D] cut=cut_Complete_SIDIS rc=1 wall=8.6s
+--- child output snippet (Only_5D) ---
+[Only_5D] CRASH WARNING!
+[Only_5D] FAIL : Batch   1 of 171 (rc=1)
+[Only_5D] 
+[Only_5D] 
+[Only_5D] 
+[Only_5D] Arguments:
+[Only_5D] 
+[Only_5D] --mode                                              --> 'parallel'
+[Only_5D] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Only_5D] --no_make_2D                                        --> True
+[Only_5D] --no_make_2D_rho                                    --> True
+[Only_5D] --z_axis_2D                                         --> '4D_Bin'
+[Only_5D] --valerii_bins                                      --> False
+[Only_5D] --use_hpp                                           --> True
+[Only_5D] --spline_weights                                    --> True
+[Only_5D] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_5D] --json_weights                                      --> False
+[Only_5D] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_5D] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Only_5D] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Only_5D] --run_rho_weight                                    --> True
+[Only_5D] --unsmeared                                         --> False
+[Only_5D] --make_2D_only                                      --> False
+[Only_5D] --unfold_5D_only                                    --> False
+[Only_5D] --old_3D_unfold                                     --> False
+[Only_5D] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Only_5D] --name                                              --> 'Only_5D_1st_Order_Response_Matrices'
+[Only_5D] --num_batches                                       --> 171
+[Only_5D] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_5D] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_5D] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_5D] --jobs                                              --> 5
+[Only_5D] --continue_on_failure                               --> False
+[Only_5D] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_5D] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_5D] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_5D] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_5D] --verbose                                           --> False
+[Only_5D] --yes                                               --> False
+[Only_5D] --extra                                             --> ['--run_rho_weight', '--unfold_5D_only']
+[Only_5D] --run_subdir_name                                   --> 'Only_5D_1st_Order_Response_Matrices_Final_Analysis_Iterations_I0_07_31_2026'
+[Only_5D] 
+[Only_5D] 
+[Only_5D] The time that this code finished is 07:29 p.m.
+[Only_5D] The total time the code took to run is:
+[Only_5D] 0 Day(s), 0 Hour(s), 0 Minute(s), and 7 Second(s).
+[Only_5D] 
+[Only_5D]     
+[Only_5D] 
+[Only_5D] 
+[Only_5D]     	                                   	
+[Only_5D]     	       This code has CRASHED!      	
+[Only_5D]     	                                   	   
+[Only_5D] 
+[Only_5D]     
+--- end child output snippet ---

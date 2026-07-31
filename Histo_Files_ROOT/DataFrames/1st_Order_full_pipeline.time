@@ -36,3 +36,19 @@ peak_memory: 3.30 GB
 wall_time: 67330.36 s
 peak_memory: 3.27 GB
 
+=== TASK: HPP-withSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=0 ===
+wall_time: 187719.82 s
+peak_memory: 3.27 GB
+
+=== TASK: 2D_Presentation | cut=cut_Complete_SIDIS | mode=parallel | rc=1 ===
+wall_time: 8.60 s
+peak_memory: 3.27 GB
+
+=== TASK: Only_3D | cut=cut_Complete_SIDIS | mode=parallel | rc=1 ===
+wall_time: 8.55 s
+peak_memory: 3.27 GB
+
+=== TASK: Only_5D | cut=cut_Complete_SIDIS | mode=parallel | rc=1 ===
+wall_time: 8.55 s
+peak_memory: 3.27 GB
+
