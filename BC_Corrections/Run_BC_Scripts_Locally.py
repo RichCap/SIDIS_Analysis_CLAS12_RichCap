@@ -259,22 +259,54 @@ def expected_output_path(filepath, root_run_dir, root_basename="Sub_Bin_Contents
 
 def prepare_base_command(args, root_run_dir):
     # Normalize the BC command string and return shlex-split base without the input file path.
+    # Valued options must keep their values as the immediately following token.
+    # Inject --root_file_out <path> first, then leave --file as the last base token so the input path is appended next.
     command = str(args.command)
     if(args.clasdis and ("BC_Corrections_Script.py" in command) and not any(clas_com in command for clas_com in ["-clasdis", "--use_clasdis"])):
         command = f"{command} --use_clasdis"
-    if(("BC_Corrections_Script.py" in command) and not any(file_com in command for file_com in ["-f ", "--file ", "-f\t", "--file\t"])):
-        command = f"{command.rstrip()} --file"
-    # Inject --root_file_out into the run-specific directory when not already specified.
+    # Inject --root_file_out into the run-specific directory when not already specified (value must follow immediately).
     if(("BC_Corrections_Script.py" in command) and ("--root_file_out" not in command) and (not re.search(r"(^|\s)(-rf|--root_file_out)(\s|=)", command))):
         root_out = os.path.join(root_run_dir, "Sub_Bin_Contents_for_BC_Correction.root")
         command = f"{command.rstrip()} --root_file_out {shlex.quote(root_out)}"
+    # Append bare --file last (if missing) so the next argv element is always the input path.
+    has_file_opt = any(file_com in command for file_com in ["-f ", "--file ", "-f\t", "--file\t"]) or bool(re.search(r"(^|\s)(-f|--file)$", command.rstrip()))
+    if(("BC_Corrections_Script.py" in command) and (not has_file_opt)):
+        command = f"{command.rstrip()} --file"
     args.command = command
     return shlex.split(command)
 
+# Valued options of BC_Corrections_Script.py used to catch missing/adjacent-flag mistakes before launch.
+_BC_VALUED_OPTIONS = {"-nb", "--num_sub_bins", "-nbphi", "--num_phi_sub_bins", "-q2y", "-Q2y", "--Q2_y_Bin", "-zpt", "-zpT", "--z_pT_Bin", "-phit", "-phih", "-phi_t", "-phi_h", "--phih_Bin", "-f", "--file", "-jsf_in", "--json_file_in", "-jf", "--json_file_out", "-rf", "--root_file_out", "-ht", "--histo_title", "-em", "--email_message", "-n", "-sn", "--image_name", "-ff", "--File_Format"}
+
+def validate_bc_command_argv(cmd):
+    # Ensure every valued option that appears is immediately followed by a non-flag value.
+    if(not cmd):
+        raise ValueError("BC command list is empty.")
+    for i, token in enumerate(cmd):
+        if(token not in _BC_VALUED_OPTIONS):
+            continue
+        if(i + 1 >= len(cmd)):
+            raise ValueError(f"BC command option '{token}' is missing its required value (at end of argv).")
+        value = cmd[i + 1]
+        # Allow negative integers for bin options (e.g. -q2y -1); reject other flag-like tokens.
+        if(value.startswith("-") and (not re.fullmatch(r"-?\d+", value))):
+            raise ValueError(f"BC command option '{token}' is not followed by its value (next token is '{value}'). Check that --file is immediately before the input path and that --root_file_out is paired with its path.")
+    if("--file" in cmd):
+        fi = cmd.index("--file")
+        if(fi + 1 >= len(cmd) or str(cmd[fi + 1]).startswith("-")):
+            raise ValueError("BC command has --file without an immediately following input path.")
+    elif("-f" in cmd):
+        fi = cmd.index("-f")
+        if(fi + 1 >= len(cmd) or str(cmd[fi + 1]).startswith("-")):
+            raise ValueError("BC command has -f without an immediately following input path.")
+    return True
+
 def build_bc_command(base_cmd, filepath, email_message=None):
+    # Input path must come immediately after --file / -f (last token of base_cmd when prepared by prepare_base_command).
     cmd = list(base_cmd) + [filepath]
     if(email_message is not None):
         cmd += ["-e", "-em", email_message]
+    validate_bc_command_argv(cmd)
     return cmd
 
 def build_final_email_message(args, timer):
@@ -372,6 +404,7 @@ def write_slurm_array_script(args, script_path, file_list_path, base_cmd, array_
     lines.append(f'echo "ROOT_RUN_DIR={root_run_dir}"')
     lines.append(f'echo "LOG_RUN_DIR={log_run_dir}"')
     lines.append('echo "=============================================="')
+    # cmd_prefix must end with --file so "${FILE}" is the value of --file (not a bare trailing path).
     lines.append(f'{cmd_prefix} "${{FILE}}"')
     lines.append('exit $?')
     lines.append("")
@@ -538,6 +571,8 @@ def main():
 """)
 
     base_cmd = prepare_base_command(args, root_run_dir)
+    # Catch --file / --root_file_out adjacency mistakes before launching any local or SLURM work.
+    validate_bc_command_argv(list(base_cmd) + ["__VALIDATE_INPUT_PATH__"])
 
     if(args.run_mode == "parallel"):
 
@@ -575,7 +610,7 @@ def main():
         failed_indices = []
 
         def start_job(job_num, filepath):
-            command = base_cmd + [filepath]
+            command = build_bc_command(base_cmd, filepath)
             base    = os.path.basename(filepath).replace(" ", "_")
             log_p   = os.path.join(log_dir_run, f"job_{job_num:05d}_{base}.log")
             expected = expected_output_path(filepath, root_run_dir)
@@ -799,7 +834,7 @@ def main():
             pending = list(mid_indices)
 
             def start_job(job_num, filepath):
-                command = base_cmd + [filepath]
+                command = build_bc_command(base_cmd, filepath)
                 base    = os.path.basename(filepath).replace(" ", "_")
                 log_p   = os.path.join(log_dir_run, f"job_{job_num:05d}_{base}.log")
                 expected = expected_output_path(filepath, root_run_dir)

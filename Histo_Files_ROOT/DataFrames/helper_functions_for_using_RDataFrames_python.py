@@ -714,9 +714,9 @@ def weight_norm_by_bins_wHisto(df_in, Histo_Data_In, args, Do_not_use_Smeared=Fa
                 print(f"{color.RED}WARNING: sum_acc==0 in {zero_cells} cells for {group} (2D) -> renorm set to 1.0{color.END}")
                 args.email_message = f"{args.email_message}\n{color.RED}WARNING FROM 'weight_norm_by_bins_wHisto()': sum_acc==0 in {zero_cells} cells for {group} (2D) -> renorm set to 1.0{color.END}"
             ROOT.gROOT.GetListOfSpecials().Add(h_ren)
-            histos_to_save[hpre_name] = h_pre_ptr
-            histos_to_save[hacc_name] = h_acc_ptr
-            histos_to_save[hren_name] = h_ren
+            histos_to_save[hpre_name] = h_pre_ptr  # lazy RResultPtr (bulk RunGraphs)
+            histos_to_save[hacc_name] = h_acc_ptr  # lazy RResultPtr (bulk RunGraphs)
+            histos_to_save[hren_name] = h_ren      # already-materialized TH2D clone; diverted around RunGraphs for direct write
             renorm_names[group] = hren_name
         has_bg  = ("Background_Response_Matrix" in renorm_names)
         bg_cond = ""
@@ -1171,7 +1171,7 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
 
 import os
 def Evaluate_And_Write_Histograms(hist_ptrs, out_path, test, timer):
-    # Evaluate all booked histograms in ONE trigger, then write them all at once
+    # Evaluate all booked histograms in ONE bulk RunGraphs trigger, then write them; already-materialized TH* (e.g. renorm clones) are diverted around RunGraphs and written directly
     # hist_ptrs can be either:
     #   (A) dict: {"Histogram Bin (Q2y-zpt)": RResultPtr<TH2D>, ...}
     #   (B) list/tuple: [RResultPtr<TH2D>, ...]
@@ -1184,21 +1184,41 @@ def Evaluate_And_Write_Histograms(hist_ptrs, out_path, test, timer):
         ptr_list = list(hist_ptrs)
     if((ptr_list is None) or (len(ptr_list) == 0)):
         raise ValueError("Evaluate_And_Write_Histograms(...): hist_ptrs is empty")
+    lazy_ptrs, ready_hists = [], []
+    for obj in ptr_list:
+        type_name = type(obj).__name__
+        if("RResultPtr" in type_name):
+            lazy_ptrs.append(obj)
+        elif(hasattr(obj, "Write")):
+            ready_hists.append(obj)
+        else:
+            raise TypeError(f"Evaluate_And_Write_Histograms(...): unsupported hist entry type {type(obj)!r} ({type_name}); expected RDF RResultPtr or a writeable ROOT histogram")
     out_dir  = os.path.dirname(os.path.abspath(out_path))
     if((out_dir != "") and (not os.path.exists(out_dir))):
         os.makedirs(out_dir, exist_ok=True)
     write_mode = "UPDATE" if(os.path.exists(out_path)) else "RECREATE"
     print(f"\n{color.BBLUE}{'Updating the' if(write_mode == 'UPDATE') else 'Creating a new'} ROOT file: {color.BPINK}{out_path}{color.END}")
     print(f"\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
-    ROOT.RDF.RunGraphs(ptr_list)
-    print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    print(f"{color.BLUE}Histogram write plan: {len(lazy_ptrs)} lazy RResultPtr(s) via bulk RunGraphs; {len(ready_hists)} already-materialized hist(s) diverted for direct write{color.END}")
+    if(len(lazy_ptrs) > 0):
+        try:
+            ROOT.RDF.RunGraphs(lazy_ptrs)
+        except TypeError as err:
+            # Defensive diagnostics only — do not fall back to sequential GetValue as the main path
+            bad = [f"index={i} type={type(obj).__name__}" for i, obj in enumerate(lazy_ptrs) if("RResultPtr" not in type(obj).__name__)]
+            raise TypeError(f"Evaluate_And_Write_Histograms(...): bulk RunGraphs failed on the lazy-pointer list (len={len(lazy_ptrs)}). Unexpected non-handle types after partition: {bad or 'none reported'}. Original error: {err}") from err
+        print(f"{color.BLUE}Time After 'RunGraphs':{color.END}\n\t{timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}")
+    else:
+        print(f"{color.BLUE}No lazy RResultPtrs to evaluate with RunGraphs (ready-only write).{color.END}")
     fout = ROOT.TFile(out_path, write_mode)
     if((fout is None) or (fout.IsZombie())):
         raise RuntimeError(f"Evaluate_And_Write_Histograms(...): failed to open ROOT file: {out_path}")
     fout.cd()
-    for ptr in ptr_list:
+    for ptr in lazy_ptrs:
         hist = ptr.GetValue()
         # hist.Sumw2(True)
+        hist.Write("", ROOT.TObject.kOverwrite)
+    for hist in ready_hists:
         hist.Write("", ROOT.TObject.kOverwrite)
     fout.Close()
     print(f"\n{color.BGREEN}ROOT FILE HAS BEEN SAVED{color.END}\n")
