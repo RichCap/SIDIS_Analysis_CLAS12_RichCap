@@ -551,7 +551,11 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
     # -----------------------------
     # 1) One-time C++ helpers
     # -----------------------------
+    # Shared helper guard: required so pure + withSpline HPPs can both be #include'd
+    # in one Cling session without redefining accw_findBin / accw_lookup2D.
     One_Time_Cpp_Helpers = r"""
+#ifndef ACCW_HELPERS_DEFINED
+#define ACCW_HELPERS_DEFINED
         #include <vector>
         #include <algorithm>
         #include <cmath>
@@ -574,6 +578,7 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
             if(!(w >= 0.0) or (!std::isfinite(w))){ return 1.0; }
             return w;
         }
+#endif // ACCW_HELPERS_DEFINED
     """
     if(not getattr(args, "_accw_helpers_declared", False)):
         ROOT.gInterpreter.Declare(One_Time_Cpp_Helpers)

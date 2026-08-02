@@ -4,6 +4,8 @@
 #pragma once
 
 // Embedded helper definitions (self-contained)
+#ifndef ACCW_HELPERS_DEFINED
+#define ACCW_HELPERS_DEFINED
 
         #include <vector>
         #include <algorithm>
@@ -27,7 +29,8 @@
             if(!(w >= 0.0) or (!std::isfinite(w))){ return 1.0; }
             return w;
         }
-    
+
+#endif // ACCW_HELPERS_DEFINED
 
 // Auto-generated acceptance weight functions
 
