@@ -68,3 +68,15 @@ peak_memory: 4.53 GB
 
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-08-02T13:52:52 name=1st_Order mode=parallel email=all =====
+=== TASK: 2D_Presentation | cut=cut_Complete_SIDIS | mode=parallel | rc=0 ===
+wall_time: 62516.68 s
+peak_memory: 1.09 GB
+
+=== TASK: Only_3D | cut=cut_Complete_SIDIS | mode=parallel | rc=0 ===
+wall_time: 62516.69 s
+peak_memory: 1.91 GB
+
+=== TASK: Only_5D | cut=cut_Complete_SIDIS | mode=parallel | rc=1 ===
+wall_time: 62516.69 s
+peak_memory: 8.47 GB
+
