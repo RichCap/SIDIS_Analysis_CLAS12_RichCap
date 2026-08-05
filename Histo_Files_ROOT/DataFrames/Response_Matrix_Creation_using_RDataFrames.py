@@ -768,24 +768,47 @@ if(__name__ == "__main__"):
         from helper_functions_for_using_RDataFrames_python import *
         # Dense 3D is default; -old3D restores sparse MultiDim + fixed 915-bin axes.
         use_dense_3d = ((not getattr(args, "old_3D_unfold", False)) and (not args.valerii_bins))
+        use_dense_5d = (not (getattr(args, "old_5D_unfold", True) or args.valerii_bins))
+        def _var_type_suffix(var_type=""):
+            if(str(var_type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]):
+                return "_smeared"
+            if(str(var_type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]):
+                return "_gen"
+            return ""
+        def ensure_z_pT_Bin_Y_bin(df_in, var_type=""):
+            # Redefine z_pT_Bin_Y_bin from raw z/pT via ExtraAnalysisCodeValues.Find_z_pT_Bin (not Q2_Y_Bin). Y_bin top-row z_max for Q2-y 3/7/11/15/17 updated 08-04-2026 in ExtraAnalysisCodeValues.New_z_pT_and_MultiDim_Binning_Code, Binning_Dictionaries.Full_Bin_Definition_Array, and MyCommonAnalysisFunction_richcap.Bin_Definition_Array (+ skip_condition_z_pT_bins). Sparse Phi_h_Bin_Values MultiDim offsets are not renumbered by new skips; dense MultiDim Redefine below uses skip_condition_z_pT_bins.
+            suf = _var_type_suffix(var_type)
+            col  = f"z_pT_Bin_Y_bin{suf}"
+            qcol = f"Q2_Y_Bin{suf}"
+            zcol = f"z{suf}"
+            pcol = f"pT{suf}"
+            if(not (df_in.HasColumn(qcol) and df_in.HasColumn(zcol) and df_in.HasColumn(pcol))):
+                return df_in
+            code = Multi_Bin_Standard_Def_Function(Variable_Type=var_type, Dimension="2D", Use_Dense_Binning=False, args=args)
+            if(df_in.HasColumn(col)):
+                return df_in.Redefine(col, code)
+            return df_in.Define(col, code)
+        def ensure_defined_col(df_in, col_name, code, warn_label=None):
+            if(not df_in.HasColumn(col_name)):
+                if(warn_label is not None):
+                    print(f"\t{color.Error}WARNING: {warn_label} is missing '{col_name}'{color.END}")
+                return df_in.Define(col_name, code)
+            return df_in.Redefine(col_name, code)
         def ensure_multidim_3d(df_in, col_name, var_type="", warn_label=None):
             code = Multi_Bin_Standard_Def_Function(Variable_Type=var_type, Dimension="3D", Use_Dense_Binning=use_dense_3d, args=args)
             if(not df_in.HasColumn(col_name)):
                 if(warn_label is not None):
-                    print(f"\t{color.Error}WARNING: {warn_label} is missing '{col_name}'){color.END}")
+                    print(f"\t{color.Error}WARNING: {warn_label} is missing '{col_name}'{color.END}")
                 return df_in.Define(col_name, code)
             if(use_dense_3d):
                 return df_in.Redefine(col_name, code)
             return df_in
         check_frame = True
         if(check_frame):
+            rdf = ensure_z_pT_Bin_Y_bin(rdf, "")
             rdf = ensure_multidim_3d(rdf, "MultiDim_z_pT_Bin_Y_bin_phi_t", "", "        'rdf'")
-            if(not rdf.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
-                print(f"\t{color.Error}WARNING:         'rdf' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                rdf = rdf.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
-            if(not rdf.HasColumn("Q2_y_z_pT_4D_Bins")):
-                print(f"\t{color.Error}WARNING:         'rdf' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
-                rdf = rdf.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
+            rdf = ensure_defined_col(rdf, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), "        'rdf'")
+            rdf = ensure_defined_col(rdf, "Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""), "        'rdf'")
                 
             if(not mdf_clasdis.HasColumn("PID_pip")):
                 # print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
@@ -793,29 +816,20 @@ if(__name__ == "__main__"):
             if(not mdf_clasdis.HasColumn("PID_el")):
                 # print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'PID_el'  — artifically defining as 11){color.END}")
                 mdf_clasdis = mdf_clasdis.Define("PID_el", "11")
+            mdf_clasdis = ensure_z_pT_Bin_Y_bin(mdf_clasdis, "")
             mdf_clasdis = ensure_multidim_3d(mdf_clasdis, "MultiDim_z_pT_Bin_Y_bin_phi_t", "", "'mdf_clasdis'")
-            if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
-            if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), "'mdf_clasdis'")
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""), "'mdf_clasdis'")
 
+            mdf_clasdis = ensure_z_pT_Bin_Y_bin(mdf_clasdis, "gen")
             mdf_clasdis = ensure_multidim_3d(mdf_clasdis, "MultiDim_z_pT_Bin_Y_bin_phi_t_gen", "gen", "'mdf_clasdis'")
-            if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
-            if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_gen")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_gen'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_gen", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="gen"))
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), "'mdf_clasdis'")
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "Q2_y_z_pT_4D_Bins_gen", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="gen"), "'mdf_clasdis'")
 
+            mdf_clasdis = ensure_z_pT_Bin_Y_bin(mdf_clasdis, "smear")
             mdf_clasdis = ensure_multidim_3d(mdf_clasdis, "MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", "smear", "'mdf_clasdis'")
-            if(not mdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
-            if(not mdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins_smeared")):
-                print(f"\t{color.Error}WARNING: 'mdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins_smeared'){color.END}")
-                mdf_clasdis = mdf_clasdis.Define("Q2_y_z_pT_4D_Bins_smeared", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="smear"))
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), "'mdf_clasdis'")
+            mdf_clasdis = ensure_defined_col(mdf_clasdis, "Q2_y_z_pT_4D_Bins_smeared", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type="smear"), "'mdf_clasdis'")
 
             if(not gdf_clasdis.HasColumn("PID_pip")):
                 # print(f"\t{color.RED}WARNING: 'gdf_clasdis' is missing 'PID_pip' — artifically defining as 211){color.END}")
@@ -823,13 +837,10 @@ if(__name__ == "__main__"):
             if(not gdf_clasdis.HasColumn("PID_el")):
                 # print(f"\t{color.RED}WARNING: 'gdf_clasdis' is missing 'PID_el'  — artifically defining as 11){color.END}")
                 gdf_clasdis = gdf_clasdis.Define("PID_el", "11")
+            gdf_clasdis = ensure_z_pT_Bin_Y_bin(gdf_clasdis, "")
             gdf_clasdis = ensure_multidim_3d(gdf_clasdis, "MultiDim_z_pT_Bin_Y_bin_phi_t", "", "'gdf_clasdis'")
-            if(not gdf_clasdis.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
-                print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                gdf_clasdis = gdf_clasdis.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
-            if(not gdf_clasdis.HasColumn("Q2_y_z_pT_4D_Bins")):
-                print(f"\t{color.Error}WARNING: 'gdf_clasdis' is missing 'Q2_y_z_pT_4D_Bins'){color.END}")
-                gdf_clasdis = gdf_clasdis.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""))
+            gdf_clasdis = ensure_defined_col(gdf_clasdis, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), "'gdf_clasdis'")
+            gdf_clasdis = ensure_defined_col(gdf_clasdis, "Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(Variable_Type=""), "'gdf_clasdis'")
             rdf         = Create_z1_plus_z2(args, df=rdf,         df_name="rdf")
             mdf_clasdis = Create_z1_plus_z2(args, df=mdf_clasdis, df_name="mdf_clasdis")
             gdf_clasdis = Create_z1_plus_z2(args, df=gdf_clasdis, df_name="gdf_clasdis")
@@ -849,20 +860,17 @@ if(__name__ == "__main__"):
                 if(not mdf_EvGen.HasColumn("PID_el")):
                     print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'PID_el'  — artifically defining as 11){color.END}")
                     mdf_EvGen = mdf_EvGen.Define("PID_el", "11")
+                mdf_EvGen = ensure_z_pT_Bin_Y_bin(mdf_EvGen, "")
                 mdf_EvGen = ensure_multidim_3d(mdf_EvGen, "MultiDim_z_pT_Bin_Y_bin_phi_t", "", None)
-                if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
-                    # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
+                mdf_EvGen = ensure_defined_col(mdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
+                mdf_EvGen = ensure_z_pT_Bin_Y_bin(mdf_EvGen, "gen")
                 mdf_EvGen = ensure_multidim_3d(mdf_EvGen, "MultiDim_z_pT_Bin_Y_bin_phi_t_gen", "gen", None)
-                if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_gen")):
-                    # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_gen'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
+                mdf_EvGen = ensure_defined_col(mdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h_gen", Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
+                mdf_EvGen = ensure_z_pT_Bin_Y_bin(mdf_EvGen, "smear")
                 mdf_EvGen = ensure_multidim_3d(mdf_EvGen, "MultiDim_z_pT_Bin_Y_bin_phi_t_smeared", "smear", None)
-                if(not mdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h_smeared")):
-                    # print(f"\t{color.Error}WARNING:   'mdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h_smeared'){color.END}")
-                    mdf_EvGen = mdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
+                mdf_EvGen = ensure_defined_col(mdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h_smeared", Multi_Bin_Standard_Def_Function(Variable_Type="smear", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
                 
                 if(not gdf_EvGen.HasColumn("PID_pip")):
@@ -871,10 +879,9 @@ if(__name__ == "__main__"):
                 if(not gdf_EvGen.HasColumn("PID_el")):
                     # print(f"\t{color.RED}WARNING:   'gdf_EvGen' is missing 'PID_el'  — artifically defining as 11){color.END}")
                     gdf_EvGen = gdf_EvGen.Define("PID_el", "11")
+                gdf_EvGen = ensure_z_pT_Bin_Y_bin(gdf_EvGen, "")
                 gdf_EvGen = ensure_multidim_3d(gdf_EvGen, "MultiDim_z_pT_Bin_Y_bin_phi_t", "", None)
-                if(not gdf_EvGen.HasColumn("MultiDim_Q2_y_z_pT_phi_h")):
-                    # print(f"\t{color.Error}WARNING:   'gdf_EvGen' is missing 'MultiDim_Q2_y_z_pT_phi_h'){color.END}")
-                    gdf_EvGen = gdf_EvGen.Define("MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=(not (getattr(args, "old_5D_unfold", True) or args.valerii_bins)), args=args))
+                gdf_EvGen = ensure_defined_col(gdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
         if(args.valerii_bins):
             script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'

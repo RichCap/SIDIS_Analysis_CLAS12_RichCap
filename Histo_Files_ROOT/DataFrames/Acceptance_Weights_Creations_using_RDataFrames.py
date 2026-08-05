@@ -515,6 +515,20 @@ def Collect_DataFrames(args):
         print(f"{color.Error}Applying User Cut: {color.END_B}{args.cut}{color.END}")
         rdf           =         rdf.Filter(args.cut)
         mdf_clasdis   = mdf_clasdis.Filter(args.cut)
+    # Optional --Require_Kinematic_Binning / --json_weights only: Redefine z_pT_Bin_Y_bin from ExtraAnalysisCodeValues (not Q2_Y_Bin). Y_bin top-row z_max for Q2-y 3/7/11/15/17 updated 08-04-2026 in ExtraAnalysisCodeValues.New_z_pT_and_MultiDim_Binning_Code, Binning_Dictionaries.Full_Bin_Definition_Array, and MyCommonAnalysisFunction_richcap.Bin_Definition_Array. Default detector acceptance maps are unchanged when these flags are off.
+    if(args.Require_Kinematic_Binning or args.json_weights):
+        from helper_functions_for_using_RDataFrames_python import Multi_Bin_Standard_Def_Function
+        def _ensure_z_pT_Bin_Y_bin_acc(df_in, var_type=""):
+            suf = "_smeared" if(str(var_type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(var_type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""
+            col, qcol, zcol, pcol = f"z_pT_Bin_Y_bin{suf}", f"Q2_Y_Bin{suf}", f"z{suf}", f"pT{suf}"
+            if(not (df_in.HasColumn(qcol) and df_in.HasColumn(zcol) and df_in.HasColumn(pcol))):
+                return df_in
+            code = Multi_Bin_Standard_Def_Function(Variable_Type=var_type, Dimension="2D", Use_Dense_Binning=False, args=None)
+            return df_in.Redefine(col, code) if(df_in.HasColumn(col)) else df_in.Define(col, code)
+        rdf         = _ensure_z_pT_Bin_Y_bin_acc(rdf, "")
+        mdf_clasdis = _ensure_z_pT_Bin_Y_bin_acc(mdf_clasdis, "")
+        if(args.json_weights):
+            mdf_clasdis = _ensure_z_pT_Bin_Y_bin_acc(mdf_clasdis, "gen")
     if(args.Require_Kinematic_Binning):
         print(f"{color.BYELLOW}Applying Cuts on the Kinematic Bins{color.END}")
         rdf           =         rdf.Filter("(Q2_Y_Bin != 0) && (z_pT_Bin_Y_bin != 0)")

@@ -235,9 +235,17 @@ def parse_args():
                    help="Comparison output: 'plot' (images only, default), 'table' (txt tables only), or 'both'. Ignored unless --comparison_mode is set.\n")
     p.add_argument("-ct", "--comparison_types",
                    nargs="+",
-                   choices=["overlay", "delta", "diff", "percent_dif"],
+                   choices=["overlay", "delta", "diff", "percent_dif", "pull", "chi2"],
                    default=["overlay"],
-                   help="Comparison types with --comparison_mode: overlay (all series together); delta = |v1-v2|; diff = v1-v2; percent_dif = 100*(v1-v2)/v2. Errors: independent propagation — delta/diff use sqrt(e1^2+e2^2); percent_dif uses 100*sqrt((e1/v2)^2+(v1*e2/v2^2)^2).\n")
+                   help="Comparison types with --comparison_mode: overlay; delta=|v1-v2|; diff=v1-v2; percent_dif=|100*(v1-v2)/v2|; pull=(v1-v2)/sqrt(e1^2+e2^2); chi2 per-point (v1-v2)^2/(e1^2+e2^2) not summed. Optional --percent_dif_ymin/--percent_dif_ymax are display-only bounds for percent_dif plots.\n")
+    p.add_argument("-pdmin", "--percent_dif_ymin",
+                   type=float,
+                   default=None,
+                   help="Optional display-only Y minimum for percent_dif plots. Does not alter calculated points or tables. Unset keeps automatic min.\n")
+    p.add_argument("-pdmax", "--percent_dif_ymax",
+                   type=float,
+                   default=None,
+                   help="Optional display-only Y maximum for percent_dif plots. Does not alter calculated points or tables. Unset keeps automatic max.\n")
     p.add_argument("-lad", "--log_abs_diff",
                    action="store_true",
                    help="Use logarithmic Y-axis for absolute-difference (delta) comparison plots only. Default remains linear. Not applied to signed diff, percent_dif, or overlay.\n")
@@ -956,6 +964,10 @@ def comparison_y_axis_title(y_par, fit_set, ctype):
         return f"#Delta {base}"
     if(str(ctype) == "percent_dif"):
         return f"% Diff {base}"
+    if(str(ctype) == "pull"):
+        return f"Pull {base}"
+    if(str(ctype) == "chi2"):
+        return f"Per-Point #chi^{{2}} {base}"
     return base
 
 def build_comparison_source_phrases(sources):
@@ -989,6 +1001,9 @@ def build_comparison_source_phrases(sources):
         shared_bits.append("with BC Corrections")
     elif(shared_RC and feats[0]["has_RC"]):
         shared_bits.append("with Radiative Corrections")
+    # If fit_set-derived phrases collide (same fit_set name from different JSONs), use source labels
+    if((len(phrases) >= 2) and (len(set(phrases)) < len(phrases))):
+        phrases = [str(src.get("label", phrases[i] if(i < len(phrases)) else f"Source{i}")) for i, src in enumerate(sources)]
     return phrases, " ".join(shared_bits).strip()
 
 def build_comparison_canvas_title(args, sources, y_par, ctype):
@@ -1002,6 +1017,10 @@ def build_comparison_canvas_title(args, sources, y_par, ctype):
         line1 = f"Difference of {y_obs} vs {x_label}"
     elif(str(ctype) == "percent_dif"):
         line1 = f"Percent Difference of {y_obs} vs {x_label}"
+    elif(str(ctype) == "pull"):
+        line1 = f"Pull Comparison of {y_obs} vs {x_label}"
+    elif(str(ctype) == "chi2"):
+        line1 = f"Per-Point #chi^{{2}} Comparison of {y_obs} vs {x_label}"
     else:
         line1 = f"{comparison_type_title(ctype)}: {y_obs} vs {x_label}"
     if(str(args.title_text).strip() != ""):
@@ -2030,6 +2049,8 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
 #   delta:       |v1-v2|,  err = sqrt(e1^2 + e2^2)
 #   diff:        v1-v2,    err = sqrt(e1^2 + e2^2)
 #   percent_dif: |100*(v1-v2)/v2|, err = 100*sqrt((e1/v2)^2 + (v1*e2/v2^2)^2)
+#   pull:        (v1-v2)/sqrt(e1^2+e2^2); skip if combined variance is 0 (plot err placeholder 0)
+#   chi2:        (v1-v2)^2/(e1^2+e2^2) per matched point (NOT a summed chi2); skip if var is 0
 # ------------------------------------------------------------
 def normalize_fit_set_list(args):
     if(isinstance(args.fit_set, (list, tuple))):
@@ -2045,6 +2066,46 @@ def normalize_json_file_list(args):
 def short_fit_set_label(fit_set):
     tag = Get_Default_FitSet_FileTag(fit_set)
     return tag if(tag != "") else sanitize_for_filename(str(fit_set).replace("Fit_Pars_from_", ""))
+
+def friendly_source_label_from_path(json_path):
+    # Human-readable comparison labels (legends, titles, tables). Extensible for 3D later.
+    stem = os.path.splitext(os.path.basename(str(json_path)))[0]
+    if("Updated_MM_Cut" in stem):
+        return "Updated 5D Unfolding"
+    if("Dedicated_5D" in stem):
+        return "Old 5D Unfolding"
+    if("rho0_Subtraction" in stem):
+        return "Old 3D Unfolding"
+    return None
+
+def short_json_source_tag(json_path):
+    # Compact tag for filenames when a short token is needed
+    friendly = friendly_source_label_from_path(json_path)
+    if(friendly is not None):
+        return sanitize_for_filename(friendly)
+    stem = os.path.splitext(os.path.basename(str(json_path)))[0]
+    stem = stem.replace("Fit_Pars_from_Simple_RooUnfold_SelfContained_using_", "")
+    stem = stem.replace("Hybrid_Unfolded_", "")
+    return sanitize_for_filename(stem)[:40]
+
+def disambiguate_comparison_source_labels(sources):
+    # Prefer friendly path-based names whenever recognized; otherwise disambiguate collisions
+    any_friendly = False
+    for src in sources:
+        friendly = friendly_source_label_from_path(src.get("json_path", ""))
+        if(friendly is not None):
+            src["label"] = friendly
+            any_friendly = True
+    if(any_friendly):
+        return sources
+    labels = [str(src.get("label", "")) for src in sources]
+    if((len(sources) < 2) or (len(set(labels)) == len(labels))):
+        return sources
+    for src in sources:
+        tag = short_json_source_tag(src.get("json_path", ""))
+        base = str(src.get("label", ""))
+        src["label"] = f"{base}_{tag}" if(base != "") else tag
+    return sources
 
 def build_comparison_sources(args):
     # Pair fit_set names with JSON files: equal counts → index pairing; else first-match scan in CLI order
@@ -2086,7 +2147,7 @@ def build_comparison_sources(args):
                 break
             if(not found):
                 raise SystemExit(f"{color.Error}ERROR:{color.END_R} fit_set '{fs}' not found in any provided --json_file.{color.END}")
-    return sources
+    return disambiguate_comparison_source_labels(sources)
 
 def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     err_key = f"{y_par}{args.err_suffix}"
@@ -2116,6 +2177,16 @@ def compute_pair_comparison(ctype, v1, e1, v2, e2):
         val = abs(100.0 * (v1 - v2) / v2)
         err = 100.0 * float(np.sqrt(((e1 / v2) ** 2) + (((v1 * e2) / (v2 ** 2)) ** 2)))
         return (val, err)
+    if(ctype == "pull"):
+        var = (float(e1) ** 2) + (float(e2) ** 2)
+        if((not np.isfinite(var)) or (var <= 0.0)):
+            return None
+        return (float(v1 - v2) / float(np.sqrt(var)), 0.0)  # err=0 plot placeholder only
+    if(ctype == "chi2"):
+        var = (float(e1) ** 2) + (float(e2) ** 2)
+        if((not np.isfinite(var)) or (var <= 0.0)):
+            return None
+        return ((float(v1 - v2) ** 2) / float(var), 0.0)  # per-point; err=0 plot placeholder only
     return None
 
 def comparison_type_title(ctype):
@@ -2125,6 +2196,10 @@ def comparison_type_title(ctype):
         return "Difference"
     if(ctype == "percent_dif"):
         return "Percent Difference"
+    if(ctype == "pull"):
+        return "Pull"
+    if(ctype == "chi2"):
+        return "Per-Point Chi-Squared"
     if(ctype == "overlay"):
         return "Overlay"
     return str(ctype)
@@ -2231,7 +2306,11 @@ def write_comparison_table(args, sources, y_par):
             if(cmp is None):
                 row.append("---")
                 continue
-            row.append(format_value_pm_error(cmp[0], cmp[1]))
+            # pull/chi2: bare value (no fake ±0); averages still use mean±std
+            if(str(ctype) in ["pull", "chi2"]):
+                row.append(f"{float(cmp[0]):.6g}")
+            else:
+                row.append(format_value_pm_error(cmp[0], cmp[1]))
             col_vals[col_i].append(cmp[0])
             col_errs[col_i].append(cmp[1])
         lines.append("\t".join(row))
@@ -2253,6 +2332,8 @@ def write_comparison_table(args, sources, y_par):
         f"# Sources: " + "; ".join([f"{src['label']} <= {src['fit_set']} from {src['json_path']}" for src in sources]),
         f"# Comparison types: {', '.join(ctypes)}",
         "# Error propagation: overlay uses source errors; delta/diff use sqrt(e1^2+e2^2); percent_dif uses |100*(v1-v2)/v2| with 100*sqrt((e1/v2)^2+(v1*e2/v2^2)^2)",
+        "# pull = (v1-v2)/sqrt(e1^2+e2^2); chi2 = (v1-v2)^2/(e1^2+e2^2) per matched point (not a summed chi2); skipped if combined variance is 0",
+        "# pull/chi2 table cells: value only (no synthetic uncertainty); Averages row: column mean ± population std",
         "# Averages row: column mean ± population std of the row values in that column",
         "",
     ]
@@ -2267,24 +2348,31 @@ def write_comparison_table(args, sources, y_par):
     return filename
 
 def comparison_source_line_style(src, source_index, sources):
-    # Dim-based styles when dimensions differ: 5D solid (1), 3D dashed (2). Data always from src; style tied to same src.
-    # Fallback: higher source_index → dashed variants. Markers vary by index only.
+    # Prefer identity: Updated (baseline) solid; Old dashed. Else dim-based (5D solid / 3D dashed). Else index.
+    # Data always from src; style tied to same src. Markers vary by index only.
     markers = [20, 21, 22, 23, 24, 25, 26, 29, 33, 34]
-    dims = [parse_fit_set_features(s["fit_set"])["dim"] for s in sources]
-    unique_dims = [d for d in dict.fromkeys(dims) if(d != "")]
-    feat = parse_fit_set_features(src["fit_set"])
-    dim = feat["dim"]
-    if((len(unique_dims) >= 2) and (dim != "")):
-        if(dim == "5D"):
-            lsty = 1
-        elif(dim == "3D"):
-            lsty = 2
-        else:
-            # Remaining dims: cycle 7,9,10 after solid/dashed reserved
-            other = [d for d in unique_dims if(d not in ["5D", "3D"])]
-            lsty = [7, 9, 10][other.index(dim) % 3] if(dim in other) else 7
+    lab = str(src.get("label", ""))
+    jpath = str(src.get("json_path", ""))
+    # Updated / new baseline → solid; Old → dashed (overrides equal-dim index order)
+    if(("Updated_MM_Cut" in jpath) or ("Updated 5D" in lab) or (lab.strip().lower().startswith("updated "))):
+        lsty = 1
+    elif(("Dedicated_5D" in jpath) or ("rho0_Subtraction" in jpath) or ("Old 5D" in lab) or ("Old 3D" in lab) or (lab.strip().lower().startswith("old "))):
+        lsty = 2
     else:
-        lsty = [1, 2, 7, 9, 10][source_index % 5]
+        dims = [parse_fit_set_features(s["fit_set"])["dim"] for s in sources]
+        unique_dims = [d for d in dict.fromkeys(dims) if(d != "")]
+        feat = parse_fit_set_features(src["fit_set"])
+        dim = feat["dim"]
+        if((len(unique_dims) >= 2) and (dim != "")):
+            if(dim == "5D"):
+                lsty = 1
+            elif(dim == "3D"):
+                lsty = 2
+            else:
+                other = [d for d in unique_dims if(d not in ["5D", "3D"])]
+                lsty = [7, 9, 10][other.index(dim) % 3] if(dim in other) else 7
+        else:
+            lsty = [1, 2, 7, 9, 10][source_index % 5]
     mark = markers[source_index % len(markers)]
     return (mark, int(lsty))
 
@@ -2595,10 +2683,10 @@ def run_comparison_plots(args, sources):
                     saved_log_A = bool(getattr(args, "draw_with_log_A", False))
                     args.apply_A_corr = False
                     # signed diff can be ≤0 → never log; percent_dif is |%| and may log if triggered below
-                    if(str(ctype) == "diff"):
+                    if(str(ctype) in ["diff", "pull", "chi2"]):
                         args.draw_with_log_A = False
-                    # For diff/percent_dif: keep full error bars on points, but set axis from values only
-                    range_no_err = (str(ctype) in ["diff", "percent_dif"])
+                    # For diff/percent_dif/pull/chi2: keep stored errs, but set axis from values only
+                    range_no_err = (str(ctype) in ["diff", "percent_dif", "pull", "chi2"])
                     grouped = group_by_q2y(fit_dict_cmp)
                     info_map = build_info_map(args, fit_dict_cmp)
                     q2y_ranges = build_q2y_ranges(grouped, info_map)
@@ -2640,6 +2728,18 @@ def run_comparison_plots(args, sources):
                         if(str(ctype) == "percent_dif"):
                             y_range = (0.0, float(y_range[1]))
                         y_range = ensure_positive_y_range_for_log(y_range[0], y_range[1])
+                    # percent_dif display bounds: auto → optional min/max → validate ymin<ymax → log floor if log
+                    if(str(ctype) == "percent_dif"):
+                        lo, hi = float(y_range[0]), float(y_range[1])
+                        if(getattr(args, "percent_dif_ymin", None) is not None):
+                            lo = float(args.percent_dif_ymin)
+                        if(getattr(args, "percent_dif_ymax", None) is not None):
+                            hi = float(args.percent_dif_ymax)
+                        if(not (lo < hi)):
+                            raise SystemExit(f"{color.Error}ERROR:{color.END_R} percent_dif display bounds invalid: ymin={lo} is not less than ymax={hi}. Provide --percent_dif_ymin/--percent_dif_ymax with ymin < ymax.{color.END}")
+                        y_range = (lo, hi)
+                        if(force_log):
+                            y_range = ensure_positive_y_range_for_log(y_range[0], y_range[1])
                     if(args.test):
                         print(f"{color.BYELLOW}[TEST] Would draw {kind} for {pair_labs} {y_par}{color.END}")
                         args.apply_A_corr = saved_cs
