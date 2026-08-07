@@ -44,24 +44,28 @@ ACCEPTED_CUTS = [
 ]
 
 # Notebook-style products (Only_1D deferred — pure phi RM not production-CLI-ready)
+# jobs_attr: argparse attribute for optional per-product --jobs override (None → global --jobs; 0 → skip product)
 PRODUCTS = [{
         "key": "2D_Presentation",
         "label": "2D Presentation Histograms",
         "name_fmt": "2D_Presentation_{shared}_Q2_Y_Bins",
         "pipeline_flags": ["--z_axis_2D", "Q2_Y_Bin", "--no_make_2D_rho"],
         "extra": ["--make_2D_rho_normalization_only", "--run_rho_weight"],
+        "jobs_attr": "jobs_2D",
         }, {
         "key": "Only_3D",
         "label": "Only 3D Response Matrices",
         "name_fmt": "Only_3D_{shared}_Response_Matrices",
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
         "extra": ["--run_rho_weight"],
+        "jobs_attr": "jobs_3D",
         }, {
         "key": "Only_5D",
         "label": "Only 5D Response Matrices",
         "name_fmt": "Only_5D_{shared}_Response_Matrices",
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D"],
         "extra": ["--run_rho_weight", "--unfold_5D_only"],
+        "jobs_attr": "jobs_5D",
         },
 ]
 
@@ -131,7 +135,19 @@ def parse_args():
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
-                   help="Pipeline --jobs per product (each product may run this many batch jobs).\n")
+                   help="Default pipeline --jobs for each Phase-2 product unless overridden by --jobs_2D/--jobs_3D/--jobs_5D.\n")
+    p.add_argument("-j2D", "--jobs_2D",
+                   type=int,
+                   default=None,
+                   help="Concurrent batch jobs for the 2D Presentation product only. Unset → use --jobs; 0 → skip this product.\n")
+    p.add_argument("-j3D", "--jobs_3D",
+                   type=int,
+                   default=None,
+                   help="Concurrent batch jobs for the Only_3D product only. Unset → use --jobs; 0 → skip this product.\n")
+    p.add_argument("-j5D", "--jobs_5D",
+                   type=int,
+                   default=None,
+                   help="Concurrent batch jobs for the Only_5D product only. Unset → use --jobs; 0 → skip this product.\n")
     p.add_argument("-v", "--verbose",
                    action="store_true",
                    help="Runner-only: also tee one designated child stream to the terminal (all children still go to the master .log).\n")
@@ -280,6 +296,48 @@ def product_shared_name(args, cut_name):
 def product_output_name(product, shared):
     return product["name_fmt"].format(shared=shared)
 
+def product_job_count(args, product):
+    # Unset per-product override → global --jobs; explicit 0 means skip (caller filters); negative is invalid.
+    attr = product.get("jobs_attr")
+    if(attr in [None, ""]):
+        return int(args.jobs)
+    override = getattr(args, attr, None)
+    if(override is None):
+        return int(args.jobs)
+    return int(override)
+
+def selected_products(args):
+    # Returns [(product, jobs), ...] for products with jobs > 0. Validates no negative job counts.
+    selected, skipped = [], []
+    for product in PRODUCTS:
+        jobs = product_job_count(args, product)
+        attr = product.get("jobs_attr", "jobs")
+        override = getattr(args, attr, None) if(attr not in [None, ""]) else None
+        if(jobs < 0):
+            raise ValueError(f"Invalid job count for product {product['key']}: {attr}={jobs} (must be >= 0; 0 skips the product)")
+        if(jobs == 0):
+            reason = f"{attr}=0" if(override is not None) else f"--jobs={args.jobs}"
+            skipped.append((product, reason))
+        else:
+            selected.append((product, jobs))
+    return selected, skipped
+
+def format_product_jobs_plan(args):
+    # Human-readable Stage-2 plan for logging.
+    lines = []
+    for product in PRODUCTS:
+        jobs = product_job_count(args, product)
+        attr = product.get("jobs_attr", "jobs")
+        override = getattr(args, attr, None) if(attr not in [None, ""]) else None
+        if(jobs == 0):
+            reason = f"{attr}=0" if(override is not None) else f"--jobs={args.jobs}"
+            lines.append(f"  {product['key']}: SKIPPED ({reason})")
+        elif(override is None):
+            lines.append(f"  {product['key']}: jobs={jobs} (from --jobs)")
+        else:
+            lines.append(f"  {product['key']}: jobs={jobs} (from --{attr})")
+    return "\n".join(lines)
+
 def child_email_message(user_message, label):
     base = "" if(user_message in [None]) else str(user_message)
     if(label in base):
@@ -322,7 +380,7 @@ def product_extra_flags(args, product):
         extra = [e for e in extra if(e != "--run_rho_weight")]
     return extra
 
-def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False):
+def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None):
     # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
     cmd = [PIPELINE_SCRIPT]
     run_mode = args.mode if(mode is None) else mode
@@ -352,8 +410,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     use_saj = saj if(saj is not None) else args.slurm_array_jobid
     if(use_saj not in [None, ""]):
         cmd.extend(["--slurm_array_jobid", str(use_saj)])
+    job_n = int(product_job_count(args, product) if(jobs is None) else jobs)
     if(run_mode in ["parallel"]):
-        cmd.extend(["--jobs", str(args.jobs)])
+        cmd.extend(["--jobs", str(job_n)])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -585,20 +644,25 @@ def run_cmd_interactive(args, cmd, task_label, cut_name, mode):
 def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
     results = []
     mode = args.mode
+    selected, skipped = selected_products(args)
+    for product, reason in skipped:
+        log_print(args, f"{color.BYELLOW}SKIP product {color.END_B}{product['key']}{color.BYELLOW} for cut {color.END_B}{cut_name}{color.BYELLOW} ({reason}){color.END}")
+    if(len(selected) == 0):
+        raise RuntimeError(f"No Phase-2 products selected for cut={cut_name} (all product job counts are 0)")
 
     if(mode == "hybrid"):
-        # Per product: noninteractive SLURM submit (--yes), capture array id, then parallel with -saj.
-        # All three product parallel pipelines run concurrently after their array ids are known.
+        # Per selected product: noninteractive SLURM submit (--yes), capture array id, then parallel with -saj.
+        # Selected product parallel pipelines run concurrently after their array ids are known.
         array_ids = {}
-        for product in PRODUCTS:
+        for product, jobs in selected:
             task = product["key"]
-            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True)
+            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs)
             array_ids[task] = submit_slurm_capture_array_id(args, slurm_cmd, f"{task}-slurm", cut_name)
 
         launched = []
-        for i, product in enumerate(PRODUCTS):
+        for i, (product, jobs) in enumerate(selected):
             task = product["key"]
-            par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task])
+            par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task], jobs=jobs)
             tee = bool(args.verbose) and (i == 0)
             launched.append((product, launch_cmd(args, par_cmd, f"{task}-parallel", tee_terminal=tee)))
         for product, job in launched:
@@ -607,8 +671,8 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
         return results
 
     if(mode == "sequential"):
-        for i, product in enumerate(PRODUCTS):
-            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="sequential")
+        for i, (product, jobs) in enumerate(selected):
+            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="sequential", jobs=jobs)
             tee = bool(args.verbose) and (i == 0)
             rc = run_cmd_blocking(args, cmd, product["key"], cut_name, "sequential", tee_terminal=tee)
             results.append((product["key"], rc))
@@ -616,16 +680,16 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
     if(mode == "slurm"):
         # Interactive per-product approval (stdio inherited; no --yes).
-        for product in PRODUCTS:
-            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=False)
+        for product, jobs in selected:
+            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=False, jobs=jobs)
             rc = run_cmd_interactive(args, cmd, f"{product['key']}-slurm", cut_name, "slurm")
             results.append((product["key"], rc))
         return results
 
-    # parallel: all products concurrently
+    # parallel: selected products concurrently
     launched = []
-    for i, product in enumerate(PRODUCTS):
-        cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel")
+    for i, (product, jobs) in enumerate(selected):
+        cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", jobs=jobs)
         tee = bool(args.verbose) and (i == 0)
         launched.append((product, launch_cmd(args, cmd, product["key"], tee_terminal=tee)))
     for product, job in launched:
@@ -656,10 +720,18 @@ def main():
     log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
+    log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}")
     if(args.no_run_rho_weight):
         log_print(args, f"{color.BYELLOW}--no_run_rho_weight: child commands will NOT receive --run_rho_weight{color.END}")
     else:
         log_print(args, f"{color.BBLUE}rho0_source for Acceptance: {color.END_B}{args.rho0_source}{color.END}")
+
+    try:
+        selected0, _skipped0 = selected_products(args)
+    except ValueError as err:
+        Crash_Report(args, crash_message=str(err), continue_run=False)
+    if(len(selected0) == 0):
+        Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
 
     if((args.run_all_cuts) and (args.mode == "slurm")):
         Crash_Report(args, crash_message="--run_all_cuts is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)
@@ -695,13 +767,19 @@ def main():
             else:
                 log_print(args, f"  HPP cut={cut_name}: using child-script defaults")
 
-    log_print(args, f"\n{color.BGREEN}=== Stage 2: Response-matrix products ({len(PRODUCTS)} products × {args.jobs} jobs when parallel) ==={color.END}")
+    selected_plan, _ = selected_products(args)
+    plan_bits = ", ".join(f"{p['key']}×{j}" for p, j in selected_plan)
+    log_print(args, f"\n{color.BGREEN}=== Stage 2: Response-matrix products ({plan_bits} when parallel) ==={color.END}")
+    log_print(args, f"{color.BBLUE}Phase-2 product job plan:\n{format_product_jobs_plan(args)}{color.END}")
     all_failed = []
     task_count = 0
     for cut_name in cuts:
         pure_hpp, comb_hpp = hpp_map.get(cut_name, (None, None))
         log_print(args, f"\n{color.BGREEN}Products for cut {color.END_B}{cut_name}{color.END}")
-        results = run_products_for_cut(args, cut_name, pure_hpp, comb_hpp)
+        try:
+            results = run_products_for_cut(args, cut_name, pure_hpp, comb_hpp)
+        except (ValueError, RuntimeError) as err:
+            Crash_Report(args, crash_message=str(err), continue_run=False)
         for key, rc in results:
             task_count += 1
             if(rc != 0):
