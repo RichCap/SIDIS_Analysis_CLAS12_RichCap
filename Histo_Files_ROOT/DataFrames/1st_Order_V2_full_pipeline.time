@@ -1,2 +1,14 @@
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-08-07T15:45:42 name=1st_Order_V2 mode=parallel email=all =====
+=== TASK: 2D_Presentation | cut=cut_Complete_SIDIS | mode=parallel | rc=0 ===
+wall_time: 101806.14 s
+peak_memory: 1.11 GB
+
+=== TASK: Only_3D | cut=cut_Complete_SIDIS | mode=parallel | rc=0 ===
+wall_time: 101806.19 s
+peak_memory: 1.91 GB
+
+=== TASK: Only_5D | cut=cut_Complete_SIDIS | mode=parallel | rc=0 ===
+wall_time: 140305.58 s
+peak_memory: 8.69 GB
+
