@@ -117,7 +117,7 @@ def lumi(charge):
     # Constants
     RD   = 57.1                 # (unused, carried over)
     qe   = 1.602177e-19         # electron charge, C
-    rho  = 0.0701               # density of H2 @20 K, g/cm³
+    rho  = 0.07151              # LH2 density for CLAS12 RG-A cryotarget in g/cm^3. Value came from Valerii Klimenko's thesis (Chapter 6.6). Previously (before 8/11/2026) used 0.0701 which was generically the density of H2 at 20 K which was what Valerii gave me to use (and used in his code) but not what he reported in his thesis
     A0   = 6.0221367e23         # Avogadro’s number, mol⁻¹
     MH   = 1.00794              # atomic mass of H, g/mol
     LT   = 5.0                  # target length, cm
