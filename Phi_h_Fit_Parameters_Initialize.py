@@ -300,7 +300,7 @@ special_fit_parameters_set = {
         "B_initial": -0.04877,
         "B_limits":  [-0.2, 0.05],
         "C_initial": 0.04420,
-        "C_limits":  [-0.5, 0.1],
+        "C_limits":  [-0.1, 0.1],
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
