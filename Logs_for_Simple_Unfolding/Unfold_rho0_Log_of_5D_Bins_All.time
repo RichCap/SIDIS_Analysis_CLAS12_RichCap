@@ -1,0 +1,23 @@
+	Command being timed: "./Dedicated_5D_Unfold.py --background_source lundvpk -em Coordinated 5D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran as an updated version the 5D Unfolding with the updated binning schemes, 10 Bayesian iterations, and 10 Unfolding Toys. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxUnfold. -e"
+	User time (seconds): 327435.43
+	System time (seconds): 541.28
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 91:37:47
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 23937484
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 754
+	Minor (reclaiming a frame) page faults: 64441665
+	Voluntary context switches: 65237140
+	Involuntary context switches: 679490
+	Swaps: 0
+	File system inputs: 49784
+	File system outputs: 5463128
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
