@@ -1,122 +1,126 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
 import os
 import re
+import sys
 
 
 # --------------------------------------------------------------------------------------
-# Parsing helpers for your known key formats
+# Spline-export helpers (wrap farm SciPy 1.16.2 C++; do not rebuild RBF coefficients)
 # --------------------------------------------------------------------------------------
 
-_re_q2y_only = re.compile(r"Q2-y=(\d+)\s*,\s*Q2-y")
-_re_zpt      = re.compile(r"Q2-y=(\d+)\s*,\s*z-pT=(\d+)")
-_re_BC       = re.compile(r"^([BC])_(\d+)_(\d+)$")
+def _script_dir():
+    return os.path.dirname(os.path.abspath(__file__))
 
+def _default_spline_dir():
+    return os.path.dirname(_script_dir())
 
-def _normalize_minmax(vmin, vmax):
-    if(vmin > vmax):
-        return vmax, vmin
-    return vmin, vmax
+def _artifact_stem(args):
+    return f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}"
 
+def _txt_path(args):
+    return os.path.join(args.spline_dir, f"{_artifact_stem(args)}_Compute_SplineWeight.txt")
 
-def parse_bin_edges_json(path):
-    # Returns:
-    #   q2y_edges: list of dict {idx,Q2_min,Q2_max,y_min,y_max}
-    #   zpt_edges: list of dict {q2y_idx, idx, z_min,z_max,pT_min,pT_max}
-    with open(path, "r") as f:
-        j = json.load(f)
+def _npz_path(args, y_par):
+    return os.path.join(args.spline_dir, f"{_artifact_stem(args)}_{y_par}.npz")
 
-    q2y_edges = []
-    zpt_edges = []
+def _extract_header_field(text, label):
+    mm = re.search(rf"^// {re.escape(label)}:?\s*(.+)$", text, flags=re.MULTILINE)
+    return (None if(mm is None) else mm.group(1).strip())
 
-    for key, val in j.items():
-        if(not isinstance(val, list) or len(val) != 4):
+def _strip_compute_spline_weight(body):
+    start = body.find("\ndouble ComputeSplineWeight(")
+    if(start < 0):
+        start = body.find("double ComputeSplineWeight(")
+    if(start < 0):
+        return body.rstrip() + "\n"
+    return body[:start].rstrip() + "\n"
+
+def _adapt_exported_cpp(raw_txt):
+    # Keep the farm SciPy 1.16.2 evaluator bodies. Drop ROOT-only includes/weight helper.
+    lines = raw_txt.splitlines(True)
+    kept = []
+    skip_includes = True
+    for line in lines:
+        stripped = line.strip()
+        if(skip_includes):
+            if(stripped.startswith("#include")):
+                continue
+            if(stripped == ""):
+                skip_includes = False
+                continue
+            if(stripped.startswith("//")):
+                kept.append(line)
+                continue
+            skip_includes = False
+        kept.append(line)
+    return _strip_compute_spline_weight("".join(kept))
+
+def _verify_txt_is_4d_xb(raw_txt, txt_path):
+    header_mode = _extract_header_field(raw_txt, "Dimension mode")
+    dim_modes = re.findall(r'const std::string dim_mode_fit_par_[abc] = "([^"]+)";', raw_txt)
+    if((header_mode is not None) and (header_mode != "4D_xB")):
+        print(f"ERROR: {txt_path} header Dimension mode is '{header_mode}', expected 4D_xB.", file=sys.stderr)
+        sys.exit(1)
+    if(not dim_modes):
+        print(f"ERROR: {txt_path} has no dim_mode_fit_par_* constants.", file=sys.stderr)
+        sys.exit(1)
+    if(any(mm != "4D_xB" for mm in dim_modes)):
+        print(f"ERROR: {txt_path} dim_mode constants are {dim_modes}, expected all 4D_xB.", file=sys.stderr)
+        sys.exit(1)
+    for fn in ["ComputeSplineA", "ComputeSplineB", "ComputeSplineC"]:
+        if(fn not in raw_txt):
+            print(f"ERROR: {txt_path} is missing {fn}.", file=sys.stderr)
+            sys.exit(1)
+
+def _verify_npz_metadata(args):
+    try:
+        import numpy as np
+    except ImportError:
+        print("WARNING: numpy is not available; skipping .npz metadata checks.", file=sys.stderr)
+        return
+    first_centers = {}
+    for y_par in ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]:
+        path = _npz_path(args, y_par)
+        if(not os.path.isfile(path)):
+            print(f"WARNING: Missing {path}; skipping .npz check for {y_par}.", file=sys.stderr)
             continue
+        data = np.load(path, allow_pickle=True)
+        dim_mode = str(data["dimension_mode"])
+        if(dim_mode != "4D_xB"):
+            print(f"ERROR: {path} dimension_mode='{dim_mode}', expected 4D_xB.", file=sys.stderr)
+            sys.exit(1)
+        points = data["points"]
+        if((points.ndim != 2) or (points.shape[1] != 4)):
+            print(f"ERROR: {path} points shape {points.shape} is not (N, 4) for 4D_xB.", file=sys.stderr)
+            sys.exit(1)
+        first_centers[y_par] = [float(vv) for vv in points[0]]
+        print(f"  npz {y_par}: kernel={data['kernel']} epsilon={data['epsilon']} log_space={data['log_space']} n={data['n_points']} first_center={first_centers[y_par]}")
+    names = list(first_centers.keys())
+    for name in names[1:]:
+        if(any(abs(aa - bb) > 1.0e-12 for aa, bb in zip(first_centers[names[0]], first_centers[name]))):
+            print(f"ERROR: first training center differs between {names[0]} and {name}.", file=sys.stderr)
+            sys.exit(1)
 
-        v0, v1, v2, v3 = val[0], val[1], val[2], val[3]
-
-        m1 = _re_q2y_only.search(key)
-        if(m1):
-            q2y = int(m1.group(1))
-            Q2_max, Q2_min, y_max, y_min = float(v0), float(v1), float(v2), float(v3)
-            Q2_min, Q2_max = _normalize_minmax(Q2_min, Q2_max)
-            y_min, y_max   = _normalize_minmax(y_min, y_max)
-
-            q2y_edges.append({
-                "idx": q2y,
-                "Q2_min": Q2_min,
-                "Q2_max": Q2_max,
-                "y_min":  y_min,
-                "y_max":  y_max
-            })
-            continue
-
-        m2 = _re_zpt.search(key)
-        if(m2):
-            q2y = int(m2.group(1))
-            zpt = int(m2.group(2))
-            z_max, z_min, pT_max, pT_min = float(v0), float(v1), float(v2), float(v3)
-            z_min, z_max   = _normalize_minmax(z_min, z_max)
-            pT_min, pT_max = _normalize_minmax(pT_min, pT_max)
-
-            zpt_edges.append({
-                "q2y_idx": q2y,
-                "idx":     zpt,
-                "z_min":   z_min,
-                "z_max":   z_max,
-                "pT_min":  pT_min,
-                "pT_max":  pT_max
-            })
-            continue
-
-    # Sort for determinism (nice diffs, reproducible builds)
-    q2y_edges.sort(key=lambda e: e["idx"])
-    zpt_edges.sort(key=lambda e: (e["q2y_idx"], e["idx"]))
-
-    return q2y_edges, zpt_edges
-
-
-def parse_modulations_json(path):
-    # Returns:
-    #   B_entries: list of dict {q2y,zpt,val}
-    #   C_entries: list of dict {q2y,zpt,val}
-    with open(path, "r") as f:
-        j = json.load(f)
-
-    B_entries = []
-    C_entries = []
-
-    for key, val in j.items():
-        m = _re_BC.match(key)
-        if(not m):
-            continue
-        if(not isinstance(val, (int, float))):
-            continue
-
-        kind = m.group(1)
-        q2y  = int(m.group(2))
-        zpt  = int(m.group(3))
-        vv   = float(val)
-
-        entry = {"q2y": q2y, "zpt": zpt, "val": vv}
-        if(kind == "B"):
-            B_entries.append(entry)
-        else:
-            C_entries.append(entry)
-
-    B_entries.sort(key=lambda e: (e["q2y"], e["zpt"]))
-    C_entries.sort(key=lambda e: (e["q2y"], e["zpt"]))
-
-    return B_entries, C_entries
+def _verify_txt_first_center_is_xb(adapted_cpp):
+    mm = re.search(r"const double centers_fit_par_a\[\d+\]\[\d+\] = \{\s*\{([^}]+)\}", adapted_cpp)
+    if(mm is None):
+        print("WARNING: could not parse first Fit_Par_A center from the export.", file=sys.stderr)
+        return
+    vals = [float(tok) for tok in mm.group(1).split(",")]
+    # 4D_xB first coordinate is xB (~0.1-0.6), not Q2 (~2-8).
+    if(vals[0] > 1.5):
+        print(f"ERROR: first A center starts with {vals[0]:.6g}, which looks like Q2, not xB. 4D_xB packing must be [xB, y, z, pT].", file=sys.stderr)
+        sys.exit(1)
+    print(f"  txt first A center = {vals}  (4D_xB: xB, y, z, pT)")
 
 
 # --------------------------------------------------------------------------------------
 # Code generation
 # --------------------------------------------------------------------------------------
 
-def write_generated_files(args, q2y_edges, zpt_edges, B_entries, C_entries):
+def write_generated_files(args, adapted_cpp, raw_txt):
     out_base_name = args.out_base_name
     os.makedirs(args.out_dir_hpp, exist_ok=True)
     os.makedirs(args.out_dir_cpp, exist_ok=True)
@@ -124,90 +128,56 @@ def write_generated_files(args, q2y_edges, zpt_edges, B_entries, C_entries):
     hpp_path = os.path.join(args.out_dir_hpp, f"{out_base_name}.hpp")
     cpp_path = os.path.join(args.out_dir_cpp, f"{out_base_name}.cpp")
 
-    guard = out_base_name.upper() + "_HPP"
+    dim_mode = _extract_header_field(raw_txt, "Dimension mode") or args.dimension_mode
+    fit_set = _extract_header_field(raw_txt, "Fit set") or args.fit_set
+    gen_on = _extract_header_field(raw_txt, "Generated on") or "unknown"
 
     with open(hpp_path, "w") as hpp:
         hpp.write(f"""#pragma once
 
 // Auto-generated. DO NOT EDIT BY HAND.
-// Generated by Create_cpp_Compatible_Files_from_JSON.py
+// Generated by Create_cpp_Compatible_Files_for_EvGen.py
+// Source: farm SciPy 1.16.2 export (*_Compute_SplineWeight.txt)
+// Dimension mode: {dim_mode}
+// Fit set: {fit_set}
+// Farm export generated on {gen_on}
+//
+// 4D_xB evaluation order inside ComputeSplineA/B/C is [xB, y, z, pT].
+// The Q2 argument is unused in 4D_xB (kept to match the exporter signature).
+// Dual coefficients are copied from the farm export; they are not rebuilt here.
 
-#include <cstddef>
+#include <cmath>
+#include <string>
 
 namespace sidis::sf::set::measured_tables {{
 
-struct Q2yBinEdge {{
-\tint    idx;
-\tdouble Q2_min;
-\tdouble Q2_max;
-\tdouble y_min;
-\tdouble y_max;
-}};
-
-struct ZpTBinEdge {{
-\tint    q2y_idx;
-\tint    idx;
-\tdouble z_min;
-\tdouble z_max;
-\tdouble pT_min;
-\tdouble pT_max;
-}};
-
-struct ModEntry {{
-\tint    q2y;
-\tint    zpt;
-\tdouble val;
-}};
-
-extern const Q2yBinEdge Q2Y_EDGES[];
-extern const std::size_t Q2Y_EDGES_N;
-
-extern const ZpTBinEdge ZPT_EDGES[];
-extern const std::size_t ZPT_EDGES_N;
-
-extern const ModEntry B_ENTRIES[];
-extern const std::size_t B_ENTRIES_N;
-
-extern const ModEntry C_ENTRIES[];
-extern const std::size_t C_ENTRIES_N;
+double ComputeSplineA(double Q2, double xB, double y, double z, double pT);
+double ComputeSplineB(double Q2, double xB, double y, double z, double pT);
+double ComputeSplineC(double Q2, double xB, double y, double z, double pT);
 
 }} // namespace sidis::sf::set::measured_tables
 """)
 
     with open(cpp_path, "w") as cpp:
         cpp.write(f"""// Auto-generated. DO NOT EDIT BY HAND.
-// Generated by Create_cpp_Compatible_Files_from_JSON.py
+// Generated by Create_cpp_Compatible_Files_for_EvGen.py
+// Source: farm SciPy 1.16.2 export (*_Compute_SplineWeight.txt)
+// Dimension mode: {dim_mode}
+// Fit set: {fit_set}
+// Farm export generated on {gen_on}
 
 #include "sidis/sf_set/{out_base_name}.hpp"
 
+#include <cmath>
+#include <string>
+
 namespace sidis::sf::set::measured_tables {{
 
-const Q2yBinEdge Q2Y_EDGES[] = {{
 """)
-        for e in q2y_edges:
-            cpp.write(f"\t{{ {e['idx']}, {e['Q2_min']:.16e}, {e['Q2_max']:.16e}, {e['y_min']:.16e}, {e['y_max']:.16e} }},\n")
-        cpp.write("};\n")
-        cpp.write("const std::size_t Q2Y_EDGES_N = sizeof(Q2Y_EDGES) / sizeof(Q2Y_EDGES[0]);\n\n")
-
-        cpp.write("const ZpTBinEdge ZPT_EDGES[] = {\n")
-        for e in zpt_edges:
-            cpp.write(f"\t{{ {e['q2y_idx']}, {e['idx']}, {e['z_min']:.16e}, {e['z_max']:.16e}, {e['pT_min']:.16e}, {e['pT_max']:.16e} }},\n")
-        cpp.write("};\n")
-        cpp.write("const std::size_t ZPT_EDGES_N = sizeof(ZPT_EDGES) / sizeof(ZPT_EDGES[0]);\n\n")
-
-        cpp.write("const ModEntry B_ENTRIES[] = {\n")
-        for e in B_entries:
-            cpp.write(f"\t{{ {e['q2y']}, {e['zpt']}, {e['val']:.16e} }},\n")
-        cpp.write("};\n")
-        cpp.write("const std::size_t B_ENTRIES_N = sizeof(B_ENTRIES) / sizeof(B_ENTRIES[0]);\n\n")
-
-        cpp.write("const ModEntry C_ENTRIES[] = {\n")
-        for e in C_entries:
-            cpp.write(f"\t{{ {e['q2y']}, {e['zpt']}, {e['val']:.16e} }},\n")
-        cpp.write("};\n")
-        cpp.write("const std::size_t C_ENTRIES_N = sizeof(C_ENTRIES) / sizeof(C_ENTRIES[0]);\n\n")
-
-        cpp.write("} // namespace sidis::sf::set::measured_tables\n")
+        cpp.write(adapted_cpp)
+        if(not adapted_cpp.endswith("\n")):
+            cpp.write("\n")
+        cpp.write("\n} // namespace sidis::sf::set::measured_tables\n")
 
     return hpp_path, cpp_path
 
@@ -217,16 +187,24 @@ const Q2yBinEdge Q2Y_EDGES[] = {{
 # --------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert measured-SF JSON inputs into compiled C++ constant tables (no JSON lib needed).", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Wrap a farm-exported 4D_xB Compute_SplineWeight.txt into EvGen .hpp/.cpp evaluators for A, B, and C. Does not rebuild RBF coefficients.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('-bej', "--bin-edges-json", 
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code/Full_Bin_Definition_Array.json",
+    parser.add_argument("-sd", "--spline_dir",
+                        default=_default_spline_dir(),
                         type=str,
-                        help="Path to bin-edges JSON (Q2-y and z-pT edges).")
-    parser.add_argument("-mj", "--modulations-json", 
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json",
+                        help="Directory containing the farm-exported spline artifacts (.txt and optional .npz).")
+    parser.add_argument("-o", "--output_prefix",
+                        default="rho0_Subtracted_5D_V2",
                         type=str,
-                        help="Path to modulations JSON (B_#, C_# keys).")
+                        help="Prefix used by Create_Continuous_4D_Moments_From_JSON.py when naming spline artifacts.")
+    parser.add_argument("-dm", "--dimension_mode",
+                        default="4D_xB",
+                        type=str,
+                        help="Spline dimensionality. Only 4D_xB is supported. 4D and 5D are legacy and abort.")
+    parser.add_argument("-f", "--fit_set",
+                        default="Fit_Pars_from_5D_BC_RC_Bayesian",
+                        type=str,
+                        help="Fit-set token used in the spline artifact names.")
     parser.add_argument("-odh", "--out_dir_hpp",
                         default="Symbolic_Path_to_HPP_EvGen_Directory",
                         # default="/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/sidis/include/sidis/sf_set",
@@ -242,20 +220,40 @@ def main():
                         help="Base filename (no extension) for generated files.")
 
     args = parser.parse_args()
+    args.spline_dir = os.path.abspath(args.spline_dir)
 
-    q2y_edges, zpt_edges = parse_bin_edges_json(args.bin_edges_json)
-    B_entries, C_entries = parse_modulations_json(args.modulations_json)
+    if(str(args.dimension_mode).strip() != "4D_xB"):
+        print(f"ERROR: dimension_mode='{args.dimension_mode}' is a legacy spline mode. This EvGen generator only supports 4D_xB. 4D and 5D packs are not generated.", file=sys.stderr)
+        sys.exit(1)
 
-    hpp_path, cpp_path = write_generated_files(args, q2y_edges, zpt_edges, B_entries, C_entries)
+    txt_path = _txt_path(args)
+    if(not os.path.isfile(txt_path)):
+        print(f"ERROR: Missing farm SciPy 1.16.2 Compute_SplineWeight.txt: {txt_path}. If you have new .npz files, generate that txt on the farm with Create_Continuous_4D_Moments_From_JSON.py -gcO/--generate_spline_code_only. This script does not rebuild RBF coefficients.", file=sys.stderr)
+        sys.exit(1)
+
+    with open(txt_path, "r") as handle:
+        raw_txt = handle.read()
+
+    print("Wrapping farm export (no RBF rebuild):")
+    print(f"  txt = {txt_path}")
+    _verify_txt_is_4d_xb(raw_txt, txt_path)
+    _verify_npz_metadata(args)
+
+    adapted_cpp = _adapt_exported_cpp(raw_txt)
+    _verify_txt_first_center_is_xb(adapted_cpp)
+
+    if("TMath" in adapted_cpp):
+        print("ERROR: adapted C++ still contains TMath; refuse to write EvGen sources.", file=sys.stderr)
+        sys.exit(1)
+    if("ComputeSplineWeight" in adapted_cpp):
+        print("ERROR: adapted C++ still contains ComputeSplineWeight; refuse to write EvGen sources.", file=sys.stderr)
+        sys.exit(1)
+
+    hpp_path, cpp_path = write_generated_files(args, adapted_cpp, raw_txt)
 
     print("Wrote:")
     print(f"\thpp_path = {hpp_path}")
     print(f"\tcpp_path = {cpp_path}")
-    print("\n\nCounts:")
-    print(f"\tQ2-y edges: {len(q2y_edges)}")
-    print(f"\tz-pT edges: {len(zpt_edges)}")
-    print(f"\t B entries: {len(B_entries)}")
-    print(f"\t C entries: {len(C_entries)}")
 
 
 if(__name__ == "__main__"):
