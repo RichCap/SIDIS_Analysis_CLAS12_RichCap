@@ -36,7 +36,7 @@ universal_directory = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/' if(o
 # ------------------------------------------------------------
 import ROOT
 import sys
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else '/Users/richardcapobianco/Desktop/Work_Offline.nosync/General_Helper_Scripts'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else os.path.abspath(os.path.dirname(__file__))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns, skip_condition_z_pT_bins
 from Binning_Dictionaries             import Full_Bin_Definition_Array
@@ -537,7 +537,7 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
             ye = float(entry[err_key]) if((include_errors) and (err_key in entry)) else 0.0
             if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
                 _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-                if((str(Bin_Width_Area_Scale) not in ["0", "None", None]) and (str(Luminosity) not in ["0", "None", None])):
+                if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
                     yv = yv/(Bin_Width_Area_Scale*Luminosity)
                     ye = ye/(Bin_Width_Area_Scale*Luminosity)
             lo = yv - abs(ye) if(include_errors) else yv

@@ -9,7 +9,7 @@ import argparse
 # import traceback
 # from pathlib import Path
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else os.path.abspath(os.path.dirname(__file__))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 # from ExtraAnalysisCodeValues          import *
@@ -34,7 +34,7 @@ def load_run_charge_map(json_path=DEFAULT_CHARGE_SUMMARY):
     # Prefer hall path; fall back to local offline copy if present
     load_path = json_path
     if(not os.path.isfile(load_path)):
-        local_fallback = os.path.join(os.path.dirname(__file__), "..", "Histogram_Creation_Scripts", "Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json")
+        local_fallback = os.path.join(os.path.dirname(__file__), "Data_Files_Groovy", "Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json")
         local_fallback = os.path.normpath(local_fallback)
         if(os.path.isfile(local_fallback)):
             load_path = local_fallback

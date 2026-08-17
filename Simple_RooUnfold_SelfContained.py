@@ -184,6 +184,11 @@ def parse_args():
     p.add_argument('-sj', '--save_json',
                    action="store_true",
                    help="Save Fit Parameters to JSON file.\n")
+
+    p.add_argument('-jn', '--json_name',
+                   type=str,
+                   default=None,
+                   help="Optional output path used with '--save_json'. If omitted, the name is still auto-derived from '--root'.\n")
     
     p.add_argument('-oj', '--old_json',
                    action='store_true',
@@ -198,6 +203,11 @@ def parse_args():
     p.add_argument('-usi', '--use_spline_init',
                    action='store_true',
                    help="Load special_fit_parameters_set from Prepare_Next_Iteration/Phi_h_Fit_Parameters_from_Spline.py instead of Phi_h_Fit_Parameters_Initialize.py.\n")
+
+    p.add_argument('-fif', '--fit_init_file',
+                   type=str,
+                   default=None,
+                   help="Optional path to a Python module defining special_fit_parameters_set. Overrides '--use_spline_init' when given. Does not select a correction family; histogram names choose the keys.\n")
 
     # positional Q2-xB bin arguments
     p.add_argument('bins',
@@ -237,13 +247,14 @@ def send_email(subject, body, recipient):
 
 def Update_Email(args, update_name="", update_message="", verbose_override=False):
     update_email = ""
+    elapsed_line = str(args.timer.time_elapsed(return_Q=True)[-1]).replace("\n", " ")
     if(update_message not in [""]):
         update_email = f"""{update_message}
-{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}"""
+{elapsed_line}"""
     elif(update_name not in [""]):
         update_email = f"""
 {color.BCYAN}{update_name}{color.END_B} is done running...{color.END}
-{args.timer.time_elapsed(return_Q=True)[-1].replace('\n', ' ')}
+{elapsed_line}
 
 """
     if(update_email not in [""]):
@@ -341,7 +352,12 @@ def silence_root_import():
         os.dup2(devnull, 2)
         os.close(devnull)
         # Perform the noisy import
-        import RooUnfold
+        try:
+            import RooUnfold
+        except ImportError:
+            # Fit-only --Use_TTree runs do not call unfolding classes; allow a missing RooUnfold install locally.
+            if(not getattr(silence_root_import, "allow_missing", False)):
+                raise
     finally:
         # Restore the original file descriptors
         os.dup2(old_stdout, 1)
@@ -886,33 +902,90 @@ def ApplyCS_Norm(args, Histo, Q2_y_Bin, z_pT_Bin, List_of_All_Histos_For_Unfoldi
 ##==========##==========##     Fitting Function For Phi Plots                     ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 special_fit_parameters_set = None
-def load_special_fit_parameters_set(use_spline_init=False):
+def _load_special_fit_parameters_from_path(module_path):
+    import importlib.util
+    if(not os.path.isfile(module_path)):
+        raise FileNotFoundError(f"Fit-parameter file not found: '{module_path}'")
+    module_spec = importlib.util.spec_from_file_location("Phi_h_Fit_Parameters_Loaded", module_path)
+    if(module_spec is None or module_spec.loader is None):
+        raise ImportError(f"Could not create import spec for '{module_path}'")
+    loaded_module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(loaded_module)
+    if(not hasattr(loaded_module, "special_fit_parameters_set")):
+        raise ImportError(f"'{module_path}' does not define special_fit_parameters_set")
+    return loaded_module.special_fit_parameters_set
+
+def load_special_fit_parameters_set(use_spline_init=False, fit_init_file=None):
     # Load once into the module-global; subsequent calls reuse the same object
     global special_fit_parameters_set
     if(special_fit_parameters_set is not None):
         return special_fit_parameters_set
-    if(use_spline_init):
-        import importlib.util
+    if((fit_init_file is not None) and (str(fit_init_file).strip() not in ["", "None", "none"])):
+        special_fit_parameters_set = _load_special_fit_parameters_from_path(str(fit_init_file).strip())
+        print(f"{color.GREEN}Loaded special_fit_parameters_set from {fit_init_file}{color.END}")
+    elif(use_spline_init):
         spline_module_path = os.path.join("Prepare_Next_Iteration", "Phi_h_Fit_Parameters_from_Spline.py")
-        if(not os.path.isfile(spline_module_path)):
-            raise FileNotFoundError(f"Spline fit-parameter file not found: '{spline_module_path}' (expected via Prepare_Next_Iteration link)")
-        module_spec = importlib.util.spec_from_file_location("Phi_h_Fit_Parameters_from_Spline", spline_module_path)
-        if(module_spec is None or module_spec.loader is None):
-            raise ImportError(f"Could not create import spec for '{spline_module_path}'")
-        spline_module = importlib.util.module_from_spec(module_spec)
-        module_spec.loader.exec_module(spline_module)
-        special_fit_parameters_set = spline_module.special_fit_parameters_set
+        special_fit_parameters_set = _load_special_fit_parameters_from_path(spline_module_path)
         print(f"{color.GREEN}Loaded special_fit_parameters_set from {spline_module_path}{color.END}")
     else:
         # global declaration above makes this import bind the module-level name directly
         from Phi_h_Fit_Parameters_Initialize import special_fit_parameters_set
     return special_fit_parameters_set
 
+def unfolding_dimension_token(histo_name="", method="", args=None):
+    name_in = str(histo_name)
+    if(("MultiDim_5D" in name_in) or ("Q2_y_z_pT_phi_h" in name_in)):
+        return "5D"
+    if(("MultiDim_3D" in name_in) or ("z_pT_Bin_Y_bin_phi_t" in name_in)):
+        return "3D"
+    if(args not in ["args", None]):
+        if(getattr(args, "unfolding_5D", False)):
+            return "5D"
+        if(getattr(args, "unfolding_3D", False)):
+            return "3D"
+    method_in = str(method)
+    if("5D" in method_in):
+        return "5D"
+    if("3D" in method_in):
+        return "3D"
+    return ""
+
+def correction_family_token(method="", histo_name=""):
+    combined = f"{method} {histo_name}"
+    if("BC_RC_Bayesian" in combined) or (("BC_" in combined) and ("RC" in combined)):
+        return "BC"
+    if("RC_Bayesian" in combined) or ("RC_Bin" in combined):
+        return "RC"
+    return ""
+
+def select_special_fit_settings(q2y_bin, zpt_bin, method="", histo_name="", args=None):
+    # Most-specific tagged key first; never apply BC keys to RC/acceptance or RC keys to BC/acceptance
+    if(special_fit_parameters_set is None):
+        return None
+    q2y_bin = str(q2y_bin)
+    zpt_bin = str(zpt_bin)
+    dim_tag = unfolding_dimension_token(histo_name=histo_name, method=method, args=args)
+    fam_tag = correction_family_token(method=method, histo_name=histo_name)
+    candidates = []
+    if((dim_tag not in [""]) and (fam_tag not in [""])):
+        candidates.append((q2y_bin, zpt_bin, dim_tag, fam_tag))
+    if(fam_tag not in [""]):
+        candidates.append((q2y_bin, zpt_bin, fam_tag))
+    elif(dim_tag not in [""]):
+        # Dimension-only keys are the acceptance-only family; do not apply them to RC/BC histograms.
+        candidates.append((q2y_bin, zpt_bin, dim_tag))
+    candidates.append((q2y_bin, zpt_bin))
+    for key in candidates:
+        if(key in special_fit_parameters_set):
+            return special_fit_parameters_set[key]
+    return None
+
 def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special="Normal", args="args", Allow_Normalization=False):
     # Lazy-load fit parameters on first use (survives as module global for later calls)
     if(special_fit_parameters_set is None):
         use_spline_init = getattr(args, "use_spline_init", False) if(args not in ["args", None]) else False
-        load_special_fit_parameters_set(use_spline_init=use_spline_init)
+        fit_init_file = getattr(args, "fit_init_file", None) if(args not in ["args", None]) else None
+        load_special_fit_parameters_set(use_spline_init=use_spline_init, fit_init_file=fit_init_file)
     if(Allow_Normalization and args.CrossSection_Norm and (len(Special) == 2)):
         q2y_Bin, zpT_Bin = Special # (Most of) the normalization functions require the value for the kinematic bin numbers
         if("_(Normalized)" in str(Histo_To_Fit.GetName())):
@@ -1025,12 +1098,10 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                 # Cos(2*phi) Moment - C
                                 Fitting_Function.SetParameter(2, Par_initial_C)
                                 Fitting_Function.SetParLimits(2, min(Par__range__C), max(Par__range__C))
-                        elif((Q2_y_Bin_Special, z_pT_Bin_Special) in special_fit_parameters_set):
-                            if((Q2_y_Bin_Special, z_pT_Bin_Special, "BC") in special_fit_parameters_set):
-                                bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "BC")]
-                            elif((Q2_y_Bin_Special, z_pT_Bin_Special, "RC") in special_fit_parameters_set):
-                                bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special, "RC")]
-                            else:
+                        elif((select_special_fit_settings(Q2_y_Bin_Special, z_pT_Bin_Special, method=Method, histo_name=str(Histo_To_Fit.GetName()) if(hasattr(Histo_To_Fit, "GetName")) else "", args=args) is not None) or ((Q2_y_Bin_Special, z_pT_Bin_Special) in special_fit_parameters_set)):
+                            # Same per-bin special-settings branch as before (B/C inits, limits, Allow_Multiple_Fits); only the key pick changed via select_special_fit_settings() so BC keys apply only to BC_RC histograms, RC keys only to RC histograms, optional ("Q2y","z_pT","3D"|"5D") tags distinguish unfolding dimension, and fallback is most-specific tagged key then legacy ("Q2y","z_pT","RC"|"BC") then ("Q2y","z_pT") without requiring the untagged key to exist first.
+                            bin_settings = select_special_fit_settings(Q2_y_Bin_Special, z_pT_Bin_Special, method=Method, histo_name=str(Histo_To_Fit.GetName()) if(hasattr(Histo_To_Fit, "GetName")) else "", args=args)
+                            if(bin_settings is None):
                                 bin_settings = special_fit_parameters_set[(Q2_y_Bin_Special, z_pT_Bin_Special)]
                             if(bin_settings.get("B_initial") is not None):
                                 Fitting_Function.SetParameter(1, bin_settings["B_initial"])
@@ -1938,7 +2009,8 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
     if("/" in str(MainFileName)):
         MainFileName = str(MainFileName.split("/")[-1])
     var_type  = "MultiDim_Q2_y_z_pT_phi_h" if(args.unfolding_5D) else "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
-    args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
+    if((getattr(args, "json_name", None) is None) or (str(args.json_name).strip() in ["", "None", "none"])):
+        args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
     weight_tag = getattr(args, "weight_tag", "")
     weight_key = f"_W{weight_tag}" if(weight_tag not in ["", None]) else ""
     Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}{weight_key}"
@@ -1978,11 +2050,24 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
                 Fit_Pars_JSON[extra_keys][bin_key] = {}
             Fit_Pars_JSON[extra_keys][bin_key][f"Fit_Par_{par}"]     = val
             Fit_Pars_JSON[extra_keys][bin_key][f"Fit_Par_{par}_ERR"] = err
+            dest_bin = Fit_Pars_JSON[extra_keys][bin_key]
         else:
             if(bin_key not in Fit_Pars_JSON[Common_Key]):
                 Fit_Pars_JSON[Common_Key][bin_key] = {}
             Fit_Pars_JSON[Common_Key][bin_key][f"Fit_Par_{par}"]     = val
             Fit_Pars_JSON[Common_Key][bin_key][f"Fit_Par_{par}_ERR"] = err
+            dest_bin = Fit_Pars_JSON[Common_Key][bin_key]
+        if(("Chi2" not in dest_bin) or ("NDF" not in dest_bin)):
+            chi_name = re.sub(r"\(Fit_Par_[ABC]\)", "(Chi_Squared)", str(key_name))
+            chi_obj = List_of_All_Histos_For_Unfolding.get(chi_name)
+            if(chi_obj is None):
+                chi_obj = List_of_All_Histos_For_Unfolding.get(f"TVectorD_{chi_name}")
+            try:
+                if(chi_obj is not None):
+                    dest_bin["Chi2"] = float(chi_obj[0])
+                    dest_bin["NDF"]  = float(chi_obj[1])
+            except:
+                pass
     if(args.test):
         print(f"\n{color.BCYAN}Would save JSON: {color.END_B}{args.json_name}{color.END}")
         print(f"{color.BCYAN}New/updated entries in this batch: {color.END_B}{len(Fit_Pars_JSON)}{color.END}")
@@ -1998,6 +2083,10 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
                 Update_Email(args, update_message=f"{color.BYELLOW}WARNING:{color.END} Existing JSON is not a dict. Will overwrite with a dict: {str(json_path)}", verbose_override=True)
         except:
             Crash_Report(args, crash_message=f"{color.Error}WARNING: Failed reading existing JSON.{color.END} Will overwrite: {str(json_path)}\nERROR MESSAGE:\n\n{traceback.format_exc()}", continue_run=True)
+    if((Common_Key in existing_json) and isinstance(existing_json[Common_Key], dict)):
+        merged_set = dict(existing_json[Common_Key])
+        merged_set.update(Fit_Pars_JSON[Common_Key])
+        Fit_Pars_JSON[Common_Key] = merged_set
     existing_json.update(Fit_Pars_JSON)
     tmp_path = json_path.with_suffix(json_path.suffix + ".tmp")
     with open(tmp_path, "w") as f:
@@ -2016,6 +2105,7 @@ def strip_weight_tag_suffixes(name_in):
 
 def main_start():
     args = parse_args()
+    silence_root_import.allow_missing = bool(getattr(args, "Use_TTree", False))
     silence_root_import()
     # === DEFENSIVE: Remove any accidental quotes from filenames (shell quoting protection) ===
     for attr in ['root', 'single_file_input']:
@@ -3406,12 +3496,15 @@ def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
 
         if((not (fits_included and RC_fits_included and BC_fits_included)) or args.remake_fit):
             print(f"\n{color.BBLUE}Making the fits...{color.END}\n")
-            script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
-            sys.path.append(script_dir)
-            from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
-            sys.path.remove(script_dir)
-            del script_dir
-            print(f"\n{color.BOLD}Loaded `{color.GREEN}Find_RC_Fit_Params{color.END_B}` and `{color.GREEN}Apply_RC_Factor_Corrections{color.END_B}` for applying RC Corrections...{color.END}\n")
+            if(args.Apply_RC):
+                script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
+                if(not os.path.isdir(script_dir)):
+                    script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "RC_Correction_Code")
+                sys.path.append(script_dir)
+                from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
+                sys.path.remove(script_dir)
+                del script_dir
+                print(f"\n{color.BOLD}Loaded `{color.GREEN}Find_RC_Fit_Params{color.END_B}` and `{color.GREEN}Apply_RC_Factor_Corrections{color.END_B}` for applying RC Corrections...{color.END}\n")
             Histogram_Fit_List_All = {}
             fit_count = 0
             for ii, List_of_All_Histos_For_Unfolding_ii in enumerate(List_of_All_Histos_For_Unfolding):
@@ -3421,8 +3514,9 @@ def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
                     continue
                 if("_EvGen"    in str(List_of_All_Histos_For_Unfolding_ii)):
                     continue
-                if(("BC_"      in str(List_of_All_Histos_For_Unfolding_ii)) and (not args.Apply_BC)):
-                    continue
+                # Fit existing BC_* histograms whenever --fit is on; --Apply_BC is not required just to see them.
+                # if(("BC_"      in str(List_of_All_Histos_For_Unfolding_ii)) and (not args.Apply_BC)):
+                #     continue
                 if(args.EvGen and ("Acceptance" in str(List_of_All_Histos_For_Unfolding_ii)) and ("_EvGen" not in str(List_of_All_Histos_For_Unfolding_ii))):
                     Histo_clasdis        = List_of_All_Histos_For_Unfolding[List_of_All_Histos_For_Unfolding_ii]
                     Histo_Name_EvGen     = f"{Histo_clasdis.GetName()}_EvGen"
@@ -3542,12 +3636,13 @@ def main():
             for acceptable_unfold in args.Unfold_Methods:
                 acceptable_unfold           = str(acceptable_unfold.replace("(", "")).replace(")", "")
                 args, Fit_Pars_JSON         = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=acceptable_unfold)
-                if(args.Apply_RC):
-                    args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"RC_{acceptable_unfold}")
-                    if(args.Apply_BC):
-                        args, Fit_Pars_JSON = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_RC_{acceptable_unfold}")
-                elif(args.Apply_BC):
-                    args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_{acceptable_unfold}")
+                # Save every family actually present; do not require --Apply_RC/--Apply_BC just to write existing RC/BC fits.
+                # if(args.Apply_RC):
+                args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"RC_{acceptable_unfold}")
+                #     if(args.Apply_BC):
+                args, Fit_Pars_JSON = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_RC_{acceptable_unfold}")
+                # elif(args.Apply_BC):
+                #     args, Fit_Pars_JSON     = Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type=f"BC_{acceptable_unfold}")
     except:
         Crash_Report(args, crash_message=f"{color.Error}The Fitting/RC Code has CRASHED!\n{color.END_R}ERROR MESSAGE:\n\n{color.END}{traceback.format_exc()}")
     Construct_Email(args, final_count=len(List_of_All_Histos_For_Unfolding))
