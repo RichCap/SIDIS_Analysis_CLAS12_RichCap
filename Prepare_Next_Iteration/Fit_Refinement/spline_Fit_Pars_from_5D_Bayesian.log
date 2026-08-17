@@ -1,0 +1,95 @@
+
+Started running on [1m8-17-2026[0m at [1m12:05 p.m.[0m
+
+
+[1m[94m=== Building tunable spline functions (4D_xB mode) ===[0m
+
+
+[91m[1m[WARNING] 4 non-positive Fit_Par_A values; clipping to 1e-30 before log_A fit[0m
+
+[92mSAVED Fit_Par_A [log_A] → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_A.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_A.npz (C++)[0m
+
+[92mSAVED Fit_Par_B → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_B.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_B.npz (C++)[0m
+
+[92mSAVED Fit_Par_C → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_C.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_C.npz (C++)[0m
+
+[1m=== Generating Initial Parameter Dictionary (Phi_h_Fit_Parameters_from_Spline.py) ===[0m
+
+
+[92mWrote complete importable module: Phi_h_Fit_Parameters_from_Spline.py[0m
+[92m  Entries: 489 spline bin pairs + Trusted/Sectors blocks[0m
+
+[92mReady to import as special_fit_parameters_set from Phi_h_Fit_Parameters_from_Spline.py[0m
+
+
+[1m[94mAll spline functions built (4D_xB mode) with per-point uncertainty weighting.[0m
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Create_Continuous_4D_Moments_From_JSON.py' script has finished running.
+Started running on [1m8-17-2026[0m at [1m12:05 p.m.[0m
+
+
+
+[91m[1m[WARNING] 4 non-positive Fit_Par_A values; clipping to 1e-30 before log_A fit[0m
+
+[92mSAVED Fit_Par_A [log_A] → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_A.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_A.npz (C++)[0m
+
+[92mSAVED Fit_Par_B → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_B.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_B.npz (C++)[0m
+
+[92mSAVED Fit_Par_C → FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_C.pkl (Python) + FitRefinement_iter00_4D_xB_Fit_Pars_from_5D_Bayesian_Fit_Par_C.npz (C++)[0m
+
+
+[1m[94mAll spline functions built (4D_xB mode) with per-point uncertainty weighting.[0m
+
+
+
+Arguments:
+
+--verbose                                           --> False
+--json_file                                         --> '../Fit_Pars_from_Simple_RooUnfold_SelfContained_using_Hybrid_Unfolded_Parallel_SIDIS_epip_from_3D_and_5D_1st_Order_V2.json'
+--list_fit_sets                                     --> False
+--fit_set                                           --> 'Fit_Pars_from_5D_Bayesian'
+--apply_A_corr                                      --> True
+--no_apply_beam_corrections                         --> False
+--err_suffix                                        --> '_ERR'
+--output_prefix                                     --> 'FitRefinement_iter00'
+--generate_init                                     --> True
+--save_init                                         --> 'Phi_h_Fit_Parameters_from_Spline.py'
+--range_pct                                         --> 30.0
+--std_multiple                                      --> 0.3
+--use_range_pct                                     --> False
+--use_max_min_for_ranges                            --> False
+--num_spline_scans                                  --> 3
+--allow_multi_fits                                  --> True
+--dimension_mode                                    --> '4D_xB'
+--smoothing_factor                                  --> 5e-05
+--smoothing_factor_A                                --> 0.05
+--smoothing_factor_B                                --> 5e-05
+--smoothing_factor_C                                --> 5e-05
+--kernel                                            --> 'gaussian'
+--kernel_A                                          --> 'thin_plate_spline'
+--epsilon                                           --> 0.75
+--log_A                                             --> True
+--test                                              --> False
+--generate_spline_code                              --> False
+--generate_spline_code_only                         --> False
+
+
+The time that this code finished is [1m12:05 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   [0m
+
+    
