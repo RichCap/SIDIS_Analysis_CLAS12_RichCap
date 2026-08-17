@@ -1100,7 +1100,7 @@ return z_pT_Bin_event_val;
     return z_pT_Bin_Standard_Def
 
 
-def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None, args_in=None, axis_Z="4D_Bin", weight_specs=None):
+def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Input, Use_Weight, Histograms_All={}, Histo_Group="Normal_2D", custom_title=None, custom_tag=None, args_in=None, axis_Z="4D_Bin", weight_specs=None, q2y_bin_num=None):
     if(not _guard_datatype_and_smear(Histo_Data, Histo_Smear)):
         return Histograms_All
     if(not _guard_gdf_cut(Histo_Data, Histo_Cut, args_in)):
@@ -1124,6 +1124,9 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
     if(axis_Z in ["z_Bins"]):
         Res_Binning_4D = ["z", 0.13, 0.85, 10]
         Binning_Axis_Tag = "z_Bins"
+    if(axis_Z in ["z_pT_Bin", "z_pT_Bin_Y_bin"]):
+        Res_Binning_4D = ["z_pT_Bin_Y_bin", -0.5, 37.5, 38] if('Valerii' not in Binning) else ["z_pT_Bin_Valerii", -0.5, 60.5, 61]
+        Binning_Axis_Tag = Res_Binning_4D[0]
     Var_X, Var_Y = Vars_Input
     if("mear" in str(Histo_Smear)):
         if("smeared" not in str(Res_Binning_4D[0])):
@@ -1139,7 +1142,12 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
             Var_X[0] = Var_X[0].replace("_smeared", "")
         if("smeared" in str(Var_Y[0])):
             Var_Y[0] = Var_Y[0].replace("_smeared", "")
-    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"})_({Binning_Axis_Tag})_({Var_X[0]})_({Var_Y[0]}){f'_({custom_tag})' if(custom_tag is not None) else ''}"""
+    q2y_name_tag = ""
+    if(q2y_bin_num not in [None, "", 0, -1, "All", "all"]):
+        q2y_col, _ = _filter_fieldnames(Histo_Smear, Ver=Binning)
+        sdf = sdf.Filter(f"{q2y_col} == {q2y_bin_num}")
+        q2y_name_tag = f"_(Q2_y_Bin_{q2y_bin_num})"
+    TH2D_Name  = f"""({Histo_Group})_({Histo_Data})_({Histo_Cut})_(SMEAR={Histo_Smear if(Histo_Smear not in ['']) else "''"}){q2y_name_tag}_({Binning_Axis_Tag})_({Var_X[0]})_({Var_Y[0]}){f'_({custom_tag})' if(custom_tag is not None) else ''}"""
     Data_Title = f"#color[{root_color.Blue}]{{Experimental}}" if('rdf' in Histo_Data) else f"#color[{root_color.Red}]{{Reconstructed MC}}" if('mdf' in Histo_Data) else f"#color[{root_color.Green}]{{Generated MC}}"
     if("mear" in str(Histo_Smear)):
         Data_Title = f"Smeared {Data_Title}"

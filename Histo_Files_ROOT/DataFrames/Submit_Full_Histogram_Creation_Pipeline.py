@@ -12,7 +12,7 @@ import threading
 from collections import deque
 from datetime import datetime
 
-script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis"
+script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis" if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 sys.path.remove(script_dir)
@@ -66,6 +66,13 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D"],
         "extra": ["--run_rho_weight", "--unfold_5D_only"],
         "jobs_attr": "jobs_5D",
+        }, {
+        "key": "Binning_Presentation_Only",
+        "label": "Binning Presentation Only Histograms",
+        "name_fmt": "Binning_Presentation_Only_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--binning_presentation_only", "--run_rho_weight"],
+        "jobs_attr": "jobs_Binning",
         },
 ]
 
@@ -135,7 +142,7 @@ def parse_args():
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
-                   help="Default pipeline --jobs for each Phase-2 product unless overridden by --jobs_2D/--jobs_3D/--jobs_5D.\n")
+                   help="Default pipeline --jobs for each Phase-2 product unless overridden by --jobs_2D/--jobs_3D/--jobs_5D. Does not apply to --jobs_Binning (that product is opt-in and defaults to 0).\n")
     p.add_argument("-j2D", "--jobs_2D",
                    type=int,
                    default=None,
@@ -148,6 +155,10 @@ def parse_args():
                    type=int,
                    default=None,
                    help="Concurrent batch jobs for the Only_5D product only. Unset → use --jobs; 0 → skip this product.\n")
+    p.add_argument("-jBin", "--jobs_Binning",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
     p.add_argument("-v", "--verbose",
                    action="store_true",
                    help="Runner-only: also tee one designated child stream to the terminal (all children still go to the master .log).\n")
@@ -720,7 +731,7 @@ def main():
     log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
-    log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}")
+    log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}  jobs_Binning={args.jobs_Binning}")
     if(args.no_run_rho_weight):
         log_print(args, f"{color.BYELLOW}--no_run_rho_weight: child commands will NOT receive --run_rho_weight{color.END}")
     else:
@@ -731,7 +742,7 @@ def main():
     except ValueError as err:
         Crash_Report(args, crash_message=str(err), continue_run=False)
     if(len(selected0) == 0):
-        Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
+        Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D/--jobs_Binning are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
 
     if((args.run_all_cuts) and (args.mode == "slurm")):
         Crash_Report(args, crash_message="--run_all_cuts is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)

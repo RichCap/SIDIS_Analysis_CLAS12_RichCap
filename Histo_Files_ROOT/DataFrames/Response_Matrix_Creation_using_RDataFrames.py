@@ -3,15 +3,15 @@ import sys
 import argparse
 import ROOT, re
 # import traceback
-# import os
+import os
 from pathlib import Path
 import ROOT, re
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/')) else os.path.abspath(os.path.dirname(__file__))
 sys.path.append(script_dir)
 from File_Batches import rdf_batch, mdf_batch, gdf_batch
 sys.path.remove(script_dir)
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues          import *
@@ -99,6 +99,9 @@ def parse_args():
     parser.add_argument('-2Do', '--make_2D_only',
                         action='store_true',
                         help="Only makes the 2D histograms given by '--make_2D'.\n")
+    parser.add_argument('-bpo', '--binning_presentation_only',
+                        action='store_true',
+                        help="Book only the binning-presentation TH3D families (no 3D/5D response matrices and no ordinary 2D set: the kinematic plots filled against Q2-y bins rather than z-pT bins).\n")
     parser.add_argument('-u5D', '--unfold_5D',
                         action='store_true',
                         help='Makes the response matrices for the full 5D unfolding (will run in addition to the 3D unfolding done by default).\n')
@@ -558,6 +561,12 @@ if(__name__ == "__main__"):
     args.make_2D_only = (args.make_2D_only and (not args.unfold_5D_only)) or (args.make_2D_rho_normalization_only)
     args.unfold_5D    = (args.unfold_5D     or      args.unfold_5D_only) and (not args.make_2D_only)
     args.make_2D      = (args.make_2D       or      args.make_2D_only)   and (not args.unfold_5D_only)
+    if(args.binning_presentation_only):
+        args.make_2D = False
+        args.make_2D_only = True
+        args.unfold_5D = False
+        args.make_2D_rho = False
+        args.make_2D_rho_normalization_only = False
 
     ROOT.TH1.AddDirectory(0)
     ROOT.gStyle.SetTitleOffset(1.3,'y')
@@ -884,7 +893,7 @@ if(__name__ == "__main__"):
                 gdf_EvGen = ensure_defined_col(gdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
         if(args.valerii_bins):
-            script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+            script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
             sys.path.append(script_dir)
             from Valerii_Kinematic_Binning_Code import *
             sys.path.remove(script_dir)
@@ -1266,6 +1275,45 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}EvGen, All{color.END_C})'{color.END}", verbose_override=True)
         else:
             Update_Email(args, update_message=f"{color.Error}Skipped the 2D Kinematic Plots{color.END}", verbose_override=True)
+        if(args.binning_presentation_only):
+            print(f"\n{color.BGREEN}Making the Binning Presentation Only Histograms...{color.END}")
+            args.timer.time_elapsed()
+            sys.stdout.flush()
+            Q2_Binning       = ['Q2',        0,       12,   140]
+            y_Binning        = ['y',      0.05,     1.05,   100]
+            z_Binning        = ['z',         0,      1.0,   100]
+            pT_Binning       = ['pT',        0,     1.05,   105]
+            Q2_Y_Binning     = ['Q2_Y_Bin', -0.5,    17.5,    18]
+            phi_t_Binning    = ['phi_t',     0,     360,    24]
+            q2y_bin_range    = range(1, 18) if(not args.valerii_bins) else range(1, 17)
+            for data, df, cut in [["rdf", rdf, args.cut_name_rdf], ["mdf", mdf_clasdis, args.cut_name_mdf], ["gdf", gdf_clasdis, args.cut_name_gdf]]:
+                if(data in ["mdf"]):
+                    weight_specs_2d = weight_specs_mdf
+                elif(data in ["gdf"]):
+                    weight_specs_2d = weight_specs_gdf
+                else:
+                    weight_specs_2d = [("", None)]
+                Use_Smear = (data not in ["rdf", "gdf"]) and (not getattr(args, "unsmeared", False))
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d)
+                for q2y_bin in q2y_bin_range:
+                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
+                Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C} binning presentation)'{color.END}", verbose_override=True)
+            if(args.Use_EvGen):
+                Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf)
+                for q2y_bin in q2y_bin_range:
+                    Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}EvGen, binning presentation{color.END_C})'{color.END}", verbose_override=True)
         Update_Email(args, update_message=f"\n{color.BCYAN}Done Collecting Histograms. Ready to Save.{color.END}\n", verbose_override=True, no_time=True)
         args.timer.time_elapsed()
         sys.stdout.flush()
