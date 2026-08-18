@@ -4888,3 +4888,1652 @@ DONE [Only_3D] cut=cut_Complete_SIDIS rc=0 wall=101806.2s
 [Only_5D] 
 [Only_5D]     
 DONE [Only_5D] cut=cut_Complete_SIDIS rc=0 wall=140305.6s
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-08-17T18:53:51 name=1st_Order_V2 mode=parallel email=children =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+  name=1st_Order_V2  mode=parallel  email=children  skip_acceptance=True  run_all_cuts=False  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V2_full_pipeline.log
+  time log:   /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V2_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=0  jobs_3D=0  jobs_5D=0  jobs_Binning=57
+rho0_source for Acceptance: lundvpk
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS: pure=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp
+                 comb=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp
+
+=== Stage 2: Response-matrix products (Binning_Presentation_Only×57 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: SKIPPED (jobs_2D=0)
+  Only_3D: SKIPPED (jobs_3D=0)
+  Only_5D: SKIPPED (jobs_5D=0)
+  Binning_Presentation_Only: jobs=57 (from --jobs_Binning)
+
+Products for cut cut_Complete_SIDIS
+SKIP product 2D_Presentation for cut cut_Complete_SIDIS (jobs_2D=0)
+SKIP product Only_3D for cut cut_Complete_SIDIS (jobs_3D=0)
+SKIP product Only_5D for cut cut_Complete_SIDIS (jobs_5D=0)
+CMD [Binning_Presentation_Only]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Binning_Presentation_Only_1st_Order_V2 --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --jobs 57 --email -emj Running just the 2D (binned) histograms from the full runner script for the initial first order iteration histograms. Skipped the new HPP file generation step (just reused 'HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp'). Included the most recent versions of the rho0 subtractions in all jobs. The Number of Jobs set for the Phase-2 (Binning) 2D Histograms (for the distributions of the binned variables only) was manually set to 57. All other jobs were completely skipped due to already having been run. Ran in tmuxPython. Binning Presentation Only Histograms --extra --binning_presentation_only --run_rho_weight
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] Started running on 8-17-2026 at 06:53 p.m.
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] START: Batch   1 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   2 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   3 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   4 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   5 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   6 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   7 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   8 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   9 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  10 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  11 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  12 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  13 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  14 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  15 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  16 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  17 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  18 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  19 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  20 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  21 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  22 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  23 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  24 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  25 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  26 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  27 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  28 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  29 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  30 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  31 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  32 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  33 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  34 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  14 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 55 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] START: Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 55 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 33 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] START: Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 33 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 35 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 35 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 38 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 38 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  13 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 40 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 40 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  12 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 43 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 43 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] START: Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 52 Minute(s), and 58 Second(s). 
+[Binning_Presentation_Only] START: Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 52 Minute(s), and 58 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 55 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 55 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 9 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 9 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  21 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 10 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 10 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  11 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 19 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch  71 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 19 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   3 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 20 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  72 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 20 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  10 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch  73 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] START: Batch  74 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  23 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 23 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch  75 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 23 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch  76 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  29 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch  77 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  17 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  78 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  32 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  79 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  30 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch  80 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  26 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch  81 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  22 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] START: Batch  82 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  28 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch  83 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch  84 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  19 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch  85 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  18 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch  86 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  16 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] START: Batch  87 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  27 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] START: Batch  88 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch  89 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] START: Batch  90 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  31 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch  91 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch  92 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  20 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch  93 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  25 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 16 Second(s). 
+[Binning_Presentation_Only] START: Batch  94 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 16 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  24 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] START: Batch  95 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  15 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  96 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch  97 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  33 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 28 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch  98 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 28 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   8 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch  99 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   4 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch 100 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   1 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] START: Batch 101 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   5 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch 102 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   9 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 103 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   2 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] START: Batch 104 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   6 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 48 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 105 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 48 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   7 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] START: Batch 106 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 13 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] START: Batch 107 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 13 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 45 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch 108 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 45 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 47 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] START: Batch 109 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 47 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch 110 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 111 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 56 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] START: Batch 112 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 56 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] START: Batch 113 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 2 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 114 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 2 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] START: Batch 115 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 116 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 9 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 117 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 9 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] START: Batch 118 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 18 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch 119 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 18 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  71 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 29 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] START: Batch 120 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 29 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  74 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 121 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  72 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch 122 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  73 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 34 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 123 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 34 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  75 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 38 Minute(s), and 7 Second(s). 
+[Binning_Presentation_Only] START: Batch 124 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 38 Minute(s), and 7 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  76 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch 125 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  77 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 50 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch 126 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 50 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  86 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 16 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] START: Batch 127 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 16 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  95 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] START: Batch 128 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  91 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch 129 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  96 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] START: Batch 130 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  84 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 131 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  89 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] START: Batch 132 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  88 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 133 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  87 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] START: Batch 134 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  90 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch 135 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  80 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 136 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  81 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 137 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  94 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] START: Batch 138 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  78 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch 139 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  83 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 140 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  98 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 141 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  93 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch 142 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  85 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch 143 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  97 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch 144 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  79 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 145 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  92 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] START: Batch 146 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  82 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 147 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 100 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 148 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 101 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch 149 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 104 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch 150 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 103 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] START: Batch 151 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 105 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 14 Second(s). 
+[Binning_Presentation_Only] START: Batch 152 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 14 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  99 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch 153 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 102 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 154 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 106 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 30 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] START: Batch 155 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 30 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 107 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 53 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch 156 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 53 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 108 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 10 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 157 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 10 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 109 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 12 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] START: Batch 158 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 12 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 159 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 110 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 160 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 111 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 20 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch 161 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 20 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 112 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 21 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] START: Batch 162 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 21 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 113 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 28 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] START: Batch 163 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 28 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 114 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 29 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch 164 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 29 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 116 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 35 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch 165 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 35 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 115 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 36 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch 166 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 36 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 117 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 37 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] START: Batch 167 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 37 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  34 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 40 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] START: Batch 168 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 40 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch 169 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch 170 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 20 Second(s). 
+[Binning_Presentation_Only] START: Batch 171 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 20 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 119 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 44 Minute(s), and 52 Second(s). Info in <hadd>: target file: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_All.root
+[Binning_Presentation_Only] Info in <hadd>: compression setting for all output: 101
+[Binning_Presentation_Only] hadd Source file 1: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch014.root
+[Binning_Presentation_Only] hadd Source file 2: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch052.root
+[Binning_Presentation_Only] hadd Source file 3: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch050.root
+[Binning_Presentation_Only] hadd Source file 4: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch055.root
+[Binning_Presentation_Only] hadd Source file 5: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch013.root
+[Binning_Presentation_Only] hadd Source file 6: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch012.root
+[Binning_Presentation_Only] hadd Source file 7: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch056.root
+[Binning_Presentation_Only] hadd Source file 8: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch053.root
+[Binning_Presentation_Only] hadd Source file 9: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch054.root
+[Binning_Presentation_Only] hadd Source file 10: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch057.root
+[Binning_Presentation_Only] hadd Source file 11: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch051.root
+[Binning_Presentation_Only] hadd Source file 12: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch035.root
+[Binning_Presentation_Only] hadd Source file 13: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch021.root
+[Binning_Presentation_Only] hadd Source file 14: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch011.root
+[Binning_Presentation_Only] hadd Source file 15: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch003.root
+[Binning_Presentation_Only] hadd Source file 16: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch010.root
+[Binning_Presentation_Only] hadd Source file 17: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch040.root
+[Binning_Presentation_Only] hadd Source file 18: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch023.root
+[Binning_Presentation_Only] hadd Source file 19: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch037.root
+[Binning_Presentation_Only] hadd Source file 20: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch029.root
+[Binning_Presentation_Only] hadd Source file 21: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch032.root
+[Binning_Presentation_Only] hadd Source file 22: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch017.root
+[Binning_Presentation_Only] hadd Source file 23: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch030.root
+[Binning_Presentation_Only] hadd Source file 24: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch026.root
+[Binning_Presentation_Only] hadd Source file 25: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch022.root
+[Binning_Presentation_Only] hadd Source file 26: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch028.root
+[Binning_Presentation_Only] hadd Source file 27: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch043.root
+[Binning_Presentation_Only] hadd Source file 28: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch019.root
+[Binning_Presentation_Only] hadd Source file 29: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch018.root
+[Binning_Presentation_Only] hadd Source file 30: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch016.root
+[Binning_Presentation_Only] hadd Source file 31: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch027.root
+[Binning_Presentation_Only] hadd Source file 32: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch038.root
+[Binning_Presentation_Only] hadd Source file 33: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch042.root
+[Binning_Presentation_Only] hadd Source file 34: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch031.root
+[Binning_Presentation_Only] hadd Source file 35: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch047.root
+[Binning_Presentation_Only] hadd Source file 36: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch020.root
+[Binning_Presentation_Only] hadd Source file 37: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch025.root
+[Binning_Presentation_Only] hadd Source file 38: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch024.root
+[Binning_Presentation_Only] hadd Source file 39: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch015.root
+[Binning_Presentation_Only] hadd Source file 40: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch036.root
+[Binning_Presentation_Only] hadd Source file 41: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch033.root
+[Binning_Presentation_Only] hadd Source file 42: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch008.root
+[Binning_Presentation_Only] hadd Source file 43: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch004.root
+[Binning_Presentation_Only] hadd Source file 44: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch001.root
+[Binning_Presentation_Only] hadd Source file 45: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch005.root
+[Binning_Presentation_Only] hadd Source file 46: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch009.root
+[Binning_Presentation_Only] hadd Source file 47: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch002.root
+[Binning_Presentation_Only] hadd Source file 48: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch006.root
+[Binning_Presentation_Only] hadd Source file 49: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch007.root
+[Binning_Presentation_Only] hadd Source file 50: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch058.root
+[Binning_Presentation_Only] hadd Source file 51: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch059.root
+[Binning_Presentation_Only] hadd Source file 52: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch060.root
+[Binning_Presentation_Only] hadd Source file 53: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch061.root
+[Binning_Presentation_Only] hadd Source file 54: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch062.root
+[Binning_Presentation_Only] hadd Source file 55: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch063.root
+[Binning_Presentation_Only] hadd Source file 56: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch064.root
+[Binning_Presentation_Only] hadd Source file 57: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch065.root
+[Binning_Presentation_Only] hadd Source file 58: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch066.root
+[Binning_Presentation_Only] hadd Source file 59: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch068.root
+[Binning_Presentation_Only] hadd Source file 60: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch067.root
+[Binning_Presentation_Only] hadd Source file 61: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch070.root
+[Binning_Presentation_Only] hadd Source file 62: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch069.root
+[Binning_Presentation_Only] hadd Source file 63: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch071.root
+[Binning_Presentation_Only] hadd Source file 64: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch074.root
+[Binning_Presentation_Only] hadd Source file 65: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch072.root
+[Binning_Presentation_Only] hadd Source file 66: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch073.root
+[Binning_Presentation_Only] hadd Source file 67: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch075.root
+[Binning_Presentation_Only] hadd Source file 68: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch076.root
+[Binning_Presentation_Only] hadd Source file 69: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch077.root
+[Binning_Presentation_Only] hadd Source file 70: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch086.root
+[Binning_Presentation_Only] hadd Source file 71: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch095.root
+[Binning_Presentation_Only] hadd Source file 72: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch091.root
+[Binning_Presentation_Only] hadd Source file 73: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch096.root
+[Binning_Presentation_Only] hadd Source file 74: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch084.root
+[Binning_Presentation_Only] hadd Source file 75: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch089.root
+[Binning_Presentation_Only] hadd Source file 76: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch088.root
+[Binning_Presentation_Only] hadd Source file 77: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch087.root
+[Binning_Presentation_Only] hadd Source file 78: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch090.root
+[Binning_Presentation_Only] hadd Source file 79: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch080.root
+[Binning_Presentation_Only] hadd Source file 80: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch081.root
+[Binning_Presentation_Only] hadd Source file 81: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch094.root
+[Binning_Presentation_Only] hadd Source file 82: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch078.root
+[Binning_Presentation_Only] hadd Source file 83: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch083.root
+[Binning_Presentation_Only] hadd Source file 84: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch098.root
+[Binning_Presentation_Only] hadd Source file 85: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch093.root
+[Binning_Presentation_Only] hadd Source file 86: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch085.root
+[Binning_Presentation_Only] hadd Source file 87: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch097.root
+[Binning_Presentation_Only] hadd Source file 88: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch079.root
+[Binning_Presentation_Only] hadd Source file 89: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch092.root
+[Binning_Presentation_Only] hadd Source file 90: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch082.root
+[Binning_Presentation_Only] hadd Source file 91: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch100.root
+[Binning_Presentation_Only] hadd Source file 92: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch101.root
+[Binning_Presentation_Only] hadd Source file 93: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch104.root
+[Binning_Presentation_Only] hadd Source file 94: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch103.root
+[Binning_Presentation_Only] hadd Source file 95: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch105.root
+[Binning_Presentation_Only] hadd Source file 96: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch099.root
+[Binning_Presentation_Only] hadd Source file 97: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch102.root
+[Binning_Presentation_Only] hadd Source file 98: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch106.root
+[Binning_Presentation_Only] hadd Source file 99: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch107.root
+[Binning_Presentation_Only] hadd Source file 100: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch108.root
+[Binning_Presentation_Only] hadd Source file 101: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch109.root
+[Binning_Presentation_Only] hadd Source file 102: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch049.root
+[Binning_Presentation_Only] hadd Source file 103: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch110.root
+[Binning_Presentation_Only] hadd Source file 104: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch111.root
+[Binning_Presentation_Only] hadd Source file 105: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch112.root
+[Binning_Presentation_Only] hadd Source file 106: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch113.root
+[Binning_Presentation_Only] hadd Source file 107: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch114.root
+[Binning_Presentation_Only] hadd Source file 108: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch116.root
+[Binning_Presentation_Only] hadd Source file 109: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch115.root
+[Binning_Presentation_Only] hadd Source file 110: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch117.root
+[Binning_Presentation_Only] hadd Source file 111: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch034.root
+[Binning_Presentation_Only] hadd Source file 112: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch039.root
+[Binning_Presentation_Only] hadd Source file 113: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch041.root
+[Binning_Presentation_Only] hadd Source file 114: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch046.root
+[Binning_Presentation_Only] hadd Source file 115: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch119.root
+[Binning_Presentation_Only] hadd Source file 116: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch118.root
+[Binning_Presentation_Only] hadd Source file 117: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch044.root
+[Binning_Presentation_Only] hadd Source file 118: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch045.root
+[Binning_Presentation_Only] hadd Source file 119: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch120.root
+[Binning_Presentation_Only] hadd Source file 120: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch122.root
+[Binning_Presentation_Only] hadd Source file 121: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch123.root
+[Binning_Presentation_Only] hadd Source file 122: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch170.root
+[Binning_Presentation_Only] hadd Source file 123: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch171.root
+[Binning_Presentation_Only] hadd Source file 124: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch121.root
+[Binning_Presentation_Only] hadd Source file 125: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch124.root
+[Binning_Presentation_Only] hadd Source file 126: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch125.root
+[Binning_Presentation_Only] hadd Source file 127: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch126.root
+[Binning_Presentation_Only] hadd Source file 128: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch159.root
+[Binning_Presentation_Only] hadd Source file 129: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch127.root
+[Binning_Presentation_Only] hadd Source file 130: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch136.root
+[Binning_Presentation_Only] hadd Source file 131: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch135.root
+[Binning_Presentation_Only] hadd Source file 132: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch139.root
+[Binning_Presentation_Only] hadd Source file 133: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch130.root
+[Binning_Presentation_Only] hadd Source file 134: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch128.root
+[Binning_Presentation_Only] hadd Source file 135: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch132.root
+[Binning_Presentation_Only] hadd Source file 136: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch129.root
+[Binning_Presentation_Only] hadd Source file 137: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch152.root
+[Binning_Presentation_Only] hadd Source file 138: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch137.root
+[Binning_Presentation_Only] hadd Source file 139: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch153.root
+[Binning_Presentation_Only] hadd Source file 140: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch141.root
+[Binning_Presentation_Only] hadd Source file 141: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch140.root
+[Binning_Presentation_Only] hadd Source file 142: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch133.root
+[Binning_Presentation_Only] hadd Source file 143: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch142.root
+[Binning_Presentation_Only] hadd Source file 144: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch131.root
+[Binning_Presentation_Only] hadd Source file 145: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch143.root
+[Binning_Presentation_Only] hadd Source file 146: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch138.root
+[Binning_Presentation_Only] hadd Source file 147: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch146.root
+[Binning_Presentation_Only] hadd Source file 148: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch145.root
+[Binning_Presentation_Only] hadd Source file 149: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch134.root
+[Binning_Presentation_Only] hadd Source file 150: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch147.root
+[Binning_Presentation_Only] hadd Source file 151: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch144.root
+[Binning_Presentation_Only] hadd Source file 152: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch148.root
+[Binning_Presentation_Only] hadd Source file 153: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch150.root
+[Binning_Presentation_Only] hadd Source file 154: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch149.root
+[Binning_Presentation_Only] hadd Source file 155: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch151.root
+[Binning_Presentation_Only] hadd Source file 156: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch155.root
+[Binning_Presentation_Only] hadd Source file 157: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch154.root
+[Binning_Presentation_Only] hadd Source file 158: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch156.root
+[Binning_Presentation_Only] hadd Source file 159: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch164.root
+[Binning_Presentation_Only] hadd Source file 160: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch157.root
+[Binning_Presentation_Only] hadd Source file 161: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch161.root
+[Binning_Presentation_Only] hadd Source file 162: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch158.root
+[Binning_Presentation_Only] hadd Source file 163: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch160.root
+[Binning_Presentation_Only] hadd Source file 164: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch162.root
+[Binning_Presentation_Only] hadd Source file 165: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch163.root
+[Binning_Presentation_Only] hadd Source file 166: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch165.root
+[Binning_Presentation_Only] hadd Source file 167: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch167.root
+[Binning_Presentation_Only] hadd Source file 168: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch166.root
+[Binning_Presentation_Only] hadd Source file 169: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch168.root
+[Binning_Presentation_Only] hadd Source file 170: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch169.root
+[Binning_Presentation_Only] hadd Source file 171: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_Batch048.root
+[Binning_Presentation_Only] hadd Target path: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_All.root:/
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] DONE : Batch 118 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 46 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 46 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 51 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 120 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 57 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 122 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 1 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 123 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 170 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 171 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 121 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 4 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 124 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 4 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 125 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 10 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 126 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 13 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 159 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 39 Minute(s), and 2 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 127 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 54 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 136 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 0 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 135 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 139 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 130 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 128 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 132 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 129 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 152 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 137 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 153 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 140 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 141 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 133 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 8 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 142 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 131 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 143 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 138 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 146 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 145 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 134 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 147 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 144 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 148 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 150 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 149 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 35 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 151 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 35 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 155 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 154 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 8 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 156 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 9 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 164 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 11 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 157 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 14 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 161 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 17 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 158 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 17 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 160 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 18 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 162 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 20 Minute(s), and 8 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 163 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 165 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 26 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 167 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 166 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 28 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 168 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 29 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 169 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 30 Minute(s), and 21 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 25 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] Running hadd on 171 batch files...
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 25 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] Merged file created: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_All.root
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 31 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] Peak memory used by child jobs: 2.62 GB
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] EMAIL MESSAGE TO SEND:
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+[Binning_Presentation_Only] Started running on 8-17-2026 at 06:53 p.m.
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] Running just the 2D (binned) histograms from the full runner script for the initial first order iteration histograms. Skipped the new HPP file generation step (just reused 'HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp'). Included the most recent versions of the rho0 subtractions in all jobs. The Number of Jobs set for the Phase-2 (Binning) 2D Histograms (for the distributions of the binned variables only) was manually set to 57. All other jobs were completely skipped due to already having been run. Ran in tmuxPython. Binning Presentation Only Histograms
+[Binning_Presentation_Only] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] START: Batch   1 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   2 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   3 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   4 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   5 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   6 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   7 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   8 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch   9 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  10 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  11 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  12 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  13 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  14 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  15 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  16 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  17 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  18 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  19 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  20 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  21 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  22 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  23 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  24 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  25 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  26 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  27 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  28 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  29 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  30 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  31 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  32 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  33 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  34 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] START: Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  14 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 55 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] START: Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 55 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 33 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] START: Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 33 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 35 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 35 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 38 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 38 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  13 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 40 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 40 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  12 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 43 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 43 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] START: Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 50 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 52 Minute(s), and 58 Second(s). 
+[Binning_Presentation_Only] START: Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 52 Minute(s), and 58 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 55 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 55 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 9 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 9 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  21 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 10 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 10 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  11 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 19 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch  71 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 19 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   3 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 20 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  72 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 20 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  10 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch  73 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] START: Batch  74 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 21 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  23 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 23 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch  75 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 23 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch  76 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  29 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch  77 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  17 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  78 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  32 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] START: Batch  79 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 49 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  30 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch  80 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 24 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  26 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch  81 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  22 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] START: Batch  82 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  28 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch  83 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch  84 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  19 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch  85 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  18 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch  86 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  16 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] START: Batch  87 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  27 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] START: Batch  88 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 25 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch  89 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] START: Batch  90 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  31 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch  91 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch  92 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  20 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch  93 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 26 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  25 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 16 Second(s). 
+[Binning_Presentation_Only] START: Batch  94 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 16 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  24 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] START: Batch  95 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  15 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  96 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch  97 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 27 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  33 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 28 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch  98 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 28 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   8 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch  99 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   4 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch 100 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   1 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] START: Batch 101 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 46 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   5 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch 102 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   9 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 103 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   2 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] START: Batch 104 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 47 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   6 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 48 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 105 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 48 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch   7 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] START: Batch 106 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 13 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] START: Batch 107 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 13 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 45 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch 108 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 45 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 47 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] START: Batch 109 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 47 Minute(s), and 59 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch 110 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 111 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 53 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 56 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] START: Batch 112 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 56 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] START: Batch 113 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 2 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 114 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 2 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] START: Batch 115 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 116 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 7 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 9 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 117 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 9 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] START: Batch 118 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 18 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch 119 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 18 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  71 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 29 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] START: Batch 120 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 29 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  74 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 121 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  72 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch 122 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 33 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  73 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 34 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 123 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 34 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  75 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 38 Minute(s), and 7 Second(s). 
+[Binning_Presentation_Only] START: Batch 124 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 38 Minute(s), and 7 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  76 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] START: Batch 125 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 46 Minute(s), and 9 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  77 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 50 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch 126 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 50 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  86 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 16 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] START: Batch 127 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 16 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  95 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] START: Batch 128 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  91 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] START: Batch 129 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 46 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  96 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] START: Batch 130 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 17 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  84 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 131 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  89 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] START: Batch 132 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  88 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch 133 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  87 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] START: Batch 134 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  90 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch 135 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  80 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 136 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  81 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 137 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  94 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] START: Batch 138 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 18 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  78 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch 139 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  83 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 140 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  98 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 141 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  93 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch 142 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  85 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch 143 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 19 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  97 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch 144 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  79 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] START: Batch 145 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 20 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  92 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] START: Batch 146 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  82 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] START: Batch 147 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 21 Minute(s), and 25 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 100 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 148 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 101 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch 149 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 104 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] START: Batch 150 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 103 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] START: Batch 151 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 105 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 14 Second(s). 
+[Binning_Presentation_Only] START: Batch 152 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 14 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  99 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] START: Batch 153 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 102 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] START: Batch 154 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 28 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 106 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 30 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] START: Batch 155 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 30 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 107 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 53 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch 156 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 53 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 108 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 10 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] START: Batch 157 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 10 Minute(s), and 32 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 109 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 12 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] START: Batch 158 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 12 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] START: Batch 159 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 110 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] START: Batch 160 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 18 Minute(s), and 47 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 111 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 20 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch 161 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 20 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 112 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 21 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] START: Batch 162 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 21 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 113 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 28 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] START: Batch 163 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 28 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 114 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 29 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] START: Batch 164 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 29 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 116 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 35 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch 165 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 35 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 115 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 36 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch 166 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 36 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 117 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 37 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] START: Batch 167 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 37 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  34 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 40 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] START: Batch 168 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 40 Minute(s), and 42 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] START: Batch 169 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] START: Batch 170 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 20 Second(s). 
+[Binning_Presentation_Only] START: Batch 171 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 42 Minute(s), and 20 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 119 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 44 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 118 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 46 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 46 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 51 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 120 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 57 Minute(s), and 18 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 122 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 1 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 123 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 39 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 170 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 171 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 3 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 121 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 4 Minute(s), and 37 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 124 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 4 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 125 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 10 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 126 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 13 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 159 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 39 Minute(s), and 2 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 127 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 54 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 136 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 0 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 135 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 13 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 139 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 24 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 130 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 128 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 1 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 132 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 129 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 152 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 34 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 137 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 153 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 2 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 140 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 141 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 133 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 8 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 142 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 12 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 131 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 143 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 3 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 138 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 0 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 146 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 145 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 134 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 4 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 147 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 3 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 144 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 148 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 6 Minute(s), and 23 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 150 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 149 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 35 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 151 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 35 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 155 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 7 Minute(s), and 56 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 154 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 8 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 156 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 9 Minute(s), and 15 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 164 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 11 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 157 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 14 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 161 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 17 Minute(s), and 29 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 158 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 17 Minute(s), and 43 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 160 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 18 Minute(s), and 4 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 162 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 20 Minute(s), and 8 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 163 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 24 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 165 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 26 Minute(s), and 55 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 167 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 166 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 28 Minute(s), and 19 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 168 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 29 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch 169 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 30 Minute(s), and 21 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 25 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] Running hadd on 171 batch files...
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 25 Minute(s), and 52 Second(s). 
+[Binning_Presentation_Only] Merged file created: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_All.root
+[Binning_Presentation_Only] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 31 Minute(s), and 48 Second(s). 
+[Binning_Presentation_Only] Peak memory used by child jobs: 2.62 GB
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] Arguments:
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] --mode                                              --> 'parallel'
+[Binning_Presentation_Only] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Binning_Presentation_Only] --no_make_2D                                        --> True
+[Binning_Presentation_Only] --no_make_2D_rho                                    --> True
+[Binning_Presentation_Only] --no_unfold_5D                                      --> True
+[Binning_Presentation_Only] --z_axis_2D                                         --> '4D_Bin'
+[Binning_Presentation_Only] --valerii_bins                                      --> False
+[Binning_Presentation_Only] --use_hpp                                           --> True
+[Binning_Presentation_Only] --spline_weights                                    --> True
+[Binning_Presentation_Only] --spline_weight_file                                --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Binning_Presentation_Only] --json_weights                                      --> False
+[Binning_Presentation_Only] --json_file                                         --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Binning_Presentation_Only] --hpp_weight_file                                   --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp'
+[Binning_Presentation_Only] --hpp_weight_file_spline                            --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp'
+[Binning_Presentation_Only] --run_rho_weight                                    --> True
+[Binning_Presentation_Only] --unsmeared                                         --> False
+[Binning_Presentation_Only] --make_2D_only                                      --> False
+[Binning_Presentation_Only] --unfold_5D_only                                    --> False
+[Binning_Presentation_Only] --old_3D_unfold                                     --> False
+[Binning_Presentation_Only] --name_in                                           --> '*Final_Analysis_Iterations_I0*.root'
+[Binning_Presentation_Only] --name                                              --> 'Binning_Presentation_Only_1st_Order_V2'
+[Binning_Presentation_Only] --num_batches                                       --> 171
+[Binning_Presentation_Only] --work_dir                                          --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Binning_Presentation_Only] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Binning_Presentation_Only] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Binning_Presentation_Only] --jobs                                              --> 57
+[Binning_Presentation_Only] --continue_on_failure                               --> False
+[Binning_Presentation_Only] --rdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Binning_Presentation_Only] --mdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Binning_Presentation_Only] --gdf_dir                                           --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Binning_Presentation_Only] --batch_file                                        --> '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Binning_Presentation_Only] --verbose                                           --> False
+[Binning_Presentation_Only] --yes                                               --> False
+[Binning_Presentation_Only] --extra                                             --> ['--binning_presentation_only', '--run_rho_weight']
+[Binning_Presentation_Only] --run_subdir_name                                   --> 'Binning_Presentation_Only_1st_Order_V2_Final_Analysis_Iterations_I0_08_17_2026'
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] The time that this code finished is 05:25 a.m.
+[Binning_Presentation_Only] The total time the code took to run is:
+[Binning_Presentation_Only] 0 Day(s), 10 Hour(s), 31 Minute(s), and 48 Second(s).
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only]     
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only]     	                                   	
+[Binning_Presentation_Only]     	This code has now finished running.	
+[Binning_Presentation_Only]     	                                   	   
+[Binning_Presentation_Only] 
+[Binning_Presentation_Only]     
+DONE [Binning_Presentation_Only] cut=cut_Complete_SIDIS rc=0 wall=37910.3s
