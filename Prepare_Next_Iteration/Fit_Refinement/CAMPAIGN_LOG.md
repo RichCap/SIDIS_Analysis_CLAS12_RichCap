@@ -38,3 +38,54 @@ Remake 3D and 5D with the corrected lookup.
 ## Iteration 4
 
 Rebuilt `Phi_h_Fit_Parameters_from_Spline.py` as the manual baseline plus tagged 3D/5D keys only. Final 3D and 5D remakes. See `report.md`.
+
+---
+
+# 5D follow-up campaign
+
+3D results frozen. 5D spline windows (median B width 0.021 vs baseline 0.17) put ~80% of 5D Bayesian/RC B and C on the limit. Restart 5D from `Phi_h_Fit_Parameters_Initialize.py` (no `--use_spline_init`).
+
+## 5D-A — restart remake from manual baseline
+
+No `--use_spline_init`. 3D JSON families unchanged vs pre-campaign snapshot.
+
+| Family | n | nan A | empty | redχ² med | p95 | n>3 | n>5 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 5D Bayesian | 469 | 0 | 4 | 1.66 | 7.00 | 80 | 39 |
+| 5D RC | 465 | 0 | 4 | 1.65 | 11.01 | 84 | 48 |
+| 5D BC+RC | 465 | 11 | 4 | 1.21 | 6.11 | 41 | 28 |
+
+Restart alone is not enough. Worst bins still have much smaller |B| than the successful 3D counterparts, e.g. (9,19) 5D B=-0.044 vs 3D B=-0.208 (red 98.8 vs 0.89). (12,13) 5D B/C ~ -0.51 runaway vs 3D ~ -0.08. Tight 5D spline keys were trapping fits; they were removed.
+
+## 5D-B — wide 3D-initialized 5D keys (no spline range)
+
+Removed remaining tight 5D / 5D-RC spline keys. Added 80 `("q","z","5D")`, 84 `("q","z","5D","RC")`, 41 `("q","z","5D","BC")` keys: B/C initialized from the current 3D result for the same (Q²-y, z-pT) bin, with wide windows B ±0.35 and C ±0.22. 3D keys untouched. Hand BC C-guards kept. Total keys 1739.
+
+Remake 5D only with `--use_spline_init` so the new 5D-tagged keys apply.
+
+| Family | n | nan A | empty | redχ² med | p95 | n>3 | n>5 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 5D Bayesian | 469 | 0 | 4 | 1.54 | 3.11 | 29 | 5 |
+| 5D RC | 465 | 0 | 4 | 1.55 | 3.22 | 29 | 6 |
+| 5D BC+RC | 465 | 11 | 4 | 1.15 | 2.46 | 3 | 1 |
+| 3D Bayesian (unchanged) | 465 | 0 | 0 | 1.55 | 3.28 | 29 | 6 |
+
+3D JSON families are bitwise unchanged vs 5D-A. 5D p95 now matches the 3D benchmark except one regression: (12,13) A collapsed (~4100→620) because the first φ bin is a near-empty acceptance hole (y=28 vs plateau ~5200) that is not auto-excluded. Wide 3D-like B/C then let the second `Allow_Multiple_Fits` pass lock the collapsed A. In-memory probe: `fit_range` 15–345 restores redχ² 251→1.62 with B≈-0.19. (9,19) and (14,15) are already at the 3-parameter minimum (stronger 5D modulation / one pathological error bar); range changes do not help.
+
+## 5D-C — (12,13) φ-range only
+
+Optional per-bin `fit_range_lower/upper` in `Fitting_Phi_Function` (applied only when those fields exist; 3D keys do not have them). (12,13) 5D/RC/BC keys: range 15–345, 3D-based B/C with moderate windows.
+
+| Family | n | nan A | empty | redχ² med | p95 | n>3 | n>5 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 5D Bayesian | 469 | 0 | 4 | 1.54 | 3.08 | 28 | 4 |
+| 5D RC | 465 | 0 | 4 | 1.55 | 3.19 | 28 | 5 |
+| 5D BC+RC | 465 | 11 | 4 | 1.15 | 2.46 | 2 | 0 |
+| 3D Bayesian (unchanged) | 465 | 0 | 0 | 1.55 | 3.28 | 29 | 6 |
+
+(12,13) 5D Bayesian A=4973, B=-0.189, C=-0.094, red=1.62 (ROOT range 15–345). No other bin got worse vs 5D-B. 3D JSON still bitwise identical.
+
+Stopped here: remaining red>5 bins are either already better than their 3D counterparts or the 3-parameter form is at its visual minimum. Did not rebuild a 5D spline into the universal file (tight `std_multiple=0.3` ranges were the original trap; a rebuild would also drop the (12,13) `fit_range` fields).
+
+See `report_5D.md`.
+

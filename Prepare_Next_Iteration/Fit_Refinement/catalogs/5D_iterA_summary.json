@@ -1,0 +1,56 @@
+{
+  "Fit_Pars_from_5D_Bayesian": {
+    "n": 469,
+    "nanA": 0,
+    "empty": 4,
+    "red_med": 1.6558884843627883,
+    "red_p95": 6.9991615535404526,
+    "n_gt3": 80,
+    "n_gt5": 39
+  },
+  "Fit_Pars_from_5D_RC_Bayesian": {
+    "n": 465,
+    "nanA": 0,
+    "empty": 4,
+    "red_med": 1.6546276943122256,
+    "red_p95": 11.0115302897793,
+    "n_gt3": 84,
+    "n_gt5": 48
+  },
+  "Fit_Pars_from_5D_BC_RC_Bayesian": {
+    "n": 465,
+    "nanA": 11,
+    "empty": 4,
+    "red_med": 1.21147943260878,
+    "red_p95": 6.112348961150226,
+    "n_gt3": 41,
+    "n_gt5": 28
+  },
+  "Fit_Pars_from_3D_Bayesian": {
+    "n": 465,
+    "nanA": 0,
+    "empty": 0,
+    "red_med": 1.5480227294543492,
+    "red_p95": 3.2751946232030997,
+    "n_gt3": 29,
+    "n_gt5": 6
+  },
+  "Fit_Pars_from_3D_RC_Bayesian": {
+    "n": 465,
+    "nanA": 0,
+    "empty": 0,
+    "red_med": 1.5535582356162163,
+    "red_p95": 3.077959169038125,
+    "n_gt3": 26,
+    "n_gt5": 4
+  },
+  "Fit_Pars_from_3D_BC_RC_Bayesian": {
+    "n": 465,
+    "nanA": 11,
+    "empty": 0,
+    "red_med": 1.114184698711026,
+    "red_p95": 2.0454470329474175,
+    "n_gt3": 3,
+    "n_gt5": 1
+  }
+}

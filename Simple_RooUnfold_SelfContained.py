@@ -1112,7 +1112,14 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                                 if(bin_settings.get("C_limits")):
                                     Fitting_Function.SetParLimits(2, *sorted(bin_settings["C_limits"]))
                             Allow_Multiple_Fits   = bin_settings.get("Allow_Multiple_Fits",   True)
-                            Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)                        
+                            Allow_Multiple_Fits_C = bin_settings.get("Allow_Multiple_Fits_C", True)
+                            # Optional per-bin φ window from the special key only; auto first/last-nonzero range is kept when these fields are absent, so existing 3D keys are unchanged.
+                            if((bin_settings.get("fit_range_lower") is not None) or (bin_settings.get("fit_range_upper") is not None)):
+                                if(bin_settings.get("fit_range_lower") is not None):
+                                    fit_range_lower = bin_settings["fit_range_lower"]
+                                if(bin_settings.get("fit_range_upper") is not None):
+                                    fit_range_upper = bin_settings["fit_range_upper"]
+                                Fitting_Function.SetRange(fit_range_lower, fit_range_upper)
                     except:
                         print(f"\n{color.Error}ERROR in Fitting_Phi_Function() for 'Special' arguement...\n{color.END_B}Traceback:\n{str(traceback.format_exc())}{color.END}\n")
                 else:
