@@ -28,8 +28,11 @@ DEFAULT_GROUPS = {"rdf":
                   "mdf":
                         {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/",
                          "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"},
-                  "mdf_1.5":
-                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/",
+                  "mdf_1.5_45nA":
+                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/45nA/",
+                         "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"},
+                  "mdf_1.5_50nA":
+                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/50nA/",
                          "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"},
                   "mdf_EvGen":
                         {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/",
@@ -40,8 +43,11 @@ DEFAULT_GROUPS = {"rdf":
                   "gdf":
                         {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/",
                          "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/"},
-                  "gdf_1.5":
-                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/",
+                  "gdf_1.5_45nA":
+                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/45nA/",
+                         "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/"},
+                  "gdf_1.5_50nA":
+                        {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/50nA/",
                          "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/"},
                   "gdf_EvGen":
                         {"cache_dir": "/cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/",
@@ -50,6 +56,20 @@ DEFAULT_GROUPS = {"rdf":
                         {"cache_dir": "/lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/rho0_rga_fall2018/",
                          "new_dir":   "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/"},
                 }
+
+# Old unsplit Q2>1.5 groups now point at the 45nA leaf directory.
+LEGACY_GROUP_ALIASES = {
+    "mdf_1.5": "mdf_1.5_45nA",
+    "gdf_1.5": "gdf_1.5_45nA",
+}
+
+SKIP_LISTING_NAMES = {
+    "Q2_1.5GeV",
+    "GEMC_5.12_Q2_1.5GeV_potential_bad_neutral_pid",
+    "GEMC_5.12_potential_bad_neutral_pid",
+    "45nA",
+    "50nA",
+}
 
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
@@ -63,7 +83,7 @@ def parse_args():
     parser.add_argument('-g', '--group',
                         nargs='+',
                         default=['rdf'],
-                        choices=["rdf", "mdf", "gdf", "mdf_1.5", "gdf_1.5", "mdf_EvGen", "gdf_EvGen", "mdf_rho0", "gdf_rho0"],
+                        choices=list(DEFAULT_GROUPS.keys()) + list(LEGACY_GROUP_ALIASES.keys()),
                         help=f"Choice of directories for checking files.\n{color.BOLD}See '--group_lists' for list of directories.{color.END}\n")
     parser.add_argument('-gl', '--group_lists',
                         action='store_true',
@@ -377,6 +397,65 @@ def command_to_use_run_groovy_scripts_with_emails(file_paths, args, src_type="cl
 
     return f"{color.BGREEN}{commands}lt; Done_at{color.END}"
 
+def resolve_group_aliases(groups):
+    resolved = []
+    alias_notes = []
+    seen = set()
+    for group_name in groups:
+        mapped = LEGACY_GROUP_ALIASES.get(group_name, group_name)
+        if(mapped != group_name):
+            alias_notes.append(f"'{group_name}' -> '{mapped}'")
+        if(mapped in seen):
+            continue
+        seen.add(mapped)
+        resolved.append(mapped)
+    return resolved, alias_notes
+
+def q2_current_tag(cache_dir):
+    parts = [part for part in str(cache_dir).split("/") if(part)]
+    if("45nA" in parts):
+        return "45nA"
+    if("50nA" in parts):
+        return "50nA"
+    return None
+
+def list_hipo_basenames(directory):
+    names = set()
+    for name in os.listdir(directory):
+        if(name in SKIP_LISTING_NAMES):
+            continue
+        if(not str(name).endswith(".hipo")):
+            continue
+        names.add(name)
+    return names
+
+def build_path_file_name(cache_dir, new_dir, check_version):
+    Path_file = "Paths_to_REAL_Data_files_all.txt" if("nSidis" in cache_dir) else "Paths_to_MC_EvGen_files_all.txt" if("EvGen" in cache_dir) else "Paths_to_MC_rho0_files_all.txt" if("rho0" in cache_dir) else "Paths_to_MC_clasdis_files_all.txt"
+    if(check_version != "*"):
+        if("GEN_MC" in new_dir):
+            Path_file = f"GEN_{Path_file}"
+        if("Q2_1.5GeV" in cache_dir):
+            current_tag = q2_current_tag(cache_dir)
+            if(current_tag):
+                Path_file = f"Q2_Cut_{current_tag}_{Path_file}"
+            else:
+                Path_file = f"Q2_Cut_{Path_file}"
+        if(check_version not in ["*", "*qa"]):
+            Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
+        else:
+            Path_file = str(f"TEMP_{Path_file}".replace("all.txt",  "SIDIS.txt"))
+    return Path_file
+
+def clasdis_path_file_header(cache_dir):
+    current_tag = q2_current_tag(cache_dir)
+    if(current_tag):
+        return f"""# Full (Normal) Path:
+# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_*
+# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/{current_tag}/nb-clasdis-Q2_1.5-9*"""
+    return """# Full (Normal) Path:
+# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_*
+# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/nb-clasdis-Q2_1.5-9*"""
+
 def Check_Files_To_Run_Missing_Only(args):
     args.new_dir   = {} if(not hasattr(args, "new_dir"))   else args.new_dir
     args.cache_dir = {} if(not hasattr(args, "cache_dir")) else args.cache_dir
@@ -386,34 +465,41 @@ def Check_Files_To_Run_Missing_Only(args):
         args.new_dir[single_group]     = DEFAULT_GROUPS[single_group]["new_dir"]
         args.cache_dir[single_group]   = DEFAULT_GROUPS[single_group]["cache_dir"]
         args.mss_dir[single_group]     = str(args.cache_dir[single_group]).replace("cache", "mss/")
-        mss_files[single_group]        = set(os.listdir(args.mss_dir[single_group]))
-        cache_files[single_group]      = set(os.listdir(args.cache_dir[single_group]))
+        mss_files[single_group]        = list_hipo_basenames(args.mss_dir[single_group])
+        cache_files[single_group]      = list_hipo_basenames(args.cache_dir[single_group])
         missing_in_cache[single_group] = mss_files[single_group] - cache_files[single_group]
-        if(args.check_cache or getattr(args, "check_cache_only", False)):
-            missing_message = f"\n{color.BOLD}No files are missing in the cache directory for group '{single_group}'.{color.END}\n"
-            if(missing_in_cache[single_group]):
-                missing_message = f"Missing {len(missing_in_cache[single_group])} Files in the cache directory for group '{single_group}'.\nThe Missing Files are:\n"
+        missing_message = f"\n{color.BOLD}No files are missing in the cache directory for group '{single_group}'.{color.END}\n"
+        if(missing_in_cache[single_group]):
+            missing_message = f"Missing {len(missing_in_cache[single_group])} Files in the cache directory for group '{single_group}'.\n"
+            if(args.check_cache or getattr(args, "check_cache_only", False)):
+                missing_message = f"{missing_message}The Missing Files are:\n"
                 if(args.verbose):
                     for num, file in enumerate(sorted(missing_in_cache[single_group])):
                         missing_message = f"{missing_message}\t{num+1:>4.0f}) {file}\n"
                     missing_message = f"{missing_message}\nGroups Checked:\n"
                 for num, file in enumerate(sorted(missing_in_cache)):
                     missing_message = f"{missing_message}\t{num+1:>4.0f}) {file}\n"
-            Update_Email(args, update_message=missing_message, verbose_override=True)
+            else:
+                missing_message = f"{missing_message}Use --check_cache to list the missing HIPO names. These files are not added to conversion lists until they are staged on cache.\n"
+        Update_Email(args, update_message=missing_message, verbose_override=True)
     return args, mss_files, cache_files, missing_in_cache
 
-def Check_For_Proccessed_Files(args, cache_files):
+def Check_For_Proccessed_Files(args, cache_files, missing_in_cache=None):
     full_list_to_rerun, full_need_rerun_count = [], 0
+    if(missing_in_cache is None):
+        missing_in_cache = {}
     group_map = {
-        "rdf":       ("data",    "rec"),
-        "mdf":       ("clasdis", "rec"),
-        "mdf_1.5":   ("clasdis", "rec"),
-        "mdf_EvGen": ("evgen",   "rec"),
-        "mdf_rho0":  ("rho0",    "rec"),
-        "gdf":       ("clasdis", "gen"),
-        "gdf_1.5":   ("clasdis", "gen"),
-        "gdf_EvGen": ("evgen",   "gen"),
-        "gdf_rho0":  ("rho0",    "gen")
+        "rdf":           ("data",    "rec"),
+        "mdf":           ("clasdis", "rec"),
+        "mdf_1.5_45nA":  ("clasdis", "rec"),
+        "mdf_1.5_50nA":  ("clasdis", "rec"),
+        "mdf_EvGen":     ("evgen",   "rec"),
+        "mdf_rho0":      ("rho0",    "rec"),
+        "gdf":           ("clasdis", "gen"),
+        "gdf_1.5_45nA":  ("clasdis", "gen"),
+        "gdf_1.5_50nA":  ("clasdis", "gen"),
+        "gdf_EvGen":     ("evgen",   "gen"),
+        "gdf_rho0":      ("rho0",    "gen")
     }
 
     per_group_results = {}   # will hold data per group
@@ -430,25 +516,22 @@ Source\t     = {source}{color.END}""")
         if(args.file_version_main in ["", None]):
             args.file_version_main = ".new7." if("GEN_MC" not in args.new_dir[single_group]) else ".new6." 
 
+        cache_dir = args.cache_dir[single_group]
+        new_dir   = args.new_dir[single_group]
         text_of_path_file = """# Full (Normal) Path:
 # /lustre24/expphy/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis/nSidis_*""" if(source == "data") else """# Full (Normal) Path:
-# /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-*""" if(source == "evgen") else """# Full (Normal) Path:
-# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_*
-# /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/Q2_1.5GeV/nb-clasdis-Q2_1.5-9*""" if(source != "rho0") else """# Full (Normal) Path:
+# /cache/clas12/rg-a/production/montecarlo/EvGen_DIS/pass2/fa18_inb/inb-EvGen-LUND_EvGen_richcap_GEMC-*""" if(source == "evgen") else clasdis_path_file_header(cache_dir) if(source != "rho0") else """# Full (Normal) Path:
 # /lustre24/expphy/volatile/clas12/richcap/New_MC_SIDIS_Files_Volatile/rho0_rga_fall2018/lundrho*"""
 
         for version_num, check_version in enumerate(args.check_versions):
             print(f"\n\t\t{color.BYELLOW}Running with check_version = {check_version}{color.END}\n")
-
-            cache_dir = args.cache_dir[single_group]
-            new_dir   = args.new_dir[single_group]
 
             Update_Email(args, update_message=f"\t\t\t{color.PINK}For cache_dir = {color.BLUE}{cache_dir}{color.END}", verbose_override=True, no_time=True)
 
             list_to_rerun, may_need_to_rerun, may_need_rerun_count, need_rerun_count = [], [], 0, 0
 
             for num, file in enumerate(sorted(cache_files[single_group])):
-                if(file in ["Q2_1.5GeV", "GEMC_5.12_Q2_1.5GeV_potential_bad_neutral_pid", "GEMC_5.12_potential_bad_neutral_pid"]):
+                if((file in SKIP_LISTING_NAMES) or (not str(file).endswith(".hipo"))):
                     continue
                 # Derive file_num from the cache file name
                 if("nSidis_00" not in file):
@@ -507,10 +590,17 @@ Source\t     = {source}{color.END}""")
                     need_rerun_count += 1
                     full_need_rerun_count += 1
 
+            missing_comment = ""
+            missing_names = sorted(missing_in_cache.get(single_group, set()))
+            if(missing_names):
+                missing_comment = "\n# Files on MSS but not on cache (retrieve before processing):\n"
+                for missing_name in missing_names:
+                    missing_comment = f"{missing_comment}# {cache_dir}{missing_name}\n"
+
             # Store per-group results
             per_group_results[f"{single_group}_{check_version}"] = {
                 "list_to_rerun": list_to_rerun,
-                "text_of_path_file": f'{text_of_path_file}\n{"\n".join(list_to_rerun)}\n\n',
+                "text_of_path_file": f'{text_of_path_file}\n{"\n".join(list_to_rerun)}\n{missing_comment}\n',
                 "check_version": check_version,
                 "source": source,
                 "Type": Type,
@@ -539,17 +629,18 @@ def Save_Path_Files(args, per_group_results):
     for key, data in per_group_results.items():
         text_of_path_file = data["text_of_path_file"]
         check_version     = data["check_version"]
-        Path_file = "Paths_to_REAL_Data_files_all.txt" if("nSidis" in data["cache_dir"]) else "Paths_to_MC_EvGen_files_all.txt" if("EvGen" in data["cache_dir"]) else "Paths_to_MC_rho0_files_all.txt" if("rho0" in data["cache_dir"]) else "Paths_to_MC_clasdis_files_all.txt"
-        if(check_version != "*"):
-            if("GEN_MC" in data["new_dir"]):
-                Path_file = f"GEN_{Path_file}"
-            if("Q2_1.5GeV" in data["cache_dir"]):
-                Path_file = f"Q2_Cut_{Path_file}"
-            if(check_version not in ["*", "*qa"]):
-                Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
-            else:
-                Path_file = str(f"TEMP_{Path_file}".replace("all.txt",  "SIDIS.txt"))
-                # Path_file = str(Path_file.replace("all.txt",  "SIDIS.txt"))
+        # Path_file = "Paths_to_REAL_Data_files_all.txt" if("nSidis" in data["cache_dir"]) else "Paths_to_MC_EvGen_files_all.txt" if("EvGen" in data["cache_dir"]) else "Paths_to_MC_rho0_files_all.txt" if("rho0" in data["cache_dir"]) else "Paths_to_MC_clasdis_files_all.txt"
+        # if(check_version != "*"):
+        #     if("GEN_MC" in data["new_dir"]):
+        #         Path_file = f"GEN_{Path_file}"
+        #     if("Q2_1.5GeV" in data["cache_dir"]):
+        #         Path_file = f"Q2_Cut_{Path_file}"
+        #     if(check_version not in ["*", "*qa"]):
+        #         Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
+        #     else:
+        #         Path_file = str(f"TEMP_{Path_file}".replace("all.txt",  "SIDIS.txt"))
+        #         # Path_file = str(Path_file.replace("all.txt",  "SIDIS.txt"))
+        Path_file = build_path_file_name(data["cache_dir"], data["new_dir"], check_version)
 
         ptxt_file = f'{Path_to_where_files_will_be_saved}{Path_file}'
         path_list = text_of_path_file
@@ -601,17 +692,18 @@ def Create_Run_Commands(args, per_group_results, full_command_str, tmux_running)
             continue
 
         # === Path file name logic (unchanged) ===
-        Path_file = "Paths_to_REAL_Data_files_all.txt" if("nSidis" in cache_dir) else "Paths_to_MC_EvGen_files_all.txt" if("EvGen" in cache_dir) else "Paths_to_MC_rho0_files_all.txt" if("rho0" in cache_dir) else "Paths_to_MC_clasdis_files_all.txt"
-
-        if(check_version != "*"):
-            if("GEN_MC" in new_dir):
-                Path_file = f"GEN_{Path_file}"
-            if("Q2_1.5GeV" in cache_dir):
-                Path_file = f"Q2_Cut_{Path_file}"
-            if(check_version not in ["*", "*qa"]):
-                Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
-            else:
-                Path_file = str(f"TEMP_{Path_file}".replace("all.txt", "SIDIS.txt"))
+        # Path_file = "Paths_to_REAL_Data_files_all.txt" if("nSidis" in cache_dir) else "Paths_to_MC_EvGen_files_all.txt" if("EvGen" in cache_dir) else "Paths_to_MC_rho0_files_all.txt" if("rho0" in cache_dir) else "Paths_to_MC_clasdis_files_all.txt"
+        #
+        # if(check_version != "*"):
+        #     if("GEN_MC" in new_dir):
+        #         Path_file = f"GEN_{Path_file}"
+        #     if("Q2_1.5GeV" in cache_dir):
+        #         Path_file = f"Q2_Cut_{Path_file}"
+        #     if(check_version not in ["*", "*qa"]):
+        #         Path_file = str(f"TEMP_{Path_file}".replace("all.txt", f"{check_version}.txt")).replace("*", "")
+        #     else:
+        #         Path_file = str(f"TEMP_{Path_file}".replace("all.txt", "SIDIS.txt"))
+        Path_file = build_path_file_name(cache_dir, new_dir, check_version)
 
         event_type = "epipX" if(check_version == "*qa") else "eppipX" if(check_version == "*wProton*") else "epippimX"
 
@@ -740,6 +832,10 @@ def main():
             print(f"\t{color.BBLUE}For Group {color.UNDERLINE}{ii}{color.END}{color.BBLUE}:{color.END}")
             for jj in DEFAULT_GROUPS[ii]:
                 print(f"\t\t{color.BOLD}{jj:<10s} -> {color.END}{DEFAULT_GROUPS[ii][jj]}")
+        if(LEGACY_GROUP_ALIASES):
+            print(f"\n\t{color.BBLUE}Legacy group aliases:{color.END}")
+            for old_name, new_name in LEGACY_GROUP_ALIASES.items():
+                print(f"\t\t{color.BOLD}{old_name:<10s} -> {color.END}{new_name}")
         print("\n\nDONE\n")
         args.timer.stop()
         sys.exit(0)
@@ -752,14 +848,19 @@ def main():
     \t                                   \t   {color.END}
 
     """)
-    args, _, cache_files, _ = Check_Files_To_Run_Missing_Only(args)
+    resolved_groups, alias_notes = resolve_group_aliases(args.group)
+    if(alias_notes):
+        Update_Email(args, update_message=f"Mapped legacy --group name(s) to 45nA: {', '.join(alias_notes)}", verbose_override=True)
+    args.group = resolved_groups
+
+    args, _, cache_files, missing_in_cache = Check_Files_To_Run_Missing_Only(args)
     if(getattr(args, "check_cache_only", False)):
         Update_Email(args, update_message="Done Running the Script (selected the 'check_cache_only' run option to skip the rest of the script).", verbose_override=True)
         Construct_Email(args)
     else:
         full_command_str = ""
         tmux_running = 0
-        args, full_list_to_rerun, full_need_rerun_count, per_group_results = Check_For_Proccessed_Files(args, cache_files)
+        args, full_list_to_rerun, full_need_rerun_count, per_group_results = Check_For_Proccessed_Files(args, cache_files, missing_in_cache)
         if(args.new_text_files):
             args = Save_Path_Files(args, per_group_results)
         else:
