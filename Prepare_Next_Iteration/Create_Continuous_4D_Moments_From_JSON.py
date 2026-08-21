@@ -10,7 +10,7 @@ from scipy.interpolate import RBFInterpolator
 import pickle
 import subprocess
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 from Binning_Dictionaries             import Full_Bin_Definition_Array
@@ -324,12 +324,50 @@ def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
 # ------------------------------------------------------------
 # Build data points for any dimension mode
 # ------------------------------------------------------------
+def entry_is_failed_fit(entry, y_pars=None, err_suffix="_ERR"):
+    # Same sentinels as Full_Moment_Plots_Creation_From_JSON.py: drop the whole bin.
+    if(not isinstance(entry, dict)):
+        return True
+    ylist = list(y_pars) if(y_pars is not None) else ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    for yp in ylist:
+        if(yp not in entry):
+            return True
+        try:
+            vv = float(entry[yp])
+        except Exception:
+            return True
+        if(not np.isfinite(vv)):
+            return True
+        if((yp == "Fit_Par_A") and (vv <= 0.0)):
+            return True
+        if((yp in ["Fit_Par_B", "Fit_Par_C"]) and (abs(vv) >= 1.0)):
+            return True
+        ek = f"{yp}{err_suffix}"
+        if(ek not in entry):
+            return True
+        try:
+            ee = float(entry[ek])
+        except Exception:
+            return True
+        if((not np.isfinite(ee)) or (float(ee) == 0.0)):
+            return True
+    if("Chi2" in entry):
+        try:
+            chi = float(entry["Chi2"])
+        except Exception:
+            return True
+        if((not np.isfinite(chi)) or (float(chi) == 0.0)):
+            return True
+    return False
+
 def build_data(fit_dict, info_map, y_par, args):
     points = []
     values = []
     stds   = []
     for key_str, entry in fit_dict.items():
         if((y_par not in entry) or (f"{y_par}{args.err_suffix}" not in entry)):
+            continue
+        if(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
             continue
         if(key_str not in info_map):
             continue

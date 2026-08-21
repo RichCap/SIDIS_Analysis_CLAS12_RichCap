@@ -89,3 +89,20 @@ Stopped here: remaining red>5 bins are either already better than their 3D count
 
 See `report_5D.md`.
 
+---
+
+# Final validation pass (3D + 5D)
+
+Attached `*_AsymErr` graphs were ignored for this remake round only (`USE_ASYM_ERRORS_FOR_FIT = False` in `Fitting_Phi_Function`); restored to True after publication. Histogram TH1 bin errors were used.
+
+## Named bins
+
+- **5D (4,23):** untagged B ∈ [−0.22, −0.15] was forcing Cosφ onto a flat 5D histogram. Added 5D/5D-BC keys with B near 0. Bayesian red 2.20 → **1.09** (B −0.075 → −0.017). BC red 2.94 → **0.52**. RC already near 0 (left). Did **not** copy 3D B = −0.24.
+- **5D (6,6):** same class (flat 5D vs large-modulation 3D/neighbor 5D (6,5)). 3D/5D parameter matching is not safe. Added 5D keys with B near 0; rewrote the 3D-like 5D-RC key. Bayesian red 2.47 → **0.48**. RC 1.42 → **0.46**. BC 2.30 → **0.57**. Overlay now follows the plateau (edge spike remains).
+- **5D (4,28):** real Cosφ, noisy; probes did not beat red ~3.50. **Left.**
+- **3D (15,24):** tight 3D spline window undershot the 180° peak. Loosened 3D/3D-RC/3D-BC B/C. Bayesian red 4.10 → **2.74** (B −0.185 → −0.229, C −0.003 → +0.062). Still cannot make a narrow peak with 3-cosine. 5D counterpart left (different, milder shape).
+
+Full 3D remake: only (15,24) redχ² changed in each 3D family. Full 5D remake segfaulted at Q²-y 17 after ~all Bayesian bins; Q²-y **4 and 6** remake succeeded (the only 5D keys changed). 5D Bayesian B changed in exactly 2 bins vs 5D-C.
+
+Published JSON + 18 `HybridV2_4D_xB_*.pkl` (+ npz) to `End_of_Iteration_Scripts/` with `--apply_A_corr --log_A`. See `report.md` final-pass section.
+

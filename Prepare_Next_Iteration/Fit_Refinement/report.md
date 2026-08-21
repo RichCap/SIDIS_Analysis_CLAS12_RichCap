@@ -122,3 +122,48 @@ ROOT open/save mode was not changed.
 - Visual gallery of every φ_h overlay: ROOT/PyROOT 3.13 segfaulted after the first canvas. Ranking used χ², parameter errors, and worst-bin inspection instead.
 - `--generate_spline_code`: local SciPy is 1.18.0 vs farm 1.16.2; not forced by changing the exporter.
 - Full smoothness of 5D parameter curves: not the objective. Several high-redχ² 5D bins remain as data-driven outliers.
+
+---
+
+# Final validation pass (3D + 5D) and publication
+
+Histogram fits remain unnormalized. `--apply_A_corr` (`A / (Bin_Width_Area_Scale × Luminosity)`) was used only for the published 4D_xB A splines (`--log_A`) and for A-level consistency, not as a fit χ² metric.
+
+This remake round fitted TH1 bin errors only (attached `*_AsymErr` / `histo.asym_errors` skipped). That switch was restored to use the asymmetric graphs when present after the products were written. No pptx or presentation builders were modified.
+
+## Refinements kept
+
+| Bin | Action | Result |
+|---|---|---|
+| 5D (4,23) | 5D-tagged keys with B near 0; do not copy 3D B = −0.24 (5D histogram is flat + last-bin spike) | Bay red 2.20 → 1.09, B −0.075 → −0.017; BC 2.94 → 0.52 |
+| 5D (6,6) | Same; 3D/5D shapes are not comparable. Neighbor 5D (6,5) is a large Cosφ, not a target | Bay 2.47 → 0.48; RC 1.42 → 0.46; BC 2.30 → 0.57 |
+| 5D (4,28) | Probed ranges/inits; no better 3-cosine | Unchanged, red ~3.50 |
+| 3D (15,24) | Loosened tight 3D B/C windows | Bay 4.10 → 2.74, B −0.185 → −0.229, C −0.003 → +0.062. Peak still slightly under-fit (functional form) |
+
+3D remake of all Q²-y: **one** bin changed per 3D family ((15,24)). 5D full remake segfaulted at Q²-y 17; Q²-y 4 and 6 remake applied the new 5D keys (2 Bayesian B values changed vs 5D-C).
+
+## 3D/5D agreement
+
+- **Not enforced:** 5D (4,23) and (6,6) vs 3D. The 5D φ_h distributions are flat; 3D has a large Cosφ. Copying 3D B would worsen the 5D overlay.
+- **Not enforced:** 3D (15,24) vs 5D (15,24). 3D has a sharper 180° peak; 5D is milder + an edge spike.
+- No pairs were dragged together when that would have hurt the histogram fit.
+
+## Final family stats
+
+| Family | n | nan A | empty | redχ² med | p95 | n>3 | n>5 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 3D Bayesian | 465 | 0 | 0 | 1.55 | 3.18 | 28 | 6 |
+| 3D RC | 465 | 0 | 0 | 1.55 | 3.00 | 25 | 4 |
+| 3D BC+RC | 465 | 11 | 0 | 1.11 | 2.05 | 3 | 1 |
+| 5D Bayesian | 469 | 0 | 4 | 1.53 | 3.08 | 28 | 4 |
+| 5D RC | 465 | 0 | 4 | 1.55 | 3.19 | 28 | 5 |
+| 5D BC+RC | 465 | 11 | 4 | 1.15 | 2.43 | 2 | 0 |
+
+Unresolved (unchanged): (9,19), (14,15), (1,7), (1,32), (9,14) RC, 11 BC+RC nan-A bins, and 5D (4,28) as a noisy but real Cosφ. The retained set is the best defensible balance of histogram description, neighbors, and 3D/5D agreement.
+
+## Publication
+
+Copied into `/Users/richardcapobianco/Desktop/Work_Offline.nosync/End_of_Iteration_Scripts/`:
+
+- `Fit_Pars_from_Simple_RooUnfold_SelfContained_using_Hybrid_Unfolded_Parallel_SIDIS_epip_from_3D_and_5D_1st_Order_V2.json` (previous current file renamed `_V2_Old.json`)
+- 18 `HybridV2_4D_xB_<fit_set>_Fit_Par_{A,B,C}.pkl` and matching `.npz`, built with `--dimension_mode 4D_xB --apply_A_corr --log_A` and the plotting-workflow failed-bin filter (`A≤0`, `|B|≥1`, `|C|≥1`, zero/non-finite errors, Chi2 0/non-finite → drop the whole bin).

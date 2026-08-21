@@ -997,6 +997,10 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
     elif(Allow_Normalization and args.CrossSection_Norm):
         print(f"{color.Error}Cannot Normalize {color.END_B}'{Histo_To_Fit.GetName()}'{color.Error} without the kinematic bin numbers (were attempted to be given as: {color.END_B}'{Special}'{color.Error}){color.END}")
     if((Method in ["gdf", "gen", "MC GEN", "bbb", "Bin", "Bin-by-Bin", "Bin-by-bin", "bay", "bayes", "bayesian", "Bayesian", "FIT", "SVD", "tdf", "true", "RC_Bin", "RC_Bayesian", "BC_Bayesian", "BC_RC_Bayesian"]) and (Fitting in ["default", "Default"]) and args.fit):
+        # Use attached TGraphAsymmErrors (*_AsymErr / histo.asym_errors) when present; otherwise fit the TH1 with its own GetBinError.
+        USE_ASYM_ERRORS_FOR_FIT = True
+        if(USE_ASYM_ERRORS_FOR_FIT and hasattr(Histo_To_Fit, "asym_errors") and (Histo_To_Fit.asym_errors is not None)):
+            Histo_To_Fit = Histo_To_Fit.asym_errors
         A_Unfold, B_Unfold, C_Unfold = Full_Calc_Fit(Histo_To_Fit)
         fit_function = "[A]*(1 + [B]*cos(x*(3.1415926/180)) + [C]*cos(2*x*(3.1415926/180)))"
 

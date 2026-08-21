@@ -36,7 +36,7 @@ universal_directory = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/' if(o
 # ------------------------------------------------------------
 import ROOT
 import sys
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else os.path.abspath(os.path.dirname(__file__))
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Get_Num_of_z_pT_Rows_and_Columns, skip_condition_z_pT_bins
 from Binning_Dictionaries             import Full_Bin_Definition_Array
@@ -565,13 +565,15 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         entry = fit_dict[key_str]
         if((y_par not in entry) or (err_key not in entry)):
             continue
+        if(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
+            continue
         inf  = info_map[key_str]
         xval = inf["z_range"][0] if(args.x_mode == "z") else inf["pTrange"][0]
         yval = float(entry[y_par])
         yerr = float(entry[err_key])
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
             _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-            if((str(Bin_Width_Area_Scale) not in ["0", "None", None]) and (str(Luminosity) not in ["0", "None", None])):
+            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
                 yval = yval/(Bin_Width_Area_Scale*Luminosity)
                 yerr = yerr/(Bin_Width_Area_Scale*Luminosity)
         if(args.x_mode == "z"):
@@ -2070,13 +2072,35 @@ def short_fit_set_label(fit_set):
 def friendly_source_label_from_path(json_path):
     # Human-readable comparison labels (legends, titles, tables). Extensible for 3D later.
     stem = os.path.splitext(os.path.basename(str(json_path)))[0]
+    # Combined 3D+5D JSON: labels come from fit_set, not path
+    if("3D_and_5D" in stem):
+        return None
     if("Updated_MM_Cut" in stem):
         return "Updated 5D Unfolding"
     if("Dedicated_5D" in stem):
         return "Old 5D Unfolding"
+    if(("1st_Order_V2" in stem) or ("Only_3D_1st_Order" in stem)):
+        return "Updated 3D Unfolding"
     if("rho0_Subtraction" in stem):
         return "Old 3D Unfolding"
     return None
+
+def friendly_source_label_from_fit_set(fit_set):
+    # Dim + correction-level names for same-JSON comparisons
+    fs = str(fit_set)
+    mm = re.search(r"(\d+)D", fs)
+    dim = f"{mm.group(1)}D" if(mm is not None) else ""
+    has_rc = ("_RC" in fs) or ("RC_" in fs) or fs.endswith("RC")
+    has_bc = ("_BC" in fs) or ("BC_" in fs)
+    if(has_bc and has_rc):
+        corr = "Acceptance + Radiative + Bin-Centering"
+    elif(has_rc):
+        corr = "Acceptance + Radiative"
+    else:
+        corr = "Acceptance"
+    if(dim == ""):
+        return None
+    return f"{dim} {corr}"
 
 def short_json_source_tag(json_path):
     # Compact tag for filenames when a short token is needed
@@ -2089,7 +2113,12 @@ def short_json_source_tag(json_path):
     return sanitize_for_filename(stem)[:40]
 
 def disambiguate_comparison_source_labels(sources):
-    # Prefer friendly path-based names whenever recognized; otherwise disambiguate collisions
+    # Prefer distinct fit-set correction labels when they uniquely identify sources (same JSON)
+    fs_labs = [friendly_source_label_from_fit_set(src.get("fit_set", "")) for src in sources]
+    if((len(fs_labs) >= 2) and all((lab is not None) for lab in fs_labs) and (len(set(fs_labs)) == len(fs_labs))):
+        for src, lab in zip(sources, fs_labs):
+            src["label"] = lab
+        return sources
     any_friendly = False
     for src in sources:
         friendly = friendly_source_label_from_path(src.get("json_path", ""))
@@ -2106,6 +2135,67 @@ def disambiguate_comparison_source_labels(sources):
         base = str(src.get("label", ""))
         src["label"] = f"{base}_{tag}" if(base != "") else tag
     return sources
+
+def entry_is_failed_fit(entry, y_pars=None, err_suffix="_ERR"):
+    # Failed/unphysical phi_h fits: drop the whole bin (A, B, and C together).
+    # A <= 0 is empty/non-physical (A only). |B| or |C| >= 1 is a bound/failure.
+    # Zero or non-finite parameter errors, or Chi2 == 0 / non-finite, also fail the bin.
+    if(not isinstance(entry, dict)):
+        return True
+    ylist = list(y_pars) if(y_pars is not None) else ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    for yp in ylist:
+        if(yp not in entry):
+            return True
+        try:
+            vv = float(entry[yp])
+        except Exception:
+            return True
+        if(not np.isfinite(vv)):
+            return True
+        if((yp == "Fit_Par_A") and (vv <= 0.0)):
+            return True
+        if((yp in ["Fit_Par_B", "Fit_Par_C"]) and (abs(vv) >= 1.0)):
+            return True
+        ek = f"{yp}{err_suffix}"
+        if(ek not in entry):
+            return True
+        try:
+            ee = float(entry[ek])
+        except Exception:
+            return True
+        if((not np.isfinite(ee)) or (float(ee) == 0.0)):
+            return True
+    if("Chi2" in entry):
+        try:
+            chi = float(entry["Chi2"])
+        except Exception:
+            return True
+        if((not np.isfinite(chi)) or (float(chi) == 0.0)):
+            return True
+    return False
+
+def keys_with_any_ypar_undefined(sources, y_pars):
+    # Bins where any of A/B/C (or their errors / Chi2) marks a failed fit in any source on this slide
+    skip = set()
+    ylist = ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    for src in sources:
+        fd = src.get("fit_dict", {})
+        for key_str, ent in fd.items():
+            if(entry_is_failed_fit(ent, ylist, err_suffix="_ERR")):
+                skip.add(key_str)
+    return skip
+
+def filter_sources_drop_keys(sources, skip_keys):
+    if((skip_keys is None) or (len(skip_keys) == 0)):
+        return sources
+    out = []
+    for src in sources:
+        s = dict(src)
+        fd = {kk: vv for kk, vv in src["fit_dict"].items() if(kk not in skip_keys)}
+        s["fit_dict"] = fd
+        s["grouped"] = group_by_q2y(fd)
+        out.append(s)
+    return out
 
 def build_comparison_sources(args):
     # Pair fit_set names with JSON files: equal counts → index pairing; else first-match scan in CLI order
@@ -2157,7 +2247,7 @@ def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     yerr = float(fit_dict[key_str][err_key])
     if((getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A")):
         _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-        if((str(Bin_Width_Area_Scale) not in ["0", "None", None]) and (str(Luminosity) not in ["0", "None", None])):
+        if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
             yval = yval / (Bin_Width_Area_Scale * Luminosity)
             yerr = yerr / (Bin_Width_Area_Scale * Luminosity)
     return (yval, abs(yerr))
@@ -2353,10 +2443,21 @@ def comparison_source_line_style(src, source_index, sources):
     markers = [20, 21, 22, 23, 24, 25, 26, 29, 33, 34]
     lab = str(src.get("label", ""))
     jpath = str(src.get("json_path", ""))
-    # Updated / new baseline → solid; Old → dashed (overrides equal-dim index order)
-    if(("Updated_MM_Cut" in jpath) or ("Updated 5D" in lab) or (lab.strip().lower().startswith("updated "))):
+    # Combined 3D+5D JSON path must not be treated as "Updated 3D" for every source
+    combined_json = ("3D_and_5D" in jpath)
+    is_upd5 = (("Updated_MM_Cut" in jpath) or ("Updated 5D" in lab))
+    is_upd3 = ((not combined_json) and (("1st_Order_V2" in jpath) or ("Only_3D_1st_Order" in jpath) or ("Updated 3D" in lab)))
+    is_old = (("Dedicated_5D" in jpath) or ("rho0_Subtraction" in jpath) or ("Old 5D" in lab) or ("Old 3D" in lab) or (lab.strip().lower().startswith("old ")))
+    others = [s for s in sources if(s is not src)]
+    other_labs = " ".join([str(s.get("label",""))+" "+str(s.get("json_path","")) for s in others])
+    other_is_upd5 = (("Updated_MM_Cut" in other_labs) or ("Updated 5D" in other_labs))
+    if(is_upd5):
         lsty = 1
-    elif(("Dedicated_5D" in jpath) or ("rho0_Subtraction" in jpath) or ("Old 5D" in lab) or ("Old 3D" in lab) or (lab.strip().lower().startswith("old "))):
+    elif(is_upd3 and other_is_upd5):
+        lsty = 2  # vs Updated 5D: 3D dashed, 5D solid
+    elif(is_upd3):
+        lsty = 1  # Updated 3D vs Old → solid
+    elif(is_old):
         lsty = 2
     else:
         dims = [parse_fit_set_features(s["fit_set"])["dim"] for s in sources]
@@ -2372,7 +2473,8 @@ def comparison_source_line_style(src, source_index, sources):
                 other = [d for d in unique_dims if(d not in ["5D", "3D"])]
                 lsty = [7, 9, 10][other.index(dim) % 3] if(dim in other) else 7
         else:
-            lsty = [1, 2, 7, 9, 10][source_index % 5]
+            # Same dim (e.g. AC vs AC+RC): test dashed, baseline/more-complete solid
+            lsty = 2 if(int(source_index) == 0) else 1
     mark = markers[source_index % len(markers)]
     return (mark, int(lsty))
 
@@ -2632,13 +2734,15 @@ def run_comparison_plots(args, sources):
     q2y_bin = int(args.single_q2y_bin) if(do_single) else None
 
     if("overlay" in ctypes):
+        skip_ov = keys_with_any_ypar_undefined(sources, args.y_pars)
+        sources_ov = filter_sources_drop_keys(sources, skip_ov)
         for y_par in args.y_pars:
             if(args.y_range_mode == "global"):
                 if(args.global_y_range is not None):
                     y_range = (float(args.global_y_range[0]), float(args.global_y_range[1]))
                 else:
                     ymin, ymax = None, None
-                    for src in sources:
+                    for src in sources_ov:
                         lo, hi = compute_global_y_range(args, src["grouped"], src["fit_dict"], y_par)
                         ymin = lo if(ymin is None) else min(ymin, lo)
                         ymax = hi if(ymax is None) else max(ymax, hi)
@@ -2655,10 +2759,10 @@ def run_comparison_plots(args, sources):
                 print(f"{color.BYELLOW}[TEST] Would draw comparison overlay for {y_par}{color.END}")
                 continue
             if(do_single):
-                canv = draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, (xmin, xmax), y_range)
+                canv = draw_single_bin_comparison_overlay(args, sources_ov, y_par, q2y_bin, (xmin, xmax), y_range)
             else:
-                canv = draw_mosaic_comparison_overlay(args, sources, y_par, (xmin, xmax), y_range, y_axis_title_override=yat)
-            title_text = build_comparison_canvas_title(args, sources, y_par, "overlay")
+                canv = draw_mosaic_comparison_overlay(args, sources_ov, y_par, (xmin, xmax), y_range, y_axis_title_override=yat)
+            title_text = build_comparison_canvas_title(args, sources_ov, y_par, "overlay")
             draw_global_title(args, canv, title_text)
             canv.Update()
             out_name = Build_Comparison_Output_Filename(args, y_par, "Overlay")
@@ -2674,8 +2778,10 @@ def run_comparison_plots(args, sources):
         for ia in range(len(sources)):
             for ib in range(ia + 1, len(sources)):
                 pair_sources = [sources[ia], sources[ib]]
+                skip_pair = keys_with_any_ypar_undefined(pair_sources, args.y_pars)
+                pair_filt = filter_sources_drop_keys(pair_sources, skip_pair)
                 for y_par in args.y_pars:
-                    fit_dict_cmp = build_synthetic_fit_dict_for_pair(args, sources[ia], sources[ib], y_par, ctype)
+                    fit_dict_cmp = build_synthetic_fit_dict_for_pair(args, pair_filt[0], pair_filt[1], y_par, ctype)
                     if(len(fit_dict_cmp) == 0):
                         print(f"{color.BYELLOW}[INFO] No overlapping bins for {ctype} {sources[ia]['label']} vs {sources[ib]['label']} ({y_par}){color.END}")
                         continue
@@ -2944,6 +3050,13 @@ def main():
     fit_dict = json_obj[fit_set]
     if((not isinstance(fit_dict, dict)) or (len(fit_dict) == 0)):
         raise SystemExit(f"{color.Error}ERROR:{color.END_R} Fit set '{fit_set}' is empty or not a dict.{color.END}")
+
+    skip_failed = keys_with_any_ypar_undefined([{"fit_dict": fit_dict}], ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"])
+    if(len(skip_failed) > 0):
+        print(f"{color.BYELLOW}[INFO] Skipping {len(skip_failed)} failed-fit bin(s) (A<=0, |B| or |C| >= 1, zero error, Chi2=0, or non-finite A/B/C){color.END}")
+        fit_dict = {kk: vv for kk, vv in fit_dict.items() if(kk not in skip_failed)}
+        if(len(fit_dict) == 0):
+            raise SystemExit(f"{color.Error}ERROR:{color.END_R} All bins in '{fit_set}' were skipped as failed fits.{color.END}")
 
     grouped       = group_by_q2y(fit_dict)
     info_map      = build_info_map(args, fit_dict)

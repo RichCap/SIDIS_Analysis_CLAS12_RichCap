@@ -94,6 +94,10 @@ Typical Q²-y bins (example: (8,17) Bayesian, red = 0.56) now show the same visu
 - The only shared source change is optional per-bin `fit_range_*` in `Fitting_Phi_Function`. It runs only when those fields are present. No 3D key has them.
 - 3D (15,24) was left as-is, as requested.
 
+## Final-pass addendum (5D named bins)
+
+A later 3D+5D validation pass retuned 5D (4,23) and (6,6) with 5D-tagged B-near-0 keys (the 5D histograms are flat; 3D Cosφ was **not** copied). (4,28) was inspected and left. See the final-pass section of `report.md`. 3D (15,24) was also loosened in that pass.
+
 ## Commands (5D remakes)
 
 ```bash
