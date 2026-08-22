@@ -3,6 +3,7 @@ import os
 import argparse
 import subprocess
 import glob
+import fnmatch
 import shlex
 import sys
 import time
@@ -40,9 +41,10 @@ def parse_args():
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_Refined_Binned_Groups_Q2_Row_[1-5]_V[3-4]_Batch_1_No_Rad_Merged_*.root",
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Binned_Groups_Q2_Row_*.root",
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Binned_Groups_Q2_Row_[1-5]_V2*.root",
-                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_Q2_Row*No_Rad*.root",
+                        # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_Q2_Row*No_Rad*.root",
+                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root",
                         type=str,
-                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.\nDefault is the current No_Rad Old_MM_Cut production set only.\n")
+                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.\nDefault is the full No_Rad Old_MM_Cut_Groups_* set (all Q2_Row and later groups).\n")
 
     parser.add_argument("-check", "--check",
                         action="store_true",
@@ -77,7 +79,8 @@ def parse_args():
                         help="Custom line to include at the end of the Email_output string (replaces the hardcoded 'Ran in tmux...' line).\n")
 
     parser.add_argument("-jn", "--job_name",
-                        default="BC_Old_MM_Cut_No_Rad",
+                        # default="BC_Old_MM_Cut_No_Rad",
+                        default="BC_New_Bins_from_BC_Cuts",
                         type=str,
                         help="Common SLURM array job-name stem (full name is <job_name>_<MM_DD_YYYY>).\n")
 
@@ -119,6 +122,11 @@ def parse_args():
                         default="",
                         type=str,
                         help="Optional zero-based index filter for the mid-set, e.g. '0,3,10-12'. Empty means all mid-set indices.\n")
+
+    parser.add_argument("-ex", "--exclude",
+                        default="",
+                        type=str,
+                        help="Optional comma-separated fnmatch patterns (basename or full path) to drop after discovery. Empty means keep every discovered file. Omit this flag later to include previously skipped files without changing the default glob.\n")
 
     return parser.parse_args()
 
@@ -192,6 +200,23 @@ def build_file_list(target):
                     files.append(abs_path)
                     seen.add(abs_path)
     return sorted(files)
+
+def apply_exclude_patterns(files, exclude_spec):
+    # Drop files whose basename or full path matches any comma-separated fnmatch pattern. Empty spec => keep all.
+    if(exclude_spec is None or str(exclude_spec).strip() == ""):
+        return files, []
+    patterns = [part.strip() for part in str(exclude_spec).split(",") if(part.strip() not in [""])]
+    if(not patterns):
+        return files, []
+    kept = []
+    skipped = []
+    for filepath in files:
+        name = os.path.basename(filepath)
+        if(any(fnmatch.fnmatch(filepath, pat) or fnmatch.fnmatch(name, pat) for pat in patterns)):
+            skipped.append(filepath)
+        else:
+            kept.append(filepath)
+    return kept, skipped
 
 def parse_indices_spec(spec, n_files):
     # Parse '0,3,10-12' into a sorted unique list of indices in [0, n_files). Empty spec => all indices.
@@ -545,6 +570,11 @@ def main():
 
     # Build file list from either directory or glob/brace-expanded glob (shared by all modes).
     files = build_file_list(target)
+    files, excluded_files = apply_exclude_patterns(files, args.exclude)
+    if(excluded_files):
+        print(f"{color.BYELLOW}[INFO]{color.END} Excluded {len(excluded_files)} file(s) via --exclude:")
+        for skipped_path in excluded_files:
+            print(f"    {skipped_path}")
 
     if(not files):
         print(f"Error: no files found for '{target}'")
@@ -561,6 +591,7 @@ def main():
     print(f"""
 {color.BGREEN}Discovered {n_files} input file(s){color.END}
     Pattern / target : {target}
+    Excluded         : {len(excluded_files)}
     Ordered list     : {file_list_path}
     Index range      : 0..{n_files-1}
     Pure SLURM array : 0-{n_files-1}
