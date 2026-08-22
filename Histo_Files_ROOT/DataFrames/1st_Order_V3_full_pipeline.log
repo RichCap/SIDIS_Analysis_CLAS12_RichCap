@@ -1,0 +1,26 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-08-22T14:48:19 name=1st_Order_V3 mode=parallel email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+  name=1st_Order_V3  mode=parallel  email=all  skip_acceptance=True  run_all_cuts=False  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V3_full_pipeline.log
+  time log:   /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V3_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=0  jobs_3D=35  jobs_5D=0  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS: pure=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp
+                 comb=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp
+
+=== Stage 2: Response-matrix products (Only_3D×35 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: SKIPPED (jobs_2D=0)
+  Only_3D: jobs=35 (from --jobs_3D)
+  Only_5D: SKIPPED (jobs_5D=0)
+  Binning_Presentation_Only: SKIPPED (jobs_Binning=0)
+
+Products for cut cut_Complete_SIDIS
+SKIP product 2D_Presentation for cut cut_Complete_SIDIS (jobs_2D=0)
+SKIP product Only_5D for cut cut_Complete_SIDIS (jobs_5D=0)
+SKIP product Binning_Presentation_Only for cut cut_Complete_SIDIS (jobs_Binning=0)
+CMD [Only_3D]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Only_3D_1st_Order_V3_Response_Matrices --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --jobs 35 --email -emj Running full histogram runner script (1st_Order_V3) after updating the kinematic binning scheme (empty BC Corrections bins were removed and some bin borders were changed). This is a 3D-only test run so those response matrices can be inspected before launching 2D and 5D. Skipped HPP generation and reused HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp via --HPP_Old_Name 1st_Order. Included the most recent versions of the rho0 subtractions. Phase-2 2D skipped (--jobs_2D 0). Phase-2 3D Response Matrices set to 35 concurrent jobs (3D-only; ~1.9 GB/worker). Phase-2 5D skipped (--jobs_5D 0). Ran in tmuxPython. Only 3D Response Matrices --extra --run_rho_weight
