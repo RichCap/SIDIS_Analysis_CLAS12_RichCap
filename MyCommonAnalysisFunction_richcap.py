@@ -2207,7 +2207,8 @@ def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_Y_bin", Common
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [2])          and (Z_PT_BIN in [28, 35, 41, 42])))
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [3])          and (Z_PT_BIN in [28, 35])))
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [4])          and (Z_PT_BIN in [1, 2, 3, 4, 5, 12, 18, 24])))
-        skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [4])          and (Z_PT_BIN in [1, 2, 3, 4, 5, 12, 24])))
+        # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [4])          and (Z_PT_BIN in [1, 2, 3, 4, 5, 12, 24])))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [4])          and (Z_PT_BIN in [1, 2, 3, 4, 5, 12, 18])))
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [5])          and (Z_PT_BIN in [30, 36])))
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [6])          and (Z_PT_BIN in [30])))
         # skip_condition_Y_bins_return = skip_condition_Y_bins_return or  (((Q2_Y_BIN in [7])          and (Z_PT_BIN in [24, 30])))
@@ -2225,6 +2226,11 @@ def skip_condition_z_pT_bins(Q2_Y_BIN, Z_PT_BIN, BINNING_METHOD="_Y_bin", Common
         skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [4])  and (Z_PT_BIN in [11]))
         skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [8])  and (Z_PT_BIN in [10]))
         skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [12]) and (Z_PT_BIN in [10]))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [7])  and (Z_PT_BIN in [5]))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [8])  and (Z_PT_BIN in [9, 15]))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [12]) and (Z_PT_BIN in [9, 15]))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [15]) and (Z_PT_BIN in [3, 4, 10]))
+        skip_condition_Y_bins_return = skip_condition_Y_bins_return or ((Q2_Y_BIN in [17]) and (Z_PT_BIN in [5]))
         return skip_condition_Y_bins_return
     else:
         return False
