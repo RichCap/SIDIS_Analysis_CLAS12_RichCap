@@ -120,6 +120,10 @@ def create_dense_3d_bin_mapping():
 
 # Lazy: built on first dense-3D convert so import does not require ROOT/MyCommon.
 Convert_MultiDim_Kinematic_Bins_dense_3D = None
+Convert_MultiDim_Kinematic_Bins_dense_5D_live = None
+_warned_dense_5d_map_mismatch = False
+# Convert_All_Kinematic_Bins uses the live skip_condition_z_pT_bins map by default (same packing as Response_Matrix_Creation_using_RDataFrames.create_dense_5d_bin_mapping). Set this to True only when unfolding 5D histograms that were packed with the older baked Convert_MultiDim_Kinematic_Bins_dense_5D snapshot.
+USE_BAKED_DENSE_5D_MAP = False
 
 def get_Convert_MultiDim_Kinematic_Bins_dense_3D():
     global Convert_MultiDim_Kinematic_Bins_dense_3D
@@ -127,13 +131,34 @@ def get_Convert_MultiDim_Kinematic_Bins_dense_3D():
         Convert_MultiDim_Kinematic_Bins_dense_3D = create_dense_3d_bin_mapping()["Convert_MultiDim_Kinematic_Bins_dense_3D"]
     return Convert_MultiDim_Kinematic_Bins_dense_3D
 
-def Convert_All_Kinematic_Bins(Start_Bins_Name, End_Bins_Name, Use_Dense_3D=False):
+def get_Convert_MultiDim_Kinematic_Bins_dense_5D():
+    # Live map from skip_condition_z_pT_bins (same packing as Response_Matrix_Creation_using_RDataFrames.create_dense_5d_bin_mapping). Baked Convert_MultiDim_Kinematic_Bins_dense_5D is not used for lookup.
+    global Convert_MultiDim_Kinematic_Bins_dense_5D_live
+    if(Convert_MultiDim_Kinematic_Bins_dense_5D_live is None):
+        Convert_MultiDim_Kinematic_Bins_dense_5D_live = create_dense_5d_bin_mapping()["Convert_MultiDim_Kinematic_Bins_dense_5D"]
+    return Convert_MultiDim_Kinematic_Bins_dense_5D_live
+
+def _warn_if_dense_5d_maps_differ():
+    global _warned_dense_5d_map_mismatch
+    if(_warned_dense_5d_map_mismatch):
+        return
+    _warned_dense_5d_map_mismatch = True
+    live_map = get_Convert_MultiDim_Kinematic_Bins_dense_5D()
+    if(live_map != Convert_MultiDim_Kinematic_Bins_dense_5D):
+        from MyCommonAnalysisFunction_richcap import color
+        print(f"{color.RED}WARNING: Live dense-5D MultiDim map (skip_condition_z_pT_bins) differs from baked Convert_MultiDim_Kinematic_Bins_dense_5D.{color.END}\nDefault Convert_All_Kinematic_Bins uses the live map to match Response_Matrix_Creation_using_RDataFrames.create_dense_5d_bin_mapping.\nSet USE_BAKED_DENSE_5D_MAP = True or Convert_All_Kinematic_Bins(..., Use_Baked_Dense_5D=True) to use the baked snapshot instead.")
+        # To refresh the baked snapshot after skip_condition_z_pT_bins changes: run `python Convert_MultiDim_Kinematic_Bins.py` and replace the Convert_MultiDim_Kinematic_Bins_dense_5D = {...} assignment in this file with the printed dictionary.
+
+def Convert_All_Kinematic_Bins(Start_Bins_Name, End_Bins_Name, Use_Dense_3D=False, Use_Baked_Dense_5D=None):
     Check_Name = f"{Start_Bins_Name} -> {End_Bins_Name}"
     Check_Name = Check_Name.replace("3D_Bins", "MultiDim_z_pT_phi_h")
     Check_Name = Check_Name.replace("5D_Bins", "MultiDim_Q2_y_z_pT_phi_h")
     if("MultiDim_Q2_y_z_pT_phi_h" in Check_Name):
-        if(Check_Name in Convert_MultiDim_Kinematic_Bins_dense_5D):
-            return Convert_MultiDim_Kinematic_Bins_dense_5D[Check_Name]
+        _warn_if_dense_5d_maps_differ()
+        use_baked = USE_BAKED_DENSE_5D_MAP if(Use_Baked_Dense_5D is None) else bool(Use_Baked_Dense_5D)
+        dense_5d = Convert_MultiDim_Kinematic_Bins_dense_5D if(use_baked) else get_Convert_MultiDim_Kinematic_Bins_dense_5D()
+        if(Check_Name in dense_5d):
+            return dense_5d[Check_Name]
         else:
             return "ERROR"
     if("MultiDim_z_pT_phi_h" in Check_Name):

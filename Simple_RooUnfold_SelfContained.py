@@ -1521,16 +1521,18 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
                 Name = Name.replace("gdf", "tdf")
         for Q2_y in args.Q2_y_Bin_List:
             if(Q2_y not in ["0", "All"]):
-                if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")):
-                    break
-                else:
-                    z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
-                    for z_pT in range(0, z_pT_Range+1):
+                # if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT=1", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")):
+                #     break
+                # else:
+                # The old z-pT=1 ERROR break assumed every Q2-y has a kept z-pT=1 block. skip_condition_z_pT_bins leaves holes (Q2-y 4/8/12 start later; Q2-y 3 skips z-pT=6). Dedicated_5D_Unfold._Resolve_Phi_h_Slice_Range continues past those holes; breaking here drops the rest of that Q2-y (and later Q2-y bins). Convert_All_Kinematic_Bins ERROR means skipped/not in the dense map — continue, do not exit the loop.
+                z_pT_Range = Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=Q2_y)[1]
+                for z_pT in range(0, z_pT_Range+1):
                         Bin_Title = "".join([root_color.Bold, "{#scale[1.25]{#color[", str(root_color.Red), "]{Q^{2}-y Bin: ", str(Q2_y) if(str(Q2_y) not in ["0"]) else "All", "} #topbar #color[", str(root_color.Red), "]{z-P_{T} Bin: ", str(z_pT) if(str(z_pT) not in ["0"]) else "All", "}}}"])
                         Title_Out = str(Title.replace("MultiDim_5D_Var_Info", Bin_Title))
                         if(z_pT not in [0]):
                             if("ERROR" == Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}", End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")):
-                                break
+                                # break
+                                continue
                             else:
                                 Start_phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT}",       End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")
                                 End___phi_h_bin = Convert_All_Kinematic_Bins(Start_Bins_Name=f"Q2-y={Q2_y}, z-pT={z_pT+1}",     End_Bins_Name="MultiDim_Q2_y_z_pT_phi_h")
