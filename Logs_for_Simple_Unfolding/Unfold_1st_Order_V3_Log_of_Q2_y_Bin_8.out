@@ -1,0 +1,1059 @@
+Full command: ./Simple_RooUnfold_SelfContained.py --unfolding_3D --smear --root Unfolded_Parallel_SIDIS_epip_from_Only_3D_1st_Order_V3.root --single_file_input /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_1st_Order_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root --background_source lundvpk --bayes_iterations 25 --Num_Toys 15 -em 'Coordinated 3D unfolding through the '"'"'Run_simple_unfold_parallel.py'"'"' script. Ran 3D Unfolding with updated kinematic bins (based on the BC correction limitations) and 25 bayesian iterations for testing of each Q2-y Bin with 15 Toys (low setting for testing) but WITHOUT Radiative Corrections. Ran with Harut'"'"'s exclusive '"'"'lundvpk'"'"' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS.' -ti '#rho^{0} Normalized Subtraction Run' 8
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:2840: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if((tdf not in ["N/A"]) and out_print_main_tdf):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3016: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3098: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3108: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3127: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3134: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3141: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3148: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3174: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:501: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(Response_2D in ["N/A", "None", "Error"]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:512: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:541: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(Response_2D in ["N/A", "None", "Error"]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:552: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if((("RooUnfold" in str(Method)) or (str(Method) in ["Default"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])) and (Response_2D not in ["N/A", "None", "Error"])):
+Subtract 76407.9 fakes from measured distribution
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:499: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  elif((Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]) or (Response_2D in ["N/A", "None", "Error"])):
+Using response matrix priors
+Priors:
+
+Vector (626)  is as follows
+
+     |        1  |
+------------------
+   0 |0 
+   1 |0.770904 
+   2 |0.000232161 
+   3 |0.000236198 
+   4 |0.000235932 
+   5 |0.000231515 
+   6 |0.000234373 
+   7 |0.000234172 
+   8 |0.000234232 
+   9 |0.000234162 
+  10 |0.000234037 
+  11 |0.000234493 
+  12 |0.000233621 
+  13 |0.000231951 
+  14 |0.000235 
+  15 |0.000234689 
+  16 |0.000233691 
+  17 |0.000232056 
+  18 |0.000234674 
+  19 |0.000234453 
+  20 |0.00023351 
+  21 |0.00023183 
+  22 |0.000233952 
+  23 |0.000234137 
+  24 |0.000236273 
+  25 |0.00023524 
+  26 |0.000194207 
+  27 |0.000192307 
+  28 |0.000193851 
+  29 |0.000192808 
+  30 |0.000192613 
+  31 |0.000191891 
+  32 |0.000192808 
+  33 |0.000192182 
+  34 |0.000193435 
+  35 |0.000192061 
+  36 |0.000192222 
+  37 |0.000193691 
+  38 |0.000192432 
+  39 |0.000193185 
+  40 |0.000193475 
+  41 |0.000192758 
+  42 |0.000194759 
+  43 |0.00019171 
+  44 |0.000193646 
+  45 |0.000192227 
+  46 |0.000192523 
+  47 |0.000194338 
+  48 |0.000194418 
+  49 |0.000194107 
+  50 |0.000144334 
+  51 |0.000143692 
+  52 |0.000145658 
+  53 |0.000144229 
+  54 |0.000145142 
+  55 |0.000142329 
+  56 |0.000145081 
+  57 |0.000145618 
+  58 |0.000142975 
+  59 |0.000144781 
+  60 |0.000145127 
+  61 |0.000144605 
+  62 |0.000144139 
+  63 |0.000144655 
+  64 |0.000145066 
+  65 |0.000145066 
+  66 |0.00014449 
+  67 |0.000145503 
+  68 |0.000145016 
+  69 |0.000145994 
+  70 |0.000145112 
+  71 |0.000144791 
+  72 |0.000143306 
+  73 |0.00014464 
+  74 |0.000335022 
+  75 |0.000333462 
+  76 |0.000333262 
+  77 |0.000329807 
+  78 |0.000333046 
+  79 |0.000330253 
+  80 |0.000334831 
+  81 |0.000330764 
+  82 |0.000333502 
+  83 |0.000332093 
+  84 |0.000331256 
+  85 |0.000331712 
+  86 |0.000333412 
+  87 |0.000335002 
+  88 |0.000332695 
+  89 |0.000334104 
+  90 |0.000333723 
+  91 |0.000332319 
+  92 |0.000335027 
+  93 |0.00033271 
+  94 |0.000333427 
+  95 |0.000332003 
+  96 |0.000333658 
+  97 |0.000332545 
+  98 |0.000290203 
+  99 |0.000291421 
+ 100 |0.000291421 
+ 101 |0.000289265 
+ 102 |0.00029252 
+ 103 |0.00028915 
+ 104 |0.000291015 
+ 105 |0.000291326 
+ 106 |0.000291958 
+ 107 |0.000289305 
+ 108 |0.000292264 
+ 109 |0.000290494 
+ 110 |0.000292349 
+ 111 |0.000291386 
+ 112 |0.000289616 
+ 113 |0.000290604 
+ 114 |0.000291873 
+ 115 |0.000290113 
+ 116 |0.000291306 
+ 117 |0.000290454 
+ 118 |0.000291406 
+ 119 |0.000290298 
+ 120 |0.000291923 
+ 121 |0.000288318 
+ 122 |0.000236012 
+ 123 |0.000236694 
+ 124 |0.000239763 
+ 125 |0.000237742 
+ 126 |0.000236504 
+ 127 |0.000237356 
+ 128 |0.000239678 
+ 129 |0.000234232 
+ 130 |0.000238043 
+ 131 |0.000238876 
+ 132 |0.000238886 
+ 133 |0.000236714 
+ 134 |0.000237617 
+ 135 |0.000235977 
+ 136 |0.000238354 
+ 137 |0.00023677 
+ 138 |0.000239156 
+ 139 |0.00023862 
+ 140 |0.000234699 
+ 141 |0.000237522 
+ 142 |0.000237998 
+ 143 |0.000237948 
+ 144 |0.00023691 
+ 145 |0.000236399 
+ 146 |0.000194448 
+ 147 |0.000193159 
+ 148 |0.000192217 
+ 149 |0.000193139 
+ 150 |0.000192573 
+ 151 |0.000192648 
+ 152 |0.000192633 
+ 153 |0.00019172 
+ 154 |0.000194233 
+ 155 |0.00019325 
+ 156 |0.000192914 
+ 157 |0.000193786 
+ 158 |0.00019352 
+ 159 |0.000192748 
+ 160 |0.000192944 
+ 161 |0.000192964 
+ 162 |0.000192593 
+ 163 |0.000192498 
+ 164 |0.000192026 
+ 165 |0.000191851 
+ 166 |0.000192723 
+ 167 |0.000192723 
+ 168 |0.00019348 
+ 169 |0.000192844 
+ 170 |0.000462808 
+ 171 |0.000460682 
+ 172 |0.000466539 
+ 173 |0.000461334 
+ 174 |0.000463215 
+ 175 |0.00046525 
+ 176 |0.000462708 
+ 177 |0.000463079 
+ 178 |0.000462864 
+ 179 |0.00046498 
+ 180 |0.000464889 
+ 181 |0.000460973 
+ 182 |0.000462959 
+ 183 |0.000463641 
+ 184 |0.000462879 
+ 185 |0.000462452 
+ 186 |0.000463134 
+ 187 |0.000465526 
+ 188 |0.000464378 
+ 189 |0.000464087 
+ 190 |0.00046507 
+ 191 |0.000462106 
+ 192 |0.000461785 
+ 193 |0.000463851 
+ 194 |0.000434347 
+ 195 |0.000434427 
+ 196 |0.000433585 
+ 197 |0.000434948 
+ 198 |0.000437827 
+ 199 |0.000436112 
+ 200 |0.000432025 
+ 201 |0.000434011 
+ 202 |0.000434006 
+ 203 |0.000437019 
+ 204 |0.000433344 
+ 205 |0.000434633 
+ 206 |0.000434482 
+ 207 |0.000434663 
+ 208 |0.000433108 
+ 209 |0.000430887 
+ 210 |0.000433224 
+ 211 |0.00043191 
+ 212 |0.000432426 
+ 213 |0.000434758 
+ 214 |0.000429889 
+ 215 |0.000434653 
+ 216 |0.000434943 
+ 217 |0.000433951 
+ 218 |0.00036764 
+ 219 |0.000369445 
+ 220 |0.000369205 
+ 221 |0.000366978 
+ 222 |0.000369932 
+ 223 |0.000369335 
+ 224 |0.000370945 
+ 225 |0.000367966 
+ 226 |0.00036928 
+ 227 |0.000369155 
+ 228 |0.000368799 
+ 229 |0.000365645 
+ 230 |0.000369716 
+ 231 |0.00036917 
+ 232 |0.000369355 
+ 233 |0.000370739 
+ 234 |0.00036934 
+ 235 |0.000368177 
+ 236 |0.000370498 
+ 237 |0.000371852 
+ 238 |0.000368633 
+ 239 |0.000368879 
+ 240 |0.000367796 
+ 241 |0.000371742 
+ 242 |0.000310205 
+ 243 |0.000309594 
+ 244 |0.000311474 
+ 245 |0.000307934 
+ 246 |0.00031193 
+ 247 |0.000310501 
+ 248 |0.000312382 
+ 249 |0.000313846 
+ 250 |0.000312993 
+ 251 |0.000312166 
+ 252 |0.00031181 
+ 253 |0.000309624 
+ 254 |0.000309288 
+ 255 |0.000310822 
+ 256 |0.000311103 
+ 257 |0.000311855 
+ 258 |0.000313465 
+ 259 |0.000311579 
+ 260 |0.000310456 
+ 261 |0.000310185 
+ 262 |0.000309739 
+ 263 |0.000313645 
+ 264 |0.000313675 
+ 265 |0.000313003 
+ 266 |0.000223426 
+ 267 |0.000224128 
+ 268 |0.000225292 
+ 269 |0.000225126 
+ 270 |0.000225086 
+ 271 |0.000225407 
+ 272 |0.000223662 
+ 273 |0.000225302 
+ 274 |0.000222634 
+ 275 |0.000225507 
+ 276 |0.000224133 
+ 277 |0.000223948 
+ 278 |0.0002248 
+ 279 |0.000225497 
+ 280 |0.000223386 
+ 281 |0.000224209 
+ 282 |0.000225698 
+ 283 |0.000224459 
+ 284 |0.000223542 
+ 285 |0.000223707 
+ 286 |0.000225778 
+ 287 |0.000224093 
+ 288 |0.000225863 
+ 289 |0.000225387 
+ 290 |0.000323609 
+ 291 |0.000323819 
+ 292 |0.00032389 
+ 293 |0.000325033 
+ 294 |0.000322325 
+ 295 |0.000322756 
+ 296 |0.000323413 
+ 297 |0.000325138 
+ 298 |0.000322405 
+ 299 |0.000325018 
+ 300 |0.000325143 
+ 301 |0.000324958 
+ 302 |0.000322476 
+ 303 |0.000324336 
+ 304 |0.000321262 
+ 305 |0.000323865 
+ 306 |0.000324527 
+ 307 |0.000323579 
+ 308 |0.00032388 
+ 309 |0.000323629 
+ 310 |0.000323117 
+ 311 |0.000324241 
+ 312 |0.000323995 
+ 313 |0.000321643 
+ 314 |0.000315947 
+ 315 |0.00031708 
+ 316 |0.000315425 
+ 317 |0.000314779 
+ 318 |0.000317441 
+ 319 |0.000316097 
+ 320 |0.000315661 
+ 321 |0.000314814 
+ 322 |0.000315892 
+ 323 |0.00031697 
+ 324 |0.000314021 
+ 325 |0.00031545 
+ 326 |0.000316373 
+ 327 |0.000316834 
+ 328 |0.000318063 
+ 329 |0.000316072 
+ 330 |0.000319291 
+ 331 |0.000316488 
+ 332 |0.000315536 
+ 333 |0.000316438 
+ 334 |0.000314819 
+ 335 |0.000314041 
+ 336 |0.000316188 
+ 337 |0.000317902 
+ 338 |0.000285103 
+ 339 |0.000285585 
+ 340 |0.00028394 
+ 341 |0.000286477 
+ 342 |0.000283288 
+ 343 |0.000284472 
+ 344 |0.000284527 
+ 345 |0.000285093 
+ 346 |0.000285349 
+ 347 |0.00028745 
+ 348 |0.00028397 
+ 349 |0.000285695 
+ 350 |0.00028394 
+ 351 |0.000284146 
+ 352 |0.00028576 
+ 353 |0.000287169 
+ 354 |0.000284156 
+ 355 |0.000284371 
+ 356 |0.000284492 
+ 357 |0.000285845 
+ 358 |0.000286106 
+ 359 |0.000284853 
+ 360 |0.000284978 
+ 361 |0.000284467 
+ 362 |0.000246638 
+ 363 |0.000244206 
+ 364 |0.0002473 
+ 365 |0.000247119 
+ 366 |0.000246217 
+ 367 |0.000245846 
+ 368 |0.000245154 
+ 369 |0.000246568 
+ 370 |0.000246227 
+ 371 |0.000246984 
+ 372 |0.000246658 
+ 373 |0.000249521 
+ 374 |0.000247305 
+ 375 |0.000246357 
+ 376 |0.000246688 
+ 377 |0.000245765 
+ 378 |0.000245379 
+ 379 |0.000246748 
+ 380 |0.000246748 
+ 381 |0.000245785 
+ 382 |0.000247029 
+ 383 |0.000246031 
+ 384 |0.000246282 
+ 385 |0.000246147 
+ 386 |0.000182384 
+ 387 |0.000183472 
+ 388 |0.000180944 
+ 389 |0.000180699 
+ 390 |0.000181335 
+ 391 |0.000182278 
+ 392 |0.000181807 
+ 393 |0.000182323 
+ 394 |0.000184048 
+ 395 |0.000183622 
+ 396 |0.000181837 
+ 397 |0.000180067 
+ 398 |0.000180974 
+ 399 |0.000180628 
+ 400 |0.000182123 
+ 401 |0.000182128 
+ 402 |0.000182278 
+ 403 |0.000182248 
+ 404 |0.000180734 
+ 405 |0.000181862 
+ 406 |0.000182158 
+ 407 |0.000182083 
+ 408 |0.000182599 
+ 409 |0.000181571 
+ 410 |0.000360074 
+ 411 |0.000361367 
+ 412 |0.000358168 
+ 413 |0.00036068 
+ 414 |0.000362109 
+ 415 |0.000358659 
+ 416 |0.000360831 
+ 417 |0.000358985 
+ 418 |0.000358675 
+ 419 |0.000359753 
+ 420 |0.000359316 
+ 421 |0.000361327 
+ 422 |0.000360801 
+ 423 |0.000361648 
+ 424 |0.000358935 
+ 425 |0.000360645 
+ 426 |0.000360766 
+ 427 |0.000360194 
+ 428 |0.000362205 
+ 429 |0.000361463 
+ 430 |0.000360836 
+ 431 |0.000358414 
+ 432 |0.000358168 
+ 433 |0.00035883 
+ 434 |0.000353199 
+ 435 |0.000350957 
+ 436 |0.000351188 
+ 437 |0.000352898 
+ 438 |0.000354131 
+ 439 |0.000354307 
+ 440 |0.000354016 
+ 441 |0.000353956 
+ 442 |0.000354091 
+ 443 |0.000353745 
+ 444 |0.000352437 
+ 445 |0.000353404 
+ 446 |0.000351343 
+ 447 |0.00035181 
+ 448 |0.000352432 
+ 449 |0.00035348 
+ 450 |0.000353229 
+ 451 |0.000355766 
+ 452 |0.000350997 
+ 453 |0.00035203 
+ 454 |0.000353314 
+ 455 |0.000352743 
+ 456 |0.000353655 
+ 457 |0.000355851 
+ 458 |0.000327535 
+ 459 |0.000328207 
+ 460 |0.000328007 
+ 461 |0.000326196 
+ 462 |0.000326552 
+ 463 |0.000328297 
+ 464 |0.0003276 
+ 465 |0.000326006 
+ 466 |0.000327921 
+ 467 |0.000328503 
+ 468 |0.000324652 
+ 469 |0.000327375 
+ 470 |0.000328022 
+ 471 |0.000328022 
+ 472 |0.000326858 
+ 473 |0.00032764 
+ 474 |0.000326948 
+ 475 |0.000329406 
+ 476 |0.000327891 
+ 477 |0.000328734 
+ 478 |0.000325128 
+ 479 |0.000328393 
+ 480 |0.000326016 
+ 481 |0.000329345 
+ 482 |0.00029277 
+ 483 |0.000290995 
+ 484 |0.000291968 
+ 485 |0.000291988 
+ 486 |0.000292931 
+ 487 |0.000292575 
+ 488 |0.000290614 
+ 489 |0.000293056 
+ 490 |0.000289852 
+ 491 |0.000295217 
+ 492 |0.000294159 
+ 493 |0.000295112 
+ 494 |0.000293643 
+ 495 |0.000290343 
+ 496 |0.000291612 
+ 497 |0.000293086 
+ 498 |0.000295132 
+ 499 |0.000290253 
+ 500 |0.000290363 
+ 501 |0.000292254 
+ 502 |0.000290559 
+ 503 |0.000293758 
+ 504 |0.000291798 
+ 505 |0.000294059 
+ 506 |0.000215784 
+ 507 |0.000216983 
+ 508 |0.000217344 
+ 509 |0.000215724 
+ 510 |0.000215684 
+ 511 |0.000215794 
+ 512 |0.000214867 
+ 513 |0.000216692 
+ 514 |0.000216251 
+ 515 |0.000216822 
+ 516 |0.000213558 
+ 517 |0.000214064 
+ 518 |0.00021598 
+ 519 |0.000216155 
+ 520 |0.000215102 
+ 521 |0.000215358 
+ 522 |0.000215082 
+ 523 |0.0002161 
+ 524 |0.000216386 
+ 525 |0.000216827 
+ 526 |0.000215158 
+ 527 |0.000215138 
+ 528 |0.000214681 
+ 529 |0.000218693 
+ 530 |0.000863819 
+ 531 |0.00086233 
+ 532 |0.000863544 
+ 533 |0.00085863 
+ 534 |0.000858991 
+ 535 |0.000860706 
+ 536 |0.000865224 
+ 537 |0.000866607 
+ 538 |0.000861438 
+ 539 |0.000862992 
+ 540 |0.000859502 
+ 541 |0.000862054 
+ 542 |0.000864677 
+ 543 |0.000862566 
+ 544 |0.000862907 
+ 545 |0.000862751 
+ 546 |0.000861177 
+ 547 |0.000865123 
+ 548 |0.000862877 
+ 549 |0.000865128 
+ 550 |0.00086405 
+ 551 |0.000863554 
+ 552 |0.000860761 
+ 553 |0.00086045 
+ 554 |0.000843346 
+ 555 |0.000845798 
+ 556 |0.000847889 
+ 557 |0.000849714 
+ 558 |0.000847829 
+ 559 |0.000845236 
+ 560 |0.000846906 
+ 561 |0.000847182 
+ 562 |0.000846635 
+ 563 |0.000845271 
+ 564 |0.000846384 
+ 565 |0.000845753 
+ 566 |0.000844965 
+ 567 |0.000845427 
+ 568 |0.000846344 
+ 569 |0.000844755 
+ 570 |0.00084501 
+ 571 |0.00084659 
+ 572 |0.000842654 
+ 573 |0.000848556 
+ 574 |0.000847658 
+ 575 |0.000845788 
+ 576 |0.000849619 
+ 577 |0.000845066 
+ 578 |0.000789005 
+ 579 |0.000786357 
+ 580 |0.000782757 
+ 581 |0.000784111 
+ 582 |0.000785033 
+ 583 |0.000785926 
+ 584 |0.000788468 
+ 585 |0.000785635 
+ 586 |0.00078404 
+ 587 |0.000788047 
+ 588 |0.000784672 
+ 589 |0.000785379 
+ 590 |0.000788774 
+ 591 |0.000785399 
+ 592 |0.000784863 
+ 593 |0.000787541 
+ 594 |0.000785525 
+ 595 |0.000781343 
+ 596 |0.000785545 
+ 597 |0.000787887 
+ 598 |0.000784512 
+ 599 |0.000784061 
+ 600 |0.00078389 
+ 601 |0.000788609 
+ 602 |0.000722434 
+ 603 |0.000720012 
+ 604 |0.000719019 
+ 605 |0.000718106 
+ 606 |0.000718121 
+ 607 |0.000721225 
+ 608 |0.000720563 
+ 609 |0.000721676 
+ 610 |0.000722033 
+ 611 |0.000720649 
+ 612 |0.000721095 
+ 613 |0.000720277 
+ 614 |0.000719661 
+ 615 |0.000723632 
+ 616 |0.00071936 
+ 617 |0.000722704 
+ 618 |0.000720187 
+ 619 |0.000717765 
+ 620 |0.000720393 
+ 621 |0.000720969 
+ 622 |0.000721135 
+ 623 |0.000720959 
+ 624 |0.000720969 
+ 625 |0.000721245 
+
+Now unfolding...
+Iteration : 0
+Chi^2 of change 112099
+Iteration : 1
+Chi^2 of change 6189.59
+Iteration : 2
+Chi^2 of change 1149.24
+Iteration : 3
+Chi^2 of change 425.591
+Iteration : 4
+Chi^2 of change 212.095
+Iteration : 5
+Chi^2 of change 118.686
+Iteration : 6
+Chi^2 of change 70.5213
+Iteration : 7
+Chi^2 of change 43.9416
+Iteration : 8
+Chi^2 of change 28.7474
+Iteration : 9
+Chi^2 of change 19.844
+Iteration : 10
+Chi^2 of change 14.5102
+Iteration : 11
+Chi^2 of change 11.2414
+Iteration : 12
+Chi^2 of change 9.18758
+Iteration : 13
+Chi^2 of change 7.86033
+Iteration : 14
+Chi^2 of change 6.97489
+Iteration : 15
+Chi^2 of change 6.36276
+Iteration : 16
+Chi^2 of change 5.92279
+Iteration : 17
+Chi^2 of change 5.59332
+Iteration : 18
+Chi^2 of change 5.33622
+Iteration : 19
+Chi^2 of change 5.1275
+Iteration : 20
+Chi^2 of change 4.95188
+Iteration : 21
+Chi^2 of change 4.79945
+Iteration : 22
+Chi^2 of change 4.66369
+Iteration : 23
+Chi^2 of change 4.54025
+Iteration : 24
+Chi^2 of change 4.4262
+Using response matrix priors
+Calculating covariances due to number of measured events
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+Using response matrix priors
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:1735: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:1830: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:1861: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/./Simple_RooUnfold_SelfContained.py:3318: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(tdf not in ["N/A"]):
+
+Adding the following extra title to the histograms:
+	#rho^{0} Normalized Subtraction Run
+
+
+[1m[94mSmear option selected is: Smear[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '8', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m8-23-2026[0m at [1m01:49 a.m.[0m
+
+The total number of histograms available for the [1mRDataFrame[0m in '[1m[94m/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_1st_Order_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root[0m' is [1m1002[0m
+
+
+[1mDone Loading RDataFrame files...
+[0m
+[1m[94m
+
+Starting Unfolding Procedures...
+[0m
+Bin 1 is not in Q2_y_Bin_List = ['8', '0']
+Bin 10 is not in Q2_y_Bin_List = ['8', '0']
+Bin 11 is not in Q2_y_Bin_List = ['8', '0']
+Bin 12 is not in Q2_y_Bin_List = ['8', '0']
+Bin 13 is not in Q2_y_Bin_List = ['8', '0']
+Bin 14 is not in Q2_y_Bin_List = ['8', '0']
+Bin 15 is not in Q2_y_Bin_List = ['8', '0']
+Bin 16 is not in Q2_y_Bin_List = ['8', '0']
+Bin 17 is not in Q2_y_Bin_List = ['8', '0']
+Bin 2 is not in Q2_y_Bin_List = ['8', '0']
+Bin 3 is not in Q2_y_Bin_List = ['8', '0']
+Bin 4 is not in Q2_y_Bin_List = ['8', '0']
+Bin 5 is not in Q2_y_Bin_List = ['8', '0']
+Bin 6 is not in Q2_y_Bin_List = ['8', '0']
+Bin 7 is not in Q2_y_Bin_List = ['8', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
+[1m[96mStarting [4m[95mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mAcceptance Correction of Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal_1D'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91m
+Bin 243 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.0002909655205858106)[0m
+[91m
+Bin 266 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.000160202495954887)[0m
+[91m
+Bin 290 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 0.00011123965471211178)[0m
+[91m
+Bin 579 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 7.626407707756056e-05)[0m
+[91m
+Bin 602 had a very low acceptance...
+	(cut_criteria = 0.0005)
+	(Bin_Content  = 7.630238635713331e-05)[0m
+[1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
+
+Current Time: [1m01:49 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+	[96mUsing [1m[92mRooUnfold (Bin-by-Bin)[0m[96m Unfolding Procedure...[0m
+[1m[96mFinished [92mRooUnfold (Bin-by-Bin)[0m[1m[96m Unfolding Procedure.
+[0m
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
+[1mPerforming Unfolding with [4m25[0m[1m iteration(s)...[0m
+
+Current Time: [1m01:52 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 2 Minute(s), and 32 Second(s).
+
+[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
+[0m
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+Bin 9 is not in Q2_y_Bin_List = ['8', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D_initial' histogram[0m
+Total: 2
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_1st_Order_V3.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 199
+
+
+Current Time: [1m01:52 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 2 Minute(s), and 32 Second(s).
+
+Conditions for running 'Create_Fits_and_Apply_RC_and_BC' were not set...
+Need to run: '(args.fit and args.Use_TTree) or args.Apply_RC'
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92mUnfolded_Parallel_SIDIS_epip_from_Only_3D_1st_Order_V3.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 199
+
+
+Current Time: [1m01:52 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 2 Minute(s), and 34 Second(s).
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m8-23-2026[0m at [1m01:49 a.m.[0m
+
+Input File:
+	/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_1st_Order_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root
+Output File:
+	Unfolded_Parallel_SIDIS_epip_from_Only_3D_1st_Order_V3.root
+
+Coordinated 3D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran 3D Unfolding with updated kinematic bins (based on the BC correction limitations) and 25 bayesian iterations for testing of each Q2-y Bin with 15 Toys (low setting for testing) but WITHOUT Radiative Corrections. Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxSIDIS.
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+	Finished Unfolding the histogram at:
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 2 Minute(s), and 32 Second(s). 
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--unfolding_5D (Ran 5D Unfolding Fits)              --> False
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--weight_tag                                        --> ''
+--fit                                               --> False
+--remake_fit                                        --> False
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> 25
+--Num_Toys                                          --> 15
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> '#rho^{0} Normalized Subtraction Run'
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.0005
+--Use_TTree                                         --> False
+--Apply_RC                                          --> False
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--save_json                                         --> False
+--json_name                                         --> None
+--old_json                                          --> False
+--background_source                                 --> 'lundvpk'
+--use_spline_init                                   --> False
+--fit_init_file                                     --> None
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'smear'
+--Q2_y_Bin_List                                     --> ['8', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+
+
+The time that this code finished is [1m01:52 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 2 Minute(s), and 34 Second(s).
+Saved 199 Histograms...
+Rate = 1.29 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    
