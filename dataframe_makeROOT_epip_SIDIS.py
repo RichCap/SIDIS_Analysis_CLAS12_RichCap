@@ -212,7 +212,7 @@ if("All" not in args.exclude_groups):
         if(group_name not in args.exclude_groups):
             exclude_vars.extend(variables)
     if(len(exclude_vars) != 0):
-        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
+        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen", "pim_vals", "pim_vals_gen", "pim_vals_smeared"])
         if(args.verbose):
             print(f"\n{color.BYELLOW}{color.UNDERLINE}Will Exclude the following variables from the Snapshot output:{color.END}")
             for num, ii in enumerate(exclude_vars):
@@ -220,7 +220,7 @@ if("All" not in args.exclude_groups):
         else:
             print("\nUse '--verbose' argument to see the list of excluded variables\n")
     else:
-        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen"])
+        exclude_vars.extend(["All_MultiDim_Y_bin", "All_MultiDim_Y_bin_gen", "All_MultiDim_Y_bin_smeared", "smeared_vals", "vals", "vals2", "vals2_gen", "vals_gen", "pim_vals", "pim_vals_gen", "pim_vals_smeared"])
 else:
     print(f"{color.Error}Not Excluding Any Variables from the Snapshot Output...{color.END}\n\n")
     

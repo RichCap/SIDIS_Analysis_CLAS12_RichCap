@@ -1647,3 +1647,317 @@ CMD [Only_3D]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SI
 [Only_3D] 
 [Only_3D]     
 DONE [Only_3D] cut=cut_Complete_SIDIS rc=0 wall=35158.0s
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-08-23T22:48:34 name=1st_Order_V3 mode=parallel email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+  name=1st_Order_V3  mode=parallel  email=all  skip_acceptance=True  run_all_cuts=False  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V3_full_pipeline.log
+  time log:   /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/1st_Order_V3_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=1  jobs_3D=0  jobs_5D=8  jobs_Binning=1
+rho0_source for Acceptance: lundvpk
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS: pure=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp
+                 comb=/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp
+
+=== Stage 2: Response-matrix products (2D_Presentation×1, Only_5D×8, Binning_Presentation_Only×1 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: jobs=1 (from --jobs_2D)
+  Only_3D: SKIPPED (jobs_3D=0)
+  Only_5D: jobs=8 (from --jobs_5D)
+  Binning_Presentation_Only: jobs=1 (from --jobs_Binning)
+
+Products for cut cut_Complete_SIDIS
+SKIP product Only_3D for cut cut_Complete_SIDIS (jobs_3D=0)
+CMD [2D_Presentation]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n 2D_Presentation_1st_Order_V3_Q2_Y_Bins --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --z_axis_2D Q2_Y_Bin --no_make_2D_rho --jobs 1 --email -emj Running full histogram runner script (1st_Order_V3) for the remaining Phase-2 products after the 3D-only test with the updated kinematic binning scheme (empty BC Corrections bins removed). 3D is skipped (--jobs_3D 0) because that mode already finished for V3. Skipped HPP generation and reused HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp via --HPP_Old_Name 1st_Order. Included the most recent versions of the rho0 subtractions. Phase-2 2D Presentation and Binning Presentation each set to 1 concurrent job so they run without competing much with 5D. Phase-2 5D Response Matrices set to 8 concurrent jobs (priority product; same 5D concurrency previously treated as reasonable). Ran in tmuxPython. 2D Presentation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+CMD [Only_5D]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Only_5D_1st_Order_V3_Response_Matrices --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --jobs 8 --email -emj Running full histogram runner script (1st_Order_V3) for the remaining Phase-2 products after the 3D-only test with the updated kinematic binning scheme (empty BC Corrections bins removed). 3D is skipped (--jobs_3D 0) because that mode already finished for V3. Skipped HPP generation and reused HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp via --HPP_Old_Name 1st_Order. Included the most recent versions of the rho0 subtractions. Phase-2 2D Presentation and Binning Presentation each set to 1 concurrent job so they run without competing much with 5D. Phase-2 5D Response Matrices set to 8 concurrent jobs (priority product; same 5D concurrency previously treated as reasonable). Ran in tmuxPython. Only 5D Response Matrices --extra --run_rho_weight --unfold_5D_only
+CMD [Binning_Presentation_Only]: ./run_sidis_DataFrame_pipeline.py -m parallel -cn cut_Complete_SIDIS -n Binning_Presentation_Only_1st_Order_V3 --use_hpp --spline_weights --spline_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_noSpline.hpp --hpp_weight_file_spline /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_1st_Order_withSpline.hpp --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --jobs 1 --email -emj Running full histogram runner script (1st_Order_V3) for the remaining Phase-2 products after the 3D-only test with the updated kinematic binning scheme (empty BC Corrections bins removed). 3D is skipped (--jobs_3D 0) because that mode already finished for V3. Skipped HPP generation and reused HPP_Files_Output/generated_acceptance_weights_1st_Order_{noSpline,withSpline}.hpp via --HPP_Old_Name 1st_Order. Included the most recent versions of the rho0 subtractions. Phase-2 2D Presentation and Binning Presentation each set to 1 concurrent job so they run without competing much with 5D. Phase-2 5D Response Matrices set to 8 concurrent jobs (priority product; same 5D concurrency previously treated as reasonable). Ran in tmuxPython. Binning Presentation Only Histograms --extra --binning_presentation_only --run_rho_weight
+[Only_5D] 
+[Only_5D] Started running on 8-23-2026 at 10:48 p.m.
+[Only_5D] 
+[Only_5D] Starting parallel run with 171 batches → output dir: /scratch/richcap/Response_Matrix_Outputs/Only_5D_1st_Order_V3_Response_Matrices_Final_Analysis_Iterations_I0_08_23_2026
+[Only_5D] 
+[Only_5D] START: Batch   1 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   2 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   3 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   4 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   5 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   6 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   7 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] START: Batch   8 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s). 
+[Only_5D] DONE : Batch   3 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Only_5D] START: Batch   9 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 16 Minute(s), and 10 Second(s). 
+[Only_5D] DONE : Batch   4 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 15 Second(s). 
+[Only_5D] START: Batch  10 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 15 Second(s). 
+[Only_5D] DONE : Batch   6 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 16 Second(s). 
+[Only_5D] START: Batch  11 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 16 Second(s). 
+[Only_5D] DONE : Batch   7 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 16 Second(s). 
+[Only_5D] START: Batch  12 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 16 Second(s). 
+[Only_5D] DONE : Batch   5 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 23 Second(s). 
+[Only_5D] START: Batch  13 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 23 Second(s). 
+[Only_5D] DONE : Batch   8 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 25 Second(s). 
+[Only_5D] START: Batch  14 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 25 Second(s). 
+[Only_5D] DONE : Batch   1 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 26 Second(s). 
+[Only_5D] START: Batch  15 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 26 Second(s). 
+[Only_5D] DONE : Batch   2 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 33 Second(s). 
+[Only_5D] START: Batch  16 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 1 Hour(s), 31 Minute(s), and 33 Second(s). 
+[Only_5D] DONE : Batch  14 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Only_5D] START: Batch  17 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 27 Minute(s), and 33 Second(s). 
+[Only_5D] DONE : Batch  13 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 30 Minute(s), and 50 Second(s). 
+[Only_5D] START: Batch  18 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 30 Minute(s), and 50 Second(s). 
+[Only_5D] DONE : Batch  12 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 31 Minute(s), and 15 Second(s). 
+[Only_5D] START: Batch  19 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 31 Minute(s), and 15 Second(s). 
+[Only_5D] DONE : Batch   9 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 44 Minute(s), and 19 Second(s). 
+[Only_5D] START: Batch  20 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 44 Minute(s), and 19 Second(s). 
+[Only_5D] DONE : Batch  11 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 45 Minute(s), and 41 Second(s). 
+[Only_5D] START: Batch  21 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 45 Minute(s), and 41 Second(s). 
+[Only_5D] DONE : Batch  10 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 46 Minute(s), and 6 Second(s). 
+[Only_5D] START: Batch  22 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 46 Minute(s), and 6 Second(s). 
+[Only_5D] DONE : Batch  16 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 56 Second(s). 
+[Only_5D] START: Batch  23 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 56 Second(s). 
+[Only_5D] DONE : Batch  15 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 57 Second(s). 
+[Only_5D] START: Batch  24 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 2 Hour(s), 54 Minute(s), and 57 Second(s). 
+[Only_5D] DONE : Batch  17 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 47 Second(s). 
+[Only_5D] START: Batch  25 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 49 Minute(s), and 47 Second(s). 
+[Only_5D] DONE : Batch  18 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 52 Minute(s), and 50 Second(s). 
+[Only_5D] START: Batch  26 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 52 Minute(s), and 50 Second(s). 
+[Only_5D] DONE : Batch  19 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 53 Minute(s), and 35 Second(s). 
+[Only_5D] START: Batch  27 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 3 Hour(s), 53 Minute(s), and 35 Second(s). 
+[Only_5D] DONE : Batch  20 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 6 Minute(s), and 31 Second(s). 
+[Only_5D] START: Batch  28 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 6 Minute(s), and 31 Second(s). 
+[Only_5D] DONE : Batch  21 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 8 Minute(s), and 15 Second(s). 
+[Only_5D] START: Batch  29 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 8 Minute(s), and 15 Second(s). 
+[Only_5D] DONE : Batch  22 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 9 Minute(s), and 37 Second(s). 
+[Only_5D] START: Batch  30 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 9 Minute(s), and 37 Second(s). 
+[Only_5D] DONE : Batch  24 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Only_5D] START: Batch  31 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 17 Minute(s), and 44 Second(s). 
+[Only_5D] DONE : Batch  23 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 18 Minute(s), and 23 Second(s). 
+[Only_5D] START: Batch  32 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 18 Minute(s), and 23 Second(s). 
+[Only_5D] DONE : Batch  25 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 12 Minute(s), and 15 Second(s). 
+[Only_5D] START: Batch  33 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 12 Minute(s), and 15 Second(s). 
+[Only_5D] DONE : Batch  26 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 16 Minute(s), and 28 Second(s). 
+[Only_5D] START: Batch  34 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 16 Minute(s), and 28 Second(s). 
+[Only_5D] DONE : Batch  27 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 16 Minute(s), and 35 Second(s). 
+[Only_5D] START: Batch  35 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 16 Minute(s), and 35 Second(s). 
+[Only_5D] DONE : Batch  28 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 28 Minute(s), and 28 Second(s). 
+[Only_5D] START: Batch  36 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 28 Minute(s), and 28 Second(s). 
+[Only_5D] DONE : Batch  29 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 30 Minute(s), and 18 Second(s). 
+[Only_5D] START: Batch  37 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 30 Minute(s), and 18 Second(s). 
+[Only_5D] DONE : Batch  30 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 32 Minute(s), and 17 Second(s). 
+[Only_5D] START: Batch  38 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 32 Minute(s), and 17 Second(s). 
+[Only_5D] DONE : Batch  31 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 40 Minute(s), and 10 Second(s). 
+[Only_5D] START: Batch  39 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 40 Minute(s), and 10 Second(s). 
+[Only_5D] DONE : Batch  32 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 40 Minute(s), and 34 Second(s). 
+[Only_5D] START: Batch  40 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 40 Minute(s), and 34 Second(s). 
+[Only_5D] DONE : Batch  33 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 34 Minute(s), and 25 Second(s). 
+[Only_5D] START: Batch  41 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 34 Minute(s), and 25 Second(s). 
+[Only_5D] DONE : Batch  35 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 39 Minute(s), and 33 Second(s). 
+[Only_5D] START: Batch  42 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 39 Minute(s), and 33 Second(s). 
+[Only_5D] DONE : Batch  36 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 51 Minute(s), and 16 Second(s). 
+[Only_5D] START: Batch  43 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 51 Minute(s), and 16 Second(s). 
+[Only_5D] DONE : Batch  37 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 52 Minute(s), and 36 Second(s). 
+[Only_5D] START: Batch  44 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 52 Minute(s), and 36 Second(s). 
+[Only_5D] DONE : Batch  38 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 59 Minute(s), and 37 Second(s). 
+[Only_5D] START: Batch  45 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 6 Hour(s), 59 Minute(s), and 37 Second(s). 
+[Only_5D] DONE : Batch  40 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 3 Minute(s), and 18 Second(s). 
+[Only_5D] START: Batch  46 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 7 Hour(s), 3 Minute(s), and 18 Second(s). 
+[Only_5D] DONE : Batch  42 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Only_5D] START: Batch  47 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 1 Minute(s), and 44 Second(s). 
+[Only_5D] DONE : Batch  43 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 14 Minute(s), and 2 Second(s). 
+[Only_5D] START: Batch  48 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 14 Minute(s), and 2 Second(s). 
+[Only_5D] DONE : Batch  34 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 43 Minute(s), and 31 Second(s). 
+[Only_5D] START: Batch  49 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 8 Hour(s), 43 Minute(s), and 31 Second(s). 
+[Only_5D] DONE : Batch  39 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 5 Minute(s), and 46 Second(s). 
+[Only_5D] START: Batch  50 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 5 Minute(s), and 46 Second(s). 
+[Only_5D] DONE : Batch  47 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 24 Minute(s), and 45 Second(s). 
+[Only_5D] START: Batch  51 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 24 Minute(s), and 45 Second(s). 
+[Only_5D] DONE : Batch  41 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 59 Minute(s), and 52 Second(s). 
+[Only_5D] START: Batch  52 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 9 Hour(s), 59 Minute(s), and 52 Second(s). 
+[Only_5D] DONE : Batch  50 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 15 Minute(s), and 8 Second(s). 
+[Only_5D] START: Batch  53 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 15 Minute(s), and 8 Second(s). 
+[Only_5D] DONE : Batch  44 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 18 Minute(s), and 20 Second(s). 
+[Only_5D] START: Batch  54 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 18 Minute(s), and 20 Second(s). 
+[Only_5D] DONE : Batch  45 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 24 Minute(s), and 36 Second(s). 
+[Only_5D] START: Batch  55 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 24 Minute(s), and 36 Second(s). 
+[Only_5D] DONE : Batch  46 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 28 Minute(s), and 42 Second(s). 
+[Only_5D] START: Batch  56 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 28 Minute(s), and 42 Second(s). 
+[Only_5D] DONE : Batch  51 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 34 Minute(s), and 22 Second(s). 
+[Only_5D] START: Batch  57 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 10 Hour(s), 34 Minute(s), and 22 Second(s). 
+[Only_5D] DONE : Batch  52 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 11 Minute(s), and 34 Second(s). 
+[Only_5D] START: Batch  58 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 11 Minute(s), and 34 Second(s). 
+[Only_5D] DONE : Batch  53 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Only_5D] START: Batch  59 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 27 Minute(s), and 52 Second(s). 
+[Only_5D] DONE : Batch  54 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 30 Minute(s), and 52 Second(s). 
+[Only_5D] START: Batch  60 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 30 Minute(s), and 52 Second(s). 
+[Only_5D] DONE : Batch  55 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 37 Minute(s), and 57 Second(s). 
+[Only_5D] START: Batch  61 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 37 Minute(s), and 57 Second(s). 
+[Only_5D] DONE : Batch  56 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 44 Minute(s), and 1 Second(s). 
+[Only_5D] START: Batch  62 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 44 Minute(s), and 1 Second(s). 
+[Only_5D] DONE : Batch  57 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 48 Minute(s), and 38 Second(s). 
+[Only_5D] START: Batch  63 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 48 Minute(s), and 38 Second(s). 
+[Only_5D] DONE : Batch  49 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 59 Minute(s), and 39 Second(s). 
+[Only_5D] START: Batch  64 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 11 Hour(s), 59 Minute(s), and 39 Second(s). 
+[Only_5D] DONE : Batch  58 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 24 Minute(s), and 50 Second(s). 
+[Only_5D] START: Batch  65 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 24 Minute(s), and 50 Second(s). 
+[Only_5D] DONE : Batch  59 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 41 Minute(s), and 6 Second(s). 
+[Only_5D] START: Batch  66 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 41 Minute(s), and 6 Second(s). 
+[Only_5D] DONE : Batch  60 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 44 Minute(s), and 3 Second(s). 
+[Only_5D] START: Batch  67 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 44 Minute(s), and 3 Second(s). 
+[Only_5D] DONE : Batch  61 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 51 Minute(s), and 28 Second(s). 
+[Only_5D] START: Batch  68 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 51 Minute(s), and 28 Second(s). 
+[Only_5D] DONE : Batch  62 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 58 Minute(s), and 10 Second(s). 
+[Only_5D] START: Batch  69 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 12 Hour(s), 58 Minute(s), and 10 Second(s). 
+[Only_5D] DONE : Batch  63 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 3 Minute(s), and 31 Second(s). 
+[Only_5D] START: Batch  70 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 3 Minute(s), and 31 Second(s). 
+[Only_5D] DONE : Batch  64 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 14 Minute(s), and 23 Second(s). 
+[Only_5D] START: Batch  71 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 14 Minute(s), and 23 Second(s). 
+[Only_5D] DONE : Batch  65 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 41 Minute(s), and 9 Second(s). 
+[Only_5D] START: Batch  72 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 41 Minute(s), and 9 Second(s). 
+[Only_5D] DONE : Batch  48 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 51 Minute(s), and 34 Second(s). 
+[Only_5D] START: Batch  73 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 51 Minute(s), and 34 Second(s). 
+[Only_5D] DONE : Batch  66 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 56 Minute(s), and 56 Second(s). 
+[Only_5D] START: Batch  74 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 56 Minute(s), and 56 Second(s). 
+[Only_5D] DONE : Batch  67 of 171
+[Only_5D] Time Elapsed Up To Now: 0 Day(s), 13 Hour(s), 59 Minute(s), and 11 Second(s). 
+[Only_5D] START: Batch  75 of 171
