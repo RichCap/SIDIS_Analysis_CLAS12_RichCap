@@ -112,7 +112,7 @@ Script: {Name_of_Script}""",
                         # default='Unfolded_Parallel_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root',
                         default='Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_rho0_Subtraction.root',
                         # default='Unfolded_Parallel_SIDIS_epip_from_Only_3D_wFitIntegration_V4_WITHOUT_rho0_Subtraction.root',
-                        help="Command-line `--root` argument for passing the output file name.\n")
+                        help="Command-line `--root` argument for the output file name (3D: appended to args_command; 5D: forwarded to Dedicated_5D_Unfold.py only if given on this command line).\n")
     
     parser.add_argument('-sfi', '--single_file_input',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_rho0_Normalized_Response_Matrices_Final_Analysis_Iterations_I0_All.root',
@@ -120,7 +120,7 @@ Script: {Name_of_Script}""",
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V3_Response_Matrices_Final_Analysis_Iterations_I0_All.root',
                         default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root',
                         # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/Copy_for_no_rhoSub_SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_wFitIntegration_V4_Response_Matrices_Final_Analysis_Iterations_I0_All.root',
-                        help="Command-line `--single_file_input` argument for passing the input file name.\n")
+                        help="Command-line `--single_file_input` argument for the input file name (3D: appended to args_command; 5D: forwarded to Dedicated_5D_Unfold.py only if given on this command line).\n")
 
     parser.add_argument('-em', '--email_message',
                         # default='Running Unfolding with 0th Order Acceptance Weights as background parallel jobs. Ran in tmuxTTree.',
@@ -180,21 +180,47 @@ def effective_prefixes_for_run_mode(run_mode, log_prefix, time_prefix):
     return (log_prefix, time_prefix, None)
 
 
-def build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command):
+def flag_was_passed(parser, dest, argv=None):
+    argv = sys.argv[1:] if(argv is None) else argv
+    option_strings = []
+    for action in parser._actions:
+        if(action.dest == dest):
+            option_strings = list(action.option_strings)
+            break
+    for tok in argv:
+        for opt in option_strings:
+            if(tok == opt) or (tok.startswith(f'{opt}=')):
+                return True
+    return False
+
+
+def append_5d_flag_if_needed(script_cmd, flag_long, value, extra_args_command):
+    if(value is None):
+        return script_cmd
+    if(flag_long in str(extra_args_command)):
+        return script_cmd
+    script_cmd.extend([flag_long, str(value)])
+    return script_cmd
+
+
+def build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None):
     if(run_mode == '5D'):
-        script_cmd = [script, '--background_source', background_source, '-em', email_message, '-e']
+        script_cmd = [script]
+        script_cmd = append_5d_flag_if_needed(script_cmd, '--root', root, extra_args_command)
+        script_cmd = append_5d_flag_if_needed(script_cmd, '--single_file_input', single_file_input, extra_args_command)
+        script_cmd += ['--background_source', background_source, '-em', email_message, '-e']
         if(extra_args_command.strip()):
             script_cmd += shlex.split(extra_args_command)
         return script_cmd
     return [script] + shlex.split(args_command) + ['-em', email_message, '-ti', title, str(job_label)]
 
 
-def build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command):
-    return shlex.join(build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command))
+def build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None):
+    return shlex.join(build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input))
 
 
-def build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command):
-    return ['/usr/bin/time', '-v', '-o', timefile] + build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command)
+def build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=None, single_file_input=None):
+    return ['/usr/bin/time', '-v', '-o', timefile] + build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input)
 
 
 def wait_for_any_job(running_jobs, verbose):
@@ -257,6 +283,13 @@ def main():
     args_command       = parsed_args.args_command
     background_source  = parsed_args.background_source
     extra_args_command = parsed_args.extra_args_command
+    root_out           = parsed_args.root
+    single_file_input  = parsed_args.single_file_input
+    if(run_mode == '5D'):
+        if(not flag_was_passed(parser, 'root')):
+            root_out = None
+        if(not flag_was_passed(parser, 'single_file_input')):
+            single_file_input = None
 
     if(run_mode == '3D'):
         if("--root"              not in str(args_command)):
@@ -289,8 +322,8 @@ def main():
     if(run_mode == '5D'):
         print(' Starting Dedicated_5D_Unfold.py run (5D mode)')
         print('   Jobs       : All (5D_Bins)')
-        extra_part = f' {extra_args_command}' if (extra_args_command.strip()) else ''
-        print(f'   Command    : {script} --background_source {background_source} -em <message> -e{extra_part}')
+        preview_cmd = build_display_command(run_mode, script, args_command, '<message>', title, 'All', background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
+        print(f'   Command    : {preview_cmd}')
     else:
         print(' Starting parallel RooUnfold test run (3D mode)')
         print(f'   Jobs       : 1 to {njobs}')
@@ -311,8 +344,8 @@ def main():
         else:
             print(f'{color.BOLD}Launching job {job_label} → {outfile} + {timefile}{color.END}')
 
-        display_cmd = build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command)
-        run_cmd     = build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command)
+        display_cmd = build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
+        run_cmd     = build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
 
         with open(outfile, 'w') as log_fh:
             log_fh.write(f'Full command: {display_cmd}\n')
