@@ -41,8 +41,11 @@ else suff += '.qa'
 
 def outname = args[0].split("/")[-1]
 
-def filename = "Data_sidis_epip_richcap.${suff}.new8.${outname}.root"
-def JSONname = "Charge_Summary_Data_sidis_epip_richcap.${suff}.new8.${outname}.json"
+// def filename = "Data_sidis_epip_richcap.${suff}.new8.${outname}.root"
+// def JSONname = "Charge_Summary_Data_sidis_epip_richcap.${suff}.new8.${outname}.json"
+// As of 8/26/2026: new10 mainly keeps data filenames in sync with the latest (likely final) REC/GEN simulation versions after reciprocal MC::RecMatch/MC::GenMatch bank matching; the only unique data change is dvz cuts using >=/<= at the intended boundaries (previous versions omitted the =).
+def filename = "Data_sidis_epip_richcap.${suff}.new10.${outname}.root"
+def JSONname = "Charge_Summary_Data_sidis_epip_richcap.${suff}.new10.${outname}.json"
 
 // As of 4/10/2025: new8 added the flags for finding the pi-/proton and now writes JSON files to store the accumulated charge from the QADB to calculate the luminosity later
 def ff = new ROOTFile(filename)
@@ -833,7 +836,7 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
     double level_cut = 20;
     if(cutLevel_In == 'loose') { level_cut = 22;}
     if(cutLevel_In == 'tight') { level_cut = 18;}
-    return ((dvz > -level_cut) && (dvz < level_cut));
+    return ((dvz >= -level_cut) && (dvz <= level_cut));
 }
 
 

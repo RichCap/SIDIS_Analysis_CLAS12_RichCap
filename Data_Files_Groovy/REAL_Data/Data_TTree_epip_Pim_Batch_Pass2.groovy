@@ -30,7 +30,9 @@ else suff += '.qa'
 def outname = args[0].split("/")[-1]
 
 // As of 1/18/2026:
-def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.wPim.new7.${outname}.root")
+// def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.wPim.new7.${outname}.root")
+// As of 8/26/2026: new10 mainly keeps data filenames in sync with the latest (likely final) REC/GEN simulation versions after reciprocal MC::RecMatch/MC::GenMatch bank matching; the only unique data change is dvz cuts using >=/<= at the intended boundaries (previous versions omitted the =).
+def ff = new ROOTFile("Data_sidis_epip_richcap.${suff}.wPim.new10.${outname}.root")
 
 // DC hits had to be separated into 3 values per particle per event (each layer is hit and stored separately within each event) - Updated on 7/25/2024
     // Added/renamed several variables to do this
@@ -814,7 +816,7 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
     double level_cut = 20;
     if(cutLevel_In == 'loose') { level_cut = 22;}
     if(cutLevel_In == 'tight') { level_cut = 18;}
-    return ((dvz > -level_cut) && (dvz < level_cut));
+    return ((dvz >= -level_cut) && (dvz <= level_cut));
 }
 
 

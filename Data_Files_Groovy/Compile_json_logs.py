@@ -38,11 +38,13 @@ def parse_args():
     
 
     parser.add_argument('-i', '--input_files',
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis*.json',
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis*.json',
+                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Charge_Summary_Data_sidis_epip_richcap.inb.qa.new10.nSidis*.json',
                         help='Wildcard path (glob pattern) to the JSON files to compile. The script will automatically expand this into a list of files.\n')
 
     parser.add_argument('-o', '--output_file',
-                        default='Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json',
+                        # default='Charge_Summary_Data_sidis_epip_richcap.inb.qa.new8.nSidis_All_Files.json',
+                        default='Charge_Summary_Data_sidis_epip_richcap.inb.qa.new10.nSidis_All_Files.json',
                         help='The path to the output combined JSON file.\n')
     
     parser.add_argument('-e', '--email',

@@ -27,7 +27,10 @@ else suff += '.qa'
 def outname = args[0].split("/")[-1]
 
 // Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new6.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new6.${outname}.root")
+
+// As of 8/26/2026: new10 keeps GEN_MC filenames in sync with the reciprocal-bank-matching REC production
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.new10.${outname}.root")
 
 // Added 'gStatus' and 'weight' as of 9/12/2025 (EvGen specific variables refering to the radiative state of the photon (0 for non-rad, 55 for ISR, and 56 for FSR) and the variable event weight)
 // Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
