@@ -33,7 +33,10 @@ def outname = args[0].split("/")[-1]
 
 
 // As of 1/18/2026: new7 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
-def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new7.${outname}.root")
+// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new7.${outname}.root")
+
+// As of 8/26/2026: new10 requires reciprocal MC::RecMatch/MC::GenMatch bank matching
+def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new10.${outname}.root")
 
 // Added 'gStatus' and 'weight' as of 9/12/2025 (EvGen specific variables refering to the radiative state of the photon (0 for non-rad, 55 for ISR, and 56 for FSR) and the variable event weight)
 def branches_string  = 'event/I:runN/I:beamCharge:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Num_Pions/I:Hx:Hy:Hx_pip:Hy_pip:V_PCal:W_PCal:U_PCal:ele_x_DC_6:ele_y_DC_6:ele_z_DC_6:ele_x_DC_18:ele_y_DC_18:ele_z_DC_18:ele_x_DC_36:ele_y_DC_36:ele_z_DC_36:pip_x_DC_6:pip_y_DC_6:pip_z_DC_6:pip_x_DC_18:pip_y_DC_18:pip_z_DC_18:pip_x_DC_36:pip_y_DC_36:pip_z_DC_36:ex_gen:ey_gen:ez_gen:eE_gen:PID_el:pipx_gen:pipy_gen:pipz_gen:pipE_gen:PID_pip:gStatus:weight'
@@ -186,7 +189,7 @@ Integer findParentPIDFromLund(def lund_in, int pid_in, float px_in, float py_in,
 }
 
 
-def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
+def matchBasedonHIPObanks(def RecMatch_in, def GenMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
 
     int pid_matched     = 0;
     float matched_x_gen = 0;
@@ -194,19 +197,37 @@ def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_i
     float matched_z_gen = 0;
     float matched_E_gen = 0;
     int parentPID       = 0;
-    float quality_match = RecMatch_in.getFloat("quality", rec_index);
-    def gen_index       = RecMatch_in.getShort("mcindex", rec_index);
+    float quality_match = 0;
+    if((RecMatch_in != null) && (rec_index >= 0) && (rec_index < RecMatch_in.getRows())){
+        quality_match = RecMatch_in.getFloat("quality", rec_index);
+    }
+    def unmatched_result = [
+        pid_matched    : pid_matched,
+        matched_x_gen  : matched_x_gen,
+        matched_y_gen  : matched_y_gen,
+        matched_z_gen  : matched_z_gen,
+        matched_E_gen  : matched_E_gen,
+        parentPID      : parentPID,
+        quality_match  : quality_match
+    ]
+    // Reciprocal-check failure is a matching failure only: return unmatched generated defaults without rejecting the reconstructed particle or the event.
+    if((RecMatch_in == null) || (rec_index < 0) || (rec_index >= RecMatch_in.getRows())){
+        return unmatched_result
+    }
+    def gen_index = RecMatch_in.getShort("mcindex", rec_index);
     if(gen_index < 0){
         // System.out.println("UnMatched Particle")
-        return [
-            pid_matched    : pid_matched,
-            matched_x_gen  : matched_x_gen,
-            matched_y_gen  : matched_y_gen,
-            matched_z_gen  : matched_z_gen,
-            matched_E_gen  : matched_E_gen,
-            parentPID      : parentPID,
-            quality_match  : quality_match
-        ]
+        return unmatched_result
+    }
+    if((MCpart_in == null) || (gen_index >= MCpart_in.getRows())){
+        return unmatched_result
+    }
+    if((GenMatch_in == null) || (gen_index >= GenMatch_in.getRows())){
+        return unmatched_result
+    }
+    def rec_index_back = GenMatch_in.getShort("pindex", gen_index);
+    if(((int) rec_index_back) != ((int) rec_index)){
+        return unmatched_result
     }
     
     pid_matched         = MCpart_in.getInt("pid",  gen_index);
@@ -1182,7 +1203,7 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
     double level_cut = 20;
     if(cutLevel_In == 'loose') { level_cut = 22;}
     if(cutLevel_In == 'tight') { level_cut = 18;}
-    return ((dvz > -level_cut) && (dvz < level_cut));
+    return ((dvz >= -level_cut) && (dvz <= level_cut));
 }
 
 
@@ -1532,7 +1553,7 @@ args.eachParallel{fname->
     def factory   = reader.getSchemaFactory()
     
     
-    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Event', 'MC::Lund', 'MC::RecMatch'].collect{factory.getSchema(it)}
+    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Event', 'MC::Lund', 'MC::RecMatch', 'MC::GenMatch'].collect{factory.getSchema(it)}
     def banks       = schemas.collect{new Bank(it)}
 
     def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}
@@ -1564,7 +1585,7 @@ args.eachParallel{fname->
             
             banks.each{event.read(it)}
 
-            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, mcE, lund, RecMatch) = banks
+            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, mcE, lund, RecMatch, GenMatch) = banks
             
             def run            = runb.getInt("run",      0)
             def evn            = runb.getInt("event",    0)
@@ -1736,8 +1757,8 @@ args.eachParallel{fname->
 
                         def match_P10T4 = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T4, el, elth, elPhi, pip, pipth, pipPhi, 10, 4, 10, 4, print_extra_info, ABS_TOL, REL_TOL)
 
-                        def match_bankE = matchBasedonHIPObanks(RecMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
-                        def match_bankP = matchBasedonHIPObanks(RecMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
+                        def match_bankE = matchBasedonHIPObanks(RecMatch, GenMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
+                        def match_bankP = matchBasedonHIPObanks(RecMatch, GenMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
 
                         // Unpack default matches into the existing variable names (preserves downstream behavior)
                         def pid_matched_el   = match_default.pid_matched_el

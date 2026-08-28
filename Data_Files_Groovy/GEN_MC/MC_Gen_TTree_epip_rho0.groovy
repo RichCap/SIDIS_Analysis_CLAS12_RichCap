@@ -38,7 +38,10 @@ else suff += '.qa'
 def outname = args[0].split("/")[-1]
 
 // Updated on 4/10/2025: new8 adds pi-/proton flags and rho0 parent kinematics (skipped new7 to bring `MC_GEN` up-to-date with `Data` and `MC_REC`)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.rho0.new8.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.rho0.new8.${outname}.root")
+
+// As of 8/26/2026: new10 keeps GEN_MC filenames in sync with the reciprocal-bank-matching REC production
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.rho0.new10.${outname}.root")
 
 // Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
 def branches_string = 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:esec/I:pipsec/I:Hx:Hy:Par_PID_el/I:Par_PID_pip/I'

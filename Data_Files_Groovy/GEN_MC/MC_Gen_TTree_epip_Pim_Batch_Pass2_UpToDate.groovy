@@ -27,7 +27,10 @@ else suff += '.qa'
 def outname = args[0].split("/")[-1]
 
 // As of 12/17/2025: Adapted from the Proton tagging file (replaced the proton with the pi- pion)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wPim.new6.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wPim.new6.${outname}.root")
+
+// As of 8/26/2026: new10 keeps GEN_MC filenames in sync with the reciprocal-bank-matching REC production
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wPim.new10.${outname}.root")
 
 def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:pimx:pimy:pimz:esec/I:pipsec/I:Hx:Hy:Par_PID_el/I:Par_PID_pip/I')
 

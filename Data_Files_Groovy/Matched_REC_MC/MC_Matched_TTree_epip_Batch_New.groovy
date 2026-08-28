@@ -46,7 +46,10 @@ else suff += '.qa'
 def outname = args[0].split("/")[-1]
 
 // As of 4/10/2026: new8 adds pi-/proton flags and rho0 parent kinematics
-def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new9.${outname}.root")
+// def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new9.${outname}.root")
+
+// As of 8/26/2026: new10 requires reciprocal MC::RecMatch/MC::GenMatch bank matching and adds bank-matched rho0 parent branches
+def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new10.${outname}.root")
 
 // // As of 1/18/2026: new7 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
 // def ff = new ROOTFile("MC_Matching_sidis_epip_richcap.${suff}.new7.${outname}.root")
@@ -113,6 +116,8 @@ branches_string += ':rho0_px:rho0_py:rho0_pz:rho0_E:rho0_parent/I'
 // Added as of 5/6/2026
 // NEW branches for mother chain, pi- kinematics, and exclusive rho flag
 branches_string += ':rho0_grandparent/I:exclusive_rho/I:exclusive_rec/I'
+// Bank-matched rho0 parentage from the reciprocal bank-matched pi+; exclusive_rho is event-based (whole-event Lund exclusive-rho0 topology, not the matched particle) and exclusive_rec is reconstructed-level, so neither is duplicated for the bank method.
+branches_string += ':rho0_px_Bank:rho0_py_Bank:rho0_pz_Bank:rho0_E_Bank:rho0_parent_Bank/I:rho0_grandparent_Bank/I'
 branches_string += ':pimx:pimy:pimz'
 branches_string += ':pimx_gen:pimy_gen:pimz_gen:Par_PID_pim/I'
 branches_string += ':prox:proy:proz'
@@ -372,7 +377,7 @@ def isExclusiveRho(Bank lund) {
 }
 
 
-def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
+def matchBasedonHIPObanks(def RecMatch_in, def GenMatch_in, def MCpart_in, def lund_in, def rec_index, double absTol, double relTol) {
 
     int pid_matched     = 0;
     float matched_x_gen = 0;
@@ -380,19 +385,37 @@ def matchBasedonHIPObanks(def RecMatch_in, def MCpart_in, def lund_in, def rec_i
     float matched_z_gen = 0;
     float matched_E_gen = 0;
     int parentPID       = 0;
-    float quality_match = RecMatch_in.getFloat("quality", rec_index);
-    def gen_index       = RecMatch_in.getShort("mcindex", rec_index);
+    float quality_match = 0;
+    if((RecMatch_in != null) && (rec_index >= 0) && (rec_index < RecMatch_in.getRows())){
+        quality_match = RecMatch_in.getFloat("quality", rec_index);
+    }
+    def unmatched_result = [
+        pid_matched    : pid_matched,
+        matched_x_gen  : matched_x_gen,
+        matched_y_gen  : matched_y_gen,
+        matched_z_gen  : matched_z_gen,
+        matched_E_gen  : matched_E_gen,
+        parentPID      : parentPID,
+        quality_match  : quality_match
+    ]
+    // Reciprocal-check failure is a matching failure only: return unmatched generated defaults without rejecting the reconstructed particle or the event.
+    if((RecMatch_in == null) || (rec_index < 0) || (rec_index >= RecMatch_in.getRows())){
+        return unmatched_result
+    }
+    def gen_index = RecMatch_in.getShort("mcindex", rec_index);
     if(gen_index < 0){
         // System.out.println("UnMatched Particle")
-        return [
-            pid_matched    : pid_matched,
-            matched_x_gen  : matched_x_gen,
-            matched_y_gen  : matched_y_gen,
-            matched_z_gen  : matched_z_gen,
-            matched_E_gen  : matched_E_gen,
-            parentPID      : parentPID,
-            quality_match  : quality_match
-        ]
+        return unmatched_result
+    }
+    if((MCpart_in == null) || (gen_index >= MCpart_in.getRows())){
+        return unmatched_result
+    }
+    if((GenMatch_in == null) || (gen_index >= GenMatch_in.getRows())){
+        return unmatched_result
+    }
+    def rec_index_back = GenMatch_in.getShort("pindex", gen_index);
+    if(((int) rec_index_back) != ((int) rec_index)){
+        return unmatched_result
     }
     
     pid_matched         = MCpart_in.getInt("pid",  gen_index);
@@ -1402,7 +1425,7 @@ def Custom_DELTA_VZ_pip(def pipCan_In, def cutLevel_In) {
     double level_cut = 20;
     if(cutLevel_In == 'loose') { level_cut = 22;}
     if(cutLevel_In == 'tight') { level_cut = 18;}
-    return ((dvz > -level_cut) && (dvz < level_cut));
+    return ((dvz >= -level_cut) && (dvz <= level_cut));
 }
 
 
@@ -1851,7 +1874,7 @@ args.eachParallel{fname->
     def factory   = reader.getSchemaFactory()
     
     // For counting the number of generated events using the same methods as were used in the GEN files for acceptance corrections
-    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund', 'MC::RecMatch'].collect{factory.getSchema(it)}
+    def schemas     = ['RUN::config', 'REC::Event', 'REC::Particle', 'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator', 'MC::Particle', 'MC::Lund', 'MC::RecMatch', 'MC::GenMatch'].collect{factory.getSchema(it)}
     def banks       = schemas.collect{new Bank(it)}
 
     def schemas_gen = ['REC::Event', 'MC::Particle',  'REC::Calorimeter', 'REC::Cherenkov', 'REC::Traj', 'REC::Scintillator'].collect{factory.getSchema(it)}
@@ -1883,7 +1906,7 @@ args.eachParallel{fname->
             
             banks.each{event.read(it)}
 
-            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch) = banks
+            def (runb, evb, partb, ecb, ccb, trajb, scb, MCpart, lund, RecMatch, GenMatch) = banks
 
             banks_gen.each{event.read(it)}
             def (evb_gen, partb_gen, ecb_gen, ccb_gen, trajb_gen, scb_gen) = banks_gen
@@ -2050,8 +2073,14 @@ args.eachParallel{fname->
                         def match_P10T8   = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T8, el, elth, elPhi, pip, pipth, pipPhi, 10, 8, 10, 8, print_extra_info, ABS_TOL, REL_TOL, false)
                         def match_P10T4   = matchToGenerated(MCpart, lund, list_of_matched_particles_gen_pip_P10T4, el, elth, elPhi, pip, pipth, pipPhi, 10, 4, 10, 4, print_extra_info, ABS_TOL, REL_TOL, false)
 
-                        def match_bankE   = matchBasedonHIPObanks(RecMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
-                        def match_bankP   = matchBasedonHIPObanks(RecMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
+                        def match_bankE   = matchBasedonHIPObanks(RecMatch, GenMatch, MCpart, lund,     0, ABS_TOL, REL_TOL) // Electron Bank Matching
+                        def match_bankP   = matchBasedonHIPObanks(RecMatch, GenMatch, MCpart, lund, ipart, ABS_TOL, REL_TOL) // pi+ Pion Bank Matching
+                        def rho0_px_Bank = 0.0; def rho0_py_Bank = 0.0; def rho0_pz_Bank = 0.0; def rho0_E_Bank = 0.0; int rho0_parent_Bank = 0; int rho0_grandparent_Bank = 0
+                        if(match_bankP.pid_matched != 0){
+                            def parent_of_pip_bank = findParent_rho(lund, match_bankP.pid_matched, match_bankP.matched_x_gen, match_bankP.matched_y_gen, match_bankP.matched_z_gen, ABS_TOL, REL_TOL)
+                            rho0_px_Bank = parent_of_pip_bank.rho0_px; rho0_py_Bank = parent_of_pip_bank.rho0_py; rho0_pz_Bank = parent_of_pip_bank.rho0_pz; rho0_E_Bank = parent_of_pip_bank.rho0_E
+                            rho0_parent_Bank = parent_of_pip_bank.rho0_parent; rho0_grandparent_Bank = parent_of_pip_bank.rho0_grandparent
+                        }
 
                         // Unpack default matches into the existing variable names (preserves downstream behavior)
                         def pid_matched_el   = match_default.pid_matched_el
@@ -2245,7 +2274,8 @@ args.eachParallel{fname->
                                 ConvertBoolean(Extra_Particle_Search_gen.hasPim),           ConvertBoolean(Extra_Particle_Search_gen.hasProton),
                                 // rho0 Kinematics
                                 match_default.rho0_px,         match_default.rho0_py,       match_default.rho0_pz,         match_default.rho0_E,
-                                match_default.rho0_parent,     match_default.rho0_grandparent, exclusive_rho_flag,         ConvertBoolean(Extra_Particle_Search.exclusive_rec), 
+                                match_default.rho0_parent,     match_default.rho0_grandparent, exclusive_rho_flag,         ConvertBoolean(Extra_Particle_Search.exclusive_rec),
+                                rho0_px_Bank, rho0_py_Bank, rho0_pz_Bank, rho0_E_Bank, rho0_parent_Bank, rho0_grandparent_Bank,
                                 // NEW branches (pi-/proton kinematics)
                                 pim_px,     pim_py,     pim_pz,
                                 pim_px_gen, pim_py_gen, pim_pz_gen, parentPID_pim,

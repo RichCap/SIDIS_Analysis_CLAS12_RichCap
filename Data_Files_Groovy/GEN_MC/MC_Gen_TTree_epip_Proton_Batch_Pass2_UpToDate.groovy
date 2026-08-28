@@ -33,7 +33,10 @@ def outname = args[0].split("/")[-1]
 // def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new5.45nA.${outname}.root")
 
 // Updated on 12/17/2025: new6 does not differentiate between the background merging settings for the baseline file names (must see individual HIPO files for such distinctions)
-def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new6.${outname}.root")
+// def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new6.${outname}.root")
+
+// As of 8/26/2026: new10 keeps GEN_MC filenames in sync with the reciprocal-bank-matching REC production
+def ff = new ROOTFile("MC_Gen_sidis_epip_richcap.${suff}.wProton.new10.${outname}.root")
 
 // Added parent PIDs of both particles as of 12/17/2025 (with 'new6' version)
 def tt = ff.makeTree('h22', 'title', 'event/I:runN/I:beamCharge:Num_Pions/I:ex:ey:ez:pipx:pipy:pipz:prox:proy:proz:esec/I:pipsec/I:Hx:Hy:Par_PID_el/I:Par_PID_pip/I')
