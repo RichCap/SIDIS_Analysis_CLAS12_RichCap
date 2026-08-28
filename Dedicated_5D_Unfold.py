@@ -161,7 +161,7 @@ def Construct_Email(args, Crashed=False, Warning=False, final_count=None):
         end_time, total_time, rate_line = args.timer.stop(count_label="Histograms", count_value=final_count, return_Q=True)
     args_list = ""
     for name, value in vars(args).items():
-        if(str(name) in ["email", "email_message", "timer", "fit", "increment_5d", "num_bins_5d", "num_slices_5d", "pdf_name", "root", "single_file_input"]):
+        if(str(name) in ["email", "email_message", "timer", "fit", "increment_5d", "num_bins_5d", "num_slices_5d", "pdf_name", "root", "single_file_input", "multi5d_slice_metadata"]):
             continue
         args_list = f"""{args_list}
 --{name:<50s}--> {f"'{value}'" if(type(value) is str) else value}"""
