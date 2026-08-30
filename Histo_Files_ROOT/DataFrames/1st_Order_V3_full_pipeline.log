@@ -3578,3 +3578,289 @@ CMD [Binning_Presentation_Only]: ./run_sidis_DataFrame_pipeline.py -m parallel -
 [Binning_Presentation_Only] DONE : Batch  34 of 171
 [Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 9 Hour(s), 9 Minute(s), and 35 Second(s). 
 [Binning_Presentation_Only] START: Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 9 Hour(s), 9 Minute(s), and 35 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  35 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 10 Hour(s), 53 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] START: Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 10 Hour(s), 53 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  36 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 12 Hour(s), 42 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] START: Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 12 Hour(s), 42 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  37 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 14 Hour(s), 25 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] START: Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 14 Hour(s), 25 Minute(s), and 11 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  38 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 18 Hour(s), 13 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] START: Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 18 Hour(s), 13 Minute(s), and 1 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  39 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 22 Hour(s), 30 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] START: Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 2 Day(s), 22 Hour(s), 30 Minute(s), and 31 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  40 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 0 Hour(s), 13 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] START: Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 0 Hour(s), 13 Minute(s), and 41 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  41 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 4 Hour(s), 27 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 4 Hour(s), 27 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  42 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 6 Hour(s), 5 Minute(s), and 21 Second(s). 
+[Binning_Presentation_Only] START: Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 6 Hour(s), 5 Minute(s), and 21 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  43 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 7 Hour(s), 48 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 7 Hour(s), 48 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  44 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 12 Hour(s), 6 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] START: Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 12 Hour(s), 6 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  45 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 16 Hour(s), 30 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] START: Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 16 Hour(s), 30 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  46 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 20 Hour(s), 40 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] START: Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 20 Hour(s), 40 Minute(s), and 30 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  47 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 22 Hour(s), 12 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] START: Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 3 Day(s), 22 Hour(s), 12 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  48 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 4 Hour(s), 34 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] START: Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 4 Hour(s), 34 Minute(s), and 33 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  49 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 8 Hour(s), 15 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] START: Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 8 Hour(s), 15 Minute(s), and 45 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  50 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 9 Hour(s), 38 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 9 Hour(s), 38 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  51 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 11 Hour(s), 0 Minute(s), and 5 Second(s). 
+[Binning_Presentation_Only] START: Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 11 Hour(s), 0 Minute(s), and 5 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  52 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 12 Hour(s), 26 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] START: Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 12 Hour(s), 26 Minute(s), and 51 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  53 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 13 Hour(s), 52 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] START: Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 13 Hour(s), 52 Minute(s), and 22 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  54 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 15 Hour(s), 19 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] START: Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 15 Hour(s), 19 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  55 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 16 Hour(s), 43 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] START: Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 16 Hour(s), 43 Minute(s), and 50 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  56 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 18 Hour(s), 9 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] START: Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 18 Hour(s), 9 Minute(s), and 54 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  57 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 19 Hour(s), 32 Minute(s), and 5 Second(s). 
+[Binning_Presentation_Only] START: Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 19 Hour(s), 32 Minute(s), and 5 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  58 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 20 Hour(s), 52 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] START: Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 20 Hour(s), 52 Minute(s), and 17 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  59 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 22 Hour(s), 13 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] START: Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 22 Hour(s), 13 Minute(s), and 38 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  60 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 23 Hour(s), 44 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] START: Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 4 Day(s), 23 Hour(s), 44 Minute(s), and 57 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  61 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 1 Hour(s), 10 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] START: Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 1 Hour(s), 10 Minute(s), and 27 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  62 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 2 Hour(s), 31 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] START: Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 2 Hour(s), 31 Minute(s), and 26 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  63 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 3 Hour(s), 52 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] START: Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 3 Hour(s), 52 Minute(s), and 6 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  64 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 5 Hour(s), 11 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] START: Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 5 Hour(s), 11 Minute(s), and 36 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  65 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 6 Hour(s), 29 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] START: Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 6 Hour(s), 29 Minute(s), and 53 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  66 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 7 Hour(s), 48 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 7 Hour(s), 48 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  67 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 9 Hour(s), 6 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] START: Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 9 Hour(s), 6 Minute(s), and 40 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  68 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 10 Hour(s), 26 Minute(s), and 2 Second(s). 
+[Binning_Presentation_Only] START: Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 10 Hour(s), 26 Minute(s), and 2 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  69 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 11 Hour(s), 44 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] START: Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 11 Hour(s), 44 Minute(s), and 28 Second(s). 
+[Binning_Presentation_Only] DONE : Batch  70 of 171
+[Binning_Presentation_Only] Time Elapsed Up To Now: 5 Day(s), 13 Hour(s), 3 Minute(s), and 8 Second(s). 
+[Binning_Presentation_Only] START: Batch  71 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 9 Hour(s), 9 Minute(s), and 28 Second(s). 
+[2D_Presentation] DONE : Batch  35 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 10 Hour(s), 53 Minute(s), and 38 Second(s). 
+[2D_Presentation] START: Batch  36 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 10 Hour(s), 53 Minute(s), and 38 Second(s). 
+[2D_Presentation] DONE : Batch  36 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 12 Hour(s), 42 Minute(s), and 33 Second(s). 
+[2D_Presentation] START: Batch  37 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 12 Hour(s), 42 Minute(s), and 33 Second(s). 
+[2D_Presentation] DONE : Batch  37 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 14 Hour(s), 25 Minute(s), and 5 Second(s). 
+[2D_Presentation] START: Batch  38 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 14 Hour(s), 25 Minute(s), and 5 Second(s). 
+[2D_Presentation] DONE : Batch  38 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 18 Hour(s), 12 Minute(s), and 58 Second(s). 
+[2D_Presentation] START: Batch  39 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 18 Hour(s), 12 Minute(s), and 58 Second(s). 
+[2D_Presentation] DONE : Batch  39 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 22 Hour(s), 35 Minute(s), and 18 Second(s). 
+[2D_Presentation] START: Batch  40 of 171
+[2D_Presentation] Time Elapsed Up To Now: 2 Day(s), 22 Hour(s), 35 Minute(s), and 18 Second(s). 
+[2D_Presentation] DONE : Batch  40 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 0 Hour(s), 12 Minute(s), and 27 Second(s). 
+[2D_Presentation] START: Batch  41 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 0 Hour(s), 12 Minute(s), and 27 Second(s). 
+[2D_Presentation] DONE : Batch  41 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 4 Hour(s), 24 Minute(s), and 27 Second(s). 
+[2D_Presentation] START: Batch  42 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 4 Hour(s), 24 Minute(s), and 27 Second(s). 
+[2D_Presentation] DONE : Batch  42 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 6 Hour(s), 5 Minute(s), and 16 Second(s). 
+[2D_Presentation] START: Batch  43 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 6 Hour(s), 5 Minute(s), and 16 Second(s). 
+[2D_Presentation] DONE : Batch  43 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 7 Hour(s), 47 Minute(s), and 18 Second(s). 
+[2D_Presentation] START: Batch  44 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 7 Hour(s), 47 Minute(s), and 18 Second(s). 
+[2D_Presentation] DONE : Batch  44 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 12 Hour(s), 6 Minute(s), and 51 Second(s). 
+[2D_Presentation] START: Batch  45 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 12 Hour(s), 6 Minute(s), and 51 Second(s). 
+[2D_Presentation] DONE : Batch  45 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 16 Hour(s), 30 Minute(s), and 24 Second(s). 
+[2D_Presentation] START: Batch  46 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 16 Hour(s), 30 Minute(s), and 24 Second(s). 
+[2D_Presentation] DONE : Batch  46 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 20 Hour(s), 36 Minute(s), and 35 Second(s). 
+[2D_Presentation] START: Batch  47 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 20 Hour(s), 36 Minute(s), and 35 Second(s). 
+[2D_Presentation] DONE : Batch  47 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 22 Hour(s), 12 Minute(s), and 42 Second(s). 
+[2D_Presentation] START: Batch  48 of 171
+[2D_Presentation] Time Elapsed Up To Now: 3 Day(s), 22 Hour(s), 12 Minute(s), and 42 Second(s). 
+[2D_Presentation] DONE : Batch  48 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 4 Hour(s), 34 Minute(s), and 29 Second(s). 
+[2D_Presentation] START: Batch  49 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 4 Hour(s), 34 Minute(s), and 29 Second(s). 
+[2D_Presentation] DONE : Batch  49 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 8 Hour(s), 15 Minute(s), and 55 Second(s). 
+[2D_Presentation] START: Batch  50 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 8 Hour(s), 15 Minute(s), and 55 Second(s). 
+[2D_Presentation] DONE : Batch  50 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 9 Hour(s), 37 Minute(s), and 43 Second(s). 
+[2D_Presentation] START: Batch  51 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 9 Hour(s), 37 Minute(s), and 43 Second(s). 
+[2D_Presentation] DONE : Batch  51 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 10 Hour(s), 59 Minute(s), and 48 Second(s). 
+[2D_Presentation] START: Batch  52 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 10 Hour(s), 59 Minute(s), and 48 Second(s). 
+[2D_Presentation] DONE : Batch  52 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 12 Hour(s), 26 Minute(s), and 42 Second(s). 
+[2D_Presentation] START: Batch  53 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 12 Hour(s), 26 Minute(s), and 42 Second(s). 
+[2D_Presentation] DONE : Batch  53 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 13 Hour(s), 52 Minute(s), and 18 Second(s). 
+[2D_Presentation] START: Batch  54 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 13 Hour(s), 52 Minute(s), and 18 Second(s). 
+[2D_Presentation] DONE : Batch  54 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 15 Hour(s), 19 Minute(s), and 31 Second(s). 
+[2D_Presentation] START: Batch  55 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 15 Hour(s), 19 Minute(s), and 31 Second(s). 
+[2D_Presentation] DONE : Batch  55 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 16 Hour(s), 43 Minute(s), and 46 Second(s). 
+[2D_Presentation] START: Batch  56 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 16 Hour(s), 43 Minute(s), and 46 Second(s). 
+[2D_Presentation] DONE : Batch  56 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 18 Hour(s), 9 Minute(s), and 47 Second(s). 
+[2D_Presentation] START: Batch  57 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 18 Hour(s), 9 Minute(s), and 47 Second(s). 
+[2D_Presentation] DONE : Batch  57 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 19 Hour(s), 31 Minute(s), and 58 Second(s). 
+[2D_Presentation] START: Batch  58 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 19 Hour(s), 31 Minute(s), and 58 Second(s). 
+[2D_Presentation] DONE : Batch  58 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 20 Hour(s), 53 Minute(s), and 13 Second(s). 
+[2D_Presentation] START: Batch  59 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 20 Hour(s), 53 Minute(s), and 13 Second(s). 
+[2D_Presentation] DONE : Batch  59 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 22 Hour(s), 12 Minute(s), and 32 Second(s). 
+[2D_Presentation] START: Batch  60 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 22 Hour(s), 12 Minute(s), and 32 Second(s). 
+[2D_Presentation] DONE : Batch  60 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 23 Hour(s), 44 Minute(s), and 47 Second(s). 
+[2D_Presentation] START: Batch  61 of 171
+[2D_Presentation] Time Elapsed Up To Now: 4 Day(s), 23 Hour(s), 44 Minute(s), and 47 Second(s). 
+[2D_Presentation] DONE : Batch  61 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 1 Hour(s), 10 Minute(s), and 23 Second(s). 
+[2D_Presentation] START: Batch  62 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 1 Hour(s), 10 Minute(s), and 23 Second(s). 
+[2D_Presentation] DONE : Batch  62 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 2 Hour(s), 31 Minute(s), and 23 Second(s). 
+[2D_Presentation] START: Batch  63 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 2 Hour(s), 31 Minute(s), and 23 Second(s). 
+[2D_Presentation] DONE : Batch  63 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 3 Hour(s), 51 Minute(s), and 33 Second(s). 
+[2D_Presentation] START: Batch  64 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 3 Hour(s), 51 Minute(s), and 33 Second(s). 
+[2D_Presentation] DONE : Batch  64 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 5 Hour(s), 11 Minute(s), and 3 Second(s). 
+[2D_Presentation] START: Batch  65 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 5 Hour(s), 11 Minute(s), and 3 Second(s). 
+[2D_Presentation] DONE : Batch  65 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 6 Hour(s), 29 Minute(s), and 46 Second(s). 
+[2D_Presentation] START: Batch  66 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 6 Hour(s), 29 Minute(s), and 46 Second(s). 
+[2D_Presentation] DONE : Batch  66 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 7 Hour(s), 48 Minute(s), and 12 Second(s). 
+[2D_Presentation] START: Batch  67 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 7 Hour(s), 48 Minute(s), and 12 Second(s). 
+[2D_Presentation] DONE : Batch  67 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 9 Hour(s), 6 Minute(s), and 37 Second(s). 
+[2D_Presentation] START: Batch  68 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 9 Hour(s), 6 Minute(s), and 37 Second(s). 
+[2D_Presentation] DONE : Batch  68 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 10 Hour(s), 26 Minute(s), and 28 Second(s). 
+[2D_Presentation] START: Batch  69 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 10 Hour(s), 26 Minute(s), and 28 Second(s). 
+[2D_Presentation] DONE : Batch  69 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 11 Hour(s), 44 Minute(s), and 24 Second(s). 
+[2D_Presentation] START: Batch  70 of 171
+[2D_Presentation] Time Elapsed Up To Now: 5 Day(s), 11 Hour(s), 44 Minute(s), and 24 Second(s). 
+[2D_Presentation] DONE : Batch  70 of 171
