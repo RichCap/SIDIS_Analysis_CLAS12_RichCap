@@ -10,6 +10,7 @@ import ROOT, re
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/')) else os.path.abspath(os.path.dirname(__file__))
 sys.path.append(script_dir)
 from File_Batches import rdf_batch, mdf_batch, gdf_batch
+from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
 sys.path.remove(script_dir)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
 sys.path.append(script_dir)
@@ -156,6 +157,11 @@ def parse_args():
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help="Use unsmeared reconstructed-MC columns (Histo_Smear=''). Required for cut_Complete_SIDIS_noSmear.\n")
+    parser.add_argument('-mac', '--matching_criteria',
+                        type=str,
+                        default="_gen",
+                        choices=list(MATCHING_MODE_ALIASES),
+                        help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-f', '--fast',
                         action='store_true',
                         help="Tries to run the code faster by skipping some printed outputs that take more time to run.\n")
@@ -468,12 +474,19 @@ def build_all_root_files(mdf_list, gdf_list, pair_key_fn, rdf_list=None, mc_key=
     return all_root_files
 
 # Pairing rule: "everything AFTER the 'marker' string should match between MDF and GDF"
-def pair_key_after_marker(path_str, marker="Final_Analysis_Iterations_I0"):
+def pair_key_after_marker(path_str, marker=None):
     name = Path(path_str).name
-    idx = name.find(marker)
-    if(idx < 0):
-        raise ValueError(f"Marker not found in filename: marker={marker!r} file={name!r}")
-    return name[(idx + len(marker)):]  # suffix AFTER marker; includes extension
+    markers = []
+    if(marker not in [None, ""]):
+        markers.append(str(marker))
+    for m in ["Final_Thesis_Files", "Final_Analysis_Iterations_I0"]:
+        if(m not in markers):
+            markers.append(m)
+    for m in markers:
+        idx = name.find(m)
+        if(idx >= 0):
+            return name[(idx + len(m)):]
+    raise ValueError(f"Marker not found in filename: tried={markers!r} file={name!r}")
 
 
 def combine_batches(batch_list, number_of_files=-1):
@@ -604,14 +617,15 @@ if(__name__ == "__main__"):
     
     # JSON_WEIGHT_FILE = args.json_file
     
-    # Load pure-acceptance HPP (accw_*) and optional combined Acc+physics HPP (accw_sw_*)
-    print(f"{color.BBLUE}Loading pure HPP {color.END_B}{args.hpp_input_file}{color.BBLUE} for Acc weights (if applicable){color.END}\n")
-    ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
-    if(getattr(args, "hpp_input_file_spline", None)):
-        print(f"{color.BBLUE}Loading combined HPP {color.END_B}{args.hpp_input_file_spline}{color.BBLUE} for AccPhys weights{color.END}\n")
-        ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file_spline}"')
-    elif((args.use_hpp or args.angles_only_hpp) and (args.spline_weights or args.json_weights)):
-        Update_Email(args, update_message=f"{color.Error}WARNING: --hpp_input_file_spline unset; AccPhys will reuse pure accw_* from --hpp_input_file{color.END}", verbose_override=True)
+    # Load HPP only when acceptance weights are actually requested (standalone rho0 does not use HPPs).
+    if(args.use_hpp or args.angles_only_hpp):
+        print(f"{color.BBLUE}Loading pure HPP {color.END_B}{args.hpp_input_file}{color.BBLUE} for Acc weights (if applicable){color.END}\n")
+        ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file}"')
+        if(getattr(args, "hpp_input_file_spline", None)):
+            print(f"{color.BBLUE}Loading combined HPP {color.END_B}{args.hpp_input_file_spline}{color.BBLUE} for AccPhys weights{color.END}\n")
+            ROOT.gInterpreter.Declare(f'#include "{args.hpp_input_file_spline}"')
+        elif(args.spline_weights or args.json_weights):
+            Update_Email(args, update_message=f"{color.Error}WARNING: --hpp_input_file_spline unset; AccPhys will reuse pure accw_* from --hpp_input_file{color.END}", verbose_override=True)
     
     if(not args.use_hpp):
         Update_Email(args, update_message=f"{color.Error}Not using Acceptance Weights{color.END}", verbose_override=True)
@@ -706,6 +720,16 @@ if(__name__ == "__main__"):
             Update_Email(args, update_message=f"\tTotal entries in {color.BCYAN}gdf_EvGen{color.END} files: \n{gdf_EvGen.Count().GetValue():>20.0f}", verbose_override=True)
         else:
             print("Fast Load...")
+
+    from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
+    try:
+        mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+        Update_Email(args, update_message=f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}", verbose_override=True)
+        if(args.Use_EvGen):
+            mdf_EvGen, match_msg_ev = apply_matching_and_redefine_gen(mdf_EvGen, getattr(args, "matching_criteria", "_gen"))
+            Update_Email(args, update_message=f"{color.BBLUE}Matching (EvGen): {color.END_B}{match_msg_ev}{color.END}", verbose_override=True)
+    except (ValueError, RuntimeError) as match_err:
+        Crash_Report(args, crash_message=str(match_err), continue_run=False)
         
     Update_Email(args, update_message=f"\n{color.BOLD}DATAFRAMES LOADED\nAPPLYING (BASE) CUTS{color.END}\n", verbose_override=True)
     rdf           =         rdf.Filter(args.cut_name_rdf)

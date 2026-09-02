@@ -11,7 +11,7 @@ import subprocess
 import time
 from datetime import datetime
 
-script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis"
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 sys.path.remove(script_dir)
@@ -26,8 +26,8 @@ PRESET_VARIANTS = {
     "matching_mc_pass2": {
         "data_type":     "mdf",
         "sidis":         True,
-        "job_base":      "mdf_DF_6_15_2026_R1_Final_Analysis_Iterations_I0",
-        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*.new9*",
+        "job_base":      "mdf_DF_9_2_2026_R1_Final_Thesis_Files",
+        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*.new10*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.qa.new9*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/MC_Matching_sidis_epip_richcap.inb.*rho*.new9*",
         # "job_base":      "mdf_DF_4_26_2026_R1_Final_Analysis_Iterations_I0",
@@ -38,8 +38,8 @@ PRESET_VARIANTS = {
     "gen_mc_pass2": {
         "data_type":     "gdf",
         "sidis":         True,
-        "job_base":      "gdf_DF_6_15_2026_R1_Final_Analysis_Iterations_I0",
-        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new9*",
+        "job_base":      "gdf_DF_9_2_2026_R1_Final_Thesis_Files",
+        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new10*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new9*",
         # "job_base":      "gdf_DF_4_27_2026_R1_Final_Analysis_Iterations_I0",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.*.new8*",
@@ -49,8 +49,8 @@ PRESET_VARIANTS = {
     "real_data_pass2": {
         "data_type":     "rdf",
         "sidis":         True,
-        "job_base":      "rdf_DF_6_15_2026_R2_Final_Analysis_Iterations_I0",
-        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new8.nSidis_005*",
+        "job_base":      "rdf_DF_9_2_2026_R1_Final_Thesis_Files",
+        "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new10.nSidis_005*",
         # "input_pattern": "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/Pass2/More_Cut_Info/Data_sidis_epip_richcap.inb.qa.new8.nSidis_00540*.hipo.root",
     },
 }
@@ -224,7 +224,7 @@ def parse_args():
 
     parser.add_argument("-cn", "--common_name",
                         type=str,
-                        default="",
+                        default="Final_Thesis_Files_",
                         help="Optional value for '--Common_Name'.\n")
 
     parser.add_argument("-mac", "--matching_criteria",
@@ -246,9 +246,22 @@ def parse_args():
                         help=f"{color.BOLD}Preset workflow variant replacing the original Bash wrappers.{color.END}\n")
 
     parser.add_argument("-m", "--mode",
-                        choices=["sequential", "parallel"],
+                        choices=["sequential", "parallel", "slurm", "hybrid"],
                         default="parallel",
-                        help="Job execution mode.\n")
+                        help="Job execution mode. hybrid: submit the same file-job list to SLURM then process remaining jobs locally in parallel.\n")
+    parser.add_argument("-st", "--slurm_time",
+                        default="01:00:00",
+                        help="SLURM time limit per array task.\n")
+    parser.add_argument("-sm", "--slurm_mem",
+                        default="4GB",
+                        help="SLURM mem-per-cpu.\n")
+    parser.add_argument("-saj", "--slurm_array_jobid",
+                        type=str,
+                        default=None,
+                        help="Optional SLURM array job ID for hybrid local coordination.\n")
+    parser.add_argument("-y", "--yes",
+                        action="store_true",
+                        help="Noninteractive approval for SLURM script submission (skip [y/N] prompt).\n")
 
     parser.add_argument("-j", "--max_jobs",
                         type=int,
@@ -579,6 +592,112 @@ Running dataframe helper
 
 
 
+def cancel_slurm_array_task(array_jobid, task_index):
+    job_str = f"{array_jobid}_{task_index}"
+    try:
+        subprocess.run(["scancel", job_str], check=False)
+        print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+    except Exception:
+        pass
+
+def slurm_array_has_active_tasks(array_jobid):
+    if(array_jobid in [None, ""]):
+        return False
+    try:
+        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return proc.stdout.strip() != ""
+    except Exception:
+        return False
+
+def should_skip_file_due_to_slurm(args, task_index):
+    # task_index is 1-based to match SLURM_ARRAY_TASK_ID.
+    if(getattr(args, "slurm_array_jobid", None) in [None, ""]):
+        return False
+    try:
+        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(args.slurm_array_jobid), "-o", "%.18i %.2t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except Exception:
+        return False
+    if(proc.returncode != 0):
+        return False
+    target_id = f"{args.slurm_array_jobid}_{task_index}"
+    for line in proc.stdout.strip().splitlines():
+        parts = line.split()
+        if(len(parts) < 2):
+            continue
+        if(parts[0] == target_id):
+            state = parts[1]
+            if(state == "PD"):
+                print(f"{color.BBLUE}[INFO]{color.END} Cancelling pending SLURM task {target_id}")
+                cancel_slurm_array_task(args.slurm_array_jobid, task_index)
+                return False
+            print(f"{color.BBLUE}[INFO]{color.END} File job {task_index} is {state} in SLURM - skipping")
+            return True
+    print(f"{color.BBLUE}[INFO]{color.END} File job {task_index} already completed by SLURM - skipping")
+    return True
+
+def wait_for_remaining_slurm_tasks(args):
+    if(getattr(args, "slurm_array_jobid", None) in [None, ""]):
+        return
+    while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
+        print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
+        time.sleep(30.0)
+
+def write_hybrid_filelist(output_dir, job_base, files):
+    list_path = os.path.join(output_dir, f"{job_base}_filelist.txt")
+    with open(list_path, "w") as fh:
+        for input_file in files:
+            fh.write(f"{input_file}\n")
+    return list_path
+
+def run_slurm_mode(args, variant_settings, files, output_dir, log_dir, auto_yes=False):
+    job_base = variant_settings["job_base"]
+    nfiles = len(files)
+    list_path = write_hybrid_filelist(output_dir, job_base, files)
+    array_script = os.path.join(output_dir, f"slurm_array_{job_base}.sh")
+    example_cmd = build_main_command(args, variant_settings, files[0])
+    cmd_template = build_main_command(args, variant_settings, "${INPUT_FILE}")
+    cmd_line = " ".join(shlex.quote(part) if(part != "${INPUT_FILE}") else '"${INPUT_FILE}"' for part in cmd_template)
+    with open(array_script, "w") as f:
+        f.write("#!/bin/bash\n")
+        f.write("#SBATCH --ntasks=1\n")
+        f.write(f"#SBATCH --job-name={job_base}\n")
+        f.write("#SBATCH --mail-type=ALL\n")
+        f.write("#SBATCH --mail-user=richard.capobianco@uconn.edu\n")
+        f.write("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out\n")
+        f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
+        f.write("#SBATCH --partition=production\n")
+        f.write("#SBATCH --account=clas12\n")
+        f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
+        f.write(f"#SBATCH --time={args.slurm_time}\n")
+        f.write(f"#SBATCH --array=1-{nfiles}\n\n")
+        f.write(f'FILELIST="{list_path}"\n')
+        f.write('INPUT_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${FILELIST}")\n')
+        f.write(f'cd {shlex.quote(output_dir)}\n')
+        f.write(f"{cmd_line}\n")
+    os.chmod(array_script, 0o755)
+    print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
+    with open(array_script) as f:
+        print(f.read())
+    print(f"{color.BBLUE}[INFO]{color.END} Example local-equivalent command:\n  {format_command(example_cmd)}\n")
+    if(auto_yes or getattr(args, "yes", False)):
+        response = "y"
+        print(f"\n{color.BBLUE}[INFO]{color.END} --yes set: auto-approving SLURM submission.")
+    else:
+        try:
+            response = input("\nApprove and submit this SLURM script? [y/N]: ").strip().lower()
+        except EOFError:
+            response = "n"
+    if(response not in ["y", "yes"]):
+        print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting.")
+        sys.exit(0)
+    proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
+    array_id = (proc.stdout or "").strip()
+    if(proc.returncode != 0 or array_id in [None, ""]):
+        err = (proc.stderr or proc.stdout or "").strip()
+        Crash_Report(args, crash_message=f"sbatch failed (rc={proc.returncode}): {err}", continue_run=False)
+    Update_Email(args, update_message=f"{color.BGREEN}Submitted SLURM array job {array_id} for {nfiles} file jobs{color.END}", verbose_override=True, no_time=True)
+    return array_id
+
 def run_sequential(args, variant_settings, files, output_dir, log_dir):
     results  = []
     job_base = variant_settings["job_base"]
@@ -625,6 +744,9 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
     next_index   = 0
 
     def start_job(file_index, input_file):
+        if(should_skip_file_due_to_slurm(args, file_index + 1)):
+            Update_Email(args, update_message=f"{color.BBLUE}SKIP {color.END}: {file_index + 1:>3} of {len(files)}  (SLURM owns this file job)", verbose_override=True, no_time=False)
+            return
         command = build_main_command(args, variant_settings, input_file)
         log_path, err_path = build_log_paths(log_dir, output_dir, job_base, file_index, input_file, args.primary_log_in_output, args.primary_job_index)
         Update_Email(args, update_message=f"{color.BCYAN}START{color.END}: {file_index + 1:>3} of {len(files)}  ->  {os.path.basename(input_file)}", verbose_override=True, no_time=False)
@@ -715,6 +837,7 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
                 break
         else:
             time.sleep(0.50)
+    wait_for_remaining_slurm_tasks(args)
     return sorted(results, key=lambda item: item["index"])
 
 
@@ -738,7 +861,15 @@ def main():
         args.primary_job_index = 0
     if(args.primary_job_index >= len(files)):
         args.primary_job_index = 0
-    if(args.mode == "parallel"):
+    if(args.mode == "hybrid"):
+        array_id = run_slurm_mode(args, variant_settings, files, output_dir, log_dir, auto_yes=True)
+        args.slurm_array_jobid = array_id
+        results = run_parallel(args, variant_settings, files, output_dir, log_dir)
+    elif(args.mode == "slurm"):
+        run_slurm_mode(args, variant_settings, files, output_dir, log_dir, auto_yes=False)
+        Construct_Email(args)
+        return
+    elif(args.mode == "parallel"):
         results = run_parallel(args, variant_settings, files, output_dir, log_dir)
     else:
         results = run_sequential(args, variant_settings, files, output_dir, log_dir)
