@@ -5,6 +5,11 @@ import ROOT
 import traceback
 import os
 
+_BOOT = os.path.abspath(os.path.dirname(__file__))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file, is_bare_filename
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
 
@@ -214,7 +219,7 @@ def parse_args():
                    nargs='*',
                    metavar='BIN',
                    help="List of Q2-y (or Q2-xB) bin indices to run. '0' means all bins.\n")
-
+    add_data_root_argument(p)
     return p.parse_args()
 
 def safe_write(obj, tfile):
@@ -2024,6 +2029,10 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
     var_type  = "MultiDim_Q2_y_z_pT_phi_h" if(args.unfolding_5D) else "phi_t" if(args.unfolding_1D) else "MultiDim_z_pT_Bin_Y_bin_phi_t"
     if((getattr(args, "json_name", None) is None) or (str(args.json_name).strip() in ["", "None", "none"])):
         args.json_name = f"Fit_Pars_from_Simple_RooUnfold_SelfContained{f'_using_{MainFileName}' if(MainFileName not in ['']) else ''}.json"
+    if(is_bare_filename(args.json_name)):
+        root_dir = os.path.dirname(str(args.root))
+        if(root_dir not in ["", None]):
+            args.json_name = os.path.join(root_dir, os.path.basename(str(args.json_name)))
     weight_tag = getattr(args, "weight_tag", "")
     weight_key = f"_W{weight_tag}" if(weight_tag not in ["", None]) else ""
     Common_Key = f"Fit_Pars_from_{'5D' if(args.unfolding_5D) else '3D' if(args.unfolding_3D) else '1D'}_{cor_type}{weight_key}"
@@ -2118,6 +2127,10 @@ def strip_weight_tag_suffixes(name_in):
 
 def main_start():
     args = parse_args()
+    apply_input_if_default(args, "single_file_input", ["-sfin", "--single_file_input"], args.data_root)
+    apply_output_if_default(args, "root", ["-r", "--root"], args.data_root, bare_to_data_root=True)
+    if(getattr(args, "json_name", None) not in [None, ""]):
+        apply_output_if_default(args, "json_name", ["-jn", "--json_name"], args.data_root, bare_to_data_root=True)
     silence_root_import.allow_missing = bool(getattr(args, "Use_TTree", False))
     silence_root_import()
     # === DEFENSIVE: Remove any accidental quotes from filenames (shell quoting protection) ===
@@ -3510,9 +3523,10 @@ def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
         if((not (fits_included and RC_fits_included and BC_fits_included)) or args.remake_fit):
             print(f"\n{color.BBLUE}Making the fits...{color.END}\n")
             if(args.Apply_RC):
-                script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
-                if(not os.path.isdir(script_dir)):
-                    script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "RC_Correction_Code")
+                # script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/RC_Correction_Code'
+                # if(not os.path.isdir(script_dir)):
+                #     script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "RC_Correction_Code")
+                script_dir = os.path.join(EXEC_ROOT, "RC_Correction_Code")
                 sys.path.append(script_dir)
                 from Find_RC_Fit_Params import Find_RC_Fit_Params, Apply_RC_Factor_Corrections, Get_RC_Fit_Plot
                 sys.path.remove(script_dir)

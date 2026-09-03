@@ -12,20 +12,32 @@ import threading
 from collections import deque
 from datetime import datetime
 
-script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis" if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
-sys.path.append(script_dir)
+# script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis" if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import (
+    REL_HPP_OUT, VOLATILE_BASE as SHARED_VOLATILE_BASE, add_data_root_argument, apply_input_if_default,
+    bootstrap_from_file, data_root_path, pipeline_output_path, resolve_pipeline_input, root_label,
+)
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
-sys.path.remove(script_dir)
-del script_dir
 
 Script_Name = "Submit_Full_Histogram_Creation_Pipeline.py"
 
-DATAFRAMES_DIR    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames"
+# DATAFRAMES_DIR    = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames"
+DATAFRAMES_DIR    = os.path.join(EXEC_ROOT, "Histo_Files_ROOT", "DataFrames")
 ACCEPTANCE_SCRIPT = "./Acceptance_Weights_Creations_using_RDataFrames.py"
 PIPELINE_SCRIPT   = "./run_sidis_DataFrame_pipeline.py"
-HPP_OUT_DIR       = os.path.join(DATAFRAMES_DIR, "HPP_Files_Output")
+# HPP_OUT_DIR       = os.path.join(DATAFRAMES_DIR, "HPP_Files_Output")
+HPP_OUT_DIR       = None  # set from --data_root in main()
 DEFAULT_CUT       = "cut_Complete_SIDIS"
-VOLATILE_BASE     = "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work"
+# VOLATILE_BASE     = "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work"
+VOLATILE_BASE     = SHARED_VOLATILE_BASE
 PIPELINE_NAME_IN  = "Final_Thesis_Files"
 PIPELINE_NAME_IN_GLOBS = ["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"]
 # Filename tags only. Alias meaning lives in helper MATCHING_MODE_ALIASES.
@@ -118,7 +130,8 @@ def parse_args():
                    type=str,
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                    default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
-                   help="Spline weight file for combined HPP and response-matrix spline weights.\n")
+                   help="Spline weight file for combined HPP and response-matrix spline weights. Default is resolved under --data_root with fallback to the other JLab tree unless this flag is given.\n")
+    add_data_root_argument(p)
     p.add_argument("-n", "--name",
                    type=str,
                    default="SIDIS_Workflow",
@@ -312,16 +325,17 @@ def hpp_tag_for_cut(base_name, cut_name):
         return str(base_name)
     return f"{base_name}_{cut_name}"
 
-def hpp_paths_from_tag(name_tag):
-    pure = os.path.join(HPP_OUT_DIR, f"generated_acceptance_weights_{name_tag}_noSpline.hpp")
-    comb = os.path.join(HPP_OUT_DIR, f"generated_acceptance_weights_{name_tag}_withSpline.hpp")
+def hpp_paths_from_tag(name_tag, data_root_key=None):
+    hpp_dir = HPP_OUT_DIR if(HPP_OUT_DIR not in [None, ""]) else pipeline_output_path(REL_HPP_OUT, data_root_key or "work")
+    pure = os.path.join(hpp_dir, f"generated_acceptance_weights_{name_tag}_noSpline.hpp")
+    comb = os.path.join(hpp_dir, f"generated_acceptance_weights_{name_tag}_withSpline.hpp")
     return pure, comb
 
 def resolve_hpp_for_cut(args, cut_name):
     # Returns (pure, comb) or (None, None) to let children use defaults.
     if(not args.skip_acceptance):
         tag = hpp_tag_for_cut(args.name, cut_name)
-        return hpp_paths_from_tag(tag)
+        return hpp_paths_from_tag(tag, args.data_root)
     if(args.HPP_Old_Name in [None, ""]):
         return None, None
     # Prefer old name + cut (when cut is not the default), then base old name.
@@ -330,7 +344,9 @@ def resolve_hpp_for_cut(args, cut_name):
         candidates.append(hpp_tag_for_cut(args.HPP_Old_Name, cut_name))
     candidates.append(str(args.HPP_Old_Name))
     for tag in candidates:
-        pure, comb = hpp_paths_from_tag(tag)
+        pure, comb = hpp_paths_from_tag(tag, args.data_root)
+        pure = resolve_pipeline_input(pure, args.data_root)
+        comb = resolve_pipeline_input(comb, args.data_root)
         if(os.path.isfile(pure) and os.path.isfile(comb)):
             return pure, comb
     tried = ", ".join(candidates)
@@ -376,10 +392,12 @@ def systematic_run_list():
 def resolve_main_hpp(args):
     # One main HPP pair for systematic reuse. Independent of matching/output suffix.
     if(not args.skip_acceptance):
-        return hpp_paths_from_tag(args.name)
+        return hpp_paths_from_tag(args.name, args.data_root)
     if(args.HPP_Old_Name in [None, ""]):
         return None, None
-    pure, comb = hpp_paths_from_tag(str(args.HPP_Old_Name))
+    pure, comb = hpp_paths_from_tag(str(args.HPP_Old_Name), args.data_root)
+    pure = resolve_pipeline_input(pure, args.data_root)
+    comb = resolve_pipeline_input(comb, args.data_root)
     if(os.path.isfile(pure) and os.path.isfile(comb)):
         return pure, comb
     raise RuntimeError(f"Acceptance skip with --HPP_Old_Name='{args.HPP_Old_Name}' but no main HPP pair found: {pure} / {comb}")
@@ -452,6 +470,7 @@ def email_children(args):
 # ===================================================================
 def build_acceptance_cmd(args, spline_on, hpp_out, cut_name):
     cmd = [ACCEPTANCE_SCRIPT]
+    cmd.extend(["--data_root", str(args.data_root)])
     cmd.append("--make_2D_weight")
     cmd.extend(["--hpp_output_file", hpp_out])
     name_tag = hpp_tag_for_cut(args.name, cut_name)
@@ -488,6 +507,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     run_mode = args.mode if(mode is None) else mode
     if(run_mode == "hybrid"):
         run_mode = "parallel"
+    cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
     shared = product_shared_name(args, cut_name)
@@ -840,9 +860,12 @@ def run_rho0_stage(args):
     return wait_launched(args, job, cut_name, "parallel")
 
 def main():
+    global HPP_OUT_DIR
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
+    apply_input_if_default(args, "spline_file", ["-spf", "--spline_file"], args.data_root)
+    HPP_OUT_DIR = pipeline_output_path(REL_HPP_OUT, args.data_root)
     # Preserve the user-provided email body separately from the runner log.
     args.user_email_message = args.email_message if(args.email_message not in [None]) else ""
     args.email_message = args.user_email_message
@@ -860,6 +883,8 @@ def main():
 
     args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
     log_print(args, f"{color.BBLUE}\n{Script_Name} ready.{color.END}")
+    log_print(args, f"Execution repository: {root_label(EXEC_ROOT)} ({EXEC_ROOT})")
+    log_print(args, f"Data root: {args.data_root} ({data_root_path(args.data_root)})")
     log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  systematic_runs={args.systematic_runs}  matching_criteria={args.matching_criteria}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")

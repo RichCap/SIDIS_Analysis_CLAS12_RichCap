@@ -7,6 +7,11 @@ import traceback
 import os
 import re
 import argparse
+_BOOT = os.path.abspath(os.path.dirname(__file__))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
 
@@ -111,6 +116,7 @@ def parse_args():
     p.add_argument('-rs', '--recover_slices',
                    action='store_true',
                    help="Skip unfolding; load existing args.root, rename/resave the raw 'unfolded' hist if needed, and only run Multi5D_Slice for Bayesian.\n")
+    add_data_root_argument(p)
     return p.parse_args()
 
 def safe_write(obj, tfile):
@@ -1081,6 +1087,9 @@ def Multi5D_Slice(Histo, Title="Default", Name="none", Method="N/A", Variable="M
 
 def main_start():
     args = parse_args()
+    apply_input_if_default(args, "single_file_input", ["-sfin", "--single_file_input"], args.data_root)
+    apply_output_if_default(args, "root", ["-r", "--root"], args.data_root, bare_to_data_root=True)
+    apply_output_if_default(args, "pdf_name", ["-pdf", "--pdf_name"], args.data_root, bare_to_data_root=True)
     args.timer = RuntimeTimer()
     args.timer.start()
     for attr in ['root', 'single_file_input', 'pdf_name']:

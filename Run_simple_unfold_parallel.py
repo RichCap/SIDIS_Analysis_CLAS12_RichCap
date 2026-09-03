@@ -12,11 +12,19 @@ from datetime import datetime
 
 Name_of_Script = "Run_simple_unfold_parallel.py"
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
-sys.path.append(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import RuntimeTimer, color
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.dirname(__file__))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import (
+    add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file, print_path_summary,
+)
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import RuntimeTimer, color
-sys.path.remove(script_dir)
-del script_dir
 
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
@@ -57,8 +65,9 @@ Script: {Name_of_Script}""",
 
     parser.add_argument('-s', '--script',
                         type=str,
-                        default='./Simple_RooUnfold_SelfContained.py',
-                        help="Path to the Simple_RooUnfold_SelfContained.py script.\n")
+                        # default='./Simple_RooUnfold_SelfContained.py',
+                        default=os.path.join(EXEC_ROOT, 'Simple_RooUnfold_SelfContained.py'),
+                        help="Path to the Simple_RooUnfold_SelfContained.py script. Default is the copy in this execution repository.\n")
 
     parser.add_argument('-n', '--njobs',
                         type=int,
@@ -67,8 +76,10 @@ Script: {Name_of_Script}""",
 
     parser.add_argument('-ld', '--log_dir',
                         type=str,
-                        default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding',
-                        help="Directory for per-job .out and .time log files.\n")
+                        # default='/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Logs_for_Simple_Unfolding',
+                        default=os.path.join(EXEC_ROOT, 'Logs_for_Simple_Unfolding'),
+                        help="Directory for per-job .out and .time log files. Default stays with the execution repository.\n")
+    add_data_root_argument(parser)
 
     parser.add_argument('-lp', '--log_prefix',
                         type=str,
@@ -167,7 +178,8 @@ Script: {Name_of_Script}""",
 def apply_run_mode_defaults(parsed_args, parser):
     if(parsed_args.run_mode == '5D'):
         if(parsed_args.script == parser.get_default('script')):
-            parsed_args.script = './Dedicated_5D_Unfold.py'
+            # parsed_args.script = './Dedicated_5D_Unfold.py'
+            parsed_args.script = os.path.join(EXEC_ROOT, 'Dedicated_5D_Unfold.py')
         if(parsed_args.njobs == parser.get_default('njobs')):
             parsed_args.njobs = 1
         if(parsed_args.mail_subject == parser.get_default('mail_subject')):
@@ -203,24 +215,25 @@ def append_5d_flag_if_needed(script_cmd, flag_long, value, extra_args_command):
     return script_cmd
 
 
-def build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None):
+def build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None, data_root=None):
+    data_root_args = ["--data_root", str(data_root)] if(data_root not in [None, ""]) else []
     if(run_mode == '5D'):
-        script_cmd = [script]
+        script_cmd = [script] + data_root_args
         script_cmd = append_5d_flag_if_needed(script_cmd, '--root', root, extra_args_command)
         script_cmd = append_5d_flag_if_needed(script_cmd, '--single_file_input', single_file_input, extra_args_command)
         script_cmd += ['--background_source', background_source, '-em', email_message, '-e']
         if(extra_args_command.strip()):
             script_cmd += shlex.split(extra_args_command)
         return script_cmd
-    return [script] + shlex.split(args_command) + ['-em', email_message, '-ti', title, str(job_label)]
+    return [script] + data_root_args + shlex.split(args_command) + ['-em', email_message, '-ti', title, str(job_label)]
 
 
-def build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None):
-    return shlex.join(build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input))
+def build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=None, single_file_input=None, data_root=None):
+    return shlex.join(build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input, data_root=data_root))
 
 
-def build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=None, single_file_input=None):
-    return ['/usr/bin/time', '-v', '-o', timefile] + build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input)
+def build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=None, single_file_input=None, data_root=None):
+    return ['/usr/bin/time', '-v', '-o', timefile] + build_script_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root, single_file_input=single_file_input, data_root=data_root)
 
 
 def wait_for_any_job(running_jobs, verbose):
@@ -278,6 +291,9 @@ def main():
     parsed_args.timer = RuntimeTimer()
     parsed_args.timer.start()
     apply_run_mode_defaults(parsed_args, parser)
+    apply_input_if_default(parsed_args, "single_file_input", ["-sfi", "--single_file_input"], parsed_args.data_root)
+    apply_output_if_default(parsed_args, "root", ["-r", "--root"], parsed_args.data_root, bare_to_data_root=True)
+    print_path_summary(EXEC_ROOT, parsed_args.data_root)
 
     run_mode           = parsed_args.run_mode
     args_command       = parsed_args.args_command
@@ -322,7 +338,7 @@ def main():
     if(run_mode == '5D'):
         print(' Starting Dedicated_5D_Unfold.py run (5D mode)')
         print('   Jobs       : All (5D_Bins)')
-        preview_cmd = build_display_command(run_mode, script, args_command, '<message>', title, 'All', background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
+        preview_cmd = build_display_command(run_mode, script, args_command, '<message>', title, 'All', background_source, extra_args_command, root=root_out, single_file_input=single_file_input, data_root=parsed_args.data_root)
         print(f'   Command    : {preview_cmd}')
     else:
         print(' Starting parallel RooUnfold test run (3D mode)')
@@ -344,8 +360,8 @@ def main():
         else:
             print(f'{color.BOLD}Launching job {job_label} → {outfile} + {timefile}{color.END}')
 
-        display_cmd = build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
-        run_cmd     = build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=root_out, single_file_input=single_file_input)
+        display_cmd = build_display_command(run_mode, script, args_command, email_message, title, job_label, background_source, extra_args_command, root=root_out, single_file_input=single_file_input, data_root=parsed_args.data_root)
+        run_cmd     = build_run_command(run_mode, script, args_command, email_message, title, job_label, timefile, background_source, extra_args_command, root=root_out, single_file_input=single_file_input, data_root=parsed_args.data_root)
 
         with open(outfile, 'w') as log_fh:
             log_fh.write(f'Full command: {display_cmd}\n')

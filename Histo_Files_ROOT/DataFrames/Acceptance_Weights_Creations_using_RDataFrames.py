@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
+import os
 import sys
 import argparse
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/'
-sys.path.append(script_dir)
-from File_Batches import rdf_batch, mdf_batch
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/'
+# sys.path.append(script_dir)
+# from File_Batches import rdf_batch, mdf_batch
+# from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
+# sys.path.remove(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import *
+# from ExtraAnalysisCodeValues          import *
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file, load_file_batches
+EXEC_ROOT = bootstrap_from_file(__file__)
+_DF_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _DF_DIR)
 from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
-sys.path.remove(script_dir)
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
-sys.path.append(script_dir)
+sys.path.remove(_DF_DIR)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues          import *
-sys.path.remove(script_dir)
-del script_dir
+rdf_batch, mdf_batch = {}, {}
 import math
 # import array
 # import copy
@@ -147,6 +160,7 @@ def parse_args():
                         default="_gen",
                         choices=list(MATCHING_MODE_ALIASES),
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
+    add_data_root_argument(parser)
     return parser.parse_args()
 
 def as_th1(hist):
@@ -932,6 +946,13 @@ def make_2D_weight_func(args, rdf, mdf_clasdis):
 
 if(__name__ == "__main__"):
     args = parse_args()
+    apply_input_if_default(args, "json_file", ["-jsf", "--json_file"], args.data_root)
+    apply_input_if_default(args, "spline_file", ["-spf", "--spline_file"], args.data_root)
+    apply_input_if_default(args, "hpp_input_file", ["-hpp_in", "--hpp_input_file"], args.data_root)
+    apply_output_if_default(args, "hpp_output_file", ["-hpp_out", "--hpp_output_file"], args.data_root)
+    rdf_batch, mdf_batch, _gdf_batch, _batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
+    globals()["rdf_batch"] = rdf_batch
+    globals()["mdf_batch"] = mdf_batch
     print(f"{color.BBLUE}\nCode is ready to run.{color.END}")
     args.timer = RuntimeTimer()
     args.timer.start()

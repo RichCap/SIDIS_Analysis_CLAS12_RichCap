@@ -7,18 +7,30 @@ import os
 from pathlib import Path
 import ROOT, re
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/')) else os.path.abspath(os.path.dirname(__file__))
-sys.path.append(script_dir)
-from File_Batches import rdf_batch, mdf_batch, gdf_batch
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/')) else os.path.abspath(os.path.dirname(__file__))
+# sys.path.append(script_dir)
+# from File_Batches import rdf_batch, mdf_batch, gdf_batch
+# from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
+# sys.path.remove(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import *
+# from ExtraAnalysisCodeValues          import *
+# from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import add_data_root_argument, apply_input_if_default, bootstrap_from_file, load_file_batches
+EXEC_ROOT = bootstrap_from_file(__file__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
-sys.path.remove(script_dir)
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
-sys.path.append(script_dir)
+sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues          import *
 from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
-sys.path.remove(script_dir)
-del script_dir
+rdf_batch, mdf_batch, gdf_batch = {}, {}, {}
 
 # import math
 # import array
@@ -195,6 +207,7 @@ def parse_args():
     parser.add_argument('-rrw', '--run_rho_weight',
                         action='store_true', 
                         help='Runs the rho0 normalization weights (will remove all exclusive rho0 events from the clasdis MC).\n')
+    add_data_root_argument(parser)
     return parser.parse_args()
 
 import subprocess
@@ -566,6 +579,16 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
 
 if(__name__ == "__main__"):
     args = parse_args()
+    apply_input_if_default(args, "json_file", ["-jsf", "--json_file"], args.data_root)
+    apply_input_if_default(args, "spline_file", ["-spf", "--spline_file"], args.data_root)
+    apply_input_if_default(args, "hpp_input_file", ["-hpp_in", "--hpp_input_file"], args.data_root)
+    if(getattr(args, "hpp_input_file_spline", None) not in [None, ""]):
+        apply_input_if_default(args, "hpp_input_file_spline", ["-hpp_sw", "--hpp_input_file_spline"], args.data_root)
+    apply_input_if_default(args, "json_file_BC", ["-jsbc", "--json_file_BC"], args.data_root)
+    rdf_batch, mdf_batch, gdf_batch, _batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
+    globals()["rdf_batch"] = rdf_batch
+    globals()["mdf_batch"] = mdf_batch
+    globals()["gdf_batch"] = gdf_batch
     args.timer = RuntimeTimer()
     print(f"{color.BBLUE}\nCode is ready to run.{color.END}")
     args.timer.start()
@@ -917,7 +940,8 @@ if(__name__ == "__main__"):
                 gdf_EvGen = ensure_defined_col(gdf_EvGen, "MultiDim_Q2_y_z_pT_phi_h", Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="5D", Use_Dense_Binning=use_dense_5d, args=args), None)
 
         if(args.valerii_bins):
-            script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
+            # script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap"
+            script_dir = EXEC_ROOT
             sys.path.append(script_dir)
             from Valerii_Kinematic_Binning_Code import *
             sys.path.remove(script_dir)

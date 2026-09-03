@@ -11,13 +11,23 @@ import subprocess
 import time
 from datetime import datetime
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-sys.path.append(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import (
+    VOLATILE_BASE, add_data_root_argument, apply_output_if_default, bootstrap_from_file,
+    dataframe_output_dir, flag_was_passed, print_path_summary, volatile_dataframe_dir,
+)
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
-sys.path.remove(script_dir)
-del script_dir
 
-MAIN_SCRIPT_DEFAULT = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/dataframe_makeROOT_epip_SIDIS.py"
+# MAIN_SCRIPT_DEFAULT = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/dataframe_makeROOT_epip_SIDIS.py"
+MAIN_SCRIPT_DEFAULT = os.path.join(EXEC_ROOT, "dataframe_makeROOT_epip_SIDIS.py")
 
 # ===================================================================
 # PRESET VARIANTS
@@ -58,20 +68,21 @@ PRESET_VARIANTS = {
 # ===================================================================
 # NEW: Group-specific clean output directories
 # ===================================================================
-OUTPUT_DIRS = {
-    "rdf": {
-        "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data",
-        "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/REAL_Data",
-    },
-    "mdf": {
-        "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC",
-        "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Matching_REC_MC",
-    },
-    "gdf": {
-        "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC",
-        "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/GEN_MC",
-    },
-}
+# OUTPUT_DIRS = {
+#     "rdf": {
+#         "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/REAL_Data",
+#         "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/REAL_Data",
+#     },
+#     "mdf": {
+#         "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Matching_REC_MC",
+#         "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Matching_REC_MC",
+#     },
+#     "gdf": {
+#         "work":     "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/GEN_MC",
+#         "volatile": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/GEN_MC",
+#     },
+# }
+OUTPUT_DIRS = None  # Persistent "work" trees are filled from --data_root at runtime.
 
 # Log subdirectories (always under scratch, grouped by the same names)
 LOG_SUBDIRS = {
@@ -103,16 +114,19 @@ def parse_args():
     parser.add_argument("-o", "--output_location",
                         choices=["work", "volatile"],
                         default="work",
-                        help="Where ROOT output files should be written.\n")
+                        help="Where DataFrame ROOT files are written (persistent vs temporary; not which copy of this helper is run).\n  work     : write under --data_root. --data_root work → /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/<rdf|mdf|gdf> ; --data_root work_b → /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/<rdf|mdf|gdf>\n  volatile : write under /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/<rdf|mdf|gdf> (unchanged; --data_root work_b does not send files here)\nUse --data_root work_b with -o work to put persistent DataFrames on the ceph tree. Groovy input globs stay on hallb SIDIS/.\n")
+
+    add_data_root_argument(parser)
 
     parser.add_argument("-w", "-work", "--work_dir",
                         type=str,
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames",
-                        help="Primary work output directory.\n")
+                        help="Override the persistent DataFrames parent directory. Ignored unless given explicitly; otherwise -o work uses --data_root.\n")
     parser.add_argument("-vol", "-volatile", "--volatile_dir",
                         type=str,
-                        default="/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work",
-                        help="Alternative volatile output directory.\n")
+                        # default="/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work",
+                        default=VOLATILE_BASE,
+                        help="Override the volatile output parent directory (used only with -o volatile).\n")
     parser.add_argument("-sld", "-scratch", "--scratch_log_dir",
                         type=str,
                         default="",
@@ -449,10 +463,21 @@ def choose_variant_settings(args):
 def resolve_output_dir(args, variant_settings):
     # Returns the exact output folder for the chosen data_type + output_location.
     data_type = variant_settings["data_type"]
-    if data_type in OUTPUT_DIRS and args.output_location in OUTPUT_DIRS[data_type]:
-        return OUTPUT_DIRS[data_type][args.output_location]
-    # fallback (should never happen with the presets)
-    return args.work_dir if(args.output_location == "work") else args.volatile_dir
+    # if data_type in OUTPUT_DIRS and args.output_location in OUTPUT_DIRS[data_type]:
+    #     return OUTPUT_DIRS[data_type][args.output_location]
+    # return args.work_dir if(args.output_location == "work") else args.volatile_dir
+    subdir = LOG_SUBDIRS.get(data_type, data_type)
+    if(args.output_location == "volatile"):
+        if(flag_was_passed(["-vol", "-volatile", "--volatile_dir"])):
+            if(os.path.basename(args.volatile_dir) == subdir):
+                return args.volatile_dir
+            return os.path.join(args.volatile_dir, subdir)
+        return volatile_dataframe_dir(data_type)
+    if(flag_was_passed(["-w", "-work", "--work_dir"])):
+        if(os.path.basename(args.work_dir) == subdir):
+            return args.work_dir
+        return os.path.join(args.work_dir, subdir)
+    return dataframe_output_dir(args.data_root, data_type)
 
 def resolve_log_dir(args, variant_settings):
     # Logs ALWAYS go to scratch (never volatile) and are grouped by the same subfolder name.
@@ -578,6 +603,8 @@ def print_run_header(args, variant_settings, files, output_dir, log_dir):
 Running dataframe helper
 ========================================
 {color.END}""")
+    print_path_summary(EXEC_ROOT, args.data_root)
+    print(f"{color.BOLD}Output Location:{color.END}   {args.output_location}")
     print(f"{color.BOLD}Variant:{color.END}           {args.variant}")
     print(f"{color.BOLD}Mode:{color.END}              {args.mode}")
     print(f"{color.BOLD}Data Type:{color.END}         {variant_settings['data_type']}")
@@ -843,9 +870,13 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
 
 def main():
     args = parse_args()
+    if(not flag_was_passed(["-main", "--main_script"])):
+        args.main_script = MAIN_SCRIPT_DEFAULT
+    apply_output_if_default(args, "work_dir", ["-w", "-work", "--work_dir"], args.data_root)
     if(args.help_script):
         print(f"\n\n{color.BBLUE}PRINTING THE '--help' MESSAGE FROM THE MAIN SCRIPT...{color.END}\n")
-        subprocess.run(["python3", MAIN_SCRIPT_DEFAULT, "-h"], check=False)
+        # subprocess.run(["python3", MAIN_SCRIPT_DEFAULT, "-h"], check=False)
+        subprocess.run(["python3", args.main_script, "-h"], check=False)
         sys.exit(0)
     args.timer = RuntimeTimer()
     args.timer.start()
