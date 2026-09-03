@@ -25,6 +25,18 @@ ACCEPTANCE_SCRIPT = "./Acceptance_Weights_Creations_using_RDataFrames.py"
 PIPELINE_SCRIPT   = "./run_sidis_DataFrame_pipeline.py"
 HPP_OUT_DIR       = os.path.join(DATAFRAMES_DIR, "HPP_Files_Output")
 DEFAULT_CUT       = "cut_Complete_SIDIS"
+VOLATILE_BASE     = "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work"
+PIPELINE_NAME_IN  = "Final_Thesis_Files"
+PIPELINE_NAME_IN_GLOBS = ["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"]
+# Filename tags only. Alias meaning lives in helper MATCHING_MODE_ALIASES.
+MATCHING_OUTPUT_TAG = {
+    "": "", "_gen": "", "gen": "", "P10T6": "",
+    "Bank": "Bank", "_gen_Bank": "Bank",
+    "P12T6": "P12T6", "_gen_P12T6": "P12T6",
+    "P8T6": "P8T6", "_gen_P8T6": "P8T6",
+    "P10T8": "P10T8", "_gen_P10T8": "P10T8",
+    "P10T4": "P10T4", "_gen_P10T4": "P10T4",
+}
 
 ACCEPTED_CUTS = [
     "cut_Complete_SIDIS", "cut_Complete_SIDIS_MM_None", "cut_Complete_SIDIS_MM_loose", "cut_Complete_SIDIS_MM_tight",
@@ -76,6 +88,16 @@ PRODUCTS = [{
         },
 ]
 
+# Standalone pre-pipeline rho0 histogram production (not a Stage-2 product; bypasses Stage 1 and Stage 2).
+RHO0_PRODUCT = {
+        "key": "rho0",
+        "label": "rho0 Normalization Creation Histograms",
+        "name_fmt": "Only_2D_rho0_Normalization_Creation_{shared}",
+        "pipeline_flags": ["--z_axis_2D", "z_Bins", "--no_make_2D_rho", "--no_unfold_5D"],
+        "extra": ["--make_2D_rho_normalization_only", "--run_rho_weight"],
+        "jobs_attr": "jobs_rho0",
+        }
+
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
 
@@ -118,6 +140,14 @@ def parse_args():
     p.add_argument("-us", "--unsmeared",
                    action="store_true",
                    help="Unsmeared reconstructed-MC mode (required for noSmear cut).\n")
+    p.add_argument("-mac", "--matching_criteria",
+                   type=str,
+                   default="_gen",
+                   choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
+                   help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
+    p.add_argument("-sys", "--systematic_runs",
+                   action="store_true",
+                   help="Bank cut sweep (non-Pass1, smear on), other matching modes with the default cut, and one Bank no-smear run. Reuses one main HPP pair; does not multiply Stage 1.\n")
     p.add_argument("-nrrw", "--no_run_rho_weight",
                    action="store_true",
                    help="Do not pass --run_rho_weight to Acceptance or Response-pipeline children (default: rho weights ON for production).\n")
@@ -134,7 +164,7 @@ def parse_args():
                    type=str,
                    default="parallel",
                    choices=["parallel", "sequential", "slurm", "hybrid"],
-                   help="Response stage mode (default parallel). hybrid: submit SLURM with --yes, then local parallel with -saj (currently flawed; use only after slurm/parallel alignment is fixed). Acceptance is always local.\n")
+                   help="Response stage mode (default parallel). hybrid: submit SLURM with --yes, then local parallel with -saj; both write batch ROOT files under /volatile and local hadd goes to the parallel work_dir destination. Acceptance is always local.\n")
     p.add_argument("-saj", "--slurm_array_jobid",
                    type=str,
                    default=None,
@@ -159,6 +189,14 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
+    p.add_argument("--rho0",
+                   dest="rho0_mode",
+                   action="store_true",
+                   help="Standalone pre-pipeline rho0_Normalization_Creation histograms only. Bypasses Stage 1 (HPP) and Stage 2. Does not use HPPs.\n")
+    p.add_argument("-jrho0", "--jobs_rho0",
+                   type=int,
+                   default=5,
+                   help="Concurrent batch jobs for standalone --rho0 histogram production.\n")
     p.add_argument("-v", "--verbose",
                    action="store_true",
                    help="Runner-only: also tee one designated child stream to the terminal (all children still go to the master .log).\n")
@@ -298,11 +336,60 @@ def resolve_hpp_for_cut(args, cut_name):
     tried = ", ".join(candidates)
     raise RuntimeError(f"Acceptance skip with --HPP_Old_Name='{args.HPP_Old_Name}' but no matching HPP pair found for cut='{cut_name}'. Tried tags: {tried}")
 
-def product_shared_name(args, cut_name):
-    # Shared_Name is always args.name; non-default cuts append cut so multi-cut outputs do not collide.
-    if(cut_name in [None, "", DEFAULT_CUT]):
-        return str(args.name)
-    return f"{args.name}_{cut_name}"
+def matching_output_tag(matching):
+    key = "_gen" if(matching in [None]) else str(matching)
+    if(key not in MATCHING_OUTPUT_TAG):
+        raise ValueError(f"Unknown matching_criteria={matching!r}")
+    return MATCHING_OUTPUT_TAG[key]
+
+def product_shared_name(args, cut_name, matching=None):
+    # args.name, then matching tag if not historical, then non-default cut. Backend never appears.
+    name = str(args.name)
+    mac = matching if(matching is not None) else getattr(args, "matching_criteria", "_gen")
+    tag = matching_output_tag(mac)
+    if(tag not in ["", None]):
+        name = f"{name}_{tag}"
+    if(cut_name not in [None, "", DEFAULT_CUT]):
+        name = f"{name}_{cut_name}"
+    return name
+
+def non_pass1_cuts():
+    return [c for c in ACCEPTED_CUTS if(("pass1" not in c) and ("noSmear" not in c))]
+
+def validate_cut_matching_smear(cut_name, matching, unsmeared):
+    matching_output_tag(matching)
+    if(unsmeared):
+        if("noSmear" not in str(cut_name)):
+            raise ValueError("Smearing off requires cut_Complete_SIDIS_noSmear")
+    elif("noSmear" in str(cut_name)):
+        raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared")
+
+def systematic_run_list():
+    runs = []
+    for cut_name in non_pass1_cuts():
+        runs.append({"cut": cut_name, "matching": "Bank", "unsmeared": False})
+    for mac in ["_gen", "P12T6", "P8T6", "P10T8", "P10T4"]:
+        runs.append({"cut": DEFAULT_CUT, "matching": mac, "unsmeared": False})
+    runs.append({"cut": "cut_Complete_SIDIS_noSmear", "matching": "Bank", "unsmeared": True})
+    return runs
+
+def resolve_main_hpp(args):
+    # One main HPP pair for systematic reuse. Independent of matching/output suffix.
+    if(not args.skip_acceptance):
+        return hpp_paths_from_tag(args.name)
+    if(args.HPP_Old_Name in [None, ""]):
+        return None, None
+    pure, comb = hpp_paths_from_tag(str(args.HPP_Old_Name))
+    if(os.path.isfile(pure) and os.path.isfile(comb)):
+        return pure, comb
+    raise RuntimeError(f"Acceptance skip with --HPP_Old_Name='{args.HPP_Old_Name}' but no main HPP pair found: {pure} / {comb}")
+
+def hybrid_batch_paths(args, cut_name, product):
+    shared = product_shared_name(args, cut_name)
+    name_tag = product_output_name(product, shared)
+    date = getattr(args, "hybrid_date", datetime.now().strftime("%m_%d_%Y"))
+    run_subdir = f"{name_tag}_{PIPELINE_NAME_IN}_{date}"
+    return os.path.join(VOLATILE_BASE, run_subdir), run_subdir
 
 def product_output_name(product, shared):
     return product["name_fmt"].format(shared=shared)
@@ -378,6 +465,10 @@ def build_acceptance_cmd(args, spline_on, hpp_out, cut_name):
         cmd.extend(["--spline_file", args.spline_file])
     if(args.unsmeared):
         cmd.append("--unsmeared")
+    mac = getattr(args, "matching_criteria", "_gen")
+    if(mac in [None, ""]):
+        mac = "_gen"
+    cmd.extend(["--matching_criteria", str(mac)])
     if(email_children(args)):
         cmd.append("--email")
         label = f"HPP {'withSpline' if(spline_on) else 'noSpline'}"
@@ -391,7 +482,7 @@ def product_extra_flags(args, product):
         extra = [e for e in extra if(e != "--run_rho_weight")]
     return extra
 
-def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None):
+def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None, batch_output_dir=None, run_subdir_name=None, skip_slurm_hadd=False, use_hpp=True):
     # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
     cmd = [PIPELINE_SCRIPT]
     run_mode = args.mode if(mode is None) else mode
@@ -402,15 +493,21 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     shared = product_shared_name(args, cut_name)
     name_tag = product_output_name(product, shared)
     cmd.extend(["-n", name_tag])
-    cmd.append("--use_hpp")
-    cmd.append("--spline_weights")
-    cmd.extend(["--spline_weight_file", args.spline_file])
-    if(pure_hpp not in [None, ""]):
-        cmd.extend(["--hpp_weight_file", pure_hpp])
-    if(comb_hpp not in [None, ""]):
-        cmd.extend(["--hpp_weight_file_spline", comb_hpp])
+    cmd.extend(["--name_in"] + list(PIPELINE_NAME_IN_GLOBS))
+    if(use_hpp):
+        cmd.append("--use_hpp")
+        cmd.append("--spline_weights")
+        cmd.extend(["--spline_weight_file", args.spline_file])
+        if(pure_hpp not in [None, ""]):
+            cmd.extend(["--hpp_weight_file", pure_hpp])
+        if(comb_hpp not in [None, ""]):
+            cmd.extend(["--hpp_weight_file_spline", comb_hpp])
     if(args.unsmeared):
         cmd.append("--unsmeared")
+    mac = getattr(args, "matching_criteria", "_gen")
+    if(mac in [None, ""]):
+        mac = "_gen"
+    cmd.extend(["--matching_criteria", str(mac)])
     if(not args.no_run_rho_weight):
         # Pipeline-level -rrw (also kept in product --extra for Response passthrough)
         cmd.append("--run_rho_weight")
@@ -424,6 +521,12 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     job_n = int(product_job_count(args, product) if(jobs is None) else jobs)
     if(run_mode in ["parallel"]):
         cmd.extend(["--jobs", str(job_n)])
+    if(batch_output_dir not in [None, ""]):
+        cmd.extend(["--batch_output_dir", str(batch_output_dir)])
+    if(run_subdir_name not in [None, ""]):
+        cmd.extend(["--run_subdir_name", str(run_subdir_name)])
+    if(skip_slurm_hadd and (run_mode == "slurm")):
+        cmd.append("--skip_slurm_hadd")
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -663,17 +766,21 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
     if(mode == "hybrid"):
         # Per selected product: noninteractive SLURM submit (--yes), capture array id, then parallel with -saj.
-        # Selected product parallel pipelines run concurrently after their array ids are known.
+        # Both backends write batch ROOT files to the same /volatile run directory.
         array_ids = {}
+        hybrid_dirs = {}
         for product, jobs in selected:
             task = product["key"]
-            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs)
+            batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+            hybrid_dirs[task] = (batch_dir, run_subdir)
+            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
             array_ids[task] = submit_slurm_capture_array_id(args, slurm_cmd, f"{task}-slurm", cut_name)
 
         launched = []
         for i, (product, jobs) in enumerate(selected):
             task = product["key"]
-            par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task], jobs=jobs)
+            batch_dir, run_subdir = hybrid_dirs[task]
+            par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task], jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
             tee = bool(args.verbose) and (i == 0)
             launched.append((product, launch_cmd(args, par_cmd, f"{task}-parallel", tee_terminal=tee)))
         for product, job in launched:
@@ -708,6 +815,30 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
         results.append((product["key"], rc))
     return results
 
+def run_rho0_stage(args):
+    # Exclusive pre-pipeline: rho0_Normalization_Creation histograms only. No HPP generate/load. No Stage 1/2.
+    product = RHO0_PRODUCT
+    cut_name = args.cut_name if(args.cut_name not in [None, ""]) else DEFAULT_CUT
+    jobs = int(args.jobs_rho0)
+    mode = args.mode
+    log_print(args, f"\n{color.BGREEN}=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs={jobs} mode={mode} ==={color.END}")
+    if(mode == "hybrid"):
+        batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+        slurm_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True, use_hpp=False)
+        array_id = submit_slurm_capture_array_id(args, slurm_cmd, "rho0-slurm", cut_name)
+        par_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", saj=array_id, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, use_hpp=False)
+        job = launch_cmd(args, par_cmd, "rho0", tee_terminal=bool(args.verbose))
+        return wait_launched(args, job, cut_name, "hybrid-parallel")
+    if(mode == "sequential"):
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="sequential", jobs=jobs, use_hpp=False)
+        return run_cmd_blocking(args, cmd, "rho0", cut_name, "sequential", tee_terminal=bool(args.verbose))
+    if(mode == "slurm"):
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=False, jobs=jobs, use_hpp=False)
+        return run_cmd_interactive(args, cmd, "rho0-slurm", cut_name, "slurm")
+    cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", jobs=jobs, use_hpp=False)
+    job = launch_cmd(args, cmd, "rho0", tee_terminal=bool(args.verbose))
+    return wait_launched(args, job, cut_name, "parallel")
+
 def main():
     args = parse_args()
     args.timer = RuntimeTimer()
@@ -727,8 +858,9 @@ def main():
     args.time_log_fh.write(header)
     args.time_log_fh.flush()
 
+    args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
     log_print(args, f"{color.BBLUE}\n{Script_Name} ready.{color.END}")
-    log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
+    log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  systematic_runs={args.systematic_runs}  matching_criteria={args.matching_criteria}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
     log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}  jobs_Binning={args.jobs_Binning}")
@@ -737,6 +869,25 @@ def main():
     else:
         log_print(args, f"{color.BBLUE}rho0_source for Acceptance: {color.END_B}{args.rho0_source}{color.END}")
 
+    if(getattr(args, "rho0_mode", False)):
+        if(int(args.jobs_rho0) <= 0):
+            Crash_Report(args, crash_message="Standalone --rho0 requires --jobs_rho0 > 0.", continue_run=False)
+        log_print(args, f"{color.BGREEN}rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).{color.END}")
+        rc = run_rho0_stage(args)
+        if(rc != 0):
+            Crash_Report(args, crash_message=f"Standalone rho0 production failed (rc={rc}).", continue_run=False)
+        Update_Email(args, update_message=f"{color.BGREEN}Standalone rho0 histogram production finished successfully.{color.END}", verbose_override=True, no_time=False)
+        Construct_Email(args, final_count=1, Count_Type="rho0 product run")
+        try:
+            args.master_log_fh.close()
+        except Exception:
+            pass
+        try:
+            args.time_log_fh.close()
+        except Exception:
+            pass
+        return
+
     try:
         selected0, _skipped0 = selected_products(args)
     except ValueError as err:
@@ -744,12 +895,22 @@ def main():
     if(len(selected0) == 0):
         Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D/--jobs_Binning are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
 
-    if((args.run_all_cuts) and (args.mode == "slurm")):
-        Crash_Report(args, crash_message="--run_all_cuts is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)
+    if((args.run_all_cuts or args.systematic_runs) and (args.mode == "slurm")):
+        Crash_Report(args, crash_message="--run_all_cuts/--systematic_runs is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)
 
-    if(args.run_all_cuts):
+    if(args.systematic_runs):
+        run_specs = systematic_run_list()
+        log_print(args, f"{color.BYELLOW}--systematic_runs: {len(run_specs)} configs (Bank cut sweep, other matching with default cut, one Bank no-smear). One main HPP pair reused.{color.END}")
+        try:
+            for spec in run_specs:
+                validate_cut_matching_smear(spec["cut"], spec["matching"], spec["unsmeared"])
+        except ValueError as err:
+            Crash_Report(args, crash_message=str(err), continue_run=False)
+        cuts = [spec["cut"] for spec in run_specs]
+    elif(args.run_all_cuts):
         args.skip_acceptance = True
         cuts = select_cuts(args)
+        run_specs = [{"cut": c, "matching": args.matching_criteria, "unsmeared": args.unsmeared} for c in cuts]
         log_print(args, f"{color.BYELLOW}--run_all_cuts: acceptance forced OFF; {len(cuts)} cuts (skip_cut={args.skip_cut}){color.END}")
     else:
         cuts = select_cuts(args)
@@ -757,14 +918,44 @@ def main():
             Crash_Report(args, crash_message="cut_Complete_SIDIS_noSmear requires --unsmeared", continue_run=False)
         if((args.unsmeared) and ("noSmear" not in str(args.cut_name))):
             log_print(args, f"{color.BYELLOW}NOTE: --unsmeared set without noSmear cut; unsmeared columns will still be used.{color.END}")
+        try:
+            matching_output_tag(args.matching_criteria)
+        except ValueError as err:
+            Crash_Report(args, crash_message=str(err), continue_run=False)
+        run_specs = [{"cut": c, "matching": args.matching_criteria, "unsmeared": args.unsmeared} for c in cuts]
 
     # Early HPP resolution check when skipping (fail before any job submit if -hon missing files)
-    if(args.skip_acceptance and (args.HPP_Old_Name not in [None, ""])):
+    if(args.systematic_runs):
+        if(args.skip_acceptance and (args.HPP_Old_Name not in [None, ""])):
+            try:
+                resolve_main_hpp(args)
+            except RuntimeError as err:
+                Crash_Report(args, crash_message=str(err), continue_run=False)
+    elif(args.skip_acceptance and (args.HPP_Old_Name not in [None, ""])):
         for cut_name in cuts:
             resolve_hpp_for_cut(args, cut_name)
 
     hpp_map = {}
-    if((not args.skip_acceptance) and (not args.run_all_cuts)):
+    if(args.systematic_runs):
+        if(not args.skip_acceptance):
+            log_print(args, f"\n{color.BGREEN}=== Stage 1: Acceptance HPP generation (once, main tag) ==={color.END}")
+            saved_mac = args.matching_criteria
+            args.matching_criteria = "_gen"
+            hpp_map[DEFAULT_CUT] = run_acceptance_stage(args, [DEFAULT_CUT])[DEFAULT_CUT]
+            args.matching_criteria = saved_mac
+        else:
+            log_print(args, f"\n{color.BYELLOW}=== Stage 1: Acceptance SKIPPED; reusing main HPP pair ==={color.END}")
+            try:
+                hpp_map[DEFAULT_CUT] = resolve_main_hpp(args)
+            except RuntimeError as err:
+                Crash_Report(args, crash_message=str(err), continue_run=False)
+        pure_main, comb_main = hpp_map.get(DEFAULT_CUT, (None, None))
+        if(pure_main not in [None, ""]):
+            log_print(args, f"  main HPP pure={pure_main}")
+            log_print(args, f"  main HPP comb={comb_main}")
+        else:
+            log_print(args, "  main HPP: using child-script defaults")
+    elif((not args.skip_acceptance) and (not args.run_all_cuts)):
         log_print(args, f"\n{color.BGREEN}=== Stage 1: Acceptance HPP generation ==={color.END}")
         hpp_map = run_acceptance_stage(args, cuts)
     else:
@@ -784,9 +975,15 @@ def main():
     log_print(args, f"{color.BBLUE}Phase-2 product job plan:\n{format_product_jobs_plan(args)}{color.END}")
     all_failed = []
     task_count = 0
-    for cut_name in cuts:
-        pure_hpp, comb_hpp = hpp_map.get(cut_name, (None, None))
-        log_print(args, f"\n{color.BGREEN}Products for cut {color.END_B}{cut_name}{color.END}")
+    for spec in run_specs:
+        cut_name = spec["cut"]
+        args.matching_criteria = spec["matching"]
+        args.unsmeared = spec["unsmeared"]
+        if(args.systematic_runs):
+            pure_hpp, comb_hpp = hpp_map.get(DEFAULT_CUT, (None, None))
+        else:
+            pure_hpp, comb_hpp = hpp_map.get(cut_name, (None, None))
+        log_print(args, f"\n{color.BGREEN}Products for cut {color.END_B}{cut_name}{color.END} matching={args.matching_criteria} unsmeared={args.unsmeared}")
         try:
             results = run_products_for_cut(args, cut_name, pure_hpp, comb_hpp)
         except (ValueError, RuntimeError) as err:
@@ -794,7 +991,7 @@ def main():
         for key, rc in results:
             task_count += 1
             if(rc != 0):
-                all_failed.append(f"{cut_name}:{key}(rc={rc})")
+                all_failed.append(f"{cut_name}:{args.matching_criteria}:{key}(rc={rc})")
 
     if(all_failed):
         Crash_Report(args, crash_message=f"Some product jobs failed: {all_failed}", continue_run=False)

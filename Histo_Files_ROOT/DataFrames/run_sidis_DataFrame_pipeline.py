@@ -97,6 +97,11 @@ def parse_args():
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help="Forward --unsmeared to Response_Matrix (required for noSmear cut).\n")
+    parser.add_argument('-mac', '--matching_criteria',
+                        type=str,
+                        default="_gen",
+                        choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
+                        help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-2Do', '--make_2D_only',
                         action='store_true',
                         help="Only make 2D kinematic histograms (forward --make_2D_only).\n")
@@ -108,8 +113,9 @@ def parse_args():
                         help="Forward --old_3D_unfold: legacy sparse 3D MultiDim (fixed 915-bin axes).\n")
 
     parser.add_argument('-nin', '--name_in',
-                        default="*Final_Analysis_Iterations_I0*.root",
-                        help="Common string name of the RDataFrames that are to be used to form the file batches.\n")
+                        nargs="+",
+                        default=["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"],
+                        help="Glob(s) for DataFrame files used in make_batches / naming. Multiple patterns are unioned (new thesis non-lund plus reused I0 lund).\n")
     parser.add_argument('-n', '--name',
                         default="",
                         help="Base name suffix for merged output and batch files.\n")
@@ -156,6 +162,17 @@ def parse_args():
                         type=str,
                         default=None,
                         help="Optional SLURM array job ID for coordination with local modes.\n")
+    parser.add_argument('--batch_output_dir',
+                        type=str,
+                        default=None,
+                        help="If set, write individual batch ROOT files here (used by hybrid so local and SLURM share one directory).\n")
+    parser.add_argument('--run_subdir_name',
+                        type=str,
+                        default=None,
+                        help="Override the auto-dated run subdirectory name (hybrid submitter sets this once for both backends).\n")
+    parser.add_argument('--skip_slurm_hadd',
+                        action='store_true',
+                        help="Submit the SLURM array only (no dependent hadd). Hybrid local hadd waits for remaining array tasks.\n")
 
     # make_batches mode directories
     parser.add_argument('-rdfd', '--rdf_dir',
@@ -344,16 +361,40 @@ def ensure_directory(path):
     os.makedirs(path, exist_ok=True)
     return path
 
+def name_in_patterns(name_in):
+    if(name_in in [None, ""]):
+        return []
+    if(isinstance(name_in, (list, tuple))):
+        return [str(p) for p in name_in if(p not in [None, ""])]
+    return [str(name_in)]
+
+def name_in_label(name_in):
+    pats = name_in_patterns(name_in)
+    if(len(pats) == 0):
+        return "DataFrames"
+    first = str(pats[0]).replace("*", "").replace(".root", "")
+    return first if(first not in [""]) else "DataFrames"
+
 def collect_files(dir_path, pattern="*.root"):
-    if(all(backup not in pattern for backup in ["*", "."])):
-        pattern = f"*{pattern}*"
-    if("*.root" not in pattern):
-        pattern = f"{pattern}.root" if("*" in pattern) else f"{pattern}*.root"
+    patterns = name_in_patterns(pattern) if(not isinstance(pattern, str)) else [pattern]
+    if(len(patterns) == 0):
+        patterns = ["*.root"]
     if(not os.path.isdir(dir_path)):
         print(f"{color.Error}Directory not found: {dir_path}{color.END}")
         return []
-    files = glob.glob(os.path.join(dir_path, pattern), recursive=True)
-    return sorted([os.path.abspath(f) for f in files])
+    seen, files = set(), []
+    for pat in patterns:
+        use = pat
+        if(all(backup not in use for backup in ["*", "."])):
+            use = f"*{use}*"
+        if("*.root" not in use):
+            use = f"{use}.root" if("*" in use) else f"{use}*.root"
+        for fpath in glob.glob(os.path.join(dir_path, use), recursive=True):
+            af = os.path.abspath(fpath)
+            if(af not in seen):
+                seen.add(af)
+                files.append(af)
+    return sorted(files)
 
 def estimate_peak_memory_children():
     peak_mem_str = "Unknown"
@@ -439,11 +480,17 @@ def make_batches_mode(args):
    lundrho MDF/GDF : {len(lundrho_mdf)}""", verbose_override=True, no_time=True)
     Construct_Email(args)
 
-def build_main_command(args, batch_id, output_dir):
+def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
     # cmd = [sys.executable, MAIN_SCRIPT, "--batch_id", str(batch_id)]
     if((("noSmear" in str(args.cut_name)) and (not getattr(args, "unsmeared", False)))):
         raise ValueError("cut_Complete_SIDIS_noSmear requires --unsmeared on the pipeline")
-    cmd = [MAIN_SCRIPT, "--batch_id", str(batch_id)]
+    if(slurm_placeholders):
+        batch_id_token = "${BATCH_ID}"
+        batch_pad = "${BATCH_PAD}"
+    else:
+        batch_id_token = str(int(batch_id))
+        batch_pad = f"{int(batch_id):03d}"
+    cmd = [MAIN_SCRIPT, "--batch_id", batch_id_token]
     cmd.extend(["-cnR", args.cut_name, "-cnM", args.cut_name])
     if(getattr(args, "z_axis_2D", "4D_Bin") not in ["4D_Bin", ""]):
         cmd.extend(["--z_axis_2D", getattr(args, "z_axis_2D", "4D_Bin")])
@@ -482,9 +529,11 @@ def build_main_command(args, batch_id, output_dir):
         cmd.append("--run_rho_weight")
     if(getattr(args, "unsmeared", False)):
         cmd.append("--unsmeared")
-    batch_str = f"{batch_id:03d}" if(isinstance(batch_id, int)) else str(batch_id)
-    name_for_batch = f"{args.name}_{args.name_in}_Batch{batch_str}" if(args.name) else f"{args.name_in}_Batch{batch_str}"
-    # name_for_batch = f"{args.name}_{args.name_in}_Batch{int(batch_id):03d}" if(args.name) else f"{args.name_in}_Batch{int(batch_id):03d}"
+    mac = getattr(args, "matching_criteria", "_gen")
+    if(mac in [None, ""]):
+        mac = "_gen"
+    cmd.extend(["--matching_criteria", str(mac)])
+    name_for_batch = f"{args.name}_{name_in_label(args.name_in)}_Batch{batch_pad}" if(args.name) else f"{name_in_label(args.name_in)}_Batch{batch_pad}"
     name_for_batch = name_for_batch.replace("*",     "")
     name_for_batch = name_for_batch.replace(".root", "")
     cmd.extend(["-n", name_for_batch])
@@ -526,7 +575,7 @@ def start_job(args, batch_index, batch_output_dir, log_dir):
     if(should_skip_batch_due_to_slurm(args, batch_index)):
         return None
     cmd = build_main_command(args, batch_index, batch_output_dir)
-    name_for_log = f"{args.name}_{args.name_in}_batch_{batch_index:03d}" if(args.name) else f"{args.name_in}_batch_{batch_index:03d}"
+    name_for_log = f"{args.name}_{name_in_label(args.name_in)}_batch_{batch_index:03d}" if(args.name) else f"{name_in_label(args.name_in)}_batch_{batch_index:03d}"
     name_for_log = str(name_for_log.replace("*", "")).replace(".root", "")
     log_path = os.path.join(log_dir, f"{name_for_log}.log")
     err_path = os.path.join(log_dir, f"{name_for_log}.err")
@@ -566,13 +615,33 @@ def finish_job(job_item, results, args):
     results.append(ret)
     return True
 
-def run_local_batches(args):
+def resolved_batch_output_dir(args, slurm=False):
+    if(getattr(args, "batch_output_dir", None) not in [None, ""]):
+        return ensure_directory(args.batch_output_dir)
+    if(slurm):
+        return ensure_directory(args.work_dir)
     if(args.mode == "parallel"):
-        # base_output = ensure_directory(os.path.join(args.scratch_dir, "Response_Matrices_Batches"))
         base_output = ensure_directory(args.scratch_dir)
     else:
         base_output = ensure_directory(args.work_dir)
-    batch_output_dir = ensure_directory(os.path.join(base_output, args.run_subdir_name))
+    return ensure_directory(os.path.join(base_output, args.run_subdir_name))
+
+def expected_batch_root_path(args, batch_output_dir, batch_index):
+    batch_pad = f"{int(batch_index):03d}"
+    name_for_batch = f"{args.name}_{name_in_label(args.name_in)}_Batch{batch_pad}" if(args.name) else f"{name_in_label(args.name_in)}_Batch{batch_pad}"
+    name_for_batch = name_for_batch.replace("*", "").replace(".root", "")
+    root_base = str(args.root).split(".root")[0]
+    return os.path.join(batch_output_dir, f"{root_base}_{name_for_batch}.root")
+
+def wait_for_remaining_slurm_tasks(args):
+    if(args.slurm_array_jobid in [None, ""]):
+        return
+    while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
+        print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
+        time.sleep(30.0)
+
+def run_local_batches(args):
+    batch_output_dir = resolved_batch_output_dir(args, slurm=False)
     log_dir = ensure_directory(args.log_dir if(args.log_dir) else f"/scratch/{os.getlogin()}/response_matrix_logs")
     sys.path.append(DATAFRAMES_BASE)
     from File_Batches import rdf_batch#, mdf_batch, gdf_batch
@@ -619,17 +688,19 @@ def run_local_batches(args):
         Crash_Report(args, crash_message=f"{color.Error}Failed batches: {failed}{color.END}", continue_run=args.continue_on_failure)
 
     if(not failed):
-        name_for_merge = f"{args.name}_{args.name_in}_All" if(args.name) else f"{args.name_in}_All"
+        wait_for_remaining_slurm_tasks(args)
+        name_for_merge = f"{args.name}_{name_in_label(args.name_in)}_All" if(args.name) else f"{name_in_label(args.name_in)}_All"
         name_for_merge = name_for_merge.replace("*",     "")
         name_for_merge = name_for_merge.replace(".root", "")
         merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
-        batch_pattern  = os.path.join(batch_output_dir, "*Batch*.root")
-        batch_files    = glob.glob(batch_pattern)
-        if(batch_files):
-            Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
-            hadd_cmd = ["hadd", "-f", merged_file] + batch_files
-            subprocess.run(hadd_cmd, check=True)
-            Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+        batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
+        missing_files  = [bf for bf in batch_files if(not os.path.isfile(bf))]
+        if(missing_files):
+            Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
+        Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
+        hadd_cmd = ["hadd", "-f", merged_file] + batch_files
+        subprocess.run(hadd_cmd, check=True)
+        Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
     Update_Email(args, update_message=f"{color.BBLUE}Peak memory used by child jobs: {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
@@ -641,7 +712,7 @@ def run_slurm_mode(args):
     sys.path.remove(DATAFRAMES_BASE)
     num_batches = len(rdf_batch)
 
-    batch_output_dir = ensure_directory(args.work_dir)
+    batch_output_dir = resolved_batch_output_dir(args, slurm=True)
 
     name_base = args.run_subdir_name
     array_script = f"slurm_array_{name_base}.sh"
@@ -661,9 +732,10 @@ def run_slurm_mode(args):
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
         f.write(f"#SBATCH --array=1-{num_batches}%40\n\n")
-        f.write(f'BATCH_ID=${{SLURM_ARRAY_TASK_ID}}\n')
+        f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
+        f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
         f.write(f'cd {batch_output_dir}\n')
-        cmd_parts = build_main_command(args, "${BATCH_ID}", batch_output_dir)
+        cmd_parts = build_main_command(args, 1, batch_output_dir, slurm_placeholders=True)
         f.write(" ".join(cmd_parts) + "\n")
 
     # Build hadd script
@@ -689,9 +761,12 @@ def run_slurm_mode(args):
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
     with open(array_script) as f:
         print(f.read())
-    print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
-    with open(hadd_script) as f:
-        print(f.read())
+    if(not getattr(args, "skip_slurm_hadd", False)):
+        print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
+        with open(hadd_script) as f:
+            print(f.read())
+    else:
+        print(f"\n{color.BBLUE}[INFO]{color.END} --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.\n")
 
     if(getattr(args, "yes", False)):
         response = "y"
@@ -710,8 +785,9 @@ def run_slurm_mode(args):
     array_id = proc.stdout.strip()
     Update_Email(args, update_message=f"{color.BGREEN}Submitted SLURM array job {array_id}{color.END}", verbose_override=True, no_time=True)
 
-    hadd_proc = subprocess.run(["sbatch", "--parsable", f"--dependency=afterok:{array_id}", hadd_script], capture_output=True, text=True)
-    Update_Email(args, update_message=f"{color.BGREEN}Submitted dependent hadd job {hadd_proc.stdout.strip()}{color.END}", verbose_override=True, no_time=True)
+    if(not getattr(args, "skip_slurm_hadd", False)):
+        hadd_proc = subprocess.run(["sbatch", "--parsable", f"--dependency=afterok:{array_id}", hadd_script], capture_output=True, text=True)
+        Update_Email(args, update_message=f"{color.BGREEN}Submitted dependent hadd job {hadd_proc.stdout.strip()}{color.END}", verbose_override=True, no_time=True)
 
     Construct_Email(args)
 
@@ -719,7 +795,9 @@ def main():
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
-    args.run_subdir_name = f"{args.name}_{args.name_in}_{datetime.now().strftime('%m_%d_%Y')}" if(args.name) else f"{args.name_in}_{datetime.now().strftime('%m_%d_%Y')}"
+    user_subdir = getattr(args, "run_subdir_name", None)
+    if(user_subdir in [None, ""]):
+        args.run_subdir_name = f"{args.name}_{name_in_label(args.name_in)}_{datetime.now().strftime('%m_%d_%Y')}" if(args.name) else f"{name_in_label(args.name_in)}_{datetime.now().strftime('%m_%d_%Y')}"
     args.run_subdir_name = args.run_subdir_name.replace("*",     "")
     args.run_subdir_name = args.run_subdir_name.replace(".root", "")
     if(  (args.email_message_job in [""]) and (args.email_message     not in [""])):

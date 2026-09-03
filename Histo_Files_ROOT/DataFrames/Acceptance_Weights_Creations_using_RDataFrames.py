@@ -5,6 +5,7 @@ import argparse
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/'
 sys.path.append(script_dir)
 from File_Batches import rdf_batch, mdf_batch
+from helper_functions_for_using_RDataFrames_python import MATCHING_MODE_ALIASES
 sys.path.remove(script_dir)
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
@@ -141,6 +142,11 @@ def parse_args():
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
+    parser.add_argument('-mac', '--matching_criteria',
+                        type=str,
+                        default="_gen",
+                        choices=list(MATCHING_MODE_ALIASES),
+                        help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     return parser.parse_args()
 
 def as_th1(hist):
@@ -350,9 +356,11 @@ def detect_pair_marker(paths):
     # Prefer markers shared by every basename; keep Response_Matrix-aligned tags first.
     names = [Path(p).name for p in paths if(p not in [None, ""])]
     if(not names):
-        return "Final_Analysis_Iterations_I0"
+        return "Final_Thesis_Files"
     candidates = []
     for name in names:
+        if("Final_Thesis_Files" in name) and ("Final_Thesis_Files" not in candidates):
+            candidates.append("Final_Thesis_Files")
         for m in re.findall(r"Final_Analysis_Iterations_I\d+", name):
             if(m not in candidates):
                 candidates.append(m)
@@ -371,7 +379,10 @@ def pair_key_from_path(path_str, marker=None):
         if(idx < 0):
             raise ValueError(f"Marker not found in filename: marker={marker!r} file={name!r}")
         return name[(idx + len(marker)):]
-    # Fallback when no shared marker: keep suffix after Pass_2_ or full basename
+    # Fallback when no shared marker: keep suffix after production tag or Pass_2_
+    m = re.search(r"(Final_Thesis_Files_.*)$", name)
+    if(m is not None):
+        return m.group(1)
     m = re.search(r"(Final_Analysis_Iterations_I\d+_.*)$", name)
     if(m is not None):
         return m.group(1)
@@ -505,7 +516,10 @@ def Collect_DataFrames(args):
         print(f"\tTotal entries in {color.Error}mdf_clasdis{color.END} files: \n{mdf_clasdis.Count().GetValue():>20.0f}")
         args.timer.time_elapsed()
     else:
-        print("Fast Load...")    
+        print("Fast Load...")
+    from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
+    mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+    print(f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}")
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     args.timer.time_elapsed()
     print(f"\n{color.BOLD}APPLYING (BASE) CUTS\n{color.END}")

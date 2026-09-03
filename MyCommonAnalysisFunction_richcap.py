@@ -1374,6 +1374,11 @@ Int_Bin_Definition_Array = { 'Q2-y=0, z-pT=All':   [0.665,  0.27,   0.59,     0.
 ##=========================================================================================##
 ##=========================================================================================##
 
+# Q2-y=4, z-pT=30 is retained by skip_condition_z_pT_bins but historically stored only as an overflow/migration key with a shrunk pT edge. Restore the labeled rectangular-grid corners used by the rest of that z row.
+if("Q2-y=4, z-pT=30" not in Bin_Definition_Array):
+    Bin_Definition_Array["Q2-y=4, z-pT=30"] = [0.38, 0.33, 0.85, 0.61]
+
+
 def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=False):
     if(Integration_Bins_Q):
         Bin_Definition_Array_str = f'Q2-y={str(Q2_y_Bin_Num).replace("All", "0")}, z-pT={z_pT_Bin_Num}'
@@ -1400,6 +1405,10 @@ def Get_z_pT_Bin_Corners(z_pT_Bin_Num="All", Q2_y_Bin_Num=1, Integration_Bins_Q=
                 if(suffix in Bin_Definition_Array_str):
                     print(f"\n{color.Error}WARNING: {color.END_B}{Bin_Definition_Array_str}{color.Error} is not in {color.END_B}Bin_Definition_Array{color.Error}.\nRemoving {color.END_B}'{suffix}'{color.Error} to be able to return the z-pT borders from `Get_z_pT_Bin_Corners()`.\nWill return:\n\t{color.END_B}[z_max, z_min, pT_max, pT_min] = {Bin_Definition_Array[Bin_Definition_Array_str.replace(suffix, '')]}{color.END}")
                     return Bin_Definition_Array[Bin_Definition_Array_str.replace(suffix, "")]
+                alt_key = f"{Bin_Definition_Array_str}{suffix}"
+                if(alt_key in Bin_Definition_Array):
+                    # Retained physics bins can still live under a historical overflow/migration key.
+                    return Bin_Definition_Array[alt_key]
             raise
         return Bin_Definition_Array[Bin_Definition_Array_str]
         ###### return [z_max, z_min, pT_max, pT_min]
@@ -1462,7 +1471,10 @@ def Draw_z_pT_Bins_With_Migration(Q2_y_Bin_Num_In=1, Set_Max_Y=False, Set_Max_X=
                 line_size = Select_size
             elif(Select_z_pT_bin is not None):
                 continue
-            y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
+            try:
+                y_max, y_min, x_max, x_min = Get_z_pT_Bin_Corners(z_pT_Bin_Num=z_pT, Q2_y_Bin_Num=Q2_y_Bin_Num_In)
+            except KeyError:
+                continue
             if(Set_Max_Y):
                 if(Set_Max_Y < y_max):
                     y_max = Set_Max_Y

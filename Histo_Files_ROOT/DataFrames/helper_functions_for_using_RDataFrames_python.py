@@ -5,9 +5,210 @@ import sys
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
-from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code
+from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code, Rotation_Matrix
 sys.path.remove(script_dir)
 del script_dir
+
+# Generator-matching modes stored in matched-MC files. Electron and pi+ always share one mode.
+# Historical `_gen` is P10T6 written unsuffixed. Bank is the systematic nominal, not the stored default.
+MATCHING_MODE_ALIASES = {
+    "": "_gen", "_gen": "_gen", "gen": "_gen", "P10T6": "_gen",
+    "Bank": "Bank", "_gen_Bank": "Bank",
+    "P12T6": "P12T6", "_gen_P12T6": "P12T6",
+    "P8T6": "P8T6", "_gen_P8T6": "P8T6",
+    "P10T8": "P10T8", "_gen_P10T8": "P10T8",
+    "P10T4": "P10T4", "_gen_P10T4": "P10T4",
+}
+MATCHING_SOURCE_SUFFIX = {"_gen": "", "Bank": "Bank", "P12T6": "P12T6", "P8T6": "P8T6", "P10T8": "P10T8", "P10T4": "P10T4"}
+MATCHING_NAME_TAG = {"_gen": "", "Bank": "Bank", "P12T6": "P12T6", "P8T6": "P8T6", "P10T8": "P10T8", "P10T4": "P10T4"}
+CANONICAL_MATCH_COLS = [
+    "ex_gen", "ey_gen", "ez_gen", "eE_gen", "PID_el", "Par_PID_el",
+    "pipx_gen", "pipy_gen", "pipz_gen", "pipE_gen", "PID_pip", "Par_PID_pip",
+]
+HISTORICAL_DERIVED_GEN_COLS = ["Q2_gen", "xB_gen", "y_gen", "z_gen", "pT_gen", "phi_t_gen", "W_gen", "MM_gen", "Q2_Y_Bin_gen"]
+PASS2_MC_BEAM_ENERGY = 10.6
+_ROT_MATRIX_DECLARED = False
+
+def normalize_matching_criteria(value):
+    key = "" if(value in [None]) else str(value).strip()
+    if(key not in MATCHING_MODE_ALIASES):
+        raise ValueError(f"Unknown matching_criteria={value!r}. Accepted: {sorted(set(MATCHING_MODE_ALIASES.values()))}")
+    return MATCHING_MODE_ALIASES[key]
+
+def matching_name_tag(value):
+    return MATCHING_NAME_TAG[normalize_matching_criteria(value)]
+
+def matching_source_column(canonical, suffix):
+    if(suffix in ["", None]):
+        return canonical
+    return f"{canonical}_{suffix}"
+
+def rdf_has_column(df, col):
+    try:
+        return bool(df.HasColumn(col))
+    except Exception:
+        return str(col) in [str(c) for c in df.GetColumnNames()]
+
+def rdf_define_or_redefine(df, col, code):
+    if(rdf_has_column(df, col)):
+        return df.Redefine(col, code)
+    return df.Define(col, code)
+
+def q2_y_bin_gen_code():
+    # Same Y_bin rectangles as dataframe_makeROOT_epip_SIDIS.Q2_xB_Bin_Standard_Def_Function(..., Bin_Version="Y_bin") using Q2_gen, y_gen.
+    bins = [
+        (2.0, 2.4, 0.65, 0.75, 1), (2.0, 2.4, 0.55, 0.65, 2), (2.0, 2.4, 0.45, 0.55, 3), (2.0, 2.4, 0.35, 0.45, 4),
+        (2.4, 2.9, 0.65, 0.75, 5), (2.4, 2.9, 0.55, 0.65, 6), (2.4, 2.9, 0.45, 0.55, 7), (2.4, 2.9, 0.35, 0.45, 8),
+        (2.9, 3.7, 0.65, 0.75, 9), (2.9, 3.7, 0.55, 0.65, 10), (2.9, 3.7, 0.45, 0.55, 11), (2.9, 3.7, 0.35, 0.45, 12),
+        (3.7, 5.3, 0.65, 0.75, 13), (3.7, 5.3, 0.55, 0.65, 14), (3.7, 5.3, 0.45, 0.55, 15),
+        (5.3, 7.9, 0.65, 0.75, 16), (5.3, 7.9, 0.55, 0.65, 17),
+        (0.0, 2.0, 0.75, 0.99, 18), (0.0, 2.0, 0.65, 0.75, 19), (0.0, 2.0, 0.55, 0.65, 20), (0.0, 2.0, 0.45, 0.55, 21), (0.0, 2.0, 0.35, 0.45, 22), (0.0, 2.0, 0.1, 0.35, 23),
+        (2.0, 2.4, 0.75, 0.99, 24), (2.0, 2.4, 0.1, 0.35, 25),
+        (2.4, 2.9, 0.75, 0.99, 26), (2.4, 2.9, 0.1, 0.35, 27),
+        (2.9, 3.7, 0.75, 0.99, 28), (2.9, 3.7, 0.1, 0.35, 29),
+        (3.7, 5.3, 0.75, 0.99, 30), (3.7, 5.3, 0.35, 0.45, 31), (3.7, 5.3, 0.1, 0.35, 32),
+        (5.3, 7.9, 0.75, 0.99, 33), (5.3, 7.9, 0.45, 0.55, 34), (5.3, 7.9, 0.35, 0.45, 35),
+        (7.9, 14.0, 0.75, 0.99, 36), (7.9, 14.0, 0.65, 0.75, 37), (7.9, 14.0, 0.55, 0.65, 38), (7.9, 14.0, 0.45, 0.55, 39),
+    ]
+    lines = ["int Q2_Y_Bin_New = 0;"]
+    for qmin, qmax, ymin, ymax, ibin in bins:
+        lines.append(f"if((Q2_gen > {qmin}) && (Q2_gen < {qmax}) && (y_gen > {ymin}) && (y_gen < {ymax})){{ return {ibin}; }}")
+    lines.append("return Q2_Y_Bin_New;")
+    return "\n".join(lines)
+
+def _ensure_rot_matrix_declared():
+    global _ROT_MATRIX_DECLARED
+    if(_ROT_MATRIX_DECLARED):
+        return
+    try:
+        ROOT.gInterpreter.Declare(Rotation_Matrix)
+    except Exception:
+        pass
+    _ROT_MATRIX_DECLARED = True
+
+def _rebuild_generated_kinematics_from_momenta(df, beam_energy=PASS2_MC_BEAM_ENERGY):
+    _ensure_rot_matrix_declared()
+    df = rdf_define_or_redefine(df, "el_gen", "sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
+    df = rdf_define_or_redefine(df, "pip_gen", "sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
+    df = rdf_define_or_redefine(df, "elth_gen", "atan2(sqrt(ex_gen*ex_gen + ey_gen*ey_gen), ez_gen)*TMath::RadToDeg()")
+    df = rdf_define_or_redefine(df, "pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
+    df = rdf_define_or_redefine(df, "elPhi_gen", """
+        auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        auto elPhi_gen = ele.Phi()*TMath::RadToDeg();
+        if(elPhi_gen < 0){ elPhi_gen += 360; }
+        return elPhi_gen;""")
+    df = rdf_define_or_redefine(df, "pipPhi_gen", """
+        auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        auto pipPhi_gen = pip0.Phi()*TMath::RadToDeg();
+        if(pipPhi_gen < 0){ pipPhi_gen += 360; }
+        return pipPhi_gen;""")
+    df = rdf_define_or_redefine(df, "esec_gen", """
+        auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        auto ele_phi = (180/3.1415926)*ele.Phi();
+        int esec_gen = 0;
+        if(ele_phi >= -30  && ele_phi <   30){ esec_gen = 1; }
+        if(ele_phi >= 30   && ele_phi <   90){ esec_gen = 2; }
+        if(ele_phi >= 90   && ele_phi <  150){ esec_gen = 3; }
+        if(ele_phi >= 150  || ele_phi < -150){ esec_gen = 4; }
+        if(ele_phi >= -90  && ele_phi <  -30){ esec_gen = 5; }
+        if(ele_phi >= -150 && ele_phi <  -90){ esec_gen = 6; }
+        return esec_gen;""")
+    df = rdf_define_or_redefine(df, "pipsec_gen", """
+        auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        auto pip_phi = (180/3.1415926)*pip0.Phi();
+        int pipsec_gen = 0;
+        if(pip_phi >= -45  && pip_phi <   15){ pipsec_gen = 1; }
+        if(pip_phi >= 15   && pip_phi <   75){ pipsec_gen = 2; }
+        if(pip_phi >= 75   && pip_phi <  135){ pipsec_gen = 3; }
+        if(pip_phi >= 135  || pip_phi < -165){ pipsec_gen = 4; }
+        if(pip_phi >= -105 && pip_phi <  -45){ pipsec_gen = 5; }
+        if(pip_phi >= -165 && pip_phi < -105){ pipsec_gen = 6; }
+        return pipsec_gen;""")
+    df = rdf_define_or_redefine(df, "vals_gen", f"""
+        auto beam_gen  = ROOT::Math::PxPyPzMVector(0, 0, {beam_energy}, 0);
+        auto targ_gen  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto ele_gen   = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        auto pip0_gen  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        auto epipX_gen = beam_gen + targ_gen - ele_gen - pip0_gen;
+        auto q_gen     = beam_gen - ele_gen;
+        auto Q2_gen    = -q_gen.M2();
+        auto v_gen     = beam_gen.E() - ele_gen.E();
+        auto xB_gen    = Q2_gen/(2*targ_gen.M()*v_gen);
+        auto W2_gen    = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
+        auto W_gen     = sqrt(W2_gen);
+        auto y_gen     = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
+        auto z_gen     = ((pip0_gen.E())/(q_gen.E()));
+        std::vector<double> vals_gen = {{epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen}};
+        return vals_gen;""")
+    df = rdf_define_or_redefine(df, "MM_gen",  "vals_gen[0]")
+    df = rdf_define_or_redefine(df, "MM2_gen", "vals_gen[1]")
+    df = rdf_define_or_redefine(df, "Q2_gen",  "vals_gen[2]")
+    df = rdf_define_or_redefine(df, "xB_gen",  "vals_gen[3]")
+    df = rdf_define_or_redefine(df, "W_gen",   "vals_gen[6]")
+    df = rdf_define_or_redefine(df, "y_gen",   "vals_gen[7]")
+    df = rdf_define_or_redefine(df, "z_gen",   "vals_gen[8]")
+    df = rdf_define_or_redefine(df, "vals2_gen", f"""
+        auto beamM  = ROOT::Math::PxPyPzMVector(0, 0, {beam_energy}, 0);
+        auto targM  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
+        auto eleM   = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
+        auto pip0M  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
+        TLorentzVector beam(0, 0, {beam_energy}, beamM.E());
+        TLorentzVector targ(0, 0, 0, targM.E());
+        TLorentzVector ele(ex_gen, ey_gen, ez_gen, eleM.E());
+        TLorentzVector pip0(pipx_gen, pipy_gen, pipz_gen, pip0M.E());
+        TLorentzVector lv_q = beam - ele;
+        double Theta_q = lv_q.Theta();
+        double Phi_el  = ele.Phi();
+        auto pip0_Clone = Rot_Matrix(pip0, -1, Theta_q, Phi_el);
+        auto lv_q_Clone = Rot_Matrix(lv_q, -1, Theta_q, Phi_el);
+        auto targ_Clone = Rot_Matrix(targ, -1, Theta_q, Phi_el);
+        auto fCM   = lv_q_Clone + targ_Clone;
+        auto boost = -(fCM.BoostVector());
+        auto qlv_Boost(lv_q_Clone);
+        auto pip_Boost(pip0_Clone);
+        qlv_Boost.Boost(boost);
+        pip_Boost.Boost(boost);
+        double pipx_1_gen = pip0_Clone.X();
+        double pipy_1_gen = pip0_Clone.Y();
+        double pT_gen     = sqrt(pipx_1_gen*pipx_1_gen + pipy_1_gen*pipy_1_gen);
+        double phi_t_gen  = pip0_Clone.Phi()*TMath::RadToDeg();
+        if(phi_t_gen < 0){{ phi_t_gen += 360; }}
+        double xF_gen = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W_gen);
+        std::vector<double> vals2_gen = {{pT_gen, phi_t_gen, xF_gen}};
+        return vals2_gen;""")
+    df = rdf_define_or_redefine(df, "pT_gen",    "vals2_gen[0]")
+    df = rdf_define_or_redefine(df, "phi_t_gen", "vals2_gen[1]")
+    df = rdf_define_or_redefine(df, "xF_gen",    "vals2_gen[2]")
+    df = rdf_define_or_redefine(df, "Q2_Y_Bin_gen", q2_y_bin_gen_code())
+    return df
+
+def apply_matching_and_redefine_gen(df, matching_criteria="", beam_energy=PASS2_MC_BEAM_ENERGY):
+    # mdf only. Canonical unsuffixed `_gen` names are redefined from the selected source branches, then the dependent chain is rebuilt.
+    # Historical `_gen`: rebuild from unsuffixed momenta if present; otherwise keep stored historical derived `_gen` quantities.
+    # Alternative modes: matching-specific sources are mandatory; stored historical derived `_gen` must not be used as a fallback.
+    mode = normalize_matching_criteria(matching_criteria)
+    suffix = MATCHING_SOURCE_SUFFIX[mode]
+    if(mode == "_gen"):
+        missing_src = [c for c in ["ex_gen", "ey_gen", "ez_gen", "pipx_gen", "pipy_gen", "pipz_gen"] if(not rdf_has_column(df, c))]
+        if(len(missing_src) == 0):
+            df = _rebuild_generated_kinematics_from_momenta(df, beam_energy=beam_energy)
+            return df, f"historical _gen: rebuilt canonical generated kinematics from unsuffixed source momenta"
+        missing_der = [c for c in HISTORICAL_DERIVED_GEN_COLS if(not rdf_has_column(df, c))]
+        if(len(missing_der) == 0):
+            return df, "historical _gen: using stored canonical derived _gen quantities (unsuffixed source momenta absent)"
+        raise RuntimeError(f"historical _gen matching cannot run: missing source momenta {missing_src} and missing stored derived columns {missing_der}")
+    missing = []
+    for col in CANONICAL_MATCH_COLS:
+        src = matching_source_column(col, suffix)
+        if(not rdf_has_column(df, src)):
+            missing.append(src)
+    if(missing):
+        raise RuntimeError(f"matching_criteria={mode} requires source branches that are missing: {missing}. Stored historical Q2_gen/z_gen/etc. will not be used.")
+    for col in CANONICAL_MATCH_COLS:
+        src = matching_source_column(col, suffix)
+        df = rdf_define_or_redefine(df, col, src)
+    df = _rebuild_generated_kinematics_from_momenta(df, beam_energy=beam_energy)
+    return df, f"matching_criteria={mode}: redefined canonical _gen from *_{suffix} sources and rebuilt generated kinematics"
 
 
 def Cut_Choice_Title(Cut_Type="no_cut"):
