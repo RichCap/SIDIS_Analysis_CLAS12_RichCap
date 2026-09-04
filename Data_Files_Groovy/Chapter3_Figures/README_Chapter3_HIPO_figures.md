@@ -17,26 +17,18 @@ Override the list with `-ptxt` if a restricted SIDIS subset is required (`TEMP_P
 
 Reuse `run_groovy_scripts_with_emails.py` (sequential, local parallel, SLURM array, and SLURM/local skip-or-cancel coordination).
 
+`-sp` is turned into an absolute Groovy path. `-sn` is appended to the generated sbatch filename so this does not overwrite `GroovyArray_data_rdf_epipX.sh`. `-wd` must point at `Chapter3_Figures/job_outputs` (not the ntuple ROOT tree and not `Data_Files_Groovy/` itself). `mkdir -p` of that work dir is only inserted when `-wd` is given.
+
 SLURM array:
 
 ```bash
-cd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy
-./run_groovy_scripts_with_emails.py \
-  -src data -evt epipX \
-  -sp Chapter3_Figures/Chapter3_HIPO_Histograms.groovy \
-  -m slurm \
-  -st 6:00:00 \
-  -sn Chapter3Hists
+cd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy && ./run_groovy_scripts_with_emails.py -src data -evt epipX -sp Chapter3_Figures/Chapter3_HIPO_Histograms.groovy -m slurm -st 6:00:00 -sn Chapter3Hists -wd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Chapter3_Figures/job_outputs -em "Creating thesis Chapter 3 figure images."
 ```
 
 Local parallel, cancelling the matching pending SLURM tasks:
 
 ```bash
-./run_groovy_scripts_with_emails.py \
-  -src data -evt epipX \
-  -sp Chapter3_Figures/Chapter3_HIPO_Histograms.groovy \
-  -m parallel --parallel_jobs 4 \
-  -saj <SLURM_ARRAY_JOBID>
+./run_groovy_scripts_with_emails.py -src data -evt epipX -sp Chapter3_Figures/Chapter3_HIPO_Histograms.groovy -m parallel --parallel_jobs 4 -wd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Chapter3_Figures/job_outputs -saj <SLURM_ARRAY_JOBID>
 ```
 
 Each job writes:
@@ -63,9 +55,7 @@ and then deletes the per-job ROOT files.
 ## Plot
 
 ```bash
-python Chapter3_Figures/plot_Chapter3_HIPO_hists.py \
-  --root Chapter3_Figures/Chapter3_HIPO_hists_combined.root \
-  --out  /path/to/thesis/Experiment/Data_Collection_Images/Analysis_Cut_Images
+python Chapter3_Figures/plot_Chapter3_HIPO_hists.py --root Chapter3_Figures/Chapter3_HIPO_hists_combined.root --out /path/to/thesis/Experiment/Data_Collection_Images/Analysis_Cut_Images
 ```
 
 Produced PDFs (thesis include names):
