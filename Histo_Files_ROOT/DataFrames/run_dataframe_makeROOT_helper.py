@@ -111,6 +111,10 @@ def parse_args():
     parser.add_argument("-i", "--input_pattern",
                         type=str,
                         help="Override the preset file glob / brace pattern.\n")
+    parser.add_argument("-il", "--input_list",
+                        type=str,
+                        default="",
+                        help="Text file with one source ROOT path per line (same format as the hybrid *_filelist.txt). Replaces the variant glob. Blank lines and # comments are ignored. --variant still selects data_type, job_base, and output directory.\n")
     parser.add_argument("-o", "--output_location",
                         choices=["work", "volatile"],
                         default="work",
@@ -438,6 +442,18 @@ def build_file_list(target_pattern):
                 files.append(filepath)
                 seen.add(filepath)
     return sorted(files)
+
+def build_file_list_from_input_list(list_path):
+    files, seen = [], set()
+    with open(list_path, "r") as fh:
+        for raw_line in fh:
+            line = raw_line.strip()
+            if((line == "") or line.startswith("#")):
+                continue
+            if(line not in seen):
+                seen.add(line)
+                files.append(line)
+    return files
 
 def default_scratch_log_dir():
     username = getpass.getuser()
@@ -881,10 +897,20 @@ def main():
     args.timer = RuntimeTimer()
     args.timer.start()
     variant_settings = choose_variant_settings(args)
-    files = build_file_list(variant_settings["input_pattern"])
-    if(len(files) == 0):
-        print(f"{color.Error}No files found for:{color.END} {variant_settings['input_pattern']}")
-        return
+    if(args.input_list not in ["", None]):
+        if(not os.path.isfile(args.input_list)):
+            print(f"{color.Error}Input list not found:{color.END} {args.input_list}")
+            return
+        files = build_file_list_from_input_list(args.input_list)
+        variant_settings["input_pattern"] = args.input_list
+        if(len(files) == 0):
+            print(f"{color.Error}No files found for:{color.END} {args.input_list}")
+            return
+    else:
+        files = build_file_list(variant_settings["input_pattern"])
+        if(len(files) == 0):
+            print(f"{color.Error}No files found for:{color.END} {variant_settings['input_pattern']}")
+            return
     output_dir = ensure_directory(resolve_output_dir(args, variant_settings))
     log_dir    = ensure_directory(resolve_log_dir(args, variant_settings))
     print_run_header(args, variant_settings, files, output_dir, log_dir)
