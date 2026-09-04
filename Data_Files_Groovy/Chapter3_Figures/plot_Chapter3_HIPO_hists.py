@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Render Chapter 3 PID/fiducial figures from the combined HIPO histogram ROOT file.
-
-Usage (from Data_Files_Groovy, after hadd):
-    python Chapter3_Figures/plot_Chapter3_HIPO_hists.py \\
-        --root Chapter3_Figures/Chapter3_HIPO_hists_combined.root \\
-        --out  /path/to/Experiment/Data_Collection_Images/Analysis_Cut_Images
-"""
+# Render Chapter 3 PID/fiducial figures from the combined HIPO histogram ROOT file.
+# Usage (from Data_Files_Groovy, after hadd):
+#     python Chapter3_Figures/plot_Chapter3_HIPO_hists.py \\
+#         --root Chapter3_Figures/Chapter3_HIPO_hists_combined.root \\
+#         --out  /path/to/Experiment/Data_Collection_Images/Analysis_Cut_Images
 from __future__ import print_function
 
 import argparse
@@ -36,9 +34,9 @@ M_P = 0.938272081
 
 
 def apply_grid(pad=None):
-    if pad is None:
+    if(pad is None):
         pad = ROOT.gPad
-    if pad is not None:
+    if(pad is not None):
         pad.SetGrid(1, 1)
 
 
@@ -63,11 +61,11 @@ def save(can, outdir, name):
 
 def plot_htcc(root_file, outdir):
     hist = root_file.Get("h_htcc_nphe")
-    if not hist:
+    if(not hist):
         print("SKIP h_htcc_nphe")
         return None
     can = ROOT.TCanvas("c_htcc", "c_htcc", 700, 500)
-    hist.SetTitle(";N_{phe}^{HTCC};Counts")
+    hist.SetTitle("HTCC photoelectron multiplicity;N_{phe}^{HTCC};Counts")
     hist.Draw("hist")
     apply_grid()
     ymax = hist.GetMaximum() * 1.05
@@ -81,10 +79,10 @@ def plot_htcc(root_file, outdir):
 
 def plot_pcal(root_file, outdir):
     hist = root_file.Get("h_pcal_energy")
-    if not hist:
+    if(not hist):
         print("SKIP h_pcal_energy")
         return None
-    can = ROOT.TCanvas("c_pcal", "c_pcal", 700, 500)
+    can = ROOT.TCanvas("c_pcal", "c_pcal", 700, 500)     
     hist.SetTitle(";E_{PCAL} [GeV];Counts")
     hist.Draw("hist")
     apply_grid()
@@ -101,15 +99,22 @@ def plot_sftot(root_file, outdir):
     can = ROOT.TCanvas("c_sftot", "c_sftot", 1400, 900)
     can.Divide(3, 2)
     keep = []
-    pmin, pmax, ncurve = 1.0, 10.5, 80
+    # pmin, pmax, ncurve = 1.0, 10.5, 80
+    pmin, pmax, ncurve = 2.0, 9.0, 140
     for sec in range(1, 7):
         pad = can.cd(sec)
         pad.SetRightMargin(0.12)
+        # pad.SetRightMargin(0.125)
+        pad.SetLeftMargin(0.12)
         hist = root_file.Get("h_sftot_sec%d" % sec)
-        if not hist:
+        if(not hist):
             print("SKIP h_sftot_sec%d" % sec)
             continue
-        hist.SetTitle("Sector %d;p_{e} [GeV];SF_{tot}" % sec)
+        hist.SetTitle("#scale[1.5]{Sector %d};p_{el} [GeV];SF_{tot}" % sec)
+        hist.GetXaxis().SetRangeUser(pmin, pmax)
+        hist.GetYaxis().SetRangeUser(0, 0.4)
+        ROOT.gPad.SetLogz(1)
+        apply_grid()
         hist.Draw("colz")
         keep.append(hist)
         gx_lo = ROOT.TGraph(ncurve)
@@ -132,22 +137,24 @@ def plot_sftot(root_file, outdir):
 
 def plot_beta(root_file, outdir):
     hist = root_file.Get("h_beta_poshad")
-    if not hist:
+    if(not hist):
         print("SKIP h_beta_poshad")
         return None
     can = ROOT.TCanvas("c_beta", "c_beta", 800, 650)
-    hist.SetTitle(";p [GeV];#beta")
-    hist.Draw("colz")
+    # hist.SetTitle("#scale[1.15]{#pi^{+} Pion PID #topbar #beta vs p};p [GeV];#beta")
+    hist.SetTitle("#scale[1.15]{Positive hadrons #beta vs p};p [GeV];#beta")
     apply_grid()
+    ROOT.gPad.SetLogz(1)
+    hist.Draw("colz")
     keep = [hist]
     n = 80
-    for mass, col in ((M_PI, ROOT.kRed), (M_K, ROOT.kGreen + 2), (M_P, ROOT.kBlue)):
+    for mass, col in ((M_PI, ROOT.kRed), (M_K, ROOT.kGreen + 2), (M_P, ROOT.kMagenta)):
         gr = ROOT.TGraph(n)
         for i in range(n):
             p = 0.2 + (7.5 - 0.2) * i / (n - 1)
             gr.SetPoint(i, p, beta_mass(p, mass))
         gr.SetLineColor(col)
-        gr.SetLineWidth(2)
+        gr.SetLineWidth(1)
         gr.Draw("L same")
         keep.append(gr)
     can.keep = keep
@@ -155,7 +162,9 @@ def plot_beta(root_file, outdir):
 
 
 def plot_electron_dc(root_file, outdir):
-    layers = [(1, 6, 0.50, 72.0, -160, 20, -90, 90), (2, 18, 0.505, 114.0, -220, 20, -120, 120), (3, 36, 0.495, 180.0, -280, 20, -160, 160)]
+    # layers = [(1, 6, 0.50, 72.0, -160, 20, -90, 90), (2, 18, 0.505, 114.0, -220, 20, -120, 120), (3, 36, 0.495, 180.0, -280, 20, -160, 160)]
+    # layers = [(1, 6, 0.50, 72.0, -100, 20, -90, 90), (2, 18, 0.505, 114.0, -120, 20, -120, 120), (3, 36, 0.495, 180.0, -200, 20, -160, 160)]
+    layers = [(1, 6, 0.50, 72.0, -90, 20, -90, 90), (2, 18, 0.505, 114.0, -130, 20, -120, 120), (3, 36, 0.495, 180.0, -220, 20, -160, 160)]
     can = ROOT.TCanvas("c_eldc", "c_eldc", 1600, 900)
     can.Divide(6, 3)
     keep = []
@@ -163,23 +172,44 @@ def plot_electron_dc(root_file, outdir):
         for sec in range(1, 7):
             pad = can.cd(irow * 6 + sec)
             pad.SetRightMargin(0.12)
+            # pad.SetRightMargin(0.125)
+            pad.SetLeftMargin(0.12)
             hist = root_file.Get("h_ele_dc_r%d_s%d" % (reg, sec))
-            if not hist:
+            if(not hist):
                 print("SKIP h_ele_dc_r%d_s%d" % (reg, sec))
                 continue
-            hist.SetTitle("R%d S%d;x_{rot} [cm];y_{rot} [cm]" % (reg, sec))
+            hist.SetTitle("#scale[1.5]{R%d #topbar Sector %d};#scale[1.25]{x_{rot} [cm]};#scale[1.25]{y_{rot} [cm]}" % (reg, sec))
             hist.GetXaxis().SetRangeUser(xmin, xmax)
             hist.GetYaxis().SetRangeUser(ymin, ymax)
+            ROOT.gPad.SetLogz(1)
+            apply_grid()
             hist.Draw("colz")
             keep.append(hist)
-            n = 50
-            g1 = ROOT.TGraph(n)
-            g2 = ROOT.TGraph(n)
-            for j in range(n):
-                x = xmin + (xmax - xmin) * j / (n - 1)
-                yb = a * (x + b)
-                g1.SetPoint(j, x, yb)
-                g2.SetPoint(j, x, -yb)
+            
+            x_int = -b
+            y_hi = a * (xmax + b)
+            y_lo = -y_hi
+            g1 = ROOT.TGraph(2)
+            g2 = ROOT.TGraph(2)
+            g1.SetPoint(0, x_int, 0.0)
+            g1.SetPoint(1, xmax, y_hi)
+            g2.SetPoint(0, x_int, 0.0)
+            g2.SetPoint(1, xmax, y_lo)
+
+            # n = 50
+            # # g1 = ROOT.TGraph(n)
+            # # g2 = ROOT.TGraph(n)
+            # g1 = ROOT.TGraph()
+            # g2 = ROOT.TGraph()
+            # for j in range(n):
+            #     x = xmin + (xmax - xmin) * j / (n - 1)
+            #     # x = xmax - (xmin - xmin) * j / (n - 1)
+            #     yb = a * (x + b)
+            #     if(yb > 0):
+            #         # continue
+            #         # set_yb = yb
+            #         g1.SetPoint(j, x, yb)
+            #         g2.SetPoint(j, x, -yb)
             for g in (g1, g2):
                 g.SetLineColor(ROOT.kRed)
                 g.SetLineWidth(2)
@@ -191,22 +221,28 @@ def plot_electron_dc(root_file, outdir):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--root", default="Chapter3_Figures/Chapter3_HIPO_hists_combined.root")
-    parser.add_argument("--out", default="Chapter3_Figures/plots")
+    # parser.add_argument("--root", default="Chapter3_Figures/Chapter3_HIPO_hists_combined.root")
+    parser.add_argument("-r", "--root", 
+                        default="Chapter3_HIPO_hists_combined.root", 
+                        help="Input ROOT file with existing histograms.")
+    # parser.add_argument("--out", default="Chapter3_Figures/plots")
+    parser.add_argument("-o", "--out", 
+                        default="Plot_Images", 
+                        help="Output directory where the plots will be saved.")
     args = parser.parse_args()
-    if not os.path.isfile(args.root):
+    if(not os.path.isfile(args.root)):
         raise SystemExit("Missing combined ROOT file: %s" % args.root)
     root_file = ROOT.TFile.Open(args.root, "READ")
-    if not root_file or root_file.IsZombie():
+    if(not root_file or root_file.IsZombie()):
         raise SystemExit("Failed to open %s" % args.root)
     written = []
     for fn in (plot_htcc, plot_pcal, plot_sftot, plot_beta, plot_electron_dc):
         path = fn(root_file, args.out)
-        if path:
+        if(path):
             written.append(path)
     print("Done. %d PDFs in %s" % (len(written), args.out))
     return 0
 
 
-if __name__ == "__main__":
+if(__name__ == "__main__"):
     sys.exit(main())

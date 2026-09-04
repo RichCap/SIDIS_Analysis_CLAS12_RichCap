@@ -59,17 +59,20 @@ double[] p1sigma_inb = [ 0.0275006,  -0.000805156,-0.00449379,  0.0099462,   0.0
 double[] p2sigma_inb = [ 0.00253641, -0.00386759, -0.00469883, -0.00182968, -0.00355973, -0.00398967 ] as double[]
 double[] p3sigma_inb = [-0.000173549, 0.00030325,  0.000380195, 0.00012328,  0.000302528, 0.000340911] as double[]
 
-def h_htcc = new H1F("h_htcc_nphe", "Electron HTCC N_{phe};N_{phe};Counts", 80, 0.0, 40.0)
+// def h_htcc = new H1F("h_htcc_nphe", "Electron HTCC N_{phe};N_{phe};Counts", 80, 0.0, 40.0)
+def h_htcc = new H1F("h_htcc_nphe", "Electron HTCC N_{phe};N_{phe};Counts", 150, 0.0, 75.0)
 def h_pcal = new H1F("h_pcal_energy", "Electron PCAL energy;E_{PCAL} [GeV];Counts", 120, 0.0, 1.2)
 def h_sftot = [:]
 def h_dc = [:]
 for(int sec = 1; sec <= 6; sec++){
-    h_sftot[sec] = new H2F("h_sftot_sec${sec}", "Sector ${sec};p_{e} [GeV];SF_{tot}", 80, 1.0, 10.5, 80, 0.05, 0.40)
+    // h_sftot[sec] = new H2F("h_sftot_sec${sec}", "Sector ${sec};p_{e} [GeV];SF_{tot}", 80, 1.0, 10.5, 80, 0.05, 0.40)
+    h_sftot[sec] = new H2F("h_sftot_sec${sec}", "Sector ${sec};p_{e} [GeV];SF_{tot}", 450, 1.0, 10.0, 500, 0.0, 0.50)
     h_dc[6*100+sec]  = new H2F("h_ele_dc_r1_s${sec}", "R1 S${sec};x_{rot} [cm];y_{rot} [cm]", 80, -160, 20, 80, -90, 90)
     h_dc[18*100+sec] = new H2F("h_ele_dc_r2_s${sec}", "R2 S${sec};x_{rot} [cm];y_{rot} [cm]", 80, -220, 20, 80, -120, 120)
     h_dc[36*100+sec] = new H2F("h_ele_dc_r3_s${sec}", "R3 S${sec};x_{rot} [cm];y_{rot} [cm]", 80, -280, 20, 80, -160, 160)
 }
 def h_beta = new H2F("h_beta_poshad", "Positive hadrons;p [GeV];#beta", 120, 0.0, 8.0, 120, 0.4, 1.2)
+// def h_beta = new H2F("h_beta_poshad", "#scale[1.5]{#pi^{+} Pion PID #topbar #beta vs p};p [GeV];#beta", 120, 0.0, 8.0, 120, 0.4, 1.2)
 
 double[] rotate_dc(double x, double y, double z, int sector){
     double angle = Math.toRadians(60.0) * (sector - 1)
