@@ -13,6 +13,7 @@ import re
 from datetime import datetime
 
 script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis' if(os.path.exists('/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis')) else ('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap' if(os.path.exists('/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap')) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
 sys.path.remove(script_dir)
@@ -107,8 +108,11 @@ def parse_args():
     parser.add_argument("-sn",   "-ejn",     "--extra_job_name",
                         type=str,
                         default=None,
-                        help="Optionally adds more text to the slurm array job names (changes job names in all modes, but should only functionally effect the slurm run mode).\nShould be useful if submitting similar slurm jobs while others are still running.\n")
-    
+                        help="Optionally adds more text to the slurm array job names (changes job names in all modes, but should only functionally effect the slurm run mode).\nShould be useful if submitting similar slurm jobs while others are still running.\nAlso appended to the generated sbatch filename so a tagged submit does not overwrite GroovyArray_<source>_<type>_<event>.sh.\n")
+    parser.add_argument("-wd",   "-wdir",    "--work-dir",
+                        dest="work_dir",
+                        default=None,
+                        help="Override the process working directory / SLURM WORK_DIR (where relative Groovy output is written). Default is the ntuple output directory from --source.\n")
 
     parser.add_argument("-dr",   "-test",    "--dry-run",
                         dest="dry_run",
@@ -475,7 +479,7 @@ def slurm_array_has_active_tasks(array_jobid):
     return True
 
 
-def build_slurm_array_script_text(script_path, manifest_path, job_name, email_address, slurm_time, slurm_mem_per_cpu, slurm_partition, slurm_account, array_spec, work_dir):
+def build_slurm_array_script_text(script_path, manifest_path, job_name, email_address, slurm_time, slurm_mem_per_cpu, slurm_partition, slurm_account, array_spec, work_dir, mkdir_work_dir=False):
     safe_script_path   = str(script_path).replace('"', '\\"')
     safe_manifest_path = str(manifest_path).replace('"', '\\"')
     safe_email_address = str(email_address).replace('"', '\\"')
@@ -500,6 +504,8 @@ def build_slurm_array_script_text(script_path, manifest_path, job_name, email_ad
     lines.append(f'GROOVY_SCRIPT="{safe_script_path}"')
     lines.append(f'WORK_DIR="{safe_work_dir}"')
     lines.append("")
+    if(mkdir_work_dir):
+        lines.append('mkdir -p "${WORK_DIR}" || { echo "ERROR: Failed to create WORK_DIR=${WORK_DIR}"; exit 1; }')
     lines.append('cd "${WORK_DIR}" || { echo "ERROR: Failed to cd into WORK_DIR=${WORK_DIR}"; exit 1; }')
     lines.append("")
     lines.append('mapfile -t PATTERNS < <(grep -v \'^[[:space:]]*#\' "${MANIFEST}" | sed \'/^[[:space:]]*$/d\')')
@@ -628,7 +634,7 @@ def main():
         script_path_final = resolve_groovy_script_from_presets(source_norm, mc_type_norm, event_type_norm)
         script_path_reason = "preset"
     else:
-        script_path_final = os.path.expanduser(os.path.expandvars(str(args.script_path).strip()))
+        script_path_final = os.path.abspath(os.path.expanduser(os.path.expandvars(str(args.script_path).strip())))
         script_path_reason = "user-override"
 
     if(is_placeholder_path(script_path_final)):
@@ -638,7 +644,12 @@ def main():
             print(f"{color.Error}ERROR: Groovy script path is a placeholder and must be updated or overridden with --script-path: {color.END}{script_path_final}")
         sys.exit(1)
 
-    work_dir_final = resolve_output_dir_from_presets(source_norm, mc_type_norm)
+    if((args.work_dir is not None) and (str(args.work_dir).strip() != "")):
+        work_dir_final = os.path.abspath(os.path.expanduser(os.path.expandvars(str(args.work_dir).strip())))
+        work_dir_reason = "user-override"
+    else:
+        work_dir_final = resolve_output_dir_from_presets(source_norm, mc_type_norm)
+        work_dir_reason = "preset"
 
     array_spec_default = f"0-{nfiles-1}"
     if((args.unique_batches is None) or (str(args.unique_batches).strip() == "")):
@@ -654,7 +665,7 @@ def main():
         print("")
         print(f"{color.BBLUE}[INFO]{color.END} DRY RUN SUMMARY: mode={args.mode}, source={source_norm}, mc-type={mc_type_norm}, event-type={event_type_norm}, job_id={job_id_final}")
         print(f"{color.BBLUE}[INFO]{color.END} Paths TXT ({used_paths_txt_reason}): {txt_note}")
-        print(f"{color.BBLUE}[INFO]{color.END} Work directory (preset): {work_dir_final}")
+        print(f"{color.BBLUE}[INFO]{color.END} Work directory ({work_dir_reason}): {work_dir_final}")
         print(f"{color.BBLUE}[INFO]{color.END} TXT entries used (non-comment, non-empty): {len(globs_list) if(globs_list is not None) else 0}")
         print(f"{color.BBLUE}[INFO]{color.END} Expanded files (after dedupe, plus --file): {nfiles}")
         print(f"{color.BBLUE}[INFO]{color.END} Default SLURM array spec (if not overridden): {array_spec_default}")
@@ -712,6 +723,8 @@ def main():
                 rc = 0
             else:
                 try:
+                    if(work_dir_reason == "user-override"):
+                        os.makedirs(work_dir_final, exist_ok=True)
                     completed = subprocess.run(cmd, check=False, cwd=work_dir_final)
                     rc        = completed.returncode
                 except Exception as exc:
@@ -765,7 +778,7 @@ MC type preset: {mc_type_norm}
 Event type preset: {event_type_norm}
 Groovy script ({script_path_reason}): {script_path_final}
 Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
-Work directory (preset): {work_dir_final}
+Work directory ({work_dir_reason}): {work_dir_final}
 Total expanded files: {nfiles}
 Unique batches: {args.unique_batches}
 Coordinating SLURM array jobid: {args.slurm_array_jobid}
@@ -815,6 +828,8 @@ User Given Message:
         # Log directory (configurable)
         log_dir = args.parallel_log_dir
         os.makedirs(log_dir, exist_ok=True)
+        if((not args.dry_run) and (work_dir_reason == "user-override")):
+            os.makedirs(work_dir_final, exist_ok=True)
 
         parallel_email_text = f"""
 {color.BBLUE}Parallel mode enabled{color.END}
@@ -952,7 +967,7 @@ MC type preset: {mc_type_norm}
 Event type preset: {event_type_norm}
 Groovy script ({script_path_reason}): {script_path_final}
 Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
-Work directory (preset): {work_dir_final}
+Work directory ({work_dir_reason}): {work_dir_final}
 Total expanded files: {nfiles}
 Unique batches: {args.unique_batches}
 Parallel jobs: {args.parallel_jobs}
@@ -1002,6 +1017,8 @@ User Given Message:
         sbatch_base   = f"GroovyArray_{source_norm}_{mc_type_norm}_{event_type_norm}"
         if("data" in sbatch_base):
             sbatch_base = sbatch_base.replace("mdf", "rdf")
+        if((args.extra_job_name is not None) and (str(args.extra_job_name).strip() != "")):
+            sbatch_base = f"{sbatch_base}_{str(args.extra_job_name).strip()}"
         sbatch_base   = re.sub(r'[^A-Za-z0-9_\-]+', '_', sbatch_base)
         sbatch_path   = os.path.join(local_dir, f"{sbatch_base}.sh")
 
@@ -1010,14 +1027,14 @@ User Given Message:
         else:
             array_spec_str = str(args.unique_batches).replace(" ", "")
 
-        slurm_script_text = build_slurm_array_script_text(script_path=script_path_final, manifest_path=manifest_path, job_name=job_name, email_address=EMAIL_TO, slurm_time=args.slurm_time, slurm_mem_per_cpu=args.slurm_mem_per_cpu, slurm_partition=DEFAULT_SLURM_PARTITION, slurm_account=DEFAULT_SLURM_ACCOUNT, array_spec=array_spec_str, work_dir=work_dir_final)
+        slurm_script_text = build_slurm_array_script_text(script_path=script_path_final, manifest_path=manifest_path, job_name=job_name, email_address=EMAIL_TO, slurm_time=args.slurm_time, slurm_mem_per_cpu=args.slurm_mem_per_cpu, slurm_partition=DEFAULT_SLURM_PARTITION, slurm_account=DEFAULT_SLURM_ACCOUNT, array_spec=array_spec_str, work_dir=work_dir_final, mkdir_work_dir=(work_dir_reason == "user-override"))
 
         print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM sbatch script:\n")
         print(slurm_script_text)
         print(f"\n{color.BBLUE}[INFO]{color.END} Proposed manifest file path:\n{manifest_path}\n")
         print(f"{color.BBLUE}[INFO]{color.END} Proposed sbatch script path:\n{sbatch_path}\n")
         print(f"{color.BBLUE}[INFO]{color.END} Expanded file count (manifest lines): {nfiles} (array spec: {array_spec_str})")
-        print(f"{color.BBLUE}[INFO]{color.END} Work directory (preset): {work_dir_final}")
+        print(f"{color.BBLUE}[INFO]{color.END} Work directory ({work_dir_reason}): {work_dir_final}")
         if(not args.no_approval):
             try:
                 response = input("Approve this SLURM sbatch script (and allow it to be written + submitted)? [y/N]: ").strip().lower()
@@ -1076,7 +1093,7 @@ MC type preset: {mc_type_norm}
 Event type preset: {event_type_norm}
 Groovy script ({script_path_reason}): {script_path_final}
 Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
-Work directory (preset): {work_dir_final}
+Work directory ({work_dir_reason}): {work_dir_final}
 Total expanded files: {nfiles}
 Unique batches: {args.unique_batches}
 SLURM time: {args.slurm_time}

@@ -20,8 +20,31 @@ def isinb = ! ( hipoPath.contains('outb') || hipoPath.contains('torus+1') )
 def ismc  = hipoPath.contains("gemc")
 def hipoName = hipoPath.split("/")[-1]
 
+def farmChapter3 = new File("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Chapter3_Figures")
+def chapter3Dir = null
+try {
+    def loc = getClass().protectionDomain?.codeSource?.location
+    if(loc != null){
+        File scriptFile
+        try { scriptFile = new File(loc.toURI()) } catch(Exception e1){ scriptFile = new File(loc.getPath()) }
+        if(scriptFile.isFile()){ chapter3Dir = scriptFile.getParentFile() }
+        else if(scriptFile.isDirectory()){ chapter3Dir = scriptFile }
+    }
+} catch(Exception e){}
+if(chapter3Dir == null || !new File(chapter3Dir, "json_hists_to_root.py").exists()){
+    def sibling = new File("json_hists_to_root.py")
+    if(sibling.exists()){ chapter3Dir = sibling.getAbsoluteFile().getParentFile() }
+}
+if(chapter3Dir == null || !new File(chapter3Dir, "json_hists_to_root.py").exists()){
+    def parentSibling = new File("..", "json_hists_to_root.py")
+    if(parentSibling.exists()){ chapter3Dir = parentSibling.getAbsoluteFile().getParentFile() }
+}
+if(chapter3Dir == null || !new File(chapter3Dir, "json_hists_to_root.py").exists()){
+    chapter3Dir = farmChapter3
+}
+
 def outDirEnv = System.getenv("CHAPTER3_HIPO_OUTDIR")
-def outDir = (outDirEnv != null && outDirEnv.trim() != "") ? outDirEnv : "Chapter3_Figures/job_outputs"
+def outDir = (outDirEnv != null && outDirEnv.trim() != "") ? outDirEnv.trim() : new File(chapter3Dir, "job_outputs").getAbsolutePath()
 new File(outDir).mkdirs()
 def jsonName = "${outDir}/Chapter3_HIPO_hists_${hipoName}.json"
 def rootName = "${outDir}/Chapter3_HIPO_hists_${hipoName}.root"
@@ -219,7 +242,7 @@ def payload = [input_file: hipoPath, n_qa_events: nread, histograms: hist_list]
 new File(jsonName).text = JsonOutput.prettyPrint(JsonOutput.toJson(payload))
 println("Wrote JSON: ${jsonName}")
 
-def converter = new File("Chapter3_Figures/json_hists_to_root.py")
+def converter = new File(chapter3Dir, "json_hists_to_root.py")
 if(!converter.exists()){
     converter = new File("json_hists_to_root.py")
 }

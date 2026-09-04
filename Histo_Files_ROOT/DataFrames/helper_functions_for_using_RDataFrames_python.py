@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 
 import ROOT
+import os
 import sys
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
-sys.path.append(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
+# from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code, Rotation_Matrix
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import bootstrap_from_file
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
 from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code, Rotation_Matrix
-sys.path.remove(script_dir)
-del script_dir
 
 # Generator-matching modes stored in matched-MC files. Electron and pi+ always share one mode.
 # Historical `_gen` is P10T6 written unsuffixed. Bank is the systematic nominal, not the stored default.
@@ -1572,7 +1580,8 @@ Histograms_All["{Histo_Name}"] =
     
         # return Histograms_All
 
-    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    # script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    script_dir = EXEC_ROOT
     sys.path.append(script_dir)
     from MyCommonAnalysisFunction_richcap import variable_Title_name
     # from MyCommonAnalysisFunction_richcap import color

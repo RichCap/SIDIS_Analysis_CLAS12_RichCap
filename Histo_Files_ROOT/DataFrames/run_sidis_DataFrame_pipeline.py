@@ -8,24 +8,35 @@ import re
 from datetime import datetime
 import time
 
-script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis"
-sys.path.append(script_dir)
+# script_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis"
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
+# sys.path.remove(script_dir)
+# del script_dir
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import (
+    REL_DATAFRAMES, REL_FILE_BATCHES, add_data_root_argument, apply_input_if_default, apply_output_if_default,
+    bootstrap_from_file, collect_files_with_fallback, flag_was_passed, load_file_batches, print_path_summary,
+)
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
-sys.path.remove(script_dir)
-del script_dir
 
 Script_Name = "run_sidis_DataFrame_pipeline.py"
 
 # ===================================================================
 # DEFAULT PATHS
 # ===================================================================
-DATAFRAMES_BASE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames"
-RDF_DIR_DEFAULT = os.path.join(DATAFRAMES_BASE, "REAL_Data")
-MDF_DIR_DEFAULT = os.path.join(DATAFRAMES_BASE, "Matching_REC_MC")
-GDF_DIR_DEFAULT = os.path.join(DATAFRAMES_BASE, "GEN_MC")
-BATCH_FILE_DEFAULT = os.path.join(DATAFRAMES_BASE, "File_Batches.py")
+# DATAFRAMES_BASE = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames"
+DATAFRAMES_BASE = os.path.join(EXEC_ROOT, REL_DATAFRAMES)
+RDF_DIR_DEFAULT = os.path.join("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis", REL_DATAFRAMES, "REAL_Data")
+MDF_DIR_DEFAULT = os.path.join("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis", REL_DATAFRAMES, "Matching_REC_MC")
+GDF_DIR_DEFAULT = os.path.join("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis", REL_DATAFRAMES, "GEN_MC")
+BATCH_FILE_DEFAULT = os.path.join("/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis", REL_FILE_BATCHES)
 
-MAIN_SCRIPT = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py"
+# MAIN_SCRIPT = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py"
+MAIN_SCRIPT = os.path.join(DATAFRAMES_BASE, "Response_Matrix_Creation_using_RDataFrames.py")
 
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
@@ -77,7 +88,7 @@ def parse_args():
     parser.add_argument('-swf', '--spline_weight_file',
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
-                        help="Spline weight file path.\n")
+                        help="Spline weight file path. Default is resolved under --data_root with fallback unless this flag is given.\n")
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',
                         help="Use legacy JSON physics weights (mutually exclusive with --spline_weights).\n")
@@ -131,9 +142,11 @@ def parse_args():
                         help="Number of normal batches to create. The last 2 batches will be reserved for lundrho- and lundvpk-MC files.\n")
 
     # Directories
+    add_data_root_argument(parser)
+
     parser.add_argument('-wd', '--work_dir',
                         default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames",
-                        help="Final work directory for merged output.\n")
+                        help="Final work directory for merged output. Default follows --data_root unless this flag is given.\n")
     parser.add_argument('-sd', '--scratch_dir',
                         # default="/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work",
                         default="/scratch/richcap/Response_Matrix_Outputs",
@@ -375,26 +388,31 @@ def name_in_label(name_in):
     first = str(pats[0]).replace("*", "").replace(".root", "")
     return first if(first not in [""]) else "DataFrames"
 
-def collect_files(dir_path, pattern="*.root"):
+def collect_files(dir_path, pattern="*.root", data_root_key="work", explicit=False):
     patterns = name_in_patterns(pattern) if(not isinstance(pattern, str)) else [pattern]
     if(len(patterns) == 0):
         patterns = ["*.root"]
-    if(not os.path.isdir(dir_path)):
+    if(explicit):
+        if(not os.path.isdir(dir_path)):
+            print(f"{color.Error}Directory not found: {dir_path}{color.END}")
+            return []
+        seen, files = set(), []
+        for pat in patterns:
+            use = pat
+            if(all(backup not in use for backup in ["*", "."])):
+                use = f"*{use}*"
+            if("*.root" not in use):
+                use = f"{use}.root" if("*" in use) else f"{use}*.root"
+            for fpath in glob.glob(os.path.join(dir_path, use), recursive=True):
+                af = os.path.abspath(fpath)
+                if(af not in seen):
+                    seen.add(af)
+                    files.append(af)
+        return sorted(files)
+    files, missing_dirs = collect_files_with_fallback(dir_path, patterns, data_root_key)
+    if((len(files) == 0) and missing_dirs):
         print(f"{color.Error}Directory not found: {dir_path}{color.END}")
-        return []
-    seen, files = set(), []
-    for pat in patterns:
-        use = pat
-        if(all(backup not in use for backup in ["*", "."])):
-            use = f"*{use}*"
-        if("*.root" not in use):
-            use = f"{use}.root" if("*" in use) else f"{use}*.root"
-        for fpath in glob.glob(os.path.join(dir_path, use), recursive=True):
-            af = os.path.abspath(fpath)
-            if(af not in seen):
-                seen.add(af)
-                files.append(af)
-    return sorted(files)
+    return files
 
 def estimate_peak_memory_children():
     peak_mem_str = "Unknown"
@@ -429,9 +447,9 @@ def split_evenly(files, n_batches):
     return batches
 
 def make_batches_mode(args):
-    rdf_files = collect_files(args.rdf_dir, args.name_in)
-    mdf_files = collect_files(args.mdf_dir, args.name_in)
-    gdf_files = collect_files(args.gdf_dir, args.name_in)
+    rdf_files = collect_files(args.rdf_dir, args.name_in, args.data_root, explicit=flag_was_passed(["-rdfd", "--rdf_dir"]))
+    mdf_files = collect_files(args.mdf_dir, args.name_in, args.data_root, explicit=flag_was_passed(["-mdfd", "--mdf_dir"]))
+    gdf_files = collect_files(args.gdf_dir, args.name_in, args.data_root, explicit=flag_was_passed(["-gdfd", "--gdf_dir"]))
     if(not rdf_files):
         Crash_Report(args, crash_message=f"{color.Error}No RDF files found - cannot generate batches.{color.END}")
     # Determine number of normal batches
@@ -491,6 +509,7 @@ def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
         batch_id_token = str(int(batch_id))
         batch_pad = f"{int(batch_id):03d}"
     cmd = [MAIN_SCRIPT, "--batch_id", batch_id_token]
+    cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-cnR", args.cut_name, "-cnM", args.cut_name])
     if(getattr(args, "z_axis_2D", "4D_Bin") not in ["4D_Bin", ""]):
         cmd.extend(["--z_axis_2D", getattr(args, "z_axis_2D", "4D_Bin")])
@@ -643,9 +662,11 @@ def wait_for_remaining_slurm_tasks(args):
 def run_local_batches(args):
     batch_output_dir = resolved_batch_output_dir(args, slurm=False)
     log_dir = ensure_directory(args.log_dir if(args.log_dir) else f"/scratch/{os.getlogin()}/response_matrix_logs")
-    sys.path.append(DATAFRAMES_BASE)
-    from File_Batches import rdf_batch#, mdf_batch, gdf_batch
-    sys.path.remove(DATAFRAMES_BASE)
+    # sys.path.append(DATAFRAMES_BASE)
+    # from File_Batches import rdf_batch#, mdf_batch, gdf_batch
+    # sys.path.remove(DATAFRAMES_BASE)
+    rdf_batch, _mdf_batch, _gdf_batch, batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
+    Update_Email(args, update_message=f"{color.BBLUE}Loaded File_Batches from {color.END_B}{batch_path}{color.END}", verbose_override=True, no_time=True)
     # num_batches = max(len(rdf_batch), len(mdf_batch), len(gdf_batch))
     num_batches = len(rdf_batch)
     args.num_batches = num_batches
@@ -707,9 +728,10 @@ def run_local_batches(args):
     Construct_Email(args)
 
 def run_slurm_mode(args):
-    sys.path.append(DATAFRAMES_BASE)
-    from File_Batches import rdf_batch
-    sys.path.remove(DATAFRAMES_BASE)
+    # sys.path.append(DATAFRAMES_BASE)
+    # from File_Batches import rdf_batch
+    # sys.path.remove(DATAFRAMES_BASE)
+    rdf_batch, _mdf_batch, _gdf_batch, _batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
     num_batches = len(rdf_batch)
 
     batch_output_dir = resolved_batch_output_dir(args, slurm=True)
@@ -791,10 +813,24 @@ def run_slurm_mode(args):
 
     Construct_Email(args)
 
+def apply_pipeline_data_root_defaults(args):
+    apply_output_if_default(args, "work_dir", ["-wd", "--work_dir"], args.data_root)
+    apply_output_if_default(args, "rdf_dir", ["-rdfd", "--rdf_dir"], args.data_root)
+    apply_output_if_default(args, "mdf_dir", ["-mdfd", "--mdf_dir"], args.data_root)
+    apply_output_if_default(args, "gdf_dir", ["-gdfd", "--gdf_dir"], args.data_root)
+    apply_output_if_default(args, "batch_file", ["-bf", "--batch_file"], args.data_root)
+    apply_input_if_default(args, "spline_weight_file", ["-swf", "--spline_weight_file"], args.data_root)
+    apply_input_if_default(args, "json_file", ["-jsf", "--json_file"], args.data_root)
+    apply_input_if_default(args, "hpp_weight_file", ["-hppf", "--hpp_weight_file"], args.data_root)
+    if(getattr(args, "hpp_weight_file_spline", None) not in [None, ""]):
+        apply_input_if_default(args, "hpp_weight_file_spline", ["-hpp_swf", "--hpp_weight_file_spline"], args.data_root)
+
 def main():
     args = parse_args()
+    apply_pipeline_data_root_defaults(args)
     args.timer = RuntimeTimer()
     args.timer.start()
+    print_path_summary(EXEC_ROOT, args.data_root)
     user_subdir = getattr(args, "run_subdir_name", None)
     if(user_subdir in [None, ""]):
         args.run_subdir_name = f"{args.name}_{name_in_label(args.name_in)}_{datetime.now().strftime('%m_%d_%Y')}" if(args.name) else f"{name_in_label(args.name_in)}_{datetime.now().strftime('%m_%d_%Y')}"

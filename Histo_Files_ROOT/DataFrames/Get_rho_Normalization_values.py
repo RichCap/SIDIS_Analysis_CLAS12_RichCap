@@ -10,12 +10,20 @@ ROOT.gStyle.SetTitleOffset(1.3,'y')
 ROOT.gStyle.SetGridColor(17)
 ROOT.gStyle.SetPadGridX(1)
 ROOT.gStyle.SetPadGridY(1)
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
-sys.path.append(script_dir)
+# script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+# sys.path.append(script_dir)
+# from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Draw_Canvas, silence_root_import, Canvas_Create, Get_Num_of_z_pT_Rows_and_Columns, Draw_Q2_Y_Bins, Draw_the_MM_Cut_Lines, Draw_z_pT_Bins_With_Migration, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins, variable_Title_name #, root_color, color_bg
+# from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
+# sys.path.remove(script_dir)
+# del script_dir
+import os
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+from jlab_work_paths import add_data_root_argument, apply_input_if_default, bootstrap_from_file
+EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, RuntimeTimer, Draw_Canvas, silence_root_import, Canvas_Create, Get_Num_of_z_pT_Rows_and_Columns, Draw_Q2_Y_Bins, Draw_the_MM_Cut_Lines, Draw_z_pT_Bins_With_Migration, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins, variable_Title_name #, root_color, color_bg
 from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_Definition_Array
-sys.path.remove(script_dir)
-del script_dir
 import argparse
 from datetime import datetime
 
@@ -135,7 +143,7 @@ def parse_args():
     parser.add_argument('-nbgmc', '--no_bkg_MC',
                         action='store_true',
                         help="Turns off all background fits for the Exclusive MC histograms.\n")
-    
+    add_data_root_argument(parser)
     return parser.parse_args()
 
 
@@ -2819,6 +2827,8 @@ def Create_Diagnostic_Weight_Impact_Plots(args):
 
 if(__name__ == "__main__"):
     args = parse_args()
+    apply_input_if_default(args, "file1", ["-f1", "--file1"], args.data_root)
+    apply_input_if_default(args, "file2", ["-f2", "--file2"], args.data_root)
     args.timer = RuntimeTimer()
     args.timer.start()
     if(args.Kinematic_Bin_Select not in ["All", "Full"]):
