@@ -125,8 +125,9 @@ def parse_args():
 
     parser.add_argument('-nin', '--name_in',
                         nargs="+",
-                        default=["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"],
-                        help="Glob(s) for DataFrame files used in make_batches / naming. Multiple patterns are unioned (new thesis non-lund plus reused I0 lund).\n")
+                        # default=["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"],
+                        default=["*Final_Thesis_Files*.root", "*lundvpk*.root", "*lundrho*.root"],
+                        help="Glob(s) for DataFrame files used in make_batches / naming. Multiple patterns are unioned (new thesis non-lund plus reused I0 lund). Lund globs are '*lundvpk*.root' / '*lundrho*.root' because converter names put file_type after Common_Name (e.g. ..._Final_Analysis_Iterations_I0_lundvpk_10909_0.root).\n")
     parser.add_argument('-n', '--name',
                         default="",
                         help="Base name suffix for merged output and batch files.\n")

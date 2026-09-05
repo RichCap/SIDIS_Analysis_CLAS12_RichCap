@@ -39,7 +39,8 @@ DEFAULT_CUT       = "cut_Complete_SIDIS"
 # VOLATILE_BASE     = "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work"
 VOLATILE_BASE     = SHARED_VOLATILE_BASE
 PIPELINE_NAME_IN  = "Final_Thesis_Files"
-PIPELINE_NAME_IN_GLOBS = ["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"]
+# PIPELINE_NAME_IN_GLOBS = ["*Final_Thesis_Files*.root", "*lundvpk*Final_Analysis_Iterations_I0*.root", "*lundrho*Final_Analysis_Iterations_I0*.root"]
+PIPELINE_NAME_IN_GLOBS = ["*Final_Thesis_Files*.root", "*lundvpk*.root", "*lundrho*.root"]
 # Filename tags only. Alias meaning lives in helper MATCHING_MODE_ALIASES.
 MATCHING_OUTPUT_TAG = {
     "": "", "_gen": "", "gen": "", "P10T6": "",
