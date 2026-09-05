@@ -1,0 +1,9 @@
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0121.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0152.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0163.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0184.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0185.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0196.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0207.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0208.hipo.root
+/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2/MC_Gen_sidis_epip_richcap.inb.qa.new10.clasdis_rga_fa18_inb_45nA_10604MeV-0209.hipo.root
