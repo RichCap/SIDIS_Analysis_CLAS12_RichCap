@@ -95,6 +95,7 @@ def _ensure_rot_matrix_declared():
     _ROT_MATRIX_DECLARED = True
 
 def _rebuild_generated_kinematics_from_momenta(df, beam_energy=PASS2_MC_BEAM_ENERGY):
+    # RDF JIT wraps Define/Redefine expressions in a function whose parameters are existing columns; locals must not reuse those names.
     _ensure_rot_matrix_declared()
     df = rdf_define_or_redefine(df, "el_gen", "sqrt(ex_gen*ex_gen + ey_gen*ey_gen + ez_gen*ez_gen)")
     df = rdf_define_or_redefine(df, "pip_gen", "sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen + pipz_gen*pipz_gen)")
@@ -102,36 +103,36 @@ def _rebuild_generated_kinematics_from_momenta(df, beam_energy=PASS2_MC_BEAM_ENE
     df = rdf_define_or_redefine(df, "pipth_gen", "atan2(sqrt(pipx_gen*pipx_gen + pipy_gen*pipy_gen), pipz_gen)*TMath::RadToDeg()")
     df = rdf_define_or_redefine(df, "elPhi_gen", """
         auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
-        auto elPhi_gen = ele.Phi()*TMath::RadToDeg();
-        if(elPhi_gen < 0){ elPhi_gen += 360; }
-        return elPhi_gen;""")
+        auto el_phi = ele.Phi()*TMath::RadToDeg();
+        if(el_phi < 0){ el_phi += 360; }
+        return el_phi;""")
     df = rdf_define_or_redefine(df, "pipPhi_gen", """
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
-        auto pipPhi_gen = pip0.Phi()*TMath::RadToDeg();
-        if(pipPhi_gen < 0){ pipPhi_gen += 360; }
-        return pipPhi_gen;""")
+        auto pip_phi = pip0.Phi()*TMath::RadToDeg();
+        if(pip_phi < 0){ pip_phi += 360; }
+        return pip_phi;""")
     df = rdf_define_or_redefine(df, "esec_gen", """
         auto ele = ROOT::Math::PxPyPzMVector(ex_gen, ey_gen, ez_gen, 0);
         auto ele_phi = (180/3.1415926)*ele.Phi();
-        int esec_gen = 0;
-        if(ele_phi >= -30  && ele_phi <   30){ esec_gen = 1; }
-        if(ele_phi >= 30   && ele_phi <   90){ esec_gen = 2; }
-        if(ele_phi >= 90   && ele_phi <  150){ esec_gen = 3; }
-        if(ele_phi >= 150  || ele_phi < -150){ esec_gen = 4; }
-        if(ele_phi >= -90  && ele_phi <  -30){ esec_gen = 5; }
-        if(ele_phi >= -150 && ele_phi <  -90){ esec_gen = 6; }
-        return esec_gen;""")
+        int ele_sec = 0;
+        if(ele_phi >= -30  && ele_phi <   30){ ele_sec = 1; }
+        if(ele_phi >= 30   && ele_phi <   90){ ele_sec = 2; }
+        if(ele_phi >= 90   && ele_phi <  150){ ele_sec = 3; }
+        if(ele_phi >= 150  || ele_phi < -150){ ele_sec = 4; }
+        if(ele_phi >= -90  && ele_phi <  -30){ ele_sec = 5; }
+        if(ele_phi >= -150 && ele_phi <  -90){ ele_sec = 6; }
+        return ele_sec;""")
     df = rdf_define_or_redefine(df, "pipsec_gen", """
         auto pip0 = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
         auto pip_phi = (180/3.1415926)*pip0.Phi();
-        int pipsec_gen = 0;
-        if(pip_phi >= -45  && pip_phi <   15){ pipsec_gen = 1; }
-        if(pip_phi >= 15   && pip_phi <   75){ pipsec_gen = 2; }
-        if(pip_phi >= 75   && pip_phi <  135){ pipsec_gen = 3; }
-        if(pip_phi >= 135  || pip_phi < -165){ pipsec_gen = 4; }
-        if(pip_phi >= -105 && pip_phi <  -45){ pipsec_gen = 5; }
-        if(pip_phi >= -165 && pip_phi < -105){ pipsec_gen = 6; }
-        return pipsec_gen;""")
+        int pip_sec = 0;
+        if(pip_phi >= -45  && pip_phi <   15){ pip_sec = 1; }
+        if(pip_phi >= 15   && pip_phi <   75){ pip_sec = 2; }
+        if(pip_phi >= 75   && pip_phi <  135){ pip_sec = 3; }
+        if(pip_phi >= 135  || pip_phi < -165){ pip_sec = 4; }
+        if(pip_phi >= -105 && pip_phi <  -45){ pip_sec = 5; }
+        if(pip_phi >= -165 && pip_phi < -105){ pip_sec = 6; }
+        return pip_sec;""")
     df = rdf_define_or_redefine(df, "vals_gen", f"""
         auto beam_gen  = ROOT::Math::PxPyPzMVector(0, 0, {beam_energy}, 0);
         auto targ_gen  = ROOT::Math::PxPyPzMVector(0, 0, 0, 0.938272);
@@ -139,15 +140,15 @@ def _rebuild_generated_kinematics_from_momenta(df, beam_energy=PASS2_MC_BEAM_ENE
         auto pip0_gen  = ROOT::Math::PxPyPzMVector(pipx_gen, pipy_gen, pipz_gen, 0.13957);
         auto epipX_gen = beam_gen + targ_gen - ele_gen - pip0_gen;
         auto q_gen     = beam_gen - ele_gen;
-        auto Q2_gen    = -q_gen.M2();
+        auto q2        = -q_gen.M2();
         auto v_gen     = beam_gen.E() - ele_gen.E();
-        auto xB_gen    = Q2_gen/(2*targ_gen.M()*v_gen);
-        auto W2_gen    = targ_gen.M2() + 2*targ_gen.M()*v_gen - Q2_gen;
-        auto W_gen     = sqrt(W2_gen);
-        auto y_gen     = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
-        auto z_gen     = ((pip0_gen.E())/(q_gen.E()));
-        std::vector<double> vals_gen = {{epipX_gen.M(), epipX_gen.M2(), Q2_gen, xB_gen, v_gen, W2_gen, W_gen, y_gen, z_gen}};
-        return vals_gen;""")
+        auto xb        = q2/(2*targ_gen.M()*v_gen);
+        auto W2_gen    = targ_gen.M2() + 2*targ_gen.M()*v_gen - q2;
+        auto w         = sqrt(W2_gen);
+        auto y_val     = (targ_gen.Dot(q_gen))/(targ_gen.Dot(beam_gen));
+        auto z_val     = ((pip0_gen.E())/(q_gen.E()));
+        std::vector<double> vals = {{epipX_gen.M(), epipX_gen.M2(), q2, xb, v_gen, W2_gen, w, y_val, z_val}};
+        return vals;""")
     df = rdf_define_or_redefine(df, "MM_gen",  "vals_gen[0]")
     df = rdf_define_or_redefine(df, "MM2_gen", "vals_gen[1]")
     df = rdf_define_or_redefine(df, "Q2_gen",  "vals_gen[2]")
@@ -178,12 +179,12 @@ def _rebuild_generated_kinematics_from_momenta(df, beam_energy=PASS2_MC_BEAM_ENE
         pip_Boost.Boost(boost);
         double pipx_1_gen = pip0_Clone.X();
         double pipy_1_gen = pip0_Clone.Y();
-        double pT_gen     = sqrt(pipx_1_gen*pipx_1_gen + pipy_1_gen*pipy_1_gen);
-        double phi_t_gen  = pip0_Clone.Phi()*TMath::RadToDeg();
-        if(phi_t_gen < 0){{ phi_t_gen += 360; }}
-        double xF_gen = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W_gen);
-        std::vector<double> vals2_gen = {{pT_gen, phi_t_gen, xF_gen}};
-        return vals2_gen;""")
+        double pt_val     = sqrt(pipx_1_gen*pipx_1_gen + pipy_1_gen*pipy_1_gen);
+        double phi_t_val  = pip0_Clone.Phi()*TMath::RadToDeg();
+        if(phi_t_val < 0){{ phi_t_val += 360; }}
+        double xf_val = 2*(pip_Boost.Vect().Dot(qlv_Boost.Vect()))/(qlv_Boost.Vect().Mag()*W_gen);
+        std::vector<double> vals2 = {{pt_val, phi_t_val, xf_val}};
+        return vals2;""")
     df = rdf_define_or_redefine(df, "pT_gen",    "vals2_gen[0]")
     df = rdf_define_or_redefine(df, "phi_t_gen", "vals2_gen[1]")
     df = rdf_define_or_redefine(df, "xF_gen",    "vals2_gen[2]")
