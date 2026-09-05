@@ -754,7 +754,7 @@ def run_slurm_mode(args):
         f.write("#SBATCH --account=clas12\n")
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
-        f.write(f"#SBATCH --array=1-{num_batches}%40\n\n")
+        f.write(f"#SBATCH --array=1-{num_batches}\n\n")
         f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
         f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
         f.write(f'cd {batch_output_dir}\n')
