@@ -1,0 +1,1276 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:33:37 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs=5 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 01:33 a.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171%40
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS -cnM cut_Complete_SIDIS --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10343490
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 01:33 a.m.
+
+
+Submitted SLURM array job 10343490
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 01:33 a.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10343490 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10343490 --jobs 5 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:53:02 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs=5 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 01:53 a.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171%40
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS -cnM cut_Complete_SIDIS --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10344288
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 01:53 a.m.
+
+
+Submitted SLURM array job 10344288
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 01:53 a.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10344288 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10344288 --jobs 5 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:57:55 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs=5 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 01:57 a.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS -cnM cut_Complete_SIDIS --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10344661
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 01:57 a.m.
+
+
+Submitted SLURM array job 10344661
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 01:57 a.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10344661 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10344661 --jobs 5 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0] 
+[rho0] Started running on 9-5-2026 at 01:57 a.m.
+[rho0] 
+[rho0] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] [INFO] Batch 1 already completed by SLURM - skipping
+[rho0] [INFO] Batch 2 already completed by SLURM - skipping
+[rho0] [INFO] Batch 3 already completed by SLURM - skipping
+[rho0] [INFO] Batch 4 already completed by SLURM - skipping
+[rho0] [INFO] Batch 5 already completed by SLURM - skipping
+[rho0] [INFO] Batch 6 already completed by SLURM - skipping
+[rho0] [INFO] Batch 7 already completed by SLURM - skipping
+[rho0] [INFO] Batch 8 already completed by SLURM - skipping
+[rho0] [INFO] Batch 9 already completed by SLURM - skipping
+[rho0] [INFO] Batch 10 already completed by SLURM - skipping
+[rho0] [INFO] Batch 11 already completed by SLURM - skipping
+[rho0] [INFO] Batch 12 already completed by SLURM - skipping
+[rho0] [INFO] Batch 13 already completed by SLURM - skipping
+[rho0] [INFO] Batch 14 already completed by SLURM - skipping
+[rho0] [INFO] Batch 15 already completed by SLURM - skipping
+[rho0] [INFO] Batch 16 already completed by SLURM - skipping
+[rho0] [INFO] Batch 17 already completed by SLURM - skipping
+[rho0] [INFO] Batch 18 already completed by SLURM - skipping
+[rho0] [INFO] Batch 19 already completed by SLURM - skipping
+[rho0] [INFO] Batch 20 already completed by SLURM - skipping
+[rho0] [INFO] Batch 21 already completed by SLURM - skipping
+[rho0] [INFO] Batch 22 already completed by SLURM - skipping
+[rho0] [INFO] Batch 23 already completed by SLURM - skipping
+[rho0] [INFO] Batch 24 already completed by SLURM - skipping
+[rho0] [INFO] Batch 25 already completed by SLURM - skipping
+[rho0] [INFO] Batch 26 already completed by SLURM - skipping
+[rho0] [INFO] Batch 27 already completed by SLURM - skipping
+[rho0] [INFO] Batch 28 already completed by SLURM - skipping
+[rho0] [INFO] Batch 29 already completed by SLURM - skipping
+[rho0] [INFO] Batch 30 already completed by SLURM - skipping
+[rho0] [INFO] Batch 31 already completed by SLURM - skipping
+[rho0] [INFO] Batch 32 already completed by SLURM - skipping
+[rho0] [INFO] Batch 33 already completed by SLURM - skipping
+[rho0] [INFO] Batch 34 already completed by SLURM - skipping
+[rho0] [INFO] Batch 35 already completed by SLURM - skipping
+[rho0] [INFO] Batch 36 already completed by SLURM - skipping
+[rho0] [INFO] Batch 37 already completed by SLURM - skipping
+[rho0] [INFO] Batch 38 already completed by SLURM - skipping
+[rho0] [INFO] Batch 39 already completed by SLURM - skipping
+[rho0] [INFO] Batch 40 already completed by SLURM - skipping
+[rho0] [INFO] Batch 41 already completed by SLURM - skipping
+[rho0] [INFO] Batch 42 already completed by SLURM - skipping
+[rho0] [INFO] Batch 43 already completed by SLURM - skipping
+[rho0] [INFO] Batch 44 already completed by SLURM - skipping
+[rho0] [INFO] Batch 45 already completed by SLURM - skipping
+[rho0] [INFO] Batch 46 already completed by SLURM - skipping
+[rho0] [INFO] Batch 47 already completed by SLURM - skipping
+[rho0] [INFO] Batch 48 already completed by SLURM - skipping
+[rho0] [INFO] Batch 49 already completed by SLURM - skipping
+[rho0] [INFO] Batch 50 already completed by SLURM - skipping
+[rho0] [INFO] Batch 51 already completed by SLURM - skipping
+[rho0] [INFO] Batch 52 already completed by SLURM - skipping
+[rho0] [INFO] Batch 53 already completed by SLURM - skipping
+[rho0] [INFO] Batch 54 already completed by SLURM - skipping
+[rho0] [INFO] Batch 55 already completed by SLURM - skipping
+[rho0] [INFO] Batch 56 already completed by SLURM - skipping
+[rho0] [INFO] Batch 57 already completed by SLURM - skipping
+[rho0] [INFO] Batch 58 already completed by SLURM - skipping
+[rho0] [INFO] Batch 59 already completed by SLURM - skipping
+[rho0] [INFO] Batch 60 already completed by SLURM - skipping
+[rho0] [INFO] Batch 61 already completed by SLURM - skipping
+[rho0] [INFO] Batch 62 already completed by SLURM - skipping
+[rho0] [INFO] Batch 63 already completed by SLURM - skipping
+[rho0] [INFO] Batch 64 already completed by SLURM - skipping
+[rho0] [INFO] Batch 65 already completed by SLURM - skipping
+[rho0] [INFO] Batch 66 already completed by SLURM - skipping
+[rho0] [INFO] Batch 67 already completed by SLURM - skipping
+[rho0] [INFO] Batch 68 already completed by SLURM - skipping
+[rho0] [INFO] Batch 69 already completed by SLURM - skipping
+[rho0] [INFO] Batch 70 already completed by SLURM - skipping
+[rho0] [INFO] Batch 71 already completed by SLURM - skipping
+[rho0] [INFO] Batch 72 already completed by SLURM - skipping
+[rho0] [INFO] Batch 73 already completed by SLURM - skipping
+[rho0] [INFO] Batch 74 already completed by SLURM - skipping
+[rho0] [INFO] Batch 75 already completed by SLURM - skipping
+[rho0] [INFO] Batch 76 already completed by SLURM - skipping
+[rho0] [INFO] Batch 77 already completed by SLURM - skipping
+[rho0] [INFO] Batch 78 already completed by SLURM - skipping
+[rho0] [INFO] Batch 79 already completed by SLURM - skipping
+[rho0] [INFO] Batch 80 already completed by SLURM - skipping
+[rho0] [INFO] Batch 81 already completed by SLURM - skipping
+[rho0] [INFO] Batch 82 already completed by SLURM - skipping
+[rho0] [INFO] Batch 83 already completed by SLURM - skipping
+[rho0] [INFO] Batch 84 already completed by SLURM - skipping
+[rho0] [INFO] Batch 85 already completed by SLURM - skipping
+[rho0] [INFO] Batch 86 already completed by SLURM - skipping
+[rho0] [INFO] Batch 87 already completed by SLURM - skipping
+[rho0] [INFO] Batch 88 already completed by SLURM - skipping
+[rho0] [INFO] Batch 89 already completed by SLURM - skipping
+[rho0] [INFO] Batch 90 already completed by SLURM - skipping
+[rho0] [INFO] Batch 91 already completed by SLURM - skipping
+[rho0] [INFO] Batch 92 already completed by SLURM - skipping
+[rho0] [INFO] Batch 93 already completed by SLURM - skipping
+[rho0] [INFO] Batch 94 already completed by SLURM - skipping
+[rho0] [INFO] Batch 95 already completed by SLURM - skipping
+[rho0] [INFO] Batch 96 already completed by SLURM - skipping
+[rho0] [INFO] Batch 97 already completed by SLURM - skipping
+[rho0] [INFO] Batch 98 already completed by SLURM - skipping
+[rho0] [INFO] Batch 99 already completed by SLURM - skipping
+[rho0] [INFO] Batch 100 already completed by SLURM - skipping
+[rho0] [INFO] Batch 101 already completed by SLURM - skipping
+[rho0] [INFO] Batch 102 already completed by SLURM - skipping
+[rho0] [INFO] Batch 103 already completed by SLURM - skipping
+[rho0] [INFO] Batch 104 already completed by SLURM - skipping
+[rho0] [INFO] Batch 105 already completed by SLURM - skipping
+[rho0] [INFO] Batch 106 already completed by SLURM - skipping
+[rho0] [INFO] Batch 107 already completed by SLURM - skipping
+[rho0] [INFO] Batch 108 already completed by SLURM - skipping
+[rho0] [INFO] Batch 109 already completed by SLURM - skipping
+[rho0] [INFO] Batch 110 already completed by SLURM - skipping
+[rho0] [INFO] Batch 111 already completed by SLURM - skipping
+[rho0] [INFO] Batch 112 already completed by SLURM - skipping
+[rho0] [INFO] Batch 113 already completed by SLURM - skipping
+[rho0] CRASH WARNING!
+[rho0] Cannot hadd: missing 171 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch001.root
+[rho0] 
+[rho0] 
+[rho0] [INFO] Batch 114 already completed by SLURM - skipping
+[rho0] [INFO] Batch 115 already completed by SLURM - skipping
+[rho0] [INFO] Batch 116 already completed by SLURM - skipping
+[rho0] [INFO] Batch 117 already completed by SLURM - skipping
+[rho0] [INFO] Batch 118 already completed by SLURM - skipping
+[rho0] [INFO] Batch 119 already completed by SLURM - skipping
+[rho0] [INFO] Batch 120 already completed by SLURM - skipping
+[rho0] [INFO] Batch 121 already completed by SLURM - skipping
+[rho0] [INFO] Batch 122 already completed by SLURM - skipping
+[rho0] [INFO] Batch 123 already completed by SLURM - skipping
+[rho0] [INFO] Batch 124 already completed by SLURM - skipping
+[rho0] [INFO] Batch 125 already completed by SLURM - skipping
+[rho0] [INFO] Batch 126 already completed by SLURM - skipping
+[rho0] [INFO] Batch 127 already completed by SLURM - skipping
+[rho0] [INFO] Batch 128 already completed by SLURM - skipping
+[rho0] [INFO] Batch 129 already completed by SLURM - skipping
+[rho0] [INFO] Batch 130 already completed by SLURM - skipping
+[rho0] [INFO] Batch 131 already completed by SLURM - skipping
+[rho0] [INFO] Batch 132 already completed by SLURM - skipping
+[rho0] [INFO] Batch 133 already completed by SLURM - skipping
+[rho0] [INFO] Batch 134 already completed by SLURM - skipping
+[rho0] [INFO] Batch 135 already completed by SLURM - skipping
+[rho0] [INFO] Batch 136 already completed by SLURM - skipping
+[rho0] [INFO] Batch 137 already completed by SLURM - skipping
+[rho0] [INFO] Batch 138 already completed by SLURM - skipping
+[rho0] [INFO] Batch 139 already completed by SLURM - skipping
+[rho0] [INFO] Batch 140 already completed by SLURM - skipping
+[rho0] [INFO] Batch 141 already completed by SLURM - skipping
+[rho0] [INFO] Batch 142 already completed by SLURM - skipping
+[rho0] [INFO] Batch 143 already completed by SLURM - skipping
+[rho0] [INFO] Batch 144 already completed by SLURM - skipping
+[rho0] [INFO] Batch 145 already completed by SLURM - skipping
+[rho0] [INFO] Batch 146 already completed by SLURM - skipping
+[rho0] [INFO] Batch 147 already completed by SLURM - skipping
+[rho0] [INFO] Batch 148 already completed by SLURM - skipping
+[rho0] [INFO] Batch 149 already completed by SLURM - skipping
+[rho0] [INFO] Batch 150 already completed by SLURM - skipping
+[rho0] [INFO] Batch 151 already completed by SLURM - skipping
+[rho0] [INFO] Batch 152 already completed by SLURM - skipping
+[rho0] [INFO] Batch 153 already completed by SLURM - skipping
+[rho0] [INFO] Batch 154 already completed by SLURM - skipping
+[rho0] [INFO] Batch 155 already completed by SLURM - skipping
+[rho0] [INFO] Batch 156 already completed by SLURM - skipping
+[rho0] [INFO] Batch 157 already completed by SLURM - skipping
+[rho0] [INFO] Batch 158 already completed by SLURM - skipping
+[rho0] [INFO] Batch 159 already completed by SLURM - skipping
+[rho0] [INFO] Batch 160 already completed by SLURM - skipping
+[rho0] [INFO] Batch 161 already completed by SLURM - skipping
+[rho0] [INFO] Batch 162 already completed by SLURM - skipping
+[rho0] [INFO] Batch 163 already completed by SLURM - skipping
+[rho0] [INFO] Batch 164 already completed by SLURM - skipping
+[rho0] [INFO] Batch 165 already completed by SLURM - skipping
+[rho0] [INFO] Batch 166 already completed by SLURM - skipping
+[rho0] [INFO] Batch 167 already completed by SLURM - skipping
+[rho0] [INFO] Batch 168 already completed by SLURM - skipping
+[rho0] [INFO] Batch 169 already completed by SLURM - skipping
+[rho0] [INFO] Batch 170 already completed by SLURM - skipping
+[rho0] [INFO] Batch 171 already completed by SLURM - skipping
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] EMAIL MESSAGE TO SEND:
+[rho0] 
+[rho0] 
+[rho0] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[rho0] Started running on 9-5-2026 at 01:57 a.m.
+[rho0] 
+[rho0] Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] 
+[rho0] CRASH WARNING!
+[rho0] Cannot hadd: missing 171 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch001.root
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] Arguments:
+[rho0] 
+[rho0] --mode                                              --> 'parallel'
+[rho0] --cut_name                                          --> 'cut_Complete_SIDIS'
+[rho0] --no_make_2D_rho                                    --> True
+[rho0] --no_unfold_5D                                      --> True
+[rho0] --z_axis_2D                                         --> 'z_Bins'
+[rho0] --valerii_bins                                      --> False
+[rho0] --use_hpp                                           --> False
+[rho0] --spline_weights                                    --> False
+[rho0] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[rho0] --json_weights                                      --> False
+[rho0] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[rho0] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+[rho0] --hpp_weight_file_spline                            --> None
+[rho0] --run_rho_weight                                    --> True
+[rho0] --unsmeared                                         --> False
+[rho0] --matching_criteria                                 --> 'Bank'
+[rho0] --make_2D_only                                      --> False
+[rho0] --unfold_5D_only                                    --> False
+[rho0] --old_3D_unfold                                     --> False
+[rho0] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[rho0] --name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+[rho0] --num_batches                                       --> 171
+[rho0] --data_root                                         --> 'work_b'
+[rho0] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[rho0] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --jobs                                              --> 5
+[rho0] --continue_on_failure                               --> False
+[rho0] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[rho0] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[rho0] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[rho0] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[rho0] --verbose                                           --> False
+[rho0] --yes                                               --> False
+[rho0] --extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+[rho0] 
+[rho0] 
+[rho0] The time that this code finished is 02:02 a.m.
+[rho0] The total time the code took to run is:
+[rho0] 0 Day(s), 0 Hour(s), 4 Minute(s), and 13 Second(s).
+[rho0] 
+[rho0]     
+[rho0] 
+[rho0] 
+[rho0]     	                                   	
+[rho0]     	       This code has CRASHED!      	
+[rho0]     	                                   	   
+[rho0] 
+[rho0]     
+FAIL [rho0] cut=cut_Complete_SIDIS rc=1 wall=255.0s
+--- child output snippet (rho0) ---
+[rho0] CRASH WARNING!
+[rho0] Cannot hadd: missing 171 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch001.root
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] Arguments:
+[rho0] 
+[rho0] --mode                                              --> 'parallel'
+[rho0] --cut_name                                          --> 'cut_Complete_SIDIS'
+[rho0] --no_make_2D_rho                                    --> True
+[rho0] --no_unfold_5D                                      --> True
+[rho0] --z_axis_2D                                         --> 'z_Bins'
+[rho0] --valerii_bins                                      --> False
+[rho0] --use_hpp                                           --> False
+[rho0] --spline_weights                                    --> False
+[rho0] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[rho0] --json_weights                                      --> False
+[rho0] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[rho0] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+[rho0] --hpp_weight_file_spline                            --> None
+[rho0] --run_rho_weight                                    --> True
+[rho0] --unsmeared                                         --> False
+[rho0] --matching_criteria                                 --> 'Bank'
+[rho0] --make_2D_only                                      --> False
+[rho0] --unfold_5D_only                                    --> False
+[rho0] --old_3D_unfold                                     --> False
+[rho0] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[rho0] --name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+[rho0] --num_batches                                       --> 171
+[rho0] --data_root                                         --> 'work_b'
+[rho0] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[rho0] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --jobs                                              --> 5
+[rho0] --continue_on_failure                               --> False
+[rho0] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[rho0] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[rho0] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[rho0] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[rho0] --verbose                                           --> False
+[rho0] --yes                                               --> False
+[rho0] --extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+[rho0] 
+[rho0] 
+[rho0] The time that this code finished is 02:02 a.m.
+[rho0] The total time the code took to run is:
+[rho0] 0 Day(s), 0 Hour(s), 4 Minute(s), and 13 Second(s).
+[rho0] 
+[rho0]     
+[rho0] 
+[rho0] 
+[rho0]     	                                   	
+[rho0]     	       This code has CRASHED!      	
+[rho0]     	                                   	   
+[rho0] 
+[rho0]     
+--- end child output snippet ---
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T02:19:37 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs=5 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 02:19 a.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS -cnM cut_Complete_SIDIS --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10345606
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 02:19 a.m.
+
+
+Submitted SLURM array job 10345606
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 02:19 a.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10345606 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10345606 --jobs 5 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0] 
+[rho0] Started running on 9-5-2026 at 02:19 a.m.
+[rho0] 
+[rho0] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] [INFO] Batch 1 already completed by SLURM - skipping
+[rho0] [INFO] Batch 2 already completed by SLURM - skipping
+[rho0] [INFO] Batch 3 already completed by SLURM - skipping
+[rho0] [INFO] Batch 4 already completed by SLURM - skipping
+[rho0] [INFO] Batch 5 already completed by SLURM - skipping
+[rho0] [INFO] Batch 6 already completed by SLURM - skipping
+[rho0] [INFO] Batch 7 already completed by SLURM - skipping
+[rho0] [INFO] Batch 8 already completed by SLURM - skipping
+[rho0] [INFO] Batch 9 already completed by SLURM - skipping
+[rho0] [INFO] Batch 10 already completed by SLURM - skipping
+[rho0] [INFO] Batch 11 already completed by SLURM - skipping
+[rho0] [INFO] Batch 12 already completed by SLURM - skipping
+[rho0] [INFO] Batch 13 already completed by SLURM - skipping
+[rho0] [INFO] Batch 14 already completed by SLURM - skipping
+[rho0] [INFO] Batch 15 already completed by SLURM - skipping
+[rho0] [INFO] Batch 16 already completed by SLURM - skipping
+[rho0] [INFO] Batch 17 already completed by SLURM - skipping
+[rho0] [INFO] Batch 18 already completed by SLURM - skipping
+[rho0] [INFO] Batch 19 already completed by SLURM - skipping
+[rho0] [INFO] Batch 20 already completed by SLURM - skipping
+[rho0] [INFO] Batch 21 already completed by SLURM - skipping
+[rho0] [INFO] Batch 22 already completed by SLURM - skipping
+[rho0] [INFO] Batch 23 already completed by SLURM - skipping
+[rho0] [INFO] Batch 24 already completed by SLURM - skipping
+[rho0] [INFO] Batch 25 already completed by SLURM - skipping
+[rho0] [INFO] Batch 26 already completed by SLURM - skipping
+[rho0] [INFO] Batch 27 already completed by SLURM - skipping
+[rho0] [INFO] Batch 28 already completed by SLURM - skipping
+[rho0] [INFO] Batch 29 already completed by SLURM - skipping
+[rho0] [INFO] Batch 30 already completed by SLURM - skipping
+[rho0] [INFO] Batch 31 already completed by SLURM - skipping
+[rho0] [INFO] Batch 32 already completed by SLURM - skipping
+[rho0] [INFO] Batch 33 already completed by SLURM - skipping
+[rho0] [INFO] Batch 34 already completed by SLURM - skipping
+[rho0] [INFO] Batch 35 already completed by SLURM - skipping
+[rho0] [INFO] Batch 36 already completed by SLURM - skipping
+[rho0] [INFO] Batch 37 already completed by SLURM - skipping
+[rho0] [INFO] Batch 38 already completed by SLURM - skipping
+[rho0] [INFO] Batch 39 already completed by SLURM - skipping
+[rho0] [INFO] Batch 40 already completed by SLURM - skipping
+[rho0] [INFO] Batch 41 already completed by SLURM - skipping
+[rho0] [INFO] Batch 42 already completed by SLURM - skipping
+[rho0] [INFO] Batch 43 already completed by SLURM - skipping
+[rho0] [INFO] Batch 44 already completed by SLURM - skipping
+[rho0] [INFO] Batch 45 already completed by SLURM - skipping
+[rho0] [INFO] Batch 46 already completed by SLURM - skipping
+[rho0] [INFO] Batch 47 already completed by SLURM - skipping
+[rho0] [INFO] Batch 48 already completed by SLURM - skipping
+[rho0] [INFO] Batch 49 already completed by SLURM - skipping
+[rho0] [INFO] Batch 50 already completed by SLURM - skipping
+[rho0] [INFO] Batch 51 already completed by SLURM - skipping
+[rho0] [INFO] Batch 52 already completed by SLURM - skipping
+[rho0] [INFO] Batch 53 already completed by SLURM - skipping
+[rho0] [INFO] Batch 54 already completed by SLURM - skipping
+[rho0] [INFO] Batch 55 already completed by SLURM - skipping
+[rho0] [INFO] Batch 56 already completed by SLURM - skipping
+[rho0] [INFO] Batch 57 already completed by SLURM - skipping
+[rho0] [INFO] Batch 58 already completed by SLURM - skipping
+[rho0] [INFO] Batch 59 already completed by SLURM - skipping
+[rho0] [INFO] Batch 60 already completed by SLURM - skipping
+[rho0] [INFO] Batch 61 already completed by SLURM - skipping
+[rho0] [INFO] Batch 62 already completed by SLURM - skipping
+[rho0] [INFO] Batch 63 already completed by SLURM - skipping
+[rho0] [INFO] Batch 64 already completed by SLURM - skipping
+[rho0] [INFO] Batch 65 already completed by SLURM - skipping
+[rho0] [INFO] Batch 66 already completed by SLURM - skipping
+[rho0] [INFO] Batch 67 already completed by SLURM - skipping
+[rho0] [INFO] Batch 68 already completed by SLURM - skipping
+[rho0] [INFO] Batch 69 already completed by SLURM - skipping
+[rho0] [INFO] Batch 70 already completed by SLURM - skipping
+[rho0] [INFO] Batch 71 already completed by SLURM - skipping
+[rho0] [INFO] Batch 72 already completed by SLURM - skipping
+[rho0] [INFO] Batch 73 already completed by SLURM - skipping
+[rho0] [INFO] Batch 74 already completed by SLURM - skipping
+[rho0] [INFO] Batch 75 already completed by SLURM - skipping
+[rho0] [INFO] Batch 76 already completed by SLURM - skipping
+[rho0] [INFO] Batch 77 already completed by SLURM - skipping
+[rho0] [INFO] Batch 78 already completed by SLURM - skipping
+[rho0] [INFO] Batch 79 already completed by SLURM - skipping
+[rho0] [INFO] Batch 80 already completed by SLURM - skipping
+[rho0] [INFO] Batch 81 already completed by SLURM - skipping
+[rho0] [INFO] Batch 82 already completed by SLURM - skipping
+[rho0] [INFO] Batch 83 already completed by SLURM - skipping
+[rho0] [INFO] Batch 84 already completed by SLURM - skipping
+[rho0] [INFO] Batch 85 already completed by SLURM - skipping
+[rho0] [INFO] Batch 86 already completed by SLURM - skipping
+[rho0] [INFO] Batch 87 already completed by SLURM - skipping
+[rho0] [INFO] Batch 88 already completed by SLURM - skipping
+[rho0] [INFO] Batch 89 already completed by SLURM - skipping
+[rho0] [INFO] Batch 90 already completed by SLURM - skipping
+[rho0] [INFO] Batch 91 already completed by SLURM - skipping
+[rho0] [INFO] Batch 92 already completed by SLURM - skipping
+[rho0] [INFO] Batch 93 already completed by SLURM - skipping
+[rho0] [INFO] Batch 94 already completed by SLURM - skipping
+[rho0] [INFO] Batch 95 already completed by SLURM - skipping
+[rho0] [INFO] Batch 96 already completed by SLURM - skipping
+[rho0] [INFO] Batch 97 already completed by SLURM - skipping
+[rho0] [INFO] Batch 98 already completed by SLURM - skipping
+[rho0] [INFO] Batch 99 already completed by SLURM - skipping
+[rho0] [INFO] Batch 100 already completed by SLURM - skipping
+[rho0] [INFO] Batch 101 already completed by SLURM - skipping
+[rho0] [INFO] Batch 102 already completed by SLURM - skipping
+[rho0] [INFO] Batch 103 already completed by SLURM - skipping
+[rho0] [INFO] Batch 104 already completed by SLURM - skipping
+[rho0] [INFO] Batch 105 already completed by SLURM - skipping
+[rho0] [INFO] Batch 106 already completed by SLURM - skipping
+[rho0] [INFO] Batch 107 already completed by SLURM - skipping
+[rho0] [INFO] Batch 108 already completed by SLURM - skipping
+[rho0] [INFO] Batch 109 already completed by SLURM - skipping
+[rho0] [INFO] Batch 110 already completed by SLURM - skipping
+[rho0] [INFO] Batch 111 already completed by SLURM - skipping
+[rho0] [INFO] Batch 112 already completed by SLURM - skipping
+[rho0] [INFO] Batch 113 already completed by SLURM - skippingInfo in <hadd>: target file: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_All.root
+[rho0] Info in <hadd>: compression setting for all output: 101
+[rho0] hadd Source file 1: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch001.root
+[rho0] hadd Source file 2: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch002.root
+[rho0] hadd Source file 3: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch003.root
+[rho0] hadd Source file 4: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch004.root
+[rho0] hadd Source file 5: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch005.root
+[rho0] hadd Source file 6: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch006.root
+[rho0] hadd Source file 7: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch007.root
+[rho0] hadd Source file 8: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch008.root
+[rho0] hadd Source file 9: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch009.root
+[rho0] hadd Source file 10: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch010.root
+[rho0] hadd Source file 11: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch011.root
+[rho0] hadd Source file 12: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch012.root
+[rho0] hadd Source file 13: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch013.root
+[rho0] hadd Source file 14: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch014.root
+[rho0] hadd Source file 15: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch015.root
+[rho0] hadd Source file 16: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch016.root
+[rho0] hadd Source file 17: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch017.root
+[rho0] hadd Source file 18: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch018.root
+[rho0] hadd Source file 19: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch019.root
+[rho0] hadd Source file 20: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch020.root
+[rho0] hadd Source file 21: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch021.root
+[rho0] hadd Source file 22: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch022.root
+[rho0] hadd Source file 23: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch023.root
+[rho0] hadd Source file 24: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch024.root
+[rho0] hadd Source file 25: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch025.root
+[rho0] hadd Source file 26: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch026.root
+[rho0] hadd Source file 27: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch027.root
+[rho0] hadd Source file 28: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch028.root
+[rho0] hadd Source file 29: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch029.root
+[rho0] hadd Source file 30: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch030.root
+[rho0] hadd Source file 31: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch031.root
+[rho0] hadd Source file 32: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch032.root
+[rho0] hadd Source file 33: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch033.root
+[rho0] hadd Source file 34: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch034.root
+[rho0] hadd Source file 35: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch035.root
+[rho0] hadd Source file 36: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch036.root
+[rho0] hadd Source file 37: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch037.root
+[rho0] hadd Source file 38: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch038.root
+[rho0] hadd Source file 39: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch039.root
+[rho0] hadd Source file 40: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch040.root
+[rho0] hadd Source file 41: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch041.root
+[rho0] hadd Source file 42: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch042.root
+[rho0] hadd Source file 43: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch043.root
+[rho0] hadd Source file 44: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch044.root
+[rho0] hadd Source file 45: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch045.root
+[rho0] hadd Source file 46: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch046.root
+[rho0] hadd Source file 47: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch047.root
+[rho0] hadd Source file 48: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch048.root
+[rho0] hadd Source file 49: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch049.root
+[rho0] hadd Source file 50: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch050.root
+[rho0] hadd Source file 51: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch051.root
+[rho0] hadd Source file 52: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch052.root
+[rho0] hadd Source file 53: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch053.root
+[rho0] hadd Source file 54: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch054.root
+[rho0] hadd Source file 55: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch055.root
+[rho0] hadd Source file 56: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch056.root
+[rho0] hadd Source file 57: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch057.root
+[rho0] hadd Source file 58: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch058.root
+[rho0] hadd Source file 59: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch059.root
+[rho0] hadd Source file 60: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch060.root
+[rho0] hadd Source file 61: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch061.root
+[rho0] hadd Source file 62: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch062.root
+[rho0] hadd Source file 63: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch063.root
+[rho0] hadd Source file 64: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch064.root
+[rho0] hadd Source file 65: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch065.root
+[rho0] hadd Source file 66: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch066.root
+[rho0] hadd Source file 67: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch067.root
+[rho0] hadd Source file 68: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch068.root
+[rho0] hadd Source file 69: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch069.root
+[rho0] hadd Source file 70: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch070.root
+[rho0] hadd Source file 71: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch071.root
+[rho0] hadd Source file 72: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch072.root
+[rho0] hadd Source file 73: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch073.root
+[rho0] hadd Source file 74: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch074.root
+[rho0] hadd Source file 75: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch075.root
+[rho0] hadd Source file 76: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch076.root
+[rho0] hadd Source file 77: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch077.root
+[rho0] hadd Source file 78: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch078.root
+[rho0] hadd Source file 79: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch079.root
+[rho0] hadd Source file 80: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch080.root
+[rho0] hadd Source file 81: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch081.root
+[rho0] hadd Source file 82: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch082.root
+[rho0] hadd Source file 83: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch083.root
+[rho0] hadd Source file 84: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch084.root
+[rho0] hadd Source file 85: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch085.root
+[rho0] hadd Source file 86: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch086.root
+[rho0] hadd Source file 87: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch087.root
+[rho0] hadd Source file 88: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch088.root
+[rho0] hadd Source file 89: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch089.root
+[rho0] hadd Source file 90: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch090.root
+[rho0] hadd Source file 91: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch091.root
+[rho0] hadd Source file 92: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch092.root
+[rho0] hadd Source file 93: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch093.root
+[rho0] hadd Source file 94: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch094.root
+[rho0] hadd Source file 95: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch095.root
+[rho0] hadd Source file 96: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch096.root
+[rho0] hadd Source file 97: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch097.root
+[rho0] hadd Source file 98: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch098.root
+[rho0] hadd Source file 99: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch099.root
+[rho0] hadd Source file 100: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch100.root
+[rho0] hadd Source file 101: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch101.root
+[rho0] hadd Source file 102: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch102.root
+[rho0] hadd Source file 103: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch103.root
+[rho0] hadd Source file 104: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch104.root
+[rho0] hadd Source file 105: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch105.root
+[rho0] hadd Source file 106: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch106.root
+[rho0] hadd Source file 107: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch107.root
+[rho0] hadd Source file 108: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch108.root
+[rho0] hadd Source file 109: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch109.root
+[rho0] hadd Source file 110: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch110.root
+[rho0] hadd Source file 111: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch111.root
+[rho0] hadd Source file 112: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch112.root
+[rho0] hadd Source file 113: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch113.root
+[rho0] hadd Source file 114: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch114.root
+[rho0] hadd Source file 115: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch115.root
+[rho0] hadd Source file 116: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch116.root
+[rho0] hadd Source file 117: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch117.root
+[rho0] hadd Source file 118: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch118.root
+[rho0] hadd Source file 119: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch119.root
+[rho0] hadd Source file 120: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch120.root
+[rho0] hadd Source file 121: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch121.root
+[rho0] hadd Source file 122: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch122.root
+[rho0] hadd Source file 123: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch123.root
+[rho0] hadd Source file 124: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch124.root
+[rho0] hadd Source file 125: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch125.root
+[rho0] hadd Source file 126: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch126.root
+[rho0] hadd Source file 127: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch127.root
+[rho0] hadd Source file 128: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch128.root
+[rho0] hadd Source file 129: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch129.root
+[rho0] hadd Source file 130: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch130.root
+[rho0] hadd Source file 131: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch131.root
+[rho0] hadd Source file 132: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch132.root
+[rho0] hadd Source file 133: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch133.root
+[rho0] hadd Source file 134: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch134.root
+[rho0] hadd Source file 135: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch135.root
+[rho0] hadd Source file 136: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch136.root
+[rho0] hadd Source file 137: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch137.root
+[rho0] hadd Source file 138: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch138.root
+[rho0] hadd Source file 139: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch139.root
+[rho0] hadd Source file 140: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch140.root
+[rho0] hadd Source file 141: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch141.root
+[rho0] hadd Source file 142: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch142.root
+[rho0] hadd Source file 143: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch143.root
+[rho0] hadd Source file 144: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch144.root
+[rho0] hadd Source file 145: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch145.root
+[rho0] hadd Source file 146: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch146.root
+[rho0] hadd Source file 147: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch147.root
+[rho0] hadd Source file 148: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch148.root
+[rho0] hadd Source file 149: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch149.root
+[rho0] hadd Source file 150: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch150.root
+[rho0] hadd Source file 151: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch151.root
+[rho0] hadd Source file 152: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch152.root
+[rho0] hadd Source file 153: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch153.root
+[rho0] hadd Source file 154: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch154.root
+[rho0] hadd Source file 155: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch155.root
+[rho0] hadd Source file 156: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch156.root
+[rho0] hadd Source file 157: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch157.root
+[rho0] hadd Source file 158: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch158.root
+[rho0] hadd Source file 159: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch159.root
+[rho0] hadd Source file 160: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch160.root
+[rho0] hadd Source file 161: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch161.root
+[rho0] hadd Source file 162: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch162.root
+[rho0] hadd Source file 163: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch163.root
+[rho0] hadd Source file 164: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch164.root
+[rho0] hadd Source file 165: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch165.root
+[rho0] hadd Source file 166: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch166.root
+[rho0] hadd Source file 167: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch167.root
+[rho0] hadd Source file 168: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch168.root
+[rho0] hadd Source file 169: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch169.root
+[rho0] hadd Source file 170: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch170.root
+[rho0] hadd Source file 171: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch171.root
+[rho0] hadd Target path: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_All.root:/
+[rho0] 
+[rho0] [INFO] Batch 114 already completed by SLURM - skipping
+[rho0] [INFO] Batch 115 already completed by SLURM - skipping
+[rho0] [INFO] Batch 116 already completed by SLURM - skipping
+[rho0] [INFO] Batch 117 already completed by SLURM - skipping
+[rho0] [INFO] Batch 118 already completed by SLURM - skipping
+[rho0] [INFO] Batch 119 already completed by SLURM - skipping
+[rho0] [INFO] Batch 120 already completed by SLURM - skipping
+[rho0] [INFO] Batch 121 already completed by SLURM - skipping
+[rho0] [INFO] Batch 122 already completed by SLURM - skipping
+[rho0] [INFO] Batch 123 already completed by SLURM - skipping
+[rho0] [INFO] Batch 124 already completed by SLURM - skipping
+[rho0] [INFO] Batch 125 already completed by SLURM - skipping
+[rho0] [INFO] Batch 126 already completed by SLURM - skipping
+[rho0] [INFO] Batch 127 already completed by SLURM - skipping
+[rho0] [INFO] Batch 128 already completed by SLURM - skipping
+[rho0] [INFO] Batch 129 already completed by SLURM - skipping
+[rho0] [INFO] Batch 130 already completed by SLURM - skipping
+[rho0] [INFO] Batch 131 already completed by SLURM - skipping
+[rho0] [INFO] Batch 132 already completed by SLURM - skipping
+[rho0] [INFO] Batch 133 already completed by SLURM - skipping
+[rho0] [INFO] Batch 134 already completed by SLURM - skipping
+[rho0] [INFO] Batch 135 already completed by SLURM - skipping
+[rho0] [INFO] Batch 136 already completed by SLURM - skipping
+[rho0] [INFO] Batch 137 already completed by SLURM - skipping
+[rho0] [INFO] Batch 138 already completed by SLURM - skipping
+[rho0] [INFO] Batch 139 already completed by SLURM - skipping
+[rho0] [INFO] Batch 140 already completed by SLURM - skipping
+[rho0] [INFO] Batch 141 already completed by SLURM - skipping
+[rho0] [INFO] Batch 142 already completed by SLURM - skipping
+[rho0] [INFO] Batch 143 already completed by SLURM - skipping
+[rho0] [INFO] Batch 144 already completed by SLURM - skipping
+[rho0] [INFO] Batch 145 already completed by SLURM - skipping
+[rho0] [INFO] Batch 146 already completed by SLURM - skipping
+[rho0] [INFO] Batch 147 already completed by SLURM - skipping
+[rho0] [INFO] Batch 148 already completed by SLURM - skipping
+[rho0] [INFO] Batch 149 already completed by SLURM - skipping
+[rho0] [INFO] Batch 150 already completed by SLURM - skipping
+[rho0] [INFO] Batch 151 already completed by SLURM - skipping
+[rho0] [INFO] Batch 152 already completed by SLURM - skipping
+[rho0] [INFO] Batch 153 already completed by SLURM - skipping
+[rho0] [INFO] Batch 154 already completed by SLURM - skipping
+[rho0] [INFO] Batch 155 already completed by SLURM - skipping
+[rho0] [INFO] Batch 156 already completed by SLURM - skipping
+[rho0] [INFO] Batch 157 already completed by SLURM - skipping
+[rho0] [INFO] Batch 158 already completed by SLURM - skipping
+[rho0] [INFO] Batch 159 already completed by SLURM - skipping
+[rho0] [INFO] Batch 160 already completed by SLURM - skipping
+[rho0] [INFO] Batch 161 already completed by SLURM - skipping
+[rho0] [INFO] Batch 162 already completed by SLURM - skipping
+[rho0] [INFO] Batch 163 already completed by SLURM - skipping
+[rho0] [INFO] Batch 164 already completed by SLURM - skipping
+[rho0] [INFO] Batch 165 already completed by SLURM - skipping
+[rho0] [INFO] Batch 166 already completed by SLURM - skipping
+[rho0] [INFO] Batch 167 already completed by SLURM - skipping
+[rho0] [INFO] Batch 168 already completed by SLURM - skipping
+[rho0] [INFO] Batch 169 already completed by SLURM - skipping
+[rho0] [INFO] Batch 170 already completed by SLURM - skipping
+[rho0] [INFO] Batch 171 already completed by SLURM - skipping
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10345606...
+[rho0] Running hadd on 171 batch files...
+[rho0] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 25 Minute(s), and 51 Second(s). 
+[rho0] Merged file created: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_All.root
+[rho0] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 26 Minute(s), and 1 Second(s). 
+[rho0] Peak memory used by child jobs: 479.38 MB
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] 
+[rho0] EMAIL MESSAGE TO SEND:
+[rho0] 
+[rho0] 
+[rho0] The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+[rho0] Started running on 9-5-2026 at 02:19 a.m.
+[rho0] 
+[rho0] Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 5. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] Running hadd on 171 batch files...
+[rho0] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 25 Minute(s), and 51 Second(s). 
+[rho0] Merged file created: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_All.root
+[rho0] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 26 Minute(s), and 1 Second(s). 
+[rho0] Peak memory used by child jobs: 479.38 MB
+[rho0] 
+[rho0] Arguments:
+[rho0] 
+[rho0] --mode                                              --> 'parallel'
+[rho0] --cut_name                                          --> 'cut_Complete_SIDIS'
+[rho0] --no_make_2D_rho                                    --> True
+[rho0] --no_unfold_5D                                      --> True
+[rho0] --z_axis_2D                                         --> 'z_Bins'
+[rho0] --valerii_bins                                      --> False
+[rho0] --use_hpp                                           --> False
+[rho0] --spline_weights                                    --> False
+[rho0] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[rho0] --json_weights                                      --> False
+[rho0] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[rho0] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+[rho0] --hpp_weight_file_spline                            --> None
+[rho0] --run_rho_weight                                    --> True
+[rho0] --unsmeared                                         --> False
+[rho0] --matching_criteria                                 --> 'Bank'
+[rho0] --make_2D_only                                      --> False
+[rho0] --unfold_5D_only                                    --> False
+[rho0] --old_3D_unfold                                     --> False
+[rho0] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[rho0] --name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+[rho0] --num_batches                                       --> 171
+[rho0] --data_root                                         --> 'work_b'
+[rho0] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[rho0] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[rho0] --jobs                                              --> 5
+[rho0] --continue_on_failure                               --> False
+[rho0] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+[rho0] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[rho0] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[rho0] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[rho0] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[rho0] --verbose                                           --> False
+[rho0] --yes                                               --> False
+[rho0] --extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+[rho0] 
+[rho0] 
+[rho0] The time that this code finished is 02:45 a.m.
+[rho0] The total time the code took to run is:
+[rho0] 0 Day(s), 0 Hour(s), 26 Minute(s), and 1 Second(s).
+[rho0] 
+[rho0]     
+[rho0] 
+[rho0] 
+[rho0]     	                                   	
+[rho0]     	This code has now finished running.	
+[rho0]     	                                   	   
+[rho0] 
+[rho0]     
+DONE [rho0] cut=cut_Complete_SIDIS rc=0 wall=1562.5s

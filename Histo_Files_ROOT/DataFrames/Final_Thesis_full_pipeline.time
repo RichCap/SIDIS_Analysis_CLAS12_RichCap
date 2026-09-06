@@ -1,0 +1,32 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:33:37 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.17 s
+peak_memory: 488.00 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:53:02 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.75 s
+peak_memory: 490.00 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T01:57:55 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.23 s
+peak_memory: 486.00 MB
+
+=== TASK: rho0 | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 254.96 s
+peak_memory: 486.00 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T02:19:37 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.47 s
+peak_memory: 479.36 MB
+
+=== TASK: rho0 | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 1562.47 s
+peak_memory: 479.38 MB
+
