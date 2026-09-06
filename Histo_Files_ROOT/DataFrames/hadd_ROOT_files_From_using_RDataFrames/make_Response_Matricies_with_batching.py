@@ -623,26 +623,32 @@ def query_slurm_array_task_state(array_jobid, batch_index):
     return _parse_squeue_task_state(array_jobid, batch_index, fmt_out, default_proc.stdout)
 
 
-def cancel_slurm_array_task(array_jobid, batch_index):
-    job_str = f"{array_jobid}_{batch_index}"
+def _scancel_once(job_str):
     try:
-        proc = subprocess.run(["scancel", job_str], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.run(["scancel", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
-        print(f"{color.Error}[WARNING]{color.END} scancel not found; cannot cancel SLURM array task {job_str}.")
-        return False
-    except Exception as e:
-        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {e}")
-        return False
+        return False, "scancel not found"
+    except Exception as exc:
+        return False, str(exc)
+    if(proc.returncode == 0):
+        return True, ""
+    return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
 
-    if(proc.returncode != 0):
-        msg = proc.stderr.strip()
-        if(msg == ""):
-            msg = "(no additional message from scancel)"
-        print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
-        return False
-
-    print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
-    return True
+def cancel_slurm_array_task(array_jobid, batch_index, retries=10, delay=3.0):
+    split_id = f"{array_jobid}_{batch_index}"
+    bracket_id = f"{array_jobid}_[{batch_index}]"
+    last_msg = ""
+    for attempt in range(int(retries)):
+        for job_str in [split_id, bracket_id]:
+            ok, msg = _scancel_once(job_str)
+            if(ok):
+                print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+                return True
+            last_msg = msg
+        if(attempt < (int(retries) - 1)):
+            time.sleep(delay)
+    print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}")
+    return False
 
 
 def slurm_array_has_active_tasks(array_jobid):

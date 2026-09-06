@@ -180,6 +180,9 @@ def acceptance_mode_tag(args):
 # Match Response_Matrix Make_exclusive_rho_Flags norms
 RHO_NORM_LUNDRHO = 4.526912
 RHO_NORM_LUNDVPK = 4.624974
+# Invalid (rho weights were already applied to the ROOT inputs used to derive these factors — do not use):
+# RHO_NORM_LUNDRHO = 1.084134
+# RHO_NORM_LUNDVPK = 1.083707
 _ACC_RHO_SOURCE_CPP_DECLARED = False
 
 def ansi_to_plain(text):

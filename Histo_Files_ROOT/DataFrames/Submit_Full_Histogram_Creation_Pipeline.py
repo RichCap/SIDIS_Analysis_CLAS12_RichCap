@@ -108,7 +108,7 @@ RHO0_PRODUCT = {
         "label": "rho0 Normalization Creation Histograms",
         "name_fmt": "Only_2D_rho0_Normalization_Creation_{shared}",
         "pipeline_flags": ["--z_axis_2D", "z_Bins", "--no_make_2D_rho", "--no_unfold_5D"],
-        "extra": ["--make_2D_rho_normalization_only", "--run_rho_weight"],
+        "extra": ["--make_2D_rho_normalization_only"],
         "jobs_attr": "jobs_rho0",
         }
 
@@ -530,8 +530,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(mac in [None, ""]):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
-    if(not args.no_run_rho_weight):
-        # Pipeline-level -rrw (also kept in product --extra for Response passthrough)
+    if((not args.no_run_rho_weight) and (product.get("key") != "rho0")):
+        # Pipeline-level -rrw (also kept in product --extra for Response passthrough).
+        # rho0 histogram-creation must stay unweighted so the resulting ROOT file can be used to derive n_rho.
         cmd.append("--run_rho_weight")
     for flag in product["pipeline_flags"]:
         cmd.append(flag)
@@ -722,6 +723,13 @@ def submit_slurm_capture_array_id(args, cmd, task_label, cut_name):
     log_print(args, f"{color.BGREEN}Captured SLURM array job id {array_id} for {task_label}{color.END}")
     return array_id
 
+HYBRID_SQUEUE_SETTLE_S = 15.0
+
+def wait_after_slurm_submit(args, array_id=None):
+    extra = f" {array_id}" if(array_id not in [None, ""]) else ""
+    log_print(args, f"{color.BBLUE}Waiting {int(HYBRID_SQUEUE_SETTLE_S)}s for SLURM to register array job{extra} before local squeue checks.{color.END}")
+    time.sleep(HYBRID_SQUEUE_SETTLE_S)
+
 # ===================================================================
 # STAGES
 # ===================================================================
@@ -797,6 +805,7 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
             hybrid_dirs[task] = (batch_dir, run_subdir)
             slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
             array_ids[task] = submit_slurm_capture_array_id(args, slurm_cmd, f"{task}-slurm", cut_name)
+        wait_after_slurm_submit(args)
 
         launched = []
         for i, (product, jobs) in enumerate(selected):
@@ -839,6 +848,8 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
 def run_rho0_stage(args):
     # Exclusive pre-pipeline: rho0_Normalization_Creation histograms only. No HPP generate/load. No Stage 1/2.
+    # Use the existing no-rho-weight path automatically so n_rho inputs are not circularly weighted.
+    args.no_run_rho_weight = True
     product = RHO0_PRODUCT
     given_cut = args.cut_name if(args.cut_name not in [None, ""]) else DEFAULT_CUT
     if(given_cut in [DEFAULT_CUT, RHO0_DEFAULT_CUT]):
@@ -854,6 +865,7 @@ def run_rho0_stage(args):
         batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product, naming_cut=naming_cut)
         slurm_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True, use_hpp=False, naming_cut=naming_cut)
         array_id = submit_slurm_capture_array_id(args, slurm_cmd, "rho0-slurm", cut_name)
+        wait_after_slurm_submit(args, array_id)
         par_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", saj=array_id, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, use_hpp=False, naming_cut=naming_cut)
         job = launch_cmd(args, par_cmd, "rho0", tee_terminal=bool(args.verbose))
         return wait_launched(args, job, cut_name, "hybrid-parallel")
