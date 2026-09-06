@@ -476,6 +476,8 @@ def delete_batch_files(batch_files):
 # =========================
 
 SLURM_ARRAY_CHECK_DISABLED = False
+_SQUEUE_SNAPSHOT_LOGGED = set()
+_SQUEUE_COMPACT_STATES = set(["PD", "R", "CG", "CF", "CD", "CA", "F", "TO", "PR", "S", "ST", "NF", "SE", "OOM", "DL", "SO", "RF", "RQ", "RS", "RV", "RD", "RH"])
 
 
 def slurm_array_expr_contains(expr, task_index):
@@ -504,12 +506,97 @@ def squeue_job_id_covers_task(job_id, array_jobid, task_index):
     job_id = str(job_id).strip()
     array_jobid = str(array_jobid).strip()
     task_index = int(task_index)
+    if(job_id == array_jobid):
+        return True
     if(job_id == f"{array_jobid}_{task_index}"):
         return True
     prefix = f"{array_jobid}_["
     if(job_id.startswith(prefix) and job_id.endswith("]")):
         return slurm_array_expr_contains(job_id[len(prefix):-1], task_index)
     return False
+
+def _run_squeue(array_jobid, fmt=None, retries=4, delay=1.0):
+    cmd = ["squeue", "-h", "-r", "-j", str(array_jobid)]
+    if(fmt not in [None, ""]):
+        cmd.extend(["-o", str(fmt)])
+    last = None
+    for attempt in range(int(retries)):
+        try:
+            last = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception:
+            return None
+        if(last.returncode != 0):
+            return last
+        if((last.stdout or "").strip() != ""):
+            return last
+        if(attempt < (int(retries) - 1)):
+            time.sleep(delay)
+    return last
+
+def _log_squeue_snapshot(array_jobid, raw):
+    key = str(array_jobid)
+    if(key in _SQUEUE_SNAPSHOT_LOGGED):
+        return
+    _SQUEUE_SNAPSHOT_LOGGED.add(key)
+    text = (raw or "").strip() or "<empty>"
+    print(f"{color.BBLUE}[INFO]{color.END} squeue snapshot for array {array_jobid}:\n{text}")
+
+def _squeue_line_fields(line):
+    parts = str(line).split()
+    if(len(parts) < 2):
+        return None
+    if((len(parts) >= 3) and (parts[2] in _SQUEUE_COMPACT_STATES)):
+        return parts[0], parts[1], parts[2]
+    if(parts[1] in _SQUEUE_COMPACT_STATES):
+        return parts[0], None, parts[1]
+    if((len(parts) >= 5) and (parts[4] in _SQUEUE_COMPACT_STATES)):
+        return parts[0], None, parts[4]
+    return None
+
+def _task_field_covers(task_field, task_index):
+    if(task_field in [None, ""]):
+        return False
+    tf = str(task_field).strip()
+    if(tf == str(int(task_index))):
+        return True
+    if(tf.startswith("[") and tf.endswith("]")):
+        return slurm_array_expr_contains(tf[1:-1], task_index)
+    return slurm_array_expr_contains(tf, task_index)
+
+def _parse_squeue_task_state(array_jobid, task_index, *outputs):
+    task_index = int(task_index)
+    array_jobid = str(array_jobid).strip()
+    individual_non_pd = None
+    pending_whole_array = False
+    for raw in outputs:
+        if(raw in [None, ""]):
+            continue
+        for line in str(raw).strip().splitlines():
+            fields = _squeue_line_fields(line)
+            if(fields is None):
+                continue
+            job_id, task_field, state = fields
+            tf_covers = _task_field_covers(task_field, task_index)
+            id_covers = squeue_job_id_covers_task(job_id, array_jobid, task_index)
+            if((job_id == array_jobid) and (task_field not in [None, ""]) and (not tf_covers)):
+                id_covers = False
+            covers = id_covers or tf_covers
+            exact = (job_id == f"{array_jobid}_{task_index}") or (str(task_field).strip() == str(task_index))
+            if((job_id == array_jobid) and (task_field in [None, ""]) and (state == "PD")):
+                pending_whole_array = True
+            if(not covers):
+                continue
+            if(exact and (state != "PD")):
+                return state
+            if(state != "PD"):
+                individual_non_pd = state
+            else:
+                return "PD"
+    if(individual_non_pd not in [None, ""]):
+        return individual_non_pd
+    if(pending_whole_array):
+        return "PD"
+    return None
 
 
 def query_slurm_array_task_state(array_jobid, batch_index):
@@ -518,36 +605,22 @@ def query_slurm_array_task_state(array_jobid, batch_index):
     if(SLURM_ARRAY_CHECK_DISABLED):
         return "IGNORE"
 
-    try:
-        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid), "-o", "%i %t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    except FileNotFoundError:
+    default_proc = _run_squeue(array_jobid, fmt=None)
+    if(default_proc is None):
         print(f"{color.Error}[WARNING]{color.END} squeue not found; cannot coordinate with SLURM array job {array_jobid}.")
         SLURM_ARRAY_CHECK_DISABLED = True
         return "IGNORE"
-    except Exception as e:
-        print(f"{color.Error}[WARNING]{color.END} Exception while running squeue for array job {array_jobid}: {e}")
+    if(default_proc.returncode != 0):
+        msg = (default_proc.stderr or "").strip() or "(no additional message from squeue)"
+        print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} returned code {default_proc.returncode}: {msg}")
         SLURM_ARRAY_CHECK_DISABLED = True
         return "IGNORE"
-
-    if(proc.returncode != 0):
-        msg = proc.stderr.strip()
-        if(msg == ""):
-            msg = "(no additional message from squeue)"
-        print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} returned code {proc.returncode}: {msg}")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return "IGNORE"
-
-    for line in proc.stdout.strip().splitlines():
-        parts = line.split()
-        if(len(parts) < 2):
-            continue
-        job_id = parts[0]
-        state  = parts[1]
-        if(squeue_job_id_covers_task(job_id, array_jobid, batch_index)):
-            return state
-
-    # Not found (not pending/running/etc. in this array) -> treat as completed or absent
-    return None
+    _log_squeue_snapshot(array_jobid, default_proc.stdout)
+    fmt_proc = _run_squeue(array_jobid, fmt="%F %K %t", retries=1, delay=0.0)
+    fmt_out = ""
+    if((fmt_proc is not None) and (fmt_proc.returncode == 0)):
+        fmt_out = fmt_proc.stdout or ""
+    return _parse_squeue_task_state(array_jobid, batch_index, fmt_out, default_proc.stdout)
 
 
 def cancel_slurm_array_task(array_jobid, batch_index):
