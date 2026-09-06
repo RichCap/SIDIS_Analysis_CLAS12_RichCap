@@ -36,6 +36,7 @@ PIPELINE_SCRIPT   = "./run_sidis_DataFrame_pipeline.py"
 # HPP_OUT_DIR       = os.path.join(DATAFRAMES_DIR, "HPP_Files_Output")
 HPP_OUT_DIR       = None  # set from --data_root in main()
 DEFAULT_CUT       = "cut_Complete_SIDIS"
+RHO0_DEFAULT_CUT  = "cut_Complete_SIDIS_MM_None"
 # VOLATILE_BASE     = "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work"
 VOLATILE_BASE     = SHARED_VOLATILE_BASE
 PIPELINE_NAME_IN  = "Final_Thesis_Files"
@@ -203,10 +204,10 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
-    p.add_argument("--rho0",
+    p.add_argument("-rho", "--rho0",
                    dest="rho0_mode",
                    action="store_true",
-                   help="Standalone pre-pipeline rho0_Normalization_Creation histograms only. Bypasses Stage 1 (HPP) and Stage 2. Does not use HPPs.\n")
+                   help="Standalone pre-pipeline rho0_Normalization_Creation histograms only. Bypasses Stage 1 (HPP) and Stage 2. Does not use HPPs.\nDefaults -cn to cut_Complete_SIDIS_MM_None without adding that cut to the output name; other explicit -cn values are still honored and still appear in the name.\n")
     p.add_argument("-jrho0", "--jobs_rho0",
                    type=int,
                    default=5,
@@ -403,8 +404,8 @@ def resolve_main_hpp(args):
         return pure, comb
     raise RuntimeError(f"Acceptance skip with --HPP_Old_Name='{args.HPP_Old_Name}' but no main HPP pair found: {pure} / {comb}")
 
-def hybrid_batch_paths(args, cut_name, product):
-    shared = product_shared_name(args, cut_name)
+def hybrid_batch_paths(args, cut_name, product, naming_cut=None):
+    shared = product_shared_name(args, naming_cut if(naming_cut not in [None, ""]) else cut_name)
     name_tag = product_output_name(product, shared)
     date = getattr(args, "hybrid_date", datetime.now().strftime("%m_%d_%Y"))
     run_subdir = f"{name_tag}_{PIPELINE_NAME_IN}_{date}"
@@ -502,7 +503,7 @@ def product_extra_flags(args, product):
         extra = [e for e in extra if(e != "--run_rho_weight")]
     return extra
 
-def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None, batch_output_dir=None, run_subdir_name=None, skip_slurm_hadd=False, use_hpp=True):
+def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None, batch_output_dir=None, run_subdir_name=None, skip_slurm_hadd=False, use_hpp=True, naming_cut=None):
     # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
     cmd = [PIPELINE_SCRIPT]
     run_mode = args.mode if(mode is None) else mode
@@ -511,7 +512,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
-    shared = product_shared_name(args, cut_name)
+    shared = product_shared_name(args, naming_cut if(naming_cut not in [None, ""]) else cut_name)
     name_tag = product_output_name(product, shared)
     cmd.extend(["-n", name_tag])
     cmd.extend(["--name_in"] + list(PIPELINE_NAME_IN_GLOBS))
@@ -839,24 +840,30 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 def run_rho0_stage(args):
     # Exclusive pre-pipeline: rho0_Normalization_Creation histograms only. No HPP generate/load. No Stage 1/2.
     product = RHO0_PRODUCT
-    cut_name = args.cut_name if(args.cut_name not in [None, ""]) else DEFAULT_CUT
+    given_cut = args.cut_name if(args.cut_name not in [None, ""]) else DEFAULT_CUT
+    if(given_cut in [DEFAULT_CUT, RHO0_DEFAULT_CUT]):
+        cut_name = RHO0_DEFAULT_CUT
+        naming_cut = DEFAULT_CUT
+    else:
+        cut_name = given_cut
+        naming_cut = None
     jobs = int(args.jobs_rho0)
     mode = args.mode
-    log_print(args, f"\n{color.BGREEN}=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) jobs={jobs} mode={mode} ==={color.END}")
+    log_print(args, f"\n{color.BGREEN}=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) cut={cut_name} jobs={jobs} mode={mode} ==={color.END}")
     if(mode == "hybrid"):
-        batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
-        slurm_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True, use_hpp=False)
+        batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product, naming_cut=naming_cut)
+        slurm_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True, use_hpp=False, naming_cut=naming_cut)
         array_id = submit_slurm_capture_array_id(args, slurm_cmd, "rho0-slurm", cut_name)
-        par_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", saj=array_id, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, use_hpp=False)
+        par_cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", saj=array_id, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, use_hpp=False, naming_cut=naming_cut)
         job = launch_cmd(args, par_cmd, "rho0", tee_terminal=bool(args.verbose))
         return wait_launched(args, job, cut_name, "hybrid-parallel")
     if(mode == "sequential"):
-        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="sequential", jobs=jobs, use_hpp=False)
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="sequential", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_blocking(args, cmd, "rho0", cut_name, "sequential", tee_terminal=bool(args.verbose))
     if(mode == "slurm"):
-        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=False, jobs=jobs, use_hpp=False)
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=False, jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_interactive(args, cmd, "rho0-slurm", cut_name, "slurm")
-    cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", jobs=jobs, use_hpp=False)
+    cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
     job = launch_cmd(args, cmd, "rho0", tee_terminal=bool(args.verbose))
     return wait_launched(args, job, cut_name, "parallel")
 
