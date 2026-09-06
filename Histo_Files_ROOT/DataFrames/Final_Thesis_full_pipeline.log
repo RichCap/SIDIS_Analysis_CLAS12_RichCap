@@ -1274,3 +1274,701 @@ CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn
 [rho0] 
 [rho0]     
 DONE [rho0] cut=cut_Complete_SIDIS rc=0 wall=1562.5s
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T22:03:03 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) cut=cut_Complete_SIDIS_MM_None jobs=10 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS_MM_None -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 10:03 p.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS_MM_None -cnM cut_Complete_SIDIS_MM_None --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10413389
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 10:03 p.m.
+
+
+Submitted SLURM array job 10413389
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS_MM_None'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 10:03 p.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10413389 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS_MM_None -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10413389 --jobs 10 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Needed to rerun due to the wrong cuts being used in the last run. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 10. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0] 
+[rho0] Started running on 9-5-2026 at 10:03 p.m.
+[rho0] 
+[rho0] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] [INFO] Batch 1 already completed by SLURM - skipping
+[rho0] [INFO] Batch 2 already completed by SLURM - skipping
+[rho0] [INFO] Batch 3 already completed by SLURM - skipping
+[rho0] [INFO] Batch 4 already completed by SLURM - skipping
+[rho0] [INFO] Batch 5 already completed by SLURM - skipping
+[rho0] [INFO] Batch 6 already completed by SLURM - skipping
+[rho0] [INFO] Batch 7 already completed by SLURM - skipping
+[rho0] [INFO] Batch 8 already completed by SLURM - skipping
+[rho0] [INFO] Batch 9 already completed by SLURM - skipping
+[rho0] [INFO] Batch 10 already completed by SLURM - skipping
+[rho0] [INFO] Batch 11 already completed by SLURM - skipping
+[rho0] [INFO] Batch 12 already completed by SLURM - skipping
+[rho0] [INFO] Batch 13 already completed by SLURM - skipping
+[rho0] [INFO] Batch 14 already completed by SLURM - skipping
+[rho0] [INFO] Batch 15 already completed by SLURM - skipping
+[rho0] [INFO] Batch 16 already completed by SLURM - skipping
+[rho0] [INFO] Batch 17 already completed by SLURM - skipping
+[rho0] [INFO] Batch 18 already completed by SLURM - skipping
+[rho0] [INFO] Batch 19 already completed by SLURM - skipping
+[rho0] [INFO] Batch 20 already completed by SLURM - skipping
+[rho0] [INFO] Batch 21 already completed by SLURM - skipping
+[rho0] [INFO] Batch 22 already completed by SLURM - skipping
+[rho0] [INFO] Batch 23 already completed by SLURM - skipping
+[rho0] [INFO] Batch 24 already completed by SLURM - skipping
+[rho0] [INFO] Batch 25 already completed by SLURM - skipping
+[rho0] [INFO] Batch 26 already completed by SLURM - skipping
+[rho0] [INFO] Batch 27 already completed by SLURM - skipping
+[rho0] [INFO] Batch 28 already completed by SLURM - skipping
+[rho0] [INFO] Batch 29 already completed by SLURM - skipping
+[rho0] [INFO] Batch 30 already completed by SLURM - skipping
+[rho0] [INFO] Batch 31 already completed by SLURM - skipping
+[rho0] [INFO] Batch 32 already completed by SLURM - skipping
+[rho0] [INFO] Batch 33 already completed by SLURM - skipping
+[rho0] [INFO] Batch 34 already completed by SLURM - skipping
+[rho0] [INFO] Batch 35 already completed by SLURM - skipping
+[rho0] [INFO] Batch 36 already completed by SLURM - skipping
+[rho0] [INFO] Batch 37 already completed by SLURM - skipping
+[rho0] [INFO] Batch 38 already completed by SLURM - skipping
+[rho0] [INFO] Batch 39 already completed by SLURM - skipping
+[rho0] [INFO] Batch 40 already completed by SLURM - skipping
+[rho0] [INFO] Batch 41 already completed by SLURM - skipping
+[rho0] [INFO] Batch 42 already completed by SLURM - skipping
+[rho0] [INFO] Batch 43 already completed by SLURM - skipping
+[rho0] [INFO] Batch 44 already completed by SLURM - skipping
+[rho0] [INFO] Batch 45 already completed by SLURM - skipping
+[rho0] [INFO] Batch 46 already completed by SLURM - skipping
+[rho0] [INFO] Batch 47 already completed by SLURM - skipping
+[rho0] [INFO] Batch 48 already completed by SLURM - skipping
+[rho0] [INFO] Batch 49 already completed by SLURM - skipping
+[rho0] [INFO] Batch 50 already completed by SLURM - skipping
+[rho0] [INFO] Batch 51 already completed by SLURM - skipping
+[rho0] [INFO] Batch 52 already completed by SLURM - skipping
+[rho0] [INFO] Batch 53 already completed by SLURM - skipping
+[rho0] [INFO] Batch 54 already completed by SLURM - skipping
+[rho0] [INFO] Batch 55 already completed by SLURM - skipping
+[rho0] [INFO] Batch 56 already completed by SLURM - skipping
+[rho0] [INFO] Batch 57 already completed by SLURM - skipping
+[rho0] [INFO] Batch 58 already completed by SLURM - skipping
+[rho0] [INFO] Batch 59 already completed by SLURM - skipping
+[rho0] [INFO] Batch 60 already completed by SLURM - skipping
+[rho0] [INFO] Batch 61 already completed by SLURM - skipping
+[rho0] [INFO] Batch 62 already completed by SLURM - skipping
+[rho0] [INFO] Batch 63 already completed by SLURM - skipping
+[rho0] [INFO] Batch 64 already completed by SLURM - skipping
+[rho0] [INFO] Batch 65 already completed by SLURM - skipping
+[rho0] [INFO] Batch 66 already completed by SLURM - skipping
+[rho0] [INFO] Batch 67 already completed by SLURM - skipping
+[rho0] [INFO] Batch 68 already completed by SLURM - skipping
+[rho0] [INFO] Batch 69 already completed by SLURM - skipping
+[rho0] [INFO] Batch 70 already completed by SLURM - skipping
+[rho0] [INFO] Batch 71 already completed by SLURM - skipping
+[rho0] [INFO] Batch 72 already completed by SLURM - skipping
+[rho0] [INFO] Batch 73 already completed by SLURM - skipping
+[rho0] [INFO] Batch 74 already completed by SLURM - skipping
+[rho0] [INFO] Batch 75 already completed by SLURM - skipping
+[rho0] [INFO] Batch 76 already completed by SLURM - skipping
+[rho0] [INFO] Batch 77 already completed by SLURM - skipping
+[rho0] [INFO] Batch 78 already completed by SLURM - skipping
+[rho0] [INFO] Batch 79 already completed by SLURM - skipping
+[rho0] [INFO] Batch 80 already completed by SLURM - skipping
+[rho0] [INFO] Batch 81 already completed by SLURM - skipping
+[rho0] [INFO] Batch 82 already completed by SLURM - skipping
+[rho0] [INFO] Batch 83 already completed by SLURM - skipping
+[rho0] [INFO] Batch 84 already completed by SLURM - skipping
+[rho0] [INFO] Batch 85 already completed by SLURM - skipping
+[rho0] [INFO] Batch 86 already completed by SLURM - skipping
+[rho0] [INFO] Batch 87 already completed by SLURM - skipping
+[rho0] [INFO] Batch 88 already completed by SLURM - skipping
+[rho0] [INFO] Batch 89 already completed by SLURM - skipping
+[rho0] [INFO] Batch 90 already completed by SLURM - skipping
+[rho0] [INFO] Batch 91 already completed by SLURM - skipping
+[rho0] [INFO] Batch 92 already completed by SLURM - skipping
+[rho0] [INFO] Batch 93 already completed by SLURM - skipping
+[rho0] [INFO] Batch 94 already completed by SLURM - skipping
+[rho0] [INFO] Batch 95 already completed by SLURM - skipping
+[rho0] [INFO] Batch 96 already completed by SLURM - skipping
+[rho0] [INFO] Batch 97 already completed by SLURM - skipping
+[rho0] [INFO] Batch 98 already completed by SLURM - skipping
+[rho0] [INFO] Batch 99 already completed by SLURM - skipping
+[rho0] [INFO] Batch 100 already completed by SLURM - skipping
+[rho0] [INFO] Batch 101 already completed by SLURM - skipping
+[rho0] [INFO] Batch 102 already completed by SLURM - skipping
+[rho0] [INFO] Batch 103 already completed by SLURM - skipping
+[rho0] [INFO] Batch 104 already completed by SLURM - skipping
+[rho0] [INFO] Batch 105 already completed by SLURM - skipping
+[rho0] [INFO] Batch 106 already completed by SLURM - skipping
+[rho0] [INFO] Batch 107 already completed by SLURM - skipping
+[rho0] [INFO] Batch 108 already completed by SLURM - skipping
+[rho0] [INFO] Batch 109 already completed by SLURM - skipping
+[rho0] [INFO] Batch 110 already completed by SLURM - skipping
+[rho0] [INFO] Batch 111 already completed by SLURM - skipping
+[rho0] [INFO] Batch 112 already completed by SLURM - skipping
+[rho0] [INFO] Batch 113 already completed by SLURM - skipping
+[rho0] [INFO] Batch 114 already completed by SLURM - skipping
+[rho0] [INFO] Batch 115 already completed by SLURM - skipping
+[rho0] [INFO] Batch 116 already completed by SLURM - skipping
+[rho0] [INFO] Batch 117 already completed by SLURM - skipping
+[rho0] [INFO] Batch 118 already completed by SLURM - skipping
+[rho0] [INFO] Batch 119 already completed by SLURM - skipping
+[rho0] [INFO] Batch 120 already completed by SLURM - skipping
+[rho0] [INFO] Batch 121 already completed by SLURM - skipping
+[rho0] [INFO] Batch 122 already completed by SLURM - skipping
+[rho0] [INFO] Batch 123 already completed by SLURM - skipping
+[rho0] [INFO] Batch 124 already completed by SLURM - skipping
+[rho0] [INFO] Batch 125 already completed by SLURM - skipping
+[rho0] [INFO] Batch 126 already completed by SLURM - skipping
+[rho0] [INFO] Batch 127 already completed by SLURM - skipping
+[rho0] [INFO] Batch 128 already completed by SLURM - skipping
+[rho0] [INFO] Batch 129 already completed by SLURM - skipping
+[rho0] [INFO] Batch 130 already completed by SLURM - skipping
+[rho0] [INFO] Batch 131 already completed by SLURM - skipping
+[rho0] [INFO] Batch 132 already completed by SLURM - skipping
+[rho0] [INFO] Batch 133 already completed by SLURM - skipping
+[rho0] [INFO] Batch 134 already completed by SLURM - skipping
+[rho0] [INFO] Batch 135 already completed by SLURM - skipping
+[rho0] [INFO] Batch 136 already completed by SLURM - skipping
+[rho0] [INFO] Batch 137 already completed by SLURM - skipping
+[rho0] [INFO] Batch 138 already completed by SLURM - skipping
+[rho0] [INFO] Batch 139 already completed by SLURM - skipping
+[rho0] [INFO] Batch 140 already completed by SLURM - skipping
+[rho0] [INFO] Batch 141 already completed by SLURM - skipping
+[rho0] [INFO] Batch 142 already completed by SLURM - skipping
+[rho0] [INFO] Batch 143 already completed by SLURM - skipping
+[rho0] [INFO] Batch 144 already completed by SLURM - skipping
+[rho0] [INFO] Batch 145 already completed by SLURM - skipping
+[rho0] [INFO] Batch 146 already completed by SLURM - skipping
+[rho0] [INFO] Batch 147 already completed by SLURM - skipping
+[rho0] [INFO] Batch 148 already completed by SLURM - skipping
+[rho0] [INFO] Batch 149 already completed by SLURM - skipping
+[rho0] [INFO] Batch 150 already completed by SLURM - skipping
+[rho0] [INFO] Batch 151 already completed by SLURM - skipping
+[rho0] [INFO] Batch 152 already completed by SLURM - skipping
+[rho0] [INFO] Batch 153 already completed by SLURM - skipping
+[rho0] [INFO] Batch 154 already completed by SLURM - skipping
+[rho0] [INFO] Batch 155 already completed by SLURM - skipping
+[rho0] [INFO] Batch 156 already completed by SLURM - skipping
+[rho0] [INFO] Batch 157 already completed by SLURM - skipping
+[rho0] [INFO] Batch 158 already completed by SLURM - skipping
+[rho0] [INFO] Batch 159 already completed by SLURM - skipping
+[rho0] [INFO] Batch 160 already completed by SLURM - skipping
+[rho0] [INFO] Batch 161 already completed by SLURM - skipping
+[rho0] [INFO] Batch 162 already completed by SLURM - skipping
+[rho0] [INFO] Batch 163 already completed by SLURM - skipping
+[rho0] [INFO] Batch 164 already completed by SLURM - skipping
+[rho0] [INFO] Batch 165 already completed by SLURM - skipping
+[rho0] [INFO] Batch 166 already completed by SLURM - skipping
+[rho0] [INFO] Batch 167 already completed by SLURM - skipping
+[rho0] [INFO] Batch 168 already completed by SLURM - skipping
+[rho0] [INFO] Batch 169 already completed by SLURM - skipping
+[rho0] [INFO] Batch 170 already completed by SLURM - skipping
+[rho0] [INFO] Batch 171 already completed by SLURM - skipping
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+[rho0] [INFO] Waiting for remaining SLURM array tasks of 10413389...
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T23:29:16 name=Final_Thesis mode=hybrid email=all =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Final_Thesis  mode=hybrid  email=all  skip_acceptance=False  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Final_Thesis_full_pipeline.time
+  default --jobs=5  overrides: jobs_2D=None  jobs_3D=None  jobs_5D=None  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+rho0 mode: producing Only_2D_rho0_Normalization_Creation histograms then exiting (no Stage 1 HPP, no Stage 2 products, no HPP load).
+
+=== Standalone rho0 histogram production (pre-pipeline; no HPP; no Stage 1/2) cut=cut_Complete_SIDIS_MM_None jobs=10 mode=hybrid ===
+SLURM SUBMIT [rho0-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS_MM_None -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --skip_slurm_hadd --yes --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0-slurm-slurm]
+
+Started running on 9-5-2026 at 11:29 p.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --mem-per-cpu=4GB
+#SBATCH --time=12:00:00
+#SBATCH --array=1-171
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS_MM_None -cnM cut_Complete_SIDIS_MM_None --z_axis_2D z_Bins --make_root --make_2D --fast --run_rho_weight --matching_criteria Bank -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --make_2D_rho_normalization_only --run_rho_weight
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 10413696
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 9-5-2026 at 11:29 p.m.
+
+
+Submitted SLURM array job 10413696
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS_MM_None'
+--no_make_2D_rho                                    --> True
+--no_unfold_5D                                      --> True
+--z_axis_2D                                         --> 'z_Bins'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> False
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank'
+--num_batches                                       --> 171
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '12:00:00'
+--slurm_mem                                         --> '4GB'
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--run_subdir_name                                   --> 'Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--make_2D_rho_normalization_only', '--run_rho_weight']
+
+
+The time that this code finished is 11:29 p.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 10413696 for rho0-slurm
+CMD [rho0]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS_MM_None -n Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --matching_criteria Bank --run_rho_weight --z_axis_2D z_Bins --no_make_2D_rho --no_unfold_5D --slurm_array_jobid 10413696 --jobs 10 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --run_subdir_name Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026 --email -emj Standalone rho0_Normalization_Creation histograms for Final_Thesis_Files on work_b. Needed to rerun due to the wrong cuts being used in the last run. Bank matching. No HPP. Hybrid. The Number of Jobs set for standalone rho0 was 10. Ran in tmuxSIDIS_1. rho0 Normalization Creation Histograms --extra --make_2D_rho_normalization_only --run_rho_weight
+[rho0] 
+[rho0] Started running on 9-5-2026 at 11:29 p.m.
+[rho0] 
+[rho0] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[rho0] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[rho0] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_2D_rho0_Normalization_Creation_Final_Thesis_Bank_Final_Thesis_Files_09_05_2026
+[rho0] 
+[rho0] [INFO] Batch 1 already completed by SLURM - skipping
+[rho0] [INFO] Batch 2 already completed by SLURM - skipping
+[rho0] [INFO] Batch 3 already completed by SLURM - skipping
+[rho0] [INFO] Batch 4 already completed by SLURM - skipping
+[rho0] [INFO] Batch 5 already completed by SLURM - skipping
+[rho0] [INFO] Batch 6 already completed by SLURM - skipping
+[rho0] [INFO] Batch 7 already completed by SLURM - skipping
+[rho0] [INFO] Batch 8 already completed by SLURM - skipping
+[rho0] [INFO] Batch 9 already completed by SLURM - skipping
+[rho0] [INFO] Batch 10 already completed by SLURM - skipping
+[rho0] [INFO] Batch 11 already completed by SLURM - skipping
+[rho0] [INFO] Batch 12 already completed by SLURM - skipping
+[rho0] [INFO] Batch 13 already completed by SLURM - skipping
+[rho0] [INFO] Batch 14 already completed by SLURM - skipping
+[rho0] [INFO] Batch 15 already completed by SLURM - skipping
+[rho0] [INFO] Batch 16 already completed by SLURM - skipping
+[rho0] [INFO] Batch 17 already completed by SLURM - skipping
+[rho0] [INFO] Batch 18 already completed by SLURM - skipping
+[rho0] [INFO] Batch 19 already completed by SLURM - skipping
+[rho0] [INFO] Batch 20 already completed by SLURM - skipping
+[rho0] [INFO] Batch 21 already completed by SLURM - skipping
+[rho0] [INFO] Batch 22 already completed by SLURM - skipping
+[rho0] [INFO] Batch 23 already completed by SLURM - skipping
+[rho0] [INFO] Batch 24 already completed by SLURM - skipping
+[rho0] [INFO] Batch 25 already completed by SLURM - skipping
+[rho0] [INFO] Batch 26 already completed by SLURM - skipping
+[rho0] [INFO] Batch 27 already completed by SLURM - skipping
+[rho0] [INFO] Batch 28 already completed by SLURM - skipping
+[rho0] [INFO] Batch 29 already completed by SLURM - skipping
+[rho0] [INFO] Batch 30 already completed by SLURM - skipping
+[rho0] [INFO] Batch 31 already completed by SLURM - skipping
+[rho0] [INFO] Batch 32 already completed by SLURM - skipping
+[rho0] [INFO] Batch 33 already completed by SLURM - skipping
+[rho0] [INFO] Batch 34 already completed by SLURM - skipping
+[rho0] [INFO] Batch 35 already completed by SLURM - skipping
+[rho0] [INFO] Batch 36 already completed by SLURM - skipping
+[rho0] [INFO] Batch 37 already completed by SLURM - skipping
+[rho0] [INFO] Batch 38 already completed by SLURM - skipping
+[rho0] [INFO] Batch 39 already completed by SLURM - skipping
+[rho0] [INFO] Batch 40 already completed by SLURM - skipping
+[rho0] [INFO] Batch 41 already completed by SLURM - skipping
+[rho0] [INFO] Batch 42 already completed by SLURM - skipping
+[rho0] [INFO] Batch 43 already completed by SLURM - skipping
+[rho0] [INFO] Batch 44 already completed by SLURM - skipping
+[rho0] [INFO] Batch 45 already completed by SLURM - skipping
+[rho0] [INFO] Batch 46 already completed by SLURM - skipping
+[rho0] [INFO] Batch 47 already completed by SLURM - skipping
+[rho0] [INFO] Batch 48 already completed by SLURM - skipping
+[rho0] [INFO] Batch 49 already completed by SLURM - skipping
+[rho0] [INFO] Batch 50 already completed by SLURM - skipping
+[rho0] [INFO] Batch 51 already completed by SLURM - skipping
+[rho0] [INFO] Batch 52 already completed by SLURM - skipping
+[rho0] [INFO] Batch 53 already completed by SLURM - skipping
+[rho0] [INFO] Batch 54 already completed by SLURM - skipping
+[rho0] [INFO] Batch 55 already completed by SLURM - skipping
+[rho0] [INFO] Batch 56 already completed by SLURM - skipping
+[rho0] [INFO] Batch 57 already completed by SLURM - skipping
+[rho0] [INFO] Batch 58 already completed by SLURM - skipping
+[rho0] [INFO] Batch 59 already completed by SLURM - skipping
+[rho0] [INFO] Batch 60 already completed by SLURM - skipping
+[rho0] [INFO] Batch 61 already completed by SLURM - skipping
+[rho0] [INFO] Batch 62 already completed by SLURM - skipping
+[rho0] [INFO] Batch 63 already completed by SLURM - skipping
+[rho0] [INFO] Batch 64 already completed by SLURM - skipping
+[rho0] [INFO] Batch 65 already completed by SLURM - skipping
+[rho0] [INFO] Batch 66 already completed by SLURM - skipping
+[rho0] [INFO] Batch 67 already completed by SLURM - skipping
+[rho0] [INFO] Batch 68 already completed by SLURM - skipping
+[rho0] [INFO] Batch 69 already completed by SLURM - skipping
+[rho0] [INFO] Batch 70 already completed by SLURM - skipping
+[rho0] [INFO] Batch 71 already completed by SLURM - skipping
+[rho0] [INFO] Batch 72 already completed by SLURM - skipping
+[rho0] [INFO] Batch 73 already completed by SLURM - skipping
+[rho0] [INFO] Batch 74 already completed by SLURM - skipping
+[rho0] [INFO] Batch 75 already completed by SLURM - skipping
+[rho0] [INFO] Batch 76 already completed by SLURM - skipping
+[rho0] [INFO] Batch 77 already completed by SLURM - skipping
+[rho0] [INFO] Batch 78 already completed by SLURM - skipping
+[rho0] [INFO] Batch 79 already completed by SLURM - skipping
+[rho0] [INFO] Batch 80 already completed by SLURM - skipping
+[rho0] [INFO] Batch 81 already completed by SLURM - skipping
+[rho0] [INFO] Batch 82 already completed by SLURM - skipping
+[rho0] [INFO] Batch 83 already completed by SLURM - skipping
+[rho0] [INFO] Batch 84 already completed by SLURM - skipping
+[rho0] [INFO] Batch 85 already completed by SLURM - skipping
+[rho0] [INFO] Batch 86 already completed by SLURM - skipping
+[rho0] [INFO] Batch 87 already completed by SLURM - skipping
+[rho0] [INFO] Batch 88 already completed by SLURM - skipping
+[rho0] [INFO] Batch 89 already completed by SLURM - skipping
+[rho0] [INFO] Batch 90 already completed by SLURM - skipping
+[rho0] [INFO] Batch 91 already completed by SLURM - skipping
+[rho0] [INFO] Batch 92 already completed by SLURM - skipping
+[rho0] [INFO] Batch 93 already completed by SLURM - skipping
+[rho0] [INFO] Batch 94 already completed by SLURM - skipping
+[rho0] [INFO] Batch 95 already completed by SLURM - skipping
+[rho0] [INFO] Batch 96 already completed by SLURM - skipping
+[rho0] [INFO] Batch 97 already completed by SLURM - skipping
+[rho0] [INFO] Batch 98 already completed by SLURM - skipping
+[rho0] [INFO] Batch 99 already completed by SLURM - skipping
+[rho0] [INFO] Batch 100 already completed by SLURM - skipping
+[rho0] [INFO] Batch 101 already completed by SLURM - skipping
+[rho0] [INFO] Batch 102 already completed by SLURM - skipping
+[rho0] [INFO] Batch 103 already completed by SLURM - skipping
+[rho0] [INFO] Batch 104 already completed by SLURM - skipping
+[rho0] [INFO] Batch 105 already completed by SLURM - skipping
+[rho0] [INFO] Batch 106 already completed by SLURM - skipping
+[rho0] [INFO] Batch 107 already completed by SLURM - skipping
+[rho0] [INFO] Batch 108 already completed by SLURM - skipping
+[rho0] [INFO] Batch 109 already completed by SLURM - skipping
+[rho0] [INFO] Batch 110 already completed by SLURM - skipping
+[rho0] [INFO] Batch 111 already completed by SLURM - skipping
+[rho0] [INFO] Batch 112 already completed by SLURM - skipping

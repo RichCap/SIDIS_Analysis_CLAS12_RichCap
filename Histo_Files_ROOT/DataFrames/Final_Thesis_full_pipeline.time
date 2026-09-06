@@ -30,3 +30,15 @@ peak_memory: 479.36 MB
 wall_time: 1562.47 s
 peak_memory: 479.38 MB
 
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T22:03:03 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS_MM_None | mode=slurm | rc=0 ===
+wall_time: 1.94 s
+peak_memory: 484.30 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-05T23:29:16 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS_MM_None | mode=slurm | rc=0 ===
+wall_time: 1.32 s
+peak_memory: 489.26 MB
+
