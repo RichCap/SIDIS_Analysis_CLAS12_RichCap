@@ -635,6 +635,39 @@ Running dataframe helper
 
 
 
+def slurm_array_expr_contains(expr, task_index):
+    # SLURM compact index expression: "1-171", "1-10,20,30-40", optional ":step" and "%N" concurrency.
+    task_index = int(task_index)
+    expr = str(expr).split("%", 1)[0]
+    for part in expr.split(","):
+        part = part.strip()
+        if(part == ""):
+            continue
+        if(":" in part):
+            range_part, step_s = part.split(":", 1)
+            step = int(step_s)
+        else:
+            range_part, step = part, 1
+        if("-" in range_part):
+            lo_s, hi_s = range_part.split("-", 1)
+            lo, hi = int(lo_s), int(hi_s)
+            if((lo <= task_index <= hi) and (((task_index - lo) % step) == 0)):
+                return True
+        elif(int(range_part) == task_index):
+            return True
+    return False
+
+def squeue_job_id_covers_task(job_id, array_jobid, task_index):
+    job_id = str(job_id).strip()
+    array_jobid = str(array_jobid).strip()
+    task_index = int(task_index)
+    if(job_id == f"{array_jobid}_{task_index}"):
+        return True
+    prefix = f"{array_jobid}_["
+    if(job_id.startswith(prefix) and job_id.endswith("]")):
+        return slurm_array_expr_contains(job_id[len(prefix):-1], task_index)
+    return False
+
 def cancel_slurm_array_task(array_jobid, task_index):
     job_str = f"{array_jobid}_{task_index}"
     try:
@@ -657,7 +690,7 @@ def should_skip_file_due_to_slurm(args, task_index):
     if(getattr(args, "slurm_array_jobid", None) in [None, ""]):
         return False
     try:
-        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(args.slurm_array_jobid), "-o", "%.18i %.2t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.run(["squeue", "-h", "-r", "-j", str(args.slurm_array_jobid), "-o", "%i %t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except Exception:
         return False
     if(proc.returncode != 0):
@@ -667,7 +700,7 @@ def should_skip_file_due_to_slurm(args, task_index):
         parts = line.split()
         if(len(parts) < 2):
             continue
-        if(parts[0] == target_id):
+        if(squeue_job_id_covers_task(parts[0], args.slurm_array_jobid, task_index)):
             state = parts[1]
             if(state == "PD"):
                 print(f"{color.BBLUE}[INFO]{color.END} Cancelling pending SLURM task {target_id}")
