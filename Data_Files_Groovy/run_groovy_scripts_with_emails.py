@@ -39,13 +39,13 @@ OUTPUT_DIR_REC_MC         = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_R
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential, SLURM array, or parallel run mode, with optional email summary (sequential only).", formatter_class=RawDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Run a Groovy conversion script over many input files in sequential, SLURM array, parallel, or hybrid run mode, with optional email summary (sequential only).", formatter_class=RawDefaultsHelpFormatter)
 
     parser.add_argument("-m",    "-mode",    "--mode",
                         dest="mode",
-                        choices=["sequential", "slurm", "parallel"],
+                        choices=["sequential", "slurm", "parallel", "hybrid"],
                         default="sequential",
-                        help="Run mode: sequential (local), slurm (submit array job), or parallel (multiple local jobs run simulataneously).\n")
+                        help="Run mode: sequential (local), slurm (submit array job), parallel (multiple local jobs run simulataneously), or hybrid (submit SLURM then start parallel with the captured array job id).\n")
     parser.add_argument("-src",  "-source",  "--source",
                         dest="source",
                         default="clasdis",
@@ -95,7 +95,7 @@ def parse_args():
                         dest="slurm_array_jobid",
                         type=str,
                         default=None,
-                        help="In sequential mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks).\n")
+                        help="In sequential or parallel mode, coordinate with an existing SLURM array job (cancel pending tasks; skip active/completed tasks). Hybrid mode sets this automatically from the submitted array job id.\n")
 
     parser.add_argument("-st",   "-time",    "--slurm-time",
                         dest="slurm_time",
@@ -682,6 +682,9 @@ def main():
     results         = []
     slurm_jobid     = None
 
+    if(args.mode == "hybrid"):
+        print(f"{color.BBLUE}[INFO]{color.END} hybrid mode: submit SLURM, then start parallel using the captured array job id.")
+
     if(args.mode == "sequential"):
         if((args.slurm_array_jobid is not None)):
             print(f"{color.BBLUE}[INFO]{color.END} Sequential mode will coordinate with SLURM array job: {args.slurm_array_jobid}")
@@ -818,7 +821,124 @@ User Given Message:
             else:
                 print("Email sending disabled (no email sent).")
 
-    elif(args.mode == "parallel"):
+    elif(args.mode in ["slurm", "hybrid"]):
+        if(args.email):
+            print(f"{color.BBLUE}[INFO]{color.END} Note: -e/--email is ignored in slurm mode (SLURM mail settings handle FAIL notifications).")
+
+        job_name      = job_id_final
+        manifest_path = used_paths_txt
+        sbatch_base   = f"GroovyArray_{source_norm}_{mc_type_norm}_{event_type_norm}"
+        if("data" in sbatch_base):
+            sbatch_base = sbatch_base.replace("mdf", "rdf")
+        if((args.extra_job_name is not None) and (str(args.extra_job_name).strip() != "")):
+            sbatch_base = f"{sbatch_base}_{str(args.extra_job_name).strip()}"
+        sbatch_base   = re.sub(r'[^A-Za-z0-9_\-]+', '_', sbatch_base)
+        sbatch_path   = os.path.join(local_dir, f"{sbatch_base}.sh")
+
+        if((args.unique_batches is None) or (str(args.unique_batches).strip() == "")):
+            array_spec_str = f"0-{nfiles-1}"
+        else:
+            array_spec_str = str(args.unique_batches).replace(" ", "")
+
+        slurm_script_text = build_slurm_array_script_text(script_path=script_path_final, manifest_path=manifest_path, job_name=job_name, email_address=EMAIL_TO, slurm_time=args.slurm_time, slurm_mem_per_cpu=args.slurm_mem_per_cpu, slurm_partition=DEFAULT_SLURM_PARTITION, slurm_account=DEFAULT_SLURM_ACCOUNT, array_spec=array_spec_str, work_dir=work_dir_final, mkdir_work_dir=(work_dir_reason == "user-override"))
+
+        print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM sbatch script:\n")
+        print(slurm_script_text)
+        print(f"\n{color.BBLUE}[INFO]{color.END} Proposed manifest file path:\n{manifest_path}\n")
+        print(f"{color.BBLUE}[INFO]{color.END} Proposed sbatch script path:\n{sbatch_path}\n")
+        print(f"{color.BBLUE}[INFO]{color.END} Expanded file count (manifest lines): {nfiles} (array spec: {array_spec_str})")
+        print(f"{color.BBLUE}[INFO]{color.END} Work directory ({work_dir_reason}): {work_dir_final}")
+        if(not args.no_approval):
+            try:
+                response = input("Approve this SLURM sbatch script (and allow it to be written + submitted)? [y/N]: ").strip().lower()
+            except EOFError:
+                response = "n"
+        else:
+            response = "y"
+        if(response not in ["y", "yes"]):
+            print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without writing or submission.")
+            sys.exit(1)
+        if(args.dry_run):
+            print("\n--- DRY RUN: approved SLURM script would now be written and submitted, but dry-run prevents writing/submission. ---\n")
+            overall_success = True
+        else:
+            # IMPORTANT: Do NOT overwrite the shared "Paths_to_*.txt" file. The sbatch script expands it at runtime.
+            with open(sbatch_path, "w") as out:
+                out.write(slurm_script_text)
+            os.chmod(sbatch_path, 0o755)
+
+            array_cmd = ["sbatch", "--parsable", sbatch_path]
+            cmd_str   = ""
+            for cc in array_cmd:
+                cmd_str = f"{cmd_str}{cc} "
+            cmd_str = cmd_str.strip()
+
+            print(f"{color.BBLUE}[INFO]{color.END} Submitting SLURM array job with command: {cmd_str}")
+
+            try:
+                proc = subprocess.run(array_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            except Exception as exc:
+                print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM job: {exc}")
+                sys.exit(1)
+
+            if(proc.returncode != 0):
+                msg = proc.stderr.strip()
+                if((msg == "")):
+                    msg = "(no additional message from sbatch)"
+                print(f"{color.Error}[ERROR]{color.END} sbatch failed with code {proc.returncode}: {msg}")
+                sys.exit(1)
+
+            slurm_jobid_raw = proc.stdout.strip()
+            slurm_jobid     = slurm_jobid_raw.split(";")[0].strip()
+            print(f"{color.BBLUE}[INFO]{color.END} Submitted SLURM array job id: {slurm_jobid}")
+            overall_success = True
+
+        start_time_str = args.timer.start_find(return_Q=True).replace("Ran", "Started running")
+        end_time_str, total_time_str, rate_line = args.timer.stop(return_Q=True)
+
+        paths_txt_shown = used_paths_txt
+        slurm_summary = f"""Script: {os.path.basename(__file__)}
+Mode: slurm
+Host: {socket.gethostname()}
+Job ID: {job_id_final}
+Source preset: {source_norm}
+MC type preset: {mc_type_norm}
+Event type preset: {event_type_norm}
+Groovy script ({script_path_reason}): {script_path_final}
+Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
+Work directory ({work_dir_reason}): {work_dir_final}
+Total expanded files: {nfiles}
+Unique batches: {args.unique_batches}
+SLURM time: {args.slurm_time}
+SLURM mem-per-cpu: {args.slurm_mem_per_cpu}
+Manifest path: {manifest_path}
+SBATCH script path: {sbatch_path}
+Submitted SLURM jobid: {slurm_jobid}
+Dry run: {args.dry_run}
+Overall success: {overall_success}
+"""
+
+        print(f"""{start_time_str}
+
+{slurm_summary}
+
+{end_time_str}
+{total_time_str}
+{rate_line}
+""")
+
+
+        if(args.mode == "hybrid"):
+            if((slurm_jobid is not None) and (str(slurm_jobid).strip() != "") and (not args.dry_run)):
+                print(f"{color.BBLUE}[INFO]{color.END} hybrid: waiting 15s for SLURM array job {slurm_jobid} to appear in the queue...")
+                time.sleep(15)
+                args.slurm_array_jobid = slurm_jobid
+                print(f"{color.BBLUE}[INFO]{color.END} hybrid: starting parallel mode with --slurm-array-jobid {args.slurm_array_jobid}")
+                args.mode = "parallel"
+            else:
+                print(f"{color.BBLUE}[INFO]{color.END} hybrid: no submitted SLURM job id; not starting parallel mode.")
+
+    if(args.mode == "parallel"):
         # === PARALLEL MODE ===
         if(requested_batches is None):
             batch_iterable = list(range(0, nfiles))
@@ -1007,112 +1127,6 @@ User Given Message:
                 print("\n--- DRY RUN: email sending disabled (no email would be sent) ---\n")
             else:
                 print("Email sending disabled (no email sent).")
-
-    elif(args.mode == "slurm"):
-        if(args.email):
-            print(f"{color.BBLUE}[INFO]{color.END} Note: -e/--email is ignored in slurm mode (SLURM mail settings handle FAIL notifications).")
-
-        job_name      = job_id_final
-        manifest_path = used_paths_txt
-        sbatch_base   = f"GroovyArray_{source_norm}_{mc_type_norm}_{event_type_norm}"
-        if("data" in sbatch_base):
-            sbatch_base = sbatch_base.replace("mdf", "rdf")
-        if((args.extra_job_name is not None) and (str(args.extra_job_name).strip() != "")):
-            sbatch_base = f"{sbatch_base}_{str(args.extra_job_name).strip()}"
-        sbatch_base   = re.sub(r'[^A-Za-z0-9_\-]+', '_', sbatch_base)
-        sbatch_path   = os.path.join(local_dir, f"{sbatch_base}.sh")
-
-        if((args.unique_batches is None) or (str(args.unique_batches).strip() == "")):
-            array_spec_str = f"0-{nfiles-1}"
-        else:
-            array_spec_str = str(args.unique_batches).replace(" ", "")
-
-        slurm_script_text = build_slurm_array_script_text(script_path=script_path_final, manifest_path=manifest_path, job_name=job_name, email_address=EMAIL_TO, slurm_time=args.slurm_time, slurm_mem_per_cpu=args.slurm_mem_per_cpu, slurm_partition=DEFAULT_SLURM_PARTITION, slurm_account=DEFAULT_SLURM_ACCOUNT, array_spec=array_spec_str, work_dir=work_dir_final, mkdir_work_dir=(work_dir_reason == "user-override"))
-
-        print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM sbatch script:\n")
-        print(slurm_script_text)
-        print(f"\n{color.BBLUE}[INFO]{color.END} Proposed manifest file path:\n{manifest_path}\n")
-        print(f"{color.BBLUE}[INFO]{color.END} Proposed sbatch script path:\n{sbatch_path}\n")
-        print(f"{color.BBLUE}[INFO]{color.END} Expanded file count (manifest lines): {nfiles} (array spec: {array_spec_str})")
-        print(f"{color.BBLUE}[INFO]{color.END} Work directory ({work_dir_reason}): {work_dir_final}")
-        if(not args.no_approval):
-            try:
-                response = input("Approve this SLURM sbatch script (and allow it to be written + submitted)? [y/N]: ").strip().lower()
-            except EOFError:
-                response = "n"
-        else:
-            response = "y"
-        if(response not in ["y", "yes"]):
-            print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without writing or submission.")
-            sys.exit(1)
-        if(args.dry_run):
-            print("\n--- DRY RUN: approved SLURM script would now be written and submitted, but dry-run prevents writing/submission. ---\n")
-            overall_success = True
-        else:
-            # IMPORTANT: Do NOT overwrite the shared "Paths_to_*.txt" file. The sbatch script expands it at runtime.
-            with open(sbatch_path, "w") as out:
-                out.write(slurm_script_text)
-            os.chmod(sbatch_path, 0o755)
-
-            array_cmd = ["sbatch", "--parsable", sbatch_path]
-            cmd_str   = ""
-            for cc in array_cmd:
-                cmd_str = f"{cmd_str}{cc} "
-            cmd_str = cmd_str.strip()
-
-            print(f"{color.BBLUE}[INFO]{color.END} Submitting SLURM array job with command: {cmd_str}")
-
-            try:
-                proc = subprocess.run(array_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            except Exception as exc:
-                print(f"{color.Error}[ERROR]{color.END} Exception while submitting SLURM job: {exc}")
-                sys.exit(1)
-
-            if(proc.returncode != 0):
-                msg = proc.stderr.strip()
-                if((msg == "")):
-                    msg = "(no additional message from sbatch)"
-                print(f"{color.Error}[ERROR]{color.END} sbatch failed with code {proc.returncode}: {msg}")
-                sys.exit(1)
-
-            slurm_jobid_raw = proc.stdout.strip()
-            slurm_jobid     = slurm_jobid_raw.split(";")[0].strip()
-            print(f"{color.BBLUE}[INFO]{color.END} Submitted SLURM array job id: {slurm_jobid}")
-            overall_success = True
-
-        start_time_str = args.timer.start_find(return_Q=True).replace("Ran", "Started running")
-        end_time_str, total_time_str, rate_line = args.timer.stop(return_Q=True)
-
-        paths_txt_shown = used_paths_txt
-        slurm_summary = f"""Script: {os.path.basename(__file__)}
-Mode: slurm
-Host: {socket.gethostname()}
-Job ID: {job_id_final}
-Source preset: {source_norm}
-MC type preset: {mc_type_norm}
-Event type preset: {event_type_norm}
-Groovy script ({script_path_reason}): {script_path_final}
-Paths TXT ({used_paths_txt_reason}): {paths_txt_shown}
-Work directory ({work_dir_reason}): {work_dir_final}
-Total expanded files: {nfiles}
-Unique batches: {args.unique_batches}
-SLURM time: {args.slurm_time}
-SLURM mem-per-cpu: {args.slurm_mem_per_cpu}
-Manifest path: {manifest_path}
-SBATCH script path: {sbatch_path}
-Submitted SLURM jobid: {slurm_jobid}
-Dry run: {args.dry_run}
-Overall success: {overall_success}
-"""
-
-        print(f"""{start_time_str}
-
-{slurm_summary}
-
-{end_time_str}
-{total_time_str}
-{rate_line}
-""")
 
     print(start_time)
     args.timer.stop()
