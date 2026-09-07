@@ -4,7 +4,6 @@
 #     python plot_Chapter3_HIPO_hists.py \
 #         -r Chapter3_HIPO_hists_combined.root \
 #         -o Plot_Images
-#     python plot_Chapter3_HIPO_hists.py -ci 0,4,8,12,63
 from __future__ import print_function
 
 import argparse
@@ -33,20 +32,34 @@ M_PI = 0.13957039
 M_K  = 0.493677
 M_P  = 0.938272081
 
-# Optional-cut bits (plot-time only). Thresholds live here, not in the HIPO TTrees.
-# bit 0 (1):  pion FD status, 2000 <= status < 4000
-# bit 1 (2):  abs(chi2pid) < 3   (simple diagnostic; not the nominal momentum-dependent cut)
-# bit 2 (4):  electron DC edges, R1/R2 > 5.0 cm and R3 > 10.0 cm
-# bit 3 (8):  pion/hadron DC edges, R1/R2 > 2.5 cm and R3 > 9.0 cm
-# bit 4 (16): electron -8 < vz < 2 cm
-# bit 5 (32): PCAL E > 0.06 GeV
-BIT_PIP_FD     = 0
-BIT_CHI2PID    = 1
-BIT_EL_DC      = 2
-BIT_PIP_DC     = 3
-BIT_EL_VZ      = 4
-BIT_PCAL_EMIN  = 5
-PION_BITS      = (1 << BIT_PIP_FD) | (1 << BIT_CHI2PID) | (1 << BIT_PIP_DC)
+# Optional cuts applied at plot time from the h22 TTree.
+# Pion/hadron branch names depend on row kind (1 = e-pi+ pair, 2 = positive hadron).
+CUT_CLAUSES = {
+    "pip_fd":    {"pair": "(pip_status >= 2000) && (pip_status < 4000)",
+                  "had":  "(had_status >= 2000) && (had_status < 4000)"},
+    "chi2pid":   {"pair": "abs(pip_chi2pid) < 3",
+                  "had":  "abs(had_chi2pid) < 3"},
+    "el_dc":     {"pair": "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)",
+                  "had":  "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)"},
+    "pip_dc":    {"pair": "(p_edge1 > 2.5) && (p_edge2 > 2.5) && (p_edge3 > 9.0)",
+                  "had":  "(h_edge1 > 2.5) && (h_edge2 > 2.5) && (h_edge3 > 9.0)"},
+    "el_vz":     {"pair": "(vz > -8.0) && (vz < 2.0)",
+                  "had":  "(vz > -8.0) && (vz < 2.0)"},
+    "pcal_emin": {"pair": "pcal_energy > 0.06",
+                  "had":  "pcal_energy > 0.06"},
+}
+PION_CUTS = ["pip_fd", "chi2pid", "pip_dc"]
+PLOT_CONFIGS = [
+    ("none",      []),
+    ("el_dc",     ["el_dc"]),
+    ("pip_dc",    ["pip_dc"]),
+    ("el_pip_dc", ["el_dc", "pip_dc"]),
+    ("pip_fd",    ["pip_fd"]),
+    ("chi2pid",   ["chi2pid"]),
+    ("el_vz",     ["el_vz"]),
+    ("pcal_emin", ["pcal_emin"]),
+    ("all",       ["pip_fd", "chi2pid", "el_dc", "pip_dc", "el_vz", "pcal_emin"]),
+]
 
 
 def apply_grid(pad=None):
@@ -81,72 +94,38 @@ def ptr(hist):
     return hist
 
 
-def cut_filter(cut_index, kind):
-    # AND of the optional cuts whose bits are set in cut_index.
-    # kind is 'ele', 'elepip', or 'had' (selects pion vs hadron branch names).
-    idx = int(cut_index)
-    if((idx < 0) or (idx > 63)):
-        raise ValueError("cut_index must be 0-63, got %s" % cut_index)
-    clauses = []
-    if(kind in ["had"]):
-        status_br = "had_status"
-        chi2_br   = "had_chi2pid"
-        p_e1, p_e2, p_e3 = "h_edge1", "h_edge2", "h_edge3"
+def uses_pion_cut(cut_names):
+    for name in cut_names:
+        if(name in PION_CUTS):
+            return True
+    return False
+
+
+def cut_filter(cut_names, row_kind):
+    if(row_kind in [2]):
+        which = "had"
     else:
-        status_br = "pip_status"
-        chi2_br   = "pip_chi2pid"
-        p_e1, p_e2, p_e3 = "p_edge1", "p_edge2", "p_edge3"
-    if(idx & (1 << BIT_PIP_FD)):
-        clauses.append("(%s >= 2000) && (%s < 4000)" % (status_br, status_br))
-    if(idx & (1 << BIT_CHI2PID)):
-        clauses.append("abs(%s) < 3" % chi2_br)
-    if(idx & (1 << BIT_EL_DC)):
-        clauses.append("(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)")
-    if(idx & (1 << BIT_PIP_DC)):
-        clauses.append("(%s > 2.5) && (%s > 2.5) && (%s > 9.0)" % (p_e1, p_e2, p_e3))
-    if(idx & (1 << BIT_EL_VZ)):
-        clauses.append("(vz > -8.0) && (vz < 2.0)")
-    if(idx & (1 << BIT_PCAL_EMIN)):
-        clauses.append("pcal_energy > 0.06")
-    if(len(clauses) == 0):
-        return "1"
+        which = "pair"
+    clauses = ["(kind == %d)" % row_kind]
+    for name in cut_names:
+        if(name not in CUT_CLAUSES):
+            raise ValueError("Unknown cut name: %s" % name)
+        clauses.append("(%s)" % CUT_CLAUSES[name][which])
     return " && ".join(clauses)
 
 
-def electron_tree_name(cut_index):
-    if(int(cut_index) & PION_BITS):
-        return "elepip"
-    return "ele"
+def fill_histograms(root_path, cut_names):
+    if(uses_pion_cut(cut_names)):
+        ele_kind = 1
+    else:
+        ele_kind = 0
+    ele_cut = cut_filter(cut_names, ele_kind)
+    had_cut = cut_filter(cut_names, 2)
+    print("electron kind %d filter [%s]" % (ele_kind, ele_cut))
+    print("hadron filter [%s]" % had_cut)
 
-
-def parse_cut_indices(values):
-    out = []
-    if(values is None):
-        return [0]
-    for item in values:
-        for piece in str(item).split(","):
-            piece = piece.strip()
-            if(piece in [""]):
-                continue
-            idx = int(piece)
-            if((idx < 0) or (idx > 63)):
-                raise ValueError("cut_index must be 0-63, got %s" % piece)
-            if(idx not in out):
-                out.append(idx)
-    if(len(out) == 0):
-        out = [0]
-    return out
-
-
-def fill_histograms(root_path, cut_index):
-    ele_tree = electron_tree_name(cut_index)
-    ele_cut  = cut_filter(cut_index, ele_tree)
-    had_cut  = cut_filter(cut_index, "had")
-    print("cut_index %d: electron tree %s filter [%s]" % (cut_index, ele_tree, ele_cut))
-    print("cut_index %d: had tree filter [%s]" % (cut_index, had_cut))
-
-    rdf_ele = ROOT.RDataFrame(ele_tree, root_path).Filter(ele_cut)
-    rdf_had = ROOT.RDataFrame("had",    root_path).Filter(had_cut)
+    rdf_ele = ROOT.RDataFrame("h22", root_path).Filter(ele_cut)
+    rdf_had = ROOT.RDataFrame("h22", root_path).Filter(had_cut)
 
     h_htcc = ptr(rdf_ele.Histo1D(("h_htcc_nphe",   "Electron HTCC N_{phe};N_{phe};Counts",           150, 0.0, 75.0), "nphe"))
     h_pcal = ptr(rdf_ele.Histo1D(("h_pcal_energy", "Electron PCAL energy;E_{PCAL} [GeV];Counts",     120, 0.0,  1.2), "pcal_energy"))
@@ -314,8 +293,8 @@ def plot_electron_dc(h_dc, outdir):
     return save(can, outdir, "electron_DC_rotated.pdf")
 
 
-def plot_one_index(root_path, outdir, cut_index):
-    h_htcc, h_pcal, h_sftot, h_beta, h_dc = fill_histograms(root_path, cut_index)
+def plot_one_config(root_path, outdir, cut_names):
+    h_htcc, h_pcal, h_sftot, h_beta, h_dc = fill_histograms(root_path, cut_names)
     written = []
     path = plot_htcc(h_htcc, outdir)
     if(path): written.append(path)
@@ -335,26 +314,20 @@ def main():
     parser.add_argument("-r", "--root",
                         dest="root",
                         default="Chapter3_HIPO_hists_combined.root",
-                        help="Input ROOT file with Chapter 3 TTrees (ele, elepip, had).")
+                        help="Input ROOT file with the Chapter 3 h22 TTree.")
     parser.add_argument("-o", "--out",
                         dest="out",
                         default="Plot_Images",
                         help="Output directory where the plots will be saved.")
-    parser.add_argument("-ci", "--cut_index",
-                        dest="cut_index",
-                        action="append",
-                        default=None,
-                        help="Optional-cut index 0-63 (repeat or comma-separate). Default: 0.")
     args = parser.parse_args()
     if(not os.path.isfile(args.root)):
         raise SystemExit("Missing combined ROOT file: %s" % args.root)
-    indices = parse_cut_indices(args.cut_index)
     written = []
     ROOT.gROOT.SetMustClean(False)
-    for idx in indices:
-        outdir = os.path.join(args.out, "cut_index_%02d" % idx)
-        print("=== cut_index %d -> %s" % (idx, outdir))
-        written.extend(plot_one_index(args.root, outdir, idx))
+    for name, cuts in PLOT_CONFIGS:
+        outdir = os.path.join(args.out, name)
+        print("=== %s -> %s" % (name, outdir))
+        written.extend(plot_one_config(args.root, outdir, cuts))
     print("Done. %d PDFs" % len(written))
     return 0
 

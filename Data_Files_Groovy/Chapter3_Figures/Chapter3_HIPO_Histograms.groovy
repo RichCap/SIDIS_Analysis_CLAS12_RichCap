@@ -1,13 +1,13 @@
 #!/usr/bin/env run-groovy
 // Chapter 3 HIPO TTree job.
-// One REAL nSidis HIPO file in, one small ROOT file of compact TTrees out.
+// One REAL nSidis HIPO file in, one ROOT file with a single h22 TTree out.
 // Intended to be launched with run_groovy_scripts_with_emails.py --source data --script-path this file.
 // Do not run this script on a machine that does not contain the HIPO inputs.
 //
-// Trees:
-//   ele    — one row per PID trigger electron (particle 0)
-//   elepip — one row per e-pi+ pair in a PID-electron event
-//   had    — one row per charge>0 hadron in a PID-electron event
+// h22 row kinds:
+//   0 — PID trigger electron (particle 0)
+//   1 — e-pi+ pair in a PID-electron event
+//   2 — charge>0 hadron in a PID-electron event
 // Optional cut combinations are applied later in plot_Chapter3_HIPO_hists.py.
 
 import org.jlab.jnp.hipo4.io.HipoReader
@@ -17,6 +17,9 @@ import org.jlab.jroot.ROOTFile
 import uconn.utils.pid.stefan.ElectronCandidate
 import uconn.utils.pid.stefan.PionCandidate
 import clasqa.QADB
+import my.Sugar
+
+Sugar.enable()
 
 def hipoPath = args[0]
 def isinb = ! ( hipoPath.contains('outb') || hipoPath.contains('torus+1') )
@@ -88,11 +91,6 @@ float fval(def v) {
     return (float) v
 }
 
-int ival(def v) {
-    if(v == null) { return -1 }
-    return (int) v
-}
-
 int particle_status(Bank partb, int ipart) {
     try {
         return (int) partb.getShort("status", ipart)
@@ -122,12 +120,11 @@ double htcc_nphe(Bank ccb){
 }
 
 def ff = new ROOTFile(rootName)
-def ele_branches = 'nphe:pcal_energy:el_p:sftot:esec/I:vz:e_edge1:e_edge2:e_edge3:xrot1:yrot1:xrot2:yrot2:xrot3:yrot3'
-def elepip_branches = ele_branches + ':pip_status/I:pip_chi2pid:p_edge1:p_edge2:p_edge3'
-def had_branches = 'had_p:had_beta:had_status/I:had_chi2pid:h_edge1:h_edge2:h_edge3:pcal_energy:vz:e_edge1:e_edge2:e_edge3'
-def t_ele = ff.makeTree('ele', 'Chapter 3 PID electrons', ele_branches)
-def t_elepip = ff.makeTree('elepip', 'Chapter 3 e-pi+ pairs', elepip_branches)
-def t_had = ff.makeTree('had', 'Chapter 3 positive hadrons', had_branches)
+def branches_string = 'kind/I:nphe:pcal_energy:el_p:sftot:esec/I:vz:e_edge1:e_edge2:e_edge3:xrot1:yrot1:xrot2:yrot2:xrot3:yrot3:pip_status/I:pip_chi2pid:p_edge1:p_edge2:p_edge3:had_p:had_beta:had_status/I:had_chi2pid:h_edge1:h_edge2:h_edge3'
+def tt = ff.makeTree('h22', 'title', branches_string)
+
+float nanf = Float.NaN
+int   nani = -1
 
 QADB qa = new QADB("latest")
 qa.checkForDefect('TotalOutlier')
@@ -197,8 +194,10 @@ while(reader.hasNext()){
         if(!Float.isNaN(x36)){ def xy = rotate_dc(x36, y36, z36, esec); xrot3 = (float)xy[0]; yrot3 = (float)xy[1] }
     }
 
-    t_ele.fill(nphe, pcalE, elp, sftot, esec, vz, e_edge1, e_edge2, e_edge3,
-               xrot1, yrot1, xrot2, yrot2, xrot3, yrot3)
+    tt.fill(0, nphe, pcalE, elp, sftot, esec, vz, e_edge1, e_edge2, e_edge3,
+            xrot1, yrot1, xrot2, yrot2, xrot3, yrot3,
+            nani, nanf, nanf, nanf, nanf,
+            nanf, nanf, nani, nanf, nanf, nanf, nanf)
     n_ele++
 
     for(int ipart = 1; ipart < partb.getRows(); ipart++){
@@ -207,10 +206,11 @@ while(reader.hasNext()){
             def DC_pip = DCEdgeCandidate.getDCEdgeCandidate(ipart, partb, trajb)
             int pip_status = particle_status(partb, ipart)
             float pip_chi2pid = partb.getFloat("chi2pid", ipart)
-            t_elepip.fill(nphe, pcalE, elp, sftot, esec, vz, e_edge1, e_edge2, e_edge3,
-                          xrot1, yrot1, xrot2, yrot2, xrot3, yrot3,
-                          pip_status, pip_chi2pid,
-                          fval(DC_pip.getEdge(1)), fval(DC_pip.getEdge(2)), fval(DC_pip.getEdge(3)))
+            tt.fill(1, nphe, pcalE, elp, sftot, esec, vz, e_edge1, e_edge2, e_edge3,
+                    xrot1, yrot1, xrot2, yrot2, xrot3, yrot3,
+                    pip_status, pip_chi2pid,
+                    fval(DC_pip.getEdge(1)), fval(DC_pip.getEdge(2)), fval(DC_pip.getEdge(3)),
+                    nanf, nanf, nani, nanf, nanf, nanf, nanf)
             n_elepip++
         }
     }
@@ -226,19 +226,19 @@ while(reader.hasNext()){
         int had_status = particle_status(partb, ipart)
         float had_chi2pid = partb.getFloat("chi2pid", ipart)
         def DC_had = DCEdgeCandidate.getDCEdgeCandidate(ipart, partb, trajb)
-        t_had.fill(had_p, had_beta, had_status, had_chi2pid,
-                   fval(DC_had.getEdge(1)), fval(DC_had.getEdge(2)), fval(DC_had.getEdge(3)),
-                   pcalE, vz, e_edge1, e_edge2, e_edge3)
+        tt.fill(2, nphe, pcalE, elp, sftot, esec, vz, e_edge1, e_edge2, e_edge3,
+                xrot1, yrot1, xrot2, yrot2, xrot3, yrot3,
+                nani, nanf, nanf, nanf, nanf,
+                had_p, had_beta, had_status, had_chi2pid,
+                fval(DC_had.getEdge(1)), fval(DC_had.getEdge(2)), fval(DC_had.getEdge(3)))
         n_had++
     }
 }
 reader.close()
 
-t_ele.write()
-t_elepip.write()
-t_had.write()
+tt.write()
 ff.close()
 
-println("Wrote ROOT TTrees: ${rootName}")
+println("Wrote ROOT TTree: ${rootName}")
 println("  QA events ${nread}; ele ${n_ele}; elepip ${n_elepip}; had ${n_had}")
-println("Finished Chapter 3 HIPO TTrees for ${hipoName}")
+println("Finished Chapter 3 HIPO TTree for ${hipoName}")
