@@ -1,6 +1,6 @@
 #!/bin/bash
-# Combine per-job Chapter 3 HIPO TTree ROOT files with ROOT hadd,
-# then delete the per-job ROOT files after a successful merge.
+# Combine per-job Chapter 3 HIPO TTree ROOT files with ROOT hadd.
+# Per-job ROOT files are kept (this script does not delete them).
 #
 # Usage (from Chapter3_Figures, after all jobs finish):
 #   ./hadd_Chapter3_HIPO_hists.sh
@@ -55,7 +55,7 @@ if [[ ${#KEEP[@]} -eq 0 ]]; then
 fi
 
 set +e
-BAD_LIST="$("${PYTHON}" - "${KEEP[@]}" <<'PY'
+CHECK_LIST="$("${PYTHON}" - "${KEEP[@]}" <<'PY'
 from __future__ import print_function
 import os
 import sys
@@ -67,32 +67,37 @@ except Exception as exc:
     sys.exit(2)
 
 ROOT.gROOT.SetBatch(True)
-bad = []
 for path in sys.argv[1:]:
+    kind = None
     reason = None
+    tfile = None
     if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+        kind = "corrupt"
         reason = "missing or empty"
     else:
         tfile = ROOT.TFile.Open(path, "READ")
         if((tfile is None) or (not tfile) or tfile.IsZombie()):
+            kind = "corrupt"
             reason = "ROOT file is unreadable or a zombie"
         else:
             tree = tfile.Get("h22")
             if((tree is None) or (not tree)):
+                kind = "corrupt"
                 reason = "missing h22 TTree"
             else:
                 try:
                     nent = int(tree.GetEntries())
                 except Exception:
-                    nent = 0
-                if(nent <= 0):
-                    reason = "h22 has GetEntries() <= 0"
+                    kind = "corrupt"
+                    reason = "h22 TTree is unreadable"
+                else:
+                    if(nent <= 0):
+                        kind = "zero"
+                        reason = "h22 has GetEntries() == 0"
         if(tfile):
             tfile.Close()
-    if(reason is not None):
-        bad.append("%s\t%s" % (path, reason))
-for line in bad:
-    print(line)
+    if(kind is not None):
+        print("%s\t%s\t%s" % (kind, path, reason))
 PY
 )"
 PY_RC=$?
@@ -102,19 +107,66 @@ if [[ ${PY_RC} -ne 0 ]]; then
   exit 1
 fi
 
-if [[ -n "${BAD_LIST}" ]]; then
-  echo "ERROR: corrupted or empty Chapter 3 ROOT files were found. hadd was not run and no files were deleted."
+CORRUPT_LIST=""
+ZERO_LIST=""
+if [[ -n "${CHECK_LIST}" ]]; then
+  while IFS=$'\t' read -r kind path reason; do
+    if [[ -z "${kind}" ]]; then
+      continue
+    fi
+    line="${path}	${reason}"
+    if [[ "${kind}" == "corrupt" ]]; then
+      if [[ -n "${CORRUPT_LIST}" ]]; then
+        CORRUPT_LIST="${CORRUPT_LIST}"$'\n'"${line}"
+      else
+        CORRUPT_LIST="${line}"
+      fi
+    elif [[ "${kind}" == "zero" ]]; then
+      if [[ -n "${ZERO_LIST}" ]]; then
+        ZERO_LIST="${ZERO_LIST}"$'\n'"${line}"
+      else
+        ZERO_LIST="${line}"
+      fi
+    fi
+  done <<< "${CHECK_LIST}"
+fi
+
+print_path_reason_list() {
+  local title="$1"
+  local list="$2"
+  echo "${title}"
+  if [[ -z "${list}" ]]; then
+    echo "  (none)"
+    return
+  fi
+  while IFS=$'\t' read -r path reason; do
+    if [[ -z "${path}" ]]; then
+      continue
+    fi
+    echo "  ${path}  (${reason})"
+  done <<< "${list}"
+}
+
+if [[ -n "${ZERO_LIST}" ]]; then
   echo
-  echo "Failed files:"
+  print_path_reason_list "Zero-entry input files (readable h22, GetEntries() == 0; not blocking hadd):" "${ZERO_LIST}"
+fi
+
+if [[ -n "${CORRUPT_LIST}" ]]; then
+  echo "ERROR: corrupted or unreadable Chapter 3 ROOT files were found. hadd was not run."
+  echo
+  print_path_reason_list "Corrupted/unreadable input files:" "${CORRUPT_LIST}"
+  echo
   : > "${RERUN_LIST}"
   while IFS=$'\t' read -r path reason; do
-    echo "  ${path}  (${reason})"
+    if [[ -z "${path}" ]]; then
+      continue
+    fi
     base="$(basename "${path}")"
     hipo="${base#Chapter3_HIPO_hists_}"
     hipo="${hipo%.root}"
     echo "${HIPO_PREFIX}/${hipo}" >> "${RERUN_LIST}"
-  done <<< "${BAD_LIST}"
-  echo
+  done <<< "${CORRUPT_LIST}"
   echo "Wrote hipo list: ${RERUN_LIST}"
   echo "Rerun only the broken files with this one command:"
   echo "cd ${GROOVY_DIR} && ./run_groovy_scripts_with_emails.py -src data -evt epipX -sp ${GROOVY_DIR}/Chapter3_Figures/Chapter3_HIPO_Histograms.groovy -m slurm -sn Chapter3HistsRerun -wd ${GROOVY_DIR}/Chapter3_Figures/job_outputs -ptxt ${RERUN_LIST}"
@@ -127,6 +179,10 @@ hadd -f "${COMBINED}" "${KEEP[@]}"
 
 if [[ ! -s "${COMBINED}" ]]; then
   echo "ERROR: combined file missing or empty: ${COMBINED}"
+  echo
+  print_path_reason_list "Zero-entry input files:" "${ZERO_LIST}"
+  echo
+  print_path_reason_list "Corrupted/unreadable input files:" "${CORRUPT_LIST}"
   exit 1
 fi
 
@@ -150,11 +206,13 @@ if((tree is None) or (not tree)):
     print("combined file missing h22 TTree")
     tfile.Close()
     sys.exit(1)
-nent = int(tree.GetEntries())
-tfile.Close()
-if(nent <= 0):
-    print("combined h22 has GetEntries() <= 0")
+try:
+    nent = int(tree.GetEntries())
+except Exception:
+    print("combined h22 TTree is unreadable")
+    tfile.Close()
     sys.exit(1)
+tfile.Close()
 print("ok %d" % nent)
 PY
 )"
@@ -162,10 +220,18 @@ COMBINED_RC=$?
 set -e
 if [[ ${COMBINED_RC} -ne 0 ]]; then
   echo "ERROR: combined file failed validation: ${COMBINED_CHECK}"
-  echo "Per-job ROOT files were NOT deleted."
+  echo
+  print_path_reason_list "Zero-entry input files:" "${ZERO_LIST}"
+  echo
+  print_path_reason_list "Corrupted/unreadable input files:" "${CORRUPT_LIST}"
   exit 1
 fi
 
-echo "Removing ${#KEEP[@]} per-job ROOT files"
-rm -f "${KEEP[@]}"
+COMBINED_NENT="${COMBINED_CHECK#ok }"
+echo "Combined h22 entries: ${COMBINED_NENT}"
+echo
+print_path_reason_list "Zero-entry input files:" "${ZERO_LIST}"
+echo
+print_path_reason_list "Corrupted/unreadable input files:" "${CORRUPT_LIST}"
+echo "Kept per-job ROOT files in ${OUTDIR}"
 echo "Kept combined file: ${COMBINED}"
