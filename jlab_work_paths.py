@@ -84,6 +84,9 @@ def root_label(path):
 def strip_known_analysis_root(path):
     if(path in [None, ""]):
         return None
+    # Relative strings are already repo-relative (REL_* constants). Do not abspath them against cwd — commands are typically launched from Histo_Files_ROOT/DataFrames.
+    if(not os.path.isabs(os.path.expanduser(str(path)))):
+        return None
     path_n = _abspath(path)
     for _key, root in sorted(WORK_ROOTS.items(), key=lambda item: -len(item[1])):
         if(path_n == root):
@@ -315,6 +318,10 @@ if(__name__ == "__main__"):
         groovy = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/REAL_Data/file.root"
         check(resolve_pipeline_input(groovy, "work_b", exists_fn=exists_none) == groovy, "groovy path unchanged")
         check(pipeline_output_path(work_path, "work_b") == work_b_path, "output rewrite")
+        hpp_out_work_b = os.path.join(work_b, REL_HPP_OUT)
+        check(pipeline_output_path(REL_HPP_OUT, "work_b") == hpp_out_work_b, "REL_HPP_OUT is repo-relative not cwd-relative")
+        check("Histo_Files_ROOT/DataFrames/Histo_Files_ROOT" not in pipeline_output_path(REL_HPP_OUT, "work_b").replace("\\", "/"), "HPP out path is not doubled")
+        check(resolve_pipeline_input(REL_FILE_BATCHES, "work_b", exists_fn=lambda path: False) == os.path.join(work_b, REL_FILE_BATCHES), "REL_FILE_BATCHES is repo-relative not cwd-relative")
         check(is_bare_filename("out.root"), "bare filename")
         check(resolve_output_name("out.root", "work_b") == os.path.join(work_b, "out.root"), "bare output under data root")
         check(not flag_was_passed(["--data_root"], argv=["-n", "x"]), "flag not passed")

@@ -170,8 +170,9 @@ def parse_args():
                         default="12:00:00",
                         help="SLURM time limit per array task.\n")
     parser.add_argument('-sm', '--slurm_mem',
-                        default="4GB",
-                        help="SLURM mem-per-cpu.\n")
+                        # default="4GB",
+                        default="5GB",
+                        help="SLURM mem-per-cpu. Farm jobs typically get 2 CPUs, so the total request is twice this value (5GB → 10GB).\n")
     parser.add_argument('-saj', '--slurm_array_jobid',
                         type=str,
                         default=None,

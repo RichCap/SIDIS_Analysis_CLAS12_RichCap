@@ -184,6 +184,10 @@ def parse_args():
                    type=str,
                    default=None,
                    help="Manual SLURM array job ID for parallel/sequential coordination. Hybrid auto-fills per product.\n")
+    p.add_argument("-sm", "--slurm_mem",
+                   type=str,
+                   default=None,
+                   help="SLURM mem-per-cpu forwarded to pipeline children (hybrid/slurm). Unset → pipeline default (5GB). Farm jobs typically get 2 CPUs, so the total request is twice this value.\n")
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
@@ -550,6 +554,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--run_subdir_name", str(run_subdir_name)])
     if(skip_slurm_hadd and (run_mode == "slurm")):
         cmd.append("--skip_slurm_hadd")
+    if(getattr(args, "slurm_mem", None) not in [None, ""]):
+        cmd.extend(["--slurm_mem", str(args.slurm_mem)])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -909,6 +915,8 @@ def main():
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
     log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}  jobs_Binning={args.jobs_Binning}")
+    if(getattr(args, "slurm_mem", None) not in [None, ""]):
+        log_print(args, f"{color.BBLUE}--slurm_mem forwarded to pipeline children: {color.END_B}{args.slurm_mem}{color.END}")
     if(args.no_run_rho_weight):
         log_print(args, f"{color.BYELLOW}--no_run_rho_weight: child commands will NOT receive --run_rho_weight{color.END}")
     else:
