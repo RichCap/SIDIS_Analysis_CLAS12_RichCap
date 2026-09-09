@@ -48,6 +48,14 @@ def main(args):
                     current_iteration = None
                 except (IndexError, ValueError):
                     pass
+            if(all(key_search in stripped for key_search in ["Unfolding: ((Histo-Group=", f"[Q2-y-Bin={q2y_bin}, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'"])):
+                NumBins = stripped.split("Var-D2")[0]
+                NumBins = NumBins.split("NumBins=")[1]
+                NumBins = NumBins.split(",")[0]
+                if(args.verbose):
+                    print(f"\nNumber of Bins Used in Q2-y Bin {q2y_bin} = {NumBins}\n")
+                else:
+                    print(f"\nNumber of Bins Used = {NumBins}\n")
 
 if(__name__ == "__main__"):
     args = parse_args()
