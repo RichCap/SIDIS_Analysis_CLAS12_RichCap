@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 import argparse
+import os
+import sys
+
+_SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+if(_SCRIPT_DIR not in sys.path):
+    sys.path.insert(0, _SCRIPT_DIR)
+from Plot_Bayes_Iteration_Chi2 import extract_q2y_bin_from_filename, parse_unfold_log
 
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
@@ -16,46 +23,26 @@ def parse_args():
     
 def main(args):
     print_separator = "\t"# if(args.verbose) else ","
-    if("Q2_y_Bin_" in str(args.log_file)):
-        q2y_bin = str(args.log_file).split("Q2_y_Bin_")
-        q2y_bin = str(q2y_bin[-1])
-        for replace in [".out", ".log"]:
-            q2y_bin = q2y_bin.replace(replace, "")
+    q2y_bin = extract_q2y_bin_from_filename(args.log_file)
+    if(q2y_bin is not None):
         print(f"\nRun for Q2-y Bin {q2y_bin}\n")
 
     if(args.verbose):
         print(f"Iterations{print_separator}𝜒2 of change")
-    # else:
-    #     print("𝜒2 of change")
-    current_iteration = None
-    with open(args.log_file, 'r', encoding='utf-8') as file:
-        for line in file:
-            stripped = line.strip()
-            if("Iteration :" in stripped):
-                try:
-                    iter_part = stripped.split(":", 1)[1].strip()
-                    current_iteration = int(iter_part)
-                except (IndexError, ValueError):
-                    current_iteration = None
-            elif(("Chi^2 of change" in stripped) and (current_iteration is not None)):
-                try:
-                    chi_part = stripped.split()[-1]
-                    chi_value = float(chi_part)
-                    if(args.verbose):
-                        print(f"{current_iteration:>10.0f}{print_separator}{chi_value}")
-                    else:
-                        print(f"{chi_value}")
-                    current_iteration = None
-                except (IndexError, ValueError):
-                    pass
-            if(all(key_search in stripped for key_search in ["Unfolding: ((Histo-Group=", f"[Q2-y-Bin={q2y_bin}, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'"])):
-                NumBins = stripped.split("Var-D2")[0]
-                NumBins = NumBins.split("NumBins=")[1]
-                NumBins = NumBins.split(",")[0]
-                if(args.verbose):
-                    print(f"\nNumber of Bins Used in Q2-y Bin {q2y_bin} = {NumBins}\n")
-                else:
-                    print(f"\nNumber of Bins Used = {NumBins}\n")
+    series_list = parse_unfold_log(args.log_file, block="first")
+    if(not series_list):
+        return
+    series = series_list[0]
+    for iteration, chi_value in series.chi2.items():
+        if(args.verbose):
+            print(f"{iteration:>10.0f}{print_separator}{chi_value}")
+        else:
+            print(f"{chi_value}")
+    if(series.n_bins is not None):
+        if(args.verbose and (q2y_bin is not None)):
+            print(f"\nNumber of Bins Used in Q2-y Bin {q2y_bin} = {series.n_bins}\n")
+        else:
+            print(f"\nNumber of Bins Used = {series.n_bins}\n")
 
 if(__name__ == "__main__"):
     args = parse_args()
@@ -64,4 +51,4 @@ if(__name__ == "__main__"):
         print("\nDone\n")
     else:
         print("")
-    
+     
