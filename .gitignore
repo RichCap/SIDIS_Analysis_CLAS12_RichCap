@@ -30,7 +30,7 @@ Old_Images/
 *Bin_Test_20_*All.root
 *.prof
 Untitled*
-*root
+*.root
 *-Copy1*
 *.png
 *.tar.gz
@@ -91,4 +91,8 @@ Fit_Pars_from_Simple_RooUnfold_SelfContained_using_BACKUP_COPY_SIDIS_Comparisons
 link_to_other_local_repository
 local_trimmed_copy_of_makeROOT_epip_SIDIS_histos_new.py
 New_RooUnfold/build_root_6.36.04_backup/
+Histo_Files_ROOT/DataFrames/Chapter3_MC_Bin_Migration_Local/
+Local_Copy_of_Custom_Images_From_Unfolded_ROOT_Files.ipynb
+Local_Notebook_for_writing_Commands.ipynb
+
 
