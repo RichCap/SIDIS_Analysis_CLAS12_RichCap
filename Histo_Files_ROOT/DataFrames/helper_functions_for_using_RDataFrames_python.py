@@ -611,6 +611,8 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
         if(Histo_Data not in ["rdf", "gdf"]):
             if("Background" not in Histo_Group):
                 Start_Bin = Min_range
+                if(int(Num_of_Bins) % int(Sliced_5D_Increment) != 0):
+                    raise RuntimeError(f"5D slice increment {Sliced_5D_Increment} does not divide Num_of_Bins={Num_of_Bins}; leftover bins would be omitted from the sliced response matrix.")
                 Num_Slice = int(Num_of_Bins / Sliced_5D_Increment)
                 for Slice in range(1, Num_Slice + 1):
                     Histo_Name_Slice = f"{Histo_Name}_Slice_{Slice}_(Increment='{Sliced_5D_Increment}'){tag_suffix}"
@@ -1235,6 +1237,27 @@ def dense_3d_var_input(q2y_bin_num, mapping):
         n = mapping["per_q2y_hist_bins"].get(int(q2y_bin_num), mapping["max_hist_bins"])
     return ['MultiDim_z_pT_Bin_Y_bin_phi_t', -1.5, n + 0.5, n + 2]
 
+def dense_5d_var_input(mapping):
+    n = int(mapping["total_hist_bins"])
+    return ['MultiDim_Q2_y_z_pT_phi_h', -1.5, n + 0.5, n + 2]
+
+def choose_5d_slice_increment(n_bins, preferred=433):
+    n_bins = int(n_bins)
+    if(n_bins <= 0):
+        raise RuntimeError(f"choose_5d_slice_increment: n_bins must be > 0 (got {n_bins})")
+    if(n_bins % preferred == 0):
+        return int(preferred)
+    best_inc, best_dist = n_bins, abs(n_bins - preferred)
+    for inc in range(1, n_bins + 1):
+        if(n_bins % inc != 0):
+            continue
+        dist = abs(inc - preferred)
+        if(dist < best_dist):
+            best_inc, best_dist = inc, dist
+            if(best_dist == 0):
+                break
+    return int(best_inc)
+
 def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D", Use_Dense_Binning=True, args=None):
     if(str(Variable_Type) not in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared", "GEN", "Gen", "gen", "_GEN", "_Gen", "_gen", "", "norm", "normal", "default"]):
         print(f"The input: {color.RED}{Variable_Type}{color.END} was not recognized by the function Multi_Bin_Standard_Def_Function(Variable_Type='{Variable_Type}').\nFix input to use anything other than the default calculations of z and pT.")
@@ -1249,6 +1272,7 @@ def Multi_Bin_Standard_Def_Function(Variable_Type="", Dimension="3D", Use_Dense_
             ROOT.gInterpreter.Declare(mapping["cpp_dense_5d_code"])
             if(args is not None):
                 args._dense_5D_declared = True
+                args._dense_5d_mapping  = mapping
         phi_suf = "_smeared" if(str(Variable_Type) in ["smear", "smeared", "_smeared", "Smear", "Smeared", "_Smeared"]) else "_gen" if(str(Variable_Type) in ["GEN", "Gen", "gen", "_GEN", "_Gen", "_gen"]) else ""
         code_str = f"""int MultiDim5D_Bin_val = Get_Dense_5D_Bin({Q2_xB_Bin_event_name}, {z_pT_Bin_event_name}, phi_t{phi_suf});
 return MultiDim5D_Bin_val;"""

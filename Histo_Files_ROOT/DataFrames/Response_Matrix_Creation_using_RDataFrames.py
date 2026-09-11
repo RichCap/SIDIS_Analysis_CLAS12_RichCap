@@ -1154,10 +1154,21 @@ if(__name__ == "__main__"):
                 dense_3d_map = create_dense_3d_bin_mapping()
                 args._dense_3d_mapping = dense_3d_map
             print(f"{color.BBLUE}Dense 3D MultiDim: per-Q2_y bin counts = {dense_3d_map['per_q2y_hist_bins']} (max={dense_3d_map['max_hist_bins']}){color.END}")
-        phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816] if(getattr(args, "old_5D_unfold", True)) else ['MultiDim_Q2_y_z_pT_phi_h', -1.5,  11256.5, 11258] 
+        # phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816] if(getattr(args, "old_5D_unfold", True)) else ['MultiDim_Q2_y_z_pT_phi_h', -1.5,  11256.5, 11258]
+        # Sliced_5D_Increment        = 422 # Gives 28 slices to form the full response matrix
+        # if(not getattr(args, "old_5D_unfold", True)):
+        #     Sliced_5D_Increment    = 433 # Gives 26 slices to form the full response matrix
+        phi_h_5D_Binning           = ['MultiDim_Q2_y_z_pT_phi_h',         -0.5,  11815.5, 11816]
         Sliced_5D_Increment        = 422 # Gives 28 slices to form the full response matrix
-        if(not getattr(args, "old_5D_unfold", True)):
-            Sliced_5D_Increment    = 433 # Gives 26 slices to form the full response matrix
+        if(use_dense_5d):
+            dense_5d_map = getattr(args, "_dense_5d_mapping", None)
+            if(dense_5d_map is None):
+                dense_5d_map = create_dense_5d_bin_mapping()
+                args._dense_5d_mapping = dense_5d_map
+            phi_h_5D_Binning = dense_5d_var_input(dense_5d_map)
+            Sliced_5D_Increment = choose_5d_slice_increment(phi_h_5D_Binning[3], preferred=433)
+            n_slices = int(phi_h_5D_Binning[3] / Sliced_5D_Increment)
+            print(f"{color.BBLUE}Dense 5D MultiDim: total_hist_bins={dense_5d_map['total_hist_bins']} axis={phi_h_5D_Binning} increment={Sliced_5D_Increment} slices={n_slices}{color.END}")
         if(args.valerii_bins):
             Res_Binning_2D_z_pT_In = ["z_pT_Bin_Valerii_smeared",         -0.5,     60.5,    61] if(not getattr(args, "unsmeared", False)) else ["z_pT_Bin_Valerii", -0.5, 60.5, 61]
             z_pT_phi_h_Binning     = ['z_pT_phi_t_3D_Bin_Valerii',        -1.5,   1440.5,  1442]
