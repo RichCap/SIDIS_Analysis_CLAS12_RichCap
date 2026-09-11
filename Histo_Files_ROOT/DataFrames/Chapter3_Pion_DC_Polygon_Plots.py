@@ -247,6 +247,48 @@ def apply_sidis_cut(rdf, cols, label):
     return rdf.Filter(SIDIS_CUT)
 
 
+def run_polygon_plots(data_files, mc_files, out, tree="h22", max_entries=-1, analysis_root=None, zoom_dc=False):
+    # Used to be the body of main() before the Chapter 3 DataFrame entry point needed an importable runner.
+    if(analysis_root is None):
+        analysis_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    if(not data_files):
+        raise SystemExit("No --data files matched")
+    if(not mc_files):
+        raise SystemExit("No --mc files matched")
+    polygons = load_polygons(analysis_root)
+    rdf, cols = open_rdf(data_files, tree, max_entries)
+    mdf, mcols = open_rdf(mc_files, tree, max_entries)
+    needed = []
+    for layer in LAYERS:
+        needed.extend(["pip_x_DC_%d" % layer, "pip_y_DC_%d" % layer])
+    missing = [c for c in needed if((c not in cols) or (c not in mcols))]
+    if(missing):
+        raise SystemExit("Missing columns: %s" % missing)
+    rdf = apply_sidis_cut(rdf, cols, "Data")
+    mdf = apply_sidis_cut(mdf, mcols, "REC-MC")
+    print("Booking pion DC occupancy: %d bins, x,y in [%.0f, %.0f] cm" % (NBINS, BOOK_LO, BOOK_HI))
+    data_res, mc_res = {}, {}
+    for layer in LAYERS:
+        data_res[layer] = book_occupancy(rdf, layer, "hdata%d" % layer, "Data, DC %s;x [cm];y [cm]" % region_label(layer))
+        mc_res[layer] = book_occupancy(mdf, layer, "hmc%d" % layer, "Reconstructed MC, DC %s;x [cm];y [cm]" % region_label(layer))
+    h_data, h_mc, h_diff, ranges = {}, {}, {}, {}
+    for layer in LAYERS:
+        hd = ptr(data_res[layer])
+        hm = ptr(mc_res[layer])
+        ranges[layer] = display_range(layer, hd, hm, zoom_dc)
+        print("Layer %d display range: x in [%.0f, %.0f] cm, y in [%.0f, %.0f] cm" % (layer, ranges[layer][0], ranges[layer][1], ranges[layer][2], ranges[layer][3]))
+        normalize_occupancy(hd)
+        normalize_occupancy(hm)
+        hdiff = ratio_of_2d_histos(hd, hm, "hdiff%d" % layer)
+        hdiff.SetTitle("#splitline{%% Diff, DC %s}{#scale[0.5]{Comparison of Normalized Data/MC Hits}};x [cm];y [cm]" % region_label(layer))
+        h_data[layer], h_mc[layer], h_diff[layer] = hd, hm, hdiff
+    draw_row(h_data, polygons, ranges, out, "pip_DC_polygons_Data.pdf")
+    draw_row(h_mc, polygons, ranges, out, "pip_DC_polygons_MC.pdf")
+    draw_row(h_diff, polygons, ranges, out, "pip_DC_polygons_Percent_Diff.pdf", logz=True, ztitle="% Diff")
+    print("Polygon 1x3 figures written to", out)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-d", "--data", dest="data", required=True)
@@ -266,56 +308,9 @@ def main():
         help="Optional occupancy-based DC axis zoom (default: Fiducial_Cut All-sector ranges).",
     )
     args = parser.parse_args()
-
     data_files = expand(args.data)
     mc_files = expand(args.mc)
-    if not data_files:
-        raise SystemExit("No --data files matched")
-    if not mc_files:
-        raise SystemExit("No --mc files matched")
-
-    polygons = load_polygons(args.analysis_root)
-    rdf, cols = open_rdf(data_files, args.tree, args.max_entries)
-    mdf, mcols = open_rdf(mc_files, args.tree, args.max_entries)
-    needed = []
-    for layer in LAYERS:
-        needed.extend(["pip_x_DC_%d" % layer, "pip_y_DC_%d" % layer])
-    missing = [c for c in needed if c not in cols or c not in mcols]
-    if missing:
-        raise SystemExit("Missing columns: %s" % missing)
-
-    rdf = apply_sidis_cut(rdf, cols, "Data")
-    mdf = apply_sidis_cut(mdf, mcols, "REC-MC")
-
-    print("Booking pion DC occupancy: %d bins, x,y in [%.0f, %.0f] cm" % (NBINS, BOOK_LO, BOOK_HI))
-    data_res, mc_res = {}, {}
-    for layer in LAYERS:
-        data_res[layer] = book_occupancy(
-            rdf, layer, "hdata%d" % layer, "Data, DC %s;x [cm];y [cm]" % region_label(layer)
-        )
-        mc_res[layer] = book_occupancy(
-            mdf, layer, "hmc%d" % layer, "Reconstructed MC, DC %s;x [cm];y [cm]" % region_label(layer)
-        )
-
-    h_data, h_mc, h_diff, ranges = {}, {}, {}, {}
-    for layer in LAYERS:
-        hd = ptr(data_res[layer])
-        hm = ptr(mc_res[layer])
-        ranges[layer] = display_range(layer, hd, hm, args.zoom_dc)
-        print("Layer %d display range: x in [%.0f, %.0f] cm, y in [%.0f, %.0f] cm" % (
-            layer, ranges[layer][0], ranges[layer][1], ranges[layer][2], ranges[layer][3]
-        ))
-        normalize_occupancy(hd)
-        normalize_occupancy(hm)
-        hdiff = ratio_of_2d_histos(hd, hm, "hdiff%d" % layer)
-        hdiff.SetTitle("#splitline{%% Diff, DC %s}{#scale[0.5]{Comparison of Normalized Data/MC Hits}};x [cm];y [cm]" % region_label(layer))
-        h_data[layer], h_mc[layer], h_diff[layer] = hd, hm, hdiff
-
-    draw_row(h_data, polygons, ranges, args.out, "pip_DC_polygons_Data.pdf")
-    draw_row(h_mc, polygons, ranges, args.out, "pip_DC_polygons_MC.pdf")
-    draw_row(h_diff, polygons, ranges, args.out, "pip_DC_polygons_Percent_Diff.pdf", logz=True, ztitle="% Diff")
-    print("Polygon 1x3 figures written to", args.out)
-    return 0
+    return run_polygon_plots(data_files, mc_files, args.out, tree=args.tree, max_entries=args.max_entries, analysis_root=args.analysis_root, zoom_dc=args.zoom_dc)
 
 
 if __name__ == "__main__":

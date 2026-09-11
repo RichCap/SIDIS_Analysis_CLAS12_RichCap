@@ -39,14 +39,26 @@ Defined in `plot_Chapter3_HIPO_hists.py`. Groovy does not store cut indices.
 | `pip_dc` | pion/hadron DC edges R1,R2 \(>2.5\) cm and R3 \(>9.0\) cm |
 | `el_vz` | electron \(-8<v_z<2\) cm |
 | `pcal_emin` | PCAL \(E>0.06\) GeV |
+| `all_electron` | stored `all_electron==1` (production `Full_default_el`: PID, CC \(N_{phe}\), EC sampling, PCAL V/W, DC-edge, \(v_z\); not Sangbaek/Valerii rotated DC) |
+| `all_cuts` | former `all`: pip_fd + chi2pid + el_dc + pip_dc + el_vz + pcal_emin |
+| `all_electron_FD` | `all_electron` + `pip_fd` |
+| `all` | meta-option: every named config except itself |
 
-Default plotting writes every established configuration into its own directory:
+Default: `none` and `all_electron`.
 
-`none`, `el_dc`, `pip_dc`, `el_pip_dc`, `pip_fd`, `chi2pid`, `el_vz`, `pcal_emin`, `all`
+```bash
+python plot_Chapter3_HIPO_hists.py -r Chapter3_HIPO_hists_combined.root -o Plot_Images
+python plot_Chapter3_HIPO_hists.py -r Chapter3_HIPO_hists_combined.root -o Plot_Images -c all_electron all_electron_FD
+python plot_Chapter3_HIPO_hists.py -r Chapter3_HIPO_hists_combined.root -o Plot_Images -c all
+```
+
+Selectable `-c` names: `none`, `el_dc`, `pip_dc`, `el_pip_dc`, `pip_fd`, `chi2pid`, `el_vz`, `pcal_emin`, `all_cuts`, `all_electron`, `all_electron_FD`, `all`.
 
 ## Submit jobs (from `Data_Files_Groovy`)
 
 Reuse `run_groovy_scripts_with_emails.py`. `-wd` must point at `Chapter3_Figures/job_outputs`.
+
+Run from the `Data_Files_Groovy` of the launched repository (`work` `/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis` or `work_b` `/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap`). The hadd rerun command uses that same tree.
 
 ```bash
 cd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy && ./run_groovy_scripts_with_emails.py -src data -evt epipX -sp Chapter3_Figures/Chapter3_HIPO_Histograms.groovy -m slurm -st 6:00:00 -sn Chapter3Hists -wd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Chapter3_Figures/job_outputs -em "Creating thesis Chapter 3 figure images."
@@ -63,7 +75,7 @@ Override the output directory with `CHAPTER3_HIPO_OUTDIR`.
 From inside `Chapter3_Figures`:
 
 ```bash
-cd /w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Chapter3_Figures
+cd Chapter3_Figures
 ./hadd_Chapter3_HIPO_hists.sh
 ```
 
@@ -85,4 +97,11 @@ PDFs are written under `Plot_Images/<config>/` using the thesis file names:
 | `PCAL_Emin.pdf` | `fig:PCAL_Emin` |
 | `SFtot_band.pdf` | `fig:SFtot_band_cut` |
 | `Beta_PID.pdf` | `fig:Beta_PID` |
-| `electron_DC_rotated.pdf` | `fig:electron_DC_rotated` |
+| `electron_DC_rotated.pdf` | `fig:electron_DC_rotated` (weighted by `el_chi2pid`) |
+| `electron_vz.pdf` | electron \(v_z\) |
+| `electron_DC_edge.pdf` | electron DC-edge R1–R3 |
+| `pip_chi2pid.pdf` | pion \(\chi^2_{\mathrm{PID}}\) vs \(p\) (\(C=0.88\), no \(p>4.6\) piece) |
+| `delta_vz.pdf` | electron–pion \(\Delta v_z\) |
+| `pion_DC_edge.pdf` | pion DC-edge R1–R3 |
+| `PCAL_inefficient.pdf` | PCAL \(H_x\)–\(H_y\) occupancy |
+| `PCAL_VW.pdf` | PCAL \(V\)–\(W\) fiducial |

@@ -46,14 +46,22 @@ def main():
         raise SystemExit("FAIL el_pip_dc missing a DC clause: %s" % both)
     print("OK el_pip_dc both DC")
 
+    ae = plot.cut_filter(["all_electron"], 0)
+    if("all_electron == 1" not in ae):
+        raise SystemExit("FAIL all_electron missing flag: %s" % ae)
+    print("OK all_electron kind 0")
     had_all = plot.cut_filter(["pip_fd", "chi2pid", "el_dc", "pip_dc", "el_vz", "pcal_emin"], 2)
     for piece in ["kind == 2", "had_status >= 2000", "abs(had_chi2pid) < 3", "e_edge1 > 5.0", "h_edge1 > 2.5", "vz > -8.0", "pcal_energy > 0.06"]:
         if(piece not in had_all):
             raise SystemExit("FAIL all-had missing %s in %s" % (piece, had_all))
     print("OK all-hadron filter")
 
-    names = [name for name, _cuts in plot.PLOT_CONFIGS]
-    check_equal(names, ["none", "el_dc", "pip_dc", "el_pip_dc", "pip_fd", "chi2pid", "el_vz", "pcal_emin", "all"], "default config names")
+    names = [name for name, _cuts in plot.NAMED_CONFIGS]
+    check_equal(names, ["none", "el_dc", "pip_dc", "el_pip_dc", "pip_fd", "chi2pid", "el_vz", "pcal_emin", "all_cuts", "all_electron", "all_electron_FD"], "named config names")
+    check_equal(plot.NAMED_CONFIG_MAP["all_cuts"], ["pip_fd", "chi2pid", "el_dc", "pip_dc", "el_vz", "pcal_emin"], "all_cuts clauses")
+    check_equal(plot.NAMED_CONFIG_MAP["all_electron"], ["all_electron"], "all_electron clauses")
+    check_equal(plot.NAMED_CONFIG_MAP["all_electron_FD"], ["all_electron", "pip_fd"], "all_electron_FD clauses")
+    check_equal(plot.DEFAULT_CONFIGS, ["none", "all_electron"], "default configs")
     print("All named-cut checks passed.")
     return 0
 

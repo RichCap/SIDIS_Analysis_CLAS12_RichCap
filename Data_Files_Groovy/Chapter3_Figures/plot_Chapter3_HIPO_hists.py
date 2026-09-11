@@ -35,31 +35,40 @@ M_P  = 0.938272081
 # Optional cuts applied at plot time from the h22 TTree.
 # Pion/hadron branch names depend on row kind (1 = e-pi+ pair, 2 = positive hadron).
 CUT_CLAUSES = {
-    "pip_fd":    {"pair": "(pip_status >= 2000) && (pip_status < 4000)",
-                  "had":  "(had_status >= 2000) && (had_status < 4000)"},
-    "chi2pid":   {"pair": "abs(pip_chi2pid) < 3",
-                  "had":  "abs(had_chi2pid) < 3"},
-    "el_dc":     {"pair": "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)",
-                  "had":  "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)"},
-    "pip_dc":    {"pair": "(p_edge1 > 2.5) && (p_edge2 > 2.5) && (p_edge3 > 9.0)",
-                  "had":  "(h_edge1 > 2.5) && (h_edge2 > 2.5) && (h_edge3 > 9.0)"},
-    "el_vz":     {"pair": "(vz > -8.0) && (vz < 2.0)",
-                  "had":  "(vz > -8.0) && (vz < 2.0)"},
-    "pcal_emin": {"pair": "pcal_energy > 0.06",
-                  "had":  "pcal_energy > 0.06"},
+    "pip_fd":       {"pair": "(pip_status >= 2000) && (pip_status < 4000)",
+                     "had":  "(had_status >= 2000) && (had_status < 4000)"},
+    "chi2pid":      {"pair": "abs(pip_chi2pid) < 3",
+                     "had":  "abs(had_chi2pid) < 3"},
+    "el_dc":        {"pair": "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)",
+                     "had":  "(e_edge1 > 5.0) && (e_edge2 > 5.0) && (e_edge3 > 10.0)"},
+    "pip_dc":       {"pair": "(p_edge1 > 2.5) && (p_edge2 > 2.5) && (p_edge3 > 9.0)",
+                     "had":  "(h_edge1 > 2.5) && (h_edge2 > 2.5) && (h_edge3 > 9.0)"},
+    "el_vz":        {"pair": "(vz > -8.0) && (vz < 2.0)",
+                     "had":  "(vz > -8.0) && (vz < 2.0)"},
+    "pcal_emin":    {"pair": "pcal_energy > 0.06",
+                     "had":  "pcal_energy > 0.06"},
+    "all_electron": {"pair": "all_electron == 1",
+                     "had":  "all_electron == 1"},
 }
 PION_CUTS = ["pip_fd", "chi2pid", "pip_dc"]
-PLOT_CONFIGS = [
-    ("none",      []),
-    ("el_dc",     ["el_dc"]),
-    ("pip_dc",    ["pip_dc"]),
-    ("el_pip_dc", ["el_dc", "pip_dc"]),
-    ("pip_fd",    ["pip_fd"]),
-    ("chi2pid",   ["chi2pid"]),
-    ("el_vz",     ["el_vz"]),
-    ("pcal_emin", ["pcal_emin"]),
-    ("all",       ["pip_fd", "chi2pid", "el_dc", "pip_dc", "el_vz", "pcal_emin"]),
+NAMED_CONFIGS = [
+    ("none",            []),
+    ("el_dc",           ["el_dc"]),
+    ("pip_dc",          ["pip_dc"]),
+    ("el_pip_dc",       ["el_dc", "pip_dc"]),
+    ("pip_fd",          ["pip_fd"]),
+    ("chi2pid",         ["chi2pid"]),
+    ("el_vz",           ["el_vz"]),
+    ("pcal_emin",       ["pcal_emin"]),
+    ("all_cuts",        ["pip_fd", "chi2pid", "el_dc", "pip_dc", "el_vz", "pcal_emin"]),
+    ("all_electron",    ["all_electron"]),
+    ("all_electron_FD", ["all_electron", "pip_fd"]),
 ]
+PLOT_CONFIGS = NAMED_CONFIGS
+NAMED_CONFIG_MAP = dict(NAMED_CONFIGS)
+DEFAULT_CONFIGS = ["none", "all_electron"]
+CHI2PID_C = 0.88
+DVZ_MID = 20.0
 
 
 def apply_grid(pad=None):
@@ -114,6 +123,13 @@ def cut_filter(cut_names, row_kind):
     return " && ".join(clauses)
 
 
+def rdf_has(rdf, col):
+    try:
+        return bool(rdf.HasColumn(col))
+    except Exception:
+        return False
+
+
 def fill_histograms(root_path, cut_names):
     if(uses_pion_cut(cut_names)):
         ele_kind = 1
@@ -121,37 +137,66 @@ def fill_histograms(root_path, cut_names):
         ele_kind = 0
     ele_cut = cut_filter(cut_names, ele_kind)
     had_cut = cut_filter(cut_names, 2)
+    pip_cut = cut_filter(cut_names, 1)
     print("electron kind %d filter [%s]" % (ele_kind, ele_cut))
     print("hadron filter [%s]" % had_cut)
 
     rdf_ele = ROOT.RDataFrame("h22", root_path).Filter(ele_cut)
     rdf_had = ROOT.RDataFrame("h22", root_path).Filter(had_cut)
+    rdf_pip = ROOT.RDataFrame("h22", root_path).Filter(pip_cut)
 
     h_htcc = ptr(rdf_ele.Histo1D(("h_htcc_nphe",   "Electron HTCC N_{phe};N_{phe};Counts",           150, 0.0, 75.0), "nphe"))
     h_pcal = ptr(rdf_ele.Histo1D(("h_pcal_energy", "Electron PCAL energy;E_{PCAL} [GeV];Counts",     120, 0.0,  1.2), "pcal_energy"))
     h_beta = ptr(rdf_had.Histo2D(("h_beta_poshad", "Positive hadrons;p [GeV];#beta", 120, 0.0, 8.0, 120, 0.4, 1.2), "had_p", "had_beta"))
+    h_vz   = ptr(rdf_ele.Histo1D(("h_ele_vz", "Electron v_{z};v_{z} [cm];Counts", 120, -20.0, 10.0), "vz"))
+    h_e_edge = [
+        ptr(rdf_ele.Histo1D(("h_e_edge1", "Electron DC edge R1;edge [cm];Counts", 120, -5.0, 40.0), "e_edge1")),
+        ptr(rdf_ele.Histo1D(("h_e_edge2", "Electron DC edge R2;edge [cm];Counts", 120, -5.0, 40.0), "e_edge2")),
+        ptr(rdf_ele.Histo1D(("h_e_edge3", "Electron DC edge R3;edge [cm];Counts", 120, -5.0, 40.0), "e_edge3")),
+    ]
+    h_p_edge = [
+        ptr(rdf_pip.Histo1D(("h_p_edge1", "Pion DC edge R1;edge [cm];Counts", 120, -5.0, 40.0), "p_edge1")),
+        ptr(rdf_pip.Histo1D(("h_p_edge2", "Pion DC edge R2;edge [cm];Counts", 120, -5.0, 40.0), "p_edge2")),
+        ptr(rdf_pip.Histo1D(("h_p_edge3", "Pion DC edge R3;edge [cm];Counts", 120, -5.0, 40.0), "p_edge3")),
+    ]
+    h_pip_chi2 = None
+    if(rdf_has(rdf_pip, "pip_p")):
+        h_pip_chi2 = ptr(rdf_pip.Histo2D(("h_pip_chi2pid", "Pion #chi^{2}_{PID};p_{#pi^{+}} [GeV];#chi^{2}_{PID}", 120, 0.0, 8.0, 120, -8.0, 8.0), "pip_p", "pip_chi2pid"))
+    h_dvz = None
+    if(rdf_has(rdf_pip, "dvz")):
+        h_dvz = ptr(rdf_pip.Histo1D(("h_dvz", "Electron-pion #Delta v_{z};#Delta v_{z} [cm];Counts", 120, -40.0, 40.0), "dvz"))
+    h_hxhy = None
+    if(rdf_has(rdf_ele, "Hx") and rdf_has(rdf_ele, "Hy")):
+        h_hxhy = ptr(rdf_ele.Histo2D(("h_pcal_hxhy", "PCAL occupancy;H_{x} [cm];H_{y} [cm]", 120, -400, 400, 120, -400, 400), "Hx", "Hy"))
+    h_vw = None
+    if(rdf_has(rdf_ele, "V_PCal") and rdf_has(rdf_ele, "W_PCal")):
+        h_vw = ptr(rdf_ele.Histo2D(("h_pcal_vw", "PCAL V-W;V [cm];W [cm]", 120, 0, 450, 120, 0, 450), "V_PCal", "W_PCal"))
 
     h_sftot = {}
     h_dc    = {}
+    dc_weight = "el_chi2pid" if(rdf_has(rdf_ele, "el_chi2pid")) else None
     for sec in range(1, 7):
         rdf_sec = rdf_ele.Filter("esec == %d" % sec)
         h_sftot[sec] = ptr(rdf_sec.Histo2D(
             ("h_sftot_sec%d" % sec, "Sector %d;p_{e} [GeV];SF_{tot}" % sec, 450, 1.0, 10.0, 500, 0.0, 0.50),
             "el_p", "sftot"
         ))
-        h_dc[(1, sec)] = ptr(rdf_sec.Histo2D(
-            ("h_ele_dc_r1_s%d" % sec, "R1 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -160, 20, 80, -90, 90),
-            "xrot1", "yrot1"
-        ))
-        h_dc[(2, sec)] = ptr(rdf_sec.Histo2D(
-            ("h_ele_dc_r2_s%d" % sec, "R2 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -220, 20, 80, -120, 120),
-            "xrot2", "yrot2"
-        ))
-        h_dc[(3, sec)] = ptr(rdf_sec.Histo2D(
-            ("h_ele_dc_r3_s%d" % sec, "R3 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -280, 20, 80, -160, 160),
-            "xrot3", "yrot3"
-        ))
-    return h_htcc, h_pcal, h_sftot, h_beta, h_dc
+        dc_args_1 = (("h_ele_dc_r1_s%d" % sec, "R1 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -160, 20, 80, -90, 90), "xrot1", "yrot1")
+        dc_args_2 = (("h_ele_dc_r2_s%d" % sec, "R2 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -220, 20, 80, -120, 120), "xrot2", "yrot2")
+        dc_args_3 = (("h_ele_dc_r3_s%d" % sec, "R3 S%d;x_{rot} [cm];y_{rot} [cm]" % sec, 80, -280, 20, 80, -160, 160), "xrot3", "yrot3")
+        if(dc_weight is not None):
+            h_dc[(1, sec)] = ptr(rdf_sec.Histo2D(dc_args_1[0], dc_args_1[1], dc_args_1[2], dc_weight))
+            h_dc[(2, sec)] = ptr(rdf_sec.Histo2D(dc_args_2[0], dc_args_2[1], dc_args_2[2], dc_weight))
+            h_dc[(3, sec)] = ptr(rdf_sec.Histo2D(dc_args_3[0], dc_args_3[1], dc_args_3[2], dc_weight))
+        else:
+            h_dc[(1, sec)] = ptr(rdf_sec.Histo2D(dc_args_1[0], dc_args_1[1], dc_args_1[2]))
+            h_dc[(2, sec)] = ptr(rdf_sec.Histo2D(dc_args_2[0], dc_args_2[1], dc_args_2[2]))
+            h_dc[(3, sec)] = ptr(rdf_sec.Histo2D(dc_args_3[0], dc_args_3[1], dc_args_3[2]))
+    return {
+        "htcc": h_htcc, "pcal": h_pcal, "sftot": h_sftot, "beta": h_beta, "dc": h_dc,
+        "vz": h_vz, "e_edge": h_e_edge, "p_edge": h_p_edge, "pip_chi2": h_pip_chi2,
+        "dvz": h_dvz, "hxhy": h_hxhy, "vw": h_vw,
+    }
 
 
 def plot_htcc(hist, outdir):
@@ -241,15 +286,22 @@ def plot_beta(hist, outdir):
     hist.Draw("colz")
     keep = [hist]
     n = 80
+    legend = ROOT.TLegend(0.62, 0.18, 0.88, 0.38)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    labels = {M_PI: "#pi^{+}", M_K: "Kaon", M_P: "Proton"}
     for mass, col in ((M_PI, ROOT.kRed), (M_K, ROOT.kGreen + 2), (M_P, ROOT.kMagenta)):
         gr = ROOT.TGraph(n)
         for i in range(n):
             p = 0.2 + (7.5 - 0.2) * i / (n - 1)
             gr.SetPoint(i, p, beta_mass(p, mass))
         gr.SetLineColor(col)
-        gr.SetLineWidth(1)
+        gr.SetLineWidth(2)
         gr.Draw("L same")
+        legend.AddEntry(gr, labels[mass], "l")
         keep.append(gr)
+    legend.Draw()
+    keep.append(legend)
     can.keep = keep
     return save(can, outdir, "Beta_PID.pdf")
 
@@ -293,19 +345,126 @@ def plot_electron_dc(h_dc, outdir):
     return save(can, outdir, "electron_DC_rotated.pdf")
 
 
+def plot_1d_cut(hist, outdir, name, title, lines):
+    if(not hist):
+        print("SKIP", name)
+        return None
+    can = ROOT.TCanvas("c_" + name, "c_" + name, 700, 500)
+    hist.SetTitle(title)
+    hist.Draw("hist")
+    apply_grid()
+    ymax = hist.GetMaximum() * 1.05
+    if(ymax <= 0):
+        ymax = 1.0
+    keep = [hist]
+    for xcut in lines:
+        line = ROOT.TLine(xcut, 0.0, xcut, ymax)
+        line.SetLineColor(ROOT.kRed)
+        line.SetLineWidth(2)
+        line.Draw("same")
+        keep.append(line)
+    can.keep = keep
+    return save(can, outdir, name)
+
+
+def plot_edge_row(hists, outdir, name, titles, cuts):
+    if(not hists or any(h is None for h in hists)):
+        print("SKIP", name)
+        return None
+    can = ROOT.TCanvas("c_" + name, "c_" + name, 1400, 450)
+    can.Divide(3, 1)
+    keep = []
+    for i, (hist, title, cut) in enumerate(zip(hists, titles, cuts), start=1):
+        pad = can.cd(i)
+        hist.SetTitle(title)
+        hist.Draw("hist")
+        apply_grid(pad)
+        ymax = hist.GetMaximum() * 1.05
+        if(ymax <= 0):
+            ymax = 1.0
+        line = ROOT.TLine(cut, 0.0, cut, ymax)
+        line.SetLineColor(ROOT.kRed)
+        line.SetLineWidth(2)
+        line.Draw("same")
+        keep.extend([hist, line])
+    can.keep = keep
+    return save(can, outdir, name)
+
+
+def pip_chi2_high(p):
+    if(p < 2.44):
+        return 3.0 * CHI2PID_C
+    return CHI2PID_C * (0.00869 + 14.98587 * math.exp(-p / 1.18236) + 1.81751 * math.exp(-p / 4.86394))
+
+
+def plot_pip_chi2(hist, outdir):
+    if(not hist):
+        print("SKIP pip_chi2pid.pdf")
+        return None
+    can = ROOT.TCanvas("c_pipchi2", "c_pipchi2", 800, 650)
+    hist.SetTitle("Pion #chi^{2}_{PID} vs p;p_{#pi^{+}} [GeV];#chi^{2}_{PID}")
+    apply_grid()
+    ROOT.gPad.SetLogz(1)
+    hist.Draw("colz")
+    keep = [hist]
+    n = 80
+    g_lo = ROOT.TGraph(n)
+    g_hi = ROOT.TGraph(n)
+    for i in range(n):
+        p = 0.2 + (7.5 - 0.2) * i / (n - 1)
+        g_lo.SetPoint(i, p, -3.0 * CHI2PID_C)
+        g_hi.SetPoint(i, p, pip_chi2_high(p))
+    for g in (g_lo, g_hi):
+        g.SetLineColor(ROOT.kRed)
+        g.SetLineWidth(2)
+        g.Draw("L same")
+        keep.append(g)
+    can.keep = keep
+    return save(can, outdir, "pip_chi2pid.pdf")
+
+
+def plot_colz(hist, outdir, name, title, overlays=None):
+    if(not hist):
+        print("SKIP", name)
+        return None
+    can = ROOT.TCanvas("c_" + name, "c_" + name, 800, 700)
+    hist.SetTitle(title)
+    apply_grid()
+    ROOT.gPad.SetLogz(1)
+    hist.Draw("colz")
+    keep = [hist]
+    if(overlays):
+        for item in overlays:
+            item.SetLineColor(ROOT.kRed)
+            item.SetLineWidth(2)
+            item.Draw("L same")
+            keep.append(item)
+    can.keep = keep
+    return save(can, outdir, name)
+
+
 def plot_one_config(root_path, outdir, cut_names):
-    h_htcc, h_pcal, h_sftot, h_beta, h_dc = fill_histograms(root_path, cut_names)
+    h = fill_histograms(root_path, cut_names)
     written = []
-    path = plot_htcc(h_htcc, outdir)
-    if(path): written.append(path)
-    path = plot_pcal(h_pcal, outdir)
-    if(path): written.append(path)
-    path = plot_sftot(h_sftot, outdir)
-    if(path): written.append(path)
-    path = plot_beta(h_beta, outdir)
-    if(path): written.append(path)
-    path = plot_electron_dc(h_dc, outdir)
-    if(path): written.append(path)
+    for path in (
+        plot_htcc(h["htcc"], outdir),
+        plot_pcal(h["pcal"], outdir),
+        plot_sftot(h["sftot"], outdir),
+        plot_beta(h["beta"], outdir),
+        plot_electron_dc(h["dc"], outdir),
+        plot_1d_cut(h["vz"], outdir, "electron_vz.pdf", "Electron v_{z};v_{z} [cm];Counts", [-8.0, 2.0]),
+        plot_edge_row(h["e_edge"], outdir, "electron_DC_edge.pdf",
+                      ["R1;edge [cm];Counts", "R2;edge [cm];Counts", "R3;edge [cm];Counts"], [5.0, 5.0, 10.0]),
+        plot_pip_chi2(h["pip_chi2"], outdir),
+        plot_1d_cut(h["dvz"], outdir, "delta_vz.pdf", "Electron-pion #Delta v_{z};#Delta v_{z} [cm];Counts", [-DVZ_MID, DVZ_MID]),
+        plot_edge_row(h["p_edge"], outdir, "pion_DC_edge.pdf",
+                      ["R1;edge [cm];Counts", "R2;edge [cm];Counts", "R3;edge [cm];Counts"], [2.5, 2.5, 9.0]),
+        plot_colz(h["hxhy"], outdir, "PCAL_inefficient.pdf", "PCAL occupancy;H_{x} [cm];H_{y} [cm]"),
+        plot_colz(h["vw"], outdir, "PCAL_VW.pdf", "PCAL V-W fiducial;V [cm];W [cm]",
+                  [ROOT.TLine(14.0, 0.0, 14.0, 450.0), ROOT.TLine(0.0, 14.0, 450.0, 14.0)]),
+    ):
+        if(path):
+            written.append(path)
     return written
 
 
@@ -319,12 +478,23 @@ def main():
                         dest="out",
                         default="Plot_Images",
                         help="Output directory where the plots will be saved.")
+    parser.add_argument("-c", "--config",
+                        dest="config",
+                        nargs="+",
+                        default=["none", "all_electron"],
+                        choices=["none", "el_dc", "pip_dc", "el_pip_dc", "pip_fd", "chi2pid", "el_vz", "pcal_emin", "all_cuts", "all_electron", "all_electron_FD", "all"],
+                        help="Named plot-time cut configurations (one or more). Default: none all_electron. 'all' runs every named config except the meta-option itself. The old combined set is now 'all_cuts'.")
     args = parser.parse_args()
     if(not os.path.isfile(args.root)):
         raise SystemExit("Missing combined ROOT file: %s" % args.root)
+    if("all" in args.config):
+        selected = [name for name, _cuts in NAMED_CONFIGS]
+    else:
+        selected = list(args.config)
     written = []
     ROOT.gROOT.SetMustClean(False)
-    for name, cuts in PLOT_CONFIGS:
+    for name in selected:
+        cuts = NAMED_CONFIG_MAP[name]
         outdir = os.path.join(args.out, name)
         print("=== %s -> %s" % (name, outdir))
         written.extend(plot_one_config(args.root, outdir, cuts))

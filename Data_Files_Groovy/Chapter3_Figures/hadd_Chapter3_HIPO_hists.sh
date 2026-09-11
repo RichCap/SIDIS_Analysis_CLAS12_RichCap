@@ -17,11 +17,7 @@ COMBINED="${CHAPTER3_HIPO_COMBINED:-${SCRIPT_DIR}/Chapter3_HIPO_hists_combined.r
 RERUN_LIST="${SCRIPT_DIR}/rerun_broken_hipo_files.txt"
 HIPO_PREFIX="/cache/clas12/rg-a/production/recon/fall2018/torus-1/pass2/main/train/nSidis"
 
-if [[ -d "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy" ]]; then
-  GROOVY_DIR="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy"
-else
-  GROOVY_DIR="/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Data_Files_Groovy"
-fi
+GROOVY_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 if ! command -v hadd >/dev/null 2>&1; then
   echo "ERROR: ROOT hadd is not on PATH."
