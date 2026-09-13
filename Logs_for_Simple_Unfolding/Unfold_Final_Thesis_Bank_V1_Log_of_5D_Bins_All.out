@@ -11299,3 +11299,181 @@ Now unfolding...
 Iteration : 0
 Chi^2 of change 3.36449e+06
 Iteration : 1
+Chi^2 of change 93923.5
+Iteration : 2
+Chi^2 of change 28355.2
+Iteration : 3
+Chi^2 of change 18031.7
+Iteration : 4
+Chi^2 of change 13423.4
+Iteration : 5
+Chi^2 of change 10615.9
+Iteration : 6
+Chi^2 of change 8657.51
+Iteration : 7
+Chi^2 of change 7189.48
+Iteration : 8
+Chi^2 of change 6040.52
+Iteration : 9
+Chi^2 of change 5115.49
+Iteration : 10
+Chi^2 of change 4356.39
+Iteration : 11
+Chi^2 of change 3725.47
+Iteration : 12
+Chi^2 of change 3196.74
+Iteration : 13
+Chi^2 of change 2751.41
+Iteration : 14
+Chi^2 of change 2375.2
+Using response matrix priors
+Calculating covariances due to number of measured events
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Dedicated_5D_Unfold.py:1320: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Dedicated_5D_Unfold.py:1216: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(method == "Background" and MC_BGS_1D in ["None"]):
+
+[1m[94mSmear option selected is: Smear[0m
+
+The total number of histograms in '[1m[94m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_Final_Thesis_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m355[0m
+[91mWARNING: Live dense-5D MultiDim map (skip_condition_z_pT_bins) differs from baked Convert_MultiDim_Kinematic_Bins_dense_5D.[0m
+Default Convert_All_Kinematic_Bins uses the live map to match Response_Matrix_Creation_using_RDataFrames.create_dense_5d_bin_mapping.
+Set USE_BAKED_DENSE_5D_MAP = True or Convert_All_Kinematic_Bins(..., Use_Baked_Dense_5D=True) to use the baked snapshot instead.
+
+[1mAuto-detected 5D configuration:[0m increment=433, num_bins=11258, num_slices=26
+
+
+[1m[92m(5D) Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'-[NumBins=11258, MinBin=-1.5, MaxBin=11256.5]))_Slice_1_(Increment='433')[0m
+
+[1m[92mSubtracting the 'lundvpk' files to the 'ExREAL_1D' histogram[0m
+
+[1m[94mRunning Rebuild_Matrix_5D(...)[0m
+
+
+[1m[92mFinished running Rebuild_Matrix_5D(...)[0m
+
+
+Current Time: [1m01:35 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 6 Minute(s), and 48 Second(s).
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 6 Minute(s), and 48 Second(s). 
+	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
+[1mPerforming 5D Unfolding with [4m4[0m[1m iteration(s)...[0m
+[1mPerforming Unfolding with [4m15[0m[1m iteration(s)...[0m
+
+Current Time: [1m01:42 p.m.[0m
+Time Elapsed Up To Now:
+3 Day(s), 0 Hour(s), 13 Minute(s), and 6 Second(s).
+
+[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
+[0m
+
+[1m[92mFinished Unfolding[0m
+
+
+Current Time: [1m01:42 p.m.[0m
+Time Elapsed Up To Now:
+3 Day(s), 0 Hour(s), 13 Minute(s), and 6 Second(s).
+
+[1m[94mSaving to: [1m[92m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfolded_Dedicated_SIDIS_epip_from_Only_5D_Final_Thesis_Bank_V1.root[0m
+
+[94mRunning Multi5D_Slice(...)[0m
+
+
+[94mRunning Multi5D_Slice(...)[0m
+
+
+[94mRunning Multi5D_Slice(...)[0m
+
+
+[94mRunning Multi5D_Slice(...)[0m
+
+
+[94mRunning Multi5D_Slice(...)[0m
+
+
+[1m[94mDone Saving...[0m
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has finished running.
+Started running on [1m9-9-2026[0m at [1m01:29 p.m.[0m
+
+Input File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_Final_Thesis_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfolded_Dedicated_SIDIS_epip_from_Only_5D_Final_Thesis_Bank_V1.root
+
+Coordinated 5D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran 5D Unfolding with updated kinematic bins (based on the BC correction limitations). Used the work_b directory. Ran with 15 bayesian iterations (for testing). Ran with 1 Toy Unfoldings (for testing). Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxUnfold.
+
+	[1mBegan Unfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'))
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 6 Minute(s), and 48 Second(s). 
+	Finished Unfolding the histogram at:
+Time Elapsed Up To Now: 3 Day(s), 0 Hour(s), 13 Minute(s), and 6 Second(s). 
+
+Detected 5D Configuration:
+	increment  = 433
+	num_bins   = 11258
+	num_slices = 26
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 15
+--Num_Toys                                          --> 1
+--bins                                              --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '0']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.0005
+--background_source                                 --> 'lundvpk'
+--require_weighed                                   --> False
+--weight_tag                                        --> ''
+--increment                                         --> 433
+--num_bins                                          --> 11258
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work_b'
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+--standard_histogram_title_addition                 --> ''
+--Q2_y_Bin_List                                     --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '0']
+
+
+The time that this code finished is [1m01:42 p.m.[0m
+The total time the code took to run is:
+3 Day(s), 0 Hour(s), 13 Minute(s), and 8 Second(s).
+Saved 2362 Histograms...
+Rate = 0.01 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

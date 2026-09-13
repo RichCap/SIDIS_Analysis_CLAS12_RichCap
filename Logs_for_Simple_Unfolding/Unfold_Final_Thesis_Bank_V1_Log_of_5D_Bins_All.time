@@ -1,0 +1,23 @@
+	Command being timed: "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Dedicated_5D_Unfold.py --data_root work_b --root /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfolded_Dedicated_SIDIS_epip_from_Only_5D_Final_Thesis_Bank_V1.root --single_file_input /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_Final_Thesis_Bank_Response_Matrices_Final_Thesis_Files_All.root --background_source lundvpk -em Coordinated 5D unfolding through the 'Run_simple_unfold_parallel.py' script. Ran 5D Unfolding with updated kinematic bins (based on the BC correction limitations). Used the work_b directory. Ran with 15 bayesian iterations (for testing). Ran with 1 Toy Unfoldings (for testing). Ran with Harut's exclusive 'lundvpk' rho0 events subtracted directly from data as background. Ran in tmuxUnfold. -e --bayes_iterations 15 --Num_Toys 1"
+	User time (seconds): 258056.33
+	System time (seconds): 1104.66
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 72:13:10
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 22943956
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 197
+	Minor (reclaiming a frame) page faults: 325054881
+	Voluntary context switches: 102894887
+	Involuntary context switches: 2989274
+	Swaps: 0
+	File system inputs: 832
+	File system outputs: 7016
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
