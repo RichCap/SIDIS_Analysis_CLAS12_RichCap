@@ -390,7 +390,8 @@ def _log_squeue_snapshot(array_jobid, raw):
         return
     _SQUEUE_SNAPSHOT_LOGGED.add(key)
     text = (raw or "").strip() or "<empty>"
-    print(f"{color.BBLUE}[INFO]{color.END} squeue snapshot for array {array_jobid}:\n{text}")
+    if(text == "<empty>"):
+        print(f"{color.BBLUE}[INFO]{color.END} squeue snapshot for array {array_jobid}:\n{text}")
 
 def _squeue_line_fields(line):
     parts = str(line).split()
@@ -467,32 +468,73 @@ def query_slurm_array_task_state(array_jobid, batch_index):
         fmt_out = fmt_proc.stdout or ""
     return _parse_squeue_task_state(array_jobid, batch_index, fmt_out, default_proc.stdout)
 
-def _scancel_once(job_str):
-    try:
-        proc = subprocess.run(["scancel", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    except FileNotFoundError:
-        return False, "scancel not found"
-    except Exception as exc:
-        return False, str(exc)
-    if(proc.returncode == 0):
-        return True, ""
-    return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
 
-def cancel_slurm_array_task(array_jobid, batch_index, retries=10, delay=3.0):
-    split_id = f"{array_jobid}_{batch_index}"
-    bracket_id = f"{array_jobid}_[{batch_index}]"
-    last_msg = ""
-    for attempt in range(int(retries)):
-        for job_str in [split_id, bracket_id]:
-            ok, msg = _scancel_once(job_str)
-            if(ok):
-                print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
-                return True
-            last_msg = msg
-        if(attempt < (int(retries) - 1)):
-            time.sleep(delay)
-    print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}. Local job will not start while the farm task may still be pending.")
-    return False
+# def _scancel_once(job_str):
+#     try:
+#         proc = subprocess.run(["scancel", "--ctld", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         return False, "scancel not found"
+#     except Exception as exc:
+#         return False, str(exc)
+#     if(proc.returncode == 0):
+#         return True, ""
+#     return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
+
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     job_str = f"{array_jobid}_{batch_index}"
+#     ok, msg = _scancel_once(job_str)
+#     if(ok):
+#         print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+#         return True
+#     print(f"{color.Error}[WARNING]{color.END} scancel failed for {job_str}: {msg}. Local job will not start while the farm task may still be pending.")
+#     return False
+
+
+def cancel_slurm_array_task(array_jobid, batch_index):
+    job_str = f"{array_jobid}_{batch_index}"
+    try:
+        proc = subprocess.run(["tcsh", "-ic", f"scancel {job_str}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print(f"{color.Error}[WARNING]{color.END} tcsh/scancel not found; cannot cancel SLURM array task {job_str}.")
+        return False
+    except Exception as exc:
+        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {exc}")
+        return False
+    if(proc.returncode != 0):
+        msg = proc.stderr.strip()
+        if(msg == ""):
+            msg = "(no additional message from scancel)"
+        print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
+        return False
+    print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+    return True
+    
+# def _scancel_once(job_str):
+#     try:
+#         proc = subprocess.run(["scancel", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         return False, "scancel not found"
+#     except Exception as exc:
+#         return False, str(exc)
+#     if(proc.returncode == 0):
+#         return True, ""
+#     return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
+
+# def cancel_slurm_array_task(array_jobid, batch_index, retries=10, delay=0.0):
+#     split_id = f"{array_jobid}_{batch_index}"
+#     bracket_id = f"'{array_jobid}_[{batch_index}]'"
+#     last_msg = ""
+#     for attempt in range(int(retries)):
+#         for job_str in [split_id, bracket_id]:
+#             ok, msg = _scancel_once(job_str)
+#             if(ok):
+#                 print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+#                 return True
+#             last_msg = msg if(last_msg == "") else f"{last_msg} | {msg}"
+#         if(attempt < (int(retries) - 1)):
+#             time.sleep(delay)
+#     print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}. Local job will not start while the farm task may still be pending.")
+#     return False
 
 def slurm_array_has_active_tasks(array_jobid):
     global SLURM_ARRAY_CHECK_DISABLED

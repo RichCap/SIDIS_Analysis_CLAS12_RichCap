@@ -729,7 +729,7 @@ def submit_slurm_capture_array_id(args, cmd, task_label, cut_name):
     log_print(args, f"{color.BGREEN}Captured SLURM array job id {array_id} for {task_label}{color.END}")
     return array_id
 
-HYBRID_SQUEUE_SETTLE_S = 15.0
+HYBRID_SQUEUE_SETTLE_S = 1.0
 
 def wait_after_slurm_submit(args, array_id=None):
     extra = f" {array_id}" if(array_id not in [None, ""]) else ""
