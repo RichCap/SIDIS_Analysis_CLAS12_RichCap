@@ -490,23 +490,49 @@ def query_slurm_array_task_state(array_jobid, batch_index):
 #     return False
 
 
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     job_str = f"{array_jobid}_{batch_index}"
+#     try:
+#         proc = subprocess.run(["tcsh", "-ic", f"scancel {job_str}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         print(f"{color.Error}[WARNING]{color.END} tcsh/scancel not found; cannot cancel SLURM array task {job_str}.")
+#         return False
+#     except Exception as exc:
+#         print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {exc}")
+#         return False
+#     if(proc.returncode != 0):
+#         msg = proc.stderr.strip()
+#         if(msg == ""):
+#             msg = "(no additional message from scancel)"
+#         print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
+#         return False
+#     print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+#     return True
+
+_SCANCEL_ARRAY_TASK_CSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scancel_slurm_array_task.csh")
+
 def cancel_slurm_array_task(array_jobid, batch_index):
-    job_str = f"{array_jobid}_{batch_index}"
+    # Compact pending arrays need JOBID_[N]; split tasks use JOBID_N. The tcsh wrapper tries both.
+    split_id = f"{array_jobid}_{batch_index}"
+    bracket_id = f"{array_jobid}_[{batch_index}]"
     try:
-        proc = subprocess.run(["tcsh", "-ic", f"scancel {job_str}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.run(["/bin/tcsh", _SCANCEL_ARRAY_TASK_CSH, str(array_jobid), str(batch_index)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
-        print(f"{color.Error}[WARNING]{color.END} tcsh/scancel not found; cannot cancel SLURM array task {job_str}.")
+        print(f"{color.Error}[WARNING]{color.END} tcsh not found; cannot cancel SLURM array task {split_id} / {bracket_id}.")
         return False
     except Exception as exc:
-        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {exc}")
+        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel wrapper on {split_id} / {bracket_id}: {exc}")
         return False
+    stdout = (proc.stdout or "").strip()
+    stderr = (proc.stderr or "").strip()
     if(proc.returncode != 0):
-        msg = proc.stderr.strip()
-        if(msg == ""):
+        msg = "\n".join([s for s in [stdout, stderr] if(s not in ["", None])])
+        if(msg in ["", None]):
             msg = "(no additional message from scancel)"
-        print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
+        print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id} with code {proc.returncode}: {msg}. Local job will not start while the farm task may still be pending.")
         return False
-    print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+    cancelled = stdout if(stdout not in ["", None]) else f"{split_id} or {bracket_id}"
+    print(f"{color.BBLUE}[INFO]{color.END} {cancelled}")
     return True
     
 # def _scancel_once(job_str):
