@@ -719,13 +719,14 @@ def submit_slurm_capture_array_id(args, cmd, task_label, cut_name):
     write_time_entry(args, f"{task_label}-slurm-submit", cut_name, "slurm", proc.returncode, wall)
     if(proc.returncode != 0):
         raise RuntimeError(f"SLURM submission failed for {task_label} (rc={proc.returncode})")
-    match = re.search(r"Submitted SLURM array job\s+(\S+)", out)
+    # match = re.search(r"Submitted SLURM array job\s+(\S+)", out)
+    # (\S+) swallowed the trailing {color.END} on "Submitted SLURM array job {id}{color.END}" and passed "11172113\\x1b[0m" as --slurm_array_jobid.
+    out_plain = ansi_to_plain(out)
+    match = re.search(r"Submitted SLURM array job\s+(\d+)", out_plain)
     if(match is None):
         # Fallback: last parsable job-id-like token from sbatch
-        match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out)
-    if(match is None):
-        raise RuntimeError(f"Could not parse SLURM array job id from pipeline output for {task_label}")
-    array_id = match.group(1).split(";")[0]
+        # match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out)
+        match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out_plain)
     log_print(args, f"{color.BGREEN}Captured SLURM array job id {array_id} for {task_label}{color.END}")
     return array_id
 

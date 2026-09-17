@@ -563,8 +563,17 @@ def _scancel_via_temp_bash(job_str):
             except Exception:
                 pass
 
+def _slurm_jobid_digits(raw):
+    # Strip ANSI (e.g. {color.END} glued to a captured sbatch id) then take the first digit run.
+    text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', str(raw))
+    match = re.search(r"\d+", text)
+    if(match is None):
+        raise ValueError(f"No SLURM job id digits in {raw!r}")
+    return match.group(0)
+
 def cancel_slurm_array_task(array_jobid, batch_index):
-    jobid = str(int(str(array_jobid).strip()))
+    # jobid = str(int(str(array_jobid).strip()))
+    jobid = _slurm_jobid_digits(array_jobid)
     task = str(int(batch_index))
     split_id = f"{jobid}_{task}"
     bracket_id = f"{jobid}_[{task}]"
