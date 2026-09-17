@@ -5,6 +5,7 @@ import glob
 import argparse
 import subprocess
 import re
+import tempfile
 from datetime import datetime
 import time
 
@@ -509,31 +510,77 @@ def query_slurm_array_task_state(array_jobid, batch_index):
 #     print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
 #     return True
 
-_SCANCEL_ARRAY_TASK_CSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scancel_slurm_array_task.csh")
+# _SCANCEL_ARRAY_TASK_CSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scancel_slurm_array_task.csh")
+#
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     # Compact pending arrays need JOBID_[N]; split tasks use JOBID_N. The tcsh wrapper tries both.
+#     split_id = f"{array_jobid}_{batch_index}"
+#     bracket_id = f"{array_jobid}_[{batch_index}]"
+#     try:
+#         proc = subprocess.run(["/bin/tcsh", _SCANCEL_ARRAY_TASK_CSH, str(array_jobid), str(batch_index)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         print(f"{color.Error}[WARNING]{color.END} tcsh not found; cannot cancel SLURM array task {split_id} / {bracket_id}.")
+#         return False
+#     except Exception as exc:
+#         print(f"{color.Error}[WARNING]{color.END} Exception while running scancel wrapper on {split_id} / {bracket_id}: {exc}")
+#         return False
+#     stdout = (proc.stdout or "").strip()
+#     stderr = (proc.stderr or "").strip()
+#     if(proc.returncode != 0):
+#         msg = "\n".join([s for s in [stdout, stderr] if(s not in ["", None])])
+#         if(msg in ["", None]):
+#             msg = "(no additional message from scancel)"
+#         print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id} with code {proc.returncode}: {msg}. Local job will not start while the farm task may still be pending.")
+#         return False
+#     cancelled = stdout if(stdout not in ["", None]) else f"{split_id} or {bracket_id}"
+#     print(f"{color.BBLUE}[INFO]{color.END} {cancelled}")
+#     return True
+
+def _scancel_via_temp_bash(job_str):
+    # Unique per cancel: filename contains the job id so parallel workers never share a script.
+    name_id = str(job_str).replace("[", "L").replace("]", "R")
+    fd, path = None, None
+    try:
+        fd, path = tempfile.mkstemp(prefix=f"scancel_{name_id}_", suffix=".sh", text=True)
+        os.write(fd, f"#!/bin/bash\nscancel '{job_str}'\n".encode("utf-8"))
+        os.close(fd)
+        fd = None
+        os.chmod(path, 0o755)
+        proc = subprocess.run([path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, stdin=subprocess.DEVNULL)
+        out = "\n".join([s for s in [(proc.stdout or "").strip(), (proc.stderr or "").strip()] if(s not in ["", None])])
+        return (proc.returncode == 0), out
+    except Exception as exc:
+        return False, str(exc)
+    finally:
+        if(fd is not None):
+            try:
+                os.close(fd)
+            except Exception:
+                pass
+        if((path not in [None, ""]) and os.path.exists(path)):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
 
 def cancel_slurm_array_task(array_jobid, batch_index):
-    # Compact pending arrays need JOBID_[N]; split tasks use JOBID_N. The tcsh wrapper tries both.
-    split_id = f"{array_jobid}_{batch_index}"
-    bracket_id = f"{array_jobid}_[{batch_index}]"
-    try:
-        proc = subprocess.run(["/bin/tcsh", _SCANCEL_ARRAY_TASK_CSH, str(array_jobid), str(batch_index)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    except FileNotFoundError:
-        print(f"{color.Error}[WARNING]{color.END} tcsh not found; cannot cancel SLURM array task {split_id} / {bracket_id}.")
-        return False
-    except Exception as exc:
-        print(f"{color.Error}[WARNING]{color.END} Exception while running scancel wrapper on {split_id} / {bracket_id}: {exc}")
-        return False
-    stdout = (proc.stdout or "").strip()
-    stderr = (proc.stderr or "").strip()
-    if(proc.returncode != 0):
-        msg = "\n".join([s for s in [stdout, stderr] if(s not in ["", None])])
-        if(msg in ["", None]):
-            msg = "(no additional message from scancel)"
-        print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id} with code {proc.returncode}: {msg}. Local job will not start while the farm task may still be pending.")
-        return False
-    cancelled = stdout if(stdout not in ["", None]) else f"{split_id} or {bracket_id}"
-    print(f"{color.BBLUE}[INFO]{color.END} {cancelled}")
-    return True
+    jobid = str(int(str(array_jobid).strip()))
+    task = str(int(batch_index))
+    split_id = f"{jobid}_{task}"
+    bracket_id = f"{jobid}_[{task}]"
+    last_msg = ""
+    for job_str in [split_id, bracket_id]:
+        ok, msg = _scancel_via_temp_bash(job_str)
+        if(ok):
+            print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+            return True
+        last_msg = msg if(msg not in ["", None]) else last_msg
+    if(last_msg in ["", None]):
+        last_msg = "(no additional message from scancel)"
+    print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}. Local job will not start while the farm task may still be pending.")
+    # return True
+    # Must be False: a True here would start the local batch after both scancels failed, so farm and local could write the same output.
+    return False
     
 # def _scancel_once(job_str):
 #     try:
