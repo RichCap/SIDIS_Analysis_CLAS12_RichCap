@@ -727,6 +727,9 @@ def submit_slurm_capture_array_id(args, cmd, task_label, cut_name):
         # Fallback: last parsable job-id-like token from sbatch
         # match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out)
         match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out_plain)
+    if(match is None):
+        raise RuntimeError(f"Could not parse SLURM array job id from pipeline output for {task_label}")
+    array_id = match.group(1).split(";")[0]
     log_print(args, f"{color.BGREEN}Captured SLURM array job id {array_id} for {task_label}{color.END}")
     return array_id
 
