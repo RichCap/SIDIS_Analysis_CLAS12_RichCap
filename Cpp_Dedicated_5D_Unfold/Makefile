@@ -4,19 +4,21 @@
 #   make                         # unfolding binary
 #   make binning_check           # no ROOT / RooUnfold
 #   make ROOUNFOLD_DIR=/path     # override RooUnfold location
+#
+# root-config comes from ROOTSYS or PATH (see rootconfig.mk). Conda is not required.
 
 CXX      ?= g++
-CXXFLAGS ?= -O2 -std=c++14 -Wall -Wno-unused-parameter
+# Appended after inherited CXXFLAGS because ?= is ignored when CXXFLAGS is already set.
+SIDIS5D_CXXFLAGS := -O3 -fno-math-errno -Wall -Wno-unused-parameter -D_LIBCPP_DISABLE_AVAILABILITY
 REPO_ROOT := $(abspath ..)
 
-ROOTCONFIG ?= $(shell command -v root-config 2>/dev/null)
-ifeq ($(ROOTCONFIG),)
-  ROOTCONFIG := $(ROOTSYS)/bin/root-config
-endif
+include $(dir $(lastword $(MAKEFILE_LIST)))rootconfig.mk
 
 ROOT_CFLAGS := $(shell $(ROOTCONFIG) --cflags 2>/dev/null)
 ROOT_LIBS   := $(shell $(ROOTCONFIG) --libs 2>/dev/null)
 ROOT_GLIBS  := $(shell $(ROOTCONFIG) --glibs 2>/dev/null)
+ROOT_PREFIX := $(shell $(ROOTCONFIG) --prefix 2>/dev/null)
+ROOT_VERSION := $(shell $(ROOTCONFIG) --version 2>/dev/null)
 
 # Prefer a RooUnfold tree that actually contains headers.
 define pick_roounfold
@@ -59,16 +61,18 @@ $(BINNING_HDR):
 
 check-env:
 	@if [ -z "$(ROOT_CFLAGS)" ]; then echo "ERROR: root-config not found. Set ROOTSYS or PATH."; exit 1; fi
+	@echo "Using ROOT $(ROOT_VERSION) from $(ROOTCONFIG) (prefix=$(ROOT_PREFIX))"
 	@if [ -z "$(ROOUNFOLD_DIR)" ]; then echo "ERROR: RooUnfold not found. Set ROOUNFOLD_DIR."; exit 1; fi
 	@if [ ! -d "$(ROOUNFOLD_INC)" ]; then echo "ERROR: RooUnfold includes not found under $(ROOUNFOLD_DIR)"; exit 1; fi
+	@echo "Using RooUnfold includes $(ROOUNFOLD_INC) libs $(ROOUNFOLD_LIBDIR)"
 
 $(TARGET): Dedicated_5D_Unfold.cxx Dedicated_5D_Unfold_Helpers.h $(BINNING_HDR) check-env
-	$(CXX) $(CXXFLAGS) $(ROOT_CFLAGS) -I. -I$(ROOUNFOLD_INC) \
+	$(CXX) $(CXXFLAGS) $(SIDIS5D_CXXFLAGS) $(ROOT_CFLAGS) -I. -I$(ROOUNFOLD_INC) \
 		Dedicated_5D_Unfold.cxx -o $(TARGET) \
-		$(ROOT_GLIBS) $(ROOT_LIBS) -L$(ROOUNFOLD_LIBDIR) -lRooUnfold -Wl,-rpath,$(ROOUNFOLD_LIBDIR)
+		$(ROOT_GLIBS) $(ROOT_LIBS) -L$(ROOUNFOLD_LIBDIR) -lRooUnfold -Wl,-rpath,$(ROOUNFOLD_LIBDIR) -Wl,-rpath,$(ROOT_PREFIX)/lib
 
 binning_check: binning_check.cxx $(BINNING_HDR)
-	$(CXX) $(CXXFLAGS) -I. binning_check.cxx -o $@
+	$(CXX) $(CXXFLAGS) $(SIDIS5D_CXXFLAGS) -I. binning_check.cxx -o $@
 
 clean:
 	rm -f $(TARGET) binning_check

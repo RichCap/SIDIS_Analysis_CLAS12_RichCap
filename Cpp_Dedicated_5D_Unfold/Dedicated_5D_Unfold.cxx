@@ -1,13 +1,19 @@
 #include "Dedicated_5D_Unfold_Helpers.h"
+#include "RecBinReduction.h"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <regex>
-#include <stdexcept>
 #include <utility>
+#include <vector>
 
+#include "TArrayD.h"
 #include "TCanvas.h"
 #include "TCollection.h"
 #include "TH1.h"
@@ -15,14 +21,29 @@
 #include "TKey.h"
 #include "TList.h"
 #include "TObjString.h"
+#include "TProfile.h"
 #include "TROOT.h"
+#include "TString.h"
 #include "TStyle.h"
+#include "TSystem.h"
 
 #include "RooUnfoldResponse.h"
 #include "RooUnfoldBayes.h"
 #include "RooUnfold.h"
+#if defined(__has_include)
+#if __has_include("RooUnfoldParms.h")
+#include "RooUnfoldParms.h"
+#define SIDIS5D_HAS_ROOUNFOLD_PARMS 1
+#endif
+#endif
 
 using sidis5d::UnfoldArgs;
+using sidis5d::RecSkipMap;
+using sidis5d::Build_Rec_Skip_Map;
+using sidis5d::Print_Rec_Skip_Map;
+using sidis5d::Compress_TH1_Rec;
+using sidis5d::Compress_TH2_Rec_Axis;
+using sidis5d::Mask_Full_To_Analysis;
 namespace Color = sidis5d::Color;
 namespace ColorBg = sidis5d::ColorBg;
 namespace RootColor = sidis5d::RootColor;
@@ -130,27 +151,97 @@ struct MatrixCandidate {
     bool ok = false;
 };
 
-MatrixCandidate Build_5D_Matrix_Candidate(TFile* mdf, const std::string& out_print_main){
+int Count_5D_Slices_By_Key(TFile* mdf, const std::string& Base_Name){
+    int Slice_Num = 1;
+    while(Slice_Num < 800){
+        std::string slice_name = replace_all(Base_Name, "_Slice_NUMBER_", "_Slice_" + std::to_string(Slice_Num) + "_");
+        if(!key_in_file(mdf, slice_name)){ break; }
+        ++Slice_Num;
+    }
+    return Slice_Num - 1;
+}
+
+bool Load_5D_Matrix_Slices(TFile* mdf, MatrixCandidate& cand){
+    cand.Histo_List.clear();
+    std::string Base_Name = replace_all(cand.out_print_main_mdf, "_Slice_1_", "_Slice_NUMBER_");
+    for(int Slice_Num = 1; Slice_Num <= cand.num_slices; ++Slice_Num){
+        std::string slice_name = replace_all(Base_Name, "_Slice_NUMBER_", "_Slice_" + std::to_string(Slice_Num) + "_");
+        TH2* histo_sliced = dynamic_cast<TH2*>(mdf->Get(slice_name.c_str()));
+        if(histo_sliced == nullptr){ return false; }
+        cand.Histo_List[slice_name] = histo_sliced;
+    }
+    return !cand.Histo_List.empty();
+}
+
+void Release_5D_Matrix_Slices(MatrixCandidate& cand){
+    for(auto& kv : cand.Histo_List){
+        if(kv.second != nullptr){
+            kv.second->SetDirectory(0);
+            delete kv.second;
+            kv.second = nullptr;
+        }
+    }
+    cand.Histo_List.clear();
+}
+
+std::vector<TH1*> gIterationStudyHists;
+
+void Stash_Iteration_Study_Hist(TH1* h, const char* name){
+    if(h == nullptr){ return; }
+    h->SetName(name);
+    h->SetDirectory(0);
+    gIterationStudyHists.push_back(h);
+}
+
+void Write_Iteration_Study_Hists(TFile* output_file, int* save_count_ref){
+    if(output_file == nullptr){ return; }
+    for(TH1* h : gIterationStudyHists){
+        if(h == nullptr){ continue; }
+        safe_write(h, output_file);
+        if(save_count_ref != nullptr){ *save_count_ref += 1; }
+    }
+}
+
+void Log_Root_And_Matrix_Linkage(){
+    const char* rootsys = gSystem->Getenv("ROOTSYS");
+    std::cout << Color::BOLD << "ROOT version: " << gROOT->GetVersion()
+              << Color::END << "  ROOTSYS=" << ((rootsys != nullptr) ? rootsys : "(unset)") << std::endl;
+    TString libm = gSystem->DynamicPathName("libMatrix");
+    std::cout << "libMatrix: " << (libm.Length() ? libm.Data() : "(not found)") << std::endl;
+#ifdef __APPLE__
+    if(libm.Length()){
+        TString cmd = TString::Format(
+            "otool -L %s 2>/dev/null | grep -E 'Accelerate|openblas|cblas|libMatrix' || true",
+            libm.Data());
+        gSystem->Exec(cmd.Data());
+    }
+#else
+    if(libm.Length()){
+        TString cmd = TString::Format(
+            "ldd %s 2>/dev/null | grep -E 'Accelerate|openblas|cblas|libMatrix' || true",
+            libm.Data());
+        gSystem->Exec(cmd.Data());
+    }
+#endif
+}
+
+RooUnfold::ErrorTreatment ErrorTreatmentFromMode(const std::string& mode){
+    if(mode == "covariance"){ return RooUnfold::kCovariance; }
+    if(mode == "errors"){ return RooUnfold::kErrors; }
+    if(mode == "none"){ return RooUnfold::kNoError; }
+    return RooUnfold::kCovToys;
+}
+
+MatrixCandidate Inspect_5D_Matrix_Candidate(TFile* mdf, const std::string& out_print_main){
     MatrixCandidate cand;
     std::string out_print_main_mdf = out_print_main;
     int detected_increment = extract_slice_increment(out_print_main_mdf);
     if(detected_increment < 0){ return cand; }
     std::string Base_Name = replace_all(out_print_main_mdf, "_Slice_1_", "_Slice_NUMBER_");
-    int Slice_Num = 1;
-    while(Slice_Num < 800){
-        std::string slice_name = replace_all(Base_Name, "_Slice_NUMBER_", "_Slice_" + std::to_string(Slice_Num) + "_");
-        TH2* histo_sliced = dynamic_cast<TH2*>(mdf->Get(slice_name.c_str()));
-        if(histo_sliced != nullptr){
-            cand.Histo_List[slice_name] = histo_sliced;
-            ++Slice_Num;
-        } else {
-            break;
-        }
-    }
-    int num_slices = static_cast<int>(cand.Histo_List.size());
+    int num_slices = Count_5D_Slices_By_Key(mdf, Base_Name);
     if(num_slices < 1){ return cand; }
     std::string slice1_name = replace_all(Base_Name, "_Slice_NUMBER_", "_Slice_1_");
-    TH2* slice1 = cand.Histo_List[slice1_name];
+    TH2* slice1 = dynamic_cast<TH2*>(mdf->Get(slice1_name.c_str()));
     if((slice1 != nullptr) && (detected_increment != slice1->GetNbinsX())){
         detected_increment = slice1->GetNbinsX();
     }
@@ -224,10 +315,14 @@ MatrixCandidate Detect_5D_Matrix_Config(TFile* mdf, UnfoldArgs& args){
     while(TKey* key = dynamic_cast<TKey*>(next())){
         std::string out_print_main = key->GetName();
         if(!Is_5D_Matrix_Slice_Candidate(out_print_main, args)){ continue; }
-        MatrixCandidate candidate = Build_5D_Matrix_Candidate(mdf, out_print_main);
-        if(candidate.ok){ candidates.push_back(candidate); }
+        MatrixCandidate candidate = Inspect_5D_Matrix_Candidate(mdf, out_print_main);
+        if(candidate.ok){ candidates.push_back(std::move(candidate)); }
     }
-    return Select_5D_Matrix_Candidate(candidates, mdf, args);
+    MatrixCandidate winner = Select_5D_Matrix_Candidate(std::move(candidates), mdf, args);
+    if(winner.ok && !Load_5D_Matrix_Slices(mdf, winner)){
+        Crash_Report(args, "Failed to load 5D response matrix slices for " + winner.out_print_main);
+    }
+    return winner;
 }
 
 void Validate_And_Record_5D_Dimensions(UnfoldArgs& args, const MatrixCandidate& detected, TH1* MC_REC_1D){
@@ -267,13 +362,15 @@ void Validate_And_Record_5D_Dimensions(UnfoldArgs& args, const MatrixCandidate& 
     std::cout << "\n" << Color::BOLD << "Auto-detected 5D configuration:" << Color::END
               << " increment=" << args.increment_5d
               << ", num_bins=" << args.num_bins_5d
-              << ", num_slices=" << args.num_slices_5d << "\n" << std::endl;
+              << ", num_slices=" << args.num_slices_5d
+              << ", error_mode=" << args.error_mode << "\n" << std::endl;
 }
 
 TH2D* Rebuild_Matrix_5D(const std::map<std::string, TH2*>& List_of_Sliced_Histos,
                         const std::string& Standard_Name,
                         int Increment,
-                        const std::string& Title){
+                        const std::string& Title,
+                        const RecSkipMap* skip_map = nullptr){
     auto bins = Find_Bins_From_Histo_Name(Standard_Name);
     int Num__Bins = bins.num_bins;
     double Min_Range = bins.min_bin;
@@ -308,18 +405,58 @@ TH2D* Rebuild_Matrix_5D(const std::map<std::string, TH2*>& List_of_Sliced_Histos
         TH2* first = it->second;
         Histo_Title = std::string(first->GetTitle()) + ";" + first->GetXaxis()->GetTitle() + ";" + first->GetYaxis()->GetTitle();
     }
+    const int rec_bins = (skip_map != nullptr) ? skip_map->n_kept() : Num__Bins;
+    const double rec_min = (skip_map != nullptr) ? 0.5 : Min_Range;
+    const double rec_max = (skip_map != nullptr) ? (rec_bins + 0.5) : Max_Range;
     TH2D* Rebuilt_5D_Matrix = new TH2D(Standard_Name.c_str(), Histo_Title.c_str(),
-                                       Num__Bins, Min_Range, Max_Range, Num__Bins, Min_Range, Max_Range);
+                                       rec_bins, rec_min, rec_max, Num__Bins, Min_Range, Max_Range);
     Rebuilt_5D_Matrix->SetDirectory(0);
+    Rebuilt_5D_Matrix->Sumw2();
+    Double_t* dst = Rebuilt_5D_Matrix->GetArray();
+    TArrayD* dst_w2 = Rebuilt_5D_Matrix->GetSumw2();
+    const int dst_nx = Rebuilt_5D_Matrix->GetNbinsX();
+    const int dst_ny = Rebuilt_5D_Matrix->GetNbinsY();
+    const int dst_xstride = dst_nx + 2;
     int X_Bin_5D = 0;
     for(int slice_num = 1; slice_num <= Num_Slices; ++slice_num){
         TH2* Histo_Add = List_of_Sliced_Histos.at(replace_all(Slicing_Name, "SLICE-NUM", std::to_string(slice_num)));
+        const int src_nx = Histo_Add->GetNbinsX();
+        const int src_ny = Histo_Add->GetNbinsY();
+        const int src_xstride = src_nx + 2;
+        const TArrayD* src_w2 = Histo_Add->GetSumw2();
+        const Double_t* src = nullptr;
+        std::vector<Double_t> src_storage;
+        if(TH2D* h2d = dynamic_cast<TH2D*>(Histo_Add)){
+            src = h2d->GetArray();
+        } else if(TH2F* h2f = dynamic_cast<TH2F*>(Histo_Add)){
+            const int ncells = h2f->GetSize();
+            src_storage.resize(static_cast<size_t>(ncells));
+            const Float_t* fa = h2f->GetArray();
+            for(int i = 0; i < ncells; ++i){ src_storage[static_cast<size_t>(i)] = fa[i]; }
+            src = src_storage.data();
+        } else {
+            std::cout << Color::Error << "ERROR IN Rebuild_Matrix_5D(...): " << Color::END_R
+                      << "slice is neither TH2D nor TH2F" << Color::END << std::endl;
+            delete Rebuilt_5D_Matrix;
+            return nullptr;
+        }
         X_Bin_5D += -1;
-        for(int x_bin = 0; x_bin <= Histo_Add->GetNbinsX(); ++x_bin){
+        for(int x_bin = 0; x_bin <= src_nx; ++x_bin){
             X_Bin_5D += 1;
-            for(int y_bin = 0; y_bin <= Histo_Add->GetNbinsY(); ++y_bin){
-                Rebuilt_5D_Matrix->SetBinContent(X_Bin_5D, y_bin, Histo_Add->GetBinContent(x_bin, y_bin));
-                Rebuilt_5D_Matrix->SetBinError(X_Bin_5D, y_bin, Histo_Add->GetBinError(x_bin, y_bin));
+            int dest_x = X_Bin_5D;
+            if(skip_map != nullptr){
+                if((X_Bin_5D < 1) || skip_map->is_skipped(X_Bin_5D)){ continue; }
+                dest_x = skip_map->reduced_index(X_Bin_5D);
+            }
+            if((dest_x < 0) || (dest_x > dst_nx)){ continue; }
+            const int y_max = (src_ny < dst_ny) ? src_ny : dst_ny;
+            for(int y_bin = 0; y_bin <= y_max; ++y_bin){
+                const int src_idx = y_bin * src_xstride + x_bin;
+                const int dst_idx = y_bin * dst_xstride + dest_x;
+                dst[dst_idx] = src[src_idx];
+                if((dst_w2 != nullptr) && (src_w2 != nullptr) && (src_w2->GetSize() > src_idx) && (dst_w2->GetSize() > dst_idx)){
+                    (*dst_w2)[dst_idx] = (*src_w2)[src_idx];
+                }
             }
         }
     }
@@ -328,8 +465,10 @@ TH2D* Rebuild_Matrix_5D(const std::map<std::string, TH2*>& List_of_Sliced_Histos
 }
 
 int q2y_as_int(const std::string& Q2_y){
-    try { return std::stoi(Q2_y); }
-    catch(...) { return 0; }
+    char* end = nullptr;
+    long v = std::strtol(Q2_y.c_str(), &end, 10);
+    if((end == Q2_y.c_str()) || (end == nullptr) || (*end != '\0')){ return 0; }
+    return static_cast<int>(v);
 }
 
 int First_Valid_MultiDim_Start(int Q2_y, int z_pT_min, int z_pT_max){
@@ -435,8 +574,9 @@ int Multi5D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Title_In, const
                   UnfoldArgs& args, const SliceMetadata* slice_metadata,
                   TFile* output_file, bool stream_write, int* save_count_ref, bool test_mode){
     (void)Title_In;
-    std::cout << "\n" << Color::BLUE << "Running Multi5D_Slice(...)" << Color::END << "\n" << std::endl;
-    try {
+    if(args.verbose){
+        std::cout << "\n" << Color::BLUE << "Running Multi5D_Slice(...)" << Color::END << "\n" << std::endl;
+    }
         std::string Name = Name_In;
         if(Name != "none"){
             if((Name == "histo") || (Name == "Histo") || (Name == "input") || (Name == "default")){
@@ -519,12 +659,9 @@ int Multi5D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Title_In, const
             Slice_Hist->SetDirectory(0);
             int ii_bin_num = Start_phi_h_bin;
             int ii_LastNum = Start_phi_h_bin;
-            std::map<double, double> phi_Content;
-            std::map<double, double> phi___Error;
-            for(int phi_bin = phi_h_Binning[0]; phi_bin < phi_h_Binning[1]; phi_bin += phi_h_Binning[3]){
-                phi_Content[phi_bin + 0.5 * phi_h_Binning[3]] = 0;
-                phi___Error[phi_bin + 0.5 * phi_h_Binning[3]] = 0;
-            }
+            const int nphi = phi_h_Binning[2];
+            std::array<double, 24> phi_Content{};
+            std::array<double, 24> phi___Error{};
             while(ii_bin_num < End_phi_h_bin){
                 bool OverFlow_Con = false;
                 if((End_phi_h_bin - Start_phi_h_bin) != phi_h_Binning[2]){
@@ -550,29 +687,29 @@ int Multi5D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Title_In, const
                     ii_bin_num += 1;
                     continue;
                 }
-                for(int phi_bin = phi_h_Binning[0]; phi_bin < phi_h_Binning[1]; phi_bin += phi_h_Binning[3]){
+                for(int iphi = 0; iphi < nphi; ++iphi){
                     int bin_ii = Histo->FindBin(ii_bin_num);
                     if(Histo_Cut != nullptr){
                         double MultiDim_cut_num = Histo_Cut->GetBinContent(bin_ii);
                         double MultiDim_cut_err = Histo_Cut->GetBinError(bin_ii);
-                        if((MultiDim_cut_num == 0) || (MultiDim_cut_num <= MultiDim_cut_err)){
-                            phi_Content[phi_bin + 0.5 * phi_h_Binning[3]] += 0;
-                            phi___Error[phi_bin + 0.5 * phi_h_Binning[3]] += 0;
-                        } else {
-                            phi_Content[phi_bin + 0.5 * phi_h_Binning[3]] += Histo->GetBinContent(bin_ii);
-                            phi___Error[phi_bin + 0.5 * phi_h_Binning[3]] += (Histo->GetBinError(bin_ii)) * (Histo->GetBinError(bin_ii));
+                        if((MultiDim_cut_num != 0) && (MultiDim_cut_num > MultiDim_cut_err)){
+                            phi_Content[iphi] += Histo->GetBinContent(bin_ii);
+                            double err = Histo->GetBinError(bin_ii);
+                            phi___Error[iphi] += err * err;
                         }
                     } else {
-                        phi_Content[phi_bin + 0.5 * phi_h_Binning[3]] += Histo->GetBinContent(bin_ii);
-                        phi___Error[phi_bin + 0.5 * phi_h_Binning[3]] += (Histo->GetBinError(bin_ii)) * (Histo->GetBinError(bin_ii));
+                        phi_Content[iphi] += Histo->GetBinContent(bin_ii);
+                        double err = Histo->GetBinError(bin_ii);
+                        phi___Error[iphi] += err * err;
                     }
                     ii_bin_num += 1;
                 }
             }
-            for(int phi_bin = phi_h_Binning[0]; phi_bin < phi_h_Binning[1]; phi_bin += phi_h_Binning[3]){
+            for(int iphi = 0; iphi < nphi; ++iphi){
+                int phi_bin = phi_h_Binning[0] + iphi * phi_h_Binning[3];
                 double center = phi_bin + 0.5 * phi_h_Binning[3];
-                Slice_Hist->Fill(center, phi_Content[center]);
-                Slice_Hist->SetBinError(Slice_Hist->FindBin(center), std::sqrt(phi___Error[center]));
+                Slice_Hist->Fill(center, phi_Content[iphi]);
+                Slice_Hist->SetBinError(Slice_Hist->FindBin(center), std::sqrt(phi___Error[iphi]));
             }
             double ymin = Slice_Hist->GetBinContent(Slice_Hist->GetMinimumBin());
             double ymax = Slice_Hist->GetBinContent(Slice_Hist->GetMaximumBin());
@@ -591,19 +728,12 @@ int Multi5D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Title_In, const
             Stream_Write_Slice_Hist(Slice_Hist, output_file, stream_write, save_count_ref, test_mode, args);
         };
 
-        if(slice_metadata != nullptr){
-            for(const auto& entry : slice_metadata->entries){
-                Process_One_Slice_Entry(entry.Q2_y, entry.z_pT, entry.Start_phi_h_bin, entry.End_phi_h_bin, entry.Bin_Title);
-            }
+    if(slice_metadata != nullptr){
+        for(const auto& entry : slice_metadata->entries){
+            Process_One_Slice_Entry(entry.Q2_y, entry.z_pT, entry.Start_phi_h_bin, entry.End_phi_h_bin, entry.Bin_Title);
         }
-        return 0;
-    } catch(const std::exception& exc){
-        std::cout << Color::Error << "Multi5D_Slice(...) ERROR:" << Color::END << "\n" << exc.what() << "\n";
-        return -1;
-    } catch(...){
-        std::cout << Color::Error << "Multi5D_Slice(...) ERROR:" << Color::END << "\n";
-        return -1;
     }
+    return 0;
 }
 
 TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D, UnfoldArgs& args){
@@ -622,144 +752,217 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         std::cout << "\t" << Color::BOLD << "Unfolding Histogram:" << Color::END << "\n\t" << clean_name << std::endl;
     }
 
-    int nBins_CVM = ExREAL_1D->GetNbinsX();
-    double bin_Width = ExREAL_1D->GetBinWidth(1);
-    double MinBinCVM = ExREAL_1D->GetBinCenter(0);
-    double MaxBinCVM = ExREAL_1D->GetBinCenter(nBins_CVM);
-    MinBinCVM += 0.5 * bin_Width;
-    MaxBinCVM += 0.5 * bin_Width;
-    ExREAL_1D->GetXaxis()->SetRange(0, nBins_CVM);
-    MC_REC_1D->GetXaxis()->SetRange(0, nBins_CVM);
-    MC_GEN_1D->GetXaxis()->SetRange(0, nBins_CVM);
-    Response_2D->GetXaxis()->SetRange(0, nBins_CVM);
-    Response_2D->GetYaxis()->SetRange(0, nBins_CVM);
-    if(MC_BGS_1D != nullptr){
-        MC_BGS_1D->GetXaxis()->SetRange(0, nBins_CVM);
+    int nBins_gen = MC_GEN_1D->GetNbinsX();
+    RecSkipMap skip_map;
+    TH1* ExREAL_use = ExREAL_1D;
+    TH1* MC_REC_use = MC_REC_1D;
+    TH1* MC_BGS_use = MC_BGS_1D;
+    bool own_rec = false;
+    if(!args.old_binning){
+        skip_map = Build_Rec_Skip_Map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args.Min_Allowed_Acceptance_Cut);
+        Print_Rec_Skip_Map(skip_map);
+        ExREAL_use = Compress_TH1_Rec(ExREAL_1D, skip_map, std::string(ExREAL_1D->GetName()) + "_rec_reduced");
+        MC_REC_use = Compress_TH1_Rec(MC_REC_1D, skip_map, std::string(MC_REC_1D->GetName()) + "_rec_reduced");
+        if(MC_BGS_1D != nullptr){
+            MC_BGS_use = Compress_TH1_Rec(MC_BGS_1D, skip_map, std::string(MC_BGS_1D->GetName()) + "_rec_reduced");
+        }
+        own_rec = true;
     }
-
+    int nBins_rec = ExREAL_use->GetNbinsX();
     TH2* Response_2D_Input = Response_2D;
     std::string Response_2D_Input_Title = std::string(Response_2D->GetTitle()) + ";" +
                                           Response_2D->GetXaxis()->GetTitle() + ";" +
                                           Response_2D->GetYaxis()->GetTitle();
-    if(!contains(Name_Main, "MultiDim_Q2_y_z_pT_phi_h")){
-        Response_2D_Input_Title = std::string(Response_2D->GetTitle()) + ";" +
-                                  Response_2D->GetYaxis()->GetTitle() + ";" +
-                                  Response_2D->GetXaxis()->GetTitle();
-        TH2D* flipped = new TH2D((std::string(Response_2D->GetName()) + "_Flipped").c_str(),
-                                 Response_2D_Input_Title.c_str(),
-                                 Response_2D->GetNbinsY(), MinBinCVM, MaxBinCVM,
-                                 Response_2D->GetNbinsX(), MinBinCVM, MaxBinCVM);
-        flipped->SetDirectory(0);
-        for(int gen_bin = 0; gen_bin <= nBins_CVM; ++gen_bin){
-            for(int rec_bin = 0; rec_bin <= nBins_CVM; ++rec_bin){
-                flipped->SetBinContent(rec_bin, gen_bin, Response_2D->GetBinContent(gen_bin, rec_bin));
-                flipped->SetBinError(rec_bin, gen_bin, Response_2D->GetBinError(gen_bin, rec_bin));
-            }
-        }
-        Response_2D_Input = flipped;
+    if(!args.old_binning && (Response_2D_Input->GetNbinsX() != nBins_rec)){
+        TH2D* compressed = Compress_TH2_Rec_Axis(Response_2D_Input, skip_map, true,
+                                                 std::string(Response_2D_Input->GetName()) + "_rec_reduced");
+        Response_2D_Input = compressed;
     }
 
-    if(!((nBins_CVM == MC_REC_1D->GetNbinsX()) &&
-         (MC_REC_1D->GetNbinsX() == MC_GEN_1D->GetNbinsX()) &&
-         (MC_GEN_1D->GetNbinsX() == Response_2D_Input->GetNbinsX()) &&
-         (Response_2D_Input->GetNbinsX() == Response_2D_Input->GetNbinsY()))){
+    if(!((nBins_rec == MC_REC_use->GetNbinsX()) &&
+         (nBins_gen == MC_GEN_1D->GetNbinsX()) &&
+         (nBins_rec == Response_2D_Input->GetNbinsX()) &&
+         (nBins_gen == Response_2D_Input->GetNbinsY()))){
         std::cout << Color::RED << "Unequal Bins..." << Color::END << std::endl;
-        std::cout << "nBins_CVM = " << nBins_CVM << std::endl;
-        std::cout << "MC_REC_1D.GetNbinsX() = " << MC_REC_1D->GetNbinsX() << std::endl;
-        std::cout << "MC_GEN_1D.GetNbinsX() = " << MC_GEN_1D->GetNbinsX() << std::endl;
-        std::cout << "Response_2D.GetNbinsX() = " << Response_2D->GetNbinsX() << std::endl;
-        std::cout << "Response_2D.GetNbinsY() = " << Response_2D->GetNbinsY() << std::endl;
+        std::cout << "nBins_rec = " << nBins_rec << " nBins_gen = " << nBins_gen << std::endl;
+        std::cout << "Response nx,ny = " << Response_2D_Input->GetNbinsX() << "," << Response_2D_Input->GetNbinsY() << std::endl;
         args.timer.time_elapsed();
+        if(Response_2D_Input != Response_2D){ delete Response_2D_Input; }
+        delete Response_2D;
+        if(own_rec){
+            delete ExREAL_use;
+            delete MC_REC_use;
+            if((MC_BGS_use != nullptr) && (MC_BGS_use != MC_BGS_1D)){ delete MC_BGS_use; }
+        }
         return nullptr;
     }
 
-    try {
-        std::string resp_name = replace_all(Response_2D_Input->GetName(), "_Flipped", "") + "_RooUnfoldResponse_Object";
-        RooUnfoldResponse Response_RooUnfold(MC_REC_1D, MC_GEN_1D, Response_2D_Input, resp_name.c_str(), Response_2D_Input_Title.c_str());
-        if(MC_BGS_1D != nullptr){
-            for(int rec_bin = 0; rec_bin <= nBins_CVM; ++rec_bin){
-                double rec_val = MC_BGS_1D->GetBinCenter(rec_bin);
-                double rec_con = MC_BGS_1D->GetBinContent(rec_bin);
-                Response_RooUnfold.Fake(rec_val, rec_con);
-            }
+    std::string resp_name = replace_all(Response_2D_Input->GetName(), "_Flipped", "") + "_RooUnfoldResponse_Object";
+    RooUnfoldResponse Response_RooUnfold(MC_REC_use, MC_GEN_1D, Response_2D_Input, resp_name.c_str(), Response_2D_Input_Title.c_str());
+    if(Response_2D_Input != Response_2D){ delete Response_2D_Input; }
+    delete Response_2D;
+    Response_2D = nullptr;
+    Response_2D_Input = nullptr;
+    if(MC_BGS_use != nullptr){
+        for(int rec_bin = 1; rec_bin <= MC_BGS_use->GetNbinsX(); ++rec_bin){
+            double rec_val = MC_BGS_use->GetBinCenter(rec_bin);
+            double rec_con = MC_BGS_use->GetBinContent(rec_bin);
+            Response_RooUnfold.Fake(rec_val, rec_con);
         }
+    }
 
-        std::string Unfold_Title = "RooUnfold (Bayesian)";
-        std::cout << "\t" << Color::CYAN << "Using " << Color::BGREEN << Unfold_Title << Color::END_C
-                  << " method to unfold..." << Color::END << std::endl;
+    std::string Unfold_Title = "RooUnfold (Bayesian)";
+    std::cout << "\t" << Color::CYAN << "Using " << Color::BGREEN << Unfold_Title << Color::END_C
+              << " method to unfold..." << Color::END << std::endl;
+    std::cout << "\tError mode: " << args.error_mode << std::endl;
 
-        int bayes_iterations = 10;
-        if(contains(Name_Main, "MultiDim_Q2_y_z_pT_phi_h")){
-            bayes_iterations = 4;
-            std::cout << Color::BOLD << "Performing 5D Unfolding with " << Color::UNDERLINE << bayes_iterations
+    int bayes_iterations = 10;
+    if(contains(Name_Main, "MultiDim_Q2_y_z_pT_phi_h")){
+        bayes_iterations = 4;
+        std::cout << Color::BOLD << "Performing 5D Unfolding with " << Color::UNDERLINE << bayes_iterations
+                  << Color::END_B << " iteration(s)..." << Color::END << std::endl;
+    }
+    if(args.bayes_iterations){
+        if(args.bayes_iterations != bayes_iterations){
+            bayes_iterations = args.bayes_iterations;
+            std::cout << Color::BOLD << "Performing Unfolding with " << Color::UNDERLINE << bayes_iterations
                       << Color::END_B << " iteration(s)..." << Color::END << std::endl;
         }
-        if(args.bayes_iterations){
-            if(args.bayes_iterations != bayes_iterations){
-                bayes_iterations = args.bayes_iterations;
-                std::cout << Color::BOLD << "Performing Unfolding with " << Color::UNDERLINE << bayes_iterations
-                          << Color::END_B << " iteration(s)..." << Color::END << std::endl;
-            }
-        } else {
-            args.bayes_iterations = bayes_iterations;
-        }
+    } else {
+        args.bayes_iterations = bayes_iterations;
+    }
 
-        RooUnfoldBayes Unfolding_Histo(&Response_RooUnfold, ExREAL_1D, bayes_iterations);
+    RooUnfold::ErrorTreatment err_treat = ErrorTreatmentFromMode(args.error_mode);
+
+    RooUnfoldBayes Unfolding_Histo(&Response_RooUnfold, ExREAL_use, bayes_iterations);
+    Unfolding_Histo.SetVerbose(1);
+    if(args.error_mode == "toys"){
         Unfolding_Histo.SetNToys(args.Num_Toys);
-        TH1* Unfolded_Histo = Unfolding_Histo.Hunfold(RooUnfold::kCovToys);
-        if(Unfolded_Histo == nullptr){
-            std::cout << "\n" << Color::Error << "FAILED TO UNFOLD A HISTOGRAM (RooUnfold)..." << Color::END << std::endl;
-            return nullptr;
-        }
-        Unfolded_Histo->SetDirectory(0);
+    }
 
+    if(args.iteration_study){
+        // RooUnfoldParms clones via TBufferFile; a 5D response exceeds the 1 GB bytecount (crash 9/16/2026).
+        // RooUnfoldParms parms(&Unfolding_Histo, err_treat, MC_GEN_1D); // Replaced 9/16/2026 with clone-free k loop
+        // if(args.has_parm_min){ parms.SetMinParm(args.parm_min); }
+        // if(args.has_parm_max){ parms.SetMaxParm(args.parm_max); }
+        // if(args.has_parm_step){ parms.SetStepSizeParm(args.parm_step); }
+        // Stash_Iteration_Study_Hist(parms.GetChi2(), "Iteration_Study_Chi2");
+        // Stash_Iteration_Study_Hist(parms.GetRMSError(), "Iteration_Study_RMSError");
+        // Stash_Iteration_Study_Hist(parms.GetMeanResiduals(), "Iteration_Study_MeanResiduals");
+        // Stash_Iteration_Study_Hist(parms.GetRMSResiduals(), "Iteration_Study_RMSResiduals");
+        // Loop k without Clone: new RooUnfoldBayes per k, same Response object.
+        std::cout << Color::BBLUE << "Running clone-free 5D iteration study (" << args.error_mode << ")..." << Color::END << std::endl;
+        const double pmin = args.has_parm_min ? args.parm_min : 1.0;
+        const double pmax = args.has_parm_max ? args.parm_max : 10.0;
+        const double pstep = args.has_parm_step ? args.parm_step : 1.0;
+        const int nprof = std::max(1, static_cast<int>((pmax - pmin) / pstep));
+        TProfile* hch2 = new TProfile("hch2", "#chi^{2} vs regparm", nprof, pmin, pmax);
+        TProfile* herr = new TProfile("herr", "Mean error vs regparm", nprof, pmin, pmax);
+        TProfile* hres = new TProfile("hres", "Mean residual vs regparm", nprof, pmin, pmax);
+        TH1D* hrms = new TH1D("hrms", "RMS of residuals", nprof, pmin, pmax);
+        hch2->SetDirectory(0);
+        herr->SetDirectory(0);
+        hres->SetDirectory(0);
+        hrms->SetDirectory(0);
+        const int nt = MC_GEN_1D->GetNbinsX();
+        for(double k = pmin; k <= pmax + 0.5 * pstep; k += pstep){
+            const int ki = static_cast<int>(k + 0.5);
+            std::cout << Color::BOLD << "Iteration-study k=" << ki << Color::END << std::endl;
+            RooUnfoldBayes unf_k(&Response_RooUnfold, ExREAL_use, ki);
+            unf_k.SetVerbose(1);
+            TH1* h_unf = unf_k.Hunfold(err_treat);
+            if(h_unf == nullptr){
+                Crash_Report(args, "iteration study Hunfold returned null at k=" + std::to_string(ki));
+            }
+            h_unf->SetDirectory(0);
+            double sq_err = 0.0;
+            double chi2 = 0.0;
+            double rsq = 0.0;
+            int nchi = 0;
+            for(int i = 1; i <= nt; ++i){
+                const double e = h_unf->GetBinError(i);
+                sq_err += e;
+                const double res = h_unf->GetBinContent(i) - MC_GEN_1D->GetBinContent(i);
+                hres->Fill(k, res);
+                rsq += res * res;
+                if(e > 0.0){
+                    chi2 += (res * res) / (e * e);
+                    ++nchi;
+                }
+            }
+            herr->Fill(k, sq_err / std::max(1, nt));
+            if(nchi > 0){ hch2->Fill(k, chi2); }
+            hrms->Fill(k, std::sqrt(rsq / std::max(1, nt)));
+            delete h_unf;
+        }
+        Stash_Iteration_Study_Hist(hch2, "Iteration_Study_Chi2");
+        Stash_Iteration_Study_Hist(herr, "Iteration_Study_RMSError");
+        Stash_Iteration_Study_Hist(hres, "Iteration_Study_MeanResiduals");
+        Stash_Iteration_Study_Hist(hrms, "Iteration_Study_RMSResiduals");
+    }
+
+    // TH1* Unfolded_Histo = Unfolding_Histo.Hunfold(RooUnfold::kCovToys); // Changed to err_treat on 9/16/2026
+    TH1* Unfolded_Histo = Unfolding_Histo.Hunfold(err_treat);
+    if(Unfolded_Histo == nullptr){
+        std::cout << "\n" << Color::Error << "FAILED TO UNFOLD A HISTOGRAM (RooUnfold)..." << Color::END << std::endl;
+        return nullptr;
+    }
+    Unfolded_Histo->SetDirectory(0);
+
+    if(args.old_binning){
         for(int bin_rec = 0; bin_rec <= MC_REC_1D->GetNbinsX(); ++bin_rec){
             if(MC_REC_1D->GetBinContent(bin_rec) == 0){
                 Unfolded_Histo->SetBinError(bin_rec, Unfolded_Histo->GetBinContent(bin_rec) + Unfolded_Histo->GetBinError(bin_rec));
             }
         }
 
-        TH1* Bin_Acceptance = dynamic_cast<TH1*>(MC_REC_1D->Clone());
-        Bin_Acceptance->SetDirectory(0);
-        Bin_Acceptance->Sumw2();
-        Bin_Acceptance->Divide(MC_GEN_1D);
-        for(int bin_acceptance = 0; bin_acceptance <= Bin_Acceptance->GetNbinsX(); ++bin_acceptance){
-            bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
-                             (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
-                             (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
-            double acc = Bin_Acceptance->GetBinContent(bin_acceptance);
-            if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
-                Unfolded_Histo->SetBinError(bin_acceptance, 0);
-                Unfolded_Histo->SetBinContent(bin_acceptance, 0);
+        if(!args.no_post_unfold_acc_cut){
+            TH1* Bin_Acceptance = dynamic_cast<TH1*>(MC_REC_1D->Clone());
+            Bin_Acceptance->SetDirectory(0);
+            Bin_Acceptance->Sumw2();
+            Bin_Acceptance->Divide(MC_GEN_1D);
+            for(int bin_acceptance = 0; bin_acceptance <= Bin_Acceptance->GetNbinsX(); ++bin_acceptance){
+                bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
+                                 (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
+                                 (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
+                double acc = Bin_Acceptance->GetBinContent(bin_acceptance);
+                if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
+                    Unfolded_Histo->SetBinError(bin_acceptance, 0);
+                    Unfolded_Histo->SetBinContent(bin_acceptance, 0);
+                }
             }
+            delete Bin_Acceptance;
         }
-        delete Bin_Acceptance;
-
-        std::string title = replace_all(replace_all(ExREAL_1D->GetTitle(), "Experimental", Unfold_Title),
-                                        "Cut: Complete Set of SIDIS Cuts", "");
-        title = replace_all(title, "Cut:  Complete Set of SIDIS Cuts", "");
-        Unfolded_Histo->SetTitle(title.c_str());
-        std::string xtitle = replace_all(ExREAL_1D->GetXaxis()->GetTitle(), "(REC)",
-                                         (contains(Name_Main, "smeared") || contains(Name_Main, "smear")) ? "(Smeared)" : "");
-        Unfolded_Histo->GetXaxis()->SetTitle(xtitle.c_str());
-        std::string smear_tag = contains(to_lower_copy(Name_Main), "smear") ? "Smear" : "''";
-        std::string unf_name = std::string("(MultiDim_5D_Histo)_(Bayesian)_(SMEAR=") + smear_tag +
-                               ")_(Q2_y_z_pT_Bin_All)_(MultiDim_Q2_y_z_pT_phi_h)";
-        Unfolded_Histo->SetName(unf_name.c_str());
-
-        if(contains(Name_Main, "MultiDim_")){
-            Update_Email(args, "", "\tFinished Unfolding the histogram at:");
-            args.timer.time_elapsed();
-        }
-        std::cout << Color::BCYAN << "Finished " << Color::GREEN << Unfold_Title << Color::END_B
-                  << Color::CYAN << " Unfolding Procedure.\n" << Color::END << std::endl;
-        if(Response_2D_Input != Response_2D){ delete Response_2D_Input; }
-        return Unfolded_Histo;
-    } catch(const std::exception& exc){
-        std::cout << "\n" << Color::Error << "FAILED TO UNFOLD A HISTOGRAM (RooUnfold)...\nERROR:\n"
-                  << Color::END << exc.what() << std::endl;
-        return nullptr;
+    } else if(!skip_map.kept.empty()){
+        TH1* masked = Mask_Full_To_Analysis(Unfolded_Histo, skip_map, std::string(Unfolded_Histo->GetName()) + "_analysis");
+        delete Unfolded_Histo;
+        Unfolded_Histo = masked;
     }
+    if(own_rec){
+        delete ExREAL_use;
+        delete MC_REC_use;
+        if((MC_BGS_use != nullptr) && (MC_BGS_use != MC_BGS_1D)){ delete MC_BGS_use; }
+    }
+
+    std::string title = replace_all(replace_all(ExREAL_1D->GetTitle(), "Experimental", Unfold_Title),
+                                    "Cut: Complete Set of SIDIS Cuts", "");
+    title = replace_all(title, "Cut:  Complete Set of SIDIS Cuts", "");
+    Unfolded_Histo->SetTitle(title.c_str());
+    std::string xtitle = replace_all(ExREAL_1D->GetXaxis()->GetTitle(), "(REC)",
+                                     (contains(Name_Main, "smeared") || contains(Name_Main, "smear")) ? "(Smeared)" : "");
+    Unfolded_Histo->GetXaxis()->SetTitle(xtitle.c_str());
+    std::string smear_tag = contains(to_lower_copy(Name_Main), "smear") ? "Smear" : "''";
+    std::string unf_name = std::string("(MultiDim_5D_Histo)_(Bayesian)_(SMEAR=") + smear_tag +
+                           ")_(Q2_y_z_pT_Bin_All)_(MultiDim_Q2_y_z_pT_phi_h)";
+    Unfolded_Histo->SetName(unf_name.c_str());
+
+    if(contains(Name_Main, "MultiDim_")){
+        Update_Email(args, "", "\tFinished Unfolding the histogram at:");
+        args.timer.time_elapsed();
+    }
+    std::cout << Color::BCYAN << "Finished " << Color::GREEN << Unfold_Title << Color::END_B
+              << Color::CYAN << " Unfolding Procedure.\n" << Color::END << std::endl;
+    return Unfolded_Histo;
 }
 
 std::pair<TH1*, TH1*> subtract_bkg_with_zero_floor(TH1* hist_data, TH1* hist_background){
@@ -802,6 +1005,7 @@ void Run_Slice_Category(TH1* Pre_Sliced_1Ds, const std::string& method, UnfoldAr
 UnfoldArgs main_start(int argc, char** argv){
     UnfoldArgs args = sidis5d::parse_args(argc, argv);
     args.timer.start();
+    Log_Root_And_Matrix_Linkage();
     for(const char* attr : {"root", "single_file_input", "pdf_name"}){
         std::string* target = nullptr;
         if(std::string(attr) == "root"){ target = &args.root; }
@@ -886,6 +1090,7 @@ std::pair<TH2D*, MatrixCandidate> Load_And_Rebuild_5D_Response_Matrix(TFile* inp
     Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D);
     std::cout << "\n" << Color::BGREEN << "(5D) Rebuilding Response Matrix: " << detected.out_print_main << Color::END << "\n" << std::endl;
     TH2D* Response_2D = Rebuild_Matrix_5D(detected.Histo_List, detected.out_print_main_mdf_base, args.increment_5d, "Default");
+    Release_5D_Matrix_Slices(detected);
     if(Response_2D == nullptr){
         Crash_Report(args, "Rebuild_Matrix_5D returned ERROR");
     }
@@ -999,9 +1204,8 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
                                 MC_REC_1D->GetXaxis()->GetTitle() + ";" + MC_REC_1D->GetYaxis()->GetTitle();
         MC_BGS_1D->SetTitle(bgs_title.c_str());
     } else {
-        std::cout << Color::Error << "\nERROR: Missing Background Histogram " << Color::END_R << "(would be named: "
-                  << Color::END_B << out_print_main_bdf_1D << Color::END_R << ")" << Color::END << std::endl;
-        throw std::runtime_error("Missing (5D) Background Histogram");
+        Crash_Report(args, std::string("Missing (5D) Background Histogram (would be named: ") +
+                     out_print_main_bdf_1D + ")");
     }
     if(args.sim && (MC_BGS_1D != nullptr)){
         ExREAL_1D->Add(MC_BGS_1D);
@@ -1026,7 +1230,15 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         std::cout << Color::Error << "Cannot subtract the '" << args.background_source
                   << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
     }
-    TH2D* Response_2D = Rebuild_Matrix_5D(detected.Histo_List, detected.out_print_main_mdf_base, args.increment_5d, "Default");
+    RecSkipMap skip_map_5d;
+    const RecSkipMap* skip_ptr = nullptr;
+    if(!args.old_binning){
+        skip_map_5d = Build_Rec_Skip_Map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args.Min_Allowed_Acceptance_Cut);
+        Print_Rec_Skip_Map(skip_map_5d);
+        skip_ptr = &skip_map_5d;
+    }
+    TH2D* Response_2D = Rebuild_Matrix_5D(detected.Histo_List, detected.out_print_main_mdf_base, args.increment_5d, "Default", skip_ptr);
+    Release_5D_Matrix_Slices(detected);
     if(Response_2D == nullptr){
         Crash_Report(args, "Rebuild_Matrix_5D returned ERROR");
     }
@@ -1036,8 +1248,6 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         Crash_Report(args, "Unfold_Function returned ERROR");
     }
     Unfold_1D->SetDirectory(0);
-    delete Response_2D;
-    detected.Histo_List.clear();
     std::cout << "\n" << Color::BGREEN << "Finished Unfolding" << Color::END << "\n" << std::endl;
     args.timer.time_elapsed();
 
@@ -1063,18 +1273,17 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         Config_Tlist.Add(new TObjString(("increment=" + std::to_string(args.increment_5d)).c_str()));
         Config_Tlist.Add(new TObjString(("num_bins=" + std::to_string(args.num_bins_5d)).c_str()));
         Config_Tlist.Add(new TObjString(("num_slices=" + std::to_string(args.num_slices_5d)).c_str()));
+        Config_Tlist.Add(new TObjString(("error_mode=" + args.error_mode).c_str()));
+        Config_Tlist.Add(new TObjString(("bayes_iterations=" + std::to_string(args.bayes_iterations)).c_str()));
         safe_write(&Config_Tlist, output_file);
         if(ExREAL_1D_wExclusive_Background != nullptr){
             ExREAL_1D_wExclusive_Background->SetDirectory(0);
             safe_write(ExREAL_1D_wExclusive_Background, output_file);
             to_be_saved_count += 1;
         }
-        try {
-            safe_write(Unfold_1D, output_file);
-            to_be_saved_count += 1;
-        } catch(const std::exception& exc){
-            std::cout << "\n" << Color::Error << "ERROR: Tried to save Unfold_1D\n" << Color::END << exc.what() << "\n";
-        }
+        safe_write(Unfold_1D, output_file);
+        to_be_saved_count += 1;
+        Write_Iteration_Study_Hists(output_file, &to_be_saved_count);
         int save_count_ref = to_be_saved_count;
         for(const auto& item : Histos_To_Slice){
             Run_Slice_Category(item.first, item.second, args, output_file, &save_count_ref, MC_BGS_1D, meta);
@@ -1127,14 +1336,10 @@ int main_5D_recover_slices(UnfoldArgs& args, const SliceMetadata& meta){
         Unfold_1D = dynamic_cast<TH1*>(output_file->Get("unfolded"));
         Unfold_1D->SetName(proper_name.c_str());
         if(!args.test){
-            try {
-                safe_write(Unfold_1D, output_file);
-                to_be_saved_count += 1;
-                std::cout << Color::BGREEN << "Resaved renamed Bayesian 1D histogram as:\n\t" << Color::BBLUE
-                          << proper_name << Color::END << std::endl;
-            } catch(const std::exception& exc){
-                std::cout << "\n" << Color::Error << "ERROR: Tried to save renamed Unfold_1D\n" << Color::END << exc.what() << "\n";
-            }
+            safe_write(Unfold_1D, output_file);
+            to_be_saved_count += 1;
+            std::cout << Color::BGREEN << "Resaved renamed Bayesian 1D histogram as:\n\t" << Color::BBLUE
+                      << proper_name << Color::END << std::endl;
         } else {
             std::cout << Color::PINK << "Would have resaved renamed Bayesian 1D histogram as:\n\t" << Color::BCYAN
                       << proper_name << Color::END << std::endl;

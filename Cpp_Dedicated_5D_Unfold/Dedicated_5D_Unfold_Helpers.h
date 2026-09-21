@@ -247,7 +247,8 @@ struct UnfoldArgs {
     int Num_Toys = 10;
     std::vector<std::string> bins = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"};
     bool verbose = false;
-    double Min_Allowed_Acceptance_Cut = 0.0005;
+    // double Min_Allowed_Acceptance_Cut = 0.0005; // Changed to 0.025 on 9/16/2026
+    double Min_Allowed_Acceptance_Cut = 0.025;
     std::string single_file_input = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_1st_Order_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root";
     bool email = false;
     std::string email_message = "";
@@ -263,6 +264,18 @@ struct UnfoldArgs {
     bool logz = false;
     bool recover_slices = false;
     std::string data_root = "work";
+    std::string error_mode = "toys";
+    bool iteration_study = false;
+    bool unfolding_1D = false;
+    bool unfolding_3D = false;
+    bool old_binning = false;
+    bool no_post_unfold_acc_cut = false;
+    bool has_parm_min = false;
+    bool has_parm_max = false;
+    bool has_parm_step = false;
+    double parm_min = 1.0;
+    double parm_max = 15.0;
+    double parm_step = 1.0;
 
     std::string pass_version = "Pass 2";
     std::string smearing_options = "smear";
@@ -323,11 +336,21 @@ inline void print_help(){
         "  -pdf, --pdf_name PATH\n"
         "  -lz, --logz\n"
         "  -rs, --recover_slices      Slice an existing unfolded 1D\n"
-        "  -droot, --data_root work|work_b\n";
+        "  -droot, --data_root work|work_b\n"
+        "  -err, --error_mode toys|covariance|errors|none\n"
+        "                             Unfolding error treatment (default toys)\n"
+        "  -ist, --iteration_study    Optional RooUnfoldParms scan (not the default path)\n"
+        "  -pmin, --parm_min X  -pmax, --parm_max Y  -pstep, --parm_step Z\n"
+        "  -u1D, --unfolding_1D       1D unfolding only\n"
+        "  -u3D, --unfolding_3D       3D unfolding only\n"
+        "  -ob, --old_binning         Keep full reconstructed binning (previous behavior)\n"
+        "  -npac, --no_post_unfold_acc_cut\n"
+        "                             Disable the legacy acceptance cut applied after unfolding\n";
 }
 
 inline UnfoldArgs parse_args(int argc, char** argv){
     UnfoldArgs args;
+    bool saw_positional_bins = false;
     for(int i = 1; i < argc; ++i){
         std::string arg = argv[i];
         if((arg == "-h") || (arg == "--help")){
@@ -337,8 +360,10 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.test = true;
         } else if(match_opt(arg, {"-r", "--root"})){
             args.root = opt_value(i, argc, argv, arg, "--root");
-        } else if(match_opt(arg, {"-no-smear", "--no_smear"})){
+        } else if(match_opt(arg, {"-no-smear", "--no_smear", "-nos"})){
             args.no_smear = true;
+        } else if(match_opt(arg, {"-smear", "--smear"})){
+            args.no_smear = false;
         } else if(match_opt(arg, {"-sim", "--simulation"})){
             args.sim = true;
         } else if(match_opt(arg, {"-mod", "--modulation"})){
@@ -392,6 +417,33 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.recover_slices = true;
         } else if(match_opt(arg, {"-droot", "--data_root"})){
             args.data_root = opt_value(i, argc, argv, arg, "--data_root");
+        } else if(match_opt(arg, {"-err", "--error_mode"})){
+            args.error_mode = opt_value(i, argc, argv, arg, "--error_mode");
+        } else if(match_opt(arg, {"-ist", "--iteration_study"})){
+            args.iteration_study = true;
+        } else if(match_opt(arg, {"-pmin", "--parm_min"})){
+            args.has_parm_min = true;
+            args.parm_min = std::atof(opt_value(i, argc, argv, arg, "--parm_min").c_str());
+        } else if(match_opt(arg, {"-pmax", "--parm_max"})){
+            args.has_parm_max = true;
+            args.parm_max = std::atof(opt_value(i, argc, argv, arg, "--parm_max").c_str());
+        } else if(match_opt(arg, {"-pstep", "--parm_step"})){
+            args.has_parm_step = true;
+            args.parm_step = std::atof(opt_value(i, argc, argv, arg, "--parm_step").c_str());
+        } else if(match_opt(arg, {"-u1D", "--unfolding_1D"})){
+            args.unfolding_1D = true;
+        } else if(match_opt(arg, {"-ob", "--old_binning"})){
+            args.old_binning = true;
+        } else if(match_opt(arg, {"-npac", "--no_post_unfold_acc_cut"})){
+            args.no_post_unfold_acc_cut = true;
+        } else if(match_opt(arg, {"-u3D", "--unfolding_3D"})){
+            args.unfolding_3D = true;
+        } else if(!is_flag(arg)){
+            if(!saw_positional_bins){
+                args.bins.clear();
+                saw_positional_bins = true;
+            }
+            args.bins.push_back(arg);
         } else {
             std::cerr << "Unknown argument: " << arg << std::endl;
             print_help();
@@ -405,6 +457,12 @@ inline UnfoldArgs parse_args(int argc, char** argv){
     const std::vector<std::string> ok_tags = {"", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"};
     if(std::find(ok_tags.begin(), ok_tags.end(), args.weight_tag) == ok_tags.end()){
         std::cerr << "Invalid --weight_tag: " << args.weight_tag << std::endl;
+        std::exit(2);
+    }
+    if((args.error_mode != "toys") && (args.error_mode != "covariance") &&
+       (args.error_mode != "errors") && (args.error_mode != "none")){
+        std::cerr << "Invalid --error_mode: " << args.error_mode
+                  << " (expected toys|covariance|errors|none)" << std::endl;
         std::exit(2);
     }
     return args;
@@ -488,6 +546,10 @@ inline void Construct_Email(UnfoldArgs& args, bool Crashed=false, bool Warning=f
     add_arg("logz", format_arg_value_bool(args.logz));
     add_arg("recover_slices", format_arg_value_bool(args.recover_slices));
     add_arg("data_root", "'" + args.data_root + "'");
+    add_arg("error_mode", "'" + args.error_mode + "'");
+    add_arg("iteration_study", format_arg_value_bool(args.iteration_study));
+    add_arg("old_binning", format_arg_value_bool(args.old_binning));
+    add_arg("no_post_unfold_acc_cut", format_arg_value_bool(args.no_post_unfold_acc_cut));
     add_arg("pass_version", "'" + args.pass_version + "'");
     add_arg("closure", format_arg_value_bool(args.closure));
     add_arg("smearing_options", "'" + args.smearing_options + "'");
