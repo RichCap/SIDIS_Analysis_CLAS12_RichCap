@@ -24,7 +24,8 @@ ROOT.gStyle.SetGridWidth(1)
 # ROOT.gStyle.SetLabelSize(0.18,  "y")      # bigger, easier to read
 # ROOT.gStyle.SetLabelSize(0.038, "y")      # bigger, easier to read
 ROOT.gStyle.SetLabelFont(62, "y")         # Helvetica bold → looks "thicker"
-ROOT.gStyle.SetTitleX(0.58)
+ROOT.gStyle.SetTitleX(0.5)
+ROOT.gStyle.SetTitleAlign(23)
 ROOT.gStyle.SetTitleFont(62)              # bold title too
 # ROOT.gStyle.SetLabelSize(0.15,  "x")      # optional but nice for x-axis
 # ROOT.gStyle.SetLabelSize(0.035, "x")      # optional but nice for x-axis
@@ -58,7 +59,11 @@ def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
         pT_marker = marker_mapper[str(pT_group)]
         z__marker = marker_mapper[str(z__group)]
         Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[f"Q2-y={Q2_y_Bin}, Q2-y"]
-        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[f"Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}"]
+        zpt_key = f"Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}"
+        if(zpt_key not in Full_Bin_Definition_Array):
+            print(f"{color.Error}WARNING: MUST SKIP BIN {Q2_y_Bin}-{z_pT_Bin}... missing {zpt_key} in Full_Bin_Definition_Array{color.END}")
+            return return_info
+        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[zpt_key]
         Q2val = (Q2_max + Q2_min)/2
         y_val = (y_max  +  y_min)/2
         z_val = (z_max  +  z_min)/2
@@ -536,6 +541,8 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
             yv = float(entry[y_par])
             ye = float(entry[err_key]) if((include_errors) and (err_key in entry)) else 0.0
             if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
+                if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+                    continue
                 _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
                 if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
                     yv = yv/(Bin_Width_Area_Scale*Luminosity)
@@ -572,6 +579,8 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         yval = float(entry[y_par])
         yerr = float(entry[err_key])
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
+            if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+                continue
             _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
             if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
                 yval = yval/(Bin_Width_Area_Scale*Luminosity)
@@ -920,9 +929,11 @@ def expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_
 # ------------------------------------------------------------
 # Title logic
 # ------------------------------------------------------------
-def Get_Default_Y_Title(y_par, fit_set):
+def Get_Default_Y_Title(y_par, fit_set, apply_A_corr=False):
     y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
     base = y_title_map.get(str(y_par), str(y_par))
+    if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+        return "Normalized A"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_title_map)):
         base = f"{base} from the Cross Section Fits"
     return base
@@ -1057,7 +1068,7 @@ def build_global_title(args, fit_set, y_par):
         fit_label = Get_Default_FitSet_Title(fit_set)
 
     x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
-    y_label = Get_Default_Y_Title(y_par, fit_set)
+    y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     line1 = f"{y_label} vs {x_label}"
     line2 = f"{fit_label}"
     if(str(args.title_text).strip() != ""):
@@ -1129,7 +1140,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
     else:
-        y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+        y_axis_title = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
         y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
 
     # -------------------------------------------------------------------------
@@ -1369,7 +1380,7 @@ def Build_SingleBin_Subtitle(args, fit_set):
     return ""
 
 def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
-    y_label = Get_Default_Y_Title(y_par, fit_set)
+    y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     y_label = y_label.replace(" from the Cross Section Fits", "")
     line1 = f"CLAS12 Preliminary #topbar {y_label}"
     line2 = Build_SingleBin_Subtitle(args, fit_set)
@@ -1568,7 +1579,7 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
     else:
-        y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+        y_axis_title = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
         y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
 
     frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
@@ -1679,9 +1690,11 @@ def Validate_Output_Filename(filename):
             raise SystemExit(f"{color.Error}ERROR:{color.END_R} Forbidden character '{ch}' in output filename:{color.END} {filename}")
     return
 
-def Get_Default_Y_FileTag(y_par, fit_set):
+def Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=False):
     y_tag_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "CosPhiMoment", "Fit_Par_C": "Cos2PhiMoment"}
     base_tag  = y_tag_map.get(str(y_par), sanitize_for_filename(str(y_par)))
+    if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+        base_tag = "NormalizedA"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_tag_map)):
         base_tag = f"{base_tag}_XsecFits"
     return sanitize_for_filename(base_tag)
@@ -1719,7 +1732,7 @@ def Build_Output_Filename(args, fit_set, y_par):
     stem  = sanitize_for_filename(args.name)
     fs_tag = Get_Default_FitSet_FileTag(fit_set)
     x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
+    y_tag  = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     filename = f"{stem}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
@@ -1728,7 +1741,7 @@ def Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin):
     stem  = sanitize_for_filename(args.name)
     fs_tag = Get_Default_FitSet_FileTag(fit_set)
     x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
+    y_tag  = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
@@ -2246,6 +2259,8 @@ def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     yval = float(fit_dict[key_str][y_par])
     yerr = float(fit_dict[key_str][err_key])
     if((getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A")):
+        if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+            return None
         _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
         if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
             yval = yval / (Bin_Width_Area_Scale * Luminosity)
