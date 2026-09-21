@@ -14,6 +14,7 @@ from jlab_work_paths import add_data_root_argument, apply_input_if_default, appl
 EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
+from reconstructed_bin_reduction import build_rec_skip_map, compress_th1_rec, compress_th2_rec_axis, mask_full_to_analysis
 
 ROOT.gROOT.SetBatch(1)
 ROOT.TH1.AddDirectory(0)
@@ -58,6 +59,17 @@ def parse_args():
                    type=int,
                    default=10,
                    help="Number of Toys used to estimate the unfolding errors.\n")
+    p.add_argument('-err', '--error_mode',
+                   type=str,
+                   default="toys",
+                   choices=["toys", "covariance", "errors", "none"],
+                   help="RooUnfold error treatment: toys=kCovToys (default), covariance=kCovariance, errors=kErrors, none=kNoError.\n")
+    p.add_argument('-ob', '--old_binning',
+                   action='store_true',
+                   help="Keep full reconstructed binning (previous behavior).\n")
+    p.add_argument('-npac', '--no_post_unfold_acc_cut',
+                   action='store_true',
+                   help="Disable the legacy acceptance cut applied after unfolding. Pre-unfold reconstructed-bin reduction is unchanged unless --old_binning is also set.\n")
     p.add_argument('-b', '--bins',
                    nargs="+",
                    type=str,
@@ -68,7 +80,8 @@ def parse_args():
                    help="Prints each Histogram name to be saved.\n")
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut',
                    type=float,
-                   default=0.0005,
+                   # default=0.0005,  # Changed to 0.025 on 9/16/2026
+                   default=0.025,
                    help="Cut made on acceptance before a bin is removed from unfolding.\n")
     p.add_argument('-sfin', '--single_file_input',
                    type=str,
@@ -406,6 +419,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
         del clean_name
         
         nBins_CVM = ExREAL_1D.GetNbinsX()
+        nBins_gen = MC_GEN_1D.GetNbinsX()
         bin_Width = ExREAL_1D.GetBinWidth(1)
         MinBinCVM = ExREAL_1D.GetBinCenter(0)
         MaxBinCVM = ExREAL_1D.GetBinCenter(nBins_CVM)
@@ -413,11 +427,13 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
         MaxBinCVM += 0.5*bin_Width
         ExREAL_1D.GetXaxis().SetRange(0,     nBins_CVM)     # Experimental/real data (rdf)
         MC_REC_1D.GetXaxis().SetRange(0,     nBins_CVM)     # MC Reconstructed data (mdf)
-        MC_GEN_1D.GetXaxis().SetRange(0,     nBins_CVM)     # MC Generated data (gdf)
-        Response_2D.GetXaxis().SetRange(0,   nBins_CVM)     # Response Matrix (X axis --> GEN)
-        Response_2D.GetYaxis().SetRange(0,   nBins_CVM)     # Response Matrix (Y axis --> REC)
+        MC_GEN_1D.GetXaxis().SetRange(0,     nBins_gen)     # MC Generated data (gdf)
+        Response_2D.GetXaxis().SetRange(0,   Response_2D.GetNbinsX())
+        Response_2D.GetYaxis().SetRange(0,   nBins_gen)
         if(MC_BGS_1D != "None"):
             MC_BGS_1D.GetXaxis().SetRange(0, nBins_CVM)     # MC Background Subtracted Distribution
+        skip_map = None
+        ExREAL_use, MC_REC_use, MC_BGS_use = ExREAL_1D, MC_REC_1D, MC_BGS_1D
         if("MultiDim_Q2_y_z_pT_phi_h" not in str(Name_Main)):
             Response_2D_Input_Title = f"{Response_2D.GetTitle()};{Response_2D.GetYaxis().GetTitle()};{Response_2D.GetXaxis().GetTitle()}"
             Response_2D_Input       = ROOT.TH2D(f"{Response_2D.GetName()}_Flipped", str(Response_2D_Input_Title), Response_2D.GetNbinsY(), MinBinCVM, MaxBinCVM, Response_2D.GetNbinsX(), MinBinCVM, MaxBinCVM)
@@ -440,15 +456,27 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             Response_2D_Input_Title = f"{Response_2D.GetTitle()};{Response_2D.GetXaxis().GetTitle()};{Response_2D.GetYaxis().GetTitle()}"
             Response_2D_Input       = Response_2D
         del Response_2D
+        if(not getattr(args, "old_binning", False)):
+            bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
+            skip_map = build_rec_skip_map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, bdf_in, args.Min_Allowed_Acceptance_Cut)
+            for line in skip_map.report_lines():
+                print(line)
+            ExREAL_use = compress_th1_rec(ExREAL_1D, skip_map)
+            MC_REC_use = compress_th1_rec(MC_REC_1D, skip_map)
+            if(bdf_in is not None):
+                MC_BGS_use = compress_th1_rec(MC_BGS_1D, skip_map)
+            if(Response_2D_Input.GetNbinsX() != skip_map.n_kept):
+                Response_2D_Input = compress_th2_rec_axis(Response_2D_Input, skip_map, rec_is_x=True)
 
-        if(nBins_CVM == MC_REC_1D.GetNbinsX() == MC_GEN_1D.GetNbinsX() == Response_2D_Input.GetNbinsX() == Response_2D_Input.GetNbinsY()):
+        nBins_rec = ExREAL_use.GetNbinsX()
+        if((nBins_rec == MC_REC_use.GetNbinsX()) and (nBins_gen == MC_GEN_1D.GetNbinsX()) and (nBins_rec == Response_2D_Input.GetNbinsX()) and (nBins_gen == Response_2D_Input.GetNbinsY())):
             try:
-                Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_1D, MC_GEN_1D, Response_2D_Input, f"{str(Response_2D_Input.GetName()).replace('_Flipped', '')}_RooUnfoldResponse_Object", Response_2D_Input_Title)
-                if(MC_BGS_1D != "None"):
+                Response_RooUnfold = ROOT.RooUnfoldResponse(MC_REC_use, MC_GEN_1D, Response_2D_Input, f"{str(Response_2D_Input.GetName()).replace('_Flipped', '')}_RooUnfoldResponse_Object", Response_2D_Input_Title)
+                if(MC_BGS_use not in ["None", None]):
                     # Background Subtraction Method 1: Fill the Response_RooUnfold object explicitly with the content of a background histogram with the Fake() function
-                    for rec_bin in range(0, nBins_CVM + 1):
-                        rec_val = MC_BGS_1D.GetBinCenter(rec_bin)
-                        rec_con = MC_BGS_1D.GetBinContent(rec_bin)
+                    for rec_bin in range(1, MC_BGS_use.GetNbinsX() + 1):
+                        rec_val = MC_BGS_use.GetBinCenter(rec_bin)
+                        rec_con = MC_BGS_use.GetBinContent(rec_bin)
                         Response_RooUnfold.Fake(rec_val, w=rec_con)
                     # Background Subtraction Method 2:
                         # Should be possible to add MC_BGS_1D to MC_REC_1D to combine those plots where MC_REC_1D != the projection of Response_2D_Input since MC_REC_1D would (in this case) still contain events which would be identifified as background in MC_BGS_1D
@@ -463,15 +491,15 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     ##=====##  SVD Regularization Parameter  ##=====##
                     Reg_Par = 13
                     ##=====##  SVD Regularization Parameter  ##=====##
-                    Unfolding_Histo = ROOT.RooUnfoldSvd(Response_RooUnfold, ExREAL_1D, Reg_Par, 100)
+                    Unfolding_Histo = ROOT.RooUnfoldSvd(Response_RooUnfold, ExREAL_use, Reg_Par, 100)
                 elif(("bbb" in str(Method)) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                     Unfold_Title = "RooUnfold (Bin-by-Bin)"
                     print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
-                    Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_1D)
+                    Unfolding_Histo = ROOT.RooUnfoldBinByBin(Response_RooUnfold, ExREAL_use)
                 elif("inv" in str(Method)):
                     Unfold_Title = "RooUnfold Inversion (without regulation)"
                     print(f"\t{color.CYAN}Using {color.BGREEN}{Unfold_Title}{color.END_C} Unfolding Procedure...{color.END}")
-                    Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_1D)
+                    Unfolding_Histo = ROOT.RooUnfoldInvert(Response_RooUnfold, ExREAL_use)
                 else:
                     Unfold_Title = "RooUnfold (Bayesian)"
                     if(str(Method) not in ["RooUnfold", "RooUnfold_bayes", "Default"]):
@@ -500,8 +528,15 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     ##=====##  Bayesian Iterations  ##=====##
                     #########################################
 
-                    Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_1D, bayes_iterations)
-                    Unfolding_Histo.SetNToys(args.Num_Toys)
+                    Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_use, bayes_iterations)
+                    error_mode = str(getattr(args, "error_mode", "toys")).lower()
+                    if(error_mode == "toys"):
+                        Unfolding_Histo.SetNToys(args.Num_Toys)
+                    err_treat = {
+                        "covariance": ROOT.RooUnfold.kCovariance,
+                        "errors": ROOT.RooUnfold.kErrors,
+                        "none": ROOT.RooUnfold.kNoError,
+                    }.get(error_mode, ROOT.RooUnfold.kCovToys)
 
 ##==============##==============================================================##==============##
 ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
@@ -510,22 +545,27 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                 if(any(method in str(Method) for method in ["bbb", "svd", "inv"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                     Unfolded_Histo = Unfolding_Histo.Hunfold()
                 else:
-                    Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovToys)
+                    # Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovToys)  # Changed to err_treat on 9/16/2026
+                    Unfolded_Histo = Unfolding_Histo.Hunfold(err_treat)
                 
-                for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1):
-                    if(MC_REC_1D.GetBinContent(bin_rec) == 0):
-                        Unfolded_Histo.SetBinError(bin_rec, Unfolded_Histo.GetBinContent(bin_rec) + Unfolded_Histo.GetBinError(bin_rec))
+                if(getattr(args, "old_binning", False)):
+                    for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1):
+                        if(MC_REC_1D.GetBinContent(bin_rec) == 0):
+                            Unfolded_Histo.SetBinError(bin_rec, Unfolded_Histo.GetBinContent(bin_rec) + Unfolded_Histo.GetBinError(bin_rec))
 
-                if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
-                    Bin_Acceptance = MC_REC_1D.Clone()
-                    Bin_Acceptance.Sumw2()
-                    Bin_Acceptance.Divide(MC_GEN_1D)
-                for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1):
-                    if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*args.Min_Allowed_Acceptance_Cut)):
-                        # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
-                        # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
-                        Unfolded_Histo.SetBinError(bin_acceptance,   0)
-                        Unfolded_Histo.SetBinContent(bin_acceptance, 0)
+                    if(not getattr(args, "no_post_unfold_acc_cut", False)):
+                        if(Method not in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"]):
+                            Bin_Acceptance = MC_REC_1D.Clone()
+                            Bin_Acceptance.Sumw2()
+                            Bin_Acceptance.Divide(MC_GEN_1D)
+                        for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1):
+                            if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*args.Min_Allowed_Acceptance_Cut)):
+                                # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
+                                # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
+                                Unfolded_Histo.SetBinError(bin_acceptance,   0)
+                                Unfolded_Histo.SetBinContent(bin_acceptance, 0)
+                elif(skip_map is not None):
+                    Unfolded_Histo = mask_full_to_analysis(Unfolded_Histo, skip_map)
                         
                 Unfolded_Histo.SetTitle(((str(ExREAL_1D.GetTitle()).replace("Experimental", str(Unfold_Title))).replace("Cut: Complete Set of SIDIS Cuts", "")).replace("Cut:  Complete Set of SIDIS Cuts", ""))
                 Unfolded_Histo.GetXaxis().SetTitle(str(ExREAL_1D.GetXaxis().GetTitle()).replace("(REC)", "(Smeared)" if("smeared" in str(Name_Main) or "smear" in str(Name_Main)) else ""))
@@ -745,7 +785,7 @@ def Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D):
 ################################################################################################################################################################################################################################################
 ##==========##==========##        5D-Multidimensional Rebuild Function            ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
-def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Title="Default"):
+def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Title="Default", skip_map=None):
     Num__Bins, Min_Range, Max_Range = Find_Bins_From_Histo_Name(Standard_Name)
     if(Increment is None):
         m_inc = SLICE_INCREMENT_RE.search(Standard_Name)
@@ -770,16 +810,24 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Titl
             print(f"{color.Error}ERROR IN Rebuild_Matrix_5D(...): {color.END_R}'Slicing_Name' is missing from 'List_of_Sliced_Histos'{color.END_B}\n\tSlicing_Name = {missing_name}")
             return "ERROR"
     Histo_Title = Title if(Title not in ["Default"]) else "".join([str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetTitle()), ";", str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetXaxis().GetTitle()), ";", str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetYaxis().GetTitle())])
-    Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name), str(Histo_Title), Num__Bins, Min_Range, Max_Range, Num__Bins, Min_Range, Max_Range)
+    rec_bins = skip_map.n_kept if(skip_map is not None) else Num__Bins
+    rec_min = 0.5 if(skip_map is not None) else Min_Range
+    rec_max = (rec_bins + 0.5) if(skip_map is not None) else Max_Range
+    Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name), str(Histo_Title), rec_bins, rec_min, rec_max, Num__Bins, Min_Range, Max_Range)
     X_Bin_5D = 0
     for slice_num in range(1, Num_Slices + 1):
         Histo_Add = List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", str(slice_num))]
         X_Bin_5D += -1
         for x_bin in range(0, Histo_Add.GetNbinsX() + 1):
             X_Bin_5D += 1
+            dest_x = X_Bin_5D
+            if(skip_map is not None):
+                if((X_Bin_5D < 1) or skip_map.is_skipped(X_Bin_5D)):
+                    continue
+                dest_x = skip_map.reduced_index(X_Bin_5D)
             for y_bin in range(0, Histo_Add.GetNbinsY() + 1):
-                Rebuilt_5D_Matrix.SetBinContent(X_Bin_5D, y_bin, Histo_Add.GetBinContent(x_bin, y_bin))
-                Rebuilt_5D_Matrix.SetBinError(X_Bin_5D,   y_bin, Histo_Add.GetBinError(x_bin,   y_bin))
+                Rebuilt_5D_Matrix.SetBinContent(dest_x, y_bin, Histo_Add.GetBinContent(x_bin, y_bin))
+                Rebuilt_5D_Matrix.SetBinError(dest_x,   y_bin, Histo_Add.GetBinError(x_bin,   y_bin))
     print(f"\n{color.BGREEN}Finished running Rebuild_Matrix_5D(...){color.END}\n")
     return Rebuilt_5D_Matrix
 
@@ -1299,7 +1347,13 @@ def main_5D_unfold(args):
         ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
     elif(args.background_source not in ["None"]):
         print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-    Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf_base, Increment=args.increment_5d)
+    skip_map_5d = None
+    if(not getattr(args, "old_binning", False)):
+        bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
+        skip_map_5d = build_rec_skip_map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, bdf_in, args.Min_Allowed_Acceptance_Cut)
+        for line in skip_map_5d.report_lines():
+            print(line)
+    Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf_base, Increment=args.increment_5d, skip_map=skip_map_5d)
     if(Response_2D in ["ERROR"]):
         Crash_Report(args, crash_message="Rebuild_Matrix_5D returned ERROR")
     args.timer.time_elapsed()

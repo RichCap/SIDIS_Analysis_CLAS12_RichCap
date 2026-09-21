@@ -63,6 +63,32 @@ def parse_args():
                    type=int,
                    default=10,
                    help="Number of Toys used to estimate the unfolding errors.\n")
+    p.add_argument('-err', '--error_mode',
+                   type=str,
+                   default="toys",
+                   choices=["toys", "covariance", "errors", "none"],
+                   help="RooUnfold error treatment: toys=kCovToys (default), covariance=kCovariance, errors=kErrors, none=kNoError.\n")
+    p.add_argument('-ist', '--iteration_study',
+                   action='store_true',
+                   help="Optional RooUnfoldParms iteration/regularisation scan (not the default unfolding path).\n")
+    p.add_argument('-pmin', '--parm_min',
+                   type=float,
+                   default=None,
+                   help="Optional RooUnfoldParms minimum iteration/regularisation parameter.\n")
+    p.add_argument('-pmax', '--parm_max',
+                   type=float,
+                   default=None,
+                   help="Optional RooUnfoldParms maximum iteration/regularisation parameter.\n")
+    p.add_argument('-pstep', '--parm_step',
+                   type=float,
+                   default=None,
+                   help="Optional RooUnfoldParms step size.\n")
+    p.add_argument('-ob', '--old_binning',
+                   action='store_true',
+                   help="Keep full reconstructed binning (previous behavior).\n")
+    p.add_argument('-npac', '--no_post_unfold_acc_cut',
+                   action='store_true',
+                   help="Disable the legacy acceptance cut applied after unfolding. Pre-unfold reconstructed-bin reduction is unchanged unless --old_binning is also set.\n")
     p.add_argument('-b', '--bins',
                    nargs="+",
                    type=str,
@@ -73,7 +99,8 @@ def parse_args():
                    help="Prints each Histogram name to be saved.\n")
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut',
                    type=float,
-                   default=0.0005,
+                   # default=0.0005,  # Changed to 0.025 on 9/16/2026
+                   default=0.025,
                    help="Cut made on acceptance before a bin is removed from unfolding.\n")
     p.add_argument('-sfin', '--single_file_input',
                    type=str,
@@ -121,16 +148,16 @@ def parse_args():
                    action='store_true',
                    help="Skip unfolding; load existing args.root, rename/resave the raw 'unfolded' hist if needed, and only run Multi5D_Slice for Bayesian.\n")
     add_data_root_argument(p)
-    p.add_argument('--compile-only',
+    p.add_argument('--compile_only',
                    action='store_true',
                    help="Generate binning header, compile the C++ binary, and exit.\n")
-    p.add_argument('--generate-binning-only',
+    p.add_argument('--generate_binning_only',
                    action='store_true',
                    help="Regenerate Cpp_Dedicated_5D_Unfold/generated/Dedicated_5D_Binning.h and exit.\n")
-    p.add_argument('--skip-compile',
+    p.add_argument('--skip_compile',
                    action='store_true',
                    help="Do not rebuild the C++ binary; require it to already exist.\n")
-    p.add_argument('--roounfold-dir',
+    p.add_argument('--roounfold_dir',
                    type=str,
                    default=os.environ.get("ROOUNFOLD_DIR", ""),
                    help="RooUnfold source/build directory (sets ROOUNFOLD_DIR for make).\n")
@@ -210,6 +237,19 @@ def build_cpp_command(args):
         cmd.append("--modulation")
     cmd.extend(["--bayes_iterations", str(args.bayes_iterations)])
     cmd.extend(["--Num_Toys", str(args.Num_Toys)])
+    cmd.extend(["--error_mode", str(args.error_mode)])
+    if(args.iteration_study):
+        cmd.append("--iteration_study")
+    if(args.parm_min is not None):
+        cmd.extend(["--parm_min", str(args.parm_min)])
+    if(args.parm_max is not None):
+        cmd.extend(["--parm_max", str(args.parm_max)])
+    if(args.parm_step is not None):
+        cmd.extend(["--parm_step", str(args.parm_step)])
+    if(args.old_binning):
+        cmd.append("--old_binning")
+    if(args.no_post_unfold_acc_cut):
+        cmd.append("--no_post_unfold_acc_cut")
     cmd.append("--bins")
     cmd.extend([str(b) for b in args.bins])
     if(args.verbose):
