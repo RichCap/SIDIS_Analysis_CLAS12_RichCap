@@ -96,3 +96,12 @@ Histo_Files_ROOT/DataFrames/Chapter3_MC_Bin_Migration_Local/
 Local_Copy_of_Custom_Images_From_Unfolded_ROOT_Files.ipynb
 Local_Notebook_for_writing_Commands.ipynb
 
+
+# Local thesis/release-note trees, one-shot DNP figure refresh, and unfolding study outputs
+Actual_Thesis_LaTeX_Projects/
+Figure_Refresh_DNP2026_NoPostAcc/
+Unfold_Iteration_Study_3D/
+Unfold_Iteration_Study_5D/
+Unfold_Phase4_3D/
+Logs_for_Simple_Unfolding/Unfold_3D_Final_Thesis_Bank_*.out
+Cpp_Simple_Unfold/Simple_Unfold
