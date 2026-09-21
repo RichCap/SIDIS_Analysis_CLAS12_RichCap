@@ -7,7 +7,14 @@ import traceback
 import os
 from pathlib import Path
 
-script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+_ifarm_anal = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+_local_anal = '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap'
+if(os.path.isdir(_ifarm_anal)):
+    script_dir = _ifarm_anal
+elif(os.path.isdir(_local_anal)):
+    script_dir = _local_anal
+else:
+    script_dir = _ifarm_anal
 sys.path.append(script_dir)
 from MyCommonAnalysisFunction_richcap import *
 from ExtraAnalysisCodeValues import *
@@ -127,7 +134,14 @@ def parse_args():
     return parser.parse_args()
 
 def silence_root_import():
-    script_dir = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    _ifarm_anal = '/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis'
+    _local_anal = '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap'
+    if(os.path.isdir(_ifarm_anal)):
+        script_dir = _ifarm_anal
+    elif(os.path.isdir(_local_anal)):
+        script_dir = _local_anal
+    else:
+        script_dir = _ifarm_anal
     sys.path.append(script_dir)
     # Flush Python’s buffers so dup2 doesn’t duplicate partial output
     sys.stdout.flush()
