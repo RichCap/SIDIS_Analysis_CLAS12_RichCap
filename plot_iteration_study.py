@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot RooUnfoldParms iteration-study diagnostics and recommend k per Q2-y bin."""
+# Plot RooUnfoldParms iteration-study diagnostics and recommend k per Q2-y bin.
 
 import argparse
 import math
@@ -14,17 +14,31 @@ if(_BOOT not in sys.path):
 
 def parse_args():
     p = argparse.ArgumentParser(description="Plot χ² diagnostic, χ² change, mean residuals, and RMS error vs iteration.")
-    p.add_argument('root_file', help="ROOT file containing Iteration_Study_* histograms.")
-    p.add_argument('-o', '--out', default="Unfold_Iteration_Study_3D/",
+    p.add_argument('root_file',
+                   help="ROOT file containing Iteration_Study_* histograms.")
+    p.add_argument('-o', '--out',
+                   default="Unfold_Iteration_Study_3D/",
                    help="Output directory for PDFs.")
-    # p.add_argument('-kmin', '--clip-min', type=int, default=3, help="Minimum recommended k.")  # Changed default to 1 on 9/16/2026 (iteration 2 is valid)
-    p.add_argument('-kmin', '--clip-min', type=int, default=1, help="Minimum recommended k (1 allows iteration 2).")
-    p.add_argument('-kmax', '--clip-max', type=int, default=25, help="Maximum recommended k.")
-    p.add_argument('-plat', '--plateau', type=float, default=0.05,
+    p.add_argument('-kmin', '--clip_min',
+                   type=int,
+                   # default=3, # Changed default to 1 on 9/16/2026 (iteration 2 is valid)
+                   default=1,
+                   help="Minimum recommended k (1 allows iteration 2).")
+    p.add_argument('-kmax', '--clip_max',
+                   type=int,
+                   default=25,
+                   help="Maximum recommended k.")
+    p.add_argument('-plat', '--plateau',
+                   type=float,
+                   default=0.05,
                    help="χ²-change plateau threshold.")
-    p.add_argument('-spread', '--flag-spread', type=int, default=4,
+    p.add_argument('-spread', '--flag_spread',
+                   type=int,
+                   default=4,
                    help="Flag if the three k choices differ by this many iterations or more.")
-    p.add_argument('-eps', '--epsilon', type=float, default=1e-12)
+    p.add_argument('-eps', '--epsilon',
+                   type=float,
+                   default=1e-12)
     return p.parse_args()
 
 
@@ -35,7 +49,7 @@ def silence_root():
 
 
 def extract_iteration_series(hist, kmax=None):
-    """Extract one value per integer iteration from a TProfile or TH1. Print (k, value) pairs."""
+    # Extract one value per integer iteration from a TProfile or TH1. Print (k, value) pairs.
     by_k = {}
     if(hist is None):
         return by_k

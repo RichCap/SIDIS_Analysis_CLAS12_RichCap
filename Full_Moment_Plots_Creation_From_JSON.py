@@ -1447,8 +1447,11 @@ def Compute_SingleBin_AutoYRange(series_map):
     ymax = ymax + 0.10 * span
     return (ymin, ymax)
 
-def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
+def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
     if(q2y_bin not in q2y_ranges):
+        return
+    mode = "Q2y_only" if(args is None) else str(args.pad_label_mode)
+    if(mode == "none"):
         return
     Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
@@ -1465,11 +1468,23 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
     tm = ROOT.gPad.GetTopMargin()
 
     x0 = float(lm) + 0.02
-    y0 = 1.0 - float(tm) - 0.02
-    step = 0.055
+    # Sit in the top margin, above the frame, so the bin/range lines do not cover the points.
+    y0 = min(0.90, 1.0 - 0.07)
+    step = 0.028
+    lab.SetTextSize(0.022)
 
-    lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
-    lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+    # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, Q2y_only.
+    if(mode == "Q2y_only"):
+        lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+        lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+        return
+    lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {int(q2y_bin)}")
+    if(mode == "bin"):
+        return
+    lab.DrawLatex(x0, y0 - step, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+    if(mode == "bin_Q2"):
+        return
+    lab.DrawLatex(x0, y0 - 2.0 * step, f"{yminv:.2f} < y < {ymaxv:.2f}")
 
 def Draw_SingleBin_Legend(args, series_map, info_map):
     # Legend entries show the full bin width of the variable NOT on the x-axis
@@ -1553,7 +1568,8 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     # Only allocate enough room for the subtitle if it actually exists.
     subtitle_tmp = Build_SingleBin_Subtitle(args, fit_set)
     # top_margin = 0.22 if((str(subtitle_tmp).strip() != "")) else 0.18
-    top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
+    # top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
+    top_margin = 0.30 if((str(subtitle_tmp).strip() != "")) else 0.26
 
     pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 1.0)
     pad.SetFillColor(0)
@@ -1649,7 +1665,7 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         c1._keepalive.append(gr)
         graphs_by_sid[sid] = gr
 
-    Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges)
+    Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges, args=args)
 
     leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
     if(leg_pack is not None):
@@ -1658,8 +1674,8 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
             gr = graphs_by_sid.get(sid, None)
             if(gr is None):
                 continue
-            if(gr.GetLineColor() != ROOT.kGreen):
-                continue
+            # if(gr.GetLineColor() != ROOT.kGreen):
+            #     continue
             leg_opt = "LP"
             if(args.x_error_bars):
                 leg_opt = "PE"
@@ -2961,7 +2977,7 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
                 draw_opt = "P E1 SAME"
             gr.Draw(draw_opt)
             c1._keepalive.append(gr)
-    Draw_SingleBin_Q2yText(int(q2y_bin), sources[0]["q2y_ranges"])
+    Draw_SingleBin_Q2yText(int(q2y_bin), sources[0]["q2y_ranges"], args=args)
     Draw_SingleBin_Title_Block(args, pad, sources[0]["fit_set"], y_par)
     pad.Modified()
     pad.Update()
