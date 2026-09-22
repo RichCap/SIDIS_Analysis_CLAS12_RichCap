@@ -84,6 +84,8 @@ def parse_args():
     p.add_argument('-bgs', '--background_source', type=str, default="lundvpk",
                    choices=["lundrho", "lundvpk", "None"],
                    help="Source of rho0 background subtractions from rdf.\n")
+    p.add_argument('-urho', '--unfold_exclusive_rho0', action='store_true',
+                   help="Optional 3D acceptance-only exclusive rho0 unfold. Uses Simple_RooUnfold_SelfContained.py. Default launches stay on the C++ binary.\n")
     p.add_argument('-rw', '--require_weighed', action='store_true',
                    help="Require a weight tag on mdf/gdf/slice keys.\n")
     p.add_argument('-wt', '--weight_tag', type=str, default="",
@@ -208,10 +210,66 @@ def build_cpp_command(args):
     return cmd
 
 
+def ensure_roounfold_python_env():
+    build = os.path.join(EXEC_ROOT, "New_RooUnfold", "RooUnfold", "build-arm64")
+    if(not os.path.isdir(build)):
+        return
+    os.environ["PYTHONPATH"] = build + (":" + os.environ["PYTHONPATH"] if(os.environ.get("PYTHONPATH")) else "")
+    for var in ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+        os.environ[var] = build + (":" + os.environ[var] if(os.environ.get(var)) else "")
+
+
+def build_python_rho_command(args):
+    script = os.path.join(EXEC_ROOT, "Simple_RooUnfold_SelfContained.py")
+    cmd = [sys.executable, script, "--unfold_exclusive_rho0", "--unfolding_3D"]
+    if(args.test):
+        cmd.append("--test")
+    cmd.extend(["--root", args.root])
+    if(args.no_smear):
+        cmd.append("--no_smear")
+    if(args.smear):
+        cmd.append("--smear")
+    if(args.sim):
+        cmd.append("--simulation")
+    if(args.bayes_iterations is not None):
+        cmd.extend(["--bayes_iterations", str(args.bayes_iterations)])
+    cmd.extend(["--Num_Toys", str(args.Num_Toys)])
+    cmd.extend(["--error_mode", str(args.error_mode)])
+    if(args.old_binning):
+        cmd.append("--old_binning")
+    if(args.no_post_unfold_acc_cut):
+        cmd.append("--no_post_unfold_acc_cut")
+    if(args.verbose):
+        cmd.append("--verbose")
+    cmd.extend(["--Min_Allowed_Acceptance_Cut", str(args.Min_Allowed_Acceptance_Cut)])
+    cmd.extend(["--single_file_input", args.single_file_input])
+    if(args.email):
+        cmd.append("--email")
+    if(args.email_message not in ["", None]):
+        cmd.extend(["--email_message", args.email_message])
+    if(args.weight_tag not in ["", None]):
+        cmd.extend(["--weight_tag", args.weight_tag])
+    cmd.extend(["--data_root", args.data_root])
+    bins = args.pos_bins if(args.pos_bins) else args.bins
+    cmd.extend([str(b) for b in bins])
+    return cmd
+
+
 def main():
     args = parse_args()
     apply_input_if_default(args, "single_file_input", ["-sfin", "--single_file_input"], args.data_root)
     apply_output_if_default(args, "root", ["-r", "--root"], args.data_root, bare_to_data_root=True)
+    if(args.unfold_exclusive_rho0):
+        if(args.unfolding_1D):
+            print("ERROR: --unfold_exclusive_rho0 is 3D only.", file=sys.stderr)
+            sys.exit(1)
+        if(args.iteration_study or (args.parm_min is not None) or (args.parm_max is not None) or (args.parm_step is not None)):
+            print("Exclusive rho0 mode does not forward the C++ iteration-study flags.")
+        ensure_roounfold_python_env()
+        cmd = build_python_rho_command(args)
+        print("Launching Python exclusive rho0 unfolding:")
+        print(" ", " ".join(shlex.quote(str(tok)) for tok in cmd))
+        os.execv(cmd[0], cmd)
     roounfold_dir = find_roounfold_dir(args.roounfold_dir)
     ensure_binary(roounfold_dir, skip_compile=args.skip_compile)
     if(args.compile_only):

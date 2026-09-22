@@ -218,6 +218,10 @@ def parse_args():
                    choices=["lundrho", "lundvpk", "None"],
                    help="Source of rho0 background subtractions.\n(Option 'None' skips the subtraction all together)\n")
 
+    p.add_argument('-urho', '--unfold_exclusive_rho0',
+                   action='store_true',
+                   help="Optional 3D acceptance-only unfold of the exclusive rho0 control sample with the lundvpk response.\nDefault SIDIS unfolding is unchanged. RC and BC are not applied in this mode.\n")
+
     p.add_argument('-usi', '--use_spline_init',
                    action='store_true',
                    help="Load special_fit_parameters_set from Prepare_Next_Iteration/Phi_h_Fit_Parameters_from_Spline.py instead of Phi_h_Fit_Parameters_Initialize.py.\n")
@@ -2234,6 +2238,17 @@ def main_start():
     if('0' not in args.Q2_y_Bin_List):
         args.Q2_y_Bin_List.append('0')
         print(f"\n{color.RED}Running Bin 'All' for Q2-y Bins by default (will skip at end){color.END}\n")
+    if(getattr(args, "unfold_exclusive_rho0", False)):
+        if((not args.unfolding_3D) or args.unfolding_1D or args.unfolding_5D):
+            print(f"{color.Error}ERROR: --unfold_exclusive_rho0 is only defined for 3D unfolding. Pass --unfolding_3D and do not combine it with --unfolding_1D or --unfolding_5D.{color.END}")
+            sys.exit(1)
+        if(args.Apply_RC or args.Apply_BC):
+            print(f"{color.BOLD}Exclusive rho0 mode is acceptance-only. RC and BC flags are ignored.{color.END}")
+            args.Apply_RC = False
+            args.Apply_BC = False
+        # Nominal SIDIS runs subtract this source from the data. This mode unfolds the exclusive sample itself.
+        args.background_source = "None"
+        print(f"\n{color.BBLUE}Optional exclusive rho0 unfolding: lundvpk response, acceptance only, no SIDIS-minus-rho0 subtraction.{color.END}\n")
     print(f"\nRunning for Q2-xB/Q2-y Bins: {str(args.Q2_y_Bin_List).replace('[', '')}".replace(']', ''))
     if(args.Common_Int_Bins):
         print(f"\n\n{color.BGREEN}Will ONLY be running the z-pT Bins that have been selected as per the 'Commom Integration Region' given by 'Common_Ranges_for_Integrating_z_pT_Bins'{color.END}\n\n")
@@ -2250,6 +2265,89 @@ def main_start():
 
     return args
 
+
+# Exclusive_rho bit codes from Get_rho_Normalization_values.py (tight exclusive selection, including the rho mass window).
+EXCLUSIVE_RHO_Z_BINS = [31, 63, 95, 127, 159, 191, 223, 255]
+
+def exclusive_rho_diag_file():
+    return os.path.join(EXEC_ROOT, "Histo_Files_ROOT", "DataFrames", "hadd_ROOT_files_From_using_RDataFrames", "SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Diagnostics_Final_Thesis_Bank_Final_Thesis_Files_All.root")
+
+def exclusive_rho_cache(args):
+    cache = getattr(args, "exclusive_rho_cache", None)
+    if(cache is not None):
+        return cache
+    import re
+    from Binning_Dictionaries import Bin_Converter_4D_to_2D
+    text = open(os.path.join(EXEC_ROOT, "ExtraAnalysisCodeValues.py")).read()
+    pat = re.compile(r"Phi_h_Bin_Values\[(\d+)\]\[(\d+)\]\[0\]\s*=\s*(-?\d+);\s*Phi_h_Bin_Values\[\1\]\[\2\]\[1\]\s*=\s*(-?\d+);")
+    nphi, offsets = {}, {}
+    for match in pat.finditer(text):
+        q2_bin, zpt_bin, n_phi, offset = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+        nphi[(q2_bin, zpt_bin)]   = n_phi
+        offsets[(q2_bin, zpt_bin)] = offset
+    index_map = {}
+    for key, val in Bin_Converter_4D_to_2D.items():
+        if((isinstance(val, int)) and ("_z_pT_bin_" in key)):
+            q2_bin = int(key.split("_z_pT_bin_")[0].split("_")[-1])
+            zpt_bin = int(key.split("_z_pT_bin_")[1])
+            index_map[val] = (q2_bin, zpt_bin)
+    diag_path = exclusive_rho_diag_file()
+    diag_file = ROOT.TFile.Open(diag_path)
+    if((not diag_file) or diag_file.IsZombie()):
+        raise FileNotFoundError(f"Missing exclusive rho0 diagnostic file: {diag_path}")
+    data_name    = "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_(phi_t)_(Q2_y_z_pT_4D_Bins)"
+    clasdis_name = "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_(phi_t_smeared)_(Q2_y_z_pT_4D_Bins_smeared)"
+    data_hist    = diag_file.Get(data_name)
+    clasdis_hist = diag_file.Get(clasdis_name)
+    if(not data_hist):
+        raise KeyError(f"Exclusive rho0 data histogram is missing: {data_name}")
+    if(not clasdis_hist):
+        raise KeyError(f"clasdis exclusive mdf histogram is missing: {clasdis_name}")
+    cache = {"nphi": nphi, "offsets": offsets, "index_map": index_map, "file": diag_file, "data": data_hist, "clasdis": clasdis_hist, "path": diag_path}
+    args.exclusive_rho_cache = cache
+    print(f"{color.BBLUE}Exclusive rho0 control file: {diag_path}{color.END}")
+    print(f"{color.BBLUE}Exclusive rho0 Z bins (Exclusive_rho): {EXCLUSIVE_RHO_Z_BINS}{color.END}")
+    return cache
+
+def exclusive_rho_control_histogram(template_rec, q2_y_bin, sample, args):
+    cache = exclusive_rho_cache(args)
+    source = cache["data"] if(sample == "data") else cache["clasdis"]
+    q2_bin = int(q2_y_bin)
+    out = template_rec.Clone(f"{template_rec.GetName()}_exclusive_rho_{sample}")
+    out.Reset()
+    out.SetDirectory(0)
+    if(hasattr(out, "Sumw2")):
+        out.Sumw2()
+    zbins = [source.GetZaxis().FindBin(float(z_code)) for z_code in EXCLUSIVE_RHO_Z_BINS]
+    for index_4d, pair in cache["index_map"].items():
+        if(pair[0] != q2_bin):
+            continue
+        zpt_bin = pair[1]
+        if((q2_bin, zpt_bin) not in cache["offsets"]):
+            continue
+        ybin   = source.GetYaxis().FindBin(float(index_4d))
+        n_phi  = cache["nphi"][(q2_bin, zpt_bin)]
+        offset = cache["offsets"][(q2_bin, zpt_bin)]
+        if(n_phi == 1):
+            total, err2 = 0.0, 0.0
+            for ix in range(1, source.GetNbinsX() + 1):
+                for zbin in zbins:
+                    total += source.GetBinContent(ix, ybin, zbin)
+                    err2  += source.GetBinError(ix, ybin, zbin)**2
+            dest = out.FindBin(float(offset + 1))
+            out.SetBinContent(dest, out.GetBinContent(dest) + total)
+            out.SetBinError(dest, (out.GetBinError(dest)**2 + err2)**0.5)
+        else:
+            for ix in range(1, n_phi + 1):
+                total, err2 = 0.0, 0.0
+                for zbin in zbins:
+                    total += source.GetBinContent(ix, ybin, zbin)
+                    err2  += source.GetBinError(ix, ybin, zbin)**2
+                dest = out.FindBin(float(offset + ix))
+                out.SetBinContent(dest, out.GetBinContent(dest) + total)
+                out.SetBinError(dest, (out.GetBinError(dest)**2 + err2)**0.5)
+    out.SetTitle(f"Exclusive #rho^{{0}} {sample} control sample, Q^{{2}}-y bin {q2_bin}")
+    return out
 
 # args.background_source
 def subtract_bkg_with_zero_floor(hist_data, hist_background):
@@ -2296,7 +2394,11 @@ def main_unfold(args):
         elif((not has_weight_tag) and (args.mod)):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
             continue
-        if(any(lundskip in out_print_main for lundskip in ["_(lundvpk)", "_(lundrho)"])):
+        if(getattr(args, "unfold_exclusive_rho0", False) and args.unfolding_3D):
+            plain_lundvpk = ("_(lundvpk)" in out_print_main) and ("_(lundrho)" not in out_print_main) and (not has_weight_tag)
+            if(not plain_lundvpk):
+                continue
+        elif(any(lundskip in out_print_main for lundskip in ["_(lundvpk)", "_(lundrho)"])):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because Harut's exclusive rho0 files are added later{color.END}\n")
             continue
         ##========================================================##
@@ -2861,7 +2963,8 @@ def main_unfold(args):
                             continue
                     else:
                         print(f"{color.Error}ERROR IN TDF...\n{color.END_R}Missing Dataframe...{color.END}\n")
-                if(out_print_main_rdf not in rdf.GetListOfKeys()):
+                exclusive_rho_mode = bool(getattr(args, "unfold_exclusive_rho0", False)) and ("_(lundvpk)" in str(out_print_main_mdf))
+                if((not exclusive_rho_mode) and (out_print_main_rdf not in rdf.GetListOfKeys())):
                     print(f"{color.Error}ERROR IN RDF...\n{color.END_R}Dataframe is missing: {color.BBLUE}{out_print_main_rdf}{color.END}\n")
                     continue
                 if(out_print_main_gdf not in gdf.GetListOfKeys()):
@@ -2889,7 +2992,12 @@ def main_unfold(args):
 
                 count += 1
                 print(f"\nUnfolding: {out_print_main}")
-                ExREAL_1D_initial     = rdf.Get(out_print_main_rdf)
+                if(exclusive_rho_mode):
+                    ExREAL_1D_initial = mdf.Get(out_print_main_mdf_1D).Clone(f"{out_print_main_mdf_1D}_exclusive_rho_data")
+                    ExREAL_1D_initial.Reset()
+                    ExREAL_1D_initial.SetDirectory(0)
+                else:
+                    ExREAL_1D_initial = rdf.Get(out_print_main_rdf)
                 MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
                 MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
                 Response_2D_initial   = mdf.Get(out_print_main_mdf)
@@ -2920,6 +3028,19 @@ def main_unfold(args):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_1D_initial.Add(MC_BGS_1D_initial)
 
+                if(exclusive_rho_mode and (int(Q2_xB_Bin_Unfold) != 0)):
+                    ExREAL_1D_initial = exclusive_rho_control_histogram(MC_REC_1D_initial, Q2_xB_Bin_Unfold, "data", args)
+                    clasdis_fake      = exclusive_rho_control_histogram(MC_REC_1D_initial, Q2_xB_Bin_Unfold, "clasdis", args)
+                    if(MC_BGS_1D_initial in ["None", None]):
+                        MC_BGS_1D_initial = clasdis_fake
+                        lundvpk_background_integral = 0.0
+                    else:
+                        lundvpk_background_integral = MC_BGS_1D_initial.Integral()
+                        combined_fake = MC_BGS_1D_initial.Clone(f"{MC_BGS_1D_initial.GetName()}_plus_clasdis_mdf")
+                        combined_fake.SetDirectory(0)
+                        combined_fake.Add(clasdis_fake)
+                        MC_BGS_1D_initial = combined_fake
+                    print(f"{color.BGREEN}Exclusive rho0 Q2-y bin {Q2_xB_Bin_Unfold}: data {ExREAL_1D_initial.Integral():.1f}, clasdis mdf {clasdis_fake.Integral():.1f}, lundvpk background {lundvpk_background_integral:.1f}, combined fake {MC_BGS_1D_initial.Integral():.1f}{color.END}")
 
                 if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
                     print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D_initial' histogram{color.END}")
