@@ -36,8 +36,11 @@ $(firstword $(wildcard \
   $(1)/include \
   $(1)))
 endef
+# On arm64, prefer build-arm64. The build/ library is the x86_64 RooUnfold. 9/22/2026
+UNAME_M := $(shell uname -m)
 define find_roounfold_libdir
 $(firstword $(wildcard \
+  $(if $(filter arm64,$(UNAME_M)),$(1)/build-arm64,) \
   $(1)/build \
   $(1)/build/lib \
   $(1)/lib \
