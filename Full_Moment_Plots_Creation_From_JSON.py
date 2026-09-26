@@ -24,7 +24,8 @@ ROOT.gStyle.SetGridWidth(1)
 # ROOT.gStyle.SetLabelSize(0.18,  "y")      # bigger, easier to read
 # ROOT.gStyle.SetLabelSize(0.038, "y")      # bigger, easier to read
 ROOT.gStyle.SetLabelFont(62, "y")         # Helvetica bold → looks "thicker"
-ROOT.gStyle.SetTitleX(0.5)
+# ROOT.gStyle.SetTitleX(0.5)
+ROOT.gStyle.SetTitleX(0.58)
 ROOT.gStyle.SetTitleAlign(23)
 ROOT.gStyle.SetTitleFont(62)              # bold title too
 # ROOT.gStyle.SetLabelSize(0.15,  "x")      # optional but nice for x-axis
@@ -369,7 +370,8 @@ def ensure_positive_y_range_for_log(ymin, ymax):
     if(ymin > 0.0):
         return ymin, ymax
     if(ymax > 0.0):
-        return max(ymax * 1e-4, 1e-12), ymax
+        # return max(ymax * 1e-4, 1e-12), ymax
+        return max(ymax * 1e-3, 1e-11), ymax
     # Both non-positive: give ROOT a tiny valid log window so drawing does not immediately fail
     return 1e-12, 1.0
 
@@ -611,7 +613,7 @@ def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
     return None
 
 class ExpRBFWrapper:
-    """Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x))."""
+    # Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x)).
     def __init__(self, rbf):
         self.rbf = rbf
     def __call__(self, x):
@@ -718,7 +720,8 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
     gr_spline.SetLineWidth(0)
     gr_spline.SetLineStyle(7)
     gr_spline.SetMarkerColorAlpha(int(series_map[sid]["color"]), 0.45)
-    gr_spline.SetMarkerSize(1)
+    # gr_spline.SetMarkerSize(1)
+    gr_spline.SetMarkerSize(1.5)
     gr_spline.SetMarkerStyle(29)
     return gr_spline
 
@@ -930,10 +933,11 @@ def expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_
 # Title logic
 # ------------------------------------------------------------
 def Get_Default_Y_Title(y_par, fit_set, apply_A_corr=False):
-    y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
+    # y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
+    y_title_map = {"Fit_Par_A": "A_{0}", "Fit_Par_B": "A_{UU}^{cos #scale[1.05]{#phi}}", "Fit_Par_C": "A_{UU}^{cos 2#scale[1.05]{#phi}}"}
     base = y_title_map.get(str(y_par), str(y_par))
-    if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
-        return "Normalized A"
+    # if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+    #     return "Normalized A"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_title_map)):
         base = f"{base} from the Cross Section Fits"
     return base
@@ -1053,8 +1057,11 @@ def style_graph(gr, color_val, marker_val, line_width=2):
     gr.SetLineColor(int(color_val))
     gr.SetMarkerColor(int(color_val))
     gr.SetMarkerStyle(int(marker_val))
-    gr.SetLineWidth(line_width)
-    gr.SetMarkerSize(1.0)
+    # gr.SetLineWidth(line_width)
+    gr.SetLineWidth(2*line_width)
+    # gr.SetMarkerSize(1.0)
+    # gr.SetMarkerSize(2.0)
+    gr.SetMarkerSize(1.75)
 
 def build_global_title(args, fit_set, y_par):
     if(args.title_mode == "none"):
@@ -1382,7 +1389,7 @@ def Build_SingleBin_Subtitle(args, fit_set):
 def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
     y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     y_label = y_label.replace(" from the Cross Section Fits", "")
-    line1 = f"CLAS12 Preliminary #topbar {y_label}"
+    line1 = f"#color[{ROOT.kRed}]{{CLAS12 Preliminary}} #topbar {y_label}"
     line2 = Build_SingleBin_Subtitle(args, fit_set)
     canvas.cd()
     tex = ROOT.TLatex()
@@ -1427,7 +1434,7 @@ def Draw_SingleBin_Preliminary_Watermark(args):
         wm.SetTextColor(ROOT.kRed)
     wm.DrawLatex(0.52, 0.50, "PRELIMINARY")
 
-def Compute_SingleBin_AutoYRange(series_map):
+def Compute_SingleBin_AutoYRange(series_map, args=None):
     ymin = None
     ymax = None
     for sid in series_map.keys():
@@ -1444,7 +1451,14 @@ def Compute_SingleBin_AutoYRange(series_map):
         return (ymin - 1.0, ymax + 1.0)
     span = ymax - ymin
     ymin = ymin - 0.35 * span
-    ymax = ymax + 0.10 * span
+    if(ymax > 1):
+        ymax = ymax + 0.10 * span
+    else:
+        ymax = ymax + 3.50 * span
+    if(args is not None):
+        # print(f"\nymin was = {ymin}")
+        ymin = ymin if(args.draw_legends) else ymin + (0.25 * span)
+        # print(f"Now = {ymin}\n\n")
     return (ymin, ymax)
 
 def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
@@ -1468,16 +1482,27 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
     tm = ROOT.gPad.GetTopMargin()
 
     x0 = float(lm) + 0.02
-    # Sit in the top margin, above the frame, so the bin/range lines do not cover the points.
-    y0 = min(0.90, 1.0 - 0.07)
-    step = 0.028
-    lab.SetTextSize(0.022)
-
+    y0 = 1.0 - float(tm) - 0.02
+    step = 0.055
+    
+    # # Sit in the top margin, above the frame, so the bin/range lines do not cover the points.
+    y0 = min(0.90, 0.98 - float(tm))
+    # step = 0.028
+    # lab.SetTextSize(0.022)
     # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, Q2y_only.
     if(mode == "Q2y_only"):
-        lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
-        lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+        # y0 += step
+        if("BC" not in str(args.fit_set)):
+            lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+            lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+        else:
+            Q2_center = (Q2min + Q2max)/2
+            y_center  = (yminv + ymaxv)/2
+            lab.DrawLatex(x0, y0,        f"Q^{{2}} = {Q2_center:.2f}")
+            lab.DrawLatex(x0, y0 - step, f"y = {y_center:.2f}")
         return
+    step = 0.028
+    lab.SetTextSize(0.022)
     lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {int(q2y_bin)}")
     if(mode == "bin"):
         return
@@ -1568,8 +1593,8 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     # Only allocate enough room for the subtitle if it actually exists.
     subtitle_tmp = Build_SingleBin_Subtitle(args, fit_set)
     # top_margin = 0.22 if((str(subtitle_tmp).strip() != "")) else 0.18
-    # top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
-    top_margin = 0.30 if((str(subtitle_tmp).strip() != "")) else 0.26
+    top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
+    # top_margin = 0.30 if((str(subtitle_tmp).strip() != "")) else 0.26
 
     pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 1.0)
     pad.SetFillColor(0)
@@ -1667,28 +1692,28 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
 
     Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges, args=args)
 
-    leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
-    if(leg_pack is not None):
-        leg, entries = leg_pack
-        for cen, label, colv, sid in entries:
-            gr = graphs_by_sid.get(sid, None)
-            if(gr is None):
-                continue
-            # if(gr.GetLineColor() != ROOT.kGreen):
-            #     continue
-            leg_opt = "LP"
-            if(args.x_error_bars):
-                leg_opt = "PE"
-            ent = leg.AddEntry(gr, str(label), leg_opt)
-            if(ent):
-                ent.SetTextColor(int(colv))
-                try:
-                    ent.SetTextSize(0.030)
-                except Exception:
-                    pass
-        leg.Draw("SAME")
-        c1._keepalive.append(leg)
-
+    if(args.draw_legends):
+        leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
+        if(leg_pack is not None):
+            leg, entries = leg_pack
+            for cen, label, colv, sid in entries:
+                gr = graphs_by_sid.get(sid, None)
+                if(gr is None):
+                    continue
+                # if(gr.GetLineColor() != ROOT.kGreen):
+                #     continue
+                leg_opt = "LP"
+                if(args.x_error_bars):
+                    leg_opt = "PE"
+                ent = leg.AddEntry(gr, str(label), leg_opt)
+                if(ent):
+                    ent.SetTextColor(int(colv))
+                    try:
+                        ent.SetTextSize(0.030)
+                    except Exception:
+                        pass
+            leg.Draw("SAME")
+            c1._keepalive.append(leg)
     # Title/subtitle in the pad top margin
     Draw_SingleBin_Title_Block(args, pad, fit_set, y_par)
 
@@ -1899,7 +1924,7 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
         use_log_y = use_log_y_for_par(args, y_par)
         if(use_log_y):
             y_min, y_max = ensure_positive_y_range_for_log(y_min, y_max)
-
+        
         Titles_y = Get_Default_Y_Title(y_par, str(args.fit_set).strip())
         Titles = ""
         if("from the Cross Section Fits" not in Titles_y):
@@ -2889,11 +2914,11 @@ def run_comparison_plots(args, sources):
                             args.draw_with_log_A = saved_log_A
                             continue
                         if((not force_log) and (str(y_par) == "Fit_Par_B")):
-                            y_range = (-0.8, 0.125)
+                            y_range = (-0.8, 0.125) if(args.draw_legends) else (-0.5, 0.125)
                         elif((not force_log) and (str(y_par) == "Fit_Par_C")):
-                            y_range = (-0.3, 0.25)
+                            y_range = (-0.3, 0.25) if(args.draw_legends) else (-0.1, 0.25)
                         elif(not force_log):
-                            y_range = Compute_SingleBin_AutoYRange(build_series_for_q2y(args, grouped, fit_dict_cmp, info_map, int(q2y_bin), y_par))
+                            y_range = Compute_SingleBin_AutoYRange(build_series_for_q2y(args, grouped, fit_dict_cmp, info_map, int(q2y_bin), y_par), args)
                         canv = draw_single_bin(args, grouped, fit_dict_cmp, info_map, q2y_ranges, sources[ia]["fit_set"], y_par, q2y_bin, (xmin, xmax), y_range, spline_models={}, y_axis_title_override=yat, force_log_y=force_log)
                     else:
                         canv = draw_mosaic(args, grouped, fit_dict_cmp, info_map, q2y_ranges, sources[ia]["fit_set"], y_par, (xmin, xmax), y_range, spline_models={}, y_axis_title_override=yat, canvas_name_suffix=c_suffix, title_space_override=0.120, force_log_y=force_log)
@@ -3137,12 +3162,13 @@ def main():
 
         for y_par in args.y_pars:
             if((str(y_par) == "Fit_Par_B")):
-                y_range = (-0.8, 0.125)
+                # y_range = (-0.8, 0.125)
+                y_range = (-0.8, 0.175) if(args.draw_legends) else (-0.5, 0.175)
             elif((str(y_par) == "Fit_Par_C")):
-                y_range = (-0.3, 0.25)
+                y_range = (-0.3, 0.25)  if(args.draw_legends) else (-0.1, 0.2)
             else:
                 series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
-                y_range = Compute_SingleBin_AutoYRange(series_map_tmp)
+                y_range = Compute_SingleBin_AutoYRange(series_map_tmp, args)
             y_range = expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_range, spline_models, q2y_bins=[q2y_bin])
 
             if(args.test):
