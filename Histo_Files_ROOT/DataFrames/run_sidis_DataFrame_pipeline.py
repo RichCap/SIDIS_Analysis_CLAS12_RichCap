@@ -916,6 +916,68 @@ def wait_for_remaining_slurm_tasks(args):
         print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
         time.sleep(30.0)
 
+def merge_ch4_add_block(dest, block, int_keys):
+    for key in int_keys:
+        if(key in block):
+            dest[key] = int(dest.get(key, 0)) + int(block[key])
+    for flag in ["match_columns_present", "phi_t_present", "momentum_present"]:
+        if(flag in block):
+            dest[flag] = bool(dest.get(flag, True) and block[flag])
+    if(("note" in block) and ("note" not in dest)):
+        dest["note"] = block["note"]
+
+def merge_ch4_count_files(args, batch_output_dir, merged_file):
+    # Sum the per-batch Chapter 4 count JSON files and write the total next to the merged ROOT file.
+    # by_sample keeps clasdis, lundvpk, and lundrho separate. The top-level mdf/gdf sums mix those batches.
+    import json
+    count_paths = sorted(glob.glob(os.path.join(batch_output_dir, "*_ch4_counts.json")))
+    if(len(count_paths) == 0):
+        return
+    combined = {
+        "n_batch_files": 0,
+        "denominator": "",
+        "mdf": {},
+        "gdf": {},
+        "by_sample": {},
+        "batch_files": [],
+    }
+    int_keys = ["n_entries", "angular_matched", "angular_unmatched", "bank_matched", "bank_unmatched", "both", "angular_only", "bank_only", "neither"]
+    for count_path in count_paths:
+        with open(count_path) as count_file:
+            payload = json.load(count_file)
+        combined["n_batch_files"] += 1
+        combined["batch_files"].append(os.path.basename(count_path))
+        if(combined["denominator"] in ["", None]):
+            combined["denominator"] = payload.get("denominator", "")
+            combined["cut_mdf"] = payload.get("cut_mdf", "")
+            combined["cut_gdf"] = payload.get("cut_gdf", "")
+        for sample in ["mdf", "gdf"]:
+            merge_ch4_add_block(combined[sample], payload.get(sample, {}), int_keys)
+        sample_class = payload.get("sample_class", "unspecified")
+        slot = combined["by_sample"].setdefault(sample_class, {"n_batch_files": 0, "mdf": {}, "gdf": {}})
+        slot["n_batch_files"] += 1
+        for sample in ["mdf", "gdf"]:
+            merge_ch4_add_block(slot[sample], payload.get(sample, {}), int_keys)
+    out_json = str(merged_file).replace(".root", "_ch4_counts.json")
+    out_txt  = str(merged_file).replace(".root", "_ch4_counts.txt")
+    with open(out_json, "w") as out_file:
+        json.dump(combined, out_file, indent=2)
+        out_file.write("\n")
+    lines = [f"batches: {combined['n_batch_files']}", f"denominator: {combined['denominator']}", "all_samples_mixed"]
+    for sample in ["mdf", "gdf"]:
+        lines.append(sample)
+        for key, value in combined[sample].items():
+            lines.append(f"  {key}: {value}")
+    for sample_class, slot in combined["by_sample"].items():
+        lines.append(f"sample: {sample_class} batches: {slot['n_batch_files']}")
+        for sample in ["mdf", "gdf"]:
+            lines.append(f"  {sample}")
+            for key, value in slot[sample].items():
+                lines.append(f"    {key}: {value}")
+    with open(out_txt, "w") as out_file:
+        out_file.write("\n".join(lines) + "\n")
+    Update_Email(args, update_message=f"{color.BGREEN}Chapter 4 count file created: {out_json}{color.END}", verbose_override=True, no_time=False)
+
 def run_local_batches(args):
     batch_output_dir = resolved_batch_output_dir(args, slurm=False)
     log_dir = ensure_directory(args.log_dir if(args.log_dir) else f"/scratch/{os.getlogin()}/response_matrix_logs")
@@ -979,6 +1041,7 @@ def run_local_batches(args):
         hadd_cmd = ["hadd", "-f", merged_file] + batch_files
         subprocess.run(hadd_cmd, check=True)
         Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+        merge_ch4_count_files(args, batch_output_dir, merged_file)
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
     Update_Email(args, update_message=f"{color.BBLUE}Peak memory used by child jobs: {peak_mem_str}{color.END}", verbose_override=True, no_time=True)

@@ -99,6 +99,13 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
         "extra": ["--binning_presentation_only", "--run_rho_weight"],
         "jobs_attr": "jobs_Binning",
+        }, {
+        "key": "CH4_Diagnostics",
+        "label": "Chapter 4 matching counts and phi_h smearing",
+        "name_fmt": "CH4_MatchSmear_Diagnostics_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--ch4_diagnostics", "--mc_only"],
+        "jobs_attr": "jobs_ch4",
         },
 ]
 
@@ -208,6 +215,13 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
+    p.add_argument("-jch4", "--jobs_ch4",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Chapter 4 matching-count and phi_h-smearing product only. Default 0 skips this product.\n")
+    p.add_argument("-mco", "--mc_only",
+                   action="store_true",
+                   help="Accepted on this command line. The Chapter 4 product already forwards --mc_only to Response_Matrix.\n")
     p.add_argument("-rho", "--rho0",
                    dest="rho0_mode",
                    action="store_true",
@@ -513,6 +527,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     run_mode = args.mode if(mode is None) else mode
     if(run_mode == "hybrid"):
         run_mode = "parallel"
+    # Chapter 4 reads stored columns only. Do not require an HPP file before those counts and histograms.
+    if(product.get("key") == "CH4_Diagnostics"):
+        use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
@@ -534,7 +551,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(mac in [None, ""]):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
-    if((not args.no_run_rho_weight) and (product.get("key") != "rho0")):
+    if((not args.no_run_rho_weight) and (product.get("key") not in ["rho0", "CH4_Diagnostics"])):
         # Pipeline-level -rrw (also kept in product --extra for Response passthrough).
         # rho0 histogram-creation must stay unweighted so the resulting ROOT file can be used to derive n_rho.
         cmd.append("--run_rho_weight")

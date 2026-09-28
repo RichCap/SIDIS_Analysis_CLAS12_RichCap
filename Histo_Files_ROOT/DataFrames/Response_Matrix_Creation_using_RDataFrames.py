@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+import json
 import ROOT, re
 # import traceback
 import os
@@ -115,6 +116,12 @@ def parse_args():
     parser.add_argument('-bpo', '--binning_presentation_only',
                         action='store_true',
                         help="Book only the binning-presentation TH3D families (no 3D/5D response matrices and no ordinary 2D set: the kinematic plots filled against Q2-y bins rather than z-pT bins).\n")
+    parser.add_argument('-ch4', '--ch4_diagnostics',
+                        action='store_true',
+                        help="Book only the Chapter 4 delta-phi_h and electron/pion momentum-smearing histograms, and write per-batch matching counts. Skips real data and the response matrices.\n")
+    parser.add_argument('-mco', '--mc_only',
+                        action='store_true',
+                        help="Do not open real-data DataFrames. Used with --ch4_diagnostics.\n")
     parser.add_argument('-u5D', '--unfold_5D',
                         action='store_true',
                         help='Makes the response matrices for the full 5D unfolding (will run in addition to the 3D unfolding done by default).\n')
@@ -580,6 +587,148 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
             return exclusive_rho_weight;''')
     return df
 
+def ch4_sample_class(paths):
+    # File_Batches keeps clasdis, lundvpk, and lundrho in separate batches. hadd would otherwise add them together.
+    labels = []
+    for path in paths:
+        low = str(path).lower()
+        if("lundvpk" in low):
+            label = "lundvpk"
+        elif("lundrho" in low):
+            label = "lundrho"
+        else:
+            label = "clasdis"
+        if(label not in labels):
+            labels.append(label)
+    if(len(labels) == 0):
+        return "none"
+    if(len(labels) == 1):
+        return labels[0]
+    return "mixed"
+
+def ch4_column_names(df):
+    return set(str(name) for name in df.GetColumnNames())
+
+def ch4_particle_matched(pid_name, px_name, py_name, pz_name, columns):
+    # Groovy writes an unmatched particle as PID 0 and zero generated momentum. Saved DataFrames keep PID_el for the default angular match but drop unsuffixed ex_gen.
+    if(pid_name not in columns):
+        return None
+    if(all(name in columns for name in [px_name, py_name, pz_name])):
+        return f"(({pid_name}!=0) || ({px_name}!=0) || ({py_name}!=0) || ({pz_name}!=0))"
+    return f"({pid_name}!=0)"
+
+def ch4_match_counts(df, columns):
+    angular_el  = ch4_particle_matched("PID_el",      "ex_gen",      "ey_gen",      "ez_gen",      columns)
+    angular_pip = ch4_particle_matched("PID_pip",     "pipx_gen",    "pipy_gen",    "pipz_gen",    columns)
+    bank_el     = ch4_particle_matched("PID_el_Bank", "ex_gen_Bank", "ey_gen_Bank", "ez_gen_Bank", columns)
+    bank_pip    = ch4_particle_matched("PID_pip_Bank","pipx_gen_Bank","pipy_gen_Bank","pipz_gen_Bank", columns)
+    pending = {"n_entries": df.Count()}
+    if((angular_el is None) or (angular_pip is None) or (bank_el is None) or (bank_pip is None)):
+        return pending, {"match_columns_present": False}
+    angular = f"({angular_el} && {angular_pip})"
+    bank    = f"({bank_el} && {bank_pip})"
+    pending["angular_matched"] = df.Filter(angular).Count()
+    pending["bank_matched"]    = df.Filter(bank).Count()
+    pending["both"]            = df.Filter(f"({angular} && {bank})").Count()
+    pending["angular_only"]    = df.Filter(f"({angular} && !({bank}))").Count()
+    pending["bank_only"]       = df.Filter(f"(!({angular}) && {bank})").Count()
+    pending["neither"]         = df.Filter(f"(!({angular}) && !({bank}))").Count()
+    return pending, {"match_columns_present": True}
+
+def ch4_book_histograms(df, histograms, columns):
+    if(("phi_t" in columns) and ("phi_t_smeared" in columns)):
+        df = df.Define("ch4_delta_phi_h", """
+            double dphi = phi_t_smeared - phi_t;
+            while(dphi > 180.0){ dphi -= 360.0; }
+            while(dphi <= -180.0){ dphi += 360.0; }
+            return dphi;""")
+        histograms["ch4_delta_phi_h"] = df.Histo1D(("ch4_delta_phi_h", "#Delta#phi_{h} = #phi_{h,smeared} - #phi_{h};#Delta#phi_{h} [deg];Events", 180, -180.0, 180.0), "ch4_delta_phi_h")
+    if(("el" in columns) and ("el_smeared" in columns)):
+        df = df.Define("ch4_delta_P_el", "el_smeared - el")
+        df = df.Define("ch4_rel_P_el", "(el!=0) ? ((el_smeared - el)/el) : 0")
+        histograms["ch4_delta_P_el"] = df.Histo1D(("ch4_delta_P_el", "Electron #DeltaP = P_{smeared} - P;#DeltaP [GeV];Events", 200, -0.5, 0.5), "ch4_delta_P_el")
+        histograms["ch4_rel_P_el"]   = df.Histo1D(("ch4_rel_P_el", "Electron (P_{smeared}-P)/P;(P_{smeared}-P)/P;Events", 200, -0.2, 0.2), "ch4_rel_P_el")
+    if(("pip" in columns) and ("pip_smeared" in columns)):
+        df = df.Define("ch4_delta_P_pip", "pip_smeared - pip")
+        df = df.Define("ch4_rel_P_pip", "(pip!=0) ? ((pip_smeared - pip)/pip) : 0")
+        histograms["ch4_delta_P_pip"] = df.Histo1D(("ch4_delta_P_pip", "Pion #DeltaP = P_{smeared} - P;#DeltaP [GeV];Events", 200, -0.5, 0.5), "ch4_delta_P_pip")
+        histograms["ch4_rel_P_pip"]   = df.Histo1D(("ch4_rel_P_pip", "Pion (P_{smeared}-P)/P;(P_{smeared}-P)/P;Events", 200, -0.2, 0.2), "ch4_rel_P_pip")
+    if(("Q2_Y_Bin" in ch4_column_names(df)) and ("z_pT_Bin_Y_bin" in ch4_column_names(df))):
+        if("Q2_y_z_pT_4D_Bins" not in ch4_column_names(df)):
+            df = df.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(""))
+        if("ch4_delta_phi_h" in ch4_column_names(df)):
+            histograms["ch4_delta_phi_h_vs_4D"] = df.Histo2D(("ch4_delta_phi_h_vs_4D", "#Delta#phi_{h} vs 4D bin;4D bin;#Delta#phi_{h} [deg]", 516, -0.5, 515.5, 180, -180.0, 180.0), "Q2_y_z_pT_4D_Bins", "ch4_delta_phi_h")
+        if("ch4_delta_P_el" in ch4_column_names(df)):
+            histograms["ch4_delta_P_el_vs_4D"] = df.Histo2D(("ch4_delta_P_el_vs_4D", "Electron #DeltaP vs 4D bin;4D bin;#DeltaP [GeV]", 516, -0.5, 515.5, 200, -0.5, 0.5), "Q2_y_z_pT_4D_Bins", "ch4_delta_P_el")
+            histograms["ch4_rel_P_el_vs_4D"]   = df.Histo2D(("ch4_rel_P_el_vs_4D", "Electron (P_{smeared}-P)/P vs 4D bin;4D bin;(P_{smeared}-P)/P", 516, -0.5, 515.5, 200, -0.2, 0.2), "Q2_y_z_pT_4D_Bins", "ch4_rel_P_el")
+        if("ch4_delta_P_pip" in ch4_column_names(df)):
+            histograms["ch4_delta_P_pip_vs_4D"] = df.Histo2D(("ch4_delta_P_pip_vs_4D", "Pion #DeltaP vs 4D bin;4D bin;#DeltaP [GeV]", 516, -0.5, 515.5, 200, -0.5, 0.5), "Q2_y_z_pT_4D_Bins", "ch4_delta_P_pip")
+            histograms["ch4_rel_P_pip_vs_4D"]   = df.Histo2D(("ch4_rel_P_pip_vs_4D", "Pion (P_{smeared}-P)/P vs 4D bin;4D bin;(P_{smeared}-P)/P", 516, -0.5, 515.5, 200, -0.2, 0.2), "Q2_y_z_pT_4D_Bins", "ch4_rel_P_pip")
+    return df
+
+def run_ch4_diagnostics(args, all_root_files):
+    # Same post-selection snapshot as the histogram workflow. Counts use the columns before matching_criteria rewrites the canonical generated momenta.
+    summary = {
+        "denominator": "entries remaining after the cut already applied by this RDataFrame snapshot",
+        "cut_mdf": str(args.cut_name_mdf),
+        "cut_gdf": str(args.cut_name_gdf),
+        "mdf_files": list(all_root_files.get("mdf_clasdis", [])),
+        "gdf_files": list(all_root_files.get("gdf_clasdis", [])),
+    }
+    summary["sample_class"] = ch4_sample_class(summary["mdf_files"] if(len(summary["mdf_files"]) > 0) else summary["gdf_files"])
+    histograms = {}
+    mdf_files = summary["mdf_files"]
+    gdf_files = summary["gdf_files"]
+    if(len(mdf_files) > 0):
+        mdf = ROOT.RDataFrame("h22", mdf_files)
+        if(args.cut_name_mdf not in ["", "no_cut"]):
+            mdf = mdf.Filter(args.cut_name_mdf)
+        columns = ch4_column_names(mdf)
+        pending_counts, count_flags = ch4_match_counts(mdf, columns)
+        summary["mdf"] = dict(count_flags)
+        summary["mdf"]["phi_t_present"] = ("phi_t" in columns) and ("phi_t_smeared" in columns)
+        summary["mdf"]["momentum_present"] = ("el" in columns) and ("el_smeared" in columns) and ("pip" in columns) and ("pip_smeared" in columns)
+        ch4_book_histograms(mdf, histograms, columns)
+        actions = list(pending_counts.values()) + list(histograms.values())
+        if(hasattr(ROOT, "RDF") and hasattr(ROOT.RDF, "RunGraphs")):
+            ROOT.RDF.RunGraphs(actions)
+        filled = {}
+        for key, action in pending_counts.items():
+            filled[key] = int(action.GetValue())
+        if("n_entries" in filled):
+            if("angular_matched" in filled):
+                filled["angular_unmatched"] = filled["n_entries"] - filled["angular_matched"]
+            if("bank_matched" in filled):
+                filled["bank_unmatched"] = filled["n_entries"] - filled["bank_matched"]
+        summary["mdf"].update(filled)
+    else:
+        summary["mdf"] = {"n_entries": 0, "match_columns_present": False}
+    if(len(gdf_files) > 0):
+        gdf = ROOT.RDataFrame("h22", gdf_files)
+        summary["gdf"] = {"n_entries": int(gdf.Count().GetValue()), "note": "generated DataFrame entries with cut_name_gdf=no_cut; reconstructed matching is not applied"}
+    else:
+        summary["gdf"] = {"n_entries": 0, "note": "no generated files in this batch"}
+    sample_class = summary["sample_class"]
+    out_root = ROOT.TFile(args.root, "RECREATE")
+    if(len(histograms) == 0):
+        empty = ROOT.TH1D(f"ch4_{sample_class}_no_reconstructed_histograms", "No reconstructed Chapter 4 histograms in this batch", 1, 0, 1)
+        empty.SetBinContent(1, float(summary["gdf"]["n_entries"]))
+        empty.Write()
+    else:
+        for histo in histograms.values():
+            obj = histo.GetValue()
+            old_name = str(obj.GetName())
+            if(old_name.startswith("ch4_")):
+                obj.SetName(f"ch4_{sample_class}_{old_name[4:]}")
+            obj.Write()
+    out_root.Close()
+    json_path = str(args.root).replace(".root", "_ch4_counts.json")
+    with open(json_path, "w") as json_file:
+        json.dump(summary, json_file, indent=2)
+        json_file.write("\n")
+    print(f"Chapter 4 diagnostics wrote {args.root} and {json_path}")
+    sys.exit(0)
+
 if(__name__ == "__main__"):
     args = parse_args()
     apply_input_if_default(args, "json_file", ["-jsf", "--json_file"], args.data_root)
@@ -662,12 +811,14 @@ if(__name__ == "__main__"):
 
     all_root_files = {}
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
+    skip_real_data = (getattr(args, "ch4_diagnostics", False) or getattr(args, "mc_only", False))
     if(args.batch_id > 0):
-        all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
+        rdf_list_for_build = [] if(skip_real_data) else rdf_batch[args.batch_id]
+        all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_list_for_build, mc_key="_clasdis", all_root_files=all_root_files)
     else:
         mdf_all = combine_batches(mdf_batch, args.number_of_files)
         gdf_all = combine_batches(gdf_batch, args.number_of_files)
-        rdf_all = combine_batches(rdf_batch, args.number_of_files)
+        rdf_all = [] if(skip_real_data) else combine_batches(rdf_batch, args.number_of_files)
         all_root_files = build_all_root_files(mdf_all, gdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
 
     lundrho_MC, lundvpk_MC = False, False
@@ -683,9 +834,11 @@ if(__name__ == "__main__"):
     # if(args.unfold_5D and (lundrho_MC or lundvpk_MC)):
     #     Update_Email(args, update_message=f"{color.Error}WARNING: Cannot run the 5D response matrices with the lundrho/lundvpk files (as of 5/2/2026)\n\t{color.END}Turning off this option now...", verbose_override=True)
     #     args.unfold_5D = False
-    args.num_rdf_files = len(all_root_files["rdf"])
+    args.num_rdf_files = len(all_root_files.get("rdf", []))
     args.num_MC_files  = len(all_root_files["mdf_clasdis"])
-    
+    if(getattr(args, "ch4_diagnostics", False)):
+        run_ch4_diagnostics(args, all_root_files)
+
     Update_Email(args, update_message=f"\n{color.BOLD}LOADING DATAFRAMES{color.END}", verbose_override=True)
     
     rdf           = ROOT.RDataFrame("h22", all_root_files["rdf"])
