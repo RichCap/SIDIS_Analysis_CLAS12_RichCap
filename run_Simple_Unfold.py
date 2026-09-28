@@ -91,6 +91,9 @@ def parse_args():
     p.add_argument('-wt', '--weight_tag', type=str, default="",
                    choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
                    help="Select which weighted histogram set to unfold.\n")
+    p.add_argument('-cw', '--closure_weight', type=str, default="",
+                   choices=["", "Acc", "AccSpline"],
+                   help="Weighted pseudo-data on the nominal response. Requires --simulation. Acc truth is the original generator. AccSpline truth is _(Spline).\n")
     add_data_root_argument(p)
     p.add_argument('--compile_only', action='store_true',
                    help="Compile the C++ binary and exit.\n")
@@ -206,6 +209,8 @@ def build_cpp_command(args):
         cmd.append("--require_weighed")
     if(args.weight_tag not in ["", None]):
         cmd.extend(["--weight_tag", args.weight_tag])
+    if(args.closure_weight not in ["", None]):
+        cmd.extend(["--closure_weight", args.closure_weight])
     cmd.extend(["--data_root", args.data_root])
     return cmd
 

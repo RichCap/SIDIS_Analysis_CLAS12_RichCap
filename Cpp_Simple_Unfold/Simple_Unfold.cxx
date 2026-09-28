@@ -280,7 +280,8 @@ int Default_Bayes_Iterations(const std::string& name_main, int q2y, bool user_se
 }
 
 TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D,
-                     UnfoldArgs& args, bool user_set_bi, const std::string& study_tag, RecSkipMap* skip_map_out){
+                     UnfoldArgs& args, bool user_set_bi, const std::string& study_tag, RecSkipMap* skip_map_out,
+                     TH1* acceptance_rdf = nullptr, TH1* acceptance_bdf = nullptr, TH1* compare_truth = nullptr){
     std::cout << Color::BCYAN << "Starting " << Color::UNDERLINE << Color::GREEN << "RooUnfold" << Color::END_B
               << Color::CYAN << " Unfolding Procedure..." << Color::END << std::endl;
     std::string Name_Main = Response_2D->GetName();
@@ -298,7 +299,9 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
     TH1* MC_BGS_use = MC_BGS_1D;
     bool own_rec = false;
     if(!args.old_binning){
-        skip_map = Build_Rec_Skip_Map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args.Min_Allowed_Acceptance_Cut);
+        TH1* skip_rdf = (acceptance_rdf != nullptr) ? acceptance_rdf : ExREAL_1D;
+        TH1* skip_bdf = (acceptance_bdf != nullptr) ? acceptance_bdf : MC_BGS_1D;
+        skip_map = Build_Rec_Skip_Map(skip_rdf, MC_REC_1D, MC_GEN_1D, skip_bdf, args.Min_Allowed_Acceptance_Cut);
         Print_Rec_Skip_Map(skip_map);
         if(skip_map_out != nullptr){ *skip_map_out = skip_map; }
         ExREAL_use = Compress_TH1_Rec(ExREAL_1D, skip_map, std::string(ExREAL_1D->GetName()) + "_rec_reduced");
@@ -391,7 +394,8 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
 #ifdef SIDIS5D_HAS_ROOUNFOLD_PARMS
     if(args.iteration_study){
         std::cout << Color::BBLUE << "Running RooUnfoldParms iteration study (" << args.error_mode << ")..." << Color::END << std::endl;
-        RooUnfoldParms parms(&Unfolding_Histo, err_treat, MC_GEN_1D);
+        const TH1* study_truth = (compare_truth != nullptr) ? compare_truth : MC_GEN_1D;
+        RooUnfoldParms parms(&Unfolding_Histo, err_treat, study_truth);
         if(args.has_parm_min){ parms.SetMinParm(args.parm_min); }
         if(args.has_parm_max){ parms.SetMaxParm(args.parm_max); }
         if(args.has_parm_step){ parms.SetStepSizeParm(args.parm_step); }
@@ -603,6 +607,16 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     std::string rdf_name = Prepare_Rdf_Name(out_print_main, args);
     std::string gdf_name = Prepare_Gdf_Name(out_print_main, args);
     if(args.sim){ rdf_name = mdf_1d; }
+    // 9/26/2026: weighted pseudo-data on the unweighted response. The response, acceptance
+    // cut, and response truth stay on the unweighted generator. AccSpline closure is scored
+    // against _(Spline), which must not be used as the response efficiency denominator.
+    std::string closure_lund_key = "";
+    std::string compare_truth_name = "";
+    if(!args.closure_weight.empty()){
+        rdf_name = mdf_1d + "_(" + args.closure_weight + ")";
+        closure_lund_key = mdf_1d + "_(" + args.background_source + ")_(" + args.closure_weight + ")";
+        if(args.closure_weight == "AccSpline"){ compare_truth_name = gdf_name + "_(Spline)"; }
+    }
     if(!key_in_file(input_file, out_print_main)){
         Crash_Report(args, "Missing response matrix: " + out_print_main);
     }
@@ -615,6 +629,9 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     if(!key_in_file(input_file, gdf_name)){
         Crash_Report(args, "Missing gdf 1D histogram: " + gdf_name);
     }
+    if((!compare_truth_name.empty()) && (!key_in_file(input_file, compare_truth_name))){
+        Crash_Report(args, "Missing closure-comparison truth: " + compare_truth_name);
+    }
     TH2* Response_2D = CloneDetachedTH2(dynamic_cast<TH2*>(input_file->Get(out_print_main.c_str())), "resp");
     TH1* ExREAL_1D = CloneDetached(dynamic_cast<TH1*>(input_file->Get(rdf_name.c_str())), "rdf");
     TH1* MC_REC_1D = CloneDetached(dynamic_cast<TH1*>(input_file->Get(mdf_1d.c_str())), "mdf");
@@ -622,7 +639,9 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     if((Response_2D == nullptr) || (ExREAL_1D == nullptr) || (MC_REC_1D == nullptr) || (MC_GEN_1D == nullptr)){
         Crash_Report(args, "Failed to load histograms for " + out_print_main);
     }
-    std::string bdf_1d = Apply_Background_1D_Replacements(mdf_1d);
+    std::string bdf_unweighted = Apply_Background_1D_Replacements(mdf_1d);
+    std::string bdf_1d = bdf_unweighted;
+    if(!args.closure_weight.empty()){ bdf_1d += "_(" + args.closure_weight + ")"; }
     TH1* MC_BGS_1D = nullptr;
     if(key_in_file(input_file, bdf_1d) && contains(bdf_1d, "Background")){
         MC_BGS_1D = CloneDetached(dynamic_cast<TH1*>(input_file->Get(bdf_1d.c_str())), "bgs");
@@ -630,9 +649,29 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         Crash_Report(args, "Missing Background Histogram (would be named: " + bdf_1d + ")");
     }
     if(args.sim && (MC_BGS_1D != nullptr)){ ExREAL_1D->Add(MC_BGS_1D); }
+    TH1* acceptance_bdf = nullptr;
+    TH1* compare_truth = nullptr;
+    if(!args.closure_weight.empty()){
+        if(key_in_file(input_file, bdf_unweighted)){
+            acceptance_bdf = CloneDetached(dynamic_cast<TH1*>(input_file->Get(bdf_unweighted.c_str())), "acc_bdf");
+        }
+        if(!compare_truth_name.empty()){
+            compare_truth = CloneDetached(dynamic_cast<TH1*>(input_file->Get(compare_truth_name.c_str())), "cmp_truth");
+        }
+    }
     TH1* ExREAL_1D_wExclusive_Background = nullptr;
     std::string rho_rdf = rdf_name + "_(" + args.background_source + ")";
     std::string rho_mdf = mdf_1d + "_(" + args.background_source + ")";
+    if(!args.closure_weight.empty()){
+        // Keys are ...(lundvpk)_(Acc), not ...(Acc)_(lundvpk). Do not subtract the unweighted lund histogram.
+        rho_rdf = closure_lund_key;
+        rho_mdf = closure_lund_key;
+        std::cout << Color::BGREEN << "Closure weight " << args.closure_weight
+                  << " measured " << rdf_name
+                  << " response-truth " << gdf_name
+                  << " compare-truth " << (compare_truth_name.empty() ? gdf_name : compare_truth_name)
+                  << Color::END << std::endl;
+    }
     if(key_in_file(input_file, rho_rdf) || key_in_file(input_file, rho_mdf)){
         std::string rho_key = key_in_file(input_file, rho_rdf) ? rho_rdf : rho_mdf;
         std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
@@ -651,7 +690,8 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     std::string study_tag = "_Q2y_" + std::to_string(q2y) + smear_tag;
     std::cout << "\n" << Color::BGREEN << "Unfolding: " << out_print_main << Color::END << "\n" << std::endl;
     RecSkipMap skip_map;
-    TH1* Unfold_raw = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, user_set_bi, study_tag, &skip_map);
+    TH1* acceptance_rdf = args.closure_weight.empty() ? nullptr : MC_REC_1D;
+    TH1* Unfold_raw = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, user_set_bi, study_tag, &skip_map, acceptance_rdf, acceptance_bdf, compare_truth);
     if(Unfold_raw == nullptr){ Crash_Report(args, "Unfold_Function returned ERROR"); }
     TH1* Unfold_1D = Unfold_raw;
     if(!args.old_binning){
@@ -695,6 +735,8 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     delete MC_BGS_1D;
     delete Unfold_1D;
     delete ExREAL_1D_wExclusive_Background;
+    delete acceptance_bdf;
+    delete compare_truth;
     return 0;
 }
 

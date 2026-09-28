@@ -255,6 +255,8 @@ struct UnfoldArgs {
     std::string background_source = "lundvpk";
     bool require_weighed = false;
     std::string weight_tag = "";
+    // Simple_Unfold only. Weighted pseudo-data on the nominal response. 9/26/2026
+    std::string closure_weight = "";
     bool has_increment = false;
     int increment = 0;
     bool has_num_bins = false;
@@ -330,6 +332,8 @@ inline void print_help(){
         "  -bgs, --background_source lundvpk|lundrho|None\n"
         "  -rw, --require_weighed\n"
         "  -wt, --weight_tag ''|Acc|JSON|Spline|AccJSON|AccSpline\n"
+        "  -cw, --closure_weight Acc|AccSpline\n"
+        "                             Simple_Unfold only: weighted pseudo-data, nominal response\n"
         "  -i, --increment N          Force slice increment\n"
         "  -nb, --num_bins N          Force flattened 5D bin count\n"
         "  -mpdf, --matrix_pdf        Rebuild matrix and save PDF only\n"
@@ -401,6 +405,8 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.require_weighed = true;
         } else if(match_opt(arg, {"-wt", "--weight_tag"})){
             args.weight_tag = opt_value(i, argc, argv, arg, "--weight_tag");
+        } else if(match_opt(arg, {"-cw", "--closure_weight"})){
+            args.closure_weight = opt_value(i, argc, argv, arg, "--closure_weight");
         } else if(match_opt(arg, {"-i", "--increment"})){
             args.has_increment = true;
             args.increment = std::atoi(opt_value(i, argc, argv, arg, "--increment").c_str());
@@ -458,6 +464,20 @@ inline UnfoldArgs parse_args(int argc, char** argv){
     if(std::find(ok_tags.begin(), ok_tags.end(), args.weight_tag) == ok_tags.end()){
         std::cerr << "Invalid --weight_tag: " << args.weight_tag << std::endl;
         std::exit(2);
+    }
+    if((args.closure_weight != "") && (args.closure_weight != "Acc") && (args.closure_weight != "AccSpline")){
+        std::cerr << "Invalid --closure_weight: " << args.closure_weight << " (expected Acc|AccSpline)" << std::endl;
+        std::exit(2);
+    }
+    if(!args.closure_weight.empty()){
+        if(!args.sim){
+            std::cerr << "--closure_weight requires --simulation" << std::endl;
+            std::exit(2);
+        }
+        if(!args.weight_tag.empty()){
+            std::cerr << "--closure_weight uses the nominal response; do not set --weight_tag" << std::endl;
+            std::exit(2);
+        }
     }
     if((args.error_mode != "toys") && (args.error_mode != "covariance") &&
        (args.error_mode != "errors") && (args.error_mode != "none")){
@@ -540,6 +560,7 @@ inline void Construct_Email(UnfoldArgs& args, bool Crashed=false, bool Warning=f
     add_arg("background_source", "'" + args.background_source + "'");
     add_arg("require_weighed", format_arg_value_bool(args.require_weighed));
     add_arg("weight_tag", "'" + args.weight_tag + "'");
+    add_arg("closure_weight", "'" + args.closure_weight + "'");
     add_arg("increment", args.has_increment ? std::to_string(args.increment) : "None");
     add_arg("num_bins", args.has_num_bins ? std::to_string(args.num_bins) : "None");
     add_arg("matrix_pdf", format_arg_value_bool(args.matrix_pdf));
