@@ -266,6 +266,11 @@ def parse_args():
                    default="z",
                    help=f"Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center, etc.\n{color.RED}'Q2'/'q2', 'y', and 'xB'/'xb' all only work with the '--Spline_Only' images (as of 4/17/2026).{color.END}\n")
 
+    p.add_argument("-row", "-col", "--select_row_or_column",
+                   type=int,
+                   default=None,
+                   help="Used to select a single z/pT row/column when plotting individual lines in the Q2-y bin plots.\nVersus z, the integer is the pT column (1 = lowest pT; filename tag _pTcolN).\nVersus pT, the integer is the z row (1 = highest z; filename tag _zrowN).\nUnset plots every series.\n")
+
     p.add_argument("-k", "--pad_label_mode",
                    choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
                    default="Q2y_only",
@@ -354,6 +359,9 @@ def parse_args():
                    nargs="+",
                    default=None,
                    help=f"Fixed xB kinematics for the '--Spline_Only' Image Option.\n{color.RED}Note: Will replace either the 'Fixed_Q2' or 'Fixed_y'.{color.END}\n")
+    p.add_argument("-pres", "--presentation",
+                   action="store_true", 
+                   help="For 'presentation mode' settings that were premade as of the last presentation (manually editted on 9/27/2026).\n")
     
     return p.parse_args()
 
@@ -506,11 +514,74 @@ def build_q2y_ranges(grouped, info_map):
             q2y_ranges[q2y_bin] = {"Q2range": info_map[first_key]["Q2range"], "y_range": info_map[first_key]["y_range"]}
     return q2y_ranges
 
+def zpt_matches_row_or_column(args, q2y_bin, zpt_bin):
+    # None keeps every series. Versus z, N is pT_group (column 1 = lowest pT). Versus pT, N is z__group (row 1 = highest z).
+    n_sel = getattr(args, "select_row_or_column", None)
+    if(n_sel is None):
+        return True
+    if(getattr(args, "Spline_Only", False)):
+        return True
+    xm = str(args.x_mode).lower()
+    if(xm not in ["z", "pt"]):
+        return True
+    rows_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=int(q2y_bin))
+    n_cols    = int(rows_cols[1])
+    pT_group  = ((int(zpt_bin) - 1) % n_cols) + 1
+    z_group   = int((int(zpt_bin) - 1) / n_cols) + 1
+    if(xm == "z"):
+        return (pT_group == int(n_sel))
+    return (z_group == int(n_sel))
+
+def row_or_column_filename_tag(args):
+    n_sel = getattr(args, "select_row_or_column", None)
+    if((n_sel is None) or (getattr(args, "Spline_Only", False))):
+        return ""
+    xm = str(args.x_mode).lower()
+    if(xm == "z"):
+        return f"_pTcol{int(n_sel)}"
+    if(xm == "pt"):
+        return f"_zrow{int(n_sel)}"
+    return ""
+
+def validate_row_or_column_selection(args, grouped):
+    n_sel = getattr(args, "select_row_or_column", None)
+    if(n_sel is None):
+        return
+    xm = str(args.x_mode).lower()
+    if((getattr(args, "Spline_Only", False)) or (xm not in ["z", "pt"])):
+        print(f"{color.BYELLOW}[WARN] --select_row_or_column is ignored for --Spline_Only and for x axes other than z or pT.{color.END}")
+        return
+    if(int(n_sel) < 1):
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} --select_row_or_column must be an integer >= 1 (got {n_sel}). Row/column numbers start at 1.{color.END}")
+    present_groups = set()
+    missing_q2y    = []
+    for q2y_bin in grouped.keys():
+        rows_cols   = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=int(q2y_bin))
+        n_cols      = int(rows_cols[1])
+        groups_here = set()
+        for zpt_bin, key_str in grouped[q2y_bin]:
+            pT_group = ((int(zpt_bin) - 1) % n_cols) + 1
+            z_group  = int((int(zpt_bin) - 1) / n_cols) + 1
+            group_id = pT_group if(xm == "z") else z_group
+            groups_here.add(int(group_id))
+            present_groups.add(int(group_id))
+        if(int(n_sel) not in groups_here):
+            missing_q2y.append(int(q2y_bin))
+    kind_label = "pT column" if(xm == "z") else "z row"
+    if(int(n_sel) not in present_groups):
+        present_txt = ", ".join([str(gg) for gg in sorted(present_groups)]) if(len(present_groups) > 0) else "(none)"
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} --select_row_or_column {n_sel} is not a {kind_label} in any Q2-y bin. Groups present: {present_txt}{color.END}")
+    if(len(missing_q2y) > 0):
+        print(f"{color.BYELLOW}[WARN] {kind_label} {int(n_sel)} is missing from Q2-y bin(s): {sorted(missing_q2y)}. Those pads will have no points.{color.END}")
+    print(f"{color.CYAN}[INFO] Selecting {kind_label} {int(n_sel)} (filename tag {row_or_column_filename_tag(args)}).{color.END}")
+
 def compute_global_x_range(args, grouped, info_map):
     xmin = None
     xmax = None
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
+            if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+                continue
             if(key_str not in info_map):
                 continue
             xval = info_map[key_str]["z_range"][0] if(args.x_mode == "z") else info_map[key_str]["pTrange"][0]
@@ -533,6 +604,8 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
     err_key = f"{y_par}{args.err_suffix}"
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
+            if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+                continue
             if(key_str not in fit_dict):
                 continue
             entry = fit_dict[key_str]
@@ -569,6 +642,8 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
     if(q2y_bin not in grouped):
         return series_map
     for zpt_bin, key_str in grouped[q2y_bin]:
+        if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+            continue
         if((key_str not in fit_dict) or (key_str not in info_map)):
             continue
         entry = fit_dict[key_str]
@@ -1108,9 +1183,17 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
     ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
     ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
-    if(args.pad_label_mode == "Q2y_only"):
-        lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
-        lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
+    if((args.pad_label_mode == "Q2y_only") or (getattr(args, "presentation", False))):
+        if("BC" not in str(args.fit_set)):
+            lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+            lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
+        else:
+            Q2_center = (Q2min + Q2max)/2
+            y_center  = (ymin  + ymax)/2
+            lab.DrawLatex(x0, y0,             f"Q^{{2}} = {Q2_center:.2f}")
+            lab.DrawLatex(x0, y0 - line_step, f"y = {y_center:.2f}")
+        # lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+        # lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
         return
     lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {q2y_bin}")
     if(args.pad_label_mode == "bin"):
@@ -1371,6 +1454,8 @@ def FitSet_Has_BC(fit_set):
 def Build_SingleBin_Subtitle(args, fit_set):
     has_rc = FitSet_Has_RC(fit_set)
     has_bc = FitSet_Has_BC(fit_set)
+    if(getattr(args, "presentation", False)):
+        return "" # No subtitles in presentations
     if(has_bc and has_rc):
         subtitle = "With BC + RC Factors"
         if((str(args.title_text).strip() != "")):
@@ -1490,7 +1575,7 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
     # step = 0.028
     # lab.SetTextSize(0.022)
     # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, Q2y_only.
-    if(mode == "Q2y_only"):
+    if((mode == "Q2y_only") or (getattr(args, "presentation", False))):
         # y0 += step
         if("BC" not in str(args.fit_set)):
             lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
@@ -1770,20 +1855,22 @@ def Get_Default_FitSet_FileTag(fit_set):
     return sanitize_for_filename(tag)
 
 def Build_Output_Filename(args, fit_set, y_par):
-    stem  = sanitize_for_filename(args.name)
-    fs_tag = Get_Default_FitSet_FileTag(fit_set)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
-    filename = f"{stem}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    stem    = sanitize_for_filename(args.name)
+    fs_tag  = Get_Default_FitSet_FileTag(fit_set)
+    x_tag   = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    sel_tag = row_or_column_filename_tag(args)
+    y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    filename = f"{stem}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
 def Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin):
-    stem  = sanitize_for_filename(args.name)
-    fs_tag = Get_Default_FitSet_FileTag(fit_set)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
-    filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    stem    = sanitize_for_filename(args.name)
+    fs_tag  = Get_Default_FitSet_FileTag(fit_set)
+    x_tag   = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    sel_tag = row_or_column_filename_tag(args)
+    y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
@@ -1914,7 +2001,9 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
         if(y_ranges is not None):
             y_min, y_max = y_ranges[y_par]
         else:
-            if(str(y_par) == "Fit_Par_B"):
+            if((getattr(args, "presentation", False)) and (y_par in ["Fit_Par_B", "Fit_Par_C"])):
+                y_min, y_max = -0.5, 0.2
+            elif(str(y_par) == "Fit_Par_B"):
                 # y_min, y_max = -0.8, 0.125
                 y_min, y_max = -0.2, 0.125
             elif(str(y_par) == "Fit_Par_C"):
@@ -2384,8 +2473,9 @@ def write_comparison_table(args, sources, y_par):
     ctypes = list(getattr(args, "comparison_types", ["overlay"]))
     y_tag = Get_Default_Y_FileTag(y_par, sources[0]["fit_set"])
     labels = [src["label"] for src in sources]
-    stem = sanitize_for_filename(args.name)
-    filename = f"{stem}_Compare_Table_{y_tag}.txt"
+    stem     = sanitize_for_filename(args.name)
+    sel_tag  = row_or_column_filename_tag(args)
+    filename = f"{stem}_Compare_Table{sel_tag}_{y_tag}.txt"
     Validate_Output_Filename(filename)
 
     # Union of keys across sources
@@ -2416,6 +2506,8 @@ def write_comparison_table(args, sources, y_par):
         try:
             q2y_bin, zpt_bin = parse_inner_key(key_str)
         except Exception:
+            continue
+        if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
             continue
         # Prefer first source that has this key for range labels
         q2y_lab = str(q2y_bin)
@@ -2761,16 +2853,17 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
     return c1
 
 def Build_Comparison_Output_Filename(args, y_par, kind_title, pair_labels=None, extra_tag=""):
-    stem = sanitize_for_filename(args.name)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag = Get_Default_Y_FileTag(y_par, "Compare")
+    stem     = sanitize_for_filename(args.name)
+    x_tag    = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    sel_tag  = row_or_column_filename_tag(args)
+    y_tag    = Get_Default_Y_FileTag(y_par, "Compare")
     kind_tag = sanitize_for_filename(kind_title)
     extra = f"_{sanitize_for_filename(extra_tag)}" if(str(extra_tag).strip() != "") else ""
     if(pair_labels is None):
-        filename = f"{stem}_Compare_{kind_tag}{extra}_{x_tag}_{y_tag}.{args.formats}"
+        filename = f"{stem}_Compare_{kind_tag}{extra}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     else:
         pair_tag = sanitize_for_filename(f"{pair_labels[0]} vs {pair_labels[1]}")
-        filename = f"{stem}_Compare_{kind_tag}_{pair_tag}{extra}_{x_tag}_{y_tag}.{args.formats}"
+        filename = f"{stem}_Compare_{kind_tag}_{pair_tag}{extra}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
@@ -3013,6 +3106,8 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
 
 def run_comparison_mode(args):
     sources = build_comparison_sources(args)
+    if(len(sources) > 0):
+        validate_row_or_column_selection(args, sources[0]["grouped"])
     if(args.verbose):
         for src in sources:
             print(f"{color.CYAN}[INFO] Comparison source: {src['label']} | fit_set={src['fit_set']} | json={src['json_path']} | n={len(src['fit_dict'])}{color.END}")
@@ -3117,6 +3212,7 @@ def main():
     grouped       = group_by_q2y(fit_dict)
     info_map      = build_info_map(args, fit_dict)
     q2y_ranges    = build_q2y_ranges(grouped, info_map)
+    validate_row_or_column_selection(args, grouped)
 
     spline_models = load_spline_models(args, fit_set)
     if(args.Spline_Only):
@@ -3161,7 +3257,9 @@ def main():
             print(f"{color.CYAN}[INFO] Global X range: [{xmin}, {xmax}]{color.END}")
 
         for y_par in args.y_pars:
-            if((str(y_par) == "Fit_Par_B")):
+            if((getattr(args, "presentation", False)) and (str(y_par) in ["Fit_Par_B", "Fit_Par_C"])):
+                y_range = (-0.5, 0.2)
+            elif((str(y_par) == "Fit_Par_B")):
                 # y_range = (-0.8, 0.125)
                 y_range = (-0.8, 0.175) if(args.draw_legends) else (-0.5, 0.175)
             elif((str(y_par) == "Fit_Par_C")):
