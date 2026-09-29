@@ -257,6 +257,8 @@ struct UnfoldArgs {
     std::string weight_tag = "";
     // Simple_Unfold only. Weighted pseudo-data on the nominal response. 9/26/2026
     std::string closure_weight = "";
+    // Simple_Unfold only. Replace the measured histogram. Response and fakes stay as for data. 9/28/2026
+    std::string pseudo_data = "";
     bool has_increment = false;
     int increment = 0;
     bool has_num_bins = false;
@@ -334,6 +336,8 @@ inline void print_help(){
         "  -wt, --weight_tag ''|Acc|JSON|Spline|AccJSON|AccSpline\n"
         "  -cw, --closure_weight Acc|AccSpline\n"
         "                             Simple_Unfold only: weighted pseudo-data, nominal response\n"
+        "  -pd, --pseudo_data nominal|Acc|Spline|AccSpline\n"
+        "                             Simple_Unfold only: replace the measured histogram on the data configuration\n"
         "  -i, --increment N          Force slice increment\n"
         "  -nb, --num_bins N          Force flattened 5D bin count\n"
         "  -mpdf, --matrix_pdf        Rebuild matrix and save PDF only\n"
@@ -407,6 +411,8 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.weight_tag = opt_value(i, argc, argv, arg, "--weight_tag");
         } else if(match_opt(arg, {"-cw", "--closure_weight"})){
             args.closure_weight = opt_value(i, argc, argv, arg, "--closure_weight");
+        } else if(match_opt(arg, {"-pd", "--pseudo_data"})){
+            args.pseudo_data = opt_value(i, argc, argv, arg, "--pseudo_data");
         } else if(match_opt(arg, {"-i", "--increment"})){
             args.has_increment = true;
             args.increment = std::atoi(opt_value(i, argc, argv, arg, "--increment").c_str());
@@ -476,6 +482,21 @@ inline UnfoldArgs parse_args(int argc, char** argv){
         }
         if(!args.weight_tag.empty()){
             std::cerr << "--closure_weight uses the nominal response; do not set --weight_tag" << std::endl;
+            std::exit(2);
+        }
+    }
+    if((args.pseudo_data != "") && (args.pseudo_data != "nominal") && (args.pseudo_data != "Acc")
+       && (args.pseudo_data != "Spline") && (args.pseudo_data != "AccSpline")){
+        std::cerr << "Invalid --pseudo_data: " << args.pseudo_data << " (expected nominal|Acc|Spline|AccSpline)" << std::endl;
+        std::exit(2);
+    }
+    if(!args.pseudo_data.empty()){
+        if(args.sim){
+            std::cerr << "--pseudo_data uses the data configuration; do not set --simulation" << std::endl;
+            std::exit(2);
+        }
+        if(!args.closure_weight.empty() || !args.weight_tag.empty()){
+            std::cerr << "--pseudo_data replaces only the measured histogram; do not set --closure_weight or --weight_tag" << std::endl;
             std::exit(2);
         }
     }
@@ -561,6 +582,7 @@ inline void Construct_Email(UnfoldArgs& args, bool Crashed=false, bool Warning=f
     add_arg("require_weighed", format_arg_value_bool(args.require_weighed));
     add_arg("weight_tag", "'" + args.weight_tag + "'");
     add_arg("closure_weight", "'" + args.closure_weight + "'");
+    add_arg("pseudo_data", "'" + args.pseudo_data + "'");
     add_arg("increment", args.has_increment ? std::to_string(args.increment) : "None");
     add_arg("num_bins", args.has_num_bins ? std::to_string(args.num_bins) : "None");
     add_arg("matrix_pdf", format_arg_value_bool(args.matrix_pdf));

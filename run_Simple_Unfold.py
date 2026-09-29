@@ -94,6 +94,9 @@ def parse_args():
     p.add_argument('-cw', '--closure_weight', type=str, default="",
                    choices=["", "Acc", "AccSpline"],
                    help="Weighted pseudo-data on the nominal response. Requires --simulation. Acc truth is the original generator. AccSpline truth is _(Spline).\n")
+    p.add_argument('-pd', '--pseudo_data', type=str, default="",
+                   choices=["", "nominal", "Acc", "Spline", "AccSpline"],
+                   help="Replace only the measured histogram. The response, fakes, and acceptance map stay on the data configuration. Do not combine with --simulation.\n")
     add_data_root_argument(p)
     p.add_argument('--compile_only', action='store_true',
                    help="Compile the C++ binary and exit.\n")
@@ -211,6 +214,8 @@ def build_cpp_command(args):
         cmd.extend(["--weight_tag", args.weight_tag])
     if(args.closure_weight not in ["", None]):
         cmd.extend(["--closure_weight", args.closure_weight])
+    if(args.pseudo_data not in ["", None]):
+        cmd.extend(["--pseudo_data", args.pseudo_data])
     cmd.extend(["--data_root", args.data_root])
     return cmd
 

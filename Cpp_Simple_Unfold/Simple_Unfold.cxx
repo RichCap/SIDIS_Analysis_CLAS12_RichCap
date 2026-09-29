@@ -612,10 +612,21 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     // against _(Spline), which must not be used as the response efficiency denominator.
     std::string closure_lund_key = "";
     std::string compare_truth_name = "";
+    std::string data_acceptance_name = "";
     if(!args.closure_weight.empty()){
         rdf_name = mdf_1d + "_(" + args.closure_weight + ")";
         closure_lund_key = mdf_1d + "_(" + args.background_source + ")_(" + args.closure_weight + ")";
         if(args.closure_weight == "AccSpline"){ compare_truth_name = gdf_name + "_(Spline)"; }
+    }
+    // 9/28/2026: pseudo-data replaces only the measured histogram. The data histogram is kept for the acceptance map.
+    // Exclusive rho0 subtraction is an experimental-data correction and is not applied to the measured pseudo-data.
+    if(!args.pseudo_data.empty()){
+        data_acceptance_name = rdf_name;
+        if(args.pseudo_data == "nominal"){
+            rdf_name = mdf_1d;
+        } else {
+            rdf_name = mdf_1d + "_(" + args.pseudo_data + ")";
+        }
     }
     if(!key_in_file(input_file, out_print_main)){
         Crash_Report(args, "Missing response matrix: " + out_print_main);
@@ -672,7 +683,15 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
                   << " compare-truth " << (compare_truth_name.empty() ? gdf_name : compare_truth_name)
                   << Color::END << std::endl;
     }
-    if(key_in_file(input_file, rho_rdf) || key_in_file(input_file, rho_mdf)){
+    if(!args.pseudo_data.empty()){
+        std::cout << Color::BGREEN << "Pseudo-data " << args.pseudo_data
+                  << " measured " << rdf_name
+                  << " response-truth " << gdf_name
+                  << " acceptance-data " << data_acceptance_name
+                  << " exclusive rho0 subtraction disabled"
+                  << Color::END << std::endl;
+    }
+    if((args.pseudo_data.empty()) && (key_in_file(input_file, rho_rdf) || key_in_file(input_file, rho_mdf))){
         std::string rho_key = key_in_file(input_file, rho_rdf) ? rho_rdf : rho_mdf;
         std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
         TH1* Lundrho = dynamic_cast<TH1*>(input_file->Get(rho_key.c_str()));
@@ -680,7 +699,7 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         ExREAL_1D_wExclusive_Background = sub.first;
         delete ExREAL_1D;
         ExREAL_1D = sub.second;
-    } else if(args.background_source != "None"){
+    } else if((args.pseudo_data.empty()) && (args.background_source != "None")){
         std::cout << Color::Error << "Cannot subtract the '" << args.background_source
                   << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
     }
@@ -691,6 +710,28 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     std::cout << "\n" << Color::BGREEN << "Unfolding: " << out_print_main << Color::END << "\n" << std::endl;
     RecSkipMap skip_map;
     TH1* acceptance_rdf = args.closure_weight.empty() ? nullptr : MC_REC_1D;
+    TH1* pseudo_acceptance_data = nullptr;
+    if(!args.pseudo_data.empty()){
+        if(!key_in_file(input_file, data_acceptance_name)){
+            Crash_Report(args, "Missing data histogram for the acceptance map: " + data_acceptance_name);
+        }
+        pseudo_acceptance_data = CloneDetached(dynamic_cast<TH1*>(input_file->Get(data_acceptance_name.c_str())), "data_acc");
+        std::string data_lund = data_acceptance_name + "_(" + args.background_source + ")";
+        // Data files store exclusive rho on the reconstructed MC key, which is what the data unfold subtracts.
+        if(!key_in_file(input_file, data_lund)){
+            data_lund = mdf_1d + "_(" + args.background_source + ")";
+        }
+        if(key_in_file(input_file, data_lund)){
+            TH1* data_rho = dynamic_cast<TH1*>(input_file->Get(data_lund.c_str()));
+            auto data_sub = subtract_bkg_with_zero_floor(pseudo_acceptance_data, data_rho);
+            delete pseudo_acceptance_data;
+            pseudo_acceptance_data = data_sub.second;
+            delete data_sub.first;
+        } else if(args.background_source != "None"){
+            Crash_Report(args, "Missing data lund histogram for the acceptance map: " + data_lund);
+        }
+        acceptance_rdf = pseudo_acceptance_data;
+    }
     TH1* Unfold_raw = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, user_set_bi, study_tag, &skip_map, acceptance_rdf, acceptance_bdf, compare_truth);
     if(Unfold_raw == nullptr){ Crash_Report(args, "Unfold_Function returned ERROR"); }
     TH1* Unfold_1D = Unfold_raw;
@@ -737,6 +778,7 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     delete ExREAL_1D_wExclusive_Background;
     delete acceptance_bdf;
     delete compare_truth;
+    delete pseudo_acceptance_data;
     return 0;
 }
 
