@@ -129,7 +129,7 @@ def bin_value(hist, k, want_error):
     return None
 
 
-def load_root_rows(path, sample, cut):
+def load_root_rows(path, sample, cut, allow_missing_chi2=False):
     import ROOT
     ROOT.gROOT.SetBatch(True)
     ROOT.gErrorIgnoreLevel = ROOT.kError
@@ -152,7 +152,9 @@ def load_root_rows(path, sample, cut):
             rms_raw = bin_value(rms_h, k, False)
             rms_aligned = bin_value(mean_h, k, True)
             # RooUnfold omits chi2 above 1e10, so a missing point is left out rather than invented.
-            if((chi2 is None) or (mean_signed is None) or (mean_error is None) or (rms_aligned is None)):
+            # 9/28/2026: a plot may keep the other three curves when every chi2 point was omitted.
+            chi2_blocks = (chi2 is None) and (not allow_missing_chi2)
+            if(chi2_blocks or (mean_signed is None) or (mean_error is None) or (rms_aligned is None)):
                 if(k == 1):
                     raise RuntimeError(f"Missing k=1 for Q2y {q2y} in {path}")
                 continue
