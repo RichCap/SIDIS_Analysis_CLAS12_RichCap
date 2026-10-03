@@ -35,7 +35,8 @@ def parse_args():
     parser.add_argument("-o", "--out", required=True, help="Output TSV.\n")
     parser.add_argument("-q", "--q2y", type=int, default=0, help="One Q2-y bin. 0 means every bin in the file.\n")
     parser.add_argument("-ns", "--n_sigma", type=float, default=3.0, help="A slice passes when both moments are within this many fit errors.\n")
-    parser.add_argument("-mf", "--min_filled", type=int, default=8, help="Slices with fewer filled phi bins are reported and not counted.\n")
+    parser.add_argument("-ph", "--phi_bins", type=int, default=24, choices=[12, 24], help="24 keeps the 8-bin minimum. 12 uses 4 filled merged bins.\n")
+    parser.add_argument("-mf", "--min_filled", type=int, default=None, help="Slices with fewer filled phi bins are reported and not counted. Default is 8 for 24 bins and 4 for 12.\n")
     return parser.parse_args()
 
 
@@ -142,6 +143,8 @@ def fit_one(hist, q2y, zpt):
 
 def main():
     args = parse_args()
+    if(args.min_filled is None):
+        args.min_filled = 4 if(args.phi_bins == 12) else 8
     import ROOT
     ROOT.gROOT.SetBatch(True)
     ROOT.gErrorIgnoreLevel = ROOT.kError
