@@ -174,3 +174,45 @@ peak_memory: 471.33 MB
 wall_time: 1.32 s
 peak_memory: 480.00 MB
 
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-16T16:39:30 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.22 s
+peak_memory: 482.70 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-16T17:05:23 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.37 s
+peak_memory: 482.14 MB
+
+=== TASK: 2D_Presentation-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43241.64 s
+peak_memory: 482.14 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-17T13:43:16 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.26 s
+peak_memory: 475.70 MB
+
+=== TASK: 2D_Presentation-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 1.33 s
+peak_memory: 475.70 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-17T13:56:20 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.51 s
+peak_memory: 483.07 MB
+
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-09-17T13:58:47 name=Final_Thesis mode=hybrid email=all =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.50 s
+peak_memory: 486.75 MB
+
+=== TASK: 2D_Presentation-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43243.44 s
+peak_memory: 1.20 GB
+
