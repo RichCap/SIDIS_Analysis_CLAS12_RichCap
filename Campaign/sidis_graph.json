@@ -1,0 +1,44 @@
+{
+  "pools": {
+    "swif_or_slurm": 24,
+    "unfold_3d": 4,
+    "unfold_5d": 1,
+    "unfold_1d": 4,
+    "histogram": 24,
+    "rc_bc": 8,
+    "fit": 4,
+    "collect": 1
+  },
+  "swif2": {
+    "account": "clas12",
+    "partition": "production",
+    "site": "jlab/enp",
+    "max_concurrent": 24,
+    "attempts": 2,
+    "shell": "/bin/tcsh"
+  },
+  "stages": [
+    {"stage_id": "groovy_rho", "depends_on": [], "backends": ["slurm_array", "external"], "pool": "swif_or_slurm", "granularity": "file", "invalidated_by": ["rho_token"], "phase": 0},
+    {"stage_id": "dataframe", "depends_on": ["groovy_rho"], "backends": ["slurm_array", "external"], "pool": "swif_or_slurm", "granularity": "file", "invalidated_by": ["rho_token"], "phase": 0},
+    {"stage_id": "make_batches", "depends_on": ["dataframe"], "backends": ["local_seq", "external"], "pool": "collect", "granularity": "campaign", "invalidated_by": ["rho_token"], "phase": 0},
+    {"stage_id": "groovy_55na", "depends_on": [], "backends": ["slurm_array", "external"], "pool": "swif_or_slurm", "granularity": "file", "invalidated_by": [], "phase": 0},
+    {"stage_id": "rho_norm", "depends_on": ["make_batches"], "backends": ["slurm_array", "external"], "pool": "histogram", "granularity": "campaign", "invalidated_by": ["rho_token"], "phase": 1, "manual_after": true},
+    {"stage_id": "response_5d", "depends_on": ["make_batches"], "backends": ["hybrid", "slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1, "priority": 0},
+    {"stage_id": "response_3d", "depends_on": ["make_batches"], "backends": ["hybrid", "slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1, "priority": 1},
+    {"stage_id": "response_1d", "depends_on": ["make_batches"], "backends": ["hybrid", "slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1, "priority": 2},
+    {"stage_id": "response_2d", "depends_on": ["make_batches"], "backends": ["hybrid", "slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1, "priority": 3},
+    {"stage_id": "response", "depends_on": ["make_batches"], "backends": ["hybrid", "slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version", "cut", "match"], "phase": 1},
+    {"stage_id": "diagnostic_dphi", "depends_on": ["make_batches"], "backends": ["slurm_array", "swif2", "external", "local_seq"], "pool": "histogram", "granularity": "file", "invalidated_by": ["binning_version"], "phase": 1},
+    {"stage_id": "diagnostic_background", "depends_on": [], "backends": ["slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1},
+    {"stage_id": "diagnostic_1d_noskip", "depends_on": [], "backends": ["slurm_array", "swif2", "external"], "pool": "histogram", "granularity": "batch", "invalidated_by": ["binning_version"], "phase": 1},
+    {"stage_id": "unfold_3d", "depends_on": ["response"], "backends": ["local_parallel", "swif2", "external"], "pool": "unfold_3d", "granularity": "q2y", "invalidated_by": ["binning_version", "acceptance_cut", "phi_mode", "background_source", "k_provenance"], "phase": 2},
+    {"stage_id": "iteration_refresh_3d", "depends_on": ["response"], "backends": ["swif2", "external"], "pool": "unfold_3d", "granularity": "q2y", "invalidated_by": ["binning_version", "acceptance_cut"], "phase": 2, "optional": true},
+    {"stage_id": "iteration_5d", "depends_on": ["response"], "backends": ["swif2", "slurm_array", "external"], "pool": "unfold_5d", "granularity": "campaign", "invalidated_by": ["binning_version", "acceptance_cut"], "phase": 2, "optional": true},
+    {"stage_id": "rc_regenerate", "depends_on": [], "backends": ["slurm_array", "swif2", "external"], "pool": "swif_or_slurm", "granularity": "file", "invalidated_by": ["binning_version"], "phase": 3, "optional": true},
+    {"stage_id": "hybrid_attach", "depends_on": ["unfold_3d"], "backends": ["local_seq", "external"], "pool": "rc_bc", "granularity": "campaign", "invalidated_by": ["binning_version", "acceptance_cut"], "phase": 3},
+    {"stage_id": "bc", "depends_on": ["hybrid_attach"], "backends": ["slurm_array", "swif2", "external"], "pool": "rc_bc", "granularity": "q2y", "invalidated_by": ["binning_version", "bc_subbins"], "phase": 3},
+    {"stage_id": "bc_sensitivity", "depends_on": ["hybrid_attach"], "backends": ["slurm_array", "swif2", "external"], "pool": "rc_bc", "granularity": "q2y", "invalidated_by": ["binning_version", "bc_subbins"], "phase": 3, "optional": true},
+    {"stage_id": "fit", "depends_on": ["bc"], "backends": ["local_seq", "local_parallel", "external"], "pool": "fit", "granularity": "campaign", "invalidated_by": ["binning_version", "spline_iter"], "phase": 4},
+    {"stage_id": "aggregate", "depends_on": ["fit"], "backends": ["local_seq", "validate"], "pool": "collect", "granularity": "campaign", "invalidated_by": [], "phase": 4}
+  ]
+}
