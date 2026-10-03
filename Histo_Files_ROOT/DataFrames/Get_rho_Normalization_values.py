@@ -27,6 +27,29 @@ from Binning_Dictionaries             import Bin_Converter_4D_to_2D #, Full_Bin_
 import argparse
 from datetime import datetime
 
+def rho_hist_token(args):
+    token = getattr(args, "source_token", None)
+    if(token):
+        return str(token)
+    return "lundrho" if(args.old_lund) else "lundvpk"
+
+def refuse_preweighted_rho_input(path):
+    # The normalization fit must see histograms built without --run_rho_weight.
+    if(path is None):
+        return
+    if(not os.path.isfile(str(path))):
+        return
+    handle = ROOT.TFile.Open(str(path), "READ")
+    if((not handle) or handle.IsZombie()):
+        return
+    named = handle.Get("RhoWeightApplied")
+    applied = False
+    if(named):
+        applied = (str(named.GetTitle()) == "1")
+    handle.Close()
+    if(applied):
+        raise SystemExit("refusing rho normalization: %s was built with the rho weight already applied" % path)
+
 Name_of_Script = "Get_rho_Normalization_values.py"
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
@@ -100,6 +123,7 @@ def parse_args():
     parser.add_argument('-uzb', '--use_z_bins',
                         action='store_true',
                         help="Uses the 'z_Bins' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n")
+    parser.add_argument('-st', '--source_token', default=None, help="Rho source token for histogram names. Omit to keep lundvpk, or lundrho when --old_lund is set.\n")
     parser.add_argument('-ol', '--old_lund',
                         action='store_true',
                         help="Use Harut's old files instead of the newer ones.\n")
@@ -481,7 +505,7 @@ cut_stages = {
 def histo_setup_for_Wpions(args):
     print(f"\n{color.BLUE}Getting the correct histograms...{color.END}\n")
     hist_key___data  =  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(W_pippim)_(exclusive_rho_individual)"
-    hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
+    hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({rho_hist_token(args)})"
     # hist_key_clasdis =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
 
     if(getattr(args, "use_z_bins", False)):
@@ -1147,8 +1171,8 @@ def main_Get_rho_Normalization_values(args):
 
     # === CORRECT HISTOGRAM KEYS (following our exact procedure) ===
     hist_key1 =  "(Normal_2D)_(gdf)_(no_cut_Remove_rho)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)"                                          if(str(args.vars).lower() in ["q2xb"]) else  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(z1_plus_z2)_(exclusive_rho)"                                                                       # Data visible exclusive (exclusive_rho_full == 1)
-    hist_key2 = f"(Normal_2D)_(gdf)_(no_cut)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"  if(str(args.vars).lower() in ["q2xb"]) else f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})" # Harut edf (exclusive_rho_full_smeared == 1)
-    hist_key3 = f"(Normal_2D)_(gdf)_(no_cut)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"  if(str(args.vars).lower() in ["q2xb"]) else f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)"                                                    # MDF (the only one we use)
+    hist_key2 = f"(Normal_2D)_(gdf)_(no_cut)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)_({rho_hist_token(args)})"  if(str(args.vars).lower() in ["q2xb"]) else f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)_({rho_hist_token(args)})" # Harut edf (exclusive_rho_full_smeared == 1)
+    hist_key3 = f"(Normal_2D)_(gdf)_(no_cut)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)_({rho_hist_token(args)})"  if(str(args.vars).lower() in ["q2xb"]) else f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(z1_plus_z2_smeared)_(exclusive_rho_smeared)"                                                    # MDF (the only one we use)
     hist_key4 =  "(Normal_2D)_(gdf)_(no_cut_Remove_rho)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(Q2)_(xB)"                                          if(str(args.vars).lower() in ["q2xb"]) else  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(z1_plus_z2)_(exclusive_rho)"                                                                       # Data sideband (exclusive_rho == 0)
 
     # # === NEW: Two separate mdf histograms (this was the missing piece) ===
@@ -1846,7 +1870,7 @@ def create_rho_normalized_diagnostic_plots(args, hist_list_in):
     # for     var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)"]:
         for stage_name in ["Exclusive", "SIDIS_BKG", "SIDIS_2pi", "Min_ExclC", "Full_SIDIS", "Exclusive_F", "2pi_Full", "Exclusive_rho", "Exclusive_SIDIS", "Exclusive_F_SIDIS", "Exclusive_rho_SIDIS", "SIDIS_wBG_2pi"]:
             hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}_{stage_name}"
-            hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+            hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({rho_hist_token(args)})_{stage_name}_(Scaled)"
             if(all(names in histo_list_New for names in [hist_key_data, hist_key_harut])):
                 histo_list_New[f"{hist_key_data}_(Removed_Background)"] = histo_list_New[hist_key_data].Clone(f"{hist_key_data}_(Removed_Background)")
                 histo_list_New[f"{hist_key_data}_(Removed_Background)"].Add(histo_list_New[hist_key_harut], -1)
@@ -1920,7 +1944,7 @@ def make_diagnostic_cut_images(args):
     for var_choice in ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(xB)", "(Q2)_(y)", "(W_pippim)_(MM_pippim)", "(z)_(pT)", "(z_rho)_(MM_pippim)", "(z_rho)_(pT_rho)", "(z_rho)_(W_pippim)", "(z1_plus_z2)_(MM_pippim)", "(z1_plus_z2)_(pT_rho)", "(z1_plus_z2)_(W_pippim)"]:
         hist_key_data  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{var_choice}"
         hist_key_mdf   = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}"
-        hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
+        hist_key_harut = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{var_choice.replace(')', '_smeared)')}_({rho_hist_token(args)})"
         hist_list[hist_key_data]  = file1.Get(hist_key_data)
         hist_list[hist_key_mdf]   = file1.Get(hist_key_mdf)
         hist_list[hist_key_harut] = file1.Get(hist_key_harut)
@@ -2010,10 +2034,10 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
     # Q2_y_borders = {}
     hist_key_data_wBG  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_(phi_t)_(Q2_y_z_pT_4D_Bins)_{stage_name}"
     hist_key_data_woBG = f"{hist_key_data_wBG}_(Removed_Background)"
-    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_(phi_t_smeared)_(Q2_y_z_pT_4D_Bins_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_(phi_t_smeared)_(Q2_y_z_pT_4D_Bins_smeared)_({rho_hist_token(args)})_{stage_name}_(Scaled)"
     if((Draw_Type in ["No_Weight"]) or (Comparison_Type in ["Raw_Harut"])):
         hist_key_harut = hist_key_harut.replace("_(Scaled)", "")
-    hist_key_clasdis   = hist_key_harut.replace(f"_({'lundvpk' if(not args.old_lund) else 'lundrho'})", "")
+    hist_key_clasdis   = hist_key_harut.replace(f"_({rho_hist_token(args)})", "")
     hist_data_wBG  = Hist_List_In.get(hist_key_data_wBG,  None)
     hist_data_woBG = Hist_List_In.get(hist_key_data_woBG, None)
     hist_harut     = Hist_List_In.get(hist_key_harut,     None)
@@ -2498,10 +2522,10 @@ def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(x
     fmt = f'.{getattr(args, "file_format", "pdf")}'.lower()
     hist_key_data_wBG  = f"(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_{Vars_Input}_{stage_name}"
     hist_key_data_woBG = f"{hist_key_data_wBG}_(Removed_Background)"
-    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{Vars_Input_Smeared}_({'lundvpk' if(not args.old_lund) else 'lundrho'})_{stage_name}_(Scaled)"
+    hist_key_harut     = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_{Vars_Input_Smeared}_({rho_hist_token(args)})_{stage_name}_(Scaled)"
     if((Draw_Type in ["No_Weight"]) or (Comparison_Type in ["Raw_Harut"])):
         hist_key_harut = hist_key_harut.replace("_(Scaled)", "")
-    hist_key_clasdis   = hist_key_harut.replace(f"_({'lundvpk' if(not args.old_lund) else 'lundrho'})", "")
+    hist_key_clasdis   = hist_key_harut.replace(f"_({rho_hist_token(args)})", "")
     hist_data_wBG  = Hist_List_In.get(hist_key_data_wBG,  None)
     hist_data_woBG = Hist_List_In.get(hist_key_data_woBG, None)
     hist_harut     = Hist_List_In.get(hist_key_harut,     None)
@@ -2641,7 +2665,7 @@ def Create_Diagnostic_Weight_Impact_Plots(args):
     scale_clasdis = 0.193244
 
     hist_key___data  =  "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(Q2_y_z_pT_Bin_All)_(W_pippim)_(exclusive_rho_individual)"
-    hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({'lundvpk' if(not args.old_lund) else 'lundrho'})"
+    hist_key__harut  = f"(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)_({rho_hist_token(args)})"
     hist_key_clasdis =  "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(Q2_y_z_pT_Bin_All)_(W_pippim_smeared)_(exclusive_rho_individual_smeared)"
 
     if(args.Use_2D_Kinematic_Binning):

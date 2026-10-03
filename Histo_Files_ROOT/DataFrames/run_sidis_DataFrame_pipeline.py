@@ -141,7 +141,10 @@ def parse_args():
     parser.add_argument('-nb', '--num_batches',
                         type=int,
                         default=171,
-                        help="Number of normal batches to create. The last 2 batches will be reserved for lundrho- and lundvpk-MC files.\n")
+                        help="Total batches, including the dedicated rho tails. The last batches are one per rho source.\n")
+    parser.add_argument('-rst', '--rho_source_token',
+                        default=None,
+                        help="Extra rho0 basename token. It gets its own final batch after lundvpk and lundrho.\n")
 
     # Directories
     add_data_root_argument(parser)
@@ -718,23 +721,50 @@ def make_batches_mode(args):
         Crash_Report(args, crash_message=f"{color.Error}No RDF files found - cannot generate batches.{color.END}")
     # Determine number of normal batches
     num_normal_batches = max(1, args.num_batches if(getattr(args, "num_batches", len(rdf_files)) < len(rdf_files)) else len(rdf_files))
-    # Separate LUND files from both MDF and GDF
-    lundvpk_mdf   = [f for f in mdf_files if("lundvpk" in os.path.basename(f).lower())]
-    lundvpk_gdf   = [f for f in gdf_files if("lundvpk" in os.path.basename(f).lower())]
-    lundrho_mdf   = [f for f in mdf_files if("lundrho" in os.path.basename(f).lower())]
-    lundrho_gdf   = [f for f in gdf_files if("lundrho" in os.path.basename(f).lower())]
-    normal_mdf    = [f for f in mdf_files if(((f not in lundvpk_mdf) and (f not in lundrho_mdf)) and ("lund" not in os.path.basename(f).lower()))]
-    normal_gdf    = [f for f in gdf_files if(((f not in lundvpk_gdf) and (f not in lundrho_gdf)) and ("lund" not in os.path.basename(f).lower()))]
-    # Split normal files evenly across the first (N-2) batches
-    num_normal = max(1, num_normal_batches - 2)
+    # Existing order is lundvpk then lundrho. rho0_new is appended and is not swapped with them.
+    # rho_names = ["lundvpk", "lundrho"]
+    # extra_rho = getattr(args, "rho_source_token", None)
+    # if(extra_rho):
+    #     for token in str(extra_rho).replace(",", " ").split():
+    #         if((token) and (token not in rho_names)):
+    #             rho_names.append(token)
+    from Campaign.ifarm_inputs import classify_rho_name, source_order
+    rho_names = source_order()
+    extra_rho = getattr(args, "rho_source_token", None)
+    if(extra_rho):
+        for token in str(extra_rho).replace(",", " ").split():
+            if((token) and (token not in rho_names)):
+                rho_names.append(token)
+    rho_mdf = {}
+    rho_gdf = {}
+    # for token in rho_names:
+    #     rho_mdf[token] = [f for f in mdf_files if(token.lower() in os.path.basename(f).lower())]
+    #     rho_gdf[token] = [f for f in gdf_files if(token.lower() in os.path.basename(f).lower())]
+    for token in rho_names:
+        rho_mdf[token] = [f for f in mdf_files if(classify_rho_name(os.path.basename(f)) == token)]
+        rho_gdf[token] = [f for f in gdf_files if(classify_rho_name(os.path.basename(f)) == token)]
+    claimed_mdf = []
+    claimed_gdf = []
+    for token in rho_names:
+        claimed_mdf.extend(rho_mdf[token])
+        claimed_gdf.extend(rho_gdf[token])
+    normal_mdf = [f for f in mdf_files if((f not in claimed_mdf) and ("lund" not in os.path.basename(f).lower()))]
+    normal_gdf = [f for f in gdf_files if((f not in claimed_gdf) and ("lund" not in os.path.basename(f).lower()))]
+    num_tails  = len(rho_names)
+    num_normal = max(1, num_normal_batches - num_tails)
     rdf_chunks = split_evenly(rdf_files,  num_normal_batches)
     mdf_chunks = split_evenly(normal_mdf, num_normal)
     gdf_chunks = split_evenly(normal_gdf, num_normal)
-    # LUND batch goes at the end (batch N-1, and N)
-    lund_mdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_mdf],
-                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_mdf]}
-    lund_gdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_gdf],
-                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_gdf]}
+    lund_mdf_batch = {}
+    lund_gdf_batch = {}
+    for offset, token in enumerate(rho_names):
+        batch_id = num_normal_batches - num_tails + 1 + offset
+        lund_mdf_batch[batch_id] = [os.path.abspath(f) for f in rho_mdf[token]]
+        lund_gdf_batch[batch_id] = [os.path.abspath(f) for f in rho_gdf[token]]
+    lundvpk_mdf = rho_mdf["lundvpk"]
+    lundrho_mdf = rho_mdf["lundrho"]
+    lundvpk_gdf = rho_gdf["lundvpk"]
+    lundrho_gdf = rho_gdf["lundrho"]
     def to_absolute(flist):
         return [os.path.abspath(f) for f in flist]
     rdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(rdf_chunks) if(chunk)}
@@ -748,7 +778,8 @@ def make_batches_mode(args):
         f.write("rdf_batch = {}\n".format(rdf_batch))
         f.write("mdf_batch = {}\n".format(mdf_batch))
         f.write("gdf_batch = {}\n".format(gdf_batch))
-        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + 2 LUND-only) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lundvpk_mdf)}/{len(lundrho_mdf)} (lundvpk/lundrho) LUND_GDF:{len(lundvpk_gdf)}/{len(lundrho_gdf)} (lundvpk/lundrho)\n")
+        tail_note = ",".join(rho_names)
+        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + {num_tails} rho tails: {tail_note}) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lundvpk_mdf)}/{len(lundrho_mdf)} (lundvpk/lundrho) LUND_GDF:{len(lundvpk_gdf)}/{len(lundrho_gdf)} (lundvpk/lundrho)\n")
     # Update args for reporting
     args.rdf_per_batch =  len(rdf_files) // num_normal_batches if(num_normal_batches > 0) else 0
     args.mc_per_batch  = len(normal_mdf) // num_normal         if(num_normal         > 0) else 0

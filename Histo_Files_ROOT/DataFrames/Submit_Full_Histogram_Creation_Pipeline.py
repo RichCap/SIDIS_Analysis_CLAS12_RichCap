@@ -106,6 +106,13 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
         "extra": ["--ch4_diagnostics", "--mc_only"],
         "jobs_attr": "jobs_ch4",
+        }, {
+        "key": "Delta_Phi_h",
+        "label": "Per-bin Delta phi_h diagnostic",
+        "name_fmt": "Delta_Phi_h_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--delta_phi_h"],
+        "jobs_attr": "jobs_dphi",
         },
 ]
 
@@ -215,6 +222,10 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
+    p.add_argument("-jdph", "--jobs_dphi",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Delta phi_h diagnostic. Default 0 skips this product.\n")
     p.add_argument("-jch4", "--jobs_ch4",
                    type=int,
                    default=0,
@@ -528,7 +539,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(run_mode == "hybrid"):
         run_mode = "parallel"
     # Chapter 4 reads stored columns only. Do not require an HPP file before those counts and histograms.
-    if(product.get("key") == "CH4_Diagnostics"):
+    if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h"]):
         use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
@@ -551,7 +562,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(mac in [None, ""]):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
-    if((not args.no_run_rho_weight) and (product.get("key") not in ["rho0", "CH4_Diagnostics"])):
+    if((not args.no_run_rho_weight) and (product.get("key") not in ["rho0", "CH4_Diagnostics", "Delta_Phi_h"])):
         # Pipeline-level -rrw (also kept in product --extra for Response passthrough).
         # rho0 histogram-creation must stay unweighted so the resulting ROOT file can be used to derive n_rho.
         cmd.append("--run_rho_weight")
