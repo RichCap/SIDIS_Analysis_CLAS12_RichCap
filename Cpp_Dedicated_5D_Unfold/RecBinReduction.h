@@ -1,6 +1,7 @@
 #ifndef SIDIS_REC_BIN_REDUCTION_H
 #define SIDIS_REC_BIN_REDUCTION_H
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -159,6 +160,65 @@ inline TH2D* Compress_TH2_Rec_Axis(TH2* th2, const RecSkipMap& skip_map, bool re
     }
     out->GetXaxis()->SetTitle(th2->GetXaxis()->GetTitle());
     out->GetYaxis()->SetTitle(th2->GetYaxis()->GetTitle());
+    return out;
+}
+
+inline int Merged_Dense_Bin(int bin, int phi_in, int phi_out){
+    if(bin <= 0){ return bin; }
+    const int zero = bin - 1;
+    const int slot = zero / phi_in;
+    const int phi = zero % phi_in;
+    return slot * phi_out + (phi / 2) + 1;
+}
+
+inline TH1D* Merge_Dense_Phi_TH1(TH1* input, int phi_in, int phi_out){
+    if((input == nullptr) || (phi_in == phi_out)){ return nullptr; }
+    const int nbins = input->GetNbinsX();
+    if((phi_in <= 0) || (nbins % phi_in != 0)){ return nullptr; }
+    const int nout = (nbins / phi_in) * phi_out;
+    const double xmin = input->GetXaxis()->GetXmin();
+    const double width = input->GetXaxis()->GetBinWidth(1);
+    TH1D* out = new TH1D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(), nout, xmin, xmin + nout * width);
+    out->SetDirectory(0);
+    out->Sumw2();
+    for(int bin = 1; bin <= nbins; ++bin){
+        const int dest = Merged_Dense_Bin(bin, phi_in, phi_out);
+        const double content = out->GetBinContent(dest) + input->GetBinContent(bin);
+        const double err2 = out->GetBinError(dest) * out->GetBinError(dest) + input->GetBinError(bin) * input->GetBinError(bin);
+        out->SetBinContent(dest, content);
+        out->SetBinError(dest, std::sqrt(err2));
+    }
+    out->GetXaxis()->SetTitle(input->GetXaxis()->GetTitle());
+    return out;
+}
+
+inline TH2D* Merge_Dense_Phi_TH2(TH2* input, int phi_in, int phi_out){
+    if((input == nullptr) || (phi_in == phi_out)){ return nullptr; }
+    const int nx = input->GetNbinsX();
+    const int ny = input->GetNbinsY();
+    if((nx % phi_in != 0) || (ny % phi_in != 0)){ return nullptr; }
+    const int nx_out = (nx / phi_in) * phi_out;
+    const int ny_out = (ny / phi_in) * phi_out;
+    const double xmin = input->GetXaxis()->GetXmin();
+    const double ymin = input->GetYaxis()->GetXmin();
+    const double xwidth = input->GetXaxis()->GetBinWidth(1);
+    const double ywidth = input->GetYaxis()->GetBinWidth(1);
+    TH2D* out = new TH2D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(),
+                         nx_out, xmin, xmin + nx_out * xwidth, ny_out, ymin, ymin + ny_out * ywidth);
+    out->SetDirectory(0);
+    out->Sumw2();
+    for(int ix = 1; ix <= nx; ++ix){
+        const int dest_x = Merged_Dense_Bin(ix, phi_in, phi_out);
+        for(int iy = 1; iy <= ny; ++iy){
+            const int dest_y = Merged_Dense_Bin(iy, phi_in, phi_out);
+            const double content = out->GetBinContent(dest_x, dest_y) + input->GetBinContent(ix, iy);
+            const double err2 = out->GetBinError(dest_x, dest_y) * out->GetBinError(dest_x, dest_y) + input->GetBinError(ix, iy) * input->GetBinError(ix, iy);
+            out->SetBinContent(dest_x, dest_y, content);
+            out->SetBinError(dest_x, dest_y, std::sqrt(err2));
+        }
+    }
+    out->GetXaxis()->SetTitle(input->GetXaxis()->GetTitle());
+    out->GetYaxis()->SetTitle(input->GetYaxis()->GetTitle());
     return out;
 }
 

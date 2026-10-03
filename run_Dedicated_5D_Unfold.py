@@ -59,6 +59,11 @@ def parse_args():
                    type=int,
                    default=6,
                    help="Number of Bayesian Iterations performed while Unfolding.\n")
+    p.add_argument('-ph', '--phi_bins',
+                   type=int,
+                   default=24,
+                   choices=[12, 24],
+                   help="Phi_h bins in the unfolding. 24 is nominal. 12 merges adjacent bins before the acceptance skip.\n")
     p.add_argument('-nt', '-ntoys', '--Num_Toys',
                    type=int,
                    default=10,
@@ -236,6 +241,7 @@ def build_cpp_command(args):
     if(args.mod):
         cmd.append("--modulation")
     cmd.extend(["--bayes_iterations", str(args.bayes_iterations)])
+    cmd.extend(["--phi_bins", str(args.phi_bins)])
     cmd.extend(["--Num_Toys", str(args.Num_Toys)])
     cmd.extend(["--error_mode", str(args.error_mode)])
     if(args.iteration_study):

@@ -14,7 +14,7 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 from jlab_work_paths import bootstrap_from_file
 EXEC_ROOT = bootstrap_from_file(__file__)
-from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
+from MyCommonAnalysisFunction_richcap import color, root_color, variable_Title_name, Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins, cpp_production_skip_condition
 from ExtraAnalysisCodeValues          import New_z_pT_and_MultiDim_Binning_Code, Rotation_Matrix
 
 # Generator-matching modes stored in matched-MC files. Electron and pi+ always share one mode.
@@ -258,8 +258,10 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
         "no_cut"                              : "No Cuts",
         "cut_Complete_SIDIS"                  : "Default SIDIS Cuts",
         "cut_Complete_SIDIS_MM_None"          : "No Missing Mass Cut",
-        "cut_Complete_SIDIS_MM_loose"         : "Missing Mass > 1.25 GeV (Loose)",
-        "cut_Complete_SIDIS_MM_tight"         : "Missing Mass > 1.75 GeV (Tight)",
+        "cut_Complete_SIDIS_MM_loosest"       : "Missing Mass > 1.1 GeV",
+        "cut_Complete_SIDIS_MM_loose"         : "Missing Mass > 1.35 GeV (Loose)",
+        "cut_Complete_SIDIS_MM_medium"        : "Missing Mass > 1.5 GeV",
+        "cut_Complete_SIDIS_MM_tight"         : "Missing Mass > 2.0 GeV (Tight)",
 
         "cut_Complete_SIDIS_chi2_strict_pip"  : "Strict Pion #chi^{2} Cut",
 
@@ -1318,7 +1320,7 @@ else{
 }
 """, f"""
 // Refinement of Migration/Overflow Bins
-if((({Q2_xB_Bin_event_name} == 1) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 2) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 3) && ((z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 4) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 5) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 6) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 7) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 8) && ((z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 9) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 10) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 11) && ((z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 12) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 13) && ((z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 14) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 15) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 16) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 23) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 17) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30)))){{
+if({cpp_production_skip_condition(Q2_xB_Bin_event_name)}){{
     z_pT_Bin_event_val = 0;
     MultiDim3D_Bin_val = 0;
     MultiDim5D_Bin_val = 0;

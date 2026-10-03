@@ -239,14 +239,14 @@ bool Is_Simple_Matrix_Candidate(const std::string& name, const UnfoldArgs& args)
     return true;
 }
 
-int Convert_Dense_3D_Start(int q2y, int zpt){
+int Convert_Dense_3D_Start(int q2y, int zpt, int phi_n){
     if((q2y < 1) || (zpt < 1)){ return -1; }
     int last = std::get<1>(Get_Num_of_z_pT_Bins_w_Migrations(q2y));
     int slot = 1;
     for(int z = 1; z <= last; ++z){
         if(skip_condition_z_pT_bins(q2y, z)){ continue; }
         if(z == zpt){ return slot; }
-        slot += kPhiN;
+        slot += phi_n;
     }
     return -1;
 }
@@ -292,6 +292,32 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
     }
     std::string clean_name = replace_all(Name_Main_Print, "(Data-Type='mdf'), ", "");
     std::cout << "\t" << Color::BOLD << "Unfolding Histogram:" << Color::END << "\n\t" << clean_name << std::endl;
+
+    // 12-bin mode sums adjacent phi cells, including every rec/gen migration, before the acceptance skip.
+    if(args.phi_bins == 12){
+        TH1D* merged_data = sidis5d::Merge_Dense_Phi_TH1(ExREAL_1D, kPhiN, 12);
+        TH1D* merged_rec = sidis5d::Merge_Dense_Phi_TH1(MC_REC_1D, kPhiN, 12);
+        TH1D* merged_gen = sidis5d::Merge_Dense_Phi_TH1(MC_GEN_1D, kPhiN, 12);
+        TH1D* merged_bkg = (MC_BGS_1D != nullptr) ? sidis5d::Merge_Dense_Phi_TH1(MC_BGS_1D, kPhiN, 12) : nullptr;
+        TH2D* merged_response = sidis5d::Merge_Dense_Phi_TH2(Response_2D, kPhiN, 12);
+        if((merged_data == nullptr) || (merged_rec == nullptr) || (merged_gen == nullptr) || (merged_response == nullptr)){
+            std::cout << Color::RED << "phi_bins=12 requires dense axes whose bin count is a multiple of 24" << Color::END << std::endl;
+            return nullptr;
+        }
+        ExREAL_1D = merged_data;
+        MC_REC_1D = merged_rec;
+        MC_GEN_1D = merged_gen;
+        MC_BGS_1D = merged_bkg;
+        Response_2D = merged_response;
+        if(acceptance_rdf != nullptr){
+            TH1D* merged_acc = sidis5d::Merge_Dense_Phi_TH1(acceptance_rdf, kPhiN, 12);
+            if(merged_acc != nullptr){ acceptance_rdf = merged_acc; }
+        }
+        if(acceptance_bdf != nullptr){
+            TH1D* merged_acc_b = sidis5d::Merge_Dense_Phi_TH1(acceptance_bdf, kPhiN, 12);
+            if(merged_acc_b != nullptr){ acceptance_bdf = merged_acc_b; }
+        }
+    }
 
     RecSkipMap skip_map;
     TH1* ExREAL_use = ExREAL_1D;
@@ -514,21 +540,23 @@ int Multi3D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Name_In, const 
         std::string xtitle = (contains(Smear, "mear") ? "(Smeared) " : "") + std::string("#phi_{h} [") + RootColor::Degrees + "]";
         if(z_pT == 0){
             Name_All = Name_Out;
-            Name_All_Hist = new TH1D(Name_All.c_str(), (Title_Out + "; " + xtitle).c_str(), kPhiN, kPhiMin, kPhiMax);
+            Name_All_Hist = new TH1D(Name_All.c_str(), (Title_Out + "; " + xtitle).c_str(), args.phi_bins, kPhiMin, kPhiMax);
             Name_All_Hist->SetDirectory(0);
             continue;
         }
-        int Start_phi_h_bin = Convert_Dense_3D_Start(q2y, z_pT);
+        const int phi_n = args.phi_bins;
+        const int phi_step = (phi_n == 12) ? 30 : kPhiStep;
+        int Start_phi_h_bin = Convert_Dense_3D_Start(q2y, z_pT, phi_n);
         if(Start_phi_h_bin < 0){ continue; }
-        int End_phi_h_bin = Convert_Dense_3D_Start(q2y, z_pT + 1);
-        if(End_phi_h_bin < 0){ End_phi_h_bin = Start_phi_h_bin + kPhiN; }
-        if((End_phi_h_bin - Start_phi_h_bin) != kPhiN){ continue; }
-        TH1D* Slice_Hist = new TH1D(Name_Out.c_str(), (Title_Out + "; " + xtitle).c_str(), kPhiN, kPhiMin, kPhiMax);
+        int End_phi_h_bin = Convert_Dense_3D_Start(q2y, z_pT + 1, phi_n);
+        if(End_phi_h_bin < 0){ End_phi_h_bin = Start_phi_h_bin + phi_n; }
+        if((End_phi_h_bin - Start_phi_h_bin) != phi_n){ continue; }
+        TH1D* Slice_Hist = new TH1D(Name_Out.c_str(), (Title_Out + "; " + xtitle).c_str(), phi_n, kPhiMin, kPhiMax);
         Slice_Hist->SetDirectory(0);
         int ii_bin_num = Start_phi_h_bin;
         while(ii_bin_num < End_phi_h_bin){
-            for(int phi_bin = kPhiMin; phi_bin < kPhiMax; phi_bin += kPhiStep){
-                double center = phi_bin + 0.5 * kPhiStep;
+            for(int phi_bin = kPhiMin; phi_bin < kPhiMax; phi_bin += phi_step){
+                double center = phi_bin + 0.5 * phi_step;
                 int bin_ii = Histo->FindBin(ii_bin_num);
                 double content = 0.0;
                 double err2 = 0.0;

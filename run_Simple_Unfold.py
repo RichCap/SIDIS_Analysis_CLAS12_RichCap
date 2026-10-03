@@ -81,6 +81,8 @@ def parse_args():
                    help="Sends an email to user when done running.\n")
     p.add_argument('-em', '--email_message', type=str, default="",
                    help="Extra email message (use with --email).\n")
+    p.add_argument('-ph', '--phi_bins', type=int, default=24, choices=[12, 24],
+                   help="Phi_h bins in the unfolding. 24 is nominal. 12 merges adjacent bins before the acceptance skip.\n")
     p.add_argument('-bgs', '--background_source', type=str, default="lundvpk",
                    choices=["lundrho", "lundvpk", "None"],
                    help="Source of rho0 background subtractions from rdf.\n")
@@ -178,6 +180,7 @@ def build_cpp_command(args):
         cmd.append("--simulation")
     if(args.bayes_iterations is not None):
         cmd.extend(["--bayes_iterations", str(args.bayes_iterations)])
+    cmd.extend(["--phi_bins", str(args.phi_bins)])
     cmd.extend(["--Num_Toys", str(args.Num_Toys)])
     cmd.extend(["--error_mode", str(args.error_mode)])
     if(args.iteration_study):
@@ -243,6 +246,7 @@ def build_python_rho_command(args):
         cmd.append("--simulation")
     if(args.bayes_iterations is not None):
         cmd.extend(["--bayes_iterations", str(args.bayes_iterations)])
+    cmd.extend(["--phi_bins", str(args.phi_bins)])
     cmd.extend(["--Num_Toys", str(args.Num_Toys)])
     cmd.extend(["--error_mode", str(args.error_mode)])
     if(args.old_binning):

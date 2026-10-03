@@ -752,6 +752,23 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         std::cout << "\t" << Color::BOLD << "Unfolding Histogram:" << Color::END << "\n\t" << clean_name << std::endl;
     }
 
+    if(args.phi_bins == 12){
+        TH1D* merged_data = sidis5d::Merge_Dense_Phi_TH1(ExREAL_1D, 24, 12);
+        TH1D* merged_rec = sidis5d::Merge_Dense_Phi_TH1(MC_REC_1D, 24, 12);
+        TH1D* merged_gen = sidis5d::Merge_Dense_Phi_TH1(MC_GEN_1D, 24, 12);
+        TH1D* merged_bkg = (MC_BGS_1D != nullptr) ? sidis5d::Merge_Dense_Phi_TH1(MC_BGS_1D, 24, 12) : nullptr;
+        TH2D* merged_response = sidis5d::Merge_Dense_Phi_TH2(Response_2D, 24, 12);
+        if((merged_data == nullptr) || (merged_rec == nullptr) || (merged_gen == nullptr) || (merged_response == nullptr)){
+            std::cout << Color::RED << "phi_bins=12 requires dense axes whose bin count is a multiple of 24" << Color::END << std::endl;
+            return nullptr;
+        }
+        ExREAL_1D = merged_data;
+        MC_REC_1D = merged_rec;
+        MC_GEN_1D = merged_gen;
+        MC_BGS_1D = merged_bkg;
+        Response_2D = merged_response;
+    }
+
     int nBins_gen = MC_GEN_1D->GetNbinsX();
     RecSkipMap skip_map;
     TH1* ExREAL_use = ExREAL_1D;
@@ -1232,7 +1249,7 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     }
     RecSkipMap skip_map_5d;
     const RecSkipMap* skip_ptr = nullptr;
-    if(!args.old_binning){
+    if((!args.old_binning) && (args.phi_bins != 12)){
         skip_map_5d = Build_Rec_Skip_Map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args.Min_Allowed_Acceptance_Cut);
         Print_Rec_Skip_Map(skip_map_5d);
         skip_ptr = &skip_map_5d;

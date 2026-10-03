@@ -244,6 +244,7 @@ struct UnfoldArgs {
     bool mod = false;
     bool closure = false;
     int bayes_iterations = 6;
+    int phi_bins = 24;
     int Num_Toys = 10;
     std::vector<std::string> bins = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"};
     bool verbose = false;
@@ -378,6 +379,12 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.mod = true;
         } else if(match_opt(arg, {"-bi", "-bayes-it", "--bayes_iterations"})){
             args.bayes_iterations = std::atoi(opt_value(i, argc, argv, arg, "--bayes_iterations").c_str());
+        } else if(match_opt(arg, {"-ph", "--phi_bins"})){
+            args.phi_bins = std::atoi(opt_value(i, argc, argv, arg, "--phi_bins").c_str());
+            if((args.phi_bins != 12) && (args.phi_bins != 24)){
+                std::cerr << "--phi_bins must be 12 or 24" << std::endl;
+                std::exit(2);
+            }
         } else if(match_opt(arg, {"-nt", "-ntoys", "--Num_Toys"})){
             args.Num_Toys = std::atoi(opt_value(i, argc, argv, arg, "--Num_Toys").c_str());
         } else if(match_opt(arg, {"-b", "--bins"})){

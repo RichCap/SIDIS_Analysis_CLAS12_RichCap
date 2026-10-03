@@ -40,6 +40,11 @@ def parse_args():
                         default=0,
                         type=int,
                         help=f"Addition number of sub-bins used per phi_h bin.\n{color.ERROR}Will add this number to '--num_sub_bins' to get a new total number of sub-bins used for phi_h specifically.{color.END}{color.YELLOW}\n(The default value of '0' means that the same number of bins are used for each variable)\n{color.END_e}The final total must still be a positive, odd number.{color.END}\n")
+    parser.add_argument('-nbq', '--num_sub_bins_q2', default=None, type=int, help="Q2 subdivisions inside each analysis bin. Omit to use --num_sub_bins. 1 means do not subdivide.\n")
+    parser.add_argument('-nby', '--num_sub_bins_y', default=None, type=int, help="y subdivisions inside each analysis bin. Omit to use --num_sub_bins. 1 means do not subdivide.\n")
+    parser.add_argument('-nbz', '--num_sub_bins_z', default=None, type=int, help="z subdivisions inside each analysis bin. Omit to use --num_sub_bins. 1 means do not subdivide.\n")
+    parser.add_argument('-nbpt', '--num_sub_bins_pt', default=None, type=int, help="pT subdivisions inside each analysis bin. Omit to use --num_sub_bins. 1 means do not subdivide.\n")
+    parser.add_argument('-nbh', '--num_sub_bins_phi', default=None, type=int, help="phi_h subdivisions. Omit to use --num_sub_bins plus --num_phi_sub_bins. 1 means do not subdivide.\n")
     parser.add_argument('-q2y', '-Q2y', '--Q2_y_Bin',
                         default=-1,
                         type=int,
@@ -633,9 +638,11 @@ return vals2;""")
         # gdf = gdf.Define("MultiDim_z_pT_Bin_Y_bin_phi_t", str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="3D")))
         # gdf = gdf.Define("MultiDim_Q2_y_z_pT_phi_h",      str(z_pT_Bin_Standard_Def_Function(Variable_Type="", Bin_Version="Y_bin", Var_return="5D")))
 
-    print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}({color.ERROR}{args.num_sub_bins}{color.END_B} per variable){color.END}")
+    if(not hasattr(args, "n_q2")):
+        resolve_sub_bin_counts(args)
+    print(f"\n{color.BGREEN}Creating New Sub-bins... {color.END_B}Q2={args.n_q2} y={args.n_y} z={args.n_z} pT={args.n_pt} phi={args.n_phi}{color.END}")
     if(args.num_phi_sub_bins > 0):
-        print(f"\t{color.Error}Making with {color.END_B}{args.num_phi_sub_bins + args.num_sub_bins}{color.Error} phi_h sub-bins{color.END}\n")
+        print(f"\t{color.Error}Making with {color.END_B}{args.n_phi}{color.Error} phi_h sub-bins{color.END}\n")
     else:
         print("")
     Find_Q2_y_Bin_Ranges = """
@@ -654,17 +661,17 @@ else if (Q2_Y_Bin == 3 || Q2_Y_Bin == 7 || Q2_Y_Bin ==11  || Q2_Y_Bin ==15)     
 else if (Q2_Y_Bin == 4 || Q2_Y_Bin == 8 || Q2_Y_Bin ==12)                                    { ymin=0.35; ymax=0.45; }
 """
     gdf = gdf.Define("Q2_y_SUB_BINs", f"""{Find_Q2_y_Bin_Ranges}
-    double delta_Q2 = ((q2max - q2min)/{args.num_sub_bins});
-    double delta_y  = ((ymax  -  ymin)/{args.num_sub_bins});
+    double delta_Q2 = ((q2max - q2min)/{args.n_q2});
+    double delta_y  = ((ymax  -  ymin)/{args.n_y});
     int Q2_y_subbin = 0;
     for(double Q2_subbin = q2max; Q2_subbin > q2min; Q2_subbin = Q2_subbin - delta_Q2){{
         if((Q2 <= Q2_subbin) && (Q2 >= (Q2_subbin-delta_Q2))){{
-            for(int y_subbin = 0; y_subbin < {args.num_sub_bins}; y_subbin++){{
+            for(int y_subbin = 0; y_subbin < {args.n_y}; y_subbin++){{
                 Q2_y_subbin = Q2_y_subbin + 1;
                 if((y >= ymin+(y_subbin*delta_y)) && (y <= ymin+((y_subbin+1)*delta_y))){{ return Q2_y_subbin; }}
             }}
         }}
-        else {{ Q2_y_subbin = Q2_y_subbin + {args.num_sub_bins}; }}
+        else {{ Q2_y_subbin = Q2_y_subbin + {args.n_y}; }}
     }}
     return -1; // Error (Should have returned already...)
     """)
@@ -683,30 +690,30 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     z_min  = z_pT_Bin_Borders[Q2_Y_Bin][z_pT_Bin_Y_bin][1];
     pT_max = z_pT_Bin_Borders[Q2_Y_Bin][z_pT_Bin_Y_bin][2];
     pT_min = z_pT_Bin_Borders[Q2_Y_Bin][z_pT_Bin_Y_bin][3];
-    double delta_z  = ((z_max  -  z_min)/{args.num_sub_bins});
-    double delta_pT = ((pT_max - pT_min)/{args.num_sub_bins});
+    double delta_z  = ((z_max  -  z_min)/{args.n_z});
+    double delta_pT = ((pT_max - pT_min)/{args.n_pt});
     int z_pT_subbin = 0;
     for(double z_subbin = z_max; z_subbin > z_min; z_subbin = z_subbin - delta_z){{
         if((z <= z_subbin) && (z >= (z_subbin-delta_z))){{
-            for(int pT_subbin = 0; pT_subbin < {args.num_sub_bins}; pT_subbin++){{
+            for(int pT_subbin = 0; pT_subbin < {args.n_pt}; pT_subbin++){{
                 z_pT_subbin = z_pT_subbin + 1;
                 if((pT >= pT_min+(pT_subbin*delta_pT)) && (pT <= pT_min+((pT_subbin+1)*delta_pT))){{ return z_pT_subbin; }}
             }}
         }}
-        else {{ z_pT_subbin = z_pT_subbin + {args.num_sub_bins}; }}
+        else {{ z_pT_subbin = z_pT_subbin + {args.n_pt}; }}
     }}
     return -1; // Error (Should have returned already...)
     """)
     gdf = gdf.Define("phi_t_bin", """
     if(phi_t < 360){ return int(phi_t/15) + 1; }
     else { return 1; } """)
-    delta_phi_Sbin = float(15.0/float(args.num_sub_bins+args.num_phi_sub_bins))
+    delta_phi_Sbin = float(15.0/float(args.n_phi))
     gdf = gdf.Define("phi_t_SUB_BINs", f" int((phi_t - 15*(phi_t_bin - 1))/{delta_phi_Sbin}) + 1 ")
 
     gdf = gdf.Define("Full_SUB_BIN_idx", f"""
     if( (Q2_y_SUB_BINs < 0) || (z_pT_SUB_BINs < 0) || (phi_t_SUB_BINs < 0) ){{ return -1; }}
-    int q2y_idx = (Q2_y_SUB_BINs - 1)*{args.num_sub_bins}*{args.num_sub_bins};
-    int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.num_sub_bins+args.num_phi_sub_bins};
+    int q2y_idx = (Q2_y_SUB_BINs - 1)*{args.n_z}*{args.n_pt};
+    int zpT_idx = (q2y_idx + (z_pT_SUB_BINs - 1))*{args.n_phi};
     return zpT_idx + phi_t_SUB_BINs;
     """)
 
@@ -719,6 +726,10 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     if("Event_Weight" in gdf.GetColumnNames()):
         print(f"\n{color.Error}WARNING: 'Event_Weight' is already defined in the RDataFrame...{color.END}\n")
     elif(args.json_weights):
+        # External JSON/spline weight replaces the internal modulation. Omit -jsw to keep the EvGen weight alone.
+        # Refuse the product when a spline weight column is already present, so the two weights are not multiplied.
+        if(gdf.HasColumn("Spline_Weight")):
+            Crash_Report(args, crash_message="Refusing --json_weights because Spline_Weight is already on the EvGen frame. Omit -jsw or drop that column before a single physics weight is applied.", continue_run=False)
         print(f"\n{color.BBLUE}Using phi_h Modulation Weights from the JSON file: {color.BPINK}{str(args.json_file_in).split('/')[-1]}{color.END}\n")
         Fit_Pars_Raw  = load_json_file(args.json_file_in)
         Fit_Pars_Flat = Flatten_Fit_Pars_For_CPP_Map(Fit_Pars_Raw, args, prefer_normalized=True)
@@ -802,11 +813,11 @@ def Get_Bin_Contents_for_BC(args):
                 gdf_phih_Bin = gdf_z_pT_Bin.Filter(f"phi_t_bin == {phih_bin}")
                 Nominal_bin_name = f"Bin ({Q2_y_Bin}-{z_pT_Bin}-{phih_bin})"
                 List_of_BCBins[Nominal_bin_name] = {}
-                for         Q2y_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                for         Q2y_Sbin in range(1, int((args.n_q2 * args.n_y) + 1)):
                     gdf_Q2y_SBin         = gdf_phih_Bin.Filter(f"Q2_y_SUB_BINs == {Q2y_Sbin}")
-                    for     zpT_Sbin in range(1, int((args.num_sub_bins*args.num_sub_bins)+1)):
+                    for     zpT_Sbin in range(1, int((args.n_z * args.n_pt) + 1)):
                         gdf_zpT_SBin     = gdf_Q2y_SBin.Filter(f"z_pT_SUB_BINs == {zpT_Sbin}")
-                        for phi_Sbin in range(1, int((args.num_sub_bins+args.num_phi_sub_bins)+1)):
+                        for phi_Sbin in range(1, int(args.n_phi + 1)):
                             gdf_phi_SBin = gdf_zpT_SBin.Filter(f"phi_t_SUB_BINs == {phi_Sbin}")
                             sub_bin_name = f"Bin ({Q2_y_Bin}-{Q2y_Sbin})-({z_pT_Bin}-{zpT_Sbin})-({phih_bin}-{phi_Sbin})"
                             sumw = gdf_phi_SBin.Sum("Event_Weight") # Book the action; do NOT GetValue() yet
@@ -826,7 +837,9 @@ def Make_SubBin_TH2_SumW(gdf, args, Q2_y_Bin, z_pT_Bin):
     #   X axis: Full_SUB_BIN_idx
     #   Y axis: phi_t_bin (1..24)
     #   Weight: Event_Weight
-    Nsub = int((args.num_sub_bins**4)*(args.num_sub_bins+args.num_phi_sub_bins))
+    if(not hasattr(args, "n_q2")):
+        resolve_sub_bin_counts(args)
+    Nsub = int(args.n_q2 * args.n_y * args.n_z * args.n_pt * args.n_phi)
     hist_name     = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
     hist_titl     = f"#splitline{{{root_color.Bold}{{Generated #phi_{{h}} vs Sub-Bin Indexes from {'EvGen' if(not args.use_clasdis) else 'clasdis'}}}}}{{Made with {args.num_sub_bins} Sub-Bins per Kinematic Variable}}"
     if(args.num_phi_sub_bins > 0):
@@ -1019,13 +1032,20 @@ def Compute_BC_Factors_From_SubBin_Histograms(args, include_zero_bins=True, writ
     if(not os.path.exists(root_path)):
         raise FileNotFoundError(f"ROOT file does not exist: {root_path}")
 
+    if(not hasattr(args, "n_q2")):
+        resolve_sub_bin_counts(args)
     num_sub_bins = int(args.num_sub_bins)
-    Nsub = int((num_sub_bins**4)*(num_sub_bins+args.num_phi_sub_bins))
+    Nsub = int(args.n_q2 * args.n_y * args.n_z * args.n_pt * args.n_phi)
     full_center_idx = int((Nsub)/2)+1
 
     # Output: one value per nominal bin
     out = {"meta": { "root_file": str(root_path),
                      "num_sub_bins": int(num_sub_bins),
+                     "num_sub_bins_q2": int(args.n_q2),
+                     "num_sub_bins_y": int(args.n_y),
+                     "num_sub_bins_z": int(args.n_z),
+                     "num_sub_bins_pt": int(args.n_pt),
+                     "num_sub_bins_phi": int(args.n_phi),
                      "extra_num_phi_sub_bins": int(args.num_phi_sub_bins),
                      "Nsub_per_nominal_bin": int(Nsub),
                      "center_subbin": int(full_center_idx),
@@ -1561,14 +1581,33 @@ def Plot_BC_Q2_y_Images_Together_From_JSON(args):
     args.Save_Name = "\n".join(Saved_Files)
     return args
 
+def resolve_sub_bin_counts(args):
+    # Omitted per-variable flags keep today's shared count. 1 is legal and does not subdivide.
+    shared = int(args.num_sub_bins)
+    n_q2   = shared if(args.num_sub_bins_q2  is None) else int(args.num_sub_bins_q2)
+    n_y    = shared if(args.num_sub_bins_y   is None) else int(args.num_sub_bins_y)
+    n_z    = shared if(args.num_sub_bins_z   is None) else int(args.num_sub_bins_z)
+    n_pt   = shared if(args.num_sub_bins_pt  is None) else int(args.num_sub_bins_pt)
+    n_phi  = (shared + int(args.num_phi_sub_bins)) if(args.num_sub_bins_phi is None) else int(args.num_sub_bins_phi)
+    counts = {"q2": n_q2, "y": n_y, "z": n_z, "pt": n_pt, "phi": n_phi}
+    for name, count in counts.items():
+        if(count < 1):
+            print("\n%sERROR: %s sub-bin count must be at least 1%s\n" % (color.Error, name, color.END))
+            sys.exit(0)
+        if((count > 1) and ((count % 2) == 0)):
+            print("\n%sERROR: %s sub-bin count %d must be odd when it is greater than 1%s\n" % (color.Error, name, count, color.END))
+            sys.exit(0)
+    args.n_q2  = n_q2
+    args.n_y   = n_y
+    args.n_z   = n_z
+    args.n_pt  = n_pt
+    args.n_phi = n_phi
+    return args
+
+
 if(__name__ == "__main__"):
     args = parse_args()
-    if((args.num_sub_bins <= 0) or (args.num_sub_bins%2 == 0)):
-        print(f"\n{color.Error}ERROR: Number of sub-bins must a positive, odd number for this script to work properly{color.END}\n")
-        sys.exit(0)
-    if((args.num_phi_sub_bins < 0) or ((args.num_sub_bins+args.num_phi_sub_bins)%2 == 0)):
-        print(f"\n{color.Error}ERROR: Number of extra phi_h sub-bins cannot be negative and the total must still be a positive, odd number for this script to work properly{color.END}\n")
-        sys.exit(0)
+    args = resolve_sub_bin_counts(args)
 
     print(f"\n{color.BBLUE}Ready to Run BC Correction Script...{color.END}\n")
 
