@@ -192,6 +192,9 @@ def parse_args():
     p.add_argument("-T", "--title_text",
                    default="",
                    help="Optional extra title text to include in the global title.\n")
+    p.add_argument("-ptl", "--plain_title",
+                   action="store_true",
+                   help="Single-bin header is only the parameter title. Omits CLAS12 Preliminary and the BC/RC subtitle.\n")
 
     p.add_argument("-leg", "--draw_legends",
                    action="store_true",
@@ -1474,8 +1477,13 @@ def Build_SingleBin_Subtitle(args, fit_set):
 def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
     y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     y_label = y_label.replace(" from the Cross Section Fits", "")
-    line1 = f"#color[{ROOT.kRed}]{{CLAS12 Preliminary}} #topbar {y_label}"
-    line2 = Build_SingleBin_Subtitle(args, fit_set)
+    plain_title = bool(getattr(args, "plain_title", False))
+    title_extra = str(getattr(args, "title_text", "")).strip()
+    if(plain_title):
+        line1 = f"{title_extra} #topbar {y_label}" if(title_extra != "") else y_label
+    else:
+        line1 = f"#color[{ROOT.kRed}]{{CLAS12 Preliminary}} #topbar {y_label}"
+    line2 = "" if(plain_title) else Build_SingleBin_Subtitle(args, fit_set)
     canvas.cd()
     tex = ROOT.TLatex()
     tex.SetNDC(True)
