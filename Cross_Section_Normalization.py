@@ -76,6 +76,17 @@ def total_corrected_charge(json_path=DEFAULT_CHARGE_SUMMARY, apply_beam_correcti
         total_charge = total_charge + charge_run
     return total_charge
 
+def use_pT2_bin_width(args):
+    # Default remains Delta(pT). --pT2 replaces only that factor with Delta(pT2).
+    return bool(getattr(args, "pT2", False)) if(args is not None) else False
+
+def pT_differential_width(pT_max, pT_min, args):
+    pT_hi = float(pT_max)
+    pT_lo = float(pT_min)
+    if(use_pT2_bin_width(args)):
+        return abs((pT_hi * pT_hi) - (pT_lo * pT_lo))
+    return abs(pT_hi - pT_lo)
+
 def Bin_Area_by_Widths_Calc(args=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
     # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
         # Update phi_t_bin whenever the bin sizes are changed
@@ -96,14 +107,16 @@ def Bin_Area_by_Widths_Calc(args=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
             if((skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpT_bin, BINNING_METHOD="Y_bin")) or (str(z_pT_Bin) not in ["0", "All", str(zpT_bin)])):
                 continue
             z_max, z_min, pTmax, pTmin = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, z-pT={zpT_bin}']
-            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*abs(pTmax - pTmin), "d_z": abs(z_max - z_min), "dpT": abs(pTmax - pTmin)}
+            dpT = pT_differential_width(pTmax, pTmin, args)
+            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*dpT, "d_z": abs(z_max - z_min), "dpT": dpT}
             Bin_Area[f"Q2-y={q2y_bin}"]["zpTTotal"]       += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
             Bin_Area[f"Q2-y={q2y_bin}"]["d_z"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["d_z"]
             Bin_Area[f"Q2-y={q2y_bin}"]["dpT"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["dpT"]
             Bin_Area["zpTTotal"]                          += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
     Bin_Width_Area_Scale = Bin_Area["q2yTotal"]*Bin_Area["zpTTotal"]*Bin_Area["dphi_t"]
     if((not hasattr(args, "verbose")) or args.verbose):
-        print(f"Bin Area (∆Q2∆y∆z∆pT∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
+        width_name = "∆pT2" if(use_pT2_bin_width(args)) else "∆pT"
+        print(f"Bin Area (∆Q2∆y∆z{width_name}∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
     return Bin_Width_Area_Scale, Bin_Area
 
 def lumi(charge):
@@ -160,6 +173,7 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
     class args_custom:
         verbose = (args_in.verbose if(hasattr(args_in, "verbose")) else verbose_in) or ((Histo is None) and getattr(args_in, "verbose", True))
         charge  = charge_used
+        pT2     = use_pT2_bin_width(args_in)
     Bin_Width_Area_Scale, _ = Bin_Area_by_Widths_Calc(args=args_custom, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=phi_t_bin)
     Luminosity = lumi(args_custom.charge)
     Normalize_Factor = 1.0
@@ -180,7 +194,10 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
             print(f"\n{color.Error}Failed to scale histogram: {color.END_B}{Histo.GetName()}{color.END}\n")
             raise ValueError(f"Failed to scale histogram to 'Luminosity'. Luminosity = 0.")
         if(Rename_Axis):
-            Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
+            if(use_pT2_bin_width(args_in)):
+                Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}^{2}d#phi_{h}}")
+            else:
+                Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
         Histo.Normalize_Factor = Normalize_Factor
     return Histo, Bin_Width_Area_Scale, Luminosity
     
@@ -211,6 +228,9 @@ if(__name__ == "__main__"):
                    type=str,
                    default=DEFAULT_CHARGE_SUMMARY,
                    help="Path to Charge_Summary JSON used for per-run charge and beam current.\n")
+    p.add_argument("-pt2", "--pT2",
+                   action="store_true",
+                   help="Replace only Delta(pT) in the bin area with Delta(pT2) = |pTmax^2 - pTmin^2|.\n")
     p.add_argument('-v', '--verbose',
                    action='store_true',
                    help="Verbose prints.")
