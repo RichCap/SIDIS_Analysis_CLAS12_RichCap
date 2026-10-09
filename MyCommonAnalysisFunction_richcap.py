@@ -344,6 +344,8 @@ def variable_Title_name(variable):
         output  =  "#epsilon"
     if(variable == 'pT'):
         output  =  "P_{T}"
+    if(variable == 'pT2'):
+        output  =  "P_{T}^{2}"
     if(variable in ['phi_t', 'phi_h']):
         output  =  "#phi_{h}"
     if(variable == 'xF'):
