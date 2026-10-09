@@ -100,6 +100,7 @@ def specs_from_lines(stage, lines, log_dir):
             "stderr": os.path.join(log_dir, name + ".err"),
             "ram": "4GB",
             "time": "8h",
+            "disk": "10GB",
         })
     names = {}
     for spec in specs:

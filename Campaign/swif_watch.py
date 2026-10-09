@@ -307,6 +307,7 @@ def add_job_argv(workflow, spec, swif):
         "-phase", str(spec.get("phase", 0)),
         "-ram", spec.get("ram", "4GB"),
         "-time", spec.get("time", "8h"),
+        "-disk", spec.get("disk", "10GB"),
         "-cores", "1",
         "-shell", "/bin/sh",
         "-stdout", spec["stdout"],
