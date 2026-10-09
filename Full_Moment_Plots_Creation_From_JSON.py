@@ -661,10 +661,10 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
             if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
                 if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
                     continue
-                _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-                if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-                    yv = yv/(Bin_Width_Area_Scale*Luminosity)
-                    ye = ye/(Bin_Width_Area_Scale*Luminosity)
+                _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+                if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+                    yv = yv/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+                    ye = ye/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
             lo = yv - abs(ye) if(include_errors) else yv
             hi = yv + abs(ye) if(include_errors) else yv
             if((ymin is None) or (lo < ymin)):
@@ -702,10 +702,10 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
             if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
                 continue
-            _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-                yval = yval/(Bin_Width_Area_Scale*Luminosity)
-                yerr = yerr/(Bin_Width_Area_Scale*Luminosity)
+            _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+                yval = yval/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+                yerr = yerr/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
         if(args.x_mode == "z"):
             series_id = str(inf["pT_group"])
             scolor    = inf["pT_color"]
@@ -2464,10 +2464,10 @@ def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     if((getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A")):
         if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
             return None
-        _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-        if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-            yval = yval / (Bin_Width_Area_Scale * Luminosity)
-            yerr = yerr / (Bin_Width_Area_Scale * Luminosity)
+        _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+        if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+            yval = yval / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
+            yerr = yerr / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
     return (yval, abs(yerr))
 
 def compute_pair_comparison(ctype, v1, e1, v2, e2):
