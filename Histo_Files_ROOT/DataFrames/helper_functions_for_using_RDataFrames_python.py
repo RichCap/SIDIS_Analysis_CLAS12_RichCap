@@ -327,13 +327,16 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
     else:
         return old_title
 
-def BG_Cut_Function(dataframe="mdf", rho_background=False):
+def BG_Cut_Function(dataframe="mdf", rho_background=False, apply_gen_mm_cut=False):
     if(dataframe in ["rdf"]):
         return ""
     else:
         Background_Cuts_MC = ""
         List_of_Cuts = []
-        List_of_Cuts.append("MM_gen < 1.8")
+        # MM_gen is a generated-level variable for gdf and for mdf. Leave it off unless this run asks for it.
+        # List_of_Cuts.append("MM_gen < 1.8")
+        if(apply_gen_mm_cut):
+            List_of_Cuts.append("MM_gen < 1.8")
         List_of_Cuts.append("PID_el  != 11  && PID_el  != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_pip != 211 && PID_pip != 0") # Identifies the particles that were matched but to the wrong particle
         List_of_Cuts.append("PID_el  == 0")                   # Identifies unmatched particles

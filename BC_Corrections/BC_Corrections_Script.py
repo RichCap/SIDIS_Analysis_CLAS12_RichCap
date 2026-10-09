@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument('-gdf', '-clasdis', '--use_clasdis',
                         action='store_true',
                         help='Run with clasdis instead of EvGen (assumes that the EvGen weight should be used by default unless this argument is used).\n')
+    parser.add_argument('-gmm', '--apply_gen_mm_cut', action='store_true', help="Restore the generated missing-mass cut MM > 1.8 for this run. Off by default.\n")
     parser.add_argument('-nb', '--num_sub_bins',
                         default=5,
                         type=int,
@@ -764,7 +765,9 @@ if((Q2_Y_Bin < 1) || (z_pT_Bin_Y_bin < 1)) {{ return -1; }}
     else:
         gdf = gdf.Define("Event_Weight", Default_Weights)
     # gdf = gdf.Filter("MM > 1.5") # Apply the (old) Missing Mass Cut to exclude the 'exclusive' phase space from my bins
-    gdf = gdf.Filter("MM > 1.8") # Apply the (new) Missing Mass Cut to exclude the 'exclusive' phase space from my bins
+    # gdf = gdf.Filter("MM > 1.8") # Generated missing-mass cut. Off unless --apply_gen_mm_cut.
+    if(getattr(args, "apply_gen_mm_cut", False)):
+        gdf = gdf.Filter("MM > 1.8")
     gdf = gdf.Filter("(Q2_y_SUB_BINs  != -1) && (z_pT_SUB_BINs  != -1) && (phi_t_SUB_BINs != -1)") # Remove all events outside my nominal binning scheme
     return gdf
 
