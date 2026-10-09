@@ -5,7 +5,12 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 import time
+
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
 
 from Campaign.registry import Registry
 
@@ -52,7 +57,8 @@ def recovery_action(job):
         "tool": None, "kind": kind, "name": name, "args": [], "retry": False,
         "reason": "", "prior_ram_bytes": ram, "prior_time_secs": secs,
         "revised_ram_bytes": ram, "revised_time_secs": secs, "retry_number": attempts,
-        "problem": problem,
+        "problem": problem, "details": str(job.get("job_attempt_problem_details") or ""),
+        "job_id": job.get("job_id"),
     }
     if(attempts >= MAX_ATTEMPTS):
         action["reason"] = "retry ceiling"
@@ -141,13 +147,143 @@ def apply_status(workflow, payload, registry, seen=None):
             "retry_number": action["retry_number"], "retry": action["retry"],
             "command": "" if(not action["retry"]) else " ".join(swif_command(workflow, action)),
         })
-        if(action["retry"]):
-            acted.append(action)
+        acted.append(action)
     return acted
 
 
 def run_recovery_command(workflow, action):
+    if(not action.get("retry")):
+        return
     subprocess.check_call(swif_command(workflow, action))
+
+
+def failure_line(action):
+    details = action.get("details") or ""
+    wrapper_note = ""
+    if("exited with code 13" in details.lower()):
+        wrapper_note = "; SWIF2 wrapper/execution-setup failure"
+    if(action.get("retry")):
+        if(action.get("tool") == "modify-jobs"):
+            decision = "will modify and retry (%s)" % " ".join(action.get("args") or [])
+        else:
+            decision = "will retry unchanged"
+    else:
+        decision = "no automatic retry"
+    job_id = action.get("job_id")
+    id_text = "" if(job_id in [None, ""]) else " id %s" % job_id
+    return "FAILED %s%s: %s: %s%s; classified as %s; %s" % (
+        action.get("name"), id_text, action.get("problem"), details, wrapper_note, action.get("kind"), decision,
+    )
+
+
+def antecedent_names(job):
+    # Published data model: antecedents are job-name strings. Pairs or objects are not guessed.
+    if("antecedents" not in job):
+        return None
+    raw = job.get("antecedents")
+    if(not isinstance(raw, list)):
+        return None
+    names = []
+    for item in raw:
+        if(not isinstance(item, str)):
+            return None
+        if(item == ""):
+            return None
+        names.append(item)
+    return names
+
+
+def phase_number(job):
+    if("job_phase" not in job):
+        return None
+    value = job.get("job_phase")
+    if(isinstance(value, bool) or (not isinstance(value, int))):
+        return None
+    return value
+
+
+def blockage_state(jobs):
+    # stalled, open, or unproven. Does not abandon or modify anything.
+    if(not isinstance(jobs, list)):
+        return "unproven"
+    known_names = []
+    problem_names = set()
+    problem_phases = set()
+    waiting = []
+    for job in jobs:
+        if(not isinstance(job, dict)):
+            return "unproven"
+        if(("job_status" not in job) or ("job_name" not in job)):
+            return "unproven"
+        names = antecedent_names(job)
+        phase = phase_number(job)
+        if((names is None) or (phase is None)):
+            return "unproven"
+        status = str(job.get("job_status") or "")
+        name = str(job.get("job_name"))
+        known_names.append(name)
+        action = recovery_action(job)
+        if((action is not None) and (not action["retry"])):
+            problem_names.add(name)
+            problem_phases.add(phase)
+        if(status in FINISHED_STATES):
+            continue
+        if(status == "problem"):
+            continue
+        if(status in ["attempting", "ready", "dispatched", "reaping"]):
+            return "open"
+        if(status != "pending"):
+            return "unproven"
+        waiting.append((name, names, phase))
+    if(len(problem_names) == 0):
+        return "open"
+    if(len(waiting) == 0):
+        return "stalled"
+    for name, names, phase in waiting:
+        for parent in names:
+            if(parent not in known_names):
+                return "unproven"
+        held_by_parent = False
+        for parent in names:
+            if(parent in problem_names):
+                held_by_parent = True
+        held_by_phase = False
+        for lower in problem_phases:
+            if(lower < phase):
+                held_by_phase = True
+        if(not (held_by_parent or held_by_phase)):
+            return "open"
+    return "stalled"
+
+
+def farm_queue_busy(payload):
+    summary = summary_row(payload)
+    if(not isinstance(summary, dict)):
+        return None
+    for key in ["dispatched", "dispatched_running", "dispatched_pending"]:
+        if(key not in summary):
+            return None
+        try:
+            count = int(summary.get(key) or 0)
+        except (TypeError, ValueError):
+            return None
+        if(count > 0):
+            return True
+    return False
+
+
+def send_crash_warning(workflow, lines):
+    subject = "CRASH REPORT: 'run_sidis_campaign.py' Code Failed"
+    body = "\nCRASH WARNING!\n\nThe SWIF2 workflow %s is terminally stalled. No further automatic retry will be submitted.\n\n%s\n" % (
+        workflow, "\n".join(lines),
+    )
+    print(body, file=sys.stderr)
+    try:
+        subprocess.run(["mail", "-s", subject, "richard.capobianco@uconn.edu"], input=body.encode(), check=False)
+    except FileNotFoundError:
+        print("WARNING: mail command not found; the crash warning was printed and was not emailed.", file=sys.stderr)
+    except Exception as exc:
+        print("WARNING: mail failed: %s" % exc, file=sys.stderr)
 
 
 def workflow_idle(payload):
@@ -161,6 +297,9 @@ def workflow_idle(payload):
 
 
 def add_job_argv(workflow, spec, swif):
+    # -shell is /bin/sh so SWIF2's interpreter does not read ~/.cshrc.
+    # The command itself is tcsh -f, which skips `if (! $?prompt) exit` and then sources swif_env.csh.
+    wrapper = os.path.join(os.path.dirname(os.path.abspath(__file__)), "swif_job.csh")
     argv = [
         "swif2", "add-job",
         "-workflow", workflow,
@@ -169,7 +308,7 @@ def add_job_argv(workflow, spec, swif):
         "-ram", spec.get("ram", "4GB"),
         "-time", spec.get("time", "8h"),
         "-cores", "1",
-        "-shell", "/bin/tcsh",
+        "-shell", "/bin/sh",
         "-stdout", spec["stdout"],
         "-stderr", spec["stderr"],
         "-account", swif["account"],
@@ -177,7 +316,8 @@ def add_job_argv(workflow, spec, swif):
     ]
     for parent in spec.get("antecedents") or []:
         argv.extend(["-antecedent", parent])
-    argv.extend(["/bin/tcsh", "-c", spec["command"]])
+    argv.extend(["/bin/tcsh", "-f", wrapper, spec.get("checkout") or ""])
+    argv.extend(shlex.split(spec["command"]))
     return argv
 
 
@@ -197,6 +337,7 @@ def start_unattended_recovery(workflow, registry, dry_run=False, status_json=Non
         print("swif2 is not on this host. Jobs were not submitted. On ifarm this same process creates the workflow, calls swif2 run, and polls.")
         return []
     seen = set()
+    reported = []
     while True:
         try:
             raw = subprocess.check_output(["swif2", "status", workflow, "-summary", "-problems", "-jobs", "-display", "json"], text=True)
@@ -206,11 +347,30 @@ def start_unattended_recovery(workflow, registry, dry_run=False, status_json=Non
             continue
         payload = json.loads(raw)
         actions = apply_status(workflow, payload, registry, seen)
+        submitted = False
         for action in actions:
-            run_recovery_command(workflow, action)
+            line = failure_line(action)
+            reported.append(line)
+            print(line)
+            if(action.get("retry")):
+                run_recovery_command(workflow, action)
+                submitted = True
         if(workflow_idle(payload)):
             print("swif2 workflow %s is idle: no undispatched, dispatched, or problem jobs" % workflow)
             return actions
+        if(not submitted):
+            busy = farm_queue_busy(payload)
+            if(busy is None):
+                print("terminal blockage could not be proven: the SWIF2 summary is missing dispatched, dispatched_running, or dispatched_pending. No additional job was abandoned, modified, or retried.")
+                raise SystemExit(2)
+            if(not busy):
+                state = blockage_state(job_rows(payload))
+                if(state == "unproven"):
+                    print("terminal blockage could not be proven from the SWIF2 jobs JSON (antecedents must be job-name strings and job_phase must be an integer). No additional job was abandoned, modified, or retried. Manual review is required.")
+                    raise SystemExit(2)
+                if(state == "stalled"):
+                    send_crash_warning(workflow, reported)
+                    raise SystemExit(1)
         time.sleep(60)
 
 
@@ -244,3 +404,55 @@ def launch_swif_workflow(workflow, swif, specs, registry, dry_run=False):
     subprocess.check_call(["swif2", "run", workflow])
     print("swif2 run %s ; recovery is polling in this process" % workflow)
     return start_unattended_recovery(workflow, registry, dry_run=False)
+
+
+def _job(name, status, phase, antecedents, problem="", details="", attempts=1, jid=1):
+    row = {
+        "job_name": name, "job_id": jid, "job_status": status, "job_phase": phase,
+        "antecedents": antecedents, "num_attempts": attempts,
+        "site_job_ram_bytes": 4 * (1024 ** 3), "site_job_time_secs": 8 * 3600,
+    }
+    if(problem != ""):
+        row["job_attempt_problem"] = problem
+        row["job_attempt_problem_details"] = details
+    return row
+
+
+def self_test():
+    failed = _job("early_chain_359", "problem", 0, [], "SLURM_FAILED", "Exited with code 13", jid=64259904)
+    action = recovery_action(failed)
+    if(action["retry"] or (action["kind"] != "application")):
+        raise SystemExit("code 13 was classified for retry: %s" % action)
+    text = failure_line(action)
+    if(("no automatic retry" not in text) or ("wrapper/execution-setup failure" not in text) or ("64259904" not in text)):
+        raise SystemExit("failure line missing required fields: %s" % text)
+    oom = recovery_action(_job("oom_job", "problem", 0, [], "SLURM_OUT_OF_MEMORY", "out of memory"))
+    if((not oom["retry"]) or (oom["tool"] != "modify-jobs") or (oom["args"] != ["-ram", "add", "1gb"])):
+        raise SystemExit("oom action changed: %s" % oom)
+    if("retry-jobs" in " ".join(swif_command("ifarm_ready", oom))):
+        raise SystemExit("oom also called retry-jobs")
+    if(not farm_queue_busy({"summary": {"dispatched": 0, "dispatched_running": 0, "dispatched_pending": 1}})):
+        raise SystemExit("slurm pending was treated as idle")
+    parent = _job("early_chain_0", "problem", 0, [], "SLURM_FAILED", "Exited with code 13")
+    sibling = _job("early_chain_1", "pending", 0, [])
+    if(blockage_state([parent, sibling]) != "open"):
+        raise SystemExit("same-phase pending job was treated as blocked")
+    child = _job("early_chain_360", "pending", 1, [])
+    if(blockage_state([parent, child]) != "stalled"):
+        raise SystemExit("higher phase was not held by the lower-phase failure")
+    named = _job("early_chain_360", "pending", 0, ["early_chain_0"])
+    if(blockage_state([parent, named]) != "stalled"):
+        raise SystemExit("failed antecedent name did not block the child")
+    missing = dict(child)
+    del missing["job_phase"]
+    if(blockage_state([parent, missing]) != "unproven"):
+        raise SystemExit("missing job_phase was guessed")
+    paired = dict(child)
+    paired["antecedents"] = [["done", 1]]
+    if(blockage_state([parent, paired]) != "unproven"):
+        raise SystemExit("status/id antecedent was accepted")
+    print("swif_watch self_test ok")
+
+
+if(__name__ == "__main__"):
+    self_test()
