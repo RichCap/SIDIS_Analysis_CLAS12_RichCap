@@ -13,7 +13,7 @@ if(_BOOT not in sys.path):
 
 from Campaign.backends import local_command
 from Campaign.binning_version import BINNING_VERSION
-from Campaign.early_chain import checkout_script, early_chain_commands, later_commands, plan_retry, response_commands
+from Campaign.early_chain import checkout_script, early_chain_commands, later_commands, plan_retry, rc_histogram_commands, response_commands
 from Campaign.registry import Registry
 from jlab_work_paths import WORK_ROOTS, data_root_path
 from merge_bayesian_iteration_lookup import canonical_cut, lookup_record
@@ -59,6 +59,10 @@ def command_kind(command):
         return "batches"
     if("Get_rho_Normalization_values.py" in command):
         return "rho_fit"
+    if("Build_EvGen_PerFile_Hists.py" in command):
+        return "rc_build"
+    if("Comparison_Between_GEN_and_Unfold.py" in command):
+        return "rc_compare"
     if("-rho" in shlex.split(command)):
         return "rho_hist"
     return "other"
@@ -78,6 +82,9 @@ def phase_for(kind):
 
 def swif_shell_command(command):
     # -m slurm would submit a nested array that swif2 status cannot retry. Sequential keeps the failure on this job.
+    # Build_EvGen_PerFile_Hists.py -m slurm is the exception: that process submits the array, waits, and merges before it exits.
+    if("Build_EvGen_PerFile_Hists.py" in command):
+        return command
     # The wrapper cds to the checkout. This string is the analysis argv only.
     return command.replace(" -m slurm ", " -m sequential ")
 
@@ -116,6 +123,8 @@ def specs_from_lines(stage, lines, log_dir):
             spec["antecedents"] = list(names.get("batches", []))
         elif(spec["kind"] == "rho_fit"):
             spec["antecedents"] = list(names.get("rho_hist", []))
+        elif(spec["kind"] == "rc_compare"):
+            spec["antecedents"] = list(names.get("rc_build", []))
     return specs
 
 
@@ -332,7 +341,13 @@ def main():
                 lines.append("# %s blocked: Submit_Full has no Only_1D product; it is not replaced with 3D or 5D" % stage_id)
                 continue
             lines.append(command)
-    elif(args.stage in ["iteration_5d", "hybrid_attach", "bc", "rc_regenerate"]):
+    elif(args.stage == "rc_regenerate"):
+        rc_lines = rc_histogram_commands(args.rc_mode)
+        if(len(rc_lines) == 0):
+            registry.set_status(args.stage, "blocked")
+            raise SystemExit("%s has no command in rc_mode=%s" % (args.stage, args.rc_mode))
+        lines.extend(rc_lines)
+    elif(args.stage in ["iteration_5d", "hybrid_attach", "bc"]):
         command = later_commands(args.rc_mode, args.data_root).get(args.stage, "")
         if(not command):
             registry.set_status(args.stage, "blocked")

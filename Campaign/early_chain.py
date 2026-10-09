@@ -100,17 +100,33 @@ def later_commands(rc_mode, data_root="work_b"):
     five = checkout_script(os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py"))
     hybrid = os.path.join(evgen_dir(), "Run_Large_Files_For_Iterative_Corrections", "Comparison_With_Unfolding", "create_Hybrid_SIDIS_Single_File.py")
     bc = checkout_script(os.path.join(_BOOT, "BC_Corrections", "BC_Corrections_Script.py"))
-    sbatch = os.path.join(evgen_dir(), "sbatch_Gen_submission_creation_script.py")
+    # sbatch = os.path.join(evgen_dir(), "sbatch_Gen_submission_creation_script.py")
     commands = {
         "iteration_5d": local_command("%s -droot %s --iteration_study --parm_min 1 --parm_max 10 --parm_step 1 --Min_Allowed_Acceptance_Cut 0.020 --background_source lundvpk" % (five, data_root)),
         "hybrid_attach": local_command("%s -ui UNFOLDED.root -ei RC_FACTORS.root -o HYBRID.root" % hybrid),
         "bc": local_command("%s -nb 3 -nbphi 2" % bc),
     }
-    if(rc_mode == "regenerate"):
-        commands["rc_regenerate"] = local_command("%s --submit_both_rc_modes" % sbatch)
-    else:
-        commands["rc_regenerate"] = ""
+    # if(rc_mode == "regenerate"):
+    #     commands["rc_regenerate"] = local_command("%s --submit_both_rc_modes" % sbatch)
+    # else:
+    #     commands["rc_regenerate"] = ""
     return commands
+
+
+def rc_histogram_commands(rc_mode):
+    # Recompute RC-factor histograms from existing Rad/No_Rad ROOT files. Do not generate events.
+    if(rc_mode != "regenerate"):
+        return []
+    compare_dir = os.path.join(evgen_dir(), "Run_Large_Files_For_Iterative_Corrections", "Comparison_With_Unfolding")
+    runtime = os.path.join(compare_dir, "build_EvGen_PerFile_Hists_Runtime_ifarm_rc")
+    merged = os.path.join(runtime, "merged_outputs", "Merged_EvGen_PerFile_Hists.root")
+    rc_out = os.path.join(runtime, "merged_outputs", "RC_Factors_ifarm_rc.root")
+    build = os.path.join(compare_dir, "Build_EvGen_PerFile_Hists.py")
+    compare = os.path.join(compare_dir, "Comparison_Between_GEN_and_Unfold.py")
+    return [
+        local_command("%s -m slurm -y -p -rdir %s" % (build, runtime)),
+        local_command("%s -r %s -ssf -sfn %s -rc -Nw -evgen" % (compare, merged, rc_out)),
+    ]
 
 
 def early_chain_commands(command_dir, data_root="work_b"):
