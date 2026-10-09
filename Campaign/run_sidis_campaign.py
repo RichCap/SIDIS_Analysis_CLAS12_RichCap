@@ -78,8 +78,8 @@ def phase_for(kind):
 
 def swif_shell_command(command):
     # -m slurm would submit a nested array that swif2 status cannot retry. Sequential keeps the failure on this job.
-    text = command.replace(" -m slurm ", " -m sequential ")
-    return "cd %s && %s" % (shlex.quote(_BOOT), text)
+    # The wrapper cds to the checkout. This string is the analysis argv only.
+    return command.replace(" -m slurm ", " -m sequential ")
 
 
 def specs_from_lines(stage, lines, log_dir):
@@ -94,6 +94,7 @@ def specs_from_lines(stage, lines, log_dir):
             "kind": kind,
             "phase": phase_for(kind),
             "command": swif_shell_command(line),
+            "checkout": _BOOT,
             "antecedents": [],
             "stdout": os.path.join(log_dir, name + ".out"),
             "stderr": os.path.join(log_dir, name + ".err"),
@@ -235,12 +236,24 @@ def main():
     parser.add_argument("-droot", "--data_root", default="work_b", help="Analysis data root. This campaign defaults to work_b.")
     parser.add_argument("-n", "--dry_run", action="store_true")
     parser.add_argument("-prov", "--k_provenance", default="pre_binning_bootstrap", choices=["pre_binning_bootstrap", "current_binning"])
+    parser.add_argument("-sta", "--start_stage", default="groovy", help="Used with -s workflow. Names the first stage to run. Anything upstream of that name is left as already done and is not submitted again. groovy starts at the new HIPO files. dataframe or batches starts after those files exist. response or unfold starts after the batches exist. rc starts the radiative-correction branch. hybrid or bc starts at the correction merge.")
+    parser.add_argument("-art", "--artifact", default="acceptance=regenerate,rc=regenerate,correction=regenerate", help="Used with -s workflow. One mode for each branch, written as name=mode and separated by commas. regenerate builds that branch in this campaign. reuse keeps a branch that is already validated and listed in -sat, and does not rerun it. disabled leaves the branch out because this workflow does not need it. Example: acceptance=regenerate,rc=reuse,correction=disabled.")
+    parser.add_argument("-sat", "--satisfied", default="", help="Used with -s workflow. Comma-separated names you have already checked. A name can be a stage id or a whole branch, such as acceptance or rc. reuse refuses to run unless the branch or its stages are listed here. A checkpoint stays closed until its stage id is listed here: add rho_norm after Campaign/rho_factors.json is approved, then run the same -s workflow command again and the weighted response jobs are released. Independent branches do not wait for that list.")
     parser.add_argument("-ft", "--failure_text", default="", help="Debug hook only. Production recovery polls swif2 status and does not need this.")
     parser.add_argument("-ram", "--ram_gb", default=4, type=int)
     parser.add_argument("-hr", "--hours", default=8, type=int)
     parser.add_argument("-rn", "--retry_number", default=0, type=int)
     args = parser.parse_args()
     graph = load_json(args.graph)
+    if(args.stage == "workflow"):
+        from Campaign.branches import format_plan, parse_artifacts, plan_launch
+        satisfied = set([item for item in args.satisfied.split(",") if(item != "")])
+        rows = plan_launch(graph, args.start_stage, parse_artifacts(args.artifact), satisfied)
+        print("workflow start %s" % args.start_stage)
+        for line in format_plan(rows):
+            print(line)
+        print("After a checkpoint is approved, run this same -s workflow command again with that stage id added to -sat. That one resume releases its descendants. Other ready branches are already in this plan.")
+        return
     data_root_key = args.data_root
     registry_root = data_root_path(data_root_key) if(data_root_key in WORK_ROOTS) else data_root_key
     if((data_root_key in WORK_ROOTS) and (not os.path.isdir(registry_root))):
