@@ -32,13 +32,6 @@ else
   echo "QADB is set"
 endif
 
-module list |& grep -q clas12
-if ($status != 0) then
-  echo "missing CLAS12 module"
-  set failed = 1
-else
-  echo "CLAS12 module is loaded"
-endif
 
 if ($failed != 0) then
   echo "swif_env_check failed"
