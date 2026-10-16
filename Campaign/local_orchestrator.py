@@ -1,9 +1,13 @@
 # Run the existing hybrid scripts in order. The next stage starts only when this process sees exit 0.
 import glob
+import hashlib
+import json
 import os
 import shlex
 import subprocess
 import sys
+import threading
+import time
 
 _BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if(_BOOT not in sys.path):
@@ -79,6 +83,262 @@ def groovy_command(script, source, mc_type, paths_txt, message):
     return [script, "-m", "hybrid", "-pj", "10", "-na", "-e", "-em", message, "-src", source, "-mc", mc_type, "-ptxt", paths_txt]
 
 
+def expand_patterns(patterns):
+    found = []
+    seen = set()
+    for pattern in patterns:
+        for path in sorted(glob.glob(pattern)):
+            full = os.path.abspath(path)
+            if(full not in seen):
+                seen.add(full)
+                found.append(full)
+    return found
+
+
+def inputs_sha256(paths):
+    return hashlib.sha256("\n".join(paths).encode("utf-8")).hexdigest()
+
+
+def read_manifest_patterns(path):
+    patterns = []
+    handle = open(path)
+    for line in handle:
+        stripped = line.strip()
+        if((stripped == "") or stripped.startswith("#")):
+            continue
+        patterns.append(stripped)
+    handle.close()
+    return patterns
+
+
+def parse_groovy_sbatch(path):
+    # Groovy's sbatch script is the submission record: job name, array, and manifest.
+    job_name = ""
+    array_spec = ""
+    manifest = ""
+    handle = open(path)
+    for line in handle:
+        if(line.startswith("#SBATCH --job-name=")):
+            job_name = line.split("=", 1)[1].strip()
+        elif(line.startswith("#SBATCH --array=")):
+            array_spec = line.split("=", 1)[1].strip()
+        elif(line.startswith('MANIFEST="')):
+            manifest = line.split('"', 2)[1]
+    handle.close()
+    return job_name, array_spec, manifest
+
+
+def receipt_path(folder):
+    return os.path.join(folder, "groovy_workload_records.json")
+
+
+def load_receipts(folder):
+    path = receipt_path(folder)
+    if(not os.path.isfile(path)):
+        return []
+    handle = open(path)
+    payload = json.load(handle)
+    handle.close()
+    return list(payload.get("records", []))
+
+
+def save_receipt(folder, record):
+    records = []
+    for old in load_receipts(folder):
+        same = (old.get("inputs_sha256") == record["inputs_sha256"]) and (old.get("source") == record["source"]) and (old.get("mc") == record["mc"])
+        if(not same):
+            records.append(old)
+    records.append(record)
+    handle = open(receipt_path(folder), "w")
+    json.dump({"records": records}, handle, indent=2)
+    handle.write("\n")
+    handle.close()
+
+
+def sacct_tasks(job_name="", job_id=""):
+    # None means sacct could not be read. An empty dict means it answered and found nothing.
+    cmd = ["sacct", "-n", "--parsable2", "--format=JobID,State,ExitCode"]
+    if(job_id not in ["", None]):
+        cmd.extend(["-j", str(job_id)])
+    elif(job_name not in ["", None]):
+        cmd.extend(["--name", str(job_name)])
+    else:
+        return None
+    try:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        return None
+    if(proc.returncode != 0):
+        print("sacct failed: %s" % proc.stderr.strip())
+        return None
+    arrays = {}
+    for line in proc.stdout.splitlines():
+        parts = line.split("|")
+        if(len(parts) < 3):
+            continue
+        job = parts[0].strip()
+        if(("." in job) or ("_" not in job)):
+            continue
+        array_id, index_text = job.split("_", 1)
+        if(not index_text.isdigit()):
+            continue
+        state = parts[1].strip().split()[0]
+        exit_code = parts[2].strip()
+        arrays.setdefault(array_id, {})[int(index_text)] = (state, exit_code)
+    return arrays
+
+
+def array_outcome(tasks, nfiles):
+    if(nfiles < 1):
+        return "incomplete"
+    active = set(["PENDING", "RUNNING", "CONFIGURING", "COMPLETING", "SUSPENDED", "REQUEUED", "RESIZING"])
+    saw_active = False
+    for index in range(nfiles):
+        if(index not in tasks):
+            return "active" if(saw_active) else "incomplete"
+        state, exit_code = tasks[index]
+        if(state in active):
+            saw_active = True
+            continue
+        if((state != "COMPLETED") or (not str(exit_code).startswith("0:"))):
+            return "incomplete"
+    if(saw_active):
+        return "active"
+    return "complete"
+
+
+def matching_arrays(job_name, job_id, nfiles):
+    if(job_id not in ["", None]):
+        arrays = sacct_tasks(job_id=job_id)
+    else:
+        arrays = sacct_tasks(job_name=job_name)
+    if(arrays is None):
+        return None
+    found = []
+    for array_id, tasks in arrays.items():
+        if((job_id not in ["", None]) and (str(array_id) != str(job_id))):
+            continue
+        found.append((array_id, array_outcome(tasks, nfiles)))
+    return found
+
+
+def groovy_sbatch_path(groovy_dir, source, mc_type):
+    return os.path.join(groovy_dir, "GroovyArray_%s_%s_epipX.sh" % (source, mc_type))
+
+
+def completed_groovy_job(groovy_dir, folder, source, mc_type, paths, dry_run):
+    # Finished means the recorded manifest is this input set and every sacct task exited 0.
+    digest = inputs_sha256(paths)
+    nfiles = len(paths)
+    if(nfiles < 1):
+        print("groovy %s %s: input set is empty; completion cannot be established" % (source, mc_type))
+        return "submit", "", ""
+    candidates = []
+    script = groovy_sbatch_path(groovy_dir, source, mc_type)
+    if(os.path.isfile(script)):
+        job_name, array_spec, manifest = parse_groovy_sbatch(script)
+        expected_spec = "0-%d" % (nfiles - 1)
+        manifest_paths = expand_patterns(read_manifest_patterns(manifest)) if((manifest != "") and os.path.isfile(manifest)) else []
+        if((job_name != "") and (array_spec == expected_spec) and (manifest_paths == paths)):
+            candidates.append((job_name, ""))
+        else:
+            print("groovy %s %s: on-disk %s does not match the current input set" % (source, mc_type, os.path.basename(script)))
+    for record in load_receipts(folder):
+        if((record.get("source") == source) and (record.get("mc") == mc_type) and (record.get("inputs_sha256") == digest)):
+            candidates.append((record.get("job_name", ""), record.get("job_id", "")))
+    if(len(candidates) == 0):
+        print("groovy %s %s: no submission record matches this input set; submit" % (source, mc_type))
+        return "submit", "", ""
+    unknown = False
+    active_id = ""
+    active_name = ""
+    for job_name, job_id in candidates:
+        found = matching_arrays(job_name, job_id, nfiles)
+        if(found is None):
+            unknown = True
+            continue
+        for array_id, outcome in found:
+            if(outcome == "complete"):
+                if(not dry_run):
+                    save_receipt(folder, {"source": source, "mc": mc_type, "event": "epipX", "inputs_sha256": digest, "nfiles": nfiles, "job_id": array_id, "job_name": job_name})
+                print("groovy %s %s: reuse array %s (%d tasks COMPLETED, exit 0, inputs match)" % (source, mc_type, array_id, nfiles))
+                return "reuse", array_id, job_name
+            if((outcome == "active") and (active_id == "")):
+                active_id = array_id
+                active_name = job_name
+    if(active_id != ""):
+        print("groovy %s %s: array %s is still running for this input set; watch, do not submit again" % (source, mc_type, active_id))
+        return "watch", active_id, active_name
+    if(unknown):
+        print("groovy %s %s: completion cannot be established because sacct could not be read; submit" % (source, mc_type))
+    else:
+        print("groovy %s %s: no successful array matches this input set; submit" % (source, mc_type))
+    return "submit", "", ""
+
+
+def watch_groovy_array(source, mc_type, array_id, nfiles, folder, digest, job_name, dry_run):
+    print("groovy %s %s: watching array %s" % (source, mc_type, array_id))
+    if(dry_run):
+        return 0
+    while(True):
+        found = matching_arrays("", array_id, nfiles)
+        if(found is None):
+            mail_stop("groovy_%s_%s" % (source, mc_type), "sacct could not be read while watching %s" % array_id)
+            return 1
+        outcome = "incomplete"
+        for found_id, found_outcome in found:
+            if(found_id == str(array_id)):
+                outcome = found_outcome
+        if(outcome == "complete"):
+            save_receipt(folder, {"source": source, "mc": mc_type, "event": "epipX", "inputs_sha256": digest, "nfiles": nfiles, "job_id": str(array_id), "job_name": job_name})
+            return 0
+        if(outcome == "active"):
+            time.sleep(60)
+            continue
+        mail_stop("groovy_%s_%s" % (source, mc_type), "array %s did not finish successfully" % array_id)
+        return 1
+
+
+def run_groovy_processes(pending, folder, identities):
+    # Start every outstanding Groovy workload, then wait. One failure does not cancel the others.
+    running = []
+    for stage, argv, cwd in pending:
+        print("")
+        print("stage %s" % stage)
+        show_command(argv)
+        proc = subprocess.Popen([str(part) for part in argv], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        running.append({"stage": stage, "proc": proc, "lines": []})
+
+    def read_output(item):
+        for line in item["proc"].stdout:
+            print("[%s] %s" % (item["stage"], line), end="")
+            item["lines"].append(line)
+
+    threads = []
+    for item in running:
+        thread = threading.Thread(target=read_output, args=(item,))
+        thread.start()
+        threads.append(thread)
+    for thread in threads:
+        thread.join()
+    failed = 0
+    for item in running:
+        code = item["proc"].wait()
+        print("stage %s exit %s" % (item["stage"], code))
+        if(code != 0):
+            failed = code
+            mail_stop(item["stage"], "exit %s" % code)
+            continue
+        job_id = ""
+        for line in item["lines"]:
+            if("Submitted SLURM array job id:" in line):
+                job_id = line.split(":")[-1].strip()
+        identity = identities.get(item["stage"])
+        if((identity is not None) and (job_id != "")):
+            save_receipt(folder, {"source": identity["source"], "mc": identity["mc"], "event": "epipX", "inputs_sha256": identity["digest"], "nfiles": identity["nfiles"], "job_id": job_id, "job_name": identity.get("job_name", "")})
+    return failed
+
+
 def run_early(args):
     config = load_ifarm_inputs()
     token = rho_source_token(config) or "rho0_new"
@@ -102,11 +362,41 @@ def run_early(args):
     submit = os.path.join(frames, "Submit_Full_Histogram_Creation_Pipeline.py")
     fit = os.path.join(frames, "Get_rho_Normalization_values.py")
     merged = os.path.join(data_root_path(args.data_root), REL_HADD, "SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_%s_Final_Thesis_Files_All.root" % token)
+    rho_paths = expand_patterns([rho_glob])
+    clasdis_paths = expand_patterns([clasdis_glob])
+    groovy_jobs = [
+        ("groovy_rho_gdf", "rho0", "gdf", rho_list, rho_paths, "Groovy generated rho0, hybrid, 10 local jobs. Ran in tmuxPython."),
+        ("groovy_rho_mdf", "rho0", "mdf", rho_list, rho_paths, "Groovy reconstructed rho0, hybrid, 10 local jobs. Ran in tmuxPython."),
+        ("groovy_55na_gdf", "clasdis", "gdf", clasdis_list, clasdis_paths, "Groovy generated 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."),
+        ("groovy_55na_mdf", "clasdis", "mdf", clasdis_list, clasdis_paths, "Groovy reconstructed 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."),
+    ]
+    pending = []
+    identities = {}
+    watches = []
+    for stage, source, mc_type, paths_txt, paths, message in groovy_jobs:
+        action, array_id, job_name = completed_groovy_job(groovy_dir, folder, source, mc_type, paths, args.dry_run)
+        if(action == "reuse"):
+            continue
+        if(action == "watch"):
+            watches.append((source, mc_type, array_id, len(paths), inputs_sha256(paths), job_name))
+            continue
+        argv = groovy_command(groovy, source, mc_type, paths_txt, message)
+        identities[stage] = {"source": source, "mc": mc_type, "digest": inputs_sha256(paths), "nfiles": len(paths), "job_name": job_name}
+        if(args.dry_run):
+            print("")
+            print("stage %s submit" % stage)
+            show_command(argv)
+        else:
+            pending.append((stage, argv, groovy_dir))
+    if(len(pending) > 0):
+        code = run_groovy_processes(pending, folder, identities)
+        if(code != 0):
+            return code
+    for source, mc_type, array_id, nfiles, digest, job_name in watches:
+        code = watch_groovy_array(source, mc_type, array_id, nfiles, folder, digest, job_name, args.dry_run)
+        if(code != 0):
+            return code
     steps = [
-        ("groovy_rho_gdf", groovy_command(groovy, "rho0", "gdf", rho_list, "Groovy generated rho0, hybrid, 10 local jobs. Ran in tmuxPython."), groovy_dir),
-        ("groovy_rho_mdf", groovy_command(groovy, "rho0", "mdf", rho_list, "Groovy reconstructed rho0, hybrid, 10 local jobs. Ran in tmuxPython."), groovy_dir),
-        ("groovy_55na_gdf", groovy_command(groovy, "clasdis", "gdf", clasdis_list, "Groovy generated 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."), groovy_dir),
-        ("groovy_55na_mdf", groovy_command(groovy, "clasdis", "mdf", clasdis_list, "Groovy reconstructed 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."), groovy_dir),
         ("dataframe_rho_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame generated rho0. Ran in tmuxPython."], frames),
         ("dataframe_rho_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame reconstructed rho0. Ran in tmuxPython."], frames),
         ("dataframe_55na_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*inb-clasdis-55na*"), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame generated 55 nA clasdis. Ran in tmuxPython."], frames),
