@@ -479,6 +479,49 @@ def slurm_array_has_active_tasks(array_jobid):
     return True
 
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_0.batch are ignored.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            found[int(index_text)] = parts[1].strip().split()[0]
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+
+def slurm_task_is_failure(state, index, local_ok):
+    # CANCELLED is the hybrid handoff when this process finished that index locally.
+    if(state == "COMPLETED"):
+        return False
+    if((state == "CANCELLED") and (index in local_ok)):
+        return False
+    return True
+
+
 def build_slurm_array_script_text(script_path, manifest_path, job_name, email_address, slurm_time, slurm_mem_per_cpu, slurm_partition, slurm_account, array_spec, work_dir, mkdir_work_dir=False):
     safe_script_path   = str(script_path).replace('"', '\\"')
     safe_manifest_path = str(manifest_path).replace('"', '\\"')
@@ -1053,6 +1096,20 @@ Overall success: {overall_success}
             finish_job(finished_item, finished_rc)
 
         # === REUSE THE SAME POST-PROCESSING + EMAIL LOGIC AS SEQUENTIAL MODE ===
+        if(args.slurm_array_jobid not in [None, ""]):
+            while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
+                print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
+                time.sleep(60)
+            expected = []
+            for item in batch_iterable:
+                if(isinstance(item, int)):
+                    expected.append(item)
+            local_ok = set([rr["index"] for rr in results if(rr.get("rc", 1) == 0)])
+            states = array_task_states(args.slurm_array_jobid, expected)
+            for index in expected:
+                state = states.get(index, "")
+                if(slurm_task_is_failure(state, index, local_ok)):
+                    results.append({"index": index, "file": expanded_files[index], "rc": 1, "slurm_state": state if(state) else "missing"})
         failed = [rr for rr in results if(rr.get("rc", 0) != 0)] if(results) else []
         overall_success = (len(failed) == 0)
 

@@ -194,6 +194,9 @@ def parse_args():
                    default="parallel",
                    choices=["parallel", "sequential", "slurm", "hybrid"],
                    help="Response stage mode (default parallel). hybrid: submit SLURM with --yes, then local parallel with -saj; both write batch ROOT files under /volatile and local hadd goes to the parallel work_dir destination. Acceptance is always local.\n")
+    p.add_argument("-y", "--yes",
+                   action="store_true",
+                   help="Approve a pure slurm submission without a prompt. Hybrid already approves its own slurm leg. Omit -y and a manual slurm run still asks.\n")
     p.add_argument("-saj", "--slurm_array_jobid",
                    type=str,
                    default=None,
@@ -868,7 +871,7 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
     if(mode == "slurm"):
         # Interactive per-product approval (stdio inherited; no --yes).
         for product, jobs in selected:
-            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=False, jobs=jobs)
+            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=args.yes, jobs=jobs)
             rc = run_cmd_interactive(args, cmd, f"{product['key']}-slurm", cut_name, "slurm")
             results.append((product["key"], rc))
         return results
@@ -911,7 +914,7 @@ def run_rho0_stage(args):
         cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="sequential", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_blocking(args, cmd, "rho0", cut_name, "sequential", tee_terminal=bool(args.verbose))
     if(mode == "slurm"):
-        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=False, jobs=jobs, use_hpp=False, naming_cut=naming_cut)
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=args.yes, jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_interactive(args, cmd, "rho0-slurm", cut_name, "slurm")
     cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
     job = launch_cmd(args, cmd, "rho0", tee_terminal=bool(args.verbose))

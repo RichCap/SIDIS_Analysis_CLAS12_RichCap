@@ -837,6 +837,47 @@ def wait_for_remaining_slurm_tasks(args):
         print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
         time.sleep(30.0)
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_1.batch are ignored. Array task ids here are 1-based.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            found[int(index_text)] = parts[1].strip().split()[0]
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+def slurm_task_is_failure(state, index, local_ok):
+    # CANCELLED is the hybrid handoff when this process finished that index locally.
+    if(state == "COMPLETED"):
+        return False
+    if((state == "CANCELLED") and (index in local_ok)):
+        return False
+    return True
+
 def write_hybrid_filelist(output_dir, job_base, files):
     list_path = os.path.join(output_dir, f"{job_base}_filelist.txt")
     with open(list_path, "w") as fh:
@@ -884,7 +925,8 @@ def run_slurm_mode(args, variant_settings, files, output_dir, log_dir, auto_yes=
             response = "n"
     if(response not in ["y", "yes"]):
         print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting.")
-        sys.exit(0)
+        # sys.exit(0)
+        sys.exit(1)
     proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
     array_id = (proc.stdout or "").strip()
     if(proc.returncode != 0 or array_id in [None, ""]):
@@ -1033,6 +1075,14 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
         else:
             time.sleep(0.50)
     wait_for_remaining_slurm_tasks(args)
+    if(getattr(args, "slurm_array_jobid", None) not in [None, ""]):
+        local_ok = set([int(result["index"]) + 1 for result in results if(result.get("returncode", 1) == 0)])
+        expected = list(range(1, len(files) + 1))
+        states = array_task_states(args.slurm_array_jobid, expected)
+        for task_id in expected:
+            state = states.get(task_id, "")
+            if(slurm_task_is_failure(state, task_id, local_ok)):
+                results.append({"index": task_id - 1, "input_file": files[task_id - 1], "command": [], "log_path": "", "err_path": "", "returncode": 1})
     return sorted(results, key=lambda item: item["index"])
 
 
@@ -1086,6 +1136,9 @@ def main():
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
     build_email_summary(args, variant_settings, files, results, output_dir, log_dir, Peak_Mem=peak_mem_str)
+    fail_jobs = sum(1 for result in results if(result.get("returncode", 1) != 0))
+    if(fail_jobs > 0):
+        sys.exit(1)
 
 
 if(__name__ == "__main__"):

@@ -1152,7 +1152,8 @@ def run_slurm_mode(args):
 
     if(response not in ["y", "yes"]):
         print(f"{color.Error}[ERROR]{color.END} SLURM scripts not approved. Exiting.")
-        sys.exit(0)
+        # sys.exit(0)
+        sys.exit(1)
 
     proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
     array_id = proc.stdout.strip()

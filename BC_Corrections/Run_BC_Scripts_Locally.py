@@ -541,6 +541,47 @@ def wait_until_slurm_idle(array_jobid, poll_seconds=30.0):
         time.sleep(max(1.0, float(poll_seconds)))
     print(f"{color.BGREEN}[INFO]{color.END} No active SLURM tasks remain for array job {array_jobid}.")
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_0.batch are ignored.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            found[int(index_text)] = parts[1].strip().split()[0]
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+def slurm_task_is_failure(state, index, local_ok):
+    # CANCELLED is the hybrid handoff when this process finished that index locally.
+    if(state == "COMPLETED"):
+        return False
+    if((state == "CANCELLED") and (index in local_ok)):
+        return False
+    return True
+
 def should_start_local_hybrid_job(array_jobid, job_index):
     # Hybrid ownership (squeue-based): PD -> cancel then local; active/absent/IGNORE -> skip local.
     state = query_slurm_array_task_state(array_jobid, job_index)
@@ -794,7 +835,8 @@ def main():
         if(not approve_submission(args)):
             print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without submission.")
             timer.stop()
-            return 0
+            # return 0
+            return 1
         array_id = submit_sbatch(script_path)
         jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
         with open(jobid_path, "w") as fh:
@@ -844,6 +886,7 @@ def main():
         num_fail = 0
         failed_indices = []
         skipped_indices = []
+        local_ok = []
 
         if(array_lo is not None):
             script_path = os.path.join(log_run_dir, f"slurm_array_{run_tag}.sh")
@@ -854,7 +897,8 @@ def main():
             if(not approve_submission(args)):
                 print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without hybrid run.")
                 timer.stop()
-                return 0
+                # return 0
+                return 1
             array_id = submit_sbatch(script_path)
             jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
             with open(jobid_path, "w") as fh:
@@ -887,6 +931,7 @@ def main():
                     pass
                 base = os.path.basename(item["filepath"]).replace(" ", "_")
                 if(rc == 0):
+                    local_ok.append(item["num"])
                     print(f"{color.BGREEN}DONE {color.END}: {item['num']+1:>3.0f} of {len(files)}  ->  {base}")
                 else:
                     num_fail += 1
@@ -947,6 +992,15 @@ def main():
                     return 1
 
             wait_until_slurm_idle(array_id, poll_seconds=args.poll_seconds)
+            if(array_id not in [None, ""]):
+                expected = list(range(0, max(0, n_files - 1)))
+                states = array_task_states(array_id, expected)
+                for index in expected:
+                    state = states.get(index, "")
+                    if(slurm_task_is_failure(state, index, set(local_ok))):
+                        num_fail += 1
+                        failed_indices.append(index)
+                        print(f"{color.Error}FAIL {color.END}: SLURM task {array_id}_{index} state={state if(state) else 'missing'}")
 
         if(n_files > 0):
             final_rc = run_final_file(args, base_cmd, files[-1], timer)
