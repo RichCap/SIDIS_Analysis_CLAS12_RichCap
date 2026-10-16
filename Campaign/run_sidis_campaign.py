@@ -234,6 +234,7 @@ def main():
     parser.add_argument("-s", "--stage", default="unfold_3d", help="Stage id, comma-separated ids, or all_stages.")
     parser.add_argument("-g", "--graph", default=os.path.join(os.path.dirname(__file__), "sidis_graph.json"))
     parser.add_argument("-b", "--backend", default="external", help="external, local_seq, swif2, hybrid, slurm_array, local_parallel, or validate.")
+    parser.add_argument("-orch", "--orchestration", default="swif2", choices=["swif2", "direct"], help="swif2 submits through SWIF2. direct runs the existing hybrid scripts in this process and starts the next stage only after exit 0.")
     parser.add_argument("-sys", "--systematics", default="nominal", help="nominal, all, or one source name.")
     parser.add_argument("-v", "--variation", default=None)
     parser.add_argument("-dim", "--dimension", default="3D", choices=["1D", "3D", "5D"])
@@ -263,6 +264,10 @@ def main():
         for line in format_plan(rows):
             print(line)
         print("After a checkpoint is approved, run this same -s workflow command again with that stage id added to -sat. That one resume releases its descendants. Other ready branches are already in this plan.")
+        return
+    if(args.orchestration == "direct"):
+        from Campaign.local_orchestrator import run_direct
+        run_direct(args)
         return
     data_root_key = args.data_root
     registry_root = data_root_path(data_root_key) if(data_root_key in WORK_ROOTS) else data_root_key

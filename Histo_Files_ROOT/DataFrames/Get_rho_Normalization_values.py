@@ -33,6 +33,24 @@ def rho_hist_token(args):
         return str(token)
     return "lundrho" if(args.old_lund) else "lundvpk"
 
+def write_rho_review(args):
+    # The C++ weight file does not record n_rho. This text file is the review copy. It is not Campaign/rho_factors.json.
+    if(args.no_save):
+        return
+    token = rho_hist_token(args)
+    path = os.path.join(os.getcwd(), "exclusive_rho_review_%s.txt" % token)
+    lines = [
+        "source_token %s" % token,
+        "input %s" % args.file1,
+        "n_rho %s" % getattr(args, "n_rho", "not_produced"),
+        "n_rho_ave %s" % getattr(args, "n_rho_ave", "not_produced"),
+        "final_factor %s" % getattr(args, "final_factor", "not_produced"),
+    ]
+    handle = open(path, "w")
+    handle.write("\n".join(lines) + "\n")
+    handle.close()
+    print("Wrote %s" % path)
+
 def refuse_preweighted_rho_input(path):
     # The normalization fit must see histograms built without --run_rho_weight.
     if(path is None):
@@ -1163,6 +1181,8 @@ def main_Get_rho_Normalization_values_Wpions(args):
         print(f"{color.BGREEN}n_rho_ave (brings Harut's files to data)              : {n_rho_ave:>12.6f}{color.END}\n")
     else:
         n_rho_ave = n_rho
+    args.n_rho = n_rho
+    args.n_rho_ave = n_rho_ave
     file1.Close()
     return n_rho_ave
 
@@ -2895,7 +2915,9 @@ if(__name__ == "__main__"):
     elif("W" in str(args.vars)):
         silence_root_import()
         main_Get_rho_Normalization_values_Wpions(args)
+        write_rho_review(args)
     else:
         main_Get_rho_Normalization_values(args)
+        write_rho_review(args)
     args.timer.stop()
 
