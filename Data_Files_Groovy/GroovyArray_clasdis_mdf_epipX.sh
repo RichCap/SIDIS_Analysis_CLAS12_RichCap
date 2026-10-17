@@ -1,18 +1,18 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --job-name=MC_Rec_epipX_clasdis_8_31_2026
+#SBATCH --job-name=MC_Rec_epipX_clasdis_10_16_2026
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=richard.capobianco@uconn.edu
 #SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
 #SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
 #SBATCH --partition=production
 #SBATCH --account=clas12
-#SBATCH --mem-per-cpu=4GB
+#SBATCH --mem-per-cpu=3GB
 #SBATCH --time=20:00:00
-#SBATCH --array=0-4
+#SBATCH --array=0-169
 
 TASK_ID="${SLURM_ARRAY_TASK_ID}"
-MANIFEST="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/TEMP_Paths_to_MC_clasdis_files_SIDIS.txt"
+MANIFEST="/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/direct_inputs/clasdis_55na_new.txt"
 GROOVY_SCRIPT="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Data_Files_Groovy/Matched_REC_MC/MC_Matched_TTree_epip_Batch_New.groovy"
 WORK_DIR="/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info/"
 
