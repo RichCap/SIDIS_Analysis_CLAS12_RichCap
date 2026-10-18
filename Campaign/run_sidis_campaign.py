@@ -235,6 +235,7 @@ def main():
     parser.add_argument("-g", "--graph", default=os.path.join(os.path.dirname(__file__), "sidis_graph.json"))
     parser.add_argument("-b", "--backend", default="external", help="external, local_seq, swif2, hybrid, slurm_array, local_parallel, or validate.")
     parser.add_argument("-orch", "--orchestration", default="swif2", choices=["swif2", "direct"], help="swif2 submits through SWIF2. direct runs the existing hybrid scripts in this process and starts the next stage only after exit 0.")
+    parser.add_argument("-em", "--email_message", default=None, help="Message passed through to the stage scripts. When omitted, the message names the phase and does not name a tmux session.")
     parser.add_argument("-sys", "--systematics", default="nominal", help="nominal, all, or one source name.")
     parser.add_argument("-v", "--variation", default=None)
     parser.add_argument("-dim", "--dimension", default="3D", choices=["1D", "3D", "5D"])

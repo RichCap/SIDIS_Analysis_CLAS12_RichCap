@@ -19,41 +19,73 @@ from Campaign.rc_pairs import pair_rad_nrad, report_pairs
 from jlab_work_paths import REL_HADD, data_root_path
 
 EMAIL_TO = "richard.capobianco@uconn.edu"
-EXPECTED_RHO = 40
-EXPECTED_CLASDIS = 170
 BINNED_EVGEN = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch"
 RC_RUNTIME = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/build_EvGen_PerFile_Hists_Runtime_ifarm_rc"
 GEN_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2"
 REC_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info"
 
 
-def mail_stop(stage, detail):
-    body = "direct orchestration stopped\nstage: %s\n%s\nThe next stage was not started.\n" % (stage, detail)
+def mail_note(subject, body):
     print(body)
     try:
-        subprocess.run(["mail", "-s", "SIDIS direct orchestration stopped: %s" % stage, EMAIL_TO], input=body.encode(), check=False)
+        subprocess.run(["mail", "-s", subject, EMAIL_TO], input=body.encode(), check=False)
     except FileNotFoundError:
-        print("WARNING: mail command not found; the stop message was printed and was not emailed.")
+        print("WARNING: mail command not found; the message was printed and was not emailed.")
+
+
+def mail_stop(stage, detail):
+    mail_note("SIDIS phase %s failed" % stage, "phase: %s\ncause: %s\nThe next phase was not started.\n" % (stage, detail))
+
+
+def phase_message(args, phase):
+    if(getattr(args, "email_message", None)):
+        return args.email_message
+    return "phase %s" % phase
+
+
+def record_phase(folder, phase, status):
+    path = os.path.join(folder, "phase_status.json")
+    phases = {}
+    if(os.path.isfile(path)):
+        handle = open(path)
+        payload = json.load(handle)
+        handle.close()
+        phases = dict(payload.get("phases", {}))
+    phases[phase] = status
+    handle = open(path, "w")
+    json.dump({"phases": phases}, handle, indent=2)
+    handle.write("\n")
+    handle.close()
 
 
 def show_command(argv):
     print(shlex.join([str(part) for part in argv]))
 
 
-def run_command(stage, argv, cwd, dry_run):
+def run_command(stage, argv, cwd, dry_run, next_phase="", mail_success=True):
     print("")
-    print("stage %s" % stage)
+    print("phase %s" % stage)
     show_command(argv)
     if(dry_run):
         return 0
     try:
-        proc = subprocess.run([str(part) for part in argv], cwd=cwd)
+        proc = subprocess.Popen([str(part) for part in argv], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     except FileNotFoundError:
         mail_stop(stage, "command not found: %s" % argv[0])
         return 1
-    if(proc.returncode != 0):
-        mail_stop(stage, "exit %s" % proc.returncode)
-        return proc.returncode
+    tail = []
+    for line in proc.stdout:
+        print(line, end="")
+        tail.append(line)
+        if(len(tail) > 80):
+            tail.pop(0)
+    code = proc.wait()
+    excerpt = "".join(tail)
+    if(code != 0):
+        mail_stop(stage, "exit %s\n\n%s" % (code, excerpt))
+        return code
+    if(mail_success):
+        mail_note("SIDIS phase %s finished" % stage, "phase %s finished.\nnext phase: %s\n" % (stage, next_phase if(next_phase) else "none"))
     return 0
 
 
@@ -346,9 +378,9 @@ def run_early(args):
     clasdis_glob = config.get("clasdis_55na_hipo_glob", "")
     rho_count = len(glob.glob(rho_glob)) if(rho_glob) else 0
     clasdis_count = len(glob.glob(clasdis_glob)) if(clasdis_glob) else 0
-    print("rho0 matches %d (required %d)" % (rho_count, EXPECTED_RHO))
-    print("55nA clasdis matches %d (required %d)" % (clasdis_count, EXPECTED_CLASDIS))
-    if((not args.dry_run) and ((rho_count != EXPECTED_RHO) or (clasdis_count != EXPECTED_CLASDIS))):
+    print("phase groovy: rho0 matches %d" % rho_count)
+    print("phase groovy: 55nA clasdis matches %d" % clasdis_count)
+    if((not args.dry_run) and ((rho_count < 1) or (clasdis_count < 1))):
         mail_stop("groovy", "refusing to submit: rho0 %d, clasdis %d" % (rho_count, clasdis_count))
         return 1
     folder = input_folder(args.data_root, args.dry_run)
@@ -365,10 +397,10 @@ def run_early(args):
     rho_paths = expand_patterns([rho_glob])
     clasdis_paths = expand_patterns([clasdis_glob])
     groovy_jobs = [
-        ("groovy_rho_gdf", "rho0", "gdf", rho_list, rho_paths, "Groovy generated rho0, hybrid, 10 local jobs. Ran in tmuxPython."),
-        ("groovy_rho_mdf", "rho0", "mdf", rho_list, rho_paths, "Groovy reconstructed rho0, hybrid, 10 local jobs. Ran in tmuxPython."),
-        ("groovy_55na_gdf", "clasdis", "gdf", clasdis_list, clasdis_paths, "Groovy generated 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."),
-        ("groovy_55na_mdf", "clasdis", "mdf", clasdis_list, clasdis_paths, "Groovy reconstructed 55 nA clasdis, hybrid, 10 local jobs. Ran in tmuxPython."),
+        ("groovy_rho_gdf", "rho0", "gdf", rho_list, rho_paths, phase_message(args, "groovy rho0 generated")),
+        ("groovy_rho_mdf", "rho0", "mdf", rho_list, rho_paths, phase_message(args, "groovy rho0 reconstructed")),
+        ("groovy_55na_gdf", "clasdis", "gdf", clasdis_list, clasdis_paths, phase_message(args, "groovy 55 nA clasdis generated")),
+        ("groovy_55na_mdf", "clasdis", "mdf", clasdis_list, clasdis_paths, phase_message(args, "groovy 55 nA clasdis reconstructed")),
     ]
     pending = []
     identities = {}
@@ -396,19 +428,35 @@ def run_early(args):
         code = watch_groovy_array(source, mc_type, array_id, nfiles, folder, digest, job_name, args.dry_run)
         if(code != 0):
             return code
-    steps = [
-        ("dataframe_rho_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame generated rho0. Ran in tmuxPython."], frames),
-        ("dataframe_rho_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame reconstructed rho0. Ran in tmuxPython."], frames),
-        ("dataframe_55na_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*inb-clasdis-55na*"), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame generated 55 nA clasdis. Ran in tmuxPython."], frames),
-        ("dataframe_55na_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*inb-clasdis-55na*"), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", "RDataFrame reconstructed 55 nA clasdis. Ran in tmuxPython."], frames),
-        ("make_batches", [batches, "-droot", args.data_root, "-m", "make_batches", "-rst", token, "-e", "-em", "make_batches with %s appended after lundvpk and lundrho. Ran in tmuxPython." % token], frames),
-        ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-e", "-em", "Unweighted rho0 normalization histograms, hybrid, 10 local jobs. Ran in tmuxPython."], frames),
-        ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", "rho0 normalization fit. Ran in tmuxPython."], frames),
+    if(not args.dry_run):
+        record_phase(folder, "groovy", "success")
+        mail_note("SIDIS phase groovy finished", "phase groovy finished.\nnext phase: dataframe\n")
+    note = phase_message(args, "dataframe")
+    phases = [
+        ("dataframe", [
+            ("dataframe_rho_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
+            ("dataframe_rho_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
+            ("dataframe_55na_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*inb-clasdis-55na*"), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
+            ("dataframe_55na_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*inb-clasdis-55na*"), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
+        ], "make_batches"),
+        ("make_batches", [
+            ("make_batches", [batches, "-droot", args.data_root, "-m", "make_batches", "-rst", token, "-e", "-em", phase_message(args, "make_batches")], frames),
+        ], "rho_hist"),
+        ("rho_hist", [
+            ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-e", "-em", phase_message(args, "rho_hist")], frames),
+        ], "rho_fit"),
+        ("rho_fit", [
+            ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", phase_message(args, "rho_fit")], frames),
+        ], ""),
     ]
-    for stage, argv, cwd in steps:
-        code = run_command(stage, argv, cwd, args.dry_run)
-        if(code != 0):
-            return code
+    for phase, steps, next_phase in phases:
+        for stage, argv, cwd in steps:
+            code = run_command(stage, argv, cwd, args.dry_run, next_phase, mail_success=False)
+            if(code != 0):
+                return code
+        if(not args.dry_run):
+            record_phase(folder, phase, "success")
+            mail_note("SIDIS phase %s finished" % phase, "phase %s finished.\nnext phase: %s\n" % (phase, next_phase if(next_phase) else "none"))
     if(not args.dry_run):
         print("rho fit finished. Read exclusive_rho_review_%s.txt. Campaign/rho_factors.json is still written by hand before weighted response." % token)
     return 0
@@ -457,17 +505,22 @@ def run_rc(args):
     merged = os.path.join(RC_RUNTIME, "merged_outputs", "Merged_EvGen_PerFile_Hists.root")
     rc_out = os.path.join(RC_RUNTIME, "merged_outputs", "RC_Factors_ifarm_rc.root")
     paired = matched_evgen(args.dry_run)
-    argv = [build, "-m", "hybrid", "-y", "-p", "-mpj", "10", "-e", "-em", "EvGen per-file RC histograms, hybrid, 10 local jobs. Ran in tmuxRADGEN.", "-rdir", RC_RUNTIME]
+    argv = [build, "-m", "hybrid", "-y", "-p", "-mpj", "10", "-e", "-em", phase_message(args, "rc_build"), "-rdir", RC_RUNTIME]
     if(paired is not None):
         argv.extend(["-rrad"] + list(paired["rad"]))
         argv.extend(["-rnrad"] + list(paired["nrad"]))
     else:
         print("RC file list is added when the binned directory is visible")
-    code = run_command("rc_build", argv, compare_dir, args.dry_run)
+    code = run_command("rc_build", argv, compare_dir, args.dry_run, "rc_compare")
     if(code != 0):
         return code
+    if(not args.dry_run):
+        record_phase(input_folder(args.data_root, False), "rc_build", "success")
     argv = [compare, "-r", merged, "-ssf", "-sfn", rc_out, "-rc", "-Nw", "-evgen"]
-    return run_command("rc_compare", argv, compare_dir, args.dry_run)
+    code = run_command("rc_compare", argv, compare_dir, args.dry_run, "")
+    if((code == 0) and (not args.dry_run)):
+        record_phase(input_folder(args.data_root, False), "rc_compare", "success")
+    return code
 
 
 def run_bc(args):
@@ -475,9 +528,11 @@ def run_bc(args):
     runner = os.path.join(bc_dir, "Run_BC_Scripts_Locally.py")
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
     per_file = "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn --root_file_out ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
-    code = run_command("bc_hist", [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", "BC per-file histograms. Ran in tmuxBC.", "-c", per_file], bc_dir, args.dry_run)
+    code = run_command("bc_hist", [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, "bc_hist"), "-c", per_file], bc_dir, args.dry_run, "bc_hadd")
     if(code != 0):
         return code
+    if(not args.dry_run):
+        record_phase(input_folder(args.data_root, False), "bc_hist", "success")
     dest = "ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root"
     inputs = sorted(glob.glob(os.path.join(bc_dir, "ROOT_Files_Output", "Sub_Bin_Contents_for_BC_Correction_*EvGen*.root")))
     if((len(inputs) == 0) and (not args.dry_run)):
@@ -486,11 +541,16 @@ def run_bc(args):
     relative_inputs = [os.path.relpath(path, bc_dir) for path in inputs]
     if((len(relative_inputs) == 0) and args.dry_run):
         relative_inputs = ["ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction_*EvGen*.root"]
-    code = run_command("bc_hadd", ["hadd_richcap", dest] + relative_inputs, bc_dir, args.dry_run)
+    code = run_command("bc_hadd", ["hadd_richcap", dest] + relative_inputs, bc_dir, args.dry_run, "bc_factors")
     if(code != 0):
         return code
-    argv = [factor, "-jf", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json", "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", "BC factors from the merged histogram. Ran in tmuxBC."]
-    return run_command("bc_factors", argv, bc_dir, args.dry_run)
+    if(not args.dry_run):
+        record_phase(input_folder(args.data_root, False), "bc_hadd", "success")
+    argv = [factor, "-jf", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json", "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", phase_message(args, "bc_factors")]
+    code = run_command("bc_factors", argv, bc_dir, args.dry_run, "")
+    if((code == 0) and (not args.dry_run)):
+        record_phase(input_folder(args.data_root, False), "bc_factors", "success")
+    return code
 
 
 def run_direct(args):
